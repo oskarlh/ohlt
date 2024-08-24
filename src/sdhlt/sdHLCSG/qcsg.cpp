@@ -124,7 +124,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     {
         g_max_map_miptex = iTmp;
     }
-	sprintf_s(szTmp, "%i", g_max_map_miptex);
+	snprintf(szTmp, sizeof(szTmp), "%i", g_max_map_miptex);
     Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
 
     // hullfile(string) : "Custom Hullfile"
@@ -1596,7 +1596,7 @@ static void     DumpWadinclude()
 // =====================================================================================
 static void     Settings()
 {
-    char*           tmp;
+    const char*           tmp;
 
     if (!g_info)
         return; 

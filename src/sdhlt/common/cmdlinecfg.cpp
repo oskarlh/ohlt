@@ -198,10 +198,16 @@ const char * nextword (const char *s, char *token, unsigned int n)
 		if (!quote && !comment && content && (c[0]=='\n' || isspace (c[0])))
 			break;
 		if (content && c[0]!='\"')
+		{
 			if (i<n-1)
+			{
 				token[i++] = c[0];
+			}
 			else
+			{
 				error = true;
+			}
+		}
 	}
 	token[i] = '\0';
 	return content? c: NULL;

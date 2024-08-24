@@ -40,11 +40,16 @@ static void     MakeTnode(const int nodenum)
 
     t->type = plane->type;
     VectorCopy(plane->normal, t->normal);
-	if (plane->normal[(plane->type)%3] < 0)
+	if (plane->normal[(plane->type)%3] < 0) {
 		if (plane->type < 3)
+		{
 			Warning ("MakeTnode: negative plane");
+		}
 		else
+		{
 			Developer (DEVELOPER_LEVEL_MESSAGE, "Warning: MakeTnode: negative plane\n");
+		}
+	}
     t->dist = plane->dist;
 
     for (i = 0; i < 2; i++)

@@ -209,7 +209,7 @@ static void ParseBrush(entity_t* mapent)
 	{
 		char key[16]; //Key name for the hull shape.
 		const char *value; //Value for the key
-		sprintf(key, "zhlt_hull%d", h); //Format key name to include the hull number, used to look up hull shape data in entity properties
+		snprintf(key, sizeof(key), "zhlt_hull%d", h); //Format key name to include the hull number, used to look up hull shape data in entity properties
 		value = ValueForKey(mapent, key);
 
 		if (*value) //If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
@@ -932,7 +932,7 @@ bool            ParseMapEntity()
 	{
 		// Let the map tell which version of the compiler it comes from, to help tracing compiler bugs.
 		char versionstring [128];
-		sprintf (versionstring, "ZHLT " ZHLT_VERSIONSTRING " " HACK_VERSIONSTRING " (%s)", __DATE__);
+		snprintf (versionstring, sizeof(versionstring), "ZHLT " ZHLT_VERSIONSTRING " " HACK_VERSIONSTRING " (%s)", __DATE__);
 		SetKeyValue (mapent, "compiler", versionstring);
 	}
     

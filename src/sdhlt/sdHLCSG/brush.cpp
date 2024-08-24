@@ -456,18 +456,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			//flag case where bounding box shouldn't expand
 			if (current_face->bevel)
 			{
-				switch(current_plane->type)
-				{
-				case plane_x:
-					axialbevel[plane_x][(current_plane->normal[0] > 0 ? 1 : 0)] = true;
-					break;
-				case plane_y:
-					axialbevel[plane_y][(current_plane->normal[1] > 0 ? 1 : 0)] = true;
-					break;
-				case plane_z:
-					axialbevel[plane_z][(current_plane->normal[2] > 0 ? 1 : 0)] = true;
-					break;
-				}
+				axialbevel[current_plane->type][(current_plane->normal[current_plane->type] > 0 ? 1 : 0)] = true;
 			}
 			continue;
 		}

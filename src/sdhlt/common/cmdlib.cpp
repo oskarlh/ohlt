@@ -154,12 +154,12 @@ char* FlipSlashes(char* string)
 	char* ptr = string;
 	if(SYSTEM_SLASH_CHAR == '\\')
 	{
-		while(ptr = strchr(ptr,'/'))
+		while((ptr = strchr(ptr,'/')))
 		{ *ptr = SYSTEM_SLASH_CHAR; }
 	}
 	else
 	{
-		while(ptr = strchr(ptr,'\\'))
+		while((ptr = strchr(ptr,'\\')))
 		{ *ptr = SYSTEM_SLASH_CHAR; }
 	}
 	return string;

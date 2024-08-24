@@ -4,6 +4,13 @@
 
 New features include shadows from studiomodels, new entities, additional tool textures, ability to extend world size limits, portal file optimisation for J.A.C.K. map editor and minor algorithm optimization.
 
+## Compiling the compiler
+```
+cmake -S . -B build
+cmake --build build
+```
+
+
 ## How to install
 
 1. Open the configuration dialog of your map editor or batch compiler.

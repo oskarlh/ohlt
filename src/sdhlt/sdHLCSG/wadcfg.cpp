@@ -65,7 +65,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 			Log ("%s\n", g_token);
 			if (g_iNumWadPaths >= MAX_WADPATHS)
 			{
-				Error ("Parsing '%s': too many wad files (%i/%i) in '%s'\n", filenameOnly, configname, g_iNumWadPaths, MAX_WADPATHS);
+				Error ("Parsing '%s': too many wad files (%i/%i) in '%s'\n", filenameOnly, g_iNumWadPaths, MAX_WADPATHS, configname);
 			}
 			wadPathsFound++;
 			PushWadPath (g_token, !include);

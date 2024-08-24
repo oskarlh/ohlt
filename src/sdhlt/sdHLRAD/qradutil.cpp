@@ -746,7 +746,7 @@ void FreePositionMaps ()
 	if (g_drawsample)
 	{
 		char name[_MAX_PATH+20];
-		sprintf (name, "%s_positions.pts", g_Mapname);
+		snprintf (name, sizeof(name), "%s_positions.pts", g_Mapname);
 		Log ("Writing '%s' ...\n", name);
 		FILE *f;
 		f = fopen(name, "w");

@@ -143,7 +143,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 				}
 				else
 				{
-					sprintf_s(cError, "expected token %s on line %d.", "{", iLine);
+					snprintf(cError, sizeof(cError), "expected token %s on line %d.", "{", iLine);
 					throw cError;
 				}
 			}
@@ -160,7 +160,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 					// Parse the start of a string.
 					if(!ScanForToken('\"', iIndex, iLine, false, false, &iStart))
 					{
-						sprintf_s(cError, "expected token %s on line %d.", "\"", iLine);
+						snprintf(cError, sizeof(cError), "expected token %s on line %d.", "\"", iLine);
 						throw cError;
 					}
 
@@ -168,7 +168,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 					// Parse the end of a string.
 					if(!ScanForToken('\"', iIndex, iLine, true, true, &iEnd))
 					{
-						sprintf_s(cError, "expected token %s on line %d.", "\"", iLine);
+						snprintf(cError, sizeof(cError), "expected token %s on line %d.", "\"", iLine);
 						throw cError;
 					}
 
@@ -192,7 +192,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 					}
 					else
 					{
-						sprintf_s(cError, "expected token %s on line %d.", "}", iLine);
+						snprintf(cError, sizeof(cError), "expected token %s on line %d.", "}", iLine);
 						throw cError;
 					}
 				}
@@ -372,9 +372,9 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 		// a message, print it.
 		if(*cError != '\0')
 		{
-			Error(cError);
+			Error("%s", cError);
 		}
-		Error("unknowen exception.");
+		Error("Unknown exception.");
 
 		//return false;
 	}
@@ -827,7 +827,7 @@ void pause ()
 // =====================================================================================
 static void     Settings()
 {
-    char*           tmp;
+    const char*           tmp;
 
     if (!g_info)
     {

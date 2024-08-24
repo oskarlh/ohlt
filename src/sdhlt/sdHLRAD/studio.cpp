@@ -16,7 +16,7 @@ void LoadStudioModel( const char *modelname, const vec3_t origin, const vec3_t a
 		return;
 	}
 	model_t *m = &models[num_models];
-	sprintf(m->name, "%s%s", g_Wadpath, modelname);
+	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, modelname);
 	FlipSlashes(m->name);
 
 	if (!q_exists(m->name))
@@ -37,7 +37,7 @@ void LoadStudioModel( const char *modelname, const vec3_t origin, const vec3_t a
 		safe_strncpy(texname, modelname, 128);
 		StripExtension(texname);
 
-		sprintf(texpath, "%s%sT.mdl", g_Wadpath, texname);
+		snprintf(texpath, sizeof(texpath), "%s%sT.mdl", g_Wadpath, texname);
 		FlipSlashes(texpath);
 
 		LoadFile(texpath, (char**)&texdata);

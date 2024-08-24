@@ -28,7 +28,7 @@ void        PushWadPath(const char* const path, bool inuse)
 	else
 	{
 		free(currentWad);
-		Error("PushWadPath: too many wadpaths (i%/i%)", g_iNumWadPaths, MAX_WADPATHS);
+		Error("PushWadPath: too many wadpaths (%i/%i)", g_iNumWadPaths, MAX_WADPATHS);
 }
 
 #ifdef _DEBUG

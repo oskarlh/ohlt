@@ -6,10 +6,10 @@
 #pragma once
 #endif
 
-#include <malloc.h>
 
 /////////////////////////////
 #ifdef SYSTEM_WIN32
+#include <malloc.h>
 
 #define alloca      _alloca
 
@@ -39,6 +39,9 @@
 #define FORCEINLINE	__forceinline //--vluzacn
 #define FORMAT_PRINTF(STRING_INDEX,FIRST_TO_CHECK) //--vluzacn
 
+#else
+// Is this needed?
+#include <stdlib.h>
 #endif
 /////////////////////////////
 

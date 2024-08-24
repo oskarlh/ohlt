@@ -24,8 +24,8 @@
 #if !defined (SDHLCSG) && !defined (SDHLBSP) && !defined (SDHLVIS) && !defined (SDHLRAD) && !defined (SDRIPENT) //seedee
 #error "You must define one of these in the settings of each project: SDHLCSG, SDHLBSP, SDHLVIS, SDHLRAD, SDRIPENT. The most likely cause is that you didn't load the project from the .sln file."
 #endif
-#if !defined (VERSION_32BIT) && !defined (VERSION_64BIT) && !defined (VERSION_LINUX) && !defined (VERSION_OTHER) //--vluzacn
-#error "You must define one of these in the settings of each project: VERSION_32BIT, VERSION_64BIT, VERSION_LINUX, VERSION_OTHER. The most likely cause is that you didn't load the project from the .sln file."
+#if !defined (VERSION_32BIT) && !defined (VERSION_64BIT) && !defined (VERSION_LINUX) && !defined (VERSION_MACOS) && !defined (VERSION_OTHER)
+#error "You must define one of these in the settings of each project: VERSION_32BIT, VERSION_64BIT, VERSION_LINUX, VERSION_MACOS, VERSION_OTHER. The most likely cause is that you didn't load the project from the .sln file."
 #endif
 
 #ifdef VERSION_32BIT
@@ -38,6 +38,10 @@
 #endif
 #ifdef VERSION_LINUX
 #define PLATFORM_VERSIONSTRING "linux"
+#define PLATFORM_CAN_CALC_EXTENT
+#endif
+#ifdef VERSION_MACOS
+#define PLATFORM_VERSIONSTRING "macos"
 #define PLATFORM_CAN_CALC_EXTENT
 #endif
 #ifdef VERSION_OTHER
@@ -65,7 +69,6 @@
 
 #if _MSC_VER <1400
 #define strcpy_s strcpy //--vluzacn
-#define sprintf_s sprintf //--vluzacn
 #endif
 #if _MSC_VER >= 1400
 #pragma warning(disable: 4996)

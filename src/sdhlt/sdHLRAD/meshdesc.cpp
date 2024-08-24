@@ -592,7 +592,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 			float s = 1.0f / (float)ptexture[pskinref[pmesh->skinref]].width;
 			float t = 1.0f / (float)ptexture[pskinref[pmesh->skinref]].height;
 
-			while( i = *( ptricmds++ ))
+			while(( i = *( ptricmds++ )))
 			{
 				int	vertexState = 0;
 				bool	tri_strip;
@@ -1015,7 +1015,7 @@ bool CMeshDesc :: FinishMeshBuild( void )
 	}
 
 	if( buffer != bufend )
-		Developer( DEVELOPER_LEVEL_ERROR, "FinishMeshBuild: memory representation error! %x != %x\n", buffer, bufend );
+		Developer( DEVELOPER_LEVEL_ERROR, "FinishMeshBuild: memory representation error! %p != %p\n", buffer, bufend );
 
 	// copy planes into mesh array (probably aligned block)
 	for( i = 0; i < m_mesh.numplanes; i++ )

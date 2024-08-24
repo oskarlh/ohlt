@@ -223,6 +223,20 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         HAVE_UNISTD_H
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_compile_definitions(
+        VERSION_MACOS
+        SYSTEM_POSIX
+        STDC_HEADERS
+        HAVE_FCNTL_H
+        HAVE_PTHREAD_H
+        HAVE_STDDEF_H
+        HAVE_SYS_RESOURCE_H
+        HAVE_SYS_STAT_H
+        HAVE_SYS_TIME_H
+        HAVE_UNISTD_H
+    )
+    message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     option(SDHLT_64BIT "Flag targets as 64-bit." ON)
     if (SDHLT_64BIT)
@@ -253,10 +267,12 @@ add_executable(RIPENT ${RIPENT_SOURCES} ${RIPENT_HEADERS})
 set_target_properties(BSP CSG RAD VIS
     PROPERTIES
         PREFIX ${SDHLT_PREFIX}${SDHLT_GAME_PREFIX}
+        CXX_STANDARD 26
 )
 set_target_properties(RIPENT
     PROPERTIES
         PREFIX ${SDHLT_PREFIX}
+        CXX_STANDARD 26
 )
 
 target_compile_definitions(BSP PRIVATE SDHLBSP DOUBLEVEC_T)

@@ -1229,7 +1229,7 @@ static void     Usage()
 // =====================================================================================
 static void     Settings()
 {
-    char*           tmp;
+    const char*           tmp;
 
     if (!g_info)
     {

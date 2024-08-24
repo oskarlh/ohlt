@@ -95,9 +95,9 @@ size_t Q_strncat( char *dst, const char *src, size_t size )
 	if( !dst || !src || !size )
 		return 0;
 
-	register char *d = dst;
-	register const char	*s = src;
-	register size_t n = size;
+	char *d = dst;
+	const char	*s = src;
+	size_t n = size;
 	size_t dlen;
 
 	// find the end of dst and adjust bytes left but don't go past end
@@ -126,9 +126,9 @@ size_t Q_strncpy( char *dst, const char *src, size_t size )
 	if( !dst || !src || !size )
 		return 0;
 
-	register char *d = dst;
-	register const char	*s = src;
-	register size_t n = size;
+	char *d = dst;
+	const char	*s = src;
+	size_t n = size;
 
 	// copy as many bytes as will fit
 	if( n != 0 && --n != 0 )
@@ -439,7 +439,7 @@ void _Q_timestring( int seconds, char *msg, size_t size )
 	int	nMin = seconds / 60;
 	int	nSec = seconds - nMin * 60;
 	int	nHour = nMin / 60;
-	char	*ext[2] = { "", "s" };
+	const char	*ext[2] = { "", "s" };
 
 	nMin -= nHour * 60;
 	
