@@ -176,7 +176,6 @@
     <ClCompile Include="vismatrixutil.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\anorms.h" />
     <ClInclude Include="..\common\resourcelock.h" />
     <ClInclude Include="..\common\stringlib.h" />
     <ClInclude Include="..\common\studio.h" />

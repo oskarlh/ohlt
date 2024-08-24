@@ -146,7 +146,6 @@ set(RAD_SOURCES
 
 set(RAD_HEADERS
     ${COMMON_HEADERS}
-    ${COMMON_DIR}/anorms.h
     ${RAD_DIR}/compress.h
 	${RAD_DIR}/list.h
 	${RAD_DIR}/meshdesc.h

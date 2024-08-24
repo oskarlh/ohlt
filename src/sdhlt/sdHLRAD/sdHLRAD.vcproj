@@ -326,10 +326,6 @@
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
-				RelativePath="..\common\anorms.h"
-				>
-			</File>
-			<File
 				RelativePath="..\template\basictypes.h"
 				>
 			</File>

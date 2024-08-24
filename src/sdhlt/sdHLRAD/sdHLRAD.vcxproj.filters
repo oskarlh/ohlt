@@ -110,9 +110,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\anorms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\template\basictypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>

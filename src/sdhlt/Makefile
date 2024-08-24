@@ -192,7 +192,6 @@ HLRAD_INCLUDEDIRS = \
 
 HLRAD_INCLUDEFILES = \
 			$(COMMON_INCLUDEFILES) \
-			common/anorms.h \
 			sdHLRAD/compress.h \
 			sdHLRAD/list.h \
 			sdHLRAD/meshdesc.h \
