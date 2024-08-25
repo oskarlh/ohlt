@@ -37,13 +37,9 @@
 #define DEFAULT_ONLYENTS    false
 #define DEFAULT_WADTEXTURES true
 #define DEFAULT_SKYCLIP     true
-#define DEFAULT_CHART       true //seedee
-#define DEFAULT_INFO        true
 
 #define FLOOR_Z 0.7 // Quake default
 #define DEFAULT_CLIPTYPE clip_simple //clip_legacy //--vluzacn
-
-#define DEFAULT_NULLTEX     true
 
 #define DEFAULT_CLIPNAZI    false
 
@@ -60,14 +56,6 @@
 
 // AJM: added in
 #define UNLESS(a)  if (!(a))
-
-#ifdef SYSTEM_WIN32
-#define DEFAULT_ESTIMATE    false
-#endif
-
-#ifdef SYSTEM_POSIX
-#define DEFAULT_ESTIMATE    true
-#endif
 
 //#define BOGUS_RANGE    65534
 #define BOGUS_RANGE    g_iWorldExtent //seedee

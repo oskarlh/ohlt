@@ -26,14 +26,6 @@
 
 #define DEFAULT_FULLVIS     false
 #define DEFAULT_NOFIXPRT    false
-#define DEFAULT_CHART       true //seedee
-#define DEFAULT_INFO        true
-#ifdef SYSTEM_WIN32
-#define DEFAULT_ESTIMATE    false
-#endif
-#ifdef SYSTEM_POSIX
-#define DEFAULT_ESTIMATE    true
-#endif
 #define DEFAULT_FASTVIS     false
 #define DEFAULT_NETVIS_PORT 21212
 #define DEFAULT_NETVIS_RATE 60

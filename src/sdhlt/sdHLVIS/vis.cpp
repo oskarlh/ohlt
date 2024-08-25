@@ -9,9 +9,11 @@
     Modified by amckern (amckern@yahoo.com)
     Modified by vluzacn (vluzacn@163.com)
     Modified by seedee (cdaniel9000@gmail.com)
+    Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
 
 */
 
+#include "../common/cli_option_defaults.h"
 #include "vis.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -65,9 +67,9 @@ unsigned        g_bitlongs;
 bool            g_fastvis = DEFAULT_FASTVIS;
 bool            g_fullvis = DEFAULT_FULLVIS;
 bool            g_nofixprt = DEFAULT_NOFIXPRT;                   //seedee
-bool            g_estimate = DEFAULT_ESTIMATE;
-bool            g_chart = DEFAULT_CHART;
-bool            g_info = DEFAULT_INFO;
+bool            g_estimate = cli_option_defaults::estimate;
+bool            g_chart = cli_option_defaults::chart;
+bool            g_info = cli_option_defaults::info;
 
 // AJM: MVD
 unsigned int	g_maxdistance = DEFAULT_MAXDISTANCE_RANGE;
@@ -1252,8 +1254,8 @@ static void     Settings()
     Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off", DEFAULT_VERBOSE ? "on" : "off");
     Log("log                 [ %7s ] [ %7s ]\n", g_log ? "on" : "off", DEFAULT_LOG ? "on" : "off");
     Log("developer           [ %7d ] [ %7d ]\n", g_developer, DEFAULT_DEVELOPER);
-    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", DEFAULT_CHART ? "on" : "off");
-    Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", DEFAULT_ESTIMATE ? "on" : "off");
+    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
+    Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory  [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
 
     Log("max vis distance    [ %7d ] [ %7d ]\n", g_maxdistance, DEFAULT_MAXDISTANCE_RANGE);

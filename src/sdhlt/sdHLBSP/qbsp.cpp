@@ -8,6 +8,8 @@
     Modified by amckern (amckern@yahoo.com)
     Modified by vluzacn (vluzacn@163.com)
     Modified by seedee (cdaniel9000@gmail.com)
+    Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
+
 */
 
 #ifdef SYSTEM_WIN32
@@ -16,6 +18,7 @@
 #endif
 
 #include "bsp5.h"
+#include "../common/cli_option_defaults.h"
 
 /*
 
@@ -62,14 +65,14 @@ bool			g_noinsidefill = DEFAULT_NOINSIDEFILL;
 bool            g_notjunc = DEFAULT_NOTJUNC;
 bool			g_nobrink = DEFAULT_NOBRINK;
 bool            g_noclip = DEFAULT_NOCLIP;      // no clipping hull "-noclip"
-bool            g_chart = DEFAULT_CHART;        // print out chart? "-chart"
-bool            g_estimate = DEFAULT_ESTIMATE;  // estimate mode "-estimate"
-bool            g_info = DEFAULT_INFO;
+bool            g_chart = cli_option_defaults::chart;        // print out chart? "-chart"
+bool            g_estimate = cli_option_defaults::estimate;  // estimate mode "-estimate"
+bool            g_info = cli_option_defaults::info;
 bool            g_bLeakOnly = DEFAULT_LEAKONLY; // leakonly mode "-leakonly"
 bool            g_bLeaked = false;
 int             g_subdivide_size = DEFAULT_SUBDIVIDE_SIZE;
 
-bool            g_bUseNullTex = DEFAULT_NULLTEX; // "-nonulltex"
+bool            g_bUseNullTex = cli_option_defaults::nulltex; // "-nonulltex"
 
 
 
@@ -1444,8 +1447,8 @@ static void     Settings()
     Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off", DEFAULT_VERBOSE ? "on" : "off");
     Log("log                 [ %7s ] [ %7s ]\n", g_log ? "on" : "off", DEFAULT_LOG ? "on" : "off");
     Log("developer           [ %7d ] [ %7d ]\n", g_developer, DEFAULT_DEVELOPER);
-    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", DEFAULT_CHART ? "on" : "off");
-    Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", DEFAULT_ESTIMATE ? "on" : "off");
+    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
+    Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory  [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
 
     switch (g_threadpriority)
@@ -1470,7 +1473,7 @@ static void     Settings()
 	Log("noinsidefill        [ %7s ] [ %7s ]\n", g_noinsidefill ? "on" : "off", DEFAULT_NOINSIDEFILL ? "on" : "off");
 	Log("noopt               [ %7s ] [ %7s ]\n", g_noopt ? "on" : "off", DEFAULT_NOOPT ? "on" : "off");
 	Log("no clipnode merging [ %7s ] [ %7s ]\n", g_noclipnodemerge? "on": "off", DEFAULT_NOCLIPNODEMERGE? "on": "off");
-    Log("null tex. stripping [ %7s ] [ %7s ]\n", g_bUseNullTex ? "on" : "off", DEFAULT_NULLTEX ? "on" : "off" );
+    Log("null tex. stripping [ %7s ] [ %7s ]\n", g_bUseNullTex ? "on" : "off", cli_option_defaults::nulltex ? "on" : "off" );
     Log("notjunc             [ %7s ] [ %7s ]\n", g_notjunc ? "on" : "off", DEFAULT_NOTJUNC ? "on" : "off");
 	Log("nobrink             [ %7s ] [ %7s ]\n", g_nobrink? "on": "off", DEFAULT_NOBRINK? "on": "off");
     Log("subdivide size      [ %7d ] [ %7d ] (Min %d) (Max %d)\n",
@@ -1686,20 +1689,14 @@ int             main(const int argc, char** argv)
         {
             g_noinsidefill = true;
         }
-
-#ifdef SYSTEM_WIN32
         else if (!strcasecmp(argv[i], "-estimate"))
         {
             g_estimate = true;
         }
-#endif
-
-#ifdef SYSTEM_POSIX
         else if (!strcasecmp(argv[i], "-noestimate"))
         {
             g_estimate = false;
         }
-#endif
 
 #ifdef ZHLT_NETVIS
         else if (!strcasecmp(argv[i], "-client"))

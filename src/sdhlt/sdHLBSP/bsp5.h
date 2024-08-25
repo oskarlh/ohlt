@@ -48,19 +48,7 @@
 #define DEFAULT_NOCLIPNODEMERGE	false
 #define DEFAULT_LEAKONLY        false
 #define DEFAULT_WATERVIS        false
-#define DEFAULT_CHART           true //seedee
-#define DEFAULT_INFO            true
 
-#define DEFAULT_NULLTEX             true
-
-
-#ifdef SYSTEM_WIN32
-#define DEFAULT_ESTIMATE        false
-#endif
-
-#ifdef SYSTEM_POSIX
-#define DEFAULT_ESTIMATE        true
-#endif
 
 
 #define	MAXEDGES			48                 // 32

@@ -845,11 +845,11 @@ void            FinishBSPFile()
 #undef g_dplanes
 	for (int i = 0; i < g_numplanes; i++)
 	{
-		plane_t *mp = &g_mapplanes[i];
-		dplane_t *dp = &g_dplanes[i];
-		VectorCopy (mp->normal, dp->normal);
-		dp->dist = mp->dist;
-		dp->type = mp->type;
+		plane_t& mp = g_mapplanes[i];
+		dplane_t& dp = g_dplanes[i];
+		VectorCopy (mp.normal, dp.normal);
+		dp.dist = mp.dist;
+		dp.type = mp.type;
 	}
 #define dplane_t plane_t
 #define g_dplanes g_mapplanes

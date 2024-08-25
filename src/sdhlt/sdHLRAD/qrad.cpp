@@ -8,6 +8,7 @@
 	Modified by amckern (amckern@yahoo.com)
 	Modified by vluzacn (vluzacn@163.com)
 	Modified by seedee (cdaniel9000@gmail.com)
+    Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
 
 */
 
@@ -20,6 +21,7 @@
 #include <string>
 
 #include "qrad.h"
+#include "../common/cli_option_defaults.h"
 
 
 /*
@@ -118,9 +120,9 @@ bool g_drawnudge = false;
 
 // Cosine of smoothing angle(in radians)
 float           g_coring = DEFAULT_CORING;                 // Light threshold to force to blackness(minimizes lightmaps)
-bool            g_chart = DEFAULT_CHART;
-bool            g_estimate = DEFAULT_ESTIMATE;
-bool            g_info = DEFAULT_INFO;
+bool            g_chart = cli_option_defaults::chart;
+bool            g_estimate = cli_option_defaults::estimate;
+bool            g_info = cli_option_defaults::info;
 
 
 // Patch creation and subdivision criteria
@@ -2841,8 +2843,8 @@ static void     Settings()
     Log("verbose              [ %17s ] [ %17s ]\n", g_verbose ? "on" : "off", DEFAULT_VERBOSE ? "on" : "off");
     Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off", DEFAULT_LOG ? "on" : "off");
     Log("developer            [ %17d ] [ %17d ]\n", g_developer, DEFAULT_DEVELOPER);
-    Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off", DEFAULT_CHART ? "on" : "off");
-    Log("estimate             [ %17s ] [ %17s ]\n", g_estimate ? "on" : "off", DEFAULT_ESTIMATE ? "on" : "off");
+    Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
+    Log("estimate             [ %17s ] [ %17s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory   [ %17d ] [ %17d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
 		Log("max lighting memory  [ %17d ] [ %17d ]\n", g_max_map_lightdata, DEFAULT_MAX_MAP_LIGHTDATA); //lightdata
 

@@ -85,8 +85,6 @@
 #define DEFAULT_CIRCUS              false
 #define DEFAULT_CORING				0.01
 #define DEFAULT_SUBDIVIDE           true
-#define DEFAULT_CHART               true //seedee
-#define DEFAULT_INFO                true
 #define DEFAULT_ALLOW_OPAQUES       true
 #define DEFAULT_ALLOW_SPREAD		true
 
@@ -143,13 +141,6 @@
 	#define DEFAULT_EMBEDLIGHTMAP_RESOLUTION 1
 	#define DEFAULT_TEXLIGHTGAP 0.0
 
-
-#ifdef SYSTEM_WIN32
-#define DEFAULT_ESTIMATE    false
-#endif
-#ifdef SYSTEM_POSIX
-#define DEFAULT_ESTIMATE    true
-#endif
 
 // Ideally matches what is in the FGD :)
 #define SPAWNFLAG_NOBLEEDADJUST    (1 << 0)

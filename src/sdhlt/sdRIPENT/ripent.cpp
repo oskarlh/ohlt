@@ -11,6 +11,8 @@
 // csg4.c
 
 #include "ripent.h"
+#include "../common/cli_option_defaults.h"
+
 #ifdef RIPENT_PAUSE
 #ifdef SYSTEM_WIN32
 #include <conio.h>
@@ -37,9 +39,9 @@ static hl_types g_texturemode = hl_undefined;
 bool g_parse = DEFAULT_PARSE;
 bool g_textureparse = DEFAULT_TEXTUREPARSE;
 
-bool g_chart = DEFAULT_CHART;
+bool g_chart = cli_option_defaults::chart;
 
-bool g_info = DEFAULT_INFO;
+bool g_info = cli_option_defaults::info;
 
 #ifdef RIPENT_PAUSE
 bool g_pause = false;
@@ -838,7 +840,7 @@ static void     Settings()
     Log("Name               |  Setting  |  Default\n" "-------------------|-----------|-------------------------\n");
 
     // ZHLT Common Settings
-    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", DEFAULT_CHART ? "on" : "off");
+    Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("max texture memory  [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
 	Log("max lighting memory [ %7d ] [ %7d ]\n", g_max_map_lightdata, DEFAULT_MAX_MAP_LIGHTDATA);
 

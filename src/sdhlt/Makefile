@@ -62,6 +62,7 @@ COMMON_INCLUDEFILES = \
 			common/blockmem.h \
 			common/boundingbox.h \
 			common/bspfile.h \
+			common/cli_option_defaults.h \
 			common/cmdlib.h \
 			common/cmdlinecfg.h \
 			common/filelib.h \

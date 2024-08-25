@@ -10,7 +10,8 @@
     Modified by amckern (amckern@yahoo.com)
     Modified by vluzacn (vluzacn@163.com)
     Modified by seedee (cdaniel9000@gmail.com)
-    
+    Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
+
 */
 
 #include "csg.h" 
@@ -18,6 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
 #endif
+#include "../common/cli_option_defaults.h"
 
 /*
 
@@ -43,15 +45,15 @@ vec_t           g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
 bool            g_noclip = DEFAULT_NOCLIP;              // no clipping hull "-noclip"
 bool            g_onlyents = DEFAULT_ONLYENTS;          // onlyents mode "-onlyents"
 bool            g_wadtextures = DEFAULT_WADTEXTURES;    // "-nowadtextures"
-bool            g_chart = DEFAULT_CHART;                // show chart "-chart"
+bool            g_chart = cli_option_defaults::chart;                // show chart "-chart"
 bool            g_skyclip = DEFAULT_SKYCLIP;            // no sky clipping "-noskyclip"
-bool            g_estimate = DEFAULT_ESTIMATE;          // progress estimates "-estimate"
-bool            g_info = DEFAULT_INFO;                  // "-info" ?
+bool            g_estimate = cli_option_defaults::estimate;          // progress estimates "-estimate"
+bool            g_info = cli_option_defaults::info;                  // "-info" ?
 const char*     g_hullfile = NULL;                      // external hullfile "-hullfie sdfsd"
 const char*		g_wadcfgfile = NULL;
 const char*		g_wadconfigname = NULL;
 
-bool            g_bUseNullTex = DEFAULT_NULLTEX;        // "-nonulltex"
+bool            g_bUseNullTex = cli_option_defaults::nulltex;        // "-nonulltex"
 
 cliptype		g_cliptype = DEFAULT_CLIPTYPE;			// "-cliptype <value>"
 
@@ -1620,8 +1622,8 @@ static void     Settings()
     Log("reset logfile         [ %7s ] [ %7s ]\n", g_resetlog ? "on" : "off", DEFAULT_RESETLOG ? "on" : "off");
 
     Log("developer             [ %7d ] [ %7d ]\n", g_developer, DEFAULT_DEVELOPER);
-    Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", DEFAULT_CHART ? "on" : "off");
-    Log("estimate              [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", DEFAULT_ESTIMATE ? "on" : "off");
+    Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
+    Log("estimate              [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory    [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
 	Log("max lighting memory   [ %7d ] [ %7d ]\n", g_max_map_lightdata, DEFAULT_MAX_MAP_LIGHTDATA);
 
@@ -1645,7 +1647,7 @@ static void     Settings()
 
     Log("noclip                [ %7s ] [ %7s ]\n", g_noclip          ? "on" : "off", DEFAULT_NOCLIP       ? "on" : "off");
 
-    Log("null texture stripping[ %7s ] [ %7s ]\n", g_bUseNullTex     ? "on" : "off", DEFAULT_NULLTEX      ? "on" : "off");
+    Log("null texture stripping[ %7s ] [ %7s ]\n", g_bUseNullTex     ? "on" : "off", cli_option_defaults::nulltex      ? "on" : "off");
 
 
     Log("clipnode economy mode [ %7s ] [ %7s ]\n", g_bClipNazi       ? "on" : "off", DEFAULT_CLIPNAZI     ? "on" : "off");
