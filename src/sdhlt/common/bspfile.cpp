@@ -842,7 +842,7 @@ void DoAllocBlock (lightmapblock_t *blocks, int w, int h)
 				return;
 			}
 			block->next = (lightmapblock_t *)malloc (sizeof (lightmapblock_t));
-			hlassume (block->next != NULL, assume_NoMemory);
+			hlassume (block->next != nullptr, assume_NoMemory);
 			memset (block->next, 0, sizeof (lightmapblock_t));
 		}
 	}
@@ -854,7 +854,7 @@ int CountBlocks ()
 #endif
 	lightmapblock_t *blocks;
 	blocks = (lightmapblock_t *)malloc (sizeof (lightmapblock_t));
-	hlassume (blocks != NULL, assume_NoMemory);
+	hlassume (blocks != nullptr, assume_NoMemory);
 	memset (blocks, 0, sizeof (lightmapblock_t));
 	int k;
 	for (k = 0; k < g_numfaces; k++)
@@ -946,23 +946,23 @@ char *FindWadValue ()
 			if (g_dentdata[linestart] == '{')
 			{
 				if (inentity)
-					return NULL;
+					return nullptr;
 				inentity = true;
 			}
 			else if (g_dentdata[linestart] == '}')
 			{
 				if (!inentity)
-					return NULL;
+					return nullptr;
 				inentity = false;
 				return _strdup (""); // only parse the first entity
 			}
 			else
-				return NULL;
+				return nullptr;
 		}
 		else
 		{
 			if (!inentity)
-				return NULL;
+				return nullptr;
 			int quotes[4];
 			int i, j;
 			for (i = 0, j = linestart; i < 4; i++, j++)
@@ -976,13 +976,13 @@ char *FindWadValue ()
 			}
 			if (i != 4 || quotes[0] != linestart || quotes[3] != lineend - 1)
 			{
-				return NULL;
+				return nullptr;
 			}
 			if (quotes[1] - (quotes[0] + 1) == (int)strlen ("wad") && !strncmp (&g_dentdata[quotes[0] + 1], "wad", strlen ("wad")))
 			{
 				int len = quotes[3] - (quotes[2] + 1);
 				char *value = (char *)malloc (len + 1);
-				hlassume (value != NULL, assume_NoMemory);
+				hlassume (value != nullptr, assume_NoMemory);
 				memcpy (value, &g_dentdata[quotes[2] + 1], len);
 				value[len] = '\0';
 				return value;
@@ -992,7 +992,7 @@ char *FindWadValue ()
 			if (g_dentdata[linestart] != '\r' && g_dentdata[linestart] != '\n')
 				break;
 	}
-	return NULL;
+	return nullptr;
 }
 
 #define ENTRIES(a)		(sizeof(a)/sizeof(*(a)))
@@ -1075,7 +1075,7 @@ void            PrintBSPFileSizes()
 	{
 		Log ("No wad files required to run the map\n");
 	}
-	else if (wadvalue == NULL)
+	else if (wadvalue == nullptr)
 	{
 		Log ("Wad files required to run the map: (Couldn't parse wad keyvalue from entity data)\n");
 	}
@@ -1199,7 +1199,7 @@ void DeleteEmbeddedLightmaps ()
 	// Step 2: remove redundant texinfo
 	{
 		bool *texinfoused = (bool *)malloc (g_numtexinfo * sizeof (bool));
-		hlassume (texinfoused != NULL, assume_NoMemory);
+		hlassume (texinfoused != nullptr, assume_NoMemory);
 
 		for (i = 0; i < g_numtexinfo; i++)
 		{
@@ -1241,7 +1241,7 @@ void DeleteEmbeddedLightmaps ()
 	{
 		int numremaining; // number of remaining textures
 		bool *textureused = (bool *)malloc (numtextures * sizeof (bool));
-		hlassume (textureused != NULL, assume_NoMemory);
+		hlassume (textureused != nullptr, assume_NoMemory);
 
 		for (i = 0; i < numtextures; i++)
 		{
@@ -1529,7 +1529,7 @@ void            UnparseEntities()
 				newent->epairs = mapent->epairs;
 				SetKeyValue (newent, "classname", "light_environment");
 				SetKeyValue (newent, "_fake", "1");
-				mapent->epairs = NULL;
+				mapent->epairs = nullptr;
 			}
 		}
 	}
@@ -1578,7 +1578,7 @@ void            UnparseEntities()
 		int i, j;
 		int count = 0;
 		bool *lightneedcompare = (bool *)malloc (g_numentities * sizeof (bool));
-		hlassume (lightneedcompare != NULL, assume_NoMemory);
+		hlassume (lightneedcompare != nullptr, assume_NoMemory);
 		memset (lightneedcompare, 0, g_numentities * sizeof(bool));
 		for (i = g_numentities - 1; i > -1; i--)
 		{
@@ -1759,24 +1759,24 @@ entity_t *FindTargetEntity(const char* const target)
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 
 void            dtexdata_init()
 {
     g_dtexdata = (byte*)AllocBlock(g_max_map_miptex);
-    hlassume(g_dtexdata != NULL, assume_NoMemory);
+    hlassume(g_dtexdata != nullptr, assume_NoMemory);
 	g_dlightdata = (byte*)AllocBlock(g_max_map_lightdata);
-	hlassume(g_dlightdata != NULL, assume_NoMemory);
+	hlassume(g_dlightdata != nullptr, assume_NoMemory);
 }
 
 void CDECL      dtexdata_free()
 {
     FreeBlock(g_dtexdata);
-    g_dtexdata = NULL;
+    g_dtexdata = nullptr;
 	FreeBlock(g_dlightdata);
-	g_dlightdata = NULL;
+	g_dlightdata = nullptr;
 }
 
 // =====================================================================================

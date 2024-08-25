@@ -41,13 +41,13 @@ brush_t *CopyCurrentBrush (entity_t *entity, const brush_t *brush)
 	entity->numbrushes++;
 	for (int h = 0; h < NUM_HULLS; h++)
 	{
-		if (brush->hullshapes[h] != NULL)
+		if (brush->hullshapes[h] != nullptr)
 		{
 			newb->hullshapes[h] = _strdup (brush->hullshapes[h]);
 		}
 		else
 		{
-			newb->hullshapes[h] = NULL;
+			newb->hullshapes[h] = nullptr;
 		}
 	}
 	return newb;
@@ -218,7 +218,7 @@ static void ParseBrush(entity_t* mapent)
 		}
 		else //Set brush hull shape for this hull to NULL
 		{
-			b->hullshapes[h] = NULL;
+			b->hullshapes[h] = nullptr;
 		}
 	}
     mapent->numbrushes++;
@@ -521,7 +521,7 @@ static void ParseBrush(entity_t* mapent)
 
         for (i = 0; i < NUM_HULLS; i++)
         {
-            b->hulls[i].faces = NULL;
+            b->hulls[i].faces = nullptr;
         }
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
@@ -564,7 +564,7 @@ static void ParseBrush(entity_t* mapent)
 		}
         char            string[MAXTOKEN];
         vec3_t          mins, maxs;
-		char			*origin = NULL;
+		char			*origin = nullptr;
 		if (*ValueForKey (mapent, "origin"))
 		{
 			origin = strdup (ValueForKey (mapent, "origin"));
@@ -577,7 +577,7 @@ static void ParseBrush(entity_t* mapent)
 
         for (i = 0; i < NUM_HULLS; i++)
         {
-            b->hulls[i].faces = NULL;
+            b->hulls[i].faces = nullptr;
         }
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)

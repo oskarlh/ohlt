@@ -21,7 +21,7 @@ vec3_t          g_hull_size[NUM_HULLS][2] =
 
 void        LoadHullfile(const char* filename)
 {
-    if (filename == NULL)
+    if (filename == nullptr)
     {
         return;
     }

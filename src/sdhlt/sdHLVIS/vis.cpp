@@ -78,7 +78,7 @@ unsigned int	g_maxdistance = DEFAULT_MAXDISTANCE_RANGE;
 const int		g_overview_max = MAX_MAP_ENTITIES;
 overview_t		g_overview[g_overview_max];
 int				g_overview_count = 0;
-leafinfo_t*		g_leafinfos = NULL;
+leafinfo_t*		g_leafinfos = nullptr;
 
 const int       g_room_max = MAX_MAP_ENTITIES;
 room_t          g_room[g_room_max];
@@ -106,15 +106,15 @@ volatile double g_starttime = 0;                           // Start time (from I
 volatile unsigned long g_idletime = 0;                     // Accumulated idle time in milliseconds (rolls over after 46.7 days, hopefully a vis client wont run that long)
 volatile unsigned long g_serverindex = 0;                  // client only variable, server index for calculating percentage indicators on the client
 short           g_port = DEFAULT_NETVIS_PORT;
-const char*     g_server_addr = NULL;
+const char*     g_server_addr = nullptr;
 
 
 volatile bool   g_bsp_downloaded = false;       // Client variable
 volatile bool   g_prt_downloaded = false;       // Client variable
 volatile bool   g_mightsee_downloaded = false;  // Client variable
 
-char*           g_bsp_image = NULL;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
-char*           g_prt_image = NULL;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
+char*           g_bsp_image = nullptr;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
+char*           g_prt_image = nullptr;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
 unsigned long   g_bsp_compressed_size = 0;  // Server variable
 unsigned long   g_prt_compressed_size = 0;  // Server variable
 unsigned long   g_bsp_size = 0;             // Server variable
@@ -261,7 +261,7 @@ portal_t*       GetPortalPtr(const long index)
     }
     else
     {
-        return (NULL);
+        return (nullptr);
     }
 }
 
@@ -281,7 +281,7 @@ int             GetNextPortalIndex()
     ThreadLock();
 
     min = 99999;
-    p = NULL;
+    p = nullptr;
 
     for (j = 0, tp = g_portals; j < g_numportals * 2; j++, tp++)
     {
@@ -351,13 +351,13 @@ static portal_t* GetNextPortal()
     {
         if (GetThreadWork() == -1)
         {
-            return NULL;
+            return nullptr;
         }
 #endif
         ThreadLock();
 
         min = 99999;
-        p = NULL;
+        p = nullptr;
 
         for (j = 0, tp = g_portals; j < g_numportals * 2; j++, tp++)
         {
@@ -399,7 +399,7 @@ static portal_t* GetNextPortal()
         {
             g_visstate = VIS_CLIENT_DONE;
             Send_VIS_GOING_DOWN(g_ClientSession);
-            return NULL;
+            return nullptr;
         }
 
         // convert index to pointer
@@ -907,7 +907,7 @@ static void     CalcVis()
 // =====================================================================================
 static INLINE void FASTCALL CheckNullToken(const char*const token)
 {
-    if (token == NULL) 
+    if (token == nullptr) 
     {
         Error("LoadPortals: Damaged or invalid .prt file\n");
     }
@@ -935,7 +935,7 @@ static void     LoadPortals(char* portal_image)
         Error("LoadPortals: failed to read header: number of leafs");
     }
 
-    token = strtok(NULL, seperators);
+    token = strtok(nullptr, seperators);
     CheckNullToken(token);
     if (!sscanf(token, "%i", &g_numportals))
     {
@@ -968,7 +968,7 @@ static void     LoadPortals(char* portal_image)
 	for (i = 0; i < g_portalleafs; i++)
 	{
 		unsigned rval = 0;
-		token = strtok(NULL, seperators);
+		token = strtok(nullptr, seperators);
 		CheckNullToken(token);
 		rval += sscanf(token, "%i", &g_leafcounts[i]);
 		if (rval != 1)
@@ -1023,13 +1023,13 @@ static void     LoadPortals(char* portal_image)
     {
         unsigned rval = 0;
 
-        token = strtok(NULL, seperators);
+        token = strtok(nullptr, seperators);
         CheckNullToken(token);
         rval += sscanf(token, "%i", &numpoints);
-        token = strtok(NULL, seperators);
+        token = strtok(nullptr, seperators);
         CheckNullToken(token);
         rval += sscanf(token, "%i", &leafnums[0]);
-        token = strtok(NULL, seperators);
+        token = strtok(nullptr, seperators);
         CheckNullToken(token);
         rval += sscanf(token, "%i", &leafnums[1]);
 
@@ -1056,13 +1056,13 @@ static void     LoadPortals(char* portal_image)
             double          v[3];
             unsigned        rval = 0;
 
-            token = strtok(NULL, seperators);
+            token = strtok(nullptr, seperators);
             CheckNullToken(token);
             rval += sscanf(token, "%lf", &v[0]);
-            token = strtok(NULL, seperators);
+            token = strtok(nullptr, seperators);
             CheckNullToken(token);
             rval += sscanf(token, "%lf", &v[1]);
-            token = strtok(NULL, seperators);
+            token = strtok(nullptr, seperators);
             CheckNullToken(token);
             rval += sscanf(token, "%lf", &v[2]);
 
@@ -1135,7 +1135,7 @@ static void     LoadPortalsByFilename(const char* const filename)
 // =====================================================================================
 static void     AssignPortalsToZones()
 {
-    hlassert(g_Zones != NULL);
+    hlassert(g_Zones != nullptr);
 
     UINT32 count = 0;
 
@@ -1430,7 +1430,7 @@ int             main(const int argc, char** argv)
     char            source[_MAX_PATH];
     int             i;
     double          start, end;
-    const char*     mapname_from_arg = NULL;
+    const char*     mapname_from_arg = nullptr;
 
 #ifdef ZHLT_NETVIS
     g_Program = "netvis";
@@ -1650,7 +1650,7 @@ int             main(const int argc, char** argv)
 			{
 				char tmp[_MAX_PATH];
 #ifdef SYSTEM_WIN32
-				GetModuleFileName (NULL, tmp, _MAX_PATH);
+				GetModuleFileName (nullptr, tmp, _MAX_PATH);
 #else
 				safe_strncpy (tmp, argv[0], _MAX_PATH);
 #endif

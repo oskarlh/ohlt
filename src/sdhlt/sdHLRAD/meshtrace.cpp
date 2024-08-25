@@ -220,7 +220,7 @@ bool TraceMesh :: ClipRayToFacet( const mfacet_t *facet )
 
 	enterfrac = -1.0f;
 	leavefrac = 1.0f;
-	clipplane = NULL;
+	clipplane = nullptr;
 	checkcount++;
 
 	getout = false;

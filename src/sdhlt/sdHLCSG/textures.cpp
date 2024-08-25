@@ -38,7 +38,7 @@ std::deque< std::string > g_WadInclude;
 static int      nummiptex = 0;
 static lumpinfo_t miptex[MAX_MAP_TEXTURES];
 static int      nTexLumps = 0;
-static lumpinfo_t* lumpinfo = NULL;
+static lumpinfo_t* lumpinfo = nullptr;
 static int      nTexFiles = 0;
 static FILE*    texfiles[MAX_TEXFILES];
 static wadpath_t* texwadpathes[MAX_TEXFILES]; // maps index of the wad to its path
@@ -379,7 +379,7 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 {
     //Log("** PnFNFUNC: FindTexture\n");
 
-    lumpinfo_t*     found = NULL;
+    lumpinfo_t*     found = nullptr;
 
     found = (lumpinfo_t*)bsearch(source, (void*)lumpinfo, (size_t) nTexLumps, sizeof(lumpinfo[0]), lump_sorter_by_name);
     if (!found)
@@ -405,11 +405,11 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 			last = last + 1;
 		}
 		// find the best matching lump
-		lumpinfo_t *best = NULL;
+		lumpinfo_t *best = nullptr;
 		for (found = first; found < last + 1; found++)
 		{
 			bool better = false;
-			if (best == NULL)
+			if (best == nullptr)
 			{
 				better = true;
 			}
@@ -449,7 +449,7 @@ int             LoadLump(const lumpinfo_t* const source, byte* dest, int* texsiz
 						, byte *&writewad_data, int &writewad_datasize
 						)
 {
-	writewad_data = NULL;
+	writewad_data = nullptr;
 	writewad_datasize = -1;
     //Log("** PnFNFUNC: LoadLump\n");
 
@@ -475,7 +475,7 @@ int             LoadLump(const lumpinfo_t* const source, byte* dest, int* texsiz
             for (i = 0; i < MIPLEVELS; i++)
                 miptex->offsets[i] = 0;
 			writewad_data = (byte *)malloc (source->disksize);
-			hlassume (writewad_data != NULL, assume_NoMemory);
+			hlassume (writewad_data != nullptr, assume_NoMemory);
 			if (fseek (texfiles[source->iTexFile], source->filepos, SEEK_SET))
 				Error ("File read failure");
 			SafeRead (texfiles[source->iTexFile], writewad_data, source->disksize);
@@ -707,7 +707,7 @@ void            WriteMiptex()
         //Malloc for storing lump info
 		writewad_maxlumpinfos = nummiptex;
 		writewad_lumpinfos = (dlumpinfo_t *)malloc (writewad_maxlumpinfos * sizeof (dlumpinfo_t));
-		hlassume (writewad_lumpinfos != NULL, assume_NoMemory);
+		hlassume (writewad_lumpinfos != nullptr, assume_NoMemory);
 
         //Header for the temp wad file
 		writewad_header.identification[0] = 'W';

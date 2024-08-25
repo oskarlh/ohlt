@@ -223,7 +223,7 @@ static void     BuildVisMatrix()
     if (!s_vismatrix)
     {
         Log("Failed to allocate s_vismatrix");
-        hlassume(s_vismatrix != NULL, assume_NoMemory);
+        hlassume(s_vismatrix != nullptr, assume_NoMemory);
     }
 
     NamedRunThreadsOn(g_dmodels[0].visleafs, g_estimate, BuildVisLeafs);
@@ -235,7 +235,7 @@ static void     FreeVisMatrix()
     {
         if (FreeBlock(s_vismatrix))
         {
-            s_vismatrix = NULL;
+            s_vismatrix = nullptr;
         }
         else
         {

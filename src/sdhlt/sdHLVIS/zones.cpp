@@ -98,7 +98,7 @@ Zones* MakeZones(void)
 
     if (!func_vis_count)
     {
-        return NULL;
+        return nullptr;
     }
 
     Zones* zones = new Zones(func_vis_count);

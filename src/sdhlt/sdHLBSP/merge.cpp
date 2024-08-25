@@ -37,33 +37,33 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
 
     if (f1->numpoints == -1 || f2->numpoints == -1)
     {
-        return NULL;
+        return nullptr;
     }    
     if (f1->texturenum != f2->texturenum)
     {
-        return NULL;
+        return nullptr;
     }
     if (f1->contents != f2->contents)
     {
-        return NULL;
+        return nullptr;
     }
 	if (f1->planenum != f2->planenum)
 	{
-		return NULL;
+		return nullptr;
 	}
 	if (f1->facestyle != f2->facestyle)
 	{
-		return NULL;
+		return nullptr;
 	}
 	if (f1->detaillevel != f2->detaillevel)
 	{
-		return NULL;
+		return nullptr;
 	}
 
     //
     // find a common edge
     //      
-    p1 = p2 = NULL;                                        // shut up the compiler
+    p1 = p2 = nullptr;                                        // shut up the compiler
     j = 0;
 
     for (i = 0; i < f1->numpoints; i++)
@@ -98,7 +98,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
 
     if (i == f1->numpoints)
     {
-        return NULL;                                       // no matching edges
+        return nullptr;                                       // no matching edges
     }
 
     //
@@ -118,7 +118,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     dot = DotProduct(delta, normal);
     if (dot > CONTINUOUS_EPSILON)
     {
-        return NULL;                                       // not a convex polygon
+        return nullptr;                                       // not a convex polygon
     }
     keep1 = dot < -CONTINUOUS_EPSILON;
 
@@ -132,7 +132,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     dot = DotProduct(delta, normal);
     if (dot > CONTINUOUS_EPSILON)
     {
-        return NULL;                                       // not a convex polygon
+        return nullptr;                                       // not a convex polygon
     }
     keep2 = dot < -CONTINUOUS_EPSILON;
 
@@ -142,7 +142,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     if (f1->numpoints + f2->numpoints > MAXEDGES)
     {
         //              Error ("TryMerge: too many edges!");
-        return NULL;
+        return nullptr;
     }
 
     newf = NewFaceFromFace(f1);
@@ -207,7 +207,7 @@ static face_t*  FreeMergeListScraps(face_t* merged)
     face_t*         head;
     face_t*         next;
 
-    head = NULL;
+    head = nullptr;
     for (; merged; merged = next)
     {
         next = merged->next;
@@ -234,7 +234,7 @@ void            MergePlaneFaces(surface_t* plane)
     face_t*         next;
     face_t*         merged;
 
-    merged = NULL;
+    merged = nullptr;
 
     for (f1 = plane->faces; f1; f1 = next)
     {

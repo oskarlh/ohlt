@@ -21,7 +21,7 @@ void            writetransfers(const char* const transferfile, const long total_
     FILE           *file;
 
     file = fopen(transferfile, "w+b");
-    if (file != NULL)
+    if (file != nullptr)
     {
         unsigned        amtwritten;
         patch_t*        patch;
@@ -101,7 +101,7 @@ bool            readtransfers(const char* const transferfile, const long numpatc
     long            total_patches;
 
     file = fopen(transferfile, "rb");
-    if (file != NULL)
+    if (file != nullptr)
     {
         unsigned        amtread;
         patch_t*        patch;
@@ -129,7 +129,7 @@ bool            readtransfers(const char* const transferfile, const long numpatc
             if (patch->iIndex)
             {
                 patch->tIndex = (transfer_index_t*)AllocBlock(patch->iIndex * sizeof(transfer_index_t *));
-                hlassume(patch->tIndex != NULL, assume_NoMemory);
+                hlassume(patch->tIndex != nullptr, assume_NoMemory);
                 amtread = fread(patch->tIndex, sizeof(transfer_index_t), patch->iIndex, file);
                 if (amtread != patch->iIndex)
                 {
@@ -147,13 +147,13 @@ bool            readtransfers(const char* const transferfile, const long numpatc
 				if(g_rgb_transfers)
 				{
                     patch->tRGBData = (rgb_transfer_data_t*)AllocBlock(patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size);
-                    hlassume(patch->tRGBData != NULL, assume_NoMemory);
+                    hlassume(patch->tRGBData != nullptr, assume_NoMemory);
                     amtread = fread(patch->tRGBData, vector_size[g_rgbtransfer_compress_type], patch->iData, file);		    
 				}
 				else
 				{
                     patch->tData = (transfer_data_t*)AllocBlock(patch->iData * float_size[g_transfer_compress_type] + unused_size);
-                    hlassume(patch->tData != NULL, assume_NoMemory);
+                    hlassume(patch->tData != nullptr, assume_NoMemory);
                     amtread = fread(patch->tData, float_size[g_transfer_compress_type], patch->iData, file);		    
 				}
                 if (amtread != patch->iData)
@@ -182,8 +182,8 @@ bool            readtransfers(const char* const transferfile, const long numpatc
             FreeBlock(patch->tIndex);
             patch->iData = 0;
             patch->iIndex = 0;
-            patch->tData = NULL;
-            patch->tIndex = NULL;
+            patch->tData = nullptr;
+            patch->tIndex = nullptr;
         }
     }
     fclose(file);

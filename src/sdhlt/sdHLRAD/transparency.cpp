@@ -13,15 +13,15 @@ typedef struct {
 	unsigned	data_index;
 } transList_t;
 
-static vec3_t *		s_trans_list	= NULL;
+static vec3_t *		s_trans_list	= nullptr;
 static unsigned int	s_trans_count	= 0;
 static unsigned int	s_max_trans_count = 0;
 
-static transList_t*	s_raw_list	= NULL;
+static transList_t*	s_raw_list	= nullptr;
 static unsigned int	s_raw_count	= 0;
 static unsigned int	s_max_raw_count	= 0;	// Current array maximum (used for reallocs)
 
-static transList_t*	s_sorted_list	= NULL;	// Sorted first by p1 then p2
+static transList_t*	s_sorted_list	= nullptr;	// Sorted first by p1 then p2
 static unsigned int	s_sorted_count	= 0;
 
 const vec3_t vec3_one = {1.0,1.0,1.0};
@@ -52,7 +52,7 @@ static unsigned AddTransparencyToDataList(const vec3_t trans)
 		
 		s_trans_list = (vec3_t *)realloc( s_trans_list, sizeof(vec3_t) * s_max_trans_count );
 
-		hlassume (s_trans_list != NULL, assume_NoMemory);
+		hlassume (s_trans_list != nullptr, assume_NoMemory);
 		
 		memset( &s_trans_list[old_max_count], 0, sizeof(vec3_t) * (s_max_trans_count - old_max_count) );
 		
@@ -90,7 +90,7 @@ void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_
 		
 		s_raw_list = (transList_t *)realloc( s_raw_list, sizeof(transList_t) * s_max_raw_count );
 
-		hlassume (s_raw_list != NULL, assume_NoMemory);
+		hlassume (s_raw_list != nullptr, assume_NoMemory);
 		
 		memset( &s_raw_list[old_max_count], 0, sizeof(transList_t) * (s_max_raw_count - old_max_count) );
 	}
@@ -130,7 +130,7 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 {
 	if( s_raw_count == 0 )
 	{
-		s_raw_list = NULL;
+		s_raw_list = nullptr;
 		s_raw_count = s_max_raw_count = 0;
 		return;
 	}
@@ -139,7 +139,7 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 	s_sorted_count = s_raw_count * 2;
 	s_sorted_list = (transList_t *)malloc( sizeof(transList_t) * s_sorted_count );
 
-	hlassume (s_sorted_list != NULL, assume_NoMemory);
+	hlassume (s_sorted_list != nullptr, assume_NoMemory);
 	
 	//First half have p1>p2
 	for( unsigned int i = 0; i < s_raw_count; i++ )
@@ -153,7 +153,7 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 	
 	//free old array
 	free( s_raw_list );
-	s_raw_list = NULL;
+	s_raw_list = nullptr;
 	s_raw_count = s_max_raw_count = 0;
 	
 	//need to sorted for fast search function
@@ -218,8 +218,8 @@ void	FreeTransparencyArrays( )
 	if (s_sorted_list) free(s_sorted_list);
 	if (s_trans_list)  free(s_trans_list);
 	
-	s_trans_list = NULL;
-	s_sorted_list = NULL;
+	s_trans_list = nullptr;
+	s_sorted_list = nullptr;
 	
 	s_max_trans_count = s_trans_count = s_sorted_count = 0;
 }
@@ -278,7 +278,7 @@ typedef struct {
 	unsigned	p2;
 	char		style;
 } styleList_t;
-static styleList_t* s_style_list = NULL;
+static styleList_t* s_style_list = nullptr;
 static unsigned int	s_style_count = 0;
 static unsigned int	s_max_style_count = 0;
 void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style)
@@ -300,7 +300,7 @@ void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style)
 		
 		s_style_list = (styleList_t *)realloc( s_style_list, sizeof(styleList_t) * s_max_style_count );
 
-		hlassume (s_style_list != NULL, assume_NoMemory);
+		hlassume (s_style_list != nullptr, assume_NoMemory);
 		
 		memset( &s_style_list[old_max_count], 0, sizeof(styleList_t) * (s_max_style_count - old_max_count) );
 	}
@@ -349,7 +349,7 @@ void	FreeStyleArrays( )
 {
 	if (s_style_count) free(s_style_list);
 	
-	s_style_list = NULL;
+	s_style_list = nullptr;
 	
 	s_max_style_count = s_style_count = 0;
 }

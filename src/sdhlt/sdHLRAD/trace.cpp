@@ -128,7 +128,7 @@ void ViewTNode ()
 	nodecount = 1;
 	selection = 0;
 	linestart = 0;
-	HANDLE hConsole = CreateFile("CONOUT$", GENERIC_WRITE|GENERIC_READ, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, 0);
+	HANDLE hConsole = CreateFile("CONOUT$", GENERIC_WRITE|GENERIC_READ, FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, 0);
 	while (1)
 	{
 		cls (hConsole);
@@ -582,7 +582,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty winding.\n");
 		delete neww;
-		neww = NULL;
+		neww = nullptr;
 	}
 	delete f->winding;
 	f->winding = neww;
@@ -600,7 +600,7 @@ int MergeOpaqueFaces (int firstface, int numfaces)
 			if (TryMerge (&faces[i], &faces[j]))
 			{
 				delete faces[j].winding;
-				faces[j].winding = NULL;
+				faces[j].winding = nullptr;
 				j = -1;
 				continue;
 			}
@@ -665,7 +665,7 @@ void CreateOpaqueNodes ()
 		if (of->winding->m_NumPoints < 3)
 		{
 			delete of->winding;
-			of->winding = NULL;
+			of->winding = nullptr;
 		}
 		of->plane = g_dplanes[df->planenum];
 		if (df->side)

@@ -27,9 +27,9 @@ void*           CreateResourceLock(int LockNumber)
     ExtractFile(g_Mapname, mapname);
     safe_snprintf(lockname, _MAX_PATH, "%d%s", LockNumber, mapname);
 
-    lock->Mutex = CreateMutex(NULL, FALSE, lockname);
+    lock->Mutex = CreateMutex(nullptr, FALSE, lockname);
 
-    if (lock->Mutex == NULL)
+    if (lock->Mutex == nullptr)
     {
         LPVOID          lpMsgBuf;
 
@@ -37,7 +37,7 @@ void*           CreateResourceLock(int LockNumber)
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                       FORMAT_MESSAGE_FROM_SYSTEM |
                       FORMAT_MESSAGE_IGNORE_INSERTS,
-                      NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) & lpMsgBuf, 0, NULL);
+                      nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) & lpMsgBuf, 0, nullptr);
         Error((LPCTSTR)lpMsgBuf);
     }
 
@@ -55,7 +55,7 @@ void            ReleaseResourceLock(void** lock)
         Error("Failed to release mutex");
     }
     Free(lockTmp);
-    *lock = NULL;
+    *lock = nullptr;
 }
 
 #endif

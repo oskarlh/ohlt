@@ -1,6 +1,6 @@
 #include "qrad.h"
 
-funcCheckVisBit g_CheckVisBit = NULL;
+funcCheckVisBit g_CheckVisBit = nullptr;
 
 size_t          g_total_transfer = 0;
 size_t          g_transfer_index_bytes = 0;
@@ -95,7 +95,7 @@ static transfer_index_t* CompressTransferIndicies(transfer_raw_index_t* tRaw, co
 
 	if (!compressed_count_1)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	transfer_index_t* CompressedArray = (transfer_index_t*)AllocBlock(sizeof(transfer_index_t) * compressed_count_1);
@@ -137,7 +137,7 @@ static transfer_index_t* CompressTransferIndicies(const transfer_raw_index_t* tR
 
 	if (!size)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	transfer_index_t CompressedArray = (transfer_index_t*)AllocBlock(sizeof(transfer_index_t) * size);
@@ -381,8 +381,8 @@ void            MakeScales(const int threadnum)
             patch->tData = (transfer_data_t*)AllocBlock(data_size);
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
 
-            hlassume(patch->tData != NULL, assume_NoMemory);
-            hlassume(patch->tIndex != NULL, assume_NoMemory);
+            hlassume(patch->tData != nullptr, assume_NoMemory);
+            hlassume(patch->tIndex != nullptr, assume_NoMemory);
 
             ThreadLock();
             g_transfer_data_bytes += data_size;
@@ -654,8 +654,8 @@ void            MakeRGBScales(const int threadnum)
             patch->tRGBData = (rgb_transfer_data_t*)AllocBlock(data_size);
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
 
-            hlassume(patch->tRGBData != NULL, assume_NoMemory);
-            hlassume(patch->tIndex != NULL, assume_NoMemory);
+            hlassume(patch->tRGBData != nullptr, assume_NoMemory);
+            hlassume(patch->tIndex != nullptr, assume_NoMemory);
 
             ThreadLock();
             g_transfer_data_bytes += data_size;

@@ -30,7 +30,7 @@ static Winding* NewWindingFromPlane(const brushhull_t* const hull, const int pla
         else
         {
             Developer(DEVELOPER_LEVEL_ERROR, "NewFaceFromPlane returning NULL");
-            return NULL;
+            return nullptr;
         }
     }
 
@@ -55,7 +55,7 @@ static void     AddFaceToList(bface_t** head, bface_t* newface)
             node = node->next;
         }
         node->next = newface;
-        newface->next = NULL;
+        newface->next = nullptr;
     }
 }
 
@@ -90,9 +90,9 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
     Winding*        front;
     Winding*        back;
 
-    new_face_list = NULL;
+    new_face_list = nullptr;
 
-    next = NULL;
+    next = nullptr;
 
     hlassert(hull);
 

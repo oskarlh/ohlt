@@ -114,7 +114,7 @@ static void FreeDetailNode_r (node_t *n)
 		if (!(n->isportalleaf && n->contents == CONTENTS_SOLID))
 		{
 			free (n->markfaces);
-			n->markfaces = NULL;
+			n->markfaces = nullptr;
 		}
 		return;
 	}
@@ -122,7 +122,7 @@ static void FreeDetailNode_r (node_t *n)
 	{
 		FreeDetailNode_r (n->children[i]);
 		free (n->children[i]);
-		n->children[i] = NULL;
+		n->children[i] = nullptr;
 	}
 	face_t *f, *next;
 	for (f = n->faces; f; f = next)
@@ -130,7 +130,7 @@ static void FreeDetailNode_r (node_t *n)
 		next = f->next;
 		FreeFace (f);
 	}
-	n->faces = NULL;
+	n->faces = nullptr;
 }
 static void FillLeaf (node_t *l)
 {
@@ -249,7 +249,7 @@ static node_t*  ClearOutFaces_r(node_t* node)
 
         // free any faces not in open child leafs
         f = node->faces;
-        node->faces = NULL;
+        node->faces = nullptr;
 
         for (; f; f = fnext)
         {
@@ -368,7 +368,7 @@ void            FreeAllowableOutsideList()
     if (g_strAllowableOutsideList)
     {
         free(g_strAllowableOutsideList);
-        g_strAllowableOutsideList = NULL;
+        g_strAllowableOutsideList = nullptr;
     }
 }
 
@@ -515,7 +515,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     outleafs = 0;
     valid++;
 
-    prevleaknode = NULL;
+    prevleaknode = nullptr;
 
     if (leakfile)
     {

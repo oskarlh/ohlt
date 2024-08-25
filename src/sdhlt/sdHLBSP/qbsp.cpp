@@ -276,11 +276,11 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 			if (DotProduct (faceplane->normal, split->normal) > NORMAL_EPSILON) // usually near 1.0 or -1.0
 			{
 				*front = in;
-				*back = NULL;
+				*back = nullptr;
 			}
 			else
 			{
-				*front = NULL;
+				*front = nullptr;
 				*back = in;
 			}
 		}
@@ -297,11 +297,11 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 			if (sum > NORMAL_EPSILON)
 			{
 				*front = in;
-				*back = NULL;
+				*back = nullptr;
 			}
 			else
 			{
-				*front = NULL;
+				*front = nullptr;
 				*back = in;
 			}
 		}
@@ -309,14 +309,14 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 	}
     if (!counts[0])
     {
-        *front = NULL;
+        *front = nullptr;
         *back = in;
         return;
     }
     if (!counts[1])
     {
         *front = in;
-        *back = NULL;
+        *back = nullptr;
         return;
     }
 
@@ -405,7 +405,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 		delete wd;
 		if (newf->numpoints == 0)
 		{
-			*back = NULL;
+			*back = nullptr;
 		}
 	}
 	{
@@ -424,7 +424,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 		delete wd;
 		if (new2->numpoints == 0)
 		{
-			*front = NULL;
+			*front = nullptr;
 		}
 	}
 }
@@ -591,7 +591,7 @@ void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
 	if (!(*b)->sides)
 	{ // empty brush
 		FreeBrush (*b);
-		*b = NULL;
+		*b = nullptr;
 		return;
 	}
 	w = new Winding (*split);
@@ -620,7 +620,7 @@ void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
 void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **back)
 	// 'in' will be freed
 {
-	in->next = NULL;
+	in->next = nullptr;
 	bool onfront;
 	bool onback;
 	onfront = false;
@@ -649,20 +649,20 @@ void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **
 	if (!onfront && !onback)
 	{
 		FreeBrush (in);
-		*front = NULL;
-		*back = NULL;
+		*front = nullptr;
+		*back = nullptr;
 		return;
 	}
 	if (!onfront)
 	{
-		*front = NULL;
+		*front = nullptr;
 		*back = in;
 		return;
 	}
 	if (!onback)
 	{
 		*front = in;
-		*back = NULL;
+		*back = nullptr;
 		return;
 	}
 	*front = in;
@@ -695,7 +695,7 @@ brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
 	for (int k = 1; k < 6; k++)
 	{
 		ClipBrush (&b, &planes[k], NORMAL_EPSILON);
-		if (b == NULL)
+		if (b == nullptr)
 		{
 			break;
 		}
@@ -788,7 +788,7 @@ static surfchain_t* SurflistFromValidFaces()
 
     sc = (surfchain_t*)malloc(sizeof(*sc));
     ClearBounds(sc->mins, sc->maxs);
-    sc->surfaces = NULL;
+    sc->surfaces = nullptr;
 
     // grab planes from both sides
     for (i = 0; i < g_numplanes; i += 2)
@@ -804,7 +804,7 @@ static surfchain_t* SurflistFromValidFaces()
 		n->detaillevel = -1;
         n->planenum = i;
 
-        n->faces = NULL;
+        n->faces = nullptr;
         for (f = validfaces[i]; f; f = next)
         {
             next = f->next;
@@ -831,8 +831,8 @@ static surfchain_t* SurflistFromValidFaces()
         AddPointToBounds(n->mins, sc->mins, sc->maxs);
         AddPointToBounds(n->maxs, sc->mins, sc->maxs);
 
-        validfaces[i] = NULL;
-        validfaces[i + 1] = NULL;
+        validfaces[i] = nullptr;
+        validfaces[i + 1] = nullptr;
     }
 
     // merge all possible polygons
@@ -979,7 +979,7 @@ static surfchain_t* ReadSurfs(FILE* file)
         r = fscanf(file, "%i %i %i %i %i\n", &detaillevel, &planenum, &g_texinfo, &contents, &numpoints);
         if (r == 0 || r == -1)
         {
-            return NULL;
+            return nullptr;
         }
         if (planenum == -1)                                // end of model
         {
@@ -1061,7 +1061,7 @@ static surfchain_t* ReadSurfs(FILE* file)
 }
 static brush_t *ReadBrushes (FILE *file)
 {
-	brush_t *brushes = NULL;
+	brush_t *brushes = nullptr;
 	while (1)
 	{
 		if (file == brushfiles[2] && g_nohull2)
@@ -1071,7 +1071,7 @@ static brush_t *ReadBrushes (FILE *file)
 		r = fscanf (file, "%i\n", &brushinfo);
 		if (r == 0 || r == -1)
 		{
-			if (brushes == NULL)
+			if (brushes == nullptr)
 			{
 				Error ("ReadBrushes: no more models");
 			}
@@ -1118,7 +1118,7 @@ static brush_t *ReadBrushes (FILE *file)
 				}
 				VectorCopy (v, s->w->m_Points[numpoints - 1 - x]);
 			}
-			s->next = NULL;
+			s->next = nullptr;
 			*psn = s;
 			psn = &s->next;
 		}
@@ -1214,7 +1214,7 @@ static bool     ProcessModel()
 	if (nodes->planenum == -1)
 	{
 		novisiblebrushes = true;
-		if (nodes->markfaces[0] != NULL)
+		if (nodes->markfaces[0] != nullptr)
 			hlassume(false, assume_EmptySolid);
 		if (g_numplanes == 0)
 			Error ("No valid planes.\n");
@@ -1225,7 +1225,7 @@ static bool     ProcessModel()
 		nodes->children[0]->isdetail = false;
 		nodes->children[0]->isportalleaf = true;
 		nodes->children[0]->iscontentsdetail = false;
-		nodes->children[0]->faces = NULL;
+		nodes->children[0]->faces = nullptr;
 		nodes->children[0]->markfaces = (face_t**)calloc (1, sizeof(face_t*));
 		VectorFill (nodes->children[0]->mins, 0);
 		VectorFill (nodes->children[0]->maxs, 0);
@@ -1235,15 +1235,15 @@ static bool     ProcessModel()
 		nodes->children[1]->isdetail = false;
 		nodes->children[1]->isportalleaf = true;
 		nodes->children[1]->iscontentsdetail = false;
-		nodes->children[1]->faces = NULL;
+		nodes->children[1]->faces = nullptr;
 		nodes->children[1]->markfaces = (face_t**)calloc (1, sizeof(face_t*));
 		VectorFill (nodes->children[1]->mins, 0);
 		VectorFill (nodes->children[1]->maxs, 0);
 		nodes->contents = 0;
 		nodes->isdetail = false;
 		nodes->isportalleaf = false;
-		nodes->faces = NULL;
-		nodes->markfaces = NULL;
+		nodes->faces = nullptr;
+		nodes->markfaces = nullptr;
 		VectorFill (nodes->mins, 0);
 		VectorFill (nodes->maxs, 0);
 	}
@@ -1346,7 +1346,7 @@ static bool     ProcessModel()
 		entity_t *ent = EntityForModel (g_nummodels - 1);
 		if (g_nummodels - 1 != 0 && ent == &g_entities[0])
 		{
-			ent = NULL;
+			ent = nullptr;
 		}
 		Warning ("Empty solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\")", 
 			g_nummodels - 1, 
@@ -1361,7 +1361,7 @@ static bool     ProcessModel()
 		entity_t *ent = EntityForModel (g_nummodels - 1);
 		if (g_nummodels - 1 != 0 && ent == &g_entities[0])
 		{
-			ent = NULL;
+			ent = nullptr;
 		}
 		Warning ("No visible brushes in solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\", range (%.0f,%.0f,%.0f) - (%.0f,%.0f,%.0f))", 
 			g_nummodels - 1, 
@@ -1602,11 +1602,11 @@ static void     ProcessFile(const char* const filename)
     {
 		snprintf (name, sizeof(name), "%s.p%i", filename, i);
 		fclose (polyfiles[i]);
-		polyfiles[i] = NULL;
+		polyfiles[i] = nullptr;
 		unlink (name);
 		snprintf(name, sizeof(name), "%s.b%i", filename, i);
 		fclose (brushfiles[i]);
-		brushfiles[i] = NULL;
+		brushfiles[i] = nullptr;
 		unlink (name);
     }
 	safe_snprintf (name, _MAX_PATH, "%s.hsz", filename);
@@ -1622,7 +1622,7 @@ int             main(const int argc, char** argv)
 {
     int             i;
     double          start, end;
-    const char*     mapname_from_arg = NULL;
+    const char*     mapname_from_arg = nullptr;
 
     g_Program = "sdHLBSP";
 
@@ -1864,7 +1864,7 @@ int             main(const int argc, char** argv)
 			{
 				char tmp[_MAX_PATH];
 #ifdef SYSTEM_WIN32
-				GetModuleFileName (NULL, tmp, _MAX_PATH);
+				GetModuleFileName (nullptr, tmp, _MAX_PATH);
 #else
 				safe_strncpy (tmp, argv[0], _MAX_PATH);
 #endif
@@ -1945,7 +1945,7 @@ int             main(const int argc, char** argv)
             char tmp[_MAX_PATH];
             // try looking in the directory we were run from
 #ifdef SYSTEM_WIN32
-            GetModuleFileName(NULL, tmp, _MAX_PATH);
+            GetModuleFileName(nullptr, tmp, _MAX_PATH);
 #else
             safe_strncpy(tmp, argv[0], _MAX_PATH);
 #endif

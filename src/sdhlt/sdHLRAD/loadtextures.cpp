@@ -12,13 +12,13 @@ typedef struct waddir_s
 	struct waddir_s *next;
 	char path[_MAX_PATH];
 } waddir_t;
-waddir_t *g_waddirs = NULL;
+waddir_t *g_waddirs = nullptr;
 
 void AddWadFolder (const char *path)
 {
 	waddir_t *waddir;
 	waddir = (waddir_t *)malloc (sizeof (waddir_t));
-	hlassume (waddir != NULL, assume_NoMemory);
+	hlassume (waddir != nullptr, assume_NoMemory);
 	{
 		waddir_t **pos;
 		for (pos = &g_waddirs; *pos; pos = &(*pos)->next)
@@ -50,7 +50,7 @@ typedef struct wadfile_s
 	lumpinfo_t *lumpinfos;
 } wadfile_t;
 
-wadfile_t *g_wadfiles = NULL;
+wadfile_t *g_wadfiles = nullptr;
 bool g_wadfiles_opened;
 
 static int CDECL lump_sorter_by_name (const void *lump1, const void *lump2)
@@ -67,7 +67,7 @@ void OpenWadFile (const char *name
 	int i;
 	wadfile_t *wad;
 	wad = (wadfile_t *)malloc (sizeof (wadfile_t));
-	hlassume (wad != NULL, assume_NoMemory);
+	hlassume (wad != nullptr, assume_NoMemory);
 	{
 		wadfile_t **pos;
 		for (pos = &g_wadfiles; *pos; pos = &(*pos)->next)
@@ -125,7 +125,7 @@ void OpenWadFile (const char *name
 		Error ("Invalid wad file '%s'.", wad->path);
 	}
 	wad->lumpinfos = (lumpinfo_t *)malloc (wad->numlumps * sizeof (lumpinfo_t));
-	hlassume (wad->lumpinfos != NULL, assume_NoMemory);
+	hlassume (wad->lumpinfos != nullptr, assume_NoMemory);
     if (fseek (wad->file, wadinfo.infotableofs, SEEK_SET))
 		Error ("File read failure: %s", wad->path);
 	for (i = 0; i < wad->numlumps; i++)
@@ -211,7 +211,7 @@ void TryCloseWadFiles ()
 			fclose (wadfile->file);
 			free (wadfile);
 		}
-		g_wadfiles = NULL;
+		g_wadfiles = nullptr;
 	}
 }
 
@@ -223,7 +223,7 @@ void DefaultTexture (radtexture_t *tex, const char *name)
 	strcpy (tex->name, name);
 	tex->name[16 - 1] = '\0';
 	tex->canvas = (byte *)malloc (tex->width * tex->height);
-	hlassume (tex->canvas != NULL, assume_NoMemory);
+	hlassume (tex->canvas != nullptr, assume_NoMemory);
 	for (i = 0; i < 256; i++)
 	{
 		VectorFill (tex->palette[i], 0x80);
@@ -266,7 +266,7 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 		Error ("Texture '%s': palette size is not 256.", tex->name);
 	}
 	tex->canvas = (byte *)malloc (tex->width * tex->height);
-	hlassume (tex->canvas != NULL, assume_NoMemory);
+	hlassume (tex->canvas != nullptr, assume_NoMemory);
 	for (i = 0; i < tex->height; i++)
 	{
 		for (j = 0; j < tex->width; j++)
@@ -306,7 +306,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 				continue;
 			}
 			miptex_t *mt = (miptex_t *)malloc (found->disksize);
-			hlassume (mt != NULL, assume_NoMemory);
+			hlassume (mt != nullptr, assume_NoMemory);
 			if (fseek (wad->file, found->filepos, SEEK_SET))
 				Error ("File read failure");
 			SafeRead (wad->file, mt, found->disksize);
@@ -342,7 +342,7 @@ void LoadTextures ()
 	}
 	g_numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
 	g_textures = (radtexture_t *)malloc (g_numtextures * sizeof (radtexture_t));
-	hlassume (g_textures != NULL, assume_NoMemory);
+	hlassume (g_textures != nullptr, assume_NoMemory);
 	int i;
 	for (i = 0; i < g_numtextures; i++)
 	{
@@ -589,7 +589,7 @@ static cq_searchnode_t *CQ_AllocSearchTree (int maxcolors)
 {
 	cq_searchnode_t *searchtree;
 	searchtree = (cq_searchnode_t *)malloc ((2 * maxcolors - 1) * sizeof (cq_searchnode_t));
-	hlassume (searchtree != NULL, assume_NoMemory);
+	hlassume (searchtree != nullptr, assume_NoMemory);
 	return searchtree;
 }
 
@@ -610,7 +610,7 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 
 	unsigned char (*pointarray)[CQ_DIM];
 	pointarray = (unsigned char (*)[CQ_DIM])malloc (numpoints * sizeof (unsigned char [CQ_DIM]));
-	hlassume (pointarray != NULL, assume_NoMemory);
+	hlassume (pointarray != nullptr, assume_NoMemory);
 	memcpy (pointarray, points, numpoints * sizeof (unsigned char [CQ_DIM]));
 
 	cq_node_t *n;
@@ -618,13 +618,13 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 	int numnodes = 0;
 	int maxnodes = 2 * maxcolors - 1;
 	cq_node_t *nodes = (cq_node_t *)malloc (maxnodes * sizeof (cq_node_t));
-	hlassume (nodes != NULL, assume_NoMemory);
+	hlassume (nodes != nullptr, assume_NoMemory);
 
 	n = &nodes[0];
 	numnodes++;
 
 	n->isleafnode = true;
-	n->parentnode = NULL;
+	n->parentnode = nullptr;
 	n->numpoints = numpoints;
 	n->refpoints = pointarray;
 	CQ_SelectPartition (n);
@@ -669,7 +669,7 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 			n->isleafnode = true;
 			n->parentnode = bestnode;
 			n->numpoints = 0;
-			n->refpoints = NULL;
+			n->refpoints = nullptr;
 		}
 
 		// partition the points using the best splitter
@@ -870,7 +870,7 @@ void NewTextures_PushTexture (int size, void *data)
 		Error ("the number of textures created by hlrad has exceeded its internal limit(%d).", (int)RADTEXTURES_MAX);
 	}
 	g_newtextures_data[g_newtextures_num] = (byte *)malloc (size);
-	hlassume (g_newtextures_data[g_newtextures_num] != NULL, assume_NoMemory);
+	hlassume (g_newtextures_data[g_newtextures_num] != nullptr, assume_NoMemory);
 	memcpy (g_newtextures_data[g_newtextures_num], data, size);
 	g_newtextures_size[g_newtextures_num] = size;
 	g_newtextures_num++;
@@ -1133,11 +1133,11 @@ void EmbedLightmapInTextures ()
 			side[k] = (texturesize[k] * resolution - texsize[k] * TEXTURE_STEP) / 2;
 		}
 		texture = (float (*)[5])malloc (texturesize[0] * texturesize[1] * sizeof (float [5]));
-		hlassume (texture != NULL, assume_NoMemory);
+		hlassume (texture != nullptr, assume_NoMemory);
 		for (miplevel = 0; miplevel < MIPLEVELS; miplevel++)
 		{
 			texturemips[miplevel] = (byte (*)[4])malloc ((texturesize[0] >> miplevel) * (texturesize[1] >> miplevel) * sizeof (byte [4]));
-			hlassume (texturemips[miplevel] != NULL, assume_NoMemory);
+			hlassume (texturemips[miplevel] != nullptr, assume_NoMemory);
 		}
 
 		// calculate the texture
@@ -1327,7 +1327,7 @@ void EmbedLightmapInTextures ()
 			}
 
 			samplepoints = (unsigned char (*)[3])malloc (texturesize[0] * texturesize[1] * sizeof (unsigned char [3]));
-			hlassume (samplepoints != NULL, assume_NoMemory);
+			hlassume (samplepoints != nullptr, assume_NoMemory);
 			numsamplepoints = 0;
 			for (t = 0; t < texturesize[1]; t++)
 			{
@@ -1381,7 +1381,7 @@ void EmbedLightmapInTextures ()
 		}
 		miptexsize += 2 + 256 * 3 + 2;
 		miptex_t *miptex = (miptex_t *)malloc (miptexsize);
-		hlassume (miptex != NULL, assume_NoMemory);
+		hlassume (miptex != nullptr, assume_NoMemory);
 
 		memset (miptex, 0, sizeof (miptex_t));
 		miptex->width = texturesize[0];

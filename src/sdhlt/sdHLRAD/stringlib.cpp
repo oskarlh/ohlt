@@ -152,7 +152,7 @@ size_t Q_strncpy( char *dst, const char *src, size_t size )
 
 char *copystring( const char *s )
 {
-	if( !s ) return NULL;
+	if( !s ) return nullptr;
 
 	char *b = new char[Q_strlen( s ) + 1];
 	Q_strcpy( b, s );
@@ -190,12 +190,12 @@ int Q_strnicmp( const char *s1, const char *s2, int n )
 {
 	int	c1, c2;
 
-	if( s1 == NULL )
+	if( s1 == nullptr )
 	{
-		if( s2 == NULL ) return 0;
+		if( s2 == nullptr ) return 0;
 		else return -1;
 	}
-	else if( s2 == NULL )
+	else if( s2 == nullptr )
 		return 1;
 
 	do {
@@ -220,12 +220,12 @@ int Q_strncmp( const char *s1, const char *s2, int n )
 {
 	int		c1, c2;
 
-	if( s1 == NULL )
+	if( s1 == nullptr )
 	{
-		if( s2 == NULL ) return 0;
+		if( s2 == nullptr ) return 0;
 		else return -1;
 	}
-	else if( s2 == NULL )
+	else if( s2 == nullptr )
 		return 1;
 	
 	do {
@@ -246,7 +246,7 @@ char *Q_strstr( const char *string, const char *string2 )
 {
 	int	c, len;
 
-	if( !string || !string2 ) return NULL;
+	if( !string || !string2 ) return nullptr;
 
 	c = *string2;
 	len = Q_strlen( string2 );
@@ -261,7 +261,7 @@ char *Q_strstr( const char *string, const char *string2 )
 				break;
 			string++;
 		}
-		else return NULL;
+		else return nullptr;
 	}
 	return (char *)string;
 }
@@ -270,7 +270,7 @@ char *Q_stristr( const char *string, const char *string2 )
 {
 	int	c, len;
 
-	if( !string || !string2 ) return NULL;
+	if( !string || !string2 ) return nullptr;
 
 	c = Q_tolower( *string2 );
 	len = Q_strlen( string2 );
@@ -285,7 +285,7 @@ char *Q_stristr( const char *string, const char *string2 )
 				break;
 			string++;
 		}
-		else return NULL;
+		else return nullptr;
 	}
 	return (char *)string;
 }
@@ -476,19 +476,19 @@ char *COM_ParseFile( char *data, char *token )
 	int	c, len;
 
 	if( !token )
-		return NULL;
+		return nullptr;
 	
 	len = 0;
 	token[0] = 0;
 	
 	if( !data )
-		return NULL;
+		return nullptr;
 // skip whitespace
 skipwhite:
 	while(( c = ((byte)*data)) <= ' ' )
 	{
 		if( c == 0 )
-			return NULL;	// end of file;
+			return nullptr;	// end of file;
 		data++;
 	}
 	

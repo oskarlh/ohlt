@@ -26,7 +26,7 @@ void*           AllocBlock(const unsigned long size)
 
     h = GlobalAlloc(GMEM_FIXED | GMEM_ZEROINIT, size);
 
-	hlassume (h != NULL, assume_NoMemory);
+	hlassume (h != nullptr, assume_NoMemory);
 
     if (h)
     {
@@ -34,7 +34,7 @@ void*           AllocBlock(const unsigned long size)
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 
     return pointer;

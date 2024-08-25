@@ -157,7 +157,7 @@ vec_t			snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* c
 	snap_to_winding (w, plane, point);
 
 	planes = (dplane_t *)malloc (w.m_NumPoints * sizeof (dplane_t));
-	hlassume (planes != NULL, assume_NoMemory);
+	hlassume (planes != nullptr, assume_NoMemory);
 	numplanes = 0;
 	for (x = 0; x < w.m_NumPoints; x++)
 	{
@@ -355,7 +355,7 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 
 	int numedges = emitter_winding->m_NumPoints;
 	vec3_t *edges = (vec3_t *)malloc (numedges * sizeof (vec3_t));
-	hlassume (edges != NULL, assume_NoMemory);
+	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{
@@ -419,7 +419,7 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 
 	int numedges = emitter_winding->m_NumPoints;
 	vec3_t *edges = (vec3_t *)malloc (numedges * sizeof (vec3_t));
-	hlassume (edges != NULL, assume_NoMemory);
+	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{

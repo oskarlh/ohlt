@@ -79,7 +79,7 @@ protected:
 template<class HEADER_T, class DATA_T>
 ReferenceObject<HEADER_T,DATA_T>::ReferenceObject()
 {
-	m_pData = NULL;
+	m_pData = nullptr;
 	AllocHeader();
 	InitHeader();
 }
@@ -87,7 +87,7 @@ ReferenceObject<HEADER_T,DATA_T>::ReferenceObject()
 template<class HEADER_T, class DATA_T>
 ReferenceObject<HEADER_T,DATA_T>::ReferenceObject(unsigned int size)
 {
-	m_pData = NULL;
+	m_pData = nullptr;
 	AllocBlock(size);
 }
 
@@ -119,13 +119,13 @@ ReferenceObject<HEADER_T,DATA_T>& ReferenceObject<HEADER_T,DATA_T>::operator=(co
 template<class HEADER_T, class DATA_T>
 void ReferenceObject<HEADER_T,DATA_T>::Release()
 {
-	assert(m_pData != NULL);
+	assert(m_pData != nullptr);
 	if (m_pData->ReferenceCount.dec() <= 0)
 	{
 		FreeHeader();
 		delete[] m_pData->pData;
 		delete m_pData;
-		m_pData = NULL;
+		m_pData = nullptr;
 	}
 }
 
@@ -143,14 +143,14 @@ void ReferenceObject<HEADER_T,DATA_T>::AllocHeader()
 	m_pData = new ReferenceObjectBlock<HEADER_T,DATA_T>;
 
 	m_pData->ReferenceCount = 1;
-	m_pData->pData = NULL;
+	m_pData->pData = nullptr;
 	m_pData->AllocLength = 0;
 }
 
 template<class HEADER_T, class DATA_T>
 void ReferenceObject<HEADER_T,DATA_T>::AllocData(unsigned int size)
 {
-	assert(m_pData != NULL);
+	assert(m_pData != nullptr);
 	assert((size * sizeof(DATA_T)) < INT_MAX);
 
 	if (size)
@@ -159,7 +159,7 @@ void ReferenceObject<HEADER_T,DATA_T>::AllocData(unsigned int size)
 	}
 	else
 	{
-		m_pData->pData = NULL;
+		m_pData->pData = nullptr;
 	}
 	m_pData->AllocLength = size;
 }

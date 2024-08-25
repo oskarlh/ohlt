@@ -27,10 +27,10 @@ CMeshDesc :: CMeshDesc( void )
 {
 	memset( &m_mesh, 0, sizeof( m_mesh ));
 
-	m_debugName = NULL;
-	planehash = NULL;
-	planepool = NULL;
-	facets = NULL;
+	m_debugName = nullptr;
+	planehash = nullptr;
+	planepool = nullptr;
+	facets = nullptr;
 	m_iNumTris = 0;
 }
 
@@ -79,7 +79,7 @@ areanode_t *CMeshDesc :: CreateAreaNode( int depth, const vec3_t mins, const vec
 	if( depth == AREA_DEPTH )
 	{
 		anode->axis = -1;
-		anode->children[0] = anode->children[1] = NULL;
+		anode->children[0] = anode->children[1] = nullptr;
 		return anode;
 	}
 
@@ -1028,7 +1028,7 @@ bool CMeshDesc :: FinishMeshBuild( void )
 		VectorCopy( facets[i].maxs, m_mesh.facets[i].maxs );
 		VectorCopy( facets[i].edge1, m_mesh.facets[i].edge1 );
 		VectorCopy( facets[i].edge2, m_mesh.facets[i].edge2 );
-		m_mesh.facets[i].area.next = m_mesh.facets[i].area.prev = NULL;
+		m_mesh.facets[i].area.next = m_mesh.facets[i].area.prev = nullptr;
 		m_mesh.facets[i].numplanes = facets[i].numplanes;
 		m_mesh.facets[i].texture = facets[i].texture;
 
@@ -1069,7 +1069,7 @@ void CMeshDesc :: FreeMeshBuild( void )
 	free( planepool );
 	free( facets );
 
-	planehash = NULL;
-	planepool = NULL;
-	facets = NULL;
+	planehash = nullptr;
+	planepool = nullptr;
+	facets = nullptr;
 }

@@ -143,7 +143,7 @@ public:
 
 	// mesh construction
 	bool InitMeshBuild( const char *debug_name, int numTrinagles ); 
-	bool AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *tex = NULL );
+	bool AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *tex = nullptr );
 	bool FinishMeshBuild( void );
 	void FreeMeshBuild( void );
 	void FreeMesh( void );
@@ -168,7 +168,7 @@ public:
 	// AABB tree contsruction
 	areanode_t *CreateAreaNode( int depth, const vec3_t mins, const vec3_t maxs );
 	void RelinkFacet( mfacet_t *facet );
-	_inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : NULL; }
+	_inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : nullptr; }
 
 	// plane cache
 	uint AddPlaneToPool( const mplane_t *pl );

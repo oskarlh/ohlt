@@ -175,7 +175,7 @@ void            WriteClipNodes(node_t* nodes)
 	// we only merge among the clipnodes of the same hull of the same model
 	clipnodemap_t outputmap;
     WriteClipNodes_r(nodes
-		, NULL
+		, nullptr
 		, &outputmap
 		);
 }
@@ -230,7 +230,7 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
     //
     leaf_p->firstmarksurface = g_nummarksurfaces;
 
-    hlassume(node->markfaces != NULL, assume_EmptySolid);
+    hlassume(node->markfaces != nullptr, assume_EmptySolid);
 
     for (fp = node->markfaces; *fp; fp++)
     {
@@ -319,7 +319,7 @@ static void     WriteFace(face_t* f)
         g_numsurfedges++;
     }
 	free (f->outputedges);
-	f->outputedges = NULL;
+	f->outputedges = nullptr;
 }
 
 // =====================================================================================
@@ -458,7 +458,7 @@ void OutputEdges_face (face_t *f)
 		return;
 	}
 	f->outputedges = (int *)malloc (f->numpoints * sizeof (int));
-	hlassume (f->outputedges != NULL, assume_NoMemory);
+	hlassume (f->outputedges != nullptr, assume_NoMemory);
 	int i;
 	for (i = 0; i < f->numpoints; i++)
 	{
@@ -547,7 +547,7 @@ void            WriteDrawNodes(node_t* headnode)
 	{
 		nextdetaillevel = OutputEdges_r (headnode, detaillevel);
 	}
-	WriteDrawNodes_r (headnode, NULL);
+	WriteDrawNodes_r (headnode, nullptr);
 }
 
 
@@ -618,12 +618,12 @@ void            FinishBSPFile()
 			int Num = 0, Size = 0;
 			int *Map = (int *)malloc (g_nummiptex * sizeof(int));
 			int i;
-			hlassume (Used != NULL && Map != NULL, assume_NoMemory);
+			hlassume (Used != nullptr && Map != nullptr, assume_NoMemory);
 			int *lumpsizes = (int *)malloc (g_nummiptex * sizeof (int));
 			const int newdatasizemax = g_texdatasize - ((byte *)&l->dataofs[g_nummiptex] - (byte *)l);
 			byte *newdata = (byte *)malloc (newdatasizemax);
 			int newdatasize = 0;
-			hlassume (lumpsizes != NULL && newdata != NULL, assume_NoMemory);
+			hlassume (lumpsizes != nullptr && newdata != nullptr, assume_NoMemory);
 			int total = 0;
 			for (i = 0; i < g_nummiptex; i++)
 			{
@@ -755,13 +755,13 @@ void            FinishBSPFile()
 		dclipnode_t *clipnodes; //[MAX_MAP_CLIPNODES]
 		int numclipnodes;
 		clipnodes = (dclipnode_t *)malloc (MAX_MAP_CLIPNODES * sizeof (dclipnode_t));
-		hlassume (clipnodes != NULL, assume_NoMemory);
+		hlassume (clipnodes != nullptr, assume_NoMemory);
 		void *(*brinkinfo)[NUM_HULLS]; //[MAX_MAP_MODELS]
 		int (*headnode)[NUM_HULLS]; //[MAX_MAP_MODELS]
 		brinkinfo = (void *(*)[NUM_HULLS])malloc (MAX_MAP_MODELS * sizeof (void *[NUM_HULLS]));
-		hlassume (brinkinfo != NULL, assume_NoMemory);
+		hlassume (brinkinfo != nullptr, assume_NoMemory);
 		headnode = (int (*)[NUM_HULLS])malloc (MAX_MAP_MODELS * sizeof (int [NUM_HULLS]));
-		hlassume (headnode != NULL, assume_NoMemory);
+		hlassume (headnode != nullptr, assume_NoMemory);
 
 		int i, j, level;
 		for (i = 0; i < g_nummodels; i++)

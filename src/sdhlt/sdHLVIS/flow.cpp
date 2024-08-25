@@ -34,7 +34,7 @@ inline static winding_t* AllocStackWinding(pstack_t* const stack)
 
     Error("AllocStackWinding: failed");
 
-    return NULL;
+    return nullptr;
 }
 
 // =====================================================================================
@@ -103,7 +103,7 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
     if (!counts[0])
     {
         FreeStackWinding(in, stack);
-        return NULL;
+        return nullptr;
     }
 
     sides[i] = sides[0];
@@ -343,13 +343,13 @@ inline static winding_t* ClipToSeperators(
                 plane.dist = -plane.dist;
             }
 
-	    if (target != NULL)
+	    if (target != nullptr)
 	    {
             // clip target by the seperating plane
             target = ChopWinding(target, stack, &plane);
             if (!target)
             {
-                return NULL;                               // target is not visible
+                return nullptr;                               // target is not visible
             }
 	    }
 	    else
@@ -395,14 +395,14 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
 
 #ifdef USE_CHECK_STACK
     prevstack->next = &stack;
-    stack.next = NULL;
+    stack.next = nullptr;
 #endif
     stack.head = prevstack->head;
     stack.leaf = leaf;
-    stack.portal = NULL;
+    stack.portal = nullptr;
 #ifdef RVIS_LEVEL_2
     stack.clipPlaneCount = -1;
-    stack.clipPlane = NULL;
+    stack.clipPlane = nullptr;
 #endif
 
     // check all portals for flowing into other leafs       
@@ -495,7 +495,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
 
         stack.portal = p;
 #ifdef USE_CHECK_STACK
-        stack.next = NULL;
+        stack.next = nullptr;
 #endif
         stack.freewindings[0] = 1;
         stack.freewindings[1] = 1;
@@ -538,12 +538,12 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         if (stack.clipPlaneCount > 0)
         {
             unsigned j;
-            for (j = 0; j < stack.clipPlaneCount && stack.pass != NULL; j++)
+            for (j = 0; j < stack.clipPlaneCount && stack.pass != nullptr; j++)
             {
                 stack.pass = ChopWinding(stack.pass, &stack, &(stack.clipPlane[j]));
             }
 
-            if (stack.pass == NULL)
+            if (stack.pass == nullptr)
             continue;
         }
 #else
@@ -582,7 +582,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
 
 #ifdef RVIS_LEVEL_2
 #if 0
-    if (stack.clipPlane != NULL)
+    if (stack.clipPlane != nullptr)
     {
         free(stack.clipPlane);
     }
@@ -1010,7 +1010,7 @@ void	MaxDistVis(int unused)
 	int a, b, c, d;
 	leaf_t	*l;
 	leaf_t	*tl;
-	plane_t	*boundary = NULL;
+	plane_t	*boundary = nullptr;
 	vec3_t delta;
 
 	float new_dist;

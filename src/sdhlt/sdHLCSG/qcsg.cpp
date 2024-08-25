@@ -49,15 +49,15 @@ bool            g_chart = cli_option_defaults::chart;                // show cha
 bool            g_skyclip = DEFAULT_SKYCLIP;            // no sky clipping "-noskyclip"
 bool            g_estimate = cli_option_defaults::estimate;          // progress estimates "-estimate"
 bool            g_info = cli_option_defaults::info;                  // "-info" ?
-const char*     g_hullfile = NULL;                      // external hullfile "-hullfie sdfsd"
-const char*		g_wadcfgfile = NULL;
-const char*		g_wadconfigname = NULL;
+const char*     g_hullfile = nullptr;                      // external hullfile "-hullfie sdfsd"
+const char*		g_wadcfgfile = nullptr;
+const char*		g_wadconfigname = nullptr;
 
 bool            g_bUseNullTex = cli_option_defaults::nulltex;        // "-nonulltex"
 
 cliptype		g_cliptype = DEFAULT_CLIPTYPE;			// "-cliptype <value>"
 
-const char*			g_nullfile = NULL;
+const char*			g_nullfile = nullptr;
 
 bool            g_bClipNazi = DEFAULT_CLIPNAZI;         // "-noclipeconomy"
 
@@ -461,7 +461,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 			const char *texname = GetTextureByNumber_CSG (texinfo);
 			texinfo_t *tex = &g_texinfo[texinfo];
 
-            if (texinfo != -1 // nullified textures (NULL, BEVEL, aaatrigger, etc.)
+            if (texinfo != -1 // nullified textures (nullptr, BEVEL, aaatrigger, etc.)
                 && !(tex->flags & TEX_SPECIAL) // sky
                 && strncasecmp(texname, "SKIP", 4)
                 && strncasecmp(texname, "HINT", 4) // HINT and SKIP will be nullified only after hlbsp
@@ -577,7 +577,7 @@ bface_t*        CopyFaceList(bface_t* f)
     }
     else
     {
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -611,7 +611,7 @@ static bface_t* CopyFacesToOutside(brushhull_t* bh)
     bface_t*        newf;
     bface_t*        outside;
 
-    outside = NULL;
+    outside = nullptr;
 
     for (f = bh->faces; f; f = f->next)
     {
@@ -733,7 +733,7 @@ static void     CSGBrush(int brushnum)
             // fragments are inside
 
             f = outside;
-            outside = NULL;
+            outside = nullptr;
             for (; f; f = next)
             {
                 next = f->next;
@@ -847,7 +847,7 @@ static void     CSGBrush(int brushnum)
 							else
 							{
 								FreeFace (f);
-								f = NULL;
+								f = nullptr;
 								break;
 							}
 						}
@@ -857,7 +857,7 @@ static void     CSGBrush(int brushnum)
 				{
 					f->next = outside;
 					outside = f;
-					f = NULL;
+					f = nullptr;
 				}
 				delete w;
 
@@ -869,7 +869,7 @@ static void     CSGBrush(int brushnum)
 						);
                     c_tiny_clip++;
                     FreeFace(f);
-                    f = NULL;
+                    f = nullptr;
                 }
                 if (f)
                 {
@@ -1266,7 +1266,7 @@ void WriteBSP(const char* const name)
 
         for (j = 0; j < NUM_HULLS; j++)
         {
-            newbrush->hulls[j].faces = NULL;
+            newbrush->hulls[j].faces = nullptr;
             newbrush->hulls[j].bounds = b->hulls[j].bounds;
         }
 
@@ -1723,7 +1723,7 @@ int             main(const int argc, char** argv)
     int             i;                          
     char            name[_MAX_PATH];            // mapanme 
     double          start, end;                 // start/end time log
-    const char*     mapname_from_arg = NULL;    // mapname path from passed argvar
+    const char*     mapname_from_arg = nullptr;    // mapname path from passed argvar
 
     g_Program = "sdHLCSG";
 
@@ -2015,7 +2015,7 @@ int             main(const int argc, char** argv)
 			{
 				char tmp[_MAX_PATH];
 #ifdef SYSTEM_WIN32
-				GetModuleFileName (NULL, tmp, _MAX_PATH);
+				GetModuleFileName (nullptr, tmp, _MAX_PATH);
 #else
 				safe_strncpy (tmp, argv[0], _MAX_PATH);
 #endif
@@ -2130,7 +2130,7 @@ int             main(const int argc, char** argv)
 		else
 		{
 #ifdef SYSTEM_WIN32
-			GetModuleFileName (NULL, temp, _MAX_PATH);
+			GetModuleFileName (nullptr, temp, _MAX_PATH);
 #else
 			safe_strncpy (temp, argv[0], _MAX_PATH);
 #endif
@@ -2156,7 +2156,7 @@ int             main(const int argc, char** argv)
 		else
 		{
 #ifdef SYSTEM_WIN32
-			GetModuleFileName (NULL, temp, _MAX_PATH);
+			GetModuleFileName (nullptr, temp, _MAX_PATH);
 #else
 			safe_strncpy (temp, argv[0], _MAX_PATH);
 #endif
@@ -2182,7 +2182,7 @@ int             main(const int argc, char** argv)
 		else
 		{
 #ifdef SYSTEM_WIN32 //Look relative to exe
-			GetModuleFileName (NULL, mapDirPath, _MAX_PATH);
+			GetModuleFileName (nullptr, mapDirPath, _MAX_PATH);
 #else //Fallback
 			safe_strncpy (mapDirPath, argv[0], _MAX_PATH);
 #endif
@@ -2250,7 +2250,7 @@ int             main(const int argc, char** argv)
         char exePath[_MAX_PATH];
         char wadCfgPath[_MAX_PATH];
 #ifdef SYSTEM_WIN32 //Get exe path
-        GetModuleFileName(NULL, exePath, _MAX_PATH);
+        GetModuleFileName(nullptr, exePath, _MAX_PATH);
 #else //Fallback
         safe_strncpy(exePath, argv[0], _MAX_PATH);
 #endif

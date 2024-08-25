@@ -136,19 +136,19 @@ void ReferencePtr<DATA_T>::Alloc()
 {
 	m_pData = new ReferencePtrBlock<DATA_T>;
 	m_pData->ReferenceCount = 1;
-	m_pData->pData = NULL;
+	m_pData->pData = nullptr;
 }
 
 template<class DATA_T>
 void ReferencePtr<DATA_T>::Release()
 {
-	assert(m_pData != NULL);
+	assert(m_pData != nullptr);
 	if (m_pData->ReferenceCount.dec() <= 0)
 	{
 		delete m_pData->pData;
-		m_pData->pData = NULL;
+		m_pData->pData = nullptr;
 		delete m_pData;
-		m_pData = NULL;
+		m_pData = nullptr;
 	}
 }
 

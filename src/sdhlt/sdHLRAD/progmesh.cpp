@@ -270,13 +270,13 @@ static void ComputeEdgeCostAtVertex( CVertex *v )
 	if( v->neighbor.num == 0 )
 	{
 		// v doesn't have neighbors so it costs nothing to collapse
-		v->collapse = NULL;
+		v->collapse = nullptr;
 		v->objdist = -0.01f;
 		return;
 	}
 
 	v->objdist = 1000000.0f;
-	v->collapse = NULL;
+	v->collapse = nullptr;
 
 	// search all neighboring edges for "least cost" edge
 	for( int i = 0; i < v->neighbor.num; i++ )

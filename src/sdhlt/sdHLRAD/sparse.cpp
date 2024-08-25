@@ -103,7 +103,7 @@ static void		SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISM
 		return;
 	}
 	column->row = (sparse_row_t *)malloc (column->count * sizeof (sparse_row_t));
-	hlassume (column->row != NULL, assume_NoMemory);
+	hlassume (column->row != nullptr, assume_NoMemory);
 	
 	i = 0;
 	for (mbegin = 0; mbegin < g_num_patches; mbegin += 8)
@@ -305,7 +305,7 @@ static void     BuildVisLeafs(int threadnum)
     int             head;
     unsigned        patchnum;
 	bool *uncompressedcolumn = (bool *)malloc (MAX_SPARSE_VISMATRIX_PATCHES * sizeof (bool));
-	hlassume (uncompressedcolumn != NULL, assume_NoMemory);
+	hlassume (uncompressedcolumn != nullptr, assume_NoMemory);
 
     while (1)
     {
@@ -379,7 +379,7 @@ static void     BuildVisMatrix()
     if (!s_vismatrix)
     {
         Log("Failed to allocate vismatrix");
-        hlassume(s_vismatrix != NULL, assume_NoMemory);
+        hlassume(s_vismatrix != nullptr, assume_NoMemory);
     }
 
     NamedRunThreadsOn(g_dmodels[0].visleafs, g_estimate, BuildVisLeafs);
@@ -401,7 +401,7 @@ static void     FreeVisMatrix()
         }
         if (FreeBlock(s_vismatrix))
         {
-            s_vismatrix = NULL;
+            s_vismatrix = nullptr;
         }
         else
         {

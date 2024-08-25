@@ -501,7 +501,7 @@ static void		WriteTextures(const char* const name)
 
 		lumpinfo_t *info;
 		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata)->nummiptex * sizeof (lumpinfo_t));
-		hlassume (info != NULL, assume_NoMemory);
+		hlassume (info != nullptr, assume_NoMemory);
 		memset (info, 0, header.numlumps * sizeof(lumpinfo_t));
 
 		for (int i = 0; i < header.numlumps; i++)
@@ -540,7 +540,7 @@ static void		WriteTextures(const char* const name)
 		
 		lumpinfo_t *info;
 		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata)->nummiptex * sizeof (lumpinfo_t)); // might be more than needed
-		hlassume (info != NULL, assume_NoMemory);
+		hlassume (info != nullptr, assume_NoMemory);
 
 		fprintf (texfile, "%d\r\n", ((dmiptexlump_t*)g_dtexdata)->nummiptex);
 		fseek (wadfile, sizeof(wadinfo_t), SEEK_SET);
@@ -616,7 +616,7 @@ static void		ReadTextures(const char *name)
 		
 		lumpinfo_t *info;
 		info = (lumpinfo_t *)malloc (header.numlumps * sizeof (lumpinfo_t));
-		hlassume (info != NULL, assume_NoMemory);
+		hlassume (info != nullptr, assume_NoMemory);
 		SafeRead (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
 
 		for (int i = 0; i < header.numlumps; i++)
@@ -637,7 +637,7 @@ static void		ReadTextures(const char *name)
 
 		lumpinfo_t *info;
 		info = (lumpinfo_t *)malloc (header.numlumps * sizeof (lumpinfo_t));
-		hlassume (info != NULL, assume_NoMemory);
+		hlassume (info != nullptr, assume_NoMemory);
 		SafeRead (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
 
 		int nummiptex = 0;
@@ -715,7 +715,7 @@ static void     WriteEntities(const char* const name)
 		{
 			bak_entdatasize = g_entdatasize;
 			bak_dentdata = (char *)malloc (g_entdatasize);
-			hlassume (bak_dentdata != NULL, assume_NoMemory);
+			hlassume (bak_dentdata != nullptr, assume_NoMemory);
 			memcpy (bak_dentdata, g_dentdata, g_entdatasize);
 			ParseEntityData("  ", 2, "\r\n", 2, "", 0);
 		}
@@ -1011,7 +1011,7 @@ int             main(int argc, char** argv)
 			{
 				char tmp[_MAX_PATH];
 #ifdef SYSTEM_WIN32
-				GetModuleFileName (NULL, tmp, _MAX_PATH);
+				GetModuleFileName (nullptr, tmp, _MAX_PATH);
 #else
 				safe_strncpy (tmp, argv[0], _MAX_PATH);
 #endif

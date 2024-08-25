@@ -46,13 +46,13 @@ int             GetThreadWork()
 {
     int             r, f, i;
     double          ct, finish, finish2, finish3;
-	static const char *s1 = NULL; // avoid frequent call of Localize() in PrintConsole
-	static const char *s2 = NULL;
+	static const char *s1 = nullptr; // avoid frequent call of Localize() in PrintConsole
+	static const char *s2 = nullptr;
 
     ThreadLock();
-	if (s1 == NULL)
+	if (s1 == nullptr)
 		s1 = Localize ("  (%d%%: est. time to completion %ld/%ld/%ld secs)   ");
-	if (s2 == NULL)
+	if (s2 == nullptr)
 		s2 = Localize ("  (%d%%: est. time to completion <1 sec)   ");
 
     if (dispatch == 0)
@@ -346,14 +346,14 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
     threads_InitCrit();
     for (i = 0; i < g_numthreads; i++)
     {
-        HANDLE          hThread = CreateThread(NULL,
+        HANDLE          hThread = CreateThread(nullptr,
                                                0,
                                                (LPTHREAD_START_ROUTINE) ThreadEntryStub,
                                                (LPVOID) i,
                                                CREATE_SUSPENDED,
                                                &threadid[i]);
 
-        if (hThread != NULL)
+        if (hThread != nullptr)
         {
             threadhandle[i] = hThread;
         }
@@ -363,8 +363,8 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
             FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                           FORMAT_MESSAGE_FROM_SYSTEM |
-                          FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
-                          (LPTSTR) & lpMsgBuf, 0, NULL);
+                          FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
+                          (LPTSTR) & lpMsgBuf, 0, nullptr);
             // Process any inserts in lpMsgBuf.
             // ...
             // Display the string.
@@ -385,8 +385,8 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
             FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
                           FORMAT_MESSAGE_FROM_SYSTEM |
-                          FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
-                          (LPTSTR) & lpMsgBuf, 0, NULL);
+                          FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
+                          (LPTSTR) & lpMsgBuf, 0, nullptr);
             // Process any inserts in lpMsgBuf.
             // ...
             // Display the string.
@@ -406,7 +406,7 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
     }
     threads_UninitCrit();
 
-    q_entry = NULL;
+    q_entry = nullptr;
     threaded = false;
     end = I_FloatTime();
     if (pacifier)
@@ -490,7 +490,7 @@ q_threadfunction q_entry;
 static void*    CDECL ThreadEntryStub(void* pParam)
 {
     q_entry((int)(intptr_t)pParam);
-    return NULL;
+    return nullptr;
 }
 
 void            threads_InitCrit()
@@ -514,7 +514,7 @@ void            threads_InitCrit()
 void            threads_UninitCrit()
 {
     Free(my_mutex);
-    my_mutex = NULL;
+    my_mutex = nullptr;
 }
 
 /*
@@ -546,7 +546,7 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
     if (pacifier)
     {
-        setbuf(stdout, NULL);
+        setbuf(stdout, nullptr);
     }
 
     threads_InitCrit();
@@ -580,7 +580,7 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
     threads_UninitCrit();
 
-    q_entry = NULL;
+    q_entry = nullptr;
     threaded = false;
 
     end = I_FloatTime();
@@ -651,7 +651,7 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
     if (pacifier)
     {
-        setbuf(stdout, NULL);
+        setbuf(stdout, nullptr);
     }
     func(0);
 

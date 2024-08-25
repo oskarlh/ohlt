@@ -47,12 +47,12 @@ bool            g_log = DEFAULT_LOG;
 unsigned long   g_clientid = 0;
 unsigned long   g_nextclientid = 0;
 
-static FILE*    CompileLog = NULL;
+static FILE*    CompileLog = nullptr;
 static bool     fatal = false;
 
 bool twice = false;
 bool useconsole = false;
-FILE *conout = NULL;
+FILE *conout = nullptr;
 
 int				g_lang_count = 0;
 const int		g_lang_max = 1024;
@@ -166,7 +166,7 @@ void            LogError(const char* const message)
     if (g_log && CompileLog)
     {
         char            logfilename[_MAX_PATH];
-        FILE*           ErrorLog = NULL;
+        FILE*           ErrorLog = nullptr;
 
         safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
         ErrorLog = fopen(logfilename, "a");
@@ -176,7 +176,7 @@ void            LogError(const char* const message)
             fprintf(ErrorLog, "%s: %s\n", g_Program, message);
             fflush(ErrorLog);
             fclose(ErrorLog);
-            ErrorLog = NULL;
+            ErrorLog = nullptr;
         }
         else
         {
@@ -251,7 +251,7 @@ void CDECL      CloseLog()
         LogEnd();
         fflush(CompileLog);
         fclose(CompileLog);
-        CompileLog = NULL;
+        CompileLog = nullptr;
     }
 }
 
@@ -807,7 +807,7 @@ void LoadLangFile (const char *name, const char *programpath)
 	char filepath[_MAX_PATH];
 	char line1[MAXTOKEN];
 	char line2[MAXTOKEN];
-	FILE *f = NULL;
+	FILE *f = nullptr;
 	if (!f)
 	{
 		strcpy (filepath, name);
