@@ -13,11 +13,20 @@ cmake -S . -B build
 cmake --build build
 
 cd test-and-compare
+
 ../tools/sdHLCSG ./valve/maps/pool
 ../tools/sdHLBSP ./valve/maps/pool
-../tools/sdHLVIS ./valve/maps/pool
+../tools/sdHLVIS -fast ./valve/maps/pool
 ../tools/sdHLRAD ./valve/maps/pool
 
+if cmp --silent -- "./valve/maps/pool.bsp" "./valve/maps/pool-first-compile.bsp"; then
+	echo "Compiled the map successfully :)"
+else
+	echo "The .bsp has changed!"
+	echo "The .bsp has changed!"
+	echo "The .bsp has changed!"
+	echo "The .bsp has changed!"
+	exit 1
+fi
 
-echo Compiled the map.
-echo TODO: Add a comparison here so we can detect if the .bsp is any different...
+cmp
