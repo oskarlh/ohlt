@@ -1,3 +1,6 @@
+# Note!!!
+Below is the changelog for SDHLT. Oskar needs to update/replace this changelog to add his changes.....
+
 # Changelog
 All notable changes to this project will be documented in this file.
 

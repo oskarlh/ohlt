@@ -1,3 +1,4 @@
+#include <cstddef>
 #include "cmdlib.h"
 #include "filelib.h"
 #include "messages.h"
@@ -7,11 +8,12 @@
 #include "bspfile.h"
 #include "scriplib.h"
 #include "blockmem.h"
+#include "cli_option_defaults.h"
 
 //=============================================================================
 
-int             g_max_map_miptex = DEFAULT_MAX_MAP_MIPTEX;
-int				g_max_map_lightdata = DEFAULT_MAX_MAP_LIGHTDATA;
+std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
+std::ptrdiff_t g_max_map_lightdata = cli_option_defaults::max_map_lightdata;
 
 int             g_nummodels;
 dmodel_t        g_dmodels[MAX_MAP_MODELS];
@@ -1061,7 +1063,7 @@ void            PrintBSPFileSizes()
     totalmemory += GlobUsage("entdata", g_entdatasize, sizeof(g_dentdata));
 	if (numallocblocks == -1)
 	{
-		Log ("* AllocBlock    [ not available to the " PLATFORM_VERSIONSTRING " version ]\n");
+		Log ("* AllocBlock    [ not available to the " PLATFORM_VERSION " version ]\n");
 	}
 	else
 	{

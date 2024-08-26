@@ -1,6 +1,7 @@
 #ifndef BSPFILE_H__
 #define BSPFILE_H__
 #include "cmdlib.h" //--vluzacn
+#include <cstddef>
 
 #if _MSC_VER >= 1000
 #pragma once
@@ -62,14 +63,7 @@
 #define MAX_MAP_SURFEDGES   512000
 // arbtirary
 
-#define DEFAULT_MAX_MAP_MIPTEX      0x2000000 //0x400000 //vluzacn
-// 4Mb of textures is enough especially considering the number of people playing the game
-// still with voodoo1 and 2 class cards with limited local memory.
-
-#define DEFAULT_MAX_MAP_LIGHTDATA	0x3000000 //0x600000 //vluzacn
-// arbitrary
-
-#define MAX_MAP_VISIBILITY  0x800000 //0x200000 //vluzacn
+#define MAX_MAP_VISIBILITY  0x800000
 // arbitrary
 
 // these are for entity key:value pairs
@@ -409,8 +403,8 @@ extern entity_t* EntityForModel(int modnum);
 // Texture Related Stuff
 //
 
-extern int      g_max_map_miptex;
-extern int		g_max_map_lightdata;
+extern std::ptrdiff_t g_max_map_miptex;
+extern std::ptrdiff_t g_max_map_lightdata;
 extern void     dtexdata_init();
 extern void CDECL dtexdata_free();
 

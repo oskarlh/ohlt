@@ -398,7 +398,7 @@ static void     ReadBSP(const char* const name)
 		Log ("\nWriting %s.\n", extentfilename);
 		WriteExtentFile (extentfilename);
 #else
-		Error ("-writeextentfile is not allowed in the " PLATFORM_VERSIONSTRING " version. Please use the 32-bit version of ripent.");
+		Error ("-writeextentfile is not allowed in the " PLATFORM_VERSION " version. Please use the 32-bit version of ripent.");
 #endif
 	}
 }
@@ -841,8 +841,8 @@ static void     Settings()
 
     // ZHLT Common Settings
     Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
-    Log("max texture memory  [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
-	Log("max lighting memory [ %7d ] [ %7d ]\n", g_max_map_lightdata, DEFAULT_MAX_MAP_LIGHTDATA);
+    Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
+	Log("max lighting memory [ %7td ] [ %7td ]\n", g_max_map_lightdata, cli_option_defaults::max_map_lightdata);
 
 	switch (g_mode)
 	{

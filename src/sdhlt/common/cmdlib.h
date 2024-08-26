@@ -1,25 +1,16 @@
-#ifndef CMDLIB_H__
-#define CMDLIB_H__
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
 
 //#define MODIFICATIONS_STRING "Submit detailed bug reports to (zoner@gearboxsoftware.com)\n"
 //#define MODIFICATIONS_STRING "Submit detailed bug reports to (merlinis@bigpond.net.au)\n"
 //#define MODIFICATIONS_STRING "Submit detailed bug reports to (amckern@yahoo.com)\n"
 //#define MODIFICATIONS_STRING "Submit detailed bug reports to (vluzacn@163.com)\n" //--vluzacn
+// TODO: Replace this link... Should probably be configurable in CMakeLists.txt
 #define MODIFICATIONS_STRING "Submit detailed bug reports to (github.com/seedee/SDHLT/issues)\n"
 
-#ifdef _DEBUG
-#define ZHLT_VERSIONSTRING "v3.4 dbg"
-#else
-#define ZHLT_VERSIONSTRING "v3.4"
-#endif
+#define VERSION_STRING "v" PROJECT_VERSION
 
-#define HACK_VERSIONSTRING "VL34" //--vluzacn
+#define PROJECT_NAME_AND_VERSION PROJECT_NAME " v" PROJECT_VERSION
 
-#define SDHLT_VERSIONSTRING "v1.2.0"
 
 #if !defined (SDHLCSG) && !defined (SDHLBSP) && !defined (SDHLVIS) && !defined (SDHLRAD) && !defined (SDRIPENT) //seedee
 #error "You must define one of these in the settings of each project: SDHLCSG, SDHLBSP, SDHLVIS, SDHLRAD, SDRIPENT. The most likely cause is that you didn't load the project from the .sln file."
@@ -28,25 +19,6 @@
 #error "You must define one of these in the settings of each project: VERSION_32BIT, VERSION_64BIT, VERSION_LINUX, VERSION_MACOS, VERSION_OTHER. The most likely cause is that you didn't load the project from the .sln file."
 #endif
 
-#ifdef VERSION_32BIT
-#define PLATFORM_VERSIONSTRING "32-bit"
-#define PLATFORM_CAN_CALC_EXTENT
-#endif
-#ifdef VERSION_64BIT
-#define PLATFORM_VERSIONSTRING "64-bit"
-#define PLATFORM_CAN_CALC_EXTENT
-#endif
-#ifdef VERSION_LINUX
-#define PLATFORM_VERSIONSTRING "linux"
-#define PLATFORM_CAN_CALC_EXTENT
-#endif
-#ifdef VERSION_MACOS
-#define PLATFORM_VERSIONSTRING "macos"
-#define PLATFORM_CAN_CALC_EXTENT
-#endif
-#ifdef VERSION_OTHER
-#define PLATFORM_VERSIONSTRING "???"
-#endif
 
 //=====================================================================
 // AJM: Different features of the tools can be undefined here
@@ -173,5 +145,3 @@ extern int      BigLong(int l);
 extern int      LittleLong(int l);
 extern float    BigFloat(float l);
 extern float    LittleFloat(float l);
-
-#endif //CMDLIB_H__

@@ -2,11 +2,12 @@
 # SDHLT
 #================================
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.30)
 
-project(sdhlt
-    DESCRIPTION "seedee's Half-Life Compilation Tools"
+project("Oskar's HLT"
+    DESCRIPTION "Oskar's Half-Life Compilation Tools"
     LANGUAGES CXX
+    VERSION 0.1.0
 )
 
 message("${CMAKE_PROJECT_NAME} > Starting configuration for ${CMAKE_PROJECT_DESCRIPTION}")
@@ -198,6 +199,17 @@ include_directories(
 )
 
 #================
+# Definitions
+#================
+
+add_compile_definitions(
+    PROJECT_DESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
+    PROJECT_NAME="${CMAKE_PROJECT_NAME}"
+    PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
+)
+
+
+#================
 # System config
 #================
 
@@ -210,6 +222,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         -pipe
     )
     add_compile_definitions(
+        PLATFORM_VERSION="Linux"
         VERSION_LINUX
         SYSTEM_POSIX
         STDC_HEADERS
@@ -220,10 +233,12 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         HAVE_SYS_STAT_H
         HAVE_SYS_TIME_H
         HAVE_UNISTD_H
+        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_compile_definitions(
+        PLATFORM_VERSION="MacOS"
         VERSION_MACOS
         SYSTEM_POSIX
         STDC_HEADERS
@@ -234,22 +249,33 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         HAVE_SYS_STAT_H
         HAVE_SYS_TIME_H
         HAVE_UNISTD_H
+        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     option(SDHLT_64BIT "Flag targets as 64-bit." ON)
     if (SDHLT_64BIT)
-        add_compile_definitions(VERSION_64BIT)
+        add_compile_definitions(
+            PLATFORM_VERSION="64-bit Windows"
+            VERSION_64BIT
+        )
     else()
-        add_compile_definitions(VERSION_32BIT)
+        add_compile_definitions(
+            PLATFORM_VERSION="32-bit Windows"
+            VERSION_32BIT
+        )
     endif()
     add_compile_definitions(
         SYSTEM_WIN32
         STDC_HEADERS
+        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 else()
-    add_compile_definitions(VERSION_OTHER)
+    add_compile_definitions(
+        PLATFORM_VERSION="???"
+        VERSION_OTHER
+    )
     message("${CMAKE_PROJECT_NAME} > WARNING: Unknown system \"${CMAKE_SYSTEM_NAME}\"")
 endif()
 

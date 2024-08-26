@@ -931,9 +931,7 @@ bool            ParseMapEntity()
 	if (this_entity == 0)
 	{
 		// Let the map tell which version of the compiler it comes from, to help tracing compiler bugs.
-		char versionstring [128];
-		snprintf (versionstring, sizeof(versionstring), "ZHLT " ZHLT_VERSIONSTRING " " HACK_VERSIONSTRING " (%s)", __DATE__);
-		SetKeyValue (mapent, "compiler", versionstring);
+		SetKeyValue (mapent, "compiler", PROJECT_NAME_AND_VERSION);
 	}
     
 

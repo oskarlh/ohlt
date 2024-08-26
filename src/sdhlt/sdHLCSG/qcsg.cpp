@@ -126,7 +126,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     {
         g_max_map_miptex = iTmp;
     }
-	snprintf(szTmp, sizeof(szTmp), "%i", g_max_map_miptex);
+	snprintf(szTmp, sizeof(szTmp), "%td", g_max_map_miptex);
     Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
 
     // hullfile(string) : "Custom Hullfile"
@@ -1624,8 +1624,8 @@ static void     Settings()
     Log("developer             [ %7d ] [ %7d ]\n", g_developer, DEFAULT_DEVELOPER);
     Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate              [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
-    Log("max texture memory    [ %7d ] [ %7d ]\n", g_max_map_miptex, DEFAULT_MAX_MAP_MIPTEX);
-	Log("max lighting memory   [ %7d ] [ %7d ]\n", g_max_map_lightdata, DEFAULT_MAX_MAP_LIGHTDATA);
+    Log("max texture memory    [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
+	Log("max lighting memory   [ %7td ] [ %7td ]\n", g_max_map_lightdata, cli_option_defaults::max_map_lightdata);
 
     switch (g_threadpriority)
     {
