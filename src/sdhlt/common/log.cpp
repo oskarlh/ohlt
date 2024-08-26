@@ -35,14 +35,15 @@
 #endif
 
 #include "scriplib.h"
+#include "cli_option_defaults.h"
 
 const char*           g_Program = "Uninitialized variable ::g_Program";
 char            g_Mapname[_MAX_PATH] = "Uninitialized variable ::g_Mapname";
 char            g_Wadpath[_MAX_PATH] = "Uninitialized variable ::g_Wadpath";
 
-developer_level_t g_developer = DEFAULT_DEVELOPER;
-bool            g_verbose = DEFAULT_VERBOSE;
-bool            g_log = DEFAULT_LOG;
+developer_level_t g_developer = cli_option_defaults::developer;
+bool            g_verbose = cli_option_defaults::verbose;
+bool            g_log = cli_option_defaults::log;
 
 unsigned long   g_clientid = 0;
 unsigned long   g_nextclientid = 0;

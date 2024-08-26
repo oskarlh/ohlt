@@ -1,25 +1,9 @@
-#ifndef LOG_H__
-#define LOG_H__
-#include "cmdlib.h" //--vluzacn
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
-
+#include "cmdlib.h"
+#include "developer_level.h"
 #include "mathtypes.h"
 #include "messages.h"
 
-typedef enum
-{
-    DEVELOPER_LEVEL_ALWAYS,
-    DEVELOPER_LEVEL_ERROR,
-    DEVELOPER_LEVEL_WARNING,
-    DEVELOPER_LEVEL_MESSAGE,
-    DEVELOPER_LEVEL_FLUFF,
-    DEVELOPER_LEVEL_SPAM,
-    DEVELOPER_LEVEL_MEGASPAM
-}
-developer_level_t;
 
 //
 // log.c globals
@@ -28,10 +12,6 @@ developer_level_t;
 extern const char*    g_Program;
 extern char     g_Mapname[_MAX_PATH];
 extern char     g_Wadpath[_MAX_PATH]; //seedee
-
-#define DEFAULT_DEVELOPER   DEVELOPER_LEVEL_ALWAYS
-#define DEFAULT_VERBOSE     false
-#define DEFAULT_LOG         true
 
 extern developer_level_t g_developer;
 extern bool          g_verbose;
@@ -83,4 +63,3 @@ extern void     LogTimeElapsed(float elapsed_time);
 // Should be in hlassert.h, but well so what
 extern void     hlassume(bool exp, assume_msgs msgid);
 
-#endif // Should be in hlassert.h, but well so what LOG_H__

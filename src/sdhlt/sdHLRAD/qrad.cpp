@@ -2840,9 +2840,9 @@ static void     Settings()
         Log("threads              [ %17d ] [ %17d ]\n", g_numthreads, DEFAULT_NUMTHREADS);
     }
 
-    Log("verbose              [ %17s ] [ %17s ]\n", g_verbose ? "on" : "off", DEFAULT_VERBOSE ? "on" : "off");
-    Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off", DEFAULT_LOG ? "on" : "off");
-    Log("developer            [ %17d ] [ %17d ]\n", g_developer, DEFAULT_DEVELOPER);
+    Log("verbose              [ %17s ] [ %17s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");
+    Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
+    Log("developer            [ %17d ] [ %17d ]\n", g_developer, cli_option_defaults::developer);
     Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate             [ %17s ] [ %17s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory   [ %17td ] [ %17td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
