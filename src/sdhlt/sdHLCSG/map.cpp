@@ -95,16 +95,12 @@ void DeleteCurrentEntity (entity_t *entity)
 // =====================================================================================
 void            TextureAxisFromPlane(const plane_t* const pln, vec3_t xv, vec3_t yv)
 {
-    int             bestaxis;
-    vec_t           dot, best;
-    int             i;
+    vec_t best = 0;
+    std::size_t bestaxis = 0;
 
-    best = 0;
-    bestaxis = 0;
-
-    for (i = 0; i < 6; i++)
+    for (std::size_t i = 0; i < 6; ++i)
     {
-        dot = DotProduct(pln->normal, s_baseaxis[i * 3]);
+        vec_t dot = DotProduct(pln->normal, s_baseaxis[i * 3]);
         if (dot > best)
         {
             best = dot;
