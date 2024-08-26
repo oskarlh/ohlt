@@ -19,7 +19,7 @@ cd test-and-compare
 ../tools/sdHLVIS -fast ./valve/maps/pool
 ../tools/sdHLRAD ./valve/maps/pool
 
-if cmp --silent -- "./valve/maps/pool.bsp" "./valve/maps/pool-first-compile.bsp"; then
+if cmp "./valve/maps/pool.bsp" "./valve/maps/pool-first-compile.bsp"; then
 	echo "Compiled the map successfully :)"
 else
 	echo "The .bsp has changed!"
@@ -28,5 +28,3 @@ else
 	echo "The .bsp has changed!"
 	exit 1
 fi
-
-cmp
