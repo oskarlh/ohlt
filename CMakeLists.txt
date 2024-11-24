@@ -234,7 +234,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         HAVE_SYS_STAT_H
         HAVE_SYS_TIME_H
         HAVE_UNISTD_H
-        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -250,7 +249,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         HAVE_SYS_STAT_H
         HAVE_SYS_TIME_H
         HAVE_UNISTD_H
-        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -269,7 +267,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_compile_definitions(
         SYSTEM_WIN32
         STDC_HEADERS
-        PLATFORM_CAN_CALC_EXTENT
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 else()

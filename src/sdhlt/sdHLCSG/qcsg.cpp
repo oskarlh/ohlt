@@ -2086,9 +2086,7 @@ int             main(const int argc, char** argv)
 		}
 		Log("\n");
 	}
-#ifdef PLATFORM_CAN_CALC_EXTENT
 	hlassume (CalcFaceExtents_test (), assume_first);
-#endif
     atexit(CSGCleanup); // AJM
     dtexdata_init();                        
     atexit(dtexdata_free);

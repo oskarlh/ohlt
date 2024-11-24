@@ -379,15 +379,11 @@ static void     ReadBSP(const char* const name)
 	LoadBSPFile(filename);
 	if (g_writeextentfile)
 	{
-#ifdef PLATFORM_CAN_CALC_EXTENT
 		hlassume (CalcFaceExtents_test (), assume_first);
 		char extentfilename[_MAX_PATH];
 		safe_snprintf (extentfilename, _MAX_PATH, "%s.ext", name);
 		Log ("\nWriting %s.\n", extentfilename);
 		WriteExtentFile (extentfilename);
-#else
-		Error ("-writeextentfile is not allowed in the " PLATFORM_VERSION " version. Please use the 32-bit version of ripent.");
-#endif
 	}
 }
 
@@ -1056,12 +1052,10 @@ int             main(int argc, char** argv)
 	}
     if (g_chart)
 	{
-#ifdef PLATFORM_CAN_CALC_EXTENT
 		if (!CalcFaceExtents_test ())
 		{
 			Warning ("internal error: CalcFaceExtents_test failed.");
 		}
-#endif
         PrintBSPFileSizes();
 	}
 	if (updatebsp)
