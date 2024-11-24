@@ -1,11 +1,6 @@
 #pragma once
 
-//#define MODIFICATIONS_STRING "Submit detailed bug reports to (zoner@gearboxsoftware.com)\n"
-//#define MODIFICATIONS_STRING "Submit detailed bug reports to (merlinis@bigpond.net.au)\n"
-//#define MODIFICATIONS_STRING "Submit detailed bug reports to (amckern@yahoo.com)\n"
-//#define MODIFICATIONS_STRING "Submit detailed bug reports to (vluzacn@163.com)\n" //--vluzacn
-// TODO: Replace this link... Should probably be configurable in CMakeLists.txt
-#define MODIFICATIONS_STRING "Submit detailed bug reports to (github.com/seedee/SDHLT/issues)\n"
+#define MODIFICATIONS_STRING "Submit detailed bug reports to (" PROJECT_ISSUE_TRACKER ")\n"
 
 #define VERSION_STRING "v" PROJECT_VERSION
 
@@ -27,9 +22,6 @@
 // ZHLT_* features are spread across more than one tool. Hence, changing
 //      one of these settings probably means recompiling the whole set
 
-	#ifdef SYSTEM_WIN32
-#define RIPENT_PAUSE //--vluzacn
-	#endif
 
 // tool specific settings below only mean a recompile of the tool affected
 
@@ -41,13 +33,6 @@
 
 #if _MSC_VER <1400
 #define strcpy_s strcpy //--vluzacn
-#endif
-#if _MSC_VER >= 1400
-#pragma warning(disable: 4996)
-#endif
-
-#ifdef __MINGW32__
-#include <io.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -65,15 +50,6 @@
 #include "win32fix.h"
 #include "mathtypes.h"
 
-#ifdef SYSTEM_WIN32
-#pragma warning(disable: 4127)                      // conditional expression is constant
-#pragma warning(disable: 4115)                      // named type definition in parentheses
-#pragma warning(disable: 4244)                      // conversion from 'type' to type', possible loss of data
-// AJM
-#pragma warning(disable: 4786)                      // identifier was truncated to '255' characters in the browser information
-#pragma warning(disable: 4305)                      // truncation from 'const double' to 'float'
-#pragma warning(disable: 4800)                     // forcing value to bool 'true' or 'false' (performance warning)
-#endif
 
 
 #ifdef STDC_HEADERS

@@ -543,37 +543,7 @@ void            WriteBSPFile(const char* const filename)
 // =====================================================================================
 //  GetFaceExtents (with PLATFORM_CAN_CALC_EXTENT on)
 // =====================================================================================
-#ifdef SYSTEM_WIN32
-#ifdef VERSION_32BIT
-static void CorrectFPUPrecision ()
-{
-	unsigned int currentcontrol;
-	if (_controlfp_s (&currentcontrol, 0, 0))
-	{
-		Warning ("Couldn't get FPU precision");
-	}
-	else
-	{
-		unsigned int val = (currentcontrol & _MCW_PC);
-		if (val != _PC_53)
-		{
-			Warning ("FPU precision is %s. Setting to %s.", (val == _PC_24? "24": val == _PC_64? "64": "invalid"), "53");
-			if (_controlfp_s (&currentcontrol, _PC_53, _MCW_PC)
-				|| (currentcontrol & _MCW_PC) != _PC_53)
-			{
-				Warning ("Couldn't set FPU precision");
-			}
-		}
-	}
-}
-#endif
-#ifdef VERSION_64BIT
-static void CorrectFPUPrecision ()
-{
-	// do nothing, because we use SSE registers
-}
-#endif
-#endif
+
 
 #ifdef SYSTEM_POSIX
 static void CorrectFPUPrecision ()

@@ -1,7 +1,4 @@
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
+
 
 #include "cmdlib.h"
 #include "messages.h"
@@ -32,19 +29,6 @@
 
 double          I_FloatTime()
 {
-#ifdef SYSTEM_WIN32
-    FILETIME        ftime;
-    double rval;
-
-    GetSystemTimeAsFileTime(&ftime);
-
-    rval = ftime.dwLowDateTime;
-    rval += ((__int64)ftime.dwHighDateTime) << 32;
-
-    return (rval / 10000000.0);
-#endif
-
-#ifdef SYSTEM_POSIX
     struct timeval  tp;
     struct timezone tzp;
     static int      secbase;
@@ -58,10 +42,8 @@ double          I_FloatTime()
     }
 
     return (tp.tv_sec - secbase) + tp.tv_usec / 1000000.0;
-#endif
 }
 
-#ifdef SYSTEM_POSIX
 char*           strupr(char* string)
 {
     int             i;
@@ -85,7 +67,6 @@ char*           strlwr(char* string)
     }
     return string;
 }
-#endif
 
 // Case Insensitive substring matching
 const char*     stristr(const char* const string, const char* const substring)

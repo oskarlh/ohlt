@@ -1183,7 +1183,6 @@ static void     Usage()
     Banner();
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -console #      : Set to 0 to turn off the pop-up console (default is 1)\n");
 	Log("    -lang file      : localization file\n");
     Log("    -full           : Full vis\n");
     Log("    -fast           : Fast vis\n\n");
@@ -1471,22 +1470,6 @@ int             main(const int argc, char** argv)
             }
         }
 
-		else if (!strcasecmp(argv[i], "-console"))
-		{
-#ifndef SYSTEM_WIN32
-			Warning("The option '-console #' is only valid for Windows.");
-#endif
-			if (i + 1 < argc)
-				++i;
-			else
-				Usage();
-		}
-#ifdef SYSTEM_WIN32
-        else if (!strcasecmp(argv[i], "-estimate"))
-        {
-            g_estimate = true;
-        }
-#endif
 #ifdef SYSTEM_POSIX
         else if (!strcasecmp(argv[i], "-noestimate"))
         {

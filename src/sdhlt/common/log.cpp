@@ -661,62 +661,13 @@ void LogTimeElapsed(float elapsed_time)
     }
 }
 
-#ifdef SYSTEM_WIN32
-void wait ()
-{
-	Sleep (1000);
-}
-int InitConsole (int argc, char **argv)
-{
-	int i;
-	bool wrong = false;
-	twice = false;
-	useconsole = true;
-	for (i = 1; i < argc; ++i)
-	{
-		if (!strcasecmp (argv[i], "-console"))
-		{
-			if (i + 1 < argc)
-			{
-				if (!strcasecmp (argv[i+1], "0"))
-					useconsole = false;
-				else if (!strcasecmp (argv[i+1], "1"))
-					useconsole = true;
-				else
-					wrong = true;
-			}
-			else
-				wrong = true;
-		}
-	}
-	if (useconsole)
-		twice = AllocConsole ();
-	if (useconsole)
-	{
-		conout = fopen ("CONOUT$", "w");
-		if (!conout)
-		{
-			useconsole = false;
-			twice = false;
-			Warning ("Can not open 'CONOUT$'");
-			if (twice)
-				FreeConsole ();
-		}
-	}
-	if (twice)
-		atexit (&wait);
-	if (wrong)
-		return -1;
-	return 0;
-}
-#else
 int InitConsole (int argc, char **argv)
 {
 	twice = false;
 	useconsole = false;
 	return 0;
 }
-#endif
+
 void CDECL FORMAT_PRINTF(1,2) PrintConsole(const char* const warning, ...)
 {
     char            message[MAX_MESSAGE];

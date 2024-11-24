@@ -1381,7 +1381,6 @@ static void     Usage()
     Banner();
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -console #     : Set to 0 to turn off the pop-up console (default is 1)\n");
 	Log("    -lang file     : localization file\n");
     Log("    -leakonly      : Run BSP only enough to check for LEAKs\n");
     Log("    -subdivide #   : Sets the face subdivide size\n");
@@ -1659,16 +1658,6 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp(argv[i], "-console"))
-		{
-#ifndef SYSTEM_WIN32
-			Warning("The option '-console #' is only valid for Windows.");
-#endif
-			if (i + 1 < argc)
-				++i;
-			else
-				Usage();
-		}
         else if (!strcasecmp(argv[i], "-notjunc"))
         {
             g_notjunc = true;

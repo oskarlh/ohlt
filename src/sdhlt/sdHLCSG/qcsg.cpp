@@ -1519,7 +1519,6 @@ static void     Usage()
     Banner(); // TODO: Call banner from main CSG process? 
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -console #       : Set to 0 to turn off the pop-up console (default is 1)\n");
 	Log("    -lang file       : localization file\n");
     Log("    -nowadtextures   : Include all used textures into bsp\n");
     Log("    -wadinclude file : Include specific wad or directory into bsp\n");
@@ -1770,23 +1769,6 @@ int             main(const int argc, char** argv)
         {
             g_iWorldExtent = atoi(argv[++i]);
         }
-
-		else if (!strcasecmp(argv[i], "-console"))
-		{
-#ifndef SYSTEM_WIN32
-			Warning("The option '-console #' is only valid for Windows.");
-#endif
-			if (i + 1 < argc)
-				++i;
-			else
-				Usage();
-		}
-#ifdef SYSTEM_WIN32
-        else if (!strcasecmp(argv[i], "-estimate"))
-        {
-            g_estimate = true;
-        }
-#endif
 
 #ifdef SYSTEM_POSIX
         else if (!strcasecmp(argv[i], "-noestimate"))

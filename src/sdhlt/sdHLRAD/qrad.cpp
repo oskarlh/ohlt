@@ -2716,7 +2716,6 @@ static void     Usage()
     Banner();
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -console #      : Set to 0 to turn off the pop-up console (default is 1)\n");
 	Log("    -lang file      : localization file\n");
 	Log("    -waddir folder  : Search this folder for wad files.\n");
 	Log("    -fast           : Fast rad\n");
@@ -3244,16 +3243,6 @@ int             main(const int argc, char** argv)
         {
             g_dumppatches = true;
         }
-		else if (!strcasecmp(argv[i], "-console"))
-		{
-#ifndef SYSTEM_WIN32
-			Warning("The option '-console #' is only valid for Windows.");
-#endif
-			if (i + 1 < argc)
-				++i;
-			else
-				Usage();
-		}
 		else if (!strcasecmp(argv[i], "-extra"))
         {
             g_extra = true;

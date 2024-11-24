@@ -13,15 +13,6 @@
 #include "ripent.h"
 #include "../common/cli_option_defaults.h"
 
-#ifdef RIPENT_PAUSE
-#ifdef SYSTEM_WIN32
-#include <conio.h>
-#endif
-#endif
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 typedef enum
 {
@@ -43,9 +34,6 @@ bool g_chart = cli_option_defaults::chart;
 
 bool g_info = cli_option_defaults::info;
 
-#ifdef RIPENT_PAUSE
-bool g_pause = false;
-#endif
 
 bool g_writeextentfile = DEFAULT_WRITEEXTENTFILE;
 
@@ -784,7 +772,6 @@ static void     Usage(void)
 	Banner();
 	Log("\n-= %s Options =-\n\n", g_Program);
 
-	Log("    -console #      : Set to 0 to turn off the pop-up console (default is 1)\n");
 	Log("    -lang file      : localization file\n");
 	Log("    -export         : Export entity data\n");
 	Log("    -import         : Import entity data\n\n");
@@ -800,29 +787,13 @@ static void     Usage(void)
     Log("    -lightdata #    : Alter maximum lighting memory limit (in kb)\n");
 	Log("    -chart          : Display bsp statitics\n");
 	Log("    -noinfo         : Do not show tool configuration information\n\n");
-#ifdef RIPENT_PAUSE
-	Log("    -pause          : Pause before exit\n\n");
-#endif
+
 
 	Log("    mapfile         : The mapfile to process\n\n");
 
     exit(1);
 }
 
-#ifdef RIPENT_PAUSE
-void pause ()
-{
-	if (g_pause)
-	{
-#ifdef SYSTEM_WIN32
-		Log("\nPress any key to continue\n");
-		getch ();
-#else
-		Log("\nThe option '-pause' is only valid for Windows\n");
-#endif
-	}
-}
-#endif
 
 // =====================================================================================
 //  Settings
@@ -896,9 +867,6 @@ int             main(int argc, char** argv)
 
     g_Program = "sdRIPENT";
 
-#ifdef RIPENT_PAUSE
-	atexit (&pause);
-#endif
 	int argcold = argc;
 	char ** argvold = argv;
 	{
@@ -919,16 +887,6 @@ int             main(int argc, char** argv)
         {
             g_mode = hl_import;
         }
-		else if (!strcasecmp(argv[i], "-console"))
-		{
-#ifndef SYSTEM_WIN32
-			Warning("The option '-console #' is only valid for Windows.");
-#endif
-			if (i + 1 < argc)
-				++i;
-			else
-				Usage();
-		}
         else if (!strcasecmp(argv[i], "-export"))
         {
             g_mode = hl_export;
@@ -979,12 +937,6 @@ int             main(int argc, char** argv)
         {
             g_info = false;
         }
-#ifdef RIPENT_PAUSE
-		else if (!strcasecmp(argv[i], "-pause"))
-		{
-			g_pause = true;
-		}
-#endif
 		else if (!strcasecmp(argv[i], "-textureimport"))
 		{
 			g_texturemode = hl_import;

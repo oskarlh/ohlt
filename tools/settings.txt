@@ -80,9 +80,6 @@
       #define -low
     #endif
   #endif
-  #ifndef -console 0
-  //#define -estimate
-  #endif
 #endif
 
 #ifdef <hlcsg>                // CSG

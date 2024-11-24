@@ -4,19 +4,21 @@
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <string>
 
-char * ANSItoUTF8 (const char *string)
+char * ANSItoUTF8 (std::string_view ansiString)
 {
-	int len;
-	char *utf8;
-	wchar_t *unicode;
-	len = MultiByteToWideChar (CP_ACP, 0, string, -1, nullptr, 0);
-	unicode = (wchar_t *)calloc (len+1, sizeof(wchar_t));
-	MultiByteToWideChar (CP_ACP, 0, string, -1, unicode, len);
-	len = WideCharToMultiByte (CP_UTF8, 0, unicode, -1, nullptr, 0, nullptr, nullptr);
-	utf8 = (char *)calloc (len+1, sizeof(char));
-	WideCharToMultiByte (CP_UTF8, 0, unicode, -1, utf8, len, nullptr, nullptr);
-	free (unicode);
+	const int utf16Length = MultiByteToWideChar (CP_ACP, 0, ansiString.data(), ansiString.size(), nullptr, 0);
+	std::wstring utf16;
+	utf16.resize_and_overwrite(utf16Length, [](wchar_t* buffer, std::size_t buffer_size) noexcept {
+		return MultiByteToWideChar(CP_ACP, 0, ansiString.data(), ansiString.size(), buffer, (int) buffer_size);
+	});
+
+	int utf8Length = WideCharToMultiByte (CP_UTF8, 0, utf16.data(), utf16.size(), nullptr, 0, nullptr, nullptr);
+	std::u8string utf8;
+	utf8.resize_and_overwrite(utf8Length, [](uchar8_t* buffer, std::size_t buffer_size) noexcept {
+		WideCharToMultiByte (CP_UTF8, 0, utf16.data(), utf16.size(), buffer, (int) buffer_size, nullptr, nullptr);
+	});
 	return utf8;
 }
 #endif
