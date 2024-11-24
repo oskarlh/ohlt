@@ -1075,18 +1075,15 @@ void DeleteEmbeddedLightmaps ()
 	int countrestoredfaces = 0;
 	int countremovedtexinfos = 0;
 	int countremovedtextures = 0;
-	int i;
 	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
 
 	// Step 1: parse the original texinfo index stored in each "?_rad*" texture
 	//         and restore the texinfo for the faces that have had their lightmap embedded
 
-	for (i = 0; i < g_numfaces; i++)
+	for (int i = 0; i < g_numfaces; i++)
 	{
 		dface_t *f = &g_dfaces[i];
-		int texinfo;
-
-		texinfo = ParseTexinfoForFace (f);
+		const int texinfo = ParseTexinfoForFace (f);
 		if (texinfo != f->texinfo)
 		{
 			f->texinfo = texinfo;
@@ -1099,33 +1096,33 @@ void DeleteEmbeddedLightmaps ()
 		bool *texinfoused = (bool *)malloc (g_numtexinfo * sizeof (bool));
 		hlassume (texinfoused != nullptr, assume_NoMemory);
 
-		for (i = 0; i < g_numtexinfo; i++)
+		for (int i = 0; i < g_numtexinfo; i++)
 		{
 			texinfoused[i] = false;
 		}
-		for (i = 0; i < g_numfaces; i++)
+		for (int i = 0; i < g_numfaces; i++)
 		{
-			dface_t *f = &g_dfaces[i];
+			const auto texinfo = g_dfaces[i].texinfo;
 
-			if (f->texinfo < 0 || f->texinfo >= g_numtexinfo)
+			if (texinfo < 0 || texinfo >= g_numtexinfo)
 			{
 				continue;
 			}
-			texinfoused[f->texinfo] = true;
+			texinfoused[texinfo] = true;
 		}
-		for (i = g_numtexinfo - 1; i > -1; i--)
+		for (int i = g_numtexinfo - 1; i > -1; i--)
 		{
-			texinfo_t *info = &g_texinfo[i];
+			const auto miptex = g_texinfo[i].miptex;
 
 			if (texinfoused[i])
 			{
 				break; // still used by a face; should not remove this texinfo
 			}
-			if (info->miptex < 0 || info->miptex >= numtextures)
+			if (miptex < 0 || miptex >= numtextures)
 			{
 				break; // invalid; should not remove this texinfo
 			}
-			if (ParseImplicitTexinfoFromTexture (info->miptex) == -1)
+			if (ParseImplicitTexinfoFromTexture (miptex) == -1)
 			{
 				break; // not added by hlrad; should not remove this texinfo
 			}
@@ -1141,20 +1138,21 @@ void DeleteEmbeddedLightmaps ()
 		bool *textureused = (bool *)malloc (numtextures * sizeof (bool));
 		hlassume (textureused != nullptr, assume_NoMemory);
 
-		for (i = 0; i < numtextures; i++)
+		for (int i = 0; i < numtextures; i++)
 		{
 			textureused[i] = false;
 		}
-		for (i = 0; i < g_numtexinfo; i++)
+		for (int i = 0; i < g_numtexinfo; i++)
 		{
-			texinfo_t *info = &g_texinfo[i];
+			const auto miptex = g_texinfo[i].miptex;
 
-			if (info->miptex < 0 || info->miptex >= numtextures)
+			if (miptex < 0 || miptex >= numtextures)
 			{
 				continue;
 			}
-			textureused[info->miptex] = true;
+			textureused[miptex] = true;
 		}
+		int i;
 		for (i = numtextures - 1; i > -1; i--)
 		{
 			if (textureused[i] || ParseImplicitTexinfoFromTexture (i) == -1)
