@@ -1,10 +1,6 @@
-#ifndef MESSAGES_H__
-#define MESSAGES_H__
-#include "cmdlib.h" //--vluzacn
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
+
+#include "cmdlib.h" //--vluzacn
 
 typedef struct
 {
@@ -96,5 +92,3 @@ typedef enum
 assume_msgs;
 
 extern const MessageTable_t* GetAssume(assume_msgs id);
-
-#endif // commonc MESSAGES_H__

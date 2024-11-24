@@ -1,3 +1,5 @@
+#pragma once
+
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
@@ -12,9 +14,6 @@
 *   without written permission from Valve LLC.
 *
 ****/
-
-#ifndef STUDIO_H
-#define STUDIO_H
 
 /*
 ==============================================================================
@@ -494,5 +493,3 @@ typedef struct mbodypart_s
 	msubmodel_t	*models[MAXSTUDIOBODYPARTS];	// submodels per body part
 	int		nummodels;		// mstudiobodyparts_t->nummodels
 } mbodypart_t;
-
-#endif//STUDIO_H

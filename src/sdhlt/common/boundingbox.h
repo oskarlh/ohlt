@@ -2,17 +2,11 @@
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
 
-// AJM:
-#pragma warning(disable: 4305)                             // truncation from 'const double' to 'float'
 
+#pragma once
 
-#ifndef BOUNDINGBOX_H__
-#define BOUNDINGBOX_H__
 #include "cmdlib.h" //--vluzacn
 
-#if _MSC_VER >= 1000
-#pragma once
-#endif
 
 class BoundingBox
 {
@@ -145,5 +139,3 @@ public:
     vec3_t m_Mins;
     vec3_t m_Maxs;
 };
-
-#endif

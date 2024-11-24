@@ -2,8 +2,7 @@
 //			Copyright (C) XashXT Group 2011
 //		         stringlib.h - safety string routines 
 //=======================================================================
-#ifndef STRINGLIB_H
-#define STRINGLIB_H
+#pragma once
 
 #include <string.h>
 #include <stdio.h>
@@ -43,5 +42,3 @@ void Q_getwd( char *out, size_t len );
 #define Q_timestring( a, b )	_Q_timestring( a, b, sizeof( b ))
 
 char *COM_ParseFile( char *data, char *token );
-
-#endif//STRINGLIB_H

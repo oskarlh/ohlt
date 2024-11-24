@@ -1,9 +1,4 @@
-#ifndef SCRIPLIB_H__
-#define SCRIPLIB_H__
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
 
 #include "cmdlib.h"
 
@@ -22,5 +17,3 @@ extern bool     TokenAvailable();
 #define MAX_WAD_PATHS   42
 extern char         g_szWadPaths[MAX_WAD_PATHS][_MAX_PATH];
 extern int          g_iNumWadPaths;
-
-#endif //**/ SCRIPLIB_H__

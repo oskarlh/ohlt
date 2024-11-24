@@ -1110,7 +1110,8 @@ void DeleteEmbeddedLightmaps ()
 			}
 			texinfoused[texinfo] = true;
 		}
-		for (int i = g_numtexinfo - 1; i > -1; i--)
+		int i;
+		for (i = g_numtexinfo - 1; i > -1; i--)
 		{
 			const auto miptex = g_texinfo[i].miptex;
 
