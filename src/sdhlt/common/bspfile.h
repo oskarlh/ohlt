@@ -2,6 +2,7 @@
 
 #include "cmdlib.h" //--vluzacn
 #include <cstddef>
+#include <filesystem>
 
 
 // upper design bounds
@@ -344,10 +345,10 @@ extern void     DecompressVis(const byte* src, byte* const dest, const unsigned 
 extern int      CompressVis(const byte* const src, const unsigned int src_length, byte* dest, unsigned int dest_length);
 
 extern void     LoadBSPImage(dheader_t* header);
-extern void     LoadBSPFile(const char* const filename);
-extern void     WriteBSPFile(const char* const filename);
+extern void     LoadBSPFile(const std::filesystem::path& filename);
+extern void     WriteBSPFile(const std::filesystem::path& filename);
 extern void     PrintBSPFileSizes();
-extern void		WriteExtentFile (const char *const filename);
+extern void		WriteExtentFile (const std::filesystem::path& filename);
 extern bool		CalcFaceExtents_test ();
 extern void		GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2]);
 extern int		ParseImplicitTexinfoFromTexture (int miptex);

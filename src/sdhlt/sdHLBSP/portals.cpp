@@ -346,10 +346,10 @@ void            WritePortalfile(node_t* headnode)
     NumberLeafs_r(headnode);
 
     // write the file
-    pf = fopen(g_portfilename, "w");
+    pf = fopen(g_portfilename.c_str(), "w");
     if (!pf)
     {
-        Error("Error writing portal file %s", g_portfilename);
+        Error("Error writing portal file %s", g_portfilename.c_str());
     }
 	if (g_viewportal)
 	{
@@ -373,7 +373,7 @@ void            WritePortalfile(node_t* headnode)
 	{
 		fclose (pf_view);
 	}
-    Log("BSP generation successful, writing portal file '%s'\n", g_portfilename);
+    Log("BSP generation successful, writing portal file '%s'\n", g_portfilename.c_str());
 }
 
 //===================================================

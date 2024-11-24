@@ -16,9 +16,11 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+#include <filesystem>
 
 #include "bsp5.h"
 #include "../common/cli_option_defaults.h"
+
 
 /*
 
@@ -51,11 +53,11 @@ int             g_hullnum = 0;
 
 static face_t*  validfaces[MAX_INTERNAL_MAP_PLANES];
 
-char            g_bspfilename[_MAX_PATH];
-char            g_pointfilename[_MAX_PATH];
-char            g_linefilename[_MAX_PATH];
-char            g_portfilename[_MAX_PATH];
-char			g_extentfilename[_MAX_PATH];
+std::filesystem::path g_bspfilename;
+std::filesystem::path g_pointfilename;
+std::filesystem::path g_linefilename;
+std::filesystem::path g_portfilename;
+std::filesystem::path g_extentfilename;
 
 // command line flags
 bool			g_noopt = DEFAULT_NOOPT;		// don't optimize BSP on write
@@ -1492,17 +1494,21 @@ static void     ProcessFile(const char* const filename)
     char            name[_MAX_PATH];
 
     // delete existing files
-    safe_snprintf(g_portfilename, _MAX_PATH, "%s.prt", filename);
-    unlink(g_portfilename);
+    g_portfilename = filename;
+    g_portfilename += u8".prt";
+    unlink(g_portfilename.c_str());
 
-    safe_snprintf(g_pointfilename, _MAX_PATH, "%s.pts", filename);
-    unlink(g_pointfilename);
+    g_pointfilename = filename;
+    g_pointfilename += u8".pts";
+    unlink(g_pointfilename.c_str());
 
-    safe_snprintf(g_linefilename, _MAX_PATH, "%s.lin", filename);
-    unlink(g_linefilename);
+    g_linefilename = filename;
+    g_linefilename += u8".lin";
+    unlink(g_linefilename.c_str());
 
-	safe_snprintf (g_extentfilename, _MAX_PATH, "%s.ext", filename);
-	unlink (g_extentfilename);
+    g_extentfilename = filename;
+    g_extentfilename += u8".ext";
+	unlink (g_extentfilename.c_str());
     // open the hull files
     for (i = 0; i < NUM_HULLS; i++)
     {
@@ -1549,9 +1555,10 @@ static void     ProcessFile(const char* const filename)
 		}
 	}
 
+    g_bspfilename = filename;
+    g_bspfilename += u8".bsp";
     // load the output of csg
-    safe_snprintf(g_bspfilename, _MAX_PATH, "%s.bsp", filename);
-    LoadBSPFile(g_bspfilename);
+    LoadBSPFile(g_bspfilename.c_str());
     ParseEntities();
 
     Settings(); // AJM: moved here due to info_compile_parameters entity
@@ -1927,7 +1934,7 @@ int             main(const int argc, char** argv)
 
         // try looking in the current directory
         safe_strncpy(strSystemEntitiesVoidFile, ENTITIES_VOID, _MAX_PATH);
-        if (!q_exists(strSystemEntitiesVoidFile))
+        if (!std::filesystem::exists(strSystemEntitiesVoidFile))
         {
             char tmp[_MAX_PATH];
             // try looking in the directory we were run from

@@ -22,6 +22,8 @@
 #endif
 #endif
 
+#include <filesystem>
+
 #include "cmdlib.h"
 #include "messages.h"
 #include "log.h"
@@ -117,33 +119,6 @@ int             q_filelength(FILE* f)
     return end;
 }
 
-/*
- * ================
- * exists
- * ================
- */
-bool            q_exists(const char* const filename)
-{
-    FILE*           f;
-
-    f = fopen(filename, "rb");
-
-    if (!f)
-    {
-        IfDebug(Developer(DEVELOPER_LEVEL_SPAM, "Checking for existance of file %s (failed)\n", filename));
-        return false;
-    }
-    else
-    {
-        fclose(f);
-        IfDebug(Developer(DEVELOPER_LEVEL_SPAM, "Checking for existance of file %s (success)\n", filename));
-        return true;
-    }
-}
-
-
-
-
 FILE*           SafeOpenWrite(const char* const filename)
 {
     FILE*           f;
@@ -156,14 +131,14 @@ FILE*           SafeOpenWrite(const char* const filename)
     return f;
 }
 
-FILE*           SafeOpenRead(const char* const filename)
+FILE*           SafeOpenRead(const std::filesystem::path& filename)
 {
     FILE*           f;
 
-    f = fopen(filename, "rb");
+    f = fopen(filename.c_str(), "rb");
 
     if (!f)
-        Error("Error opening %s: %s", filename, strerror(errno));
+        Error("Error opening %s: %s", filename.c_str(), strerror(errno));
 
     return f;
 }
@@ -185,7 +160,7 @@ void            SafeWrite(FILE* f, const void* const buffer, int count)
  * LoadFile
  * ==============
  */
-int             LoadFile(const char* const filename, char** bufferptr)
+int             LoadFile(const std::filesystem::path& filename, char** bufferptr)
 {
     FILE*           f;
     int             length;

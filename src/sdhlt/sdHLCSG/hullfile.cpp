@@ -26,7 +26,7 @@ void        LoadHullfile(const char* filename)
         return;
     }
 
-    if (q_exists(filename))
+    if (std::filesystem::exists(filename))
     {
         Log("Loading hull definitions from '%s'\n", filename);
     }

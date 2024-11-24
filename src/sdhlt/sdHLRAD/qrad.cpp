@@ -3120,7 +3120,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
     // Look for lights.rad in mapdir
     safe_strncpy(global_lights, mapdir, _MAX_PATH);
     safe_strncat(global_lights, lights_rad, _MAX_PATH);
-    if (q_exists(global_lights))
+    if (std::filesystem::exists(global_lights))
     {
         ReadLightFile(global_lights);
     }
@@ -3129,7 +3129,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
         // Look for lights.rad in appdir
         safe_strncpy(global_lights, appdir, _MAX_PATH);
         safe_strncat(global_lights, lights_rad, _MAX_PATH);
-        if (q_exists(global_lights))
+        if (std::filesystem::exists(global_lights))
         {
             ReadLightFile(global_lights);
         }
@@ -3137,7 +3137,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
         {
             // Look for lights.rad in current working directory
             safe_strncpy(global_lights, lights_rad, _MAX_PATH);
-            if (q_exists(global_lights))
+            if (std::filesystem::exists(global_lights))
             {
                 ReadLightFile(global_lights);
             }
@@ -3148,7 +3148,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
     safe_strncpy(mapname_lights, mapdir, _MAX_PATH);
     safe_strncat(mapname_lights, mapfile, _MAX_PATH);
 	safe_strncat(mapname_lights, ext_rad, _MAX_PATH);
-    if (q_exists(mapname_lights))
+    if (std::filesystem::exists(mapname_lights))
     {
         ReadLightFile(mapname_lights);
     }
@@ -3163,7 +3163,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
 
         // Look for user.rad from command line (raw)
         safe_strncpy(user_lights, user_rad, _MAX_PATH);
-        if (q_exists(user_lights))
+        if (std::filesystem::exists(user_lights))
         {
             ReadLightFile(user_lights);
         }
@@ -3171,7 +3171,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
         {
             // Try again with .rad enforced as extension
             DefaultExtension(user_lights, ext_rad);
-            if (q_exists(user_lights))
+            if (std::filesystem::exists(user_lights))
             {
                 ReadLightFile(user_lights);
             }
@@ -3181,7 +3181,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
                 safe_strncpy(user_lights, mapdir, _MAX_PATH);
                 safe_strncat(user_lights, userfile, _MAX_PATH);
                 DefaultExtension(user_lights, ext_rad);
-                if (q_exists(user_lights))
+                if (std::filesystem::exists(user_lights))
                 {
                     ReadLightFile(user_lights);
                 }
@@ -3191,7 +3191,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
                     safe_strncpy(user_lights, appdir, _MAX_PATH);
                     safe_strncat(user_lights, userfile, _MAX_PATH);
                     DefaultExtension(user_lights, ext_rad);
-                    if (q_exists(user_lights))
+                    if (std::filesystem::exists(user_lights))
                     {
                         ReadLightFile(user_lights);
                     }
@@ -3200,7 +3200,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
                         // Look for user.rad in current working directory
                         safe_strncpy(user_lights, userfile, _MAX_PATH);
                         DefaultExtension(user_lights, ext_rad);
-                        if (q_exists(user_lights))
+                        if (std::filesystem::exists(user_lights))
                         {
                             ReadLightFile(user_lights);
                         }

@@ -150,7 +150,7 @@ void TryOpenWadFiles ()
 		g_wadfiles_opened = true;
 		char filename[_MAX_PATH];
 		safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
-	   if (q_exists (filename))
+	   if (std::filesystem::exists (filename))
 	   {
 		OpenWadFile (filename, true);
 	   }

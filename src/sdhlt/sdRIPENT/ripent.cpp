@@ -10,6 +10,8 @@
 
 // csg4.c
 
+#include <filesystem>
+
 #include "ripent.h"
 #include "../common/cli_option_defaults.h"
 
@@ -372,28 +374,29 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 
 static void     ReadBSP(const char* const name)
 {
-    char            filename[_MAX_PATH];
+	std::filesystem::path bspPath;
+	bspPath = name;
+	bspPath += u8".bsp";
 
-	safe_snprintf(filename, _MAX_PATH, "%s.bsp", name);
-
-	LoadBSPFile(filename);
+	LoadBSPFile(bspPath);
 	if (g_writeextentfile)
 	{
 		hlassume (CalcFaceExtents_test (), assume_first);
-		char extentfilename[_MAX_PATH];
-		safe_snprintf (extentfilename, _MAX_PATH, "%s.ext", name);
-		Log ("\nWriting %s.\n", extentfilename);
-		WriteExtentFile (extentfilename);
+		std::filesystem::path extentFilePath;
+		extentFilePath = name;
+		extentFilePath += u8".ext";
+		Log ("\nWriting %s.\n", extentFilePath.c_str());
+		WriteExtentFile (extentFilePath);
 	}
 }
 
 static void     WriteBSP(const char* const name)
 {
-    char            filename[_MAX_PATH];
+	std::filesystem::path filename;
+	filename = name;
+	filename += u8".bsp";
 
-	safe_snprintf(filename, _MAX_PATH, "%s.bsp", name);
-	
-	Log ("\nUpdating %s.\n", filename); //--vluzacn
+	Log ("\nUpdating %s.\n", filename.c_str()); //--vluzacn
     WriteBSPFile(filename);
 }
 #ifdef WORDS_BIGENDIAN
@@ -984,11 +987,13 @@ int             main(int argc, char** argv)
     }
 
 
-	char source[_MAX_PATH];
-	safe_snprintf(source, _MAX_PATH, "%s.bsp", g_Mapname);
-    if (!q_exists(source))
+	std::filesystem::path source;
+	source = g_Mapname;
+	source += u8".bsp";
+
+    if (!std::filesystem::exists(source))
     {
-        Log("bspfile '%s' does not exist\n", source); //--vluzacn
+        Log("bspfile '%s' does not exist\n", source.c_str()); //--vluzacn
         Usage();
     }
 

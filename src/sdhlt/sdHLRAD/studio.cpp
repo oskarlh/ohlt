@@ -19,7 +19,7 @@ void LoadStudioModel( const char *modelname, const vec3_t origin, const vec3_t a
 	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, modelname);
 	FlipSlashes(m->name);
 
-	if (!q_exists(m->name))
+	if (!std::filesystem::exists(m->name))
 	{
 		Warning("LoadStudioModel: couldn't load %s\n", m->name);
 		return;

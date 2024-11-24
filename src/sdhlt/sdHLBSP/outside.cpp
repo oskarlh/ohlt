@@ -394,7 +394,7 @@ void            LoadAllowableOutsideList(const char* const filename)
         safe_snprintf(fname, len, "%s", filename);
     }
 
-    if (q_exists(fname))
+    if (std::filesystem::exists(fname))
     {
         if ((i = LoadFile(fname, &pData)))
         {
@@ -519,16 +519,16 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
 
     if (leakfile)
     {
-        pointfile = fopen(g_pointfilename, "w");
+        pointfile = fopen(g_pointfilename.c_str(), "w");
         if (!pointfile)
         {
-            Error("Couldn't open pointfile %s\n", g_pointfilename);
+            Error("Couldn't open pointfile %s\n", g_pointfilename.c_str());
         }
 
-        linefile = fopen(g_linefilename, "w");
+        linefile = fopen(g_linefilename.c_str(), "w");
         if (!linefile)
         {
-            Error("Couldn't open linefile %s\n", g_linefilename);
+            Error("Couldn't open linefile %s\n", g_linefilename.c_str());
         }
     }
 
@@ -576,8 +576,8 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     }
 	if (leakfile && !ret)
 	{
-		unlink(g_linefilename);
-		unlink(g_pointfilename);
+		unlink(g_linefilename.c_str());
+		unlink(g_pointfilename.c_str());
 	}
 
     // now go back and fill things in

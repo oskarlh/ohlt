@@ -13,7 +13,7 @@ void properties_initialize(const char* filename)
     if (filename == nullptr)
     { return; }
 
-    if (q_exists(filename))
+    if (std::filesystem::exists(filename))
     { Log("Loading null entity list from '%s'\n", filename); }
     else
     {

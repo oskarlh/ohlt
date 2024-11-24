@@ -1203,9 +1203,9 @@ void LoadWadValue ()
 }
 void WriteBSP(const char* const name)
 {
-    char path[_MAX_PATH];
-
-	safe_snprintf(path, _MAX_PATH, "%s.bsp", name);
+    std::filesystem::path bspPath;
+    bspPath = name;
+    bspPath += u8".bsp";
 
     SetModelNumbers();
 	ReuseModel();
@@ -1220,7 +1220,7 @@ void WriteBSP(const char* const name)
     ConvertHintToEmpty(); // this is ridiculous. --vluzacn
     if (g_chart)
         PrintBSPFileSizes();
-    WriteBSPFile(path);
+    WriteBSPFile(bspPath);
 }
 
 //
@@ -2103,7 +2103,7 @@ int             main(const int argc, char** argv)
 		safe_strncpy (temp, g_Mapname, _MAX_PATH);
 		ExtractFilePath (temp, test);
 		safe_strncat (test, g_hullfile, _MAX_PATH);
-		if (q_exists (test))
+		if (std::filesystem::exists (test))
 		{
 			g_hullfile = strdup (test);
 		}
@@ -2116,7 +2116,7 @@ int             main(const int argc, char** argv)
 #endif
 			ExtractFilePath (temp, test);
 			safe_strncat (test, g_hullfile, _MAX_PATH);
-			if (q_exists (test))
+			if (std::filesystem::exists (test))
 			{
 				g_hullfile = strdup (test);
 			}
@@ -2129,7 +2129,7 @@ int             main(const int argc, char** argv)
 		safe_strncpy (temp, g_Mapname, _MAX_PATH);
 		ExtractFilePath (temp, test);
 		safe_strncat (test, g_nullfile, _MAX_PATH);
-		if (q_exists (test))
+		if (std::filesystem::exists (test))
 		{
 			g_nullfile = strdup (test);
 		}
@@ -2142,7 +2142,7 @@ int             main(const int argc, char** argv)
 #endif
 			ExtractFilePath (temp, test);
 			safe_strncat (test, g_nullfile, _MAX_PATH);
-			if (q_exists (test))
+			if (std::filesystem::exists (test))
 			{
 				g_nullfile = strdup (test); //Todo rename all these vars //seedee
 			}
@@ -2155,7 +2155,7 @@ int             main(const int argc, char** argv)
         char wadCfgPath[_MAX_PATH];
 		ExtractFilePath (mapDirPath, wadCfgPath); //Append wad.cfg name
 		safe_strncat (wadCfgPath, g_wadcfgfile, _MAX_PATH);
-		if (q_exists (wadCfgPath)) //Update global if file exists
+		if (std::filesystem::exists (wadCfgPath)) //Update global if file exists
 		{
 			g_wadcfgfile = strdup (wadCfgPath); 
 		}
@@ -2168,7 +2168,7 @@ int             main(const int argc, char** argv)
 #endif
 			ExtractFilePath (mapDirPath, wadCfgPath);
 			safe_strncat (wadCfgPath, g_wadcfgfile, _MAX_PATH);
-			if (q_exists (wadCfgPath))
+			if (std::filesystem::exists (wadCfgPath))
 			{
 				g_wadcfgfile = strdup (wadCfgPath);
 			}
@@ -2245,7 +2245,7 @@ int             main(const int argc, char** argv)
 	}
 	else if (g_wadcfgfile)
 	{
-		if (!q_exists (g_wadcfgfile))
+		if (!std::filesystem::exists (g_wadcfgfile))
 		{
 			Error("Couldn't find wad configuration file '%s'\n", g_wadcfgfile);
 		}
@@ -2268,9 +2268,10 @@ int             main(const int argc, char** argv)
     // if onlyents, just grab the entites and resave
     if (g_onlyents)
     {
-        char            out[_MAX_PATH];
+        std::filesystem::path out;
+        out = g_Mapname;
+        out += u8".bsp";
 
-        safe_snprintf(out, _MAX_PATH, "%s.bsp", g_Mapname);
         LoadBSPFile(out);
 
         // Write it all back out again.

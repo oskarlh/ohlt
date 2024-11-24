@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <filesystem>
 #include "cmdlib.h"
 #include "filelib.h"
 #include "messages.h"
@@ -411,7 +412,7 @@ static int      CopyLump(int lump, void* dest, int size, const dheader_t* const 
 //  LoadBSPFile
 //      balh
 // =====================================================================================
-void            LoadBSPFile(const char* const filename)
+void            LoadBSPFile(const std::filesystem::path& filename)
 {
     dheader_t* header;
     LoadFile(filename, (char**)&header);
@@ -497,7 +498,7 @@ static void     AddLump(int lumpnum, void* data, int len, dheader_t* header, FIL
 //  WriteBSPFile
 //      Swaps the bsp file in place, so it should not be referenced again
 // =====================================================================================
-void            WriteBSPFile(const char* const filename)
+void            WriteBSPFile(const std::filesystem::path& filename)
 {
     dheader_t       outheader;
     dheader_t*      header;
@@ -510,7 +511,7 @@ void            WriteBSPFile(const char* const filename)
 
     header->version = LittleLong(BSPVERSION);
 
-    bspfile = SafeOpenWrite(filename);
+    bspfile = SafeOpenWrite(filename.c_str());
     SafeWrite(bspfile, header, sizeof(dheader_t));         // overwritten later
 
     //      LUMP TYPE       DATA            LENGTH                              HEADER  BSPFILE   
@@ -664,13 +665,13 @@ void GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2])
 // =====================================================================================
 //  WriteExtentFile
 // =====================================================================================
-void WriteExtentFile (const char *const filename)
+void WriteExtentFile (const std::filesystem::path& filename)
 {
 	FILE *f;
-	f = fopen (filename, "w");
+	f = fopen (filename.c_str(), "w");
 	if (!f)
 	{
-		Error ("Error opening %s: %s", filename, strerror(errno));
+		Error ("Error opening %s: %s", filename.c_str(), strerror(errno));
 	}
 	fprintf (f, "%i\n", g_numfaces);
 	for (int i = 0; i < g_numfaces; i++)

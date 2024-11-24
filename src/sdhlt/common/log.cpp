@@ -150,7 +150,7 @@ void            CheckForErrorLog()
         char            logfilename[_MAX_PATH];
 
         safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
-        if (q_exists(logfilename))
+        if (std::filesystem::exists(logfilename))
         {
             Log(">> There was a problem compiling the map.\n"
                 ">> Check the file %s.log for the cause.\n",

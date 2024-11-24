@@ -1119,7 +1119,7 @@ static void     LoadPortalsByFilename(const char* const filename)
 {
     char* file_image;
 
-    if (!q_exists(filename))
+    if (!std::filesystem::exists(filename))
     {
         Error("Portal file '%s' does not exist, cannot vis the map\n", filename);
     }
