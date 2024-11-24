@@ -1,13 +1,9 @@
+#pragma once
+
 // Copyright (C) 2000  Sean Cavanaugh
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
 
-#if !defined(AFX_REFERENCEOBJECT_H__BAEBCE9D_CD68_40AF_8A54_B23A0D14E807__INCLUDED_)
-#define AFX_REFERENCEOBJECT_H__BAEBCE9D_CD68_40AF_8A54_B23A0D14E807__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -228,5 +224,3 @@ DATA_T* ReferenceObject<HEADER_T,DATA_T>::getData()
 	CopyForWrite();
 	return m_pData->pData;
 }
-
-#endif // !defined(AFX_REFERENCEOBJECT_H__BAEBCE9D_CD68_40AF_8A54_B23A0D14E807__INCLUDED_)

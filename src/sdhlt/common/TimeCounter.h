@@ -1,9 +1,4 @@
-#ifndef TIMECOUNTER_H__
-#define TIMECOUNTER_H__
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
 
 #include "cmdlib.h"
 
@@ -45,5 +40,3 @@ protected:
     double starttime;
     double accum;
 };
-
-#endif//TIMECOUNTER_H__

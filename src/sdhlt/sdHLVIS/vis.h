@@ -1,9 +1,4 @@
-#ifndef HLVIS_H__
-#define HLVIS_H__
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
 
 #include "cmdlib.h"
 #include "messages.h"
@@ -205,5 +200,3 @@ extern void     CalcAmbientSounds();
 #include "c2cpp.h"
 #include "NetvisSession.h"
 #endif
-
-#endif //      byte            fullportal[MAX_PORTALS/8];              // bit string  HLVIS_H__

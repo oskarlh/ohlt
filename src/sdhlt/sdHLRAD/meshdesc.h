@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 meshdesc.h - cached mesh for tracing custom objects
 Copyright (C) 2012 Uncle Mike
@@ -12,9 +14,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
-
-#ifndef MESHDESC_H
-#define MESHDESC_H
 
 #include "studio.h"
 #include "list.h"		// simple container
@@ -229,5 +228,3 @@ typedef struct model_s
 
 	CMeshDesc		mesh;		// cform
 } model_t;
-
-#endif//MESHDESC_H

@@ -1,13 +1,8 @@
+#pragma once
+
 // Copyright (C) 2000  Sean Cavanaugh
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
-
-#ifndef ENDIAN_H__
-#define ENDIAN_H__
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #include "basictypes.h"
 #include "BaseMath.h"
@@ -181,5 +176,3 @@ public:
         }
     }
 };
-
-#endif // ENDIAN_H__

@@ -1,9 +1,5 @@
-#ifndef HLRAD_H__
-#define HLRAD_H__
-
-#if _MSC_VER >= 1000
 #pragma once
-#endif
+
 
 #include "cmdlib.h"
 #include "messages.h"
@@ -617,5 +613,3 @@ extern void LoadStudioModels(void);
 extern void FreeStudioModels(void);
 extern bool TestSegmentAgainstStudioList(const vec_t* p1, const vec_t* p2);
 extern bool g_studioshadow;
-
-#endif //HLRAD_H__

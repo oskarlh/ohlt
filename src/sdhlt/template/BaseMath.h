@@ -1,13 +1,8 @@
+#pragma once
+
 // Copyright (C) 2000  Sean Cavanaugh
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
-
-#ifndef BASEMATH_H__
-#define BASEMATH_H__
-
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
 
 #if defined(_WIN32) && !defined(FASTCALL)
 #define FASTCALL __fastcall
@@ -178,6 +173,3 @@ inline void FASTCALL PIPE_SWAP(T& a, T& b)
     b = tmpA;
     a = tmpB;
 }
-
-
-#endif // BASEMATH_H__

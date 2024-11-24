@@ -1,11 +1,11 @@
+#pragma once
+
 /*
  *  A generic template list class.  
  *  Fairly typical of the list example you would 
  *  find in any c++ book.
  */
 //used by progmesh //seedee
-#ifndef GENERIC_LIST_H
-#define GENERIC_LIST_H
 
 #include <assert.h>
 #include <stdio.h>
@@ -152,5 +152,3 @@ void List<Type> :: Remove( Type t )
 		assert( element[i] != t );
 	}
 }
-
-#endif//GENERIC_LIST_H

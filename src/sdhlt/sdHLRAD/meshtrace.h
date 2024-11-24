@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 trace.h - trace triangle meshes
 Copyright (C) 2012 Uncle Mike
@@ -12,9 +14,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
-
-#ifndef TRACEMESH_H
-#define TRACEMESH_H
 
 #include "meshdesc.h"
 
@@ -83,5 +82,3 @@ public:
 	void ClipToLinks( areanode_t *node );
 	bool DoTrace( void );
 };
-
-#endif//TRACEMESH_H

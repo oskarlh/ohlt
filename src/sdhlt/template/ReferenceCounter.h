@@ -1,13 +1,8 @@
+#pragma once
+
 // Copyright (C) 2000  Sean Cavanaugh
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
-
-#ifndef ReferenceCounter_H__
-#define ReferenceCounter_H__
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -229,5 +224,3 @@ inline void ReferenceCounter::copy(const ReferenceCounter& other)
 }     
 #endif//HAVE_ATOMIC
 #endif//SINGLE_THREADED
-
-#endif//ReferenceCounter_H__
