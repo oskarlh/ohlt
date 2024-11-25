@@ -78,18 +78,17 @@ bool g_viewsurface = false;
 // =====================================================================================
 void            GetParamsFromEnt(entity_t* mapent)
 {
-    int     iTmp;
     char    szTmp[256];
 
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, u8"verbose");
-    if (iTmp == 1)
+    int verboseValue = IntForKey(mapent, u8"verbose");
+    if (verboseValue == 1)
     {
         g_verbose = true;
     }
-    else if (iTmp == 0)
+    else if (verboseValue == 0)
     {
         g_verbose = false;
     }
@@ -120,10 +119,10 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // texdata(string) : "Texture Data Memory" : "4096"
-    iTmp = IntForKey(mapent, u8"texdata") * 1024;
-    if (iTmp > g_max_map_miptex)
+    int texdataValue = IntForKey(mapent, u8"texdata") * 1024;
+    if (texdataValue > g_max_map_miptex)
     {
-        g_max_map_miptex = iTmp;
+        g_max_map_miptex = texdataValue;
     }
 	snprintf(szTmp, sizeof(szTmp), "%td", g_max_map_miptex);
     Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
@@ -162,12 +161,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // noclipeconomy(choices) : "Strip Uneeded Clipnodes?" : 1 = [ 1 : "Yes" 0 : "No" ]
-    iTmp = IntForKey(mapent, u8"noclipeconomy");
-    if (iTmp == 1)
+    const int noclipeconomyValue = IntForKey(mapent, u8"noclipeconomy");
+    if (noclipeconomyValue == 1)
     {
         g_bClipNazi = true;
     }
-    else if (iTmp == 0)
+    else if (noclipeconomyValue == 0)
     {
         g_bClipNazi = false;
     }        
@@ -181,13 +180,13 @@ void            GetParamsFromEnt(entity_t* mapent)
         0 : "Off"
     ]
     */
-    iTmp = IntForKey(mapent, u8"hlcsg");
+    const int hlcsgValue = IntForKey(mapent, u8"hlcsg");
     g_onlyents = false;
-    if (iTmp == 2)
+    if (hlcsgValue == 2)
     {
         g_onlyents = true;
     }
-    else if (iTmp == 0)
+    else if (hlcsgValue == 0)
     {
         Fatal(assume_TOOL_CANCEL, 
             "%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled", g_Program);
@@ -202,8 +201,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         1 : "No"
     ]
     */
-    iTmp = IntForKey(mapent, u8"nocliphull");
-    if (iTmp == 1)
+    if (IntForKey(mapent, u8"nocliphull") == 1)
     {
         g_noclip = true;
     }
@@ -213,8 +211,8 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
     Log("%30s [ %-9s ]\n", "Clipping Hull Generation", g_noclip ? "off" : "on");
     // cliptype(choices) : "Clip Hull Type" : 4 = [ 0 : "Smallest" 1 : "Normalized" 2: "Simple" 3 : "Precise" 4 : "Legacy" ]
-    iTmp = IntForKey(mapent, u8"cliptype");
-	switch(iTmp)
+
+	switch(IntForKey(mapent, u8"cliptype"))
 	{
 	case 0:
 		g_cliptype = clip_smallest;
@@ -240,8 +238,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         0 : "Off"
     ]
     */
-    iTmp = IntForKey(mapent, u8"noskyclip");
-    if (iTmp == 1)
+    if (IntForKey(mapent, u8"noskyclip") == 1)
     {
         g_skyclip = false;
     }
@@ -1140,10 +1137,8 @@ static void     SetLightStyles()
 // =====================================================================================
 static void     ConvertHintToEmpty()
 {
-    int             i;
-
     // Convert HINT brushes to EMPTY after they have been carved by csg
-    for (i = 0; i < MAX_MAP_BRUSHES; i++)
+    for (std::size_t i = 0; i < MAX_MAP_BRUSHES; i++)
     {
         if (g_mapbrushes[i].contents == CONTENTS_HINT)
         {
@@ -1207,60 +1202,6 @@ void WriteBSP(const char* const name)
     WriteBSPFile(bspPath);
 }
 
-//
-// =====================================================================================
-//
-
-// AJM: added in function
-// =====================================================================================
-//  CopyGenerictoCLIP
-//      clips a generic brush
-// =====================================================================================
-/*static void     CopyGenerictoCLIP(const brush_t* const b)
-{
-    // code blatently ripped from CopySKYtoCLIP()
-
-    int             i;
-    entity_t*       mapent;
-    brush_t*        newbrush;
-
-    mapent = &g_entities[b->entitynum];
-    mapent->numbrushes++;
-
-    newbrush = &g_mapbrushes[g_nummapbrushes];
-#ifdef HLCSG_COUNT_NEW
-	newbrush->originalentitynum = b->originalentitynum;
-	newbrush->originalbrushnum = b->originalbrushnum;
-#endif
-    newbrush->entitynum = b->entitynum;
-    newbrush->brushnum = g_nummapbrushes - mapent->firstbrush;
-    newbrush->firstside = g_numbrushsides;
-    newbrush->numsides = b->numsides;
-    newbrush->contents = CONTENTS_CLIP;
-    newbrush->noclip = 0;
-
-    for (i = 0; i < b->numsides; i++)
-    {
-        int             j;
-
-        side_t*         side = &g_brushsides[g_numbrushsides];
-
-        *side = g_brushsides[b->firstside + i];
-        safe_strncpy(side->td.name, "CLIP", sizeof(side->td.name));
-
-        for (j = 0; j < NUM_HULLS; j++)
-        {
-            newbrush->hulls[j].faces = nullptr;
-            newbrush->hulls[j].bounds = b->hulls[j].bounds;
-        }
-
-        g_numbrushsides++;
-        hlassume(g_numbrushsides < MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
-    }
-
-    g_nummapbrushes++;
-    hlassume(g_nummapbrushes < MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
-}*/
 
 // AJM: added in 
 unsigned int    BrushClipHullsDiscarded = 0; 
