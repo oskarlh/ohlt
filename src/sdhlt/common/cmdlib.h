@@ -72,10 +72,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef ZHLT_NETVIS
-#include "c2cpp.h"
-#endif
-
 #ifdef SYSTEM_WIN32
 #define SYSTEM_SLASH_CHAR  '\\'
 #define SYSTEM_SLASH_STR   "\\"

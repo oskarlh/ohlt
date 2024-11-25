@@ -3312,19 +3312,6 @@ int             main(const int argc, char** argv)
             g_estimate = false;
         }
 #endif
-#ifdef ZHLT_NETVIS
-        else if (!strcasecmp(argv[i], "-client"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                g_clientid = atoi(argv[++i]);
-            }
-            else
-            {
-                Usage();
-            }
-        }
-#endif
 		else if (!strcasecmp (argv[i], "-fast"))
 		{
 			g_fastmode = true;

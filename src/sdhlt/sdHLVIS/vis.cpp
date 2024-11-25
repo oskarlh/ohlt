@@ -27,9 +27,6 @@
 #define CLAMP(x, min, max) std::clamp(x, min, max)
 #endif
 
-#ifdef ZHLT_NETVIS
-#include "zlib.h"
-#endif
 #include <string>
 #include <fstream> //FixPrt
 #include <vector> //FixPrt
@@ -86,37 +83,6 @@ int             g_room_count = 0;
 
 static int      totalvis = 0;
 
-
-#ifdef ZHLT_NETVIS
-// -- these are definitions and initializations of C/CPP common variables
-volatile int    g_visportalindex = UNINITIALIZED_PORTAL_INDEX;  // a client's portal index : current portalindex being worked on
-
-
-volatile int    g_visportals = 0;                          // the total portals in the map
-volatile int    g_visleafs = 0;                            // the total portal leafs in the map
-volatile int    g_vislocalportal = 0;                      // number of portals solved locally
-volatile enum vis_states g_visstate = VIS_STARTUP;         // current step of execution
-volatile enum vis_modes g_vismode = VIS_MODE_NULL;         // style of execution (client or server)
-volatile int    g_visleafthread = 0;                       // control flag (are we ready to leafthread)
-unsigned int    g_rate = DEFAULT_NETVIS_RATE;
-volatile double g_starttime = 0;                           // Start time (from I_FloatTime())
-volatile unsigned long g_idletime = 0;                     // Accumulated idle time in milliseconds (rolls over after 46.7 days, hopefully a vis client wont run that long)
-volatile unsigned long g_serverindex = 0;                  // client only variable, server index for calculating percentage indicators on the client
-short           g_port = DEFAULT_NETVIS_PORT;
-const char*     g_server_addr = nullptr;
-
-
-volatile bool   g_bsp_downloaded = false;       // Client variable
-volatile bool   g_prt_downloaded = false;       // Client variable
-volatile bool   g_mightsee_downloaded = false;  // Client variable
-
-char*           g_bsp_image = nullptr;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
-char*           g_prt_image = nullptr;         // Client/Server variable : Server uses it for cache for connecting clients, clients download it to memory to not require filesystem usage 
-unsigned long   g_bsp_compressed_size = 0;  // Server variable
-unsigned long   g_prt_compressed_size = 0;  // Server variable
-unsigned long   g_bsp_size = 0;             // Server variable
-unsigned long   g_prt_size = 0;             // Server variable
-#endif
 
 // AJM: addded in
 // =====================================================================================
@@ -242,92 +208,6 @@ static winding_t* NewWinding(const int points)
 
 //=============================================================================
 
-/////////
-// NETVIS
-#ifdef ZHLT_NETVIS
-
-// =====================================================================================
-//  GetPortalPtr
-//      converts a portal index to a pointer
-// =====================================================================================
-portal_t*       GetPortalPtr(const long index)
-{
-    if (index < (g_numportals * 2))
-    {
-        return g_portals + index;
-    }
-    else
-    {
-        return (nullptr);
-    }
-}
-
-
-// =====================================================================================
-//  GetNextPortalIndex
-//      This is called by ClientSockets
-// =====================================================================================
-int             GetNextPortalIndex()
-{
-    int             j;
-    int             best = NO_PORTAL_INDEX;
-    portal_t*       p;
-    portal_t*       tp;
-    int             min;
-
-    ThreadLock();
-
-    min = 99999;
-    p = nullptr;
-
-    for (j = 0, tp = g_portals; j < g_numportals * 2; j++, tp++)
-    {
-        if (tp->nummightsee < min && tp->status == stat_none)
-        {
-            min = tp->nummightsee;
-            p = tp;
-            best = j;
-        }
-    }
-
-    if (p)
-    {
-        p->status = stat_working;
-    }
-    else
-    {
-        best = NO_PORTAL_INDEX;                            // hack to return NO_PORTAL_INDEX to the queue'ing code
-    }
-
-    ThreadUnlock();
-
-    return best;
-}
-
-// =====================================================================================
-//  AllPortalsDone
-//      returns true if all portals are done...
-// =====================================================================================
-static int      AllPortalsDone()
-{
-    const unsigned  numportals = g_numportals * 2;
-    portal_t*       tp;
-
-    unsigned        j;
-    for (j = 0, tp = g_portals; j < numportals; j++, tp++)
-    {
-        if (tp->status != stat_done)
-        {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-#endif
-// NETVIS
-///////////
 
 // =====================================================================================
 //  GetNextPortal
@@ -341,16 +221,11 @@ static portal_t* GetNextPortal()
     portal_t*       tp;
     int             min;
 
-#ifdef ZHLT_NETVIS
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-#else
     {
         if (GetThreadWork() == -1)
         {
             return nullptr;
         }
-#endif
         ThreadLock();
 
         min = 99999;
@@ -362,9 +237,6 @@ static portal_t* GetNextPortal()
             {
                 min = tp->nummightsee;
                 p = tp;
-#ifdef ZHLT_NETVIS
-                g_visportalindex = j;
-#endif
             }
         }
 
@@ -377,38 +249,6 @@ static portal_t* GetNextPortal()
 
         return p;
     }
-#ifdef ZHLT_NETVIS
-    else                                                   // AS CLIENT
-    {
-        while (getWorkFromClientQueue() == WAITING_FOR_PORTAL_INDEX)
-        {
-            unsigned        delay = 100;
-
-            g_idletime += delay;                           // This is the only point where the portal work goes idle, so its easy to add up just how idle it is.
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(1)\n");
-            }
-            NetvisSleep(delay);
-        }
-
-        if (g_visportalindex == NO_PORTAL_INDEX)
-        {
-            g_visstate = VIS_CLIENT_DONE;
-            Send_VIS_GOING_DOWN(g_ClientSession);
-            return nullptr;
-        }
-
-        // convert index to pointer
-        tp = GetPortalPtr(g_visportalindex);
-
-        if (tp)
-        {
-            tp->status = stat_working;
-        }
-        return (tp);
-    }
-#endif
 }
 
 
@@ -417,12 +257,7 @@ static portal_t* GetNextPortal()
 // =====================================================================================
 //  LeafThread
 // =====================================================================================
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
 
-#ifndef ZHLT_NETVIS
 static void     LeafThread(int unused)
 {
     portal_t*       p;
@@ -439,86 +274,6 @@ static void     LeafThread(int unused)
         Verbose("portal:%4i  mightsee:%4i  cansee:%4i\n", (int)(p - g_portals), p->nummightsee, p->numcansee);
     }
 }
-#endif //!ZHLT_NETVIS
-
-#ifdef ZHLT_NETVIS
-
-static void     LeafThread(int unused)
-{
-    if (g_vismode == VIS_MODE_CLIENT)
-    {
-        portal_t*       p;
-
-        g_visstate = VIS_BASE_PORTAL_VIS_SERVER_WAIT;
-        Send_VIS_LEAFTHREAD(g_visleafs, g_visportals, g_bitbytes);
-        while (!g_visleafthread)
-        {
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(2)\n");
-            }
-            NetvisSleep(100);
-        }
-        g_visstate = VIS_PORTAL_FLOW;
-        Send_VIS_WANT_FULL_SYNC();
-
-        while (!g_NetvisAbort)
-        {
-            if (!(p = GetNextPortal()))
-            {
-                return;
-            }
-
-            PortalFlow(p);
-            Send_VIS_DONE_PORTAL(g_visportalindex, p);
-            g_vislocalportal++;
-        }
-    }
-    else if (g_vismode == VIS_MODE_SERVER)
-    {
-#if 0
-        // Server does zero work in ZHLT netvis
-        g_visstate = VIS_WAIT_CLIENTS;
-        while (!g_NetvisAbort)
-        {
-            NetvisSleep(1000);
-            if (AllPortalsDone())
-            {
-                g_visstate = VIS_POST;
-                return;
-            }
-        }
-#else
-        portal_t*       p;
-
-        g_visstate = VIS_WAIT_CLIENTS;
-        while (!g_NetvisAbort)
-        {
-            if (!(p = GetNextPortal()))
-            {
-                if (AllPortalsDone())
-                {
-                    g_visstate = VIS_POST;
-                    return;
-                }
-                NetvisSleep(1000);                         // No need to churn while waiting on slow clients
-                continue;
-            }
-            PortalFlow(p);
-            g_vislocalportal++;
-        }
-#endif
-    }
-    else
-    {
-        hlassume(false, assume_VALID_NETVIS_STATE);
-    }
-}
-#endif
-
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 // Recursively add `add` to `current` visibility leaf.
 std::unordered_map<int, bool> leaf_flow_add_exclude = {};
@@ -679,7 +434,6 @@ static void     LeafFlow(const int leafnum)
 // =====================================================================================
 static void     CalcPortalVis()
 {
-#ifndef ZHLT_NETVIS
     // g_fastvis just uses mightsee for a very loose bound
     if (g_fastvis)
     {
@@ -692,82 +446,9 @@ static void     CalcPortalVis()
         }
         return;
     }
-#endif
 
-#ifdef ZHLT_NETVIS
-    LeafThread(0);
-#else
     NamedRunThreadsOn(g_numportals * 2, g_estimate, LeafThread);
-#endif
 }
-
-//////////////
-// ZHLT_NETVIS
-
-#ifdef ZHLT_NETVIS
-// =====================================================================================
-//  CalcVis
-// =====================================================================================
-static void     CalcVis()
-{
-    unsigned        lastpercent = 0;
-    int             x, size;
-
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-        g_visstate = VIS_BASE_PORTAL_VIS;
-        Log("BasePortalVis: \n");
-        
-        for (x = 0, size = g_numportals * 2; x < size; x++)
-        {
-            unsigned        percent = (x * 100 / size);
-            
-            if (percent && (percent != lastpercent) && ((percent % 10) == 0))
-            {
-                lastpercent = percent;
-				PrintConsole
-					("%d%%....", percent);
-            }
-            BasePortalVis(x);
-        }
-		PrintConsole
-			("\n");
-    }
-    else
-    {
-        Send_VIS_WANT_MIGHTSEE_DATA();
-        while(!g_mightsee_downloaded)
-        {
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(3)\n");
-            }
-            NetvisSleep(100);
-        }
-    }
-
-    g_visportals = g_numportals;
-    g_visleafs = g_portalleafs;
-
-    g_starttime = I_FloatTime();
-    StartStatusDisplayThread(g_rate);
-    CalcPortalVis();
-
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-        unsigned int    i;
-
-        for (i = 0; i < g_portalleafs; i++)
-        {
-            LeafFlow(i);
-        }
-
-        Log("average leafs visible: %i\n", totalvis / g_portalleafs);
-    }
-}
-#endif
-
-#ifndef ZHLT_NETVIS
 
 
 // AJM: MVD
@@ -894,10 +575,7 @@ static void     CalcVis()
 		}
 //	}
 }
-#endif //!ZHLT_NETVIS
 
-// ZHLT_NETVIS
-//////////////
 
 // =====================================================================================
 //  CheckNullToken
@@ -1138,12 +816,6 @@ static void     Usage()
     Log("    -full           : Full vis\n");
     Log("    -fast           : Fast vis\n\n");
     Log("    -nofixprt       : Disables optimization of portal file for import to J.A.C.K. map editor\n\n"); //seedee
-#ifdef ZHLT_NETVIS
-    Log("    -connect address : Connect to netvis server at address as a client\n");
-    Log("    -server          : Run as the netvis server\n");
-    Log("    -port #          : Use a non-standard port for netvis\n");
-    Log("    -rate #          : Alter the display update rate\n\n");
-#endif
     Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n");
     Log("    -lightdata #    : Alter maximum lighting memory limit (in kb)\n"); //lightdata //--vluzacn
     Log("    -chart          : display bsp statitics\n");
@@ -1161,17 +833,6 @@ static void     Usage()
     Log("    -noinfo         : Do not show tool configuration information\n");
     Log("    -dev #          : compile with developer message\n\n");
     Log("    mapfile         : The mapfile to compile\n\n");
-
-#ifdef ZHLT_NETVIS
-    Log("\n"
-        "In netvis one computer must be the server and all the rest are the clients.\n"
-        "The server should be started with      : netvis -server mapname\n"
-        "And the clients should be started with : netvis -connect servername\n"
-        "\n"
-        "The default socket it uses is 21212 and can be changed with -port\n"
-        "The default update rate is 60 seconds and can be changed with -rate\n");
-
-#endif
 
     exit(1);
 }
@@ -1231,19 +892,6 @@ static void     Settings()
     Log("fast vis            [ %7s ] [ %7s ]\n", g_fastvis ? "on" : "off", DEFAULT_FASTVIS ? "on" : "off");
     Log("full vis            [ %7s ] [ %7s ]\n", g_fullvis ? "on" : "off", DEFAULT_FULLVIS ? "on" : "off");
     Log("nofixprt            [ %7s ] [ %7s ]\n", g_nofixprt ? "on" : "off", DEFAULT_NOFIXPRT ? "on" : "off");
-
-#ifdef ZHLT_NETVIS
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-        Log("netvis mode         [  Server ]\n");
-    }
-    else if (g_vismode == VIS_MODE_CLIENT)
-    {
-        Log("netvis mode         [  Client, connected to %s ]\n", g_server_addr);
-    }
-    Log("netvis port         [ %7d ] [ %7d ]\n", g_port, DEFAULT_NETVIS_PORT);
-    Log("netvis display rate [ %7d ] [ %7d ]\n", g_rate, DEFAULT_NETVIS_RATE);
-#endif
 
     Log("\n\n");
 }
@@ -1382,11 +1030,7 @@ int             main(const int argc, char** argv)
     double          start, end;
     const char*     mapname_from_arg = nullptr;
 
-#ifdef ZHLT_NETVIS
-    g_Program = "netvis";
-#else
     g_Program = "sdHLVIS";
-#endif
 
 	int argcold = argc;
 	char ** argvold = argv;
@@ -1427,63 +1071,11 @@ int             main(const int argc, char** argv)
             g_estimate = false;
         }
 #endif
-#ifdef ZHLT_NETVIS
-        else if (!strcasecmp(argv[i], "-server"))
-        {
-            g_vismode = VIS_MODE_SERVER;
-        }
-        else if (!strcasecmp(argv[i], "-connect"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                g_vismode = VIS_MODE_CLIENT;
-                g_server_addr = argv[++i];
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-port"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                g_port = atoi(argv[++i]);
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-rate"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                g_rate = atoi(argv[++i]);
-            }
-            else
-            {
-                Usage();
-            }
-            if (g_rate < 5)
-            {
-                Log("Minimum -rate is 5, setting to 5 seconds\n");
-                g_rate = 5;
-            }
-            if (g_rate > 900)
-            {
-                Log("Maximum -rate is 900, setting to 900 seconds\n");
-                g_rate = 900;
-            }
-        }
-#endif
-#ifndef ZHLT_NETVIS
         else if (!strcasecmp(argv[i], "-fast"))
         {
             Log("g_fastvis = true\n");
             g_fastvis = true;
         }
-#endif
         else if (!strcasecmp(argv[i], "-full"))
         {
             g_fullvis = true;
@@ -1612,60 +1204,13 @@ int             main(const int argc, char** argv)
         }
     }
 
-#ifdef ZHLT_NETVIS
-    threads_InitCrit();
-
-    if (g_vismode == VIS_MODE_CLIENT)
-    {
-        ConnectToServer(g_server_addr, g_port);
-
-        while (!isConnectedToServer())
-        {
-            NetvisSleep(100);
-        }
-        Send_VIS_LOGIN();
-        while (!g_clientid)
-        {
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(4)\n");
-            }
-            NetvisSleep(100);
-        }
-
-        mapname_from_arg = "proxy";
-    }
-    else if (g_vismode == VIS_MODE_SERVER)
-    {
-        StartNetvisSocketServer(g_port);
-
-        if (!mapname_from_arg)
-        {
-            Log("No mapfile specified\n");
-            Usage();
-        }
-    }
-    else
-    {
-        Log("Netvis must be run either as a server (-server)\n" "or as a client (-connect servername)\n\n");
-        Usage();
-    }
-
-#else
 
     if (!mapname_from_arg)
     {
         Log("No mapfile specified\n");
         Usage();
     }
-#endif
 
-#ifdef ZHLT_NETVIS
-    if (g_vismode == VIS_MODE_CLIENT)
-    {
-        g_log = false;
-    }
-#endif
 
     safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
     FlipSlashes(g_Mapname);
@@ -1692,17 +1237,6 @@ int             main(const int argc, char** argv)
 		Log("\n");
 	}
 
-#ifdef ZHLT_NETVIS
-    if (g_vismode == VIS_MODE_CLIENT)
-    {
-        Log("ZHLT NETVIS Client #%d\n", g_clientid);
-        g_log = false;
-    }
-    else
-    {
-        Log("ZHLT NETVIS Server\n");
-    }
-#endif
 
     CheckForErrorLog();
 	
@@ -1719,70 +1253,6 @@ int             main(const int argc, char** argv)
     safe_strncpy(portalfile, g_Mapname, _MAX_PATH);
     safe_strncat(portalfile, ".prt", _MAX_PATH);
 
-#ifdef ZHLT_NETVIS
-
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-        LoadBSPFile(source);
-        LoadPortalsByFilename(portalfile);
-
-        char* bsp_image;
-        char* prt_image;
-
-        g_bsp_size = LoadFile(source, &bsp_image);
-        g_prt_size = LoadFile(portalfile, &prt_image);
-
-        g_bsp_compressed_size = (g_bsp_size * 1.01) + 12; // Magic numbers come from zlib documentation
-        g_prt_compressed_size = (g_prt_size * 1.01) + 12; // Magic numbers come from zlib documentation
-
-        char* bsp_compressed_image = (char*)malloc(g_bsp_compressed_size);
-        char* prt_compressed_image = (char*)malloc(g_prt_compressed_size);
-
-        int rval;
-
-        rval = compress2((byte*)bsp_compressed_image, &g_bsp_compressed_size, (byte*)bsp_image, g_bsp_size, 5);
-        if (rval != Z_OK)
-        {
-            Error("zlib Compression error with bsp image\n");
-        }
-
-        rval =  compress2((byte*)prt_compressed_image, &g_prt_compressed_size, (byte*)prt_image, g_prt_size, 7);
-        if (rval != Z_OK)
-        {
-            Error("zlib Compression error with prt image\n");
-        }
-
-        free(bsp_image);
-        free(prt_image);
-
-        g_bsp_image = bsp_compressed_image;
-        g_prt_image = prt_compressed_image;
-    }
-    else if (g_vismode == VIS_MODE_CLIENT)
-    {
-        Send_VIS_WANT_BSP_DATA();
-        while (!g_bsp_downloaded)
-        {
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(5)\n");
-            }
-            NetvisSleep(100);
-        }
-        Send_VIS_WANT_PRT_DATA();
-        while (!g_prt_downloaded)
-        {
-            if (!isConnectedToServer())
-            {
-                Error("Unexepected disconnect from server(6)\n");
-            }
-            NetvisSleep(100);
-        }
-        LoadPortals(g_prt_image);
-        free(g_prt_image);
-    }
-
-#else // NOT ZHLT_NETVIS
 
     LoadBSPFile(source);
     ParseEntities();
@@ -1856,56 +1326,10 @@ int             main(const int argc, char** argv)
 	}
     LoadPortalsByFilename(portalfile);
 
-#endif
-
     Settings();
     g_uncompressed = (byte*)calloc(g_portalleafs, g_bitbytes);
 
     CalcVis();
-
-#ifdef ZHLT_NETVIS
-
-    if (g_vismode == VIS_MODE_SERVER)
-    {
-        g_visdatasize = vismap_p - g_dvisdata;
-        Log("g_visdatasize:%i  compressed from %i\n", g_visdatasize, originalvismapsize);
-
-        if (g_chart)
-        {
-            PrintBSPFileSizes();
-        }
-
-        WriteBSPFile(source);
-
-        end = I_FloatTime();
-        LogTimeElapsed(end - start);
-
-        free(g_uncompressed);
-        // END VIS
-
-#ifndef SYSTEM_WIN32
-        // Talk about cheese . . .
-        StopNetvisSocketServer();
-#endif
-
-    }
-    else if (g_vismode == VIS_MODE_CLIENT)
-    {
-
-#ifndef SYSTEM_WIN32
-        // Dont ask  . . 
-        DisconnectFromServer();
-#endif
-
-        end = I_FloatTime();
-        LogTimeElapsed(end - start);
-
-        free(g_uncompressed);
-        // END VIS
-    }
-    threads_UninitCrit();
-
-#else // NOT ZHLT_NETVIS
 
     g_visdatasize = vismap_p - g_dvisdata;
     Log("g_visdatasize:%i  compressed from %i\n", g_visdatasize, originalvismapsize);
@@ -1928,7 +1352,6 @@ int             main(const int argc, char** argv)
     free(g_uncompressed);
     // END VIS
 
-#endif // ZHLT_NETVIS
 		}
 	}
 
