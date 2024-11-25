@@ -1,7 +1,3 @@
-// Copyright (C) 2000  Sean Cavanaugh
-// This file is licensed under the terms of the Lesser GNU Public License
-// (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
-
 #include "vis.h"
 
 
