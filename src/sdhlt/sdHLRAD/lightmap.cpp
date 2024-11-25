@@ -1646,8 +1646,8 @@ void            CreateDirectLights()
 			DotProduct (p->baselight, p->texturereflectivity) / 3
 			> 0.0
 			&& !(g_face_texlights[p->faceNumber]
-				&& *ValueForKey (g_face_texlights[p->faceNumber], "_scale")
-				&& FloatForKey (g_face_texlights[p->faceNumber], "_scale") <= 0)
+				&& *ValueForKey (g_face_texlights[p->faceNumber], u8"_scale")
+				&& FloatForKey (g_face_texlights[p->faceNumber], u8"_scale") <= 0)
 			) //LRC
         {
             numdlights++;
@@ -1676,22 +1676,22 @@ void            CreateDirectLights()
 			dl->patch_emitter_range = p->emitter_range;
 			dl->patch = p;
 			dl->texlightgap = g_texlightgap;
-			if (g_face_texlights[p->faceNumber] && *ValueForKey (g_face_texlights[p->faceNumber], "_texlightgap"))
+			if (g_face_texlights[p->faceNumber] && *ValueForKey (g_face_texlights[p->faceNumber], u8"_texlightgap"))
 			{
-				dl->texlightgap = FloatForKey (g_face_texlights[p->faceNumber], "_texlightgap");
+				dl->texlightgap = FloatForKey (g_face_texlights[p->faceNumber], u8"_texlightgap");
 			}
 			dl->stopdot = 0.0;
 			dl->stopdot2 = 0.0;
 			if (g_face_texlights[p->faceNumber])
 			{
-				if (*ValueForKey (g_face_texlights[p->faceNumber], "_cone"))
+				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone"))
 				{
-					dl->stopdot = FloatForKey (g_face_texlights[p->faceNumber], "_cone");
+					dl->stopdot = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone");
 					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * Q_PI);
 				}
-				if (*ValueForKey (g_face_texlights[p->faceNumber], "_cone2"))
+				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone2"))
 				{
-					dl->stopdot2 = FloatForKey (g_face_texlights[p->faceNumber], "_cone2");
+					dl->stopdot2 = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone2");
 					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * Q_PI);
 				}
 				if (dl->stopdot2 > dl->stopdot)
@@ -1703,9 +1703,9 @@ void            CreateDirectLights()
             VectorCopy(p->baselight, dl->intensity); //LRC
 			if (g_face_texlights[p->faceNumber])
 			{
-				if (*ValueForKey (g_face_texlights[p->faceNumber], "_scale"))
+				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_scale"))
 				{
-					vec_t scale = FloatForKey (g_face_texlights[p->faceNumber], "_scale");
+					vec_t scale = FloatForKey (g_face_texlights[p->faceNumber], u8"_scale");
 					VectorScale (dl->intensity, scale, dl->intensity);
 				}
 			}
@@ -1745,26 +1745,26 @@ void            CreateDirectLights()
         int             argCnt;
 
         e = &g_entities[i];
-        name = ValueForKey(e, "classname");
+        name = (const char*) ValueForKey(e, u8"classname");
         if (strncmp(name, "light", 5))
             continue;
 		{
-			int style = IntForKey (e, "style");
+			int style = IntForKey (e, u8"style");
 			if (style < 0)
 			{
 				style = -style;
 			}
 			style = (unsigned char)style;
-			if (style > 0 && style < ALLSTYLES && *ValueForKey (e, "zhlt_stylecoring"))
+			if (style > 0 && style < ALLSTYLES && *ValueForKey (e, u8"zhlt_stylecoring"))
 			{
-				g_corings[style] = FloatForKey (e, "zhlt_stylecoring");
+				g_corings[style] = FloatForKey (e, u8"zhlt_stylecoring");
 			}
 		}
 		if (!strcmp (name, "light_shadow")
 			|| !strcmp (name, "light_bounce")
 			)
 		{
-			int style = IntForKey (e, "style");
+			int style = IntForKey (e, u8"style");
 			if (style < 0)
 			{
 				style = -style;
@@ -1790,7 +1790,7 @@ void            CreateDirectLights()
 
 		hlassume (dl != nullptr, assume_NoMemory);
 
-        GetVectorForKey(e, "origin", dl->origin);
+        GetVectorForKey(e, u8"origin", dl->origin);
 
         leaf = PointInLeaf(dl->origin);
         leafnum = leaf - g_dleafs;
@@ -1798,7 +1798,7 @@ void            CreateDirectLights()
         dl->next = directlights[leafnum];
         directlights[leafnum] = dl;
 
-        dl->style = IntForKey(e, "style");
+        dl->style = IntForKey(e, u8"style");
         if (dl->style < 0) 
             dl->style = -dl->style; //LRC
 		dl->style = (unsigned char)dl->style;
@@ -1815,7 +1815,7 @@ void            CreateDirectLights()
 			}
 		}
 		dl->topatch = false;
-		if (IntForKey (e, "_fast") == 1)
+		if (IntForKey (e, u8"_fast") == 1)
 		{
 			dl->topatch = true;
 		}
@@ -1823,7 +1823,7 @@ void            CreateDirectLights()
 		{
 			dl->topatch = true;
 		}
-        pLight = ValueForKey(e, "_light");
+        pLight = (const char*) ValueForKey(e, u8"_light");
         // scanf into doubles, then assign, so it is vec_t size independent
         r = g = b = scaler = 0;
         argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
@@ -1855,14 +1855,14 @@ void            CreateDirectLights()
             continue;
         }
 
-        dl->fade = FloatForKey(e, "_fade");
+        dl->fade = FloatForKey(e, u8"_fade");
         if (dl->fade == 0.0)
         {
             dl->fade = g_fade;
         }
 
 
-        target = ValueForKey(e, "target");
+        target = (const char*) ValueForKey(e, u8"target");
 
         if (!strcmp(name, "light_spot") || !strcmp(name, "light_environment") || target[0])
         {
@@ -1870,12 +1870,12 @@ void            CreateDirectLights()
             {
             }
             dl->type = emit_spotlight;
-            dl->stopdot = FloatForKey(e, "_cone");
+            dl->stopdot = FloatForKey(e, u8"_cone");
             if (!dl->stopdot)
             {
                 dl->stopdot = 10;
             }
-            dl->stopdot2 = FloatForKey(e, "_cone2");
+            dl->stopdot2 = FloatForKey(e, u8"_cone2");
             if (!dl->stopdot2)
             {
                 dl->stopdot2 = dl->stopdot;
@@ -1903,7 +1903,7 @@ void            CreateDirectLights()
                 }
                 else
                 {
-                    GetVectorForKey(e2, "origin", dest);
+                    GetVectorForKey(e2, u8"origin", dest);
                     VectorSubtract(dest, dl->origin, dl->normal);
                     VectorNormalize(dl->normal);
                 }
@@ -1912,9 +1912,9 @@ void            CreateDirectLights()
             {                                              // point down angle
                 vec3_t          vAngles;
 
-                GetVectorForKey(e, "angles", vAngles);
+                GetVectorForKey(e, u8"angles", vAngles);
 
-                angle = (float)FloatForKey(e, "angle");
+                angle = (float)FloatForKey(e, u8"angle");
                 if (angle == ANGLE_UP)
                 {
                     dl->normal[0] = dl->normal[1] = 0;
@@ -1938,7 +1938,7 @@ void            CreateDirectLights()
                     dl->normal[1] = (float)sin(angle / 180 * Q_PI);
                 }
 
-                angle = FloatForKey(e, "pitch");
+                angle = FloatForKey(e, u8"pitch");
                 if (!angle)
                 {
                     // if we don't have a specific "pitch" use the "angles" PITCH
@@ -1950,7 +1950,7 @@ void            CreateDirectLights()
                 dl->normal[1] *= (float)cos(angle / 180 * Q_PI);
             }
 
-            if (FloatForKey(e, "_sky") || !strcmp(name, "light_environment"))
+            if (FloatForKey(e, u8"_sky") || !strcmp(name, "light_environment"))
             {
 				// -----------------------------------------------------------------------------------
 				// Changes by Adam Foster - afoster@compsoc.man.ac.uk
@@ -1959,7 +1959,7 @@ void            CreateDirectLights()
 				//
 				// What does _sky do for spotlights, anyway?
 				// -----------------------------------------------------------------------------------
-				pLight = ValueForKey(e, "_diffuse_light");
+				pLight =(const char*)  ValueForKey(e, u8"_diffuse_light");
         		r = g = b = scaler = 0;
         		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
         		dl->diffuse_intensity[0] = (float)r;
@@ -1992,7 +1992,7 @@ void            CreateDirectLights()
 					dl->diffuse_intensity[2] = dl->intensity[2];
         		}
 				// -----------------------------------------------------------------------------------
-				pLight = ValueForKey(e, "_diffuse_light2");
+				pLight = (const char*) ValueForKey(e, u8"_diffuse_light2");
         		r = g = b = scaler = 0;
         		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
         		dl->diffuse_intensity2[0] = (float)r;
@@ -2024,15 +2024,15 @@ void            CreateDirectLights()
         		}
 
                 dl->type = emit_skylight;
-                dl->stopdot2 = FloatForKey(e, "_sky");     // hack stopdot2 to a sky key number
-				dl->sunspreadangle = FloatForKey (e, "_spread");
+                dl->stopdot2 = FloatForKey(e, u8"_sky");     // hack stopdot2 to a sky key number
+				dl->sunspreadangle = FloatForKey (e, u8"_spread");
 				if (!g_allow_spread)
 				{
 					dl->sunspreadangle = 0;
 				}
 				if (dl->sunspreadangle < 0.0 || dl->sunspreadangle > 180)
 				{
-					Error ("Invalid spread angle '%s'. Please use a number between 0 and 180.\n", ValueForKey (e, "_spread"));
+					Error ("Invalid spread angle '%s'. Please use a number between 0 and 180.\n", (const char*) ValueForKey (e, u8"_spread"));
 				}
 				if (dl->sunspreadangle > 0.0)
 				{
@@ -2233,7 +2233,7 @@ void            CreateDirectLights()
 		for (int i = 0; i < g_numentities; i++)
 		{
 			entity_t *e = &g_entities[i];
-			const char *classname = ValueForKey (e, "classname");
+			const char *classname = (const char*) ValueForKey (e, u8"classname");
 			if (!strcmp (classname, "light_environment"))
 			{
 				countlightenvironment++;
@@ -4285,7 +4285,7 @@ void ReduceLightmap ()
 			continue;                                      // non-lit texture
 		}
 		// just need to zero the lightmap so that it won't contribute to lightdata size
-		if (IntForKey (g_face_entity[facenum], "zhlt_striprad"))
+		if (IntForKey (g_face_entity[facenum], u8"zhlt_striprad"))
 		{
 			f->lightofs = g_lightdatasize;
 			for (int k = 0; k < MAXLIGHTMAPS; k++)
@@ -4295,7 +4295,7 @@ void ReduceLightmap ()
 			continue;
 		}
 #if 0 //debug. --vluzacn
-		const char *lightmapcolor = ValueForKey (g_face_entity[facenum], "zhlt_rad");
+		const char *lightmapcolor = ValueForKey (g_face_entity[facenum], u8"zhlt_rad");
 		if (*lightmapcolor)
 		{
 			hlassume (MAXLIGHTMAPS == 4, assume_first);
@@ -4595,7 +4595,7 @@ void MdlLightHack ()
 	for (ient = 0; ient < g_numentities; ++ient)
 	{
 		ent1 = &g_entities[ient];
-		target = ValueForKey (ent1, "zhlt_copylight");
+		target = (const char*) ValueForKey (ent1, u8"zhlt_copylight");
 		if (!strcmp (target, ""))
 			continue;
 		used = 1;
@@ -4605,8 +4605,8 @@ void MdlLightHack ()
 			Warning ("target entity '%s' not found", target);
 			continue;
 		}
-		GetVectorForKey (ent1, "origin", origin1);
-		GetVectorForKey (ent2, "origin", origin2);
+		GetVectorForKey (ent1, u8"origin", origin1);
+		GetVectorForKey (ent2, u8"origin", origin2);
 		r = MLH_CopyLight (origin2, origin1);
 		if (r < 0)
 			Warning ("can not copy light from (%f,%f,%f)", origin2[0], origin2[1], origin2[2]);
@@ -4890,7 +4890,7 @@ void            FinalLightFace(const int facenum)
     //
     // sample the triangulation
     //
-    minlight = FloatForKey(g_face_entity[facenum], "_minlight") * 255; //seedee
+    minlight = FloatForKey(g_face_entity[facenum], u8"_minlight") * 255; //seedee
 	minlight = (minlight > 255) ? 255 : minlight;
 
 	const char* texname = GetTextureByNumber(f->texinfo);

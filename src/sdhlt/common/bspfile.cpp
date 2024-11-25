@@ -1200,22 +1200,20 @@ void DeleteEmbeddedLightmaps ()
 //  ParseEpair
 //      entity key/value pairs
 // =====================================================================================
-epair_t*        ParseEpair()
+std::unique_ptr<epair_t>        ParseEpair()
 {
-    epair_t*        e;
-
-    e = (epair_t*)Alloc(sizeof(epair_t));
+	std::unique_ptr<epair_t> e = std::make_unique<epair_t>();
 
     if (strlen(g_token) >= MAX_KEY - 1)
         Error("ParseEpair: Key token too long (%i > MAX_KEY)", (int)strlen(g_token));
 
-    e->key = _strdup(g_token);
+    e->key = std::u8string((const char8_t*) g_token);
     GetToken(false);
 
     if (strlen(g_token) >= MAX_VAL - 1) //MAX_VALUE //vluzacn
         Error("ParseEpar: Value token too long (%i > MAX_VALUE)", (int)strlen(g_token));
 
-    e->value = _strdup(g_token);
+    e->value = std::u8string((const char8_t*) g_token);
 
     return e;
 }
@@ -1231,8 +1229,6 @@ extern void     GetParamsFromEnt(entity_t* mapent);
 
 bool            ParseEntity()
 {
-    epair_t*        e;
-    entity_t*       mapent;
 
     if (!GetToken(true))
     {
@@ -1249,7 +1245,7 @@ bool            ParseEntity()
         Error("g_numentities == MAX_MAP_ENTITIES");
     }
 
-    mapent = &g_entities[g_numentities];
+    entity_t* mapent = &g_entities[g_numentities];
     g_numentities++;
 
     while (1)
@@ -1262,45 +1258,42 @@ bool            ParseEntity()
         {
             break;
         }
-        e = ParseEpair();
+        std::unique_ptr<epair_t> e = ParseEpair();
         e->next = mapent->epairs;
-        mapent->epairs = e;
+        mapent->epairs = e.release();
     }
 
-    if (!strcmp(ValueForKey(mapent, "classname"), "info_compile_parameters"))
+    if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_compile_parameters"))
     {
         Log("Map entity info_compile_parameters detected, using compile settings\n");
         GetParamsFromEnt(mapent);
     }
 	// ugly code
-	if (!strncmp(ValueForKey (mapent, "classname"), "light", 5) && *ValueForKey (mapent, "_tex"))
+	if (!strncmp((const char*) ValueForKey (mapent, u8"classname"), "light", 5) && *ValueForKey (mapent, u8"_tex"))
 	{
-		SetKeyValue (mapent, "convertto", ValueForKey (mapent, "classname"));
-		SetKeyValue (mapent, "classname", "light_surface");
+		SetKeyValue (mapent, u8"convertto", ValueForKey (mapent, u8"classname"));
+		SetKeyValue (mapent, u8"classname", u8"light_surface");
 	}
-	if (!strcmp (ValueForKey (mapent, "convertfrom"), "light_shadow")
-		|| !strcmp (ValueForKey (mapent, "convertfrom"), "light_bounce")
+	if (!strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "light_shadow")
+		|| !strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "light_bounce")
 		)
 	{
-		SetKeyValue (mapent, "convertto", ValueForKey (mapent, "classname"));
-		SetKeyValue (mapent, "classname", ValueForKey (mapent, "convertfrom"));
-		SetKeyValue (mapent, "convertfrom", "");
+		SetKeyValue (mapent, u8"convertto", ValueForKey (mapent, u8"classname"));
+		SetKeyValue (mapent, u8"classname", ValueForKey (mapent, u8"convertfrom"));
+		SetKeyValue (mapent, u8"convertfrom", u8"");
 	}
-	if (!strcmp (ValueForKey (mapent, "classname"), "light_environment") &&
-		!strcmp (ValueForKey (mapent, "convertfrom"), "info_sunlight"))
+	if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") &&
+		!strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "info_sunlight"))
 	{
-		while (mapent->epairs)
-		{
-			DeleteKey (mapent, mapent->epairs->key);
-		}
+		DeleteAllKeys(mapent);
 		memset (mapent, 0, sizeof(entity_t));
 		g_numentities--;
 		return true;
 	}
-	if (!strcmp (ValueForKey (mapent, "classname"), "light_environment") &&
-		IntForKey (mapent, "_fake"))
+	if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") &&
+		IntForKey (mapent, u8"_fake"))
 	{
-		SetKeyValue (mapent, "classname", "info_sunlight");
+		SetKeyValue (mapent, u8"classname", u8"info_sunlight");
 	}
 
     return true;
@@ -1388,25 +1381,25 @@ void            UnparseEntities()
 	for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp (ValueForKey (mapent, "classname"), "info_sunlight") ||
-			!strcmp (ValueForKey (mapent, "classname"), "light_environment") )
+		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_sunlight") ||
+			!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") )
 		{
 			float vec[3] = {0,0,0};
 			{
-				sscanf (ValueForKey (mapent, "angles"), "%f %f %f", &vec[0], &vec[1], &vec[2]);
-				float pitch = FloatForKey(mapent, "pitch");
+				sscanf ((const char*) ValueForKey (mapent, u8"angles"), "%f %f %f", &vec[0], &vec[1], &vec[2]);
+				float pitch = FloatForKey(mapent, u8"pitch");
 				if (pitch)
 					vec[0] = pitch;
 
-				const char *target = ValueForKey (mapent, "target");
+				const char *target = (const char*) ValueForKey (mapent, u8"target");
 				if (target[0])
 				{
 					entity_t *targetent = FindTargetEntity (target);
 					if (targetent)
 					{
 						float origin1[3] = {0,0,0}, origin2[3] = {0,0,0}, normal[3];
-						sscanf (ValueForKey (mapent, "origin"), "%f %f %f", &origin1[0], &origin1[1], &origin1[2]);
-						sscanf (ValueForKey (targetent, "origin"), "%f %f %f", &origin2[0], &origin2[1], &origin2[2]);
+						sscanf ((const char*) ValueForKey (mapent, u8"origin"), "%f %f %f", &origin1[0], &origin1[1], &origin1[2]);
+						sscanf ((const char*) ValueForKey (targetent, u8"origin"), "%f %f %f", &origin2[0], &origin2[1], &origin2[2]);
 						VectorSubtract (origin2, origin1, normal);
 						anglesforvector (vec, normal);
 					}
@@ -1414,10 +1407,10 @@ void            UnparseEntities()
 			}
 			char stmp[1024];
 			safe_snprintf (stmp, 1024, "%g %g %g", vec[0], vec[1], vec[2]);
-			SetKeyValue (mapent, "angles", stmp);
-			DeleteKey (mapent, "pitch");
+			SetKeyValue (mapent, u8"angles", (const char8_t*) stmp);
+			DeleteKey (mapent, u8"pitch");
 
-			if (!strcmp (ValueForKey (mapent, "classname"), "info_sunlight"))
+			if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_sunlight"))
 			{
 				if (g_numentities == MAX_MAP_ENTITIES)
 				{
@@ -1425,8 +1418,8 @@ void            UnparseEntities()
 				}
 				entity_t *newent = &g_entities[g_numentities++];
 				newent->epairs = mapent->epairs;
-				SetKeyValue (newent, "classname", "light_environment");
-				SetKeyValue (newent, "_fake", "1");
+				SetKeyValue (newent, u8"classname",u8"light_environment");
+				SetKeyValue (newent, u8"_fake", u8"1");
 				mapent->epairs = nullptr;
 			}
 		}
@@ -1434,39 +1427,39 @@ void            UnparseEntities()
     for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp (ValueForKey (mapent, "classname"), "light_shadow")
-			|| !strcmp (ValueForKey (mapent, "classname"), "light_bounce")
+		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_shadow")
+			|| !strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_bounce")
 			)
 		{
-			SetKeyValue (mapent, "convertfrom", ValueForKey (mapent, "classname"));
-			SetKeyValue (mapent, "classname", (*ValueForKey (mapent, "convertto")? ValueForKey (mapent, "convertto"): "light"));
-			SetKeyValue (mapent, "convertto", "");
+			SetKeyValue (mapent, u8"convertfrom", ValueForKey (mapent, u8"classname"));
+			SetKeyValue (mapent, u8"classname", (*ValueForKey (mapent, u8"convertto")? ValueForKey (mapent, u8"convertto"): u8"light"));
+			SetKeyValue (mapent, u8"convertto", u8"");
 		}
 	}
 	// ugly code
 	for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp (ValueForKey (mapent, "classname"), "light_surface"))
+		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_surface"))
 		{
-			if (!*ValueForKey (mapent, "_tex"))
+			if (!*ValueForKey (mapent, u8"_tex"))
 			{
-				SetKeyValue (mapent, "_tex", "                ");
+				SetKeyValue (mapent, u8"_tex", u8"                ");
 			}
-			const char *newclassname = ValueForKey (mapent, "convertto");
+			const char8_t *newclassname = ValueForKey (mapent, u8"convertto");
 			if (!*newclassname)
 			{
-				SetKeyValue (mapent, "classname", "light");
+				SetKeyValue (mapent, u8"classname", u8"light");
 			}
-			else if (strncmp (newclassname, "light", 5))
+			else if (strncmp ((const char*) newclassname, "light", 5))
 			{
-				Error ("New classname for 'light_surface' should begin with 'light' not '%s'.\n", newclassname);
+				Error ("New classname for 'light_surface' should begin with 'light' not '%s'.\n", (const char*) newclassname);
 			}
 			else
 			{
-				SetKeyValue (mapent, "classname", newclassname);
+				SetKeyValue (mapent, u8"classname", newclassname);
 			}
-			SetKeyValue (mapent, "convertto", "");
+			SetKeyValue (mapent, u8"convertto", u8"");
 		}
 	}
 #ifdef SDHLCSG //seedee
@@ -1481,24 +1474,24 @@ void            UnparseEntities()
 		for (i = g_numentities - 1; i > -1; i--)
 		{
 			entity_t *ent = &g_entities[i];
-			const char *classname = ValueForKey (ent, "classname");
-			const char *targetname = ValueForKey (ent, "targetname");
-			int style = IntForKey (ent, "style");
-			if (!targetname[0] || strcmp (classname, "light") && strcmp (classname, "light_spot") && strcmp (classname, "light_environment"))
+			const char8_t *classname = ValueForKey (ent, u8"classname");
+			const char8_t *targetname = ValueForKey (ent, u8"targetname");
+			int style = IntForKey (ent, u8"style");
+			if (!targetname[0] || strcmp ((const char*) classname, "light") && strcmp ((const char*) classname, "light_spot") && strcmp ((const char*) classname, "light_environment"))
 				continue;
 			for (j = i + 1; j < g_numentities; j++)
 			{
 				if (!lightneedcompare[j])
 					continue;
 				entity_t *ent2 = &g_entities[j];
-				const char *targetname2 = ValueForKey (ent2, "targetname");
-				int style2 = IntForKey (ent2, "style");
-				if (style == style2 && !strcmp (targetname, targetname2))
+				const char8_t *targetname2 = ValueForKey (ent2, u8"targetname");
+				int style2 = IntForKey (ent2, u8"style");
+				if (style == style2 && !strcmp ((const char*) targetname, (const char*) targetname2))
 					break;
 			}
 			if (j < g_numentities)
 			{
-				DeleteKey (ent, "targetname");
+				DeleteKey (ent, u8"targetname");
 				count++;
 			}
 			else
@@ -1526,7 +1519,7 @@ void            UnparseEntities()
 
         for (ep = g_entities[i].epairs; ep; ep = ep->next)
         {
-            snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", ep->key, ep->value);
+            snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", (const char*) ep->key.c_str(), (const char*) ep->value.c_str());
             strcat(end, line);
             end += strlen(line);
         }
@@ -1541,96 +1534,95 @@ void            UnparseEntities()
     g_entdatasize = end - buf + 1;
 }
 
-// =====================================================================================
-//  SetKeyValue
-//      makes a keyvalue
-// =====================================================================================
-void			DeleteKey(entity_t* ent, const char* const key)
+void DeleteAllKeys(entity_t* ent)
 {
 	epair_t **pep;
 	for (pep = &ent->epairs; *pep; pep = &(*pep)->next)
 	{
-		if (!strcmp ((*pep)->key, key))
+		epair_t *ep = *pep;
+		*pep = ep->next;
+		delete ep;
+	}
+}
+void DeleteKey(entity_t* ent, std::u8string_view key)
+{
+	epair_t **pep;
+	for (pep = &ent->epairs; *pep; pep = &(*pep)->next)
+	{
+		if ((*pep)->key == key)
 		{
 			epair_t *ep = *pep;
 			*pep = ep->next;
-			Free(ep->key);
-			Free(ep->value);
-			Free(ep);
+			delete ep;
 			return;
 		}
 	}
 }
-void            SetKeyValue(entity_t* ent, const char* const key, const char* const value)
+void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string value)
 {
-    epair_t*        ep;
-
 	if (!value[0])
 	{
 		DeleteKey (ent, key);
 		return;
 	}
-    for (ep = ent->epairs; ep; ep = ep->next)
+    for (epair_t* ep = ent->epairs; ep; ep = ep->next)
     {
-        if (!strcmp(ep->key, key))
+        if (ep->key == key)
         {
-			char *value2 = strdup (value);
-			Free (ep->value);
-			ep->value = value2;
+			ep->value = std::move(value);
             return;
         }
     }
-    ep = (epair_t*)Alloc(sizeof(*ep));
+    std::unique_ptr<epair_t> ep = std::make_unique<epair_t>();
     ep->next = ent->epairs;
-    ent->epairs = ep;
-    ep->key = strdup(key);
-    ep->value = strdup(value);
+    ep->key = key;
+    ep->value = std::move(value);
+    ent->epairs = ep.release();
 }
 
 // =====================================================================================
 //  ValueForKey
 //      returns the value for a passed entity and key
 // =====================================================================================
-const char*     ValueForKey(const entity_t* const ent, const char* const key)
+const char8_t*     ValueForKey(const entity_t* const ent, std::u8string_view key)
 {
     epair_t*        ep;
 
     for (ep = ent->epairs; ep; ep = ep->next)
     {
-        if (!strcmp(ep->key, key))
+        if (ep->key == key)
         {
-            return ep->value;
+            return ep->value.c_str();
         }
     }
-    return "";
+    return u8"";
 }
 
 // =====================================================================================
 //  IntForKey
 // =====================================================================================
-int             IntForKey(const entity_t* const ent, const char* const key)
+int             IntForKey(const entity_t* const ent, std::u8string_view key)
 {
-    return atoi(ValueForKey(ent, key));
+    return atoi((const char*) ValueForKey(ent, key));
 }
 
 // =====================================================================================
 //  FloatForKey
 // =====================================================================================
-vec_t           FloatForKey(const entity_t* const ent, const char* const key)
+vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key)
 {
-    return atof(ValueForKey(ent, key));
+    return atof((const char*) ValueForKey(ent, key));
 }
 
 // =====================================================================================
 //  GetVectorForKey
 //      returns value for key in vec[0-2]
 // =====================================================================================
-void            GetVectorForKey(const entity_t* const ent, const char* const key, vec3_t vec)
+void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_t vec)
 {
-    const char*     k;
     double          v1, v2, v3;
 
-    k = ValueForKey(ent, key);
+    const char* k = (const char*) ValueForKey(ent, key);
     // scanf into doubles, then assign, so it is vec_t size independent
     v1 = v2 = v3 = 0;
     sscanf(k, "%lf %lf %lf", &v1, &v2, &v3);
@@ -1646,11 +1638,10 @@ void            GetVectorForKey(const entity_t* const ent, const char* const key
 entity_t *FindTargetEntity(const char* const target)
 {
     int             i;
-    const char*     n;
 
     for (i = 0; i < g_numentities; i++)
     {
-        n = ValueForKey(&g_entities[i], "targetname");
+        const char* n = (const char*)  ValueForKey(&g_entities[i], u8"targetname");
         if (!strcmp(n, target))
         {
             return &g_entities[i];
@@ -1704,15 +1695,13 @@ char*           GetTextureByNumber(int texturenumber)
 // =====================================================================================
 entity_t*       EntityForModel(const int modnum)
 {
-    int             i;
-    const char*     s;
     char            name[16];
 
     snprintf(name, sizeof(name), "*%i", modnum);
     // search the entities for one using modnum
-    for (i = 0; i < g_numentities; i++)
+    for (int i = 0; i < g_numentities; i++)
     {
-        s = ValueForKey(&g_entities[i], "model");
+        const char* s = (const char*) ValueForKey(&g_entities[i], u8"model");
         if (!strcmp(s, name))
         {
             return &g_entities[i];

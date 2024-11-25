@@ -135,7 +135,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, "verbose");
+    iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
     {
         g_verbose = true;
@@ -148,7 +148,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Verbose Compile Messages", g_verbose ? "on" : "off");
 
     // estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No" ]
-    if (IntForKey(mapent, "estimate")) 
+    if (IntForKey(mapent, u8"estimate")) 
     {
         g_estimate = true;
     }
@@ -159,12 +159,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp(ValueForKey(mapent, "priority"), "1"))
+	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
         g_threadpriority = eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
-    else if (!strcmp(ValueForKey(mapent, "priority"), "-1"))
+    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
         g_threadpriority = eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -179,7 +179,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         3 : "Full"
     ]
     */
-    iTmp = IntForKey(mapent, "hlvis");
+    iTmp = IntForKey(mapent, u8"hlvis");
     if (iTmp == 0)
     {
         Fatal(assume_TOOL_CANCEL, 
@@ -1839,7 +1839,7 @@ int             main(const int argc, char** argv)
 		int i;
 		for (i = 0; i < g_numentities; i++)
 		{
-            const char* current_entity_classname = ValueForKey (&g_entities[i], "classname");
+            const char* current_entity_classname = (const char*) ValueForKey (&g_entities[i], u8"classname");
 
 			if (!strcmp (current_entity_classname, "info_overview_point")
                 )
@@ -1847,10 +1847,10 @@ int             main(const int argc, char** argv)
 				if (g_overview_count < g_overview_max)
 				{
 					vec3_t p;
-					GetVectorForKey (&g_entities[i], "origin", p);
+					GetVectorForKey (&g_entities[i], u8"origin", p);
 					VectorCopy (p, g_overview[g_overview_count].origin);
 					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p);
-					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], "reverse");
+					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], u8"reverse");
 					g_overview_count++;
 				}
 			}
@@ -1861,11 +1861,11 @@ int             main(const int argc, char** argv)
                 {
                     vec3_t room_origin;
 
-                    GetVectorForKey (&g_entities[i], "origin", room_origin);
+                    GetVectorForKey (&g_entities[i], u8"origin", room_origin);
                     g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
-                    g_room[g_room_count].neighbor = CLAMP(IntForKey (&g_entities[i], "neighbor"), 0, MAX_ROOM_NEIGHBOR);
+                    g_room[g_room_count].neighbor = CLAMP(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
 
-                    const char* target = ValueForKey (&g_entities[i], "target");
+                    const char* target = (const char*) ValueForKey (&g_entities[i], u8"target");
 
                     if (strlen(target) == 0)
                     {
@@ -1878,15 +1878,15 @@ int             main(const int argc, char** argv)
                     // Rewalk yes, very sad.
                     for (int j = 0; j < g_numentities; j++)
                     {
-                        const char* current_entity_classname_nested = ValueForKey (&g_entities[j], "classname");
+                        const char* current_entity_classname_nested = (const char*) ValueForKey (&g_entities[j], u8"classname");
 
                         // Find a `info_leaf` and check if its targetname matches our target
                         if (!strcmp (current_entity_classname_nested, "info_leaf")
-                            && !strcmp(ValueForKey (&g_entities[j], "targetname"), target))
+                            && !strcmp((const char*) ValueForKey (&g_entities[j], u8"targetname"), target))
                         {
                             vec3_t room_target_origin;
 
-                            GetVectorForKey (&g_entities[j], "origin", room_target_origin);
+                            GetVectorForKey (&g_entities[j], u8"origin", room_target_origin);
                             g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin);
 
                             has_target = true;

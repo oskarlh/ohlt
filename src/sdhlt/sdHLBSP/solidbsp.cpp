@@ -1212,9 +1212,9 @@ static void     LinkLeafFaces(surface_t* planelist, node_t* leafnode)
 			ContentsToString (ContentsForRank(r)), ContentsToString (ContentsForRank(rank)), 
 			leafnode->mins[0], leafnode->mins[1], leafnode->mins[2], leafnode->maxs[0], leafnode->maxs[1], leafnode->maxs[2], 
 			g_hullnum, g_nummodels - 1, 
-			(ent? ValueForKey (ent, "classname"): "unknown"), 
-			(ent? ValueForKey (ent, "origin"): "unknown"), 
-			(ent? ValueForKey (ent, "targetname"): "unknown"));
+			(ent? (const char*) ValueForKey (ent, u8"classname"): "unknown"), 
+			(ent? (const char*) ValueForKey (ent, u8"origin"): "unknown"), 
+			(ent? (const char*) ValueForKey (ent, u8"targetname"): "unknown"));
 		for (surface_t *surf2 = planelist; surf2; surf2 = surf2->next)
 		{
 			for (face_t *f2 = surf2->faces; f2; f2 = f2->next)

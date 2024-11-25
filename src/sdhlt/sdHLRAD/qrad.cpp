@@ -165,7 +165,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // lightdata(string) : "Lighting Data Memory" : "8192"
-    iTmp = IntForKey(mapent, "lightdata") * 1024; //lightdata
+    iTmp = IntForKey(mapent, u8"lightdata") * 1024; //lightdata
     if (iTmp > g_max_map_lightdata) //--vluzacn
     {
         g_max_map_lightdata = iTmp;
@@ -174,7 +174,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, "verbose");
+    iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
     {
         g_verbose = true;
@@ -187,7 +187,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Verbose Compile Messages", g_verbose ? "on" : "off");
 
     // estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No" ]
-    if (IntForKey(mapent, "estimate")) 
+    if (IntForKey(mapent, u8"estimate")) 
     {
         g_estimate = true;
     }
@@ -198,41 +198,41 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp(ValueForKey(mapent, "priority"), "1"))
+	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
         g_threadpriority = eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
-    else if (!strcmp(ValueForKey(mapent, "priority"), "-1"))
+    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
         g_threadpriority = eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
     }
 
     // bounce(integer) : "Number of radiosity bounces" : 0 
-    iTmp = IntForKey(mapent, "bounce");
+    iTmp = IntForKey(mapent, u8"bounce");
     if (iTmp)
     {
         g_numbounce = abs(iTmp);
-        Log("%30s [ %-9s ]\n", "Number of radiosity bounces", ValueForKey(mapent, "bounce"));
+        Log("%30s [ %-9s ]\n", "Number of radiosity bounces", (const char*) ValueForKey(mapent, u8"bounce"));
     }
     
-    iTmp = IntForKey(mapent, "customshadowwithbounce");
+    iTmp = IntForKey(mapent, u8"customshadowwithbounce");
     if (iTmp)
     {  
     	g_customshadow_with_bouncelight = true;
-    	Log("%30s [ %-9s ]\n", "Custom Shadow with Bounce Light", ValueForKey(mapent, "customshadowwithbounce"));
+    	Log("%30s [ %-9s ]\n", "Custom Shadow with Bounce Light", (const char*) ValueForKey(mapent, u8"customshadowwithbounce"));
     }
-    iTmp = IntForKey(mapent, "rgbtransfers");
+    iTmp = IntForKey(mapent, u8"rgbtransfers");
     if (iTmp)
     {  
     	g_rgb_transfers = true;
-    	Log("%30s [ %-9s ]\n", "RGB Transfers", ValueForKey(mapent, "rgbtransfers"));
+    	Log("%30s [ %-9s ]\n", "RGB Transfers", (const char*) ValueForKey(mapent, u8"rgbtransfers"));
     }
 
     // ambient(string) : "Ambient world light (0.0 to 1.0, R G B)" : "0 0 0" 
     //vec3_t          g_ambient = { DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
-    pszTmp = ValueForKey(mapent, "ambient");
+    pszTmp = (const char*) ValueForKey(mapent, u8"ambient");
     if (pszTmp)
     {
         float red = 0, green = 0, blue = 0;
@@ -268,36 +268,36 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // smooth(integer) : "Smoothing threshold (in degrees)" : 0 
-    flTmp = FloatForKey(mapent, "smooth");
+    flTmp = FloatForKey(mapent, u8"smooth");
     if (flTmp)
     {
         /*g_smoothing_threshold = flTmp;*/
 		g_smoothing_threshold = cos(g_smoothing_value * (Q_PI / 180.0)); // --vluzacn
-        Log("%30s [ %-9s ]\n", "Smoothing threshold", ValueForKey(mapent, "smooth"));
+        Log("%30s [ %-9s ]\n", "Smoothing threshold", (const char*) ValueForKey(mapent, u8"smooth"));
     }
 
     // dscale(integer) : "Direct Lighting Scale" : 1 
-    flTmp = FloatForKey(mapent, "dscale");
+    flTmp = FloatForKey(mapent, u8"dscale");
     if (flTmp)
     {
         g_direct_scale = flTmp;
-        Log("%30s [ %-9s ]\n", "Direct Lighting Scale", ValueForKey(mapent, "dscale"));
+        Log("%30s [ %-9s ]\n", "Direct Lighting Scale", (const char*) ValueForKey(mapent, u8"dscale"));
     }
 
     // chop(integer) : "Chop Size" : 64 
-    iTmp = IntForKey(mapent, "chop");
+    iTmp = IntForKey(mapent, u8"chop");
     if (iTmp)
     {
         g_chop = iTmp;
-        Log("%30s [ %-9s ]\n", "Chop Size", ValueForKey(mapent, "chop"));
+        Log("%30s [ %-9s ]\n", "Chop Size", (const char*) ValueForKey(mapent, u8"chop"));
     }
 
     // texchop(integer) : "Texture Light Chop Size" : 32 
-    flTmp = FloatForKey(mapent, "texchop");
+    flTmp = FloatForKey(mapent, u8"texchop");
     if (flTmp)
     {
         g_texchop = flTmp;
-        Log("%30s [ %-9s ]\n", "Texture Light Chop Size", ValueForKey(mapent, "texchop"));
+        Log("%30s [ %-9s ]\n", "Texture Light Chop Size",(const char*)  ValueForKey(mapent, u8"texchop"));
     }
 
     /* 
@@ -308,7 +308,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         2 : "Extra"
     ]
     */
-    iTmp = IntForKey(mapent, "hlrad");
+    iTmp = IntForKey(mapent, u8"hlrad");
     if (iTmp == 0)
     {
         Fatal(assume_TOOL_CANCEL, 
@@ -333,7 +333,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         2 : "Normal"
     ]
     */
-    iTmp = IntForKey(mapent, "sparse");
+    iTmp = IntForKey(mapent, u8"sparse");
     if (iTmp == 1)
     {
         g_method = eMethodSparseVismatrix;
@@ -356,7 +356,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         1 : "On"
     ]
     */
-    iTmp = IntForKey(mapent, "circus");
+    iTmp = IntForKey(mapent, u8"circus");
     if (iTmp == 0)
     {
         g_circus = false;
@@ -545,7 +545,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 	if (g_face_texlights[fn])
 	{
 		double r, g, b, scaler;
-		switch (sscanf (ValueForKey (g_face_texlights[fn], "_light"), "%lf %lf %lf %lf", &r, &g, &b, &scaler))
+		switch (sscanf ((const char*) ValueForKey (g_face_texlights[fn], u8"_light"), "%lf %lf %lf %lf", &r, &g, &b, &scaler))
 		{
 		case -1:
 		case 0:
@@ -561,9 +561,9 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 			break;
 		default:
 			vec3_t origin;
-			GetVectorForKey (g_face_texlights[fn], "origin", origin);
+			GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
-				origin[0], origin[1], origin[2], ValueForKey (g_face_texlights[fn], "_light"));
+				origin[0], origin[1], origin[2], (const char*) ValueForKey (g_face_texlights[fn], u8"_light"));
 			r = g = b = 0;
 			break;
 		}
@@ -1023,7 +1023,6 @@ void ReadCustomChopValue()
 	int num;
 	int i, k;
 	entity_t *mapent;
-	epair_t *ep;
 
 	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
 	chopscales = (vec_t *)malloc (num * sizeof(vec_t));
@@ -1034,21 +1033,21 @@ void ReadCustomChopValue()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp(ValueForKey(mapent, "classname"), "info_chopscale"))
+		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_chopscale"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
-			for (ep = mapent->epairs; ep; ep = ep->next)
+			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp (ep->key, texname))
+				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp (ep->key, "origin"))
+				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
 					continue;
-				if (atof (ep->value) <= 0)
+				if (atof ((const char*) ep->value.c_str()) <= 0)
 					continue;
-				chopscales[i] = atof (ep->value);
+				chopscales[i] = atof ((const char*) ep->value.c_str());
 				Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname, chopscales[i]);
 			}
 		}
@@ -1064,7 +1063,6 @@ void ReadCustomSmoothValue()
 	int num;
 	int i, k;
 	entity_t *mapent;
-	epair_t *ep;
 
 	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
 	g_smoothvalues = (vec_t *)malloc (num * sizeof(vec_t));
@@ -1075,20 +1073,20 @@ void ReadCustomSmoothValue()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp(ValueForKey(mapent, "classname"), "info_smoothvalue"))
+		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_smoothvalue"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
-			for (ep = mapent->epairs; ep; ep = ep->next)
+			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp (ep->key, texname))
+				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp (ep->key, "origin"))
+				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
 					continue;
-				g_smoothvalues[i] = cos(atof (ep->value) * (Q_PI / 180.0));
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname, atof (ep->value));
+				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (Q_PI / 180.0));
+				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname, atof ((const char*) ep->value.c_str()));
 			}
 		}
 	}
@@ -1098,7 +1096,6 @@ void ReadTranslucentTextures()
 	int num;
 	int i, k;
 	entity_t *mapent;
-	epair_t *ep;
 
 	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
 	g_translucenttextures = (vec3_t *)malloc (num * sizeof(vec3_t));
@@ -1109,28 +1106,28 @@ void ReadTranslucentTextures()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp(ValueForKey(mapent, "classname"), "info_translucent"))
+		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_translucent"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
-			for (ep = mapent->epairs; ep; ep = ep->next)
+			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp (ep->key, texname))
+				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp (ep->key, "origin"))
+				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
 					continue;
 				double r, g, b;
 				int count;
-				count = sscanf (ep->value, "%lf %lf %lf", &r, &g, &b);
+				count = sscanf ((const char*) ep->value.c_str(), "%lf %lf %lf", &r, &g, &b);
 				if (count == 1)
 				{
 					g = b = r;
 				}
 				else if (count != 3)
 				{
-					Warning ("ignore bad translucent value '%s'", ep->value);
+					Warning ("ignore bad translucent value '%s'", (const char*) ep->value.c_str());
 					continue;
 				}
 				if (r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0 || b > 1.0)
@@ -1171,7 +1168,7 @@ void ReadLightingCone ()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp(ValueForKey(mapent, "classname"), "info_angularfade"))
+		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_angularfade"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
@@ -1179,25 +1176,25 @@ void ReadLightingCone ()
 			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
 			for (ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp (ep->key, texname))
+				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp (ep->key, "origin"))
+				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
 					continue;
 				double power, scale;
 				int count;
-				count = sscanf (ep->value, "%lf %lf", &power, &scale);
+				count = sscanf ((const char*) ep->value.c_str(), "%lf %lf", &power, &scale);
 				if (count == 1)
 				{
 					scale = 1.0;
 				}
 				else if (count != 2)
 				{
-					Warning ("ignore bad angular fade value '%s'", ep->value);
+					Warning ("ignore bad angular fade value '%s'", (const char*) ep->value.c_str());
 					continue;
 				}
 				if (power < 0.0 || scale < 0.0)
 				{
-					Warning ("ignore disallowed angular fade value '%s'", ep->value);
+					Warning ("ignore disallowed angular fade value '%s'", (const char*) ep->value.c_str());
 					continue;
 				}
 				scale *= DefaultScaleForPower (power);
@@ -1252,9 +1249,9 @@ static bool		getEmitMode (const patch_t *patch)
 		;
 	if (g_face_texlights[patch->faceNumber])
 	{
-		if (*ValueForKey (g_face_texlights[patch->faceNumber], "_scale"))
+		if (*ValueForKey (g_face_texlights[patch->faceNumber], u8"_scale"))
 		{
-			value *= FloatForKey (g_face_texlights[patch->faceNumber], "_scale");
+			value *= FloatForKey (g_face_texlights[patch->faceNumber], u8"_scale");
 		}
 	}
 	if (value > 0.0)
@@ -1267,7 +1264,7 @@ static bool		getEmitMode (const patch_t *patch)
 	}
 	if (g_face_texlights[patch->faceNumber])
 	{
-		switch (IntForKey (g_face_texlights[patch->faceNumber], "_fast"))
+		switch (IntForKey (g_face_texlights[patch->faceNumber], u8"_fast"))
 		{
 		case 1:
 			emitmode = false;
@@ -1285,9 +1282,9 @@ static vec_t    getChop(const patch_t* const patch)
 
 	if (g_face_texlights[patch->faceNumber])
 	{
-		if (*ValueForKey (g_face_texlights[patch->faceNumber], "_chop"))
+		if (*ValueForKey (g_face_texlights[patch->faceNumber], u8"_chop"))
 		{
-			rval = FloatForKey (g_face_texlights[patch->faceNumber], "_chop");
+			rval = FloatForKey (g_face_texlights[patch->faceNumber], u8"_chop");
 			if (rval < 1.0)
 			{
 				rval = 1.0;
@@ -1323,7 +1320,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
     {
 		if (g_face_texlights[fn])
 		{
-			style = IntForKey (g_face_texlights[fn], "style");
+			style = IntForKey (g_face_texlights[fn], u8"style");
 			if (style < 0)
 				style = -style;
 			style = (unsigned char)style;
@@ -1369,11 +1366,11 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		patch->emitstyle = style;
 
 		VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
-		if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], "_texcolor"))
+		if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
 		{
 			vec3_t texturecolor;
 			vec3_t texturereflectivity;
-			GetVectorForKey (g_face_texlights[fn], "_texcolor", texturecolor);
+			GetVectorForKey (g_face_texlights[fn], u8"_texcolor", texturecolor);
 			for (int k = 0; k < 3; k++)
 			{
 				texturecolor[k] = floor (texturecolor[k] + 0.001);
@@ -1381,7 +1378,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 			if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
 			{
 				vec3_t origin;
-				GetVectorForKey (g_face_texlights[fn], "origin", origin);
+				GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
 				Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
 			}
 			VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
@@ -1582,28 +1579,28 @@ static void		LoadOpaqueEntities()
 		{
 			entity_t *ent = &g_entities[entnum]; //Get the current ent
 
-			if (strcmp (ValueForKey (ent, "model"), stringmodel)) //Skip ents that don't match the current model
+			if (strcmp ((const char*) ValueForKey (ent, u8"model"), stringmodel)) //Skip ents that don't match the current model
 				continue;
 			vec3_t origin;
 			{
-				GetVectorForKey (ent, "origin", origin); //Get origin vector of the ent
+				GetVectorForKey (ent, u8"origin", origin); //Get origin vector of the ent
 
-				if (*ValueForKey (ent, "light_origin") && *ValueForKey (ent, "model_center")) //If the entity has a light_origin and model_center, calculate a new origin
+				if (*ValueForKey (ent, u8"light_origin") && *ValueForKey (ent, u8"model_center")) //If the entity has a light_origin and model_center, calculate a new origin
 				{
-					entity_t *ent2 = FindTargetEntity (ValueForKey (ent, "light_origin"));
+					entity_t *ent2 = FindTargetEntity ((const char*) ValueForKey (ent, u8"light_origin"));
 
 					if (ent2)
 					{
 						vec3_t light_origin, model_center;
-						GetVectorForKey (ent2, "origin", light_origin);
-						GetVectorForKey (ent, "model_center", model_center);
+						GetVectorForKey (ent2, u8"origin", light_origin);
+						GetVectorForKey (ent, u8"model_center", model_center);
 						VectorSubtract (light_origin, model_center, origin); //New origin
 					}
 				}
 			}
 			bool opaque = false;
 			{
-				if (g_allow_opaques && (IntForKey (ent, "zhlt_lightflags") & eModelLightmodeOpaque)) //If -noopaque is off, and if the entity has opaque light flag
+				if (g_allow_opaques && (IntForKey (ent, u8"zhlt_lightflags") & eModelLightmodeOpaque)) //If -noopaque is off, and if the entity has opaque light flag
 					opaque = true;
 			}
 			vec3_t d_transparency;
@@ -1612,7 +1609,7 @@ static void		LoadOpaqueEntities()
 			{
 				const char *s;
 
-				if (*(s = ValueForKey(ent, "zhlt_customshadow"))) //If the entity has a custom shadow (transparency) value
+				if (*(s = (const char*) ValueForKey(ent, u8"zhlt_customshadow"))) //If the entity has a custom shadow (transparency) value
 				{
         			double r1 = 1.0, g1 = 1.0, b1 = 1.0, tmp = 1.0;
 
@@ -1642,11 +1639,11 @@ static void		LoadOpaqueEntities()
 				{
 					entity_t *lightent = &g_entities[j];
 
-					if (!strcmp (ValueForKey (lightent, "classname"), "light_shadow") //If light_shadow targeting the current entity
-						&& *ValueForKey (lightent, "target")
-						&& !strcmp (ValueForKey (lightent, "target"), ValueForKey (ent, "targetname")))
+					if (!strcmp ((const char*) ValueForKey (lightent, u8"classname"), "light_shadow") //If light_shadow targeting the current entity
+						&& *ValueForKey (lightent, u8"target")
+						&& !strcmp ((const char*) ValueForKey (lightent, u8"target"),(const char*)  ValueForKey (ent, u8"targetname")))
 					{
-						opaquestyle = IntForKey (lightent, "style"); //Get the style number and validate it
+						opaquestyle = IntForKey (lightent, u8"style"); //Get the style number and validate it
 
 						if (opaquestyle < 0)
 							opaquestyle = -opaquestyle;
@@ -1666,7 +1663,7 @@ static void		LoadOpaqueEntities()
 				{
 					block = true;
 
-					if (IntForKey (ent, "zhlt_lightflags") & eModelLightmodeNonsolid) //If entity non-solid or has transparency or a specific style, which would prevent it from blocking
+					if (IntForKey (ent, u8"zhlt_lightflags") & eModelLightmodeNonsolid) //If entity non-solid or has transparency or a specific style, which would prevent it from blocking
 						block = false;
 					if (b_transparency)
 						block = false;
@@ -1716,32 +1713,32 @@ static entity_t *FindTexlightEntity (int facenum)
 	for (int i = 0; i < g_numentities; i++)
 	{
 		entity_t *ent = &g_entities[i];
-		if (strcmp (ValueForKey (ent, "classname"), "light_surface"))
+		if (strcmp ((const char*) ValueForKey (ent, u8"classname"), "light_surface"))
 			continue;
-		if (strcasecmp (ValueForKey (ent, "_tex"), texname))
+		if (strcasecmp ((const char*) ValueForKey (ent, u8"_tex"), texname))
 			continue;
 		vec3_t delta;
-		GetVectorForKey (ent, "origin", delta);
+		GetVectorForKey (ent, u8"origin", delta);
 		VectorSubtract (delta, centroid, delta);
 		vec_t dist = VectorLength (delta);
-		if (*ValueForKey (ent, "_frange"))
+		if (*ValueForKey (ent, u8"_frange"))
 		{
-			if (dist > FloatForKey (ent, "_frange"))
+			if (dist > FloatForKey (ent, u8"_frange"))
 				continue;
 		}
-		if (*ValueForKey (ent, "_fdist"))
+		if (*ValueForKey (ent, u8"_fdist"))
 		{
-			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey (ent, "_fdist"))
+			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey (ent, u8"_fdist"))
 				continue;
 		}
-		if (*ValueForKey (ent, "_fclass"))
+		if (*ValueForKey (ent, u8"_fclass"))
 		{
-			if (strcmp (ValueForKey (faceent, "classname"), ValueForKey (ent, "_fclass")))
+			if (strcmp ((const char*) ValueForKey (faceent, u8"classname"), (const char*) ValueForKey (ent, u8"_fclass")))
 				continue;
 		}
-		if (*ValueForKey (ent, "_fname"))
+		if (*ValueForKey (ent, u8"_fname"))
 		{
-			if (strcmp (ValueForKey (faceent, "targetname"), ValueForKey (ent, "_fname")))
+			if (strcmp ((const char*) ValueForKey (faceent, u8"targetname"), (const char*) ValueForKey (ent, u8"_fname")))
 				continue;
 		}
 		if (bestdist >= 0 && dist > bestdist)
@@ -1788,13 +1785,13 @@ static void     MakePatches()
         ent = EntityForModel(i);
         VectorCopy(vec3_origin, origin);
 
-        if (*(s = ValueForKey(ent, "zhlt_lightflags")))
+        if (*(s = (const char*) ValueForKey(ent, u8"zhlt_lightflags")))
         {
             lightmode = (eModelLightmodes)atoi(s);
         }
 
         // models with origin brushes need to be offset into their in-use position
-        if (*(s = ValueForKey(ent, "origin")))
+        if (*(s = (const char*) ValueForKey(ent, u8"origin")))
         {
             double          v1, v2, v3;
 
@@ -1808,13 +1805,13 @@ static void     MakePatches()
         }
 
         // Allow models to be lit in an alternate location (pt1)
-        if (*(s = ValueForKey(ent, "light_origin")))
+        if (*(s = (const char*) ValueForKey(ent, u8"light_origin")))
         {
             entity_t*       e = FindTargetEntity(s);
 
             if (e)
             {
-                if (*(s = ValueForKey(e, "origin")))
+                if (*(s = (const char*) ValueForKey(e, u8"origin")))
                 {
                     double          v1, v2, v3;
 
@@ -1831,7 +1828,7 @@ static void     MakePatches()
         }
 
         // Allow models to be lit in an alternate location (pt2)
-        if (*(s = ValueForKey(ent, "model_center")))
+        if (*(s =(const char*)  ValueForKey(ent, u8"model_center")))
         {
             double          v1, v2, v3;
 
@@ -1852,7 +1849,7 @@ static void     MakePatches()
         }
 
 		//LRC:
-		if (*(s = ValueForKey(ent, "style")))
+		if (*(s = (const char*) ValueForKey(ent, u8"style")))
 		{
 			style = atoi(s);
 			if (style < 0)
@@ -1874,11 +1871,11 @@ static void     MakePatches()
 			for (j = 0; j < g_numentities; j++)
 			{
 				entity_t *lightent = &g_entities[j];
-				if (!strcmp (ValueForKey (lightent, "classname"), "light_bounce")
-					&& *ValueForKey (lightent, "target")
-					&& !strcmp (ValueForKey (lightent, "target"), ValueForKey (ent, "targetname")))
+				if (!strcmp ((const char*) ValueForKey (lightent, u8"classname"), "light_bounce")
+					&& *ValueForKey (lightent, u8"target")
+					&& !strcmp ((const char*) ValueForKey (lightent, u8"target"), (const char*) ValueForKey (ent, u8"targetname")))
 				{
-					bouncestyle = IntForKey (lightent, "style");
+					bouncestyle = IntForKey (lightent, u8"style");
 					if (bouncestyle < 0)
 						bouncestyle = -bouncestyle;
 					bouncestyle = (unsigned char)bouncestyle;
@@ -3012,7 +3009,6 @@ void            ReadInfoTexAndMinlights()
     int         values;
     float       r, g, b, i, min;
     entity_t*   mapent;
-    epair_t*    ep;
     texlight_t  texlight;
 	minlight_t minlight;
 
@@ -3022,37 +3018,37 @@ void            ReadInfoTexAndMinlights()
 		bool foundMinlights = false;
 		bool foundTexlights = false;
 
-		if (!strcmp(ValueForKey(mapent, "classname"), "info_minlights")) {
+		if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_minlights")) {
 			Log("Reading per-tex minlights from info_minlights map entity\n");
 
-			for (ep = mapent->epairs; ep; ep = ep->next)
+			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (!strcmp(ep->key, "classname")
-					|| !strcmp(ep->key, "origin")
+				if (!strcmp((const char*) ep->key.c_str(), "classname")
+					|| !strcmp((const char*) ep->key.c_str(), "origin")
 					)
 					continue; // we dont care about these keyvalues
-				if (sscanf(ep->value, "%f", &min) != 1)
+				if (sscanf((const char*) ep->value.c_str(), "%f", &min) != 1)
 				{
-					Warning("Ignoring bad minlight '%s' in info_minlights entity", ep->key);
+					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) ep->key.c_str());
 					continue;
 				}
-				minlight.name = ep->key;
+				minlight.name = std::string((const char*) ep->key.c_str());
 				minlight.value = min;
 				s_minlights.push_back(minlight);
 			}
 			
 		}
-		else if (!strcmp(ValueForKey(mapent, "classname"), "info_texlights")) {
+		else if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_texlights")) {
 			Log("Reading texlights from info_texlights map entity\n");
 
-			for (ep = mapent->epairs; ep; ep = ep->next)
+			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (!strcmp(ep->key, "classname")
-					|| !strcmp(ep->key, "origin")
+				if (!strcmp((const char*) ep->key.c_str(), "classname")
+					|| !strcmp((const char*) ep->key.c_str(), "origin")
 					)
 					continue; // we dont care about these keyvalues
 
-				values = sscanf(ep->value, "%f %f %f %f", &r, &g, &b, &i);
+				values = sscanf((const char*) ep->value.c_str(), "%f %f %f %f", &r, &g, &b, &i);
 
 				if (values == 1)
 				{
@@ -3066,11 +3062,11 @@ void            ReadInfoTexAndMinlights()
 				}
 				else if (values != 3)
 				{
-					Warning("Ignoring bad texlight '%s' in info_texlights entity", ep->key);
+					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) ep->key.c_str());
 					continue;
 				}
 
-				texlight.name = ep->key;
+				texlight.name = std::string((const char*) ep->key.c_str());
 				texlight.value[0] = r;
 				texlight.value[1] = g;
 				texlight.value[2] = b;

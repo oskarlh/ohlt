@@ -83,10 +83,7 @@ void DeleteCurrentEntity (entity_t *entity)
 	}
 	memset (&g_mapbrushes[entity->firstbrush], 0, entity->numbrushes * sizeof (brush_t));
 	g_nummapbrushes -= entity->numbrushes;
-	while (entity->epairs)
-	{
-		DeleteKey (entity, entity->epairs->key);
-	}
+	DeleteAllKeys(entity);
 	memset (entity, 0, sizeof(entity_t));
 	g_numentities--;
 }
@@ -123,15 +120,15 @@ static bool CheckForInvisible(entity_t* mapent)
 {
 	using namespace std;
 
-	string keyval(ValueForKey(mapent,"classname"));
+	string keyval((const char*) ValueForKey(mapent, u8"classname"));
 	if(g_invisible_items.count(keyval))
 	{ return true; }
 
-	keyval.assign(ValueForKey(mapent,"targetname"));
+	keyval.assign((const char*) ValueForKey(mapent, u8"targetname"));
 	if(g_invisible_items.count(keyval))
 	{ return true; }
 
-	keyval.assign(ValueForKey(mapent,"zhlt_invisible"));
+	keyval.assign((const char*) ValueForKey(mapent, u8"zhlt_invisible"));
 	if(!keyval.empty() && strcmp(keyval.c_str(),"0"))
 	{ return true; }
 
@@ -160,18 +157,18 @@ static void ParseBrush(entity_t* mapent)
     b->brushnum = g_nummapbrushes - mapent->firstbrush - 1; //Calculate the brush number within the current entity.
     b->noclip = 0; //Initialize false for now
 
-	if (IntForKey(mapent, "zhlt_noclip")) //If zhlt_noclip
+	if (IntForKey(mapent, u8"zhlt_noclip")) //If zhlt_noclip
 	{
 		b->noclip = 1;
 	}
 	b->cliphull = 0;
 	b->bevel = false;
 	{ //Validate func_detail values
-		b->detaillevel = IntForKey (mapent, "zhlt_detaillevel");
-		b->chopdown = IntForKey (mapent, "zhlt_chopdown");
-		b->chopup = IntForKey (mapent, "zhlt_chopup");
-		b->clipnodedetaillevel = IntForKey (mapent, "zhlt_clipnodedetaillevel");
-		b->coplanarpriority = IntForKey (mapent, "zhlt_coplanarpriority");
+		b->detaillevel = IntForKey (mapent, u8"zhlt_detaillevel");
+		b->chopdown = IntForKey (mapent, u8"zhlt_chopdown");
+		b->chopup = IntForKey (mapent, u8"zhlt_chopup");
+		b->clipnodedetaillevel = IntForKey (mapent, u8"zhlt_clipnodedetaillevel");
+		b->coplanarpriority = IntForKey (mapent, u8"zhlt_coplanarpriority");
 		bool wrong = false;
 
 		if (b->detaillevel < 0)
@@ -204,13 +201,12 @@ static void ParseBrush(entity_t* mapent)
 	for (int h = 0; h < NUM_HULLS; h++) //Loop through all hulls
 	{
 		char key[16]; //Key name for the hull shape.
-		const char *value; //Value for the key
 		snprintf(key, sizeof(key), "zhlt_hull%d", h); //Format key name to include the hull number, used to look up hull shape data in entity properties
-		value = ValueForKey(mapent, key);
+		const char8_t* value = ValueForKey(mapent, (const char8_t*) key);
 
 		if (*value) //If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
 		{
-			b->hullshapes[h] = _strdup(value);
+			b->hullshapes[h] = _strdup((const char*) value);
 		}
 		else //Set brush hull shape for this hull to NULL
 		{
@@ -502,7 +498,7 @@ static void ParseBrush(entity_t* mapent)
 
     if (contents == CONTENTS_ORIGIN)
     {
-		if (*ValueForKey (mapent, "origin"))
+		if (*ValueForKey (mapent, u8"origin"))
 		{
 			Error ("Entity %i, Brush %i: Only one ORIGIN brush allowed.",
 					b->originalentitynum, b->originalbrushnum
@@ -526,10 +522,10 @@ static void ParseBrush(entity_t* mapent)
             VectorScale(origin, 0.5, origin);
     
             safe_snprintf(string, MAXTOKEN, "%i %i %i", (int)origin[0], (int)origin[1], (int)origin[2]);
-            SetKeyValue(&g_entities[b->entitynum], "origin", string);
+            SetKeyValue(&g_entities[b->entitynum], u8"origin", (const char8_t*) string);
         }
     }
-	if (*ValueForKey (&g_entities[b->entitynum], "zhlt_usemodel"))
+	if (*ValueForKey (&g_entities[b->entitynum], u8"zhlt_usemodel"))
 	{
 		memset (&g_brushsides[b->firstside], 0, b->numsides * sizeof (side_t));
 		g_numbrushsides -= b->numsides;
@@ -545,26 +541,24 @@ static void ParseBrush(entity_t* mapent)
 		mapent->numbrushes--;
 		return;
 	}
-	if (!strcmp (ValueForKey (&g_entities[b->entitynum], "classname"), "info_hullshape"))
+	if (!strcmp ((const char*) ValueForKey (&g_entities[b->entitynum], u8"classname"), "info_hullshape"))
 	{
 		// all brushes should be erased, but not now.
 		return;
 	}
     if (contents == CONTENTS_BOUNDINGBOX)
     {
-		if (*ValueForKey (mapent, "zhlt_minsmaxs"))
+		if (*ValueForKey (mapent, u8"zhlt_minsmaxs"))
 		{
 			Error ("Entity %i, Brush %i: Only one BoundingBox brush allowed.",
 					b->originalentitynum, b->originalbrushnum
 					);
 		}
-        char            string[MAXTOKEN];
         vec3_t          mins, maxs;
-		char			*origin = nullptr;
-		if (*ValueForKey (mapent, "origin"))
-		{
-			origin = strdup (ValueForKey (mapent, "origin"));
-			SetKeyValue (mapent, "origin", "");
+		std::u8string origin;
+		if (*ValueForKey (mapent, u8"origin")) {
+			origin = ValueForKey (mapent, u8"origin");
+			SetKeyValue (mapent, u8"origin", u8"");
 		}
 
         b->contents = CONTENTS_SOLID;
@@ -581,14 +575,14 @@ static void ParseBrush(entity_t* mapent)
             VectorCopy(b->hulls[0].bounds.m_Mins, mins);
             VectorCopy(b->hulls[0].bounds.m_Maxs, maxs);
     
+       		char string[MAXTOKEN];
             safe_snprintf(string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f", mins[0], mins[1], mins[2], maxs[0], maxs[1], maxs[2]);
-            SetKeyValue(&g_entities[b->entitynum], "zhlt_minsmaxs", string);
+            SetKeyValue(&g_entities[b->entitynum], u8"zhlt_minsmaxs", (const char8_t*) string);
         }
 
-		if (origin)
+		if (!origin.empty())
 		{
-			SetKeyValue (mapent, "origin", origin);
-			free (origin);
+			SetKeyValue (mapent, u8"origin", origin);
 		}
     }
 	if (g_skyclip && b->contents == CONTENTS_SKY && !b->noclip)
@@ -641,7 +635,6 @@ bool            ParseMapEntity()
     bool            all_clip = true;
     int             this_entity;
     entity_t*       mapent;
-    epair_t*        e;
 
 	g_numparsedbrushes = 0;
     if (!GetToken(true))
@@ -681,18 +674,16 @@ bool            ParseMapEntity()
         }
         else                        // else assume an epair
         {
-            e = ParseEpair();
+            
+    		std::unique_ptr<epair_t> e = ParseEpair();
 			if (mapent->numbrushes > 0) Warning ("Error: ParseEntity: Keyvalue comes after brushes."); //--vluzacn
 
-            if (!strcmp(e->key, "mapversion"))
+            if (e->key == u8"mapversion")
             {
-                g_nMapFileVersion = atoi(e->value);
+                g_nMapFileVersion = atoi((const char*) e->value.c_str());
             }
 
 			SetKeyValue (mapent, e->key, e->value);
-			Free (e->key);
-			Free (e->value);
-			Free (e);
         }
     }
 	{
@@ -710,15 +701,15 @@ bool            ParseMapEntity()
 			}
 		}
 	}
-	if (*ValueForKey (mapent, "zhlt_usemodel"))
+	if (*ValueForKey (mapent, u8"zhlt_usemodel"))
 	{
-		if (!*ValueForKey (mapent, "origin"))
+		if (!*ValueForKey (mapent, u8"origin"))
 			Warning ("Entity %i: 'zhlt_usemodel' requires the entity to have an origin brush.", 
 				g_numparsedentities
 				);
 		mapent->numbrushes = 0;
 	}
-	if (strcmp (ValueForKey (mapent, "classname"), "info_hullshape")) // info_hullshape is not affected by '-scale'
+	if (strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_hullshape")) // info_hullshape is not affected by '-scale'
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
 		vec3_t ent_move = {0,0,0}, ent_scale_origin = {0,0,0};
@@ -730,10 +721,10 @@ bool            ParseMapEntity()
 			ent_gscale = g_scalesize;
 		}
 		double v[4] = {0,0,0,0};
-		if (*ValueForKey (mapent, "zhlt_transform"))
+		if (*ValueForKey (mapent, u8"zhlt_transform"))
 		{
 			switch
-				(sscanf(ValueForKey (mapent, "zhlt_transform"), "%lf %lf %lf %lf", v, v+1, v+2, v+3))
+				(sscanf((const char*) ValueForKey (mapent, u8"zhlt_transform"), "%lf %lf %lf %lf", v, v+1, v+2, v+3))
 			{
 			case 1:
 				ent_scale_b = true;
@@ -750,11 +741,11 @@ bool            ParseMapEntity()
 				VectorCopy (v+1, ent_move);
 				break;
 			default:
-				Warning ("bad value '%s' for key 'zhlt_transform'", ValueForKey (mapent, "zhlt_transform"));
+				Warning ("bad value '%s' for key 'zhlt_transform'", (const char*) ValueForKey (mapent, u8"zhlt_transform"));
 			}
-			DeleteKey (mapent, "zhlt_transform");
+			DeleteKey (mapent, u8"zhlt_transform");
 		}
-		GetVectorForKey (mapent, "origin", ent_scale_origin);
+		GetVectorForKey (mapent, u8"origin", ent_scale_origin);
 
 		if (ent_move_b || ent_scale_b || ent_gscale_b)
 		{
@@ -875,23 +866,23 @@ bool            ParseMapEntity()
 				}
 				if (ent_gscale_b)
 				{
-					if (*ValueForKey (mapent, "origin"))
+					if (*ValueForKey (mapent, u8"origin"))
 					{
 						double v[3];
 						int origin[3];
-						char string[MAXTOKEN];
+						char8_t string[MAXTOKEN];
 						int i;
-						GetVectorForKey (mapent, "origin", v);
+						GetVectorForKey (mapent, u8"origin", v);
 						VectorScale (v, ent_gscale, v);
 						for (i=0; i<3; ++i)
 							origin[i] = (int)(v[i]>=0? v[i]+0.5: v[i]-0.5);
-						safe_snprintf(string, MAXTOKEN, "%d %d %d", origin[0], origin[1], origin[2]);
-						SetKeyValue (mapent, "origin", string);
+						safe_snprintf((char*) string, MAXTOKEN, "%d %d %d", origin[0], origin[1], origin[2]);
+						SetKeyValue (mapent, u8"origin", string);
 					}
 				}
 				{
 					double b[2][3];
-					if (sscanf (ValueForKey (mapent, "zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &b[0][0], &b[0][1], &b[0][2], &b[1][0], &b[1][1], &b[1][2]) == 6)
+					if (sscanf ((const char*) ValueForKey (mapent, u8"zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &b[0][0], &b[0][1], &b[0][2], &b[1][0], &b[1][1], &b[1][2]) == 6)
 					{
 						for (int i = 0; i < 2; i++)
 						{
@@ -914,7 +905,7 @@ bool            ParseMapEntity()
 						}
 						char string[MAXTOKEN];
 						safe_snprintf(string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f", b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2]);
-						SetKeyValue (mapent, "zhlt_minsmaxs", string);
+						SetKeyValue (mapent, u8"zhlt_minsmaxs", (const char8_t*) string);
 					}
 				}
 			}
@@ -927,22 +918,22 @@ bool            ParseMapEntity()
 	if (this_entity == 0)
 	{
 		// Let the map tell which version of the compiler it comes from, to help tracing compiler bugs.
-		SetKeyValue (mapent, "compiler", PROJECT_NAME_AND_VERSION);
+		SetKeyValue (mapent, u8"compiler", (const char8_t*) PROJECT_NAME_AND_VERSION);
 	}
     
 
 
-    if (!strcmp(ValueForKey(mapent, "classname"), "info_compile_parameters"))
+    if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_compile_parameters"))
     {
         GetParamsFromEnt(mapent);
     }
 
 
 
-    GetVectorForKey(mapent, "origin", mapent->origin);
+    GetVectorForKey(mapent, u8"origin", mapent->origin);
 
-	if (!strcmp("func_group", ValueForKey(mapent, "classname"))
-		|| !strcmp("func_detail", ValueForKey (mapent, "classname"))
+	if (!strcmp("func_group", (const char*) ValueForKey(mapent, u8"classname"))
+		|| !strcmp("func_detail", (const char*) ValueForKey (mapent, u8"classname"))
 		)
     {
         // this is pretty gross, because the brushes are expected to be
@@ -983,15 +974,14 @@ bool            ParseMapEntity()
 		return true;
     }
 
-	if (!strcmp (ValueForKey (mapent, "classname"), "info_hullshape"))
+	if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_hullshape"))
 	{
 		bool disabled;
-		const char *id;
 		int defaulthulls;
-		disabled = IntForKey (mapent, "disabled");
-		id = ValueForKey (mapent, "targetname");
-		defaulthulls = IntForKey (mapent, "defaulthulls");
-		CreateHullShape (this_entity, disabled, id, defaulthulls);
+		disabled = IntForKey (mapent, u8"disabled");
+		const char8_t* id = ValueForKey (mapent, u8"targetname");
+		defaulthulls = IntForKey (mapent, u8"defaulthulls");
+		CreateHullShape (this_entity, disabled, (const char*) id, defaulthulls);
 		DeleteCurrentEntity (mapent);
 		return true;
 	}
@@ -999,7 +989,7 @@ bool            ParseMapEntity()
 		fabs (mapent->origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON ||
 		fabs (mapent->origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON )
 	{
-		const char *classname = ValueForKey (mapent, "classname");
+		const char *classname = (const char*) ValueForKey (mapent, u8"classname");
 		if (strncmp (classname, "light", 5))
 		{
 			Warning ("Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)", 
@@ -1022,7 +1012,7 @@ unsigned int    CountEngineEntities()
     // for each entity in the map
     for (x=0; x<g_numentities; x++, mapent++)
     {
-        const char* classname = ValueForKey(mapent, "classname");
+        const char* classname = (const char*) ValueForKey(mapent, u8"classname");
 
         // if its a light_spot or light_env, dont include it as an engine entity!
         if (classname)
@@ -1032,8 +1022,8 @@ unsigned int    CountEngineEntities()
                 || !strncasecmp(classname, "light_environment", 17)
                )
             {
-                const char* style = ValueForKey(mapent, "style");
-                const char* targetname = ValueForKey(mapent, "targetname");
+                const char* style =(const char*)  ValueForKey(mapent, u8"style");
+                const char* targetname =(const char*) ValueForKey(mapent, u8"targetname");
 
                 // lightspots and lightenviroments dont have a targetname or style
                 if (!strlen(targetname) && !atoi(style))

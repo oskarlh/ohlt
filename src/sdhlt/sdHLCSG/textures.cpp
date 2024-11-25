@@ -653,7 +653,7 @@ void            WriteMiptex()
         {
             Log("No additional wad files included\n\n");
         }
-		SetKeyValue(&g_entities[0], "wad", szUsedWads);
+		SetKeyValue(&g_entities[0], u8"wad", (const char8_t*) szUsedWads);
 	}
 
     start = I_FloatTime();

@@ -12,10 +12,6 @@
 
 */
 
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 #include <filesystem>
 
 #include "bsp5.h"
@@ -98,7 +94,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, "verbose");
+    iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
     {
         g_verbose = true;
@@ -111,7 +107,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Verbose Compile Messages", g_verbose ? "on" : "off");
 
     // estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No" ]
-    if (IntForKey(mapent, "estimate"))
+    if (IntForKey(mapent, u8"estimate"))
     {
         g_estimate = true;
     }
@@ -122,12 +118,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp(ValueForKey(mapent, "priority"), "1"))
+	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
         g_threadpriority = eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
-    else if (!strcmp(ValueForKey(mapent, "priority"), "-1"))
+    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
         g_threadpriority = eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -141,7 +137,7 @@ void            GetParamsFromEnt(entity_t* mapent)
        2 : "Leakonly"
     ]
     */
-    iTmp = IntForKey(mapent, "hlbsp");
+    iTmp = IntForKey(mapent, u8"hlbsp");
     if (iTmp == 0)
     {
         Fatal(assume_TOOL_CANCEL,
@@ -158,7 +154,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
     Log("%30s [ %-9s ]\n", "Leakonly Mode", g_bLeakOnly ? "on" : "off");
 
-	iTmp = IntForKey(mapent, "noopt");
+	iTmp = IntForKey(mapent, u8"noopt");
 	if(iTmp == 0)
 	{
 		g_noopt = false;
@@ -175,7 +171,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         1 : "No"
     ]
     */
-    iTmp = IntForKey(mapent, "nocliphull");
+    iTmp = IntForKey(mapent, u8"nocliphull");
     if (iTmp == 0)
     {
         g_noclip = false;
@@ -1329,12 +1325,12 @@ static bool     ProcessModel()
 	{
 		entity_t *ent;
 		ent = EntityForModel (modnum);
-		if (ent != &g_entities[0] && *ValueForKey (ent, "zhlt_minsmaxs"))
+		if (ent != &g_entities[0] && *ValueForKey (ent, u8"zhlt_minsmaxs"))
 		{
 			double origin[3], mins[3], maxs[3];
 			VectorClear (origin);
-			sscanf (ValueForKey (ent, "origin"), "%lf %lf %lf", &origin[0], &origin[1], &origin[2]);
-			if (sscanf (ValueForKey (ent, "zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &mins[0], &mins[1], &mins[2], &maxs[0], &maxs[1], &maxs[2]) == 6)
+			sscanf ((const char*) ValueForKey (ent, u8"origin"), "%lf %lf %lf", &origin[0], &origin[1], &origin[2]);
+			if (sscanf ((const char*) ValueForKey (ent, u8"zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &mins[0], &mins[1], &mins[2], &maxs[0], &maxs[1], &maxs[2]) == 6)
 			{
 				VectorSubtract (mins, origin, model->mins);
 				VectorSubtract (maxs, origin, model->maxs);
@@ -1352,9 +1348,9 @@ static bool     ProcessModel()
 		}
 		Warning ("Empty solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\")", 
 			g_nummodels - 1, 
-			(ent? ValueForKey (ent, "classname"): "unknown"), 
-			(ent? ValueForKey (ent, "origin"): "unknown"), 
-			(ent? ValueForKey (ent, "targetname"): "unknown"));
+			(ent? (const char*) ValueForKey (ent, u8"classname"): "unknown"), 
+			(ent? (const char*) ValueForKey (ent, u8"origin"): "unknown"), 
+			(ent? (const char*) ValueForKey (ent, u8"targetname"): "unknown"));
 		VectorClear (model->mins); // fix "backward minsmaxs" in HL
 		VectorClear (model->maxs);
 	}
@@ -1367,9 +1363,9 @@ static bool     ProcessModel()
 		}
 		Warning ("No visible brushes in solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\", range (%.0f,%.0f,%.0f) - (%.0f,%.0f,%.0f))", 
 			g_nummodels - 1, 
-			(ent? ValueForKey (ent, "classname"): "unknown"), 
-			(ent? ValueForKey (ent, "origin"): "unknown"), 
-			(ent? ValueForKey (ent, "targetname"): "unknown"), 
+			(ent?(const char*) ValueForKey (ent, u8"classname"): "unknown"), 
+			(ent?(const char*)  ValueForKey (ent, u8"origin"): "unknown"), 
+			(ent?(const char*)  ValueForKey (ent, u8"targetname"): "unknown"), 
 			model->mins[0], model->mins[1], model->mins[2], model->maxs[0], model->maxs[1], model->maxs[2]);
 	}
     return true;

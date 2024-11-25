@@ -85,7 +85,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, "verbose");
+    iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
     {
         g_verbose = true;
@@ -98,7 +98,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Verbose Compile Messages", g_verbose ? "on" : "off");
 
     // estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No" ]
-    if (IntForKey(mapent, "estimate")) 
+    if (IntForKey(mapent, u8"estimate")) 
     {
         g_estimate = true;
     }
@@ -109,19 +109,19 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp(ValueForKey(mapent, "priority"), "1"))
+	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
         g_threadpriority = eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
-    else if (!strcmp(ValueForKey(mapent, "priority"), "-1"))
+    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
         g_threadpriority = eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
     }
 
     // texdata(string) : "Texture Data Memory" : "4096"
-    iTmp = IntForKey(mapent, "texdata") * 1024;
+    iTmp = IntForKey(mapent, u8"texdata") * 1024;
     if (iTmp > g_max_map_miptex)
     {
         g_max_map_miptex = iTmp;
@@ -130,9 +130,9 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
 
     // hullfile(string) : "Custom Hullfile"
-    if (ValueForKey(mapent, "hullfile"))
+    if (*ValueForKey(mapent, u8"hullfile"))
     {
-        g_hullfile = ValueForKey(mapent, "hullfile");
+        g_hullfile = (const char*) ValueForKey(mapent, u8"hullfile");
         Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile);
     }
 
@@ -145,25 +145,25 @@ void            GetParamsFromEnt(entity_t* mapent)
     {
         g_bWadAutoDetect = false;
     }*/
-    const char* wadautodetectValue = ValueForKey(mapent, "wadautodetect"); //seedee
+    const char* wadautodetectValue = (const char*) ValueForKey(mapent, u8"wadautodetect"); //seedee
     g_bWadAutoDetect = (wadautodetectValue && atoi(wadautodetectValue) >= 1);
     Log("%30s [ %-9s ]\n", "Wad Auto Detect", g_bWadAutoDetect ? "on" : "off");
 	
 	// wadconfig(string) : "Custom Wad Configuration" : ""
-    if (*ValueForKey(mapent, "wadconfig"))
+    if (*ValueForKey(mapent, u8"wadconfig"))
     {
-        g_wadconfigname = _strdup (ValueForKey(mapent, "wadconfig"));
+        g_wadconfigname = _strdup ((const char*) ValueForKey(mapent, u8"wadconfig"));
         Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name", g_wadconfigname);
     }
 	// wadcfgfile(string) : "Custom Wad Configuration File" : ""
-    if (*ValueForKey(mapent, "wadcfgfile"))
+    if (*ValueForKey(mapent, u8"wadcfgfile"))
     {
-        g_wadcfgfile = _strdup (ValueForKey(mapent, "wadcfgfile"));
+        g_wadcfgfile = _strdup ((const char*) ValueForKey(mapent, u8"wadcfgfile"));
         Log("%30s [ %-9s ]\n", "Custom Wad Configuration File", g_wadcfgfile);
     }
 
     // noclipeconomy(choices) : "Strip Uneeded Clipnodes?" : 1 = [ 1 : "Yes" 0 : "No" ]
-    iTmp = IntForKey(mapent, "noclipeconomy");
+    iTmp = IntForKey(mapent, u8"noclipeconomy");
     if (iTmp == 1)
     {
         g_bClipNazi = true;
@@ -182,7 +182,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         0 : "Off"
     ]
     */
-    iTmp = IntForKey(mapent, "hlcsg");
+    iTmp = IntForKey(mapent, u8"hlcsg");
     g_onlyents = false;
     if (iTmp == 2)
     {
@@ -203,7 +203,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         1 : "No"
     ]
     */
-    iTmp = IntForKey(mapent, "nocliphull");
+    iTmp = IntForKey(mapent, u8"nocliphull");
     if (iTmp == 1)
     {
         g_noclip = true;
@@ -214,7 +214,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
     Log("%30s [ %-9s ]\n", "Clipping Hull Generation", g_noclip ? "off" : "on");
     // cliptype(choices) : "Clip Hull Type" : 4 = [ 0 : "Smallest" 1 : "Normalized" 2: "Simple" 3 : "Precise" 4 : "Legacy" ]
-    iTmp = IntForKey(mapent, "cliptype");
+    iTmp = IntForKey(mapent, u8"cliptype");
 	switch(iTmp)
 	{
 	case 0:
@@ -241,7 +241,7 @@ void            GetParamsFromEnt(entity_t* mapent)
         0 : "Off"
     ]
     */
-    iTmp = IntForKey(mapent, "noskyclip");
+    iTmp = IntForKey(mapent, u8"noskyclip");
     if (iTmp == 1)
     {
         g_skyclip = false;
@@ -1001,7 +1001,7 @@ static void     SetModelNumbers()
         {
             safe_snprintf(value, sizeof(value), "*%i", models);
             models++;
-            SetKeyValue(&g_entities[i], "model", value);
+            SetKeyValue(&g_entities[i], u8"model", (const char8_t*) value);
         }
     }
 }
@@ -1011,7 +1011,7 @@ void     ReuseModel ()
 	int i;
 	for (i = g_numentities - 1; i >= 1; i--) // so it won't affect the remaining entities in the loop when we move this entity backward
 	{
-		const char *name = ValueForKey (&g_entities[i], "zhlt_usemodel");
+		const char *name = (const char*) ValueForKey (&g_entities[i], u8"zhlt_usemodel");
 		if (!*name)
 		{
 			continue;
@@ -1019,11 +1019,11 @@ void     ReuseModel ()
 		int j;
 		for (j = 1; j < g_numentities; j++)
 		{
-			if (*ValueForKey (&g_entities[j], "zhlt_usemodel"))
+			if (*ValueForKey (&g_entities[j], u8"zhlt_usemodel"))
 			{
 				continue;
 			}
-			if (!strcmp (name, ValueForKey (&g_entities[j], "targetname")))
+			if (!strcmp (name,(const char*)  ValueForKey (&g_entities[j], u8"targetname")))
 			{
 				break;
 			}
@@ -1032,12 +1032,12 @@ void     ReuseModel ()
 		{
 			if (!strcasecmp (name, "null"))
 			{
-				SetKeyValue (&g_entities[i], "model", "");
+				SetKeyValue (&g_entities[i], u8"model", u8"");
 				continue;
 			}
 			Error ("zhlt_usemodel: can not find target entity '%s', or that entity is also using 'zhlt_usemodel'.\n", name);
 		}
-		SetKeyValue (&g_entities[i], "model", ValueForKey (&g_entities[j], "model"));
+		SetKeyValue (&g_entities[i], u8"model", ValueForKey (&g_entities[j], u8"model"));
 		if (j > i)
 		{
 			// move this entity backward
@@ -1075,37 +1075,37 @@ static void     SetLightStyles()
     {
         e = &g_entities[i];
 
-        t = ValueForKey(e, "classname");
+        t = (const char*) ValueForKey(e, u8"classname");
         if (strncasecmp(t, "light", 5))
         {
             //LRC:
 			// if it's not a normal light entity, allocate it a new style if necessary.
-	        t = ValueForKey(e, "style");
+	        t = (const char*) ValueForKey(e, u8"style");
 			switch (atoi(t))
 			{
 			case 0: // not a light, no style, generally pretty boring
 				continue;
 			case -1: // normal switchable texlight
 				safe_snprintf(value, sizeof(value), "%i", 32 + stylenum);
-				SetKeyValue(e, "style", value);
+				SetKeyValue(e, u8"style", (const char8_t*) value);
 				stylenum++;
 				continue;
 			case -2: // backwards switchable texlight
 				safe_snprintf(value, sizeof(value), "%i", -(32 + stylenum));
-				SetKeyValue(e, "style", value);
+				SetKeyValue(e, u8"style", (const char8_t*) value);
 				stylenum++;
 				continue;
 			case -3: // (HACK) a piggyback texlight: switched on and off by triggering a real light that has the same name
-				SetKeyValue(e, "style", "0"); // just in case the level designer didn't give it a name
+				SetKeyValue(e, u8"style", u8"0"); // just in case the level designer didn't give it a name
 				newtexlight = true;
 				// don't 'continue', fall out
 			}
 	        //LRC (ends)
         }
-        t = ValueForKey(e, "targetname");
-		if (*ValueForKey (e, "zhlt_usestyle"))
+        t = (const char*) ValueForKey(e, u8"targetname");
+		if (*ValueForKey (e, u8"zhlt_usestyle"))
 		{
-			t = ValueForKey(e, "zhlt_usestyle");
+			t = (const char*) ValueForKey(e, u8"zhlt_usestyle");
 			if (!strcasecmp (t, "null"))
 			{
 				t = "";
@@ -1131,7 +1131,7 @@ static void     SetLightStyles()
             stylenum++;
         }
         safe_snprintf(value, sizeof(value), "%i", 32 + j);
-        SetKeyValue(e, "style", value);
+        SetKeyValue(e, u8"style", (const char8_t*) value);
     }
 
 }
@@ -1158,18 +1158,12 @@ static void     ConvertHintToEmpty()
 // =====================================================================================
 void LoadWadValue ()
 {
-	char *wadvalue;
+    std::u8string wadValue;
 	ParseFromMemory (g_dentdata, g_entdatasize);
-	epair_t *e;
 	entity_t ent0;
 	entity_t *mapent = &ent0;
 	memset (mapent, 0, sizeof (entity_t));
-	if (!GetToken (true))
-	{
-		wadvalue = strdup ("");
-	}
-	else
-	{
+	if (GetToken (true)) {
 		if (strcmp (g_token, "{"))
 		{
 			Error ("ParseEntity: { not found");
@@ -1184,22 +1178,13 @@ void LoadWadValue ()
 			{
 				break;
 			}
-			e = ParseEpair ();
-			e->next = mapent->epairs;
-			mapent->epairs = e;
-		}
-		wadvalue = strdup (ValueForKey (mapent, "wad"));
-		epair_t *next;
-		for (e = mapent->epairs; e; e = next)
-		{
-			next = e->next;
-			free (e->key);
-			free (e->value);
-			free (e);
+			std::unique_ptr<epair_t> e = ParseEpair ();
+            if (e->key == u8"wad") {
+                wadValue = e->value;
+            }
 		}
 	}
-	SetKeyValue (&g_entities[0], "wad", wadvalue);
-	free (wadvalue);
+	SetKeyValue (&g_entities[0], u8"wad", wadValue);
 }
 void WriteBSP(const char* const name)
 {
@@ -1325,9 +1310,9 @@ static void     CheckForNoClip()
 
         ent = &g_entities[i];
 
-        strcpy_s(entclassname, ValueForKey(ent, "classname"));
-        spawnflags = atoi(ValueForKey(ent, "spawnflags"));
-		int skin = IntForKey(ent, "skin"); //vluzacn
+        strcpy_s(entclassname, (const char*) ValueForKey(ent, u8"classname"));
+        spawnflags = atoi((const char*) ValueForKey(ent, u8"spawnflags"));
+		int skin = IntForKey(ent, u8"skin"); //vluzacn
 
 		if ((skin != -16) &&
 			(
@@ -1461,7 +1446,7 @@ static void     SetModelCenters(int entitynum)
     if ((entitynum == 0) || (e->numbrushes == 0)) // skip worldspawn and point entities
         return;
 
-    if (!*ValueForKey(e, "light_origin")) // skip if its not a zhlt_flags light_origin
+    if (!*ValueForKey(e, u8"light_origin")) // skip if its not a zhlt_flags light_origin
         return;
 
     for (i = e->firstbrush, last = e->firstbrush + e->numbrushes; i < last; i++)
@@ -1478,7 +1463,7 @@ static void     SetModelCenters(int entitynum)
     VectorScale(center, 0.5, center);
 
     safe_snprintf(string, MAXTOKEN, "%i %i %i", (int)center[0], (int)center[1], (int)center[2]);
-    SetKeyValue(e, "model_center", string);
+    SetKeyValue(e, u8"model_center", (const char8_t*)  string);
 }
 
 //
@@ -2199,18 +2184,18 @@ int             main(const int argc, char** argv)
 			const char *value;
 			char *newvalue;
 
-			if (strcmp (ValueForKey (ent, "classname"), "game_text"))
+			if (strcmp (ValueForKey (ent, u8"classname"), "game_text"))
 			{
 				continue;
 			}
 
-			value = ValueForKey (ent, "message");
+			value = ValueForKey (ent, u8"message");
 			if (*value)
 			{
 				newvalue = ANSItoUTF8 (value);
 				if (strcmp (newvalue, value))
 				{
-					SetKeyValue (ent, "message", newvalue);
+					SetKeyValue (ent, u8"message", newvalue);
 					count++;
 				}
 				free (newvalue);

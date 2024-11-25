@@ -359,13 +359,12 @@ extern void		DeleteEmbeddedLightmaps ();
 // Entity Related Stuff
 //
 
-typedef struct epair_s
+struct epair_t
 {
-    struct epair_s* next;
-    char*           key;
-    char*           value;
-}
-epair_t;
+    epair_t* next = nullptr;
+    std::u8string key;
+    std::u8string value;
+};
 
 typedef struct
 {
@@ -382,15 +381,16 @@ extern entity_t g_entities[MAX_MAP_ENTITIES];
 extern void            ParseEntities();
 extern void            UnparseEntities();
 
-extern void            DeleteKey(entity_t* ent, const char* const key);
-extern void            SetKeyValue(entity_t* ent, const char* const key, const char* const value);
-extern const char*     ValueForKey(const entity_t* const ent, const char* const key);
-extern int             IntForKey(const entity_t* const ent, const char* const key);
-extern vec_t           FloatForKey(const entity_t* const ent, const char* const key);
-extern void            GetVectorForKey(const entity_t* const ent, const char* const key, vec3_t vec);
+extern void DeleteAllKeys(entity_t* ent);
+extern void            DeleteKey(entity_t* ent, std::u8string_view key);
+extern void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string value);
+extern const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key);
+extern int             IntForKey(const entity_t* const ent, std::u8string_view key);
+extern vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key);
+extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_t vec);
 
 extern entity_t* FindTargetEntity(const char* const target);
-extern epair_t* ParseEpair();
+extern std::unique_ptr<epair_t> ParseEpair();
 extern entity_t* EntityForModel(int modnum);
 
 //

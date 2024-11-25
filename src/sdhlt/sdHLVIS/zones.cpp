@@ -82,9 +82,9 @@ Zones* MakeZones(void)
     {
         entity_t*       ent = EntityForModel(x);
 
-        if (!strcasecmp(ValueForKey(ent, "classname"), "func_vis"))
+        if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
         {
-            UINT32 value = atoi(ValueForKey(ent, "node"));
+            UINT32 value = atoi((const char*) ValueForKey(ent, u8"node"));
             if (value)
             {
                 func_vis_count++;
@@ -108,16 +108,14 @@ Zones* MakeZones(void)
         dmodel_t*       mod = g_dmodels + x;
         entity_t*       ent = EntityForModel(x);
 
-        if (!strcasecmp(ValueForKey(ent, "classname"), "func_vis"))
+        if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
         {
-            UINT32 func_vis_id = atoi(ValueForKey(ent, "node"));
+            UINT32 func_vis_id = atoi((const char*) ValueForKey(ent, u8"node"));
 
             {
-                epair_t* keyvalue;
-    
-                for (keyvalue = ent->epairs; keyvalue; keyvalue = keyvalue->next)
+                for (const epair_t* keyvalue = ent->epairs; keyvalue; keyvalue = keyvalue->next)
                 {
-                    UINT32 other_id = atoi(keyvalue->key);
+                    UINT32 other_id = atoi((const char*) keyvalue->key.c_str());
                     if (other_id)
                     {
                         zones->flag(func_vis_id, other_id);

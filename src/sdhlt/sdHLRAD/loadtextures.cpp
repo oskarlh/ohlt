@@ -170,7 +170,7 @@ void TryOpenWadFiles ()
 				Log ("  %s\n", dir->path);
 			}
 		}
-		const char *value = ValueForKey (&g_entities[0], "wad");
+		const char *value = (const char*) ValueForKey (&g_entities[0], u8"wad");
 		char path[MAX_VAL];
 		int i, j;
 		for (i = 0, j = 0; i < strlen(value) + 1; i++)
@@ -1064,7 +1064,7 @@ void EmbedLightmapInTextures ()
 		{
 			continue;
 		}
-		if (!IntForKey (ent, "zhlt_embedlightmap"))
+		if (!IntForKey (ent, u8"zhlt_embedlightmap"))
 		{
 			continue;
 		}
@@ -1081,9 +1081,9 @@ void EmbedLightmapInTextures ()
 		vec_t denominator = DEFAULT_EMBEDLIGHTMAP_DENOMINATOR;
 		vec_t gamma = DEFAULT_EMBEDLIGHTMAP_GAMMA;
 		int resolution = DEFAULT_EMBEDLIGHTMAP_RESOLUTION;
-		if (IntForKey (ent, "zhlt_embedlightmapresolution"))
+		if (IntForKey (ent, u8"zhlt_embedlightmapresolution"))
 		{
-			resolution = IntForKey (ent, "zhlt_embedlightmapresolution");
+			resolution = IntForKey (ent, u8"zhlt_embedlightmapresolution");
 			if (resolution <= 0 || resolution > TEXTURE_STEP || ((resolution - 1) & resolution) != 0)
 			{
 				Error ("resolution cannot be %d; valid values are 1, 2, 4 ... %d.", resolution, (int)TEXTURE_STEP);

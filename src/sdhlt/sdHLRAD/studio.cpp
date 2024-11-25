@@ -117,14 +117,14 @@ void LoadStudioModels( void )
 		vec3_t origin, angles;
 
 		entity_t* e = &g_entities[i];
-		name = ValueForKey( e, "classname" );
+		name = (const char*) ValueForKey( e, u8"classname" );
 
 		if( !Q_stricmp( name, "env_static" ))
 		{
-			int spawnflags = IntForKey( e, "spawnflags" );
+			int spawnflags = IntForKey( e, u8"spawnflags" );
 			if( spawnflags & 4 ) continue; // shadow disabled
 		
-			model = ValueForKey( e, "model" );
+			model = (const char*) ValueForKey( e, u8"model" );
 
 			if( !model || !*model )
 			{
@@ -132,9 +132,9 @@ void LoadStudioModels( void )
 				continue;
 			}
 		}
-		else if( IntForKey( e, "zhlt_studioshadow" ))
+		else if( IntForKey( e, u8"zhlt_studioshadow" ))
 		{
-			model = ValueForKey( e, "model" );
+			model = (const char*) ValueForKey( e, u8"model" );
 
 			if( !model || !*model )
 				continue;
@@ -144,23 +144,23 @@ void LoadStudioModels( void )
 			continue;
 		}
 
-		GetVectorForKey( e, "origin", origin );
-		GetVectorForKey( e, "angles", angles );
+		GetVectorForKey( e, u8"origin", origin );
+		GetVectorForKey( e, u8"angles", angles );
 
 		angles[0] = -angles[0]; // Stupid quake bug workaround
 		int trace_mode = SHADOW_NORMAL;	// default mode
 
 		// make sure what field is present
-		if( strcmp( ValueForKey( e, "zhlt_shadowmode" ), "" ))
-			trace_mode = IntForKey( e, "zhlt_shadowmode" );
+		if( strcmp( (const char*) ValueForKey( e, u8"zhlt_shadowmode" ), "" ))
+			trace_mode = IntForKey( e, u8"zhlt_shadowmode" );
 
-		int body = IntForKey( e, "body" );
-		int skin = IntForKey( e, "skin" );
+		int body = IntForKey( e, u8"body" );
+		int skin = IntForKey( e, u8"skin" );
 
-		float scale = FloatForKey( e, "scale" );
+		float scale = FloatForKey( e, u8"scale" );
 		vec3_t xform;
 
-		GetVectorForKey( e, "xform", xform );
+		GetVectorForKey( e, u8"xform", xform );
 
 		if( VectorCompare( xform, vec3_origin ))
 			VectorFill( xform, scale );

@@ -61,7 +61,7 @@ void        GetUsedWads()
     const char* pszWadPaths;
     char szTmp[_MAX_PATH];
     int i, j;
-    pszWadPaths = ValueForKey(&g_entities[0], "wad");
+    pszWadPaths = (const char*) ValueForKey(&g_entities[0], u8"wad");
 
 	for (i = 0; ; ) //Loop through wadpaths
 	{

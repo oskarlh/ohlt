@@ -338,7 +338,7 @@ unsigned        g_nAllowableOutside = 0;
 unsigned        g_maxAllowableOutside = 0;
 char**          g_strAllowableOutsideList;
 
-bool            isClassnameAllowableOutside(const char* const classname)
+bool            isClassnameAllowableOutside(const char8_t* classname)
 {
     if (g_strAllowableOutsideList)
     {
@@ -349,7 +349,7 @@ bool            isClassnameAllowableOutside(const char* const classname)
         {
             if (list)
             {
-                if (!strcasecmp(classname, *list))
+                if (!strcasecmp((const char*) classname, *list))
                 {
                     return true;
                 }
@@ -437,7 +437,6 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     bool            inside;
     bool            ret;
     vec3_t          origin;
-    const char*     cl;
 
     Verbose("----- FillOutside ----\n");
 
@@ -456,18 +455,18 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     inside = false;
     for (i = 1; i < g_numentities; i++)
     {
-        GetVectorForKey(&g_entities[i], "origin", origin);
-        cl = ValueForKey(&g_entities[i], "classname");
+        GetVectorForKey(&g_entities[i], u8"origin", origin);
+        const char8_t* cl = ValueForKey(&g_entities[i], u8"classname");
         if (!isClassnameAllowableOutside(cl))
         {
             /*if (!VectorCompare(origin, vec3_origin))
-			*/ if (*ValueForKey(&g_entities[i], "origin")) //--vluzacn
+			*/ if (*ValueForKey(&g_entities[i], u8"origin")) //--vluzacn
             {
                 origin[2] += 1;                            // so objects on floor are ok
 
                 // nudge playerstart around if needed so clipping hulls allways
                 // have a vlaid point
-                if (!strcmp(cl, "info_player_start"))
+                if (!strcmp((const char*) cl, "info_player_start"))
                 {
                     int             x, y;
 
@@ -542,12 +541,12 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
 
     if (ret)
     {
-        GetVectorForKey(&g_entities[hit_occupied], "origin", origin);
+        GetVectorForKey(&g_entities[hit_occupied], u8"origin", origin);
 
 
         {
             Warning("=== LEAK in hull %i ===\nEntity %s @ (%4.0f,%4.0f,%4.0f)",
-                 hullnum, ValueForKey(&g_entities[hit_occupied], "classname"), origin[0], origin[1], origin[2]);
+                 hullnum, (const char*) ValueForKey(&g_entities[hit_occupied], u8"classname"), origin[0], origin[1], origin[2]);
             PrintOnce(
                 "\n  A LEAK is a hole in the map, where the inside of it is exposed to the\n"
                 "(unwanted) outside region.  The entity listed in the error is just a helpful\n"
@@ -659,11 +658,11 @@ void			FillInside (node_t* node)
 	ResetMark_r (node);
     for (i = 1; i < g_numentities; i++)
     {
-		if (*ValueForKey(&g_entities[i], "origin"))
+		if (*ValueForKey(&g_entities[i], u8"origin"))
 		{
 			vec3_t origin;
 			node_t* innode;
-			GetVectorForKey(&g_entities[i], "origin", origin);
+			GetVectorForKey(&g_entities[i], u8"origin", origin);
 			origin[2] += 1;
 			innode = PointInLeaf (node, origin);
 			MarkOccupied_r (innode);
