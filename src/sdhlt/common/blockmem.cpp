@@ -4,12 +4,6 @@
 /// ********* POSIX **********
 
 #ifdef SYSTEM_POSIX
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #include "cmdlib.h"
 #include "messages.h"
 #include "log.h"

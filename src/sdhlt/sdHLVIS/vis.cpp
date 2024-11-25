@@ -492,7 +492,7 @@ static void     CalcVis()
 	safe_snprintf(visdatafile, _MAX_PATH, "%s.vdt", g_Mapname);
 
 	// Remove this file
-	unlink(visdatafile);
+	std::filesystem::remove(visdatafile);
 
 /*    if(g_postcompile)
 	{

@@ -25,18 +25,6 @@
 #pragma warning(default: 4142 4028)
 #endif
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <ctype.h>
-#endif
-
 #ifdef SYSTEM_WIN32
 #include <direct.h>
 #endif

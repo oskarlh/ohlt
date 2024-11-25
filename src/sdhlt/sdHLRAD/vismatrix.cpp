@@ -327,7 +327,7 @@ void            MakeScalesVismatrix()
         if (g_incremental)
             writetransfers(transferfile, g_num_patches);
         else
-            _unlink(transferfile);
+            std::filesystem::remove(transferfile);
         DumpTransfersMemoryUsage();
 		CreateFinalStyleArrays ("dynamic shadow array");
     }

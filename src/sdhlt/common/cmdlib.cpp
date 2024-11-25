@@ -8,15 +8,7 @@
 #include "mathlib.h"
 
 #ifdef SYSTEM_POSIX
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <sys/time.h>
 #endif
 
 #define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
@@ -233,48 +225,39 @@ void ExtractFileExtension(const char* const path, char* dest)
  * ============================================================================
  */
 
-#ifdef WORDS_BIGENDIAN
-
-short           LittleShort(const short l)
-{
-    byte            b1, b2;
-
-    b1 = l & 255;
-    b2 = (l >> 8) & 255;
-
-    return (b1 << 8) + b2;
+#include <bit>
+std::int16_t LittleShort(std::int16_t l) {
+    if (std::endian::native == std::endian::big) {
+        return std::byteswap(l);
+    }
+    return l;
 }
-
-short           BigShort(const short l)
-{
+std::int16_t BigLong(std::int16_t l) {
+    if (std::endian::native == std::endian::little) {
+        return std::byteswap(l);
+    }
+    return l;
+}
+std::int32_t LittleLong(std::int32_t l) {
+    if (std::endian::native == std::endian::big) {
+        return std::byteswap(l);
+    }
+    return l;
+}
+std::int32_t BigLong(std::int32_t l) {
+    if (std::endian::native == std::endian::little) {
+        return std::byteswap(l);
+    }
     return l;
 }
 
-int             LittleLong(const int l)
-{
-    byte            b1, b2, b3, b4;
-
-    b1 = l & 255;
-    b2 = (l >> 8) & 255;
-    b3 = (l >> 16) & 255;
-    b4 = (l >> 24) & 255;
-
-    return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
-}
-
-int             BigLong(const int l)
-{
-    return l;
-}
-
-float           LittleFloat(const float l)
-{
+float FlipFloat(const float l) {
+    // TODO: Replace this with something legal
     union
     {
         byte            b[4];
         float           f;
-    }
-    in             , out;
+    } in, out;
 
     in.f = l;
     out.b[0] = in.b[3];
@@ -285,69 +268,21 @@ float           LittleFloat(const float l)
     return out.f;
 }
 
-float           BigFloat(const float l)
+
+float LittleFloat(const float l)
 {
-    return l;
-}
-
-#else // Little endian (Intel, etc)
-
-short           BigShort(const short l)
-{
-    byte            b1, b2;
-
-    b1 = (byte) (l & 255);
-    b2 = (byte) ((l >> 8) & 255);
-
-    return (short)((b1 << 8) + b2);
-}
-
-short           LittleShort(const short l)
-{
-    return l;
-}
-
-int             BigLong(const int l)
-{
-    byte            b1, b2, b3, b4;
-
-    b1 = (byte) (l & 255);
-    b2 = (byte) ((l >> 8) & 255);
-    b3 = (byte) ((l >> 16) & 255);
-    b4 = (byte) ((l >> 24) & 255);
-
-    return ((int)b1 << 24) + ((int)b2 << 16) + ((int)b3 << 8) + b4;
-}
-
-int             LittleLong(const int l)
-{
-    return l;
-}
-
-float           BigFloat(const float l)
-{
-    union
-    {
-        byte            b[4];
-        float           f;
+    if (std::endian::native == std::endian::big) {
+       return FlipFloat(l);
     }
-    in             , out;
-
-    in.f = l;
-    out.b[0] = in.b[3];
-    out.b[1] = in.b[2];
-    out.b[2] = in.b[1];
-    out.b[3] = in.b[0];
-
-    return out.f;
-}
-
-float           LittleFloat(const float l)
-{
     return l;
 }
-
-#endif
+float BigFloat(const float l)
+{
+    if (std::endian::native == std::endian::little) {
+       return FlipFloat(l);
+    }
+    return l;
+}
 
 //=============================================================================
 

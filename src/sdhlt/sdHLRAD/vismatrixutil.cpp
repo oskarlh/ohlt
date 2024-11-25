@@ -1,4 +1,5 @@
 #include "qrad.h"
+#include <numbers>
 
 funcCheckVisBit g_CheckVisBit = nullptr;
 
@@ -7,7 +8,6 @@ size_t          g_transfer_index_bytes = 0;
 size_t          g_transfer_data_bytes = 0;
 
 #define COMPRESSED_TRANSFERS
-//#undef  COMPRESSED_TRANSFERS
 
 int             FindTransferOffsetPatchnum(transfer_index_t* tIndex, const patch_t* const patch, const unsigned patchnum)
 {
@@ -168,10 +168,7 @@ static transfer_index_t* CompressTransferIndicies(const transfer_raw_index_t* tR
  * It can be run multi threaded.
  * =============
  */
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
+
 void            MakeScales(const int threadnum)
 {
     int             i;
@@ -388,7 +385,7 @@ void            MakeScales(const int threadnum)
             g_transfer_data_bytes += data_size;
             ThreadUnlock();
 
-			total = 1 / Q_PI;
+			total = 1 / std::numbers::pi_v<double>;
             {
                 unsigned        x;
                 transfer_data_t* t1 = patch->tData;
@@ -412,9 +409,6 @@ void            MakeScales(const int threadnum)
     ThreadUnlock();
 }
 
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 /*
  * =============
@@ -435,10 +429,7 @@ void            MakeScales(const int threadnum)
  * It can be run multi threaded.
  * =============
  */
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
+
 void            MakeRGBScales(const int threadnum)
 {
     int             i;
@@ -661,7 +652,7 @@ void            MakeRGBScales(const int threadnum)
             g_transfer_data_bytes += data_size;
             ThreadUnlock();
 
-			total = 1 / Q_PI;
+			total = 1 / std::numbers::pi_v<double>;
             {
                 unsigned        x;
                 rgb_transfer_data_t* t1 = patch->tRGBData;
@@ -685,9 +676,6 @@ void            MakeRGBScales(const int threadnum)
     ThreadUnlock();
 }
 
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 /*
  * =============

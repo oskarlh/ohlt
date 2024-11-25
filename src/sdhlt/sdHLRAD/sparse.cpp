@@ -466,7 +466,7 @@ void            MakeScalesSparseVismatrix()
         }
         else
         {
-            _unlink(transferfile);
+            std::filesystem::remove(transferfile);
         }
         // release visibility matrix
         DumpTransfersMemoryUsage();

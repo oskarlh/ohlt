@@ -1,17 +1,3 @@
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #include "cmdlib.h"
 #include "messages.h"
 #include "hlassert.h"
@@ -57,56 +43,56 @@ void            ResetTmpFiles()
         char            filename[_MAX_PATH];
 
         safe_snprintf(filename, _MAX_PATH, "%s.bsp", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.inc", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.p0", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.p1", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.p2", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.p3", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.prt", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.pts", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.lin", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
 
         safe_snprintf(filename, _MAX_PATH, "%s.hsz", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
         safe_snprintf(filename, _MAX_PATH, "%s.pln", g_Mapname);
-        _unlink(filename);
+        std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.b0", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.b1", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.b2", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.b3", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
 
 		safe_snprintf(filename, _MAX_PATH, "%s.ext", g_Mapname);
-		_unlink(filename);
+		std::filesystem::remove(filename);
     }
 }
 
@@ -117,7 +103,7 @@ void            ResetLog()
         char            logfilename[_MAX_PATH];
 
         safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);
-        _unlink(logfilename);
+        std::filesystem::remove(logfilename);
     }
 }
 
@@ -128,7 +114,7 @@ void            ResetErrorLog()
         char            logfilename[_MAX_PATH];
 
         safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
-        _unlink(logfilename);
+        std::filesystem::remove(logfilename);
     }
 }
 

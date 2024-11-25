@@ -1492,19 +1492,19 @@ static void     ProcessFile(const char* const filename)
     // delete existing files
     g_portfilename = filename;
     g_portfilename += u8".prt";
-    unlink(g_portfilename.c_str());
+    std::filesystem::remove(g_portfilename);
 
     g_pointfilename = filename;
     g_pointfilename += u8".pts";
-    unlink(g_pointfilename.c_str());
+    std::filesystem::remove(g_pointfilename);
 
     g_linefilename = filename;
     g_linefilename += u8".lin";
-    unlink(g_linefilename.c_str());
+    std::filesystem::remove(g_linefilename);
 
     g_extentfilename = filename;
     g_extentfilename += u8".ext";
-	unlink (g_extentfilename.c_str());
+	std::filesystem::remove (g_extentfilename);
     // open the hull files
     for (i = 0; i < NUM_HULLS; i++)
     {
@@ -1605,16 +1605,16 @@ static void     ProcessFile(const char* const filename)
 		snprintf (name, sizeof(name), "%s.p%i", filename, i);
 		fclose (polyfiles[i]);
 		polyfiles[i] = nullptr;
-		unlink (name);
+		std::filesystem::remove (name);
 		snprintf(name, sizeof(name), "%s.b%i", filename, i);
 		fclose (brushfiles[i]);
 		brushfiles[i] = nullptr;
-		unlink (name);
+		std::filesystem::remove (name);
     }
 	safe_snprintf (name, _MAX_PATH, "%s.hsz", filename);
-	unlink (name);
+	std::filesystem::remove (name);
 	safe_snprintf (name, _MAX_PATH, "%s.pln", filename);
-	unlink (name);
+	std::filesystem::remove (name);
 }
 
 // =====================================================================================

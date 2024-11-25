@@ -8,10 +8,10 @@
 
 
 #if !defined (SDHLCSG) && !defined (SDHLBSP) && !defined (SDHLVIS) && !defined (SDHLRAD) && !defined (SDRIPENT) //seedee
-#error "You must define one of these in the settings of each project: SDHLCSG, SDHLBSP, SDHLVIS, SDHLRAD, SDRIPENT. The most likely cause is that you didn't load the project from the .sln file."
+#error "You must define one of these in the settings of each project: SDHLCSG, SDHLBSP, SDHLVIS, SDHLRAD, SDRIPENT. The most likely cause is that you didn't use CMake correctly."
 #endif
-#if !defined (VERSION_32BIT) && !defined (VERSION_64BIT) && !defined (VERSION_LINUX) && !defined (VERSION_MACOS) && !defined (VERSION_OTHER)
-#error "You must define one of these in the settings of each project: VERSION_32BIT, VERSION_64BIT, VERSION_LINUX, VERSION_MACOS, VERSION_OTHER. The most likely cause is that you didn't load the project from the .sln file."
+#if !defined (VERSION_LINUX) && !defined (VERSION_MACOS) && !defined (VERSION_OTHER)
+#error "You must define one of these in the settings of each project: VERSION_LINUX, VERSION_MACOS, VERSION_OTHER. The most likely cause is that you didn't use CMake correctly."
 #endif
 
 
@@ -35,10 +35,6 @@
 #define strcpy_s strcpy //--vluzacn
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #if 0 //--vluzacn
 // AJM: gnu compiler fix
 #ifdef __GNUC__
@@ -50,27 +46,8 @@
 #include "win32fix.h"
 #include "mathtypes.h"
 
-
-
-#ifdef STDC_HEADERS
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <ctype.h>
-#include <time.h>
 #include <stdarg.h>
-#include <limits.h>
-#endif
-
-#include <stdint.h> //--vluzacn
-
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <stdint.h>
 
 #ifdef SYSTEM_WIN32
 #define SYSTEM_SLASH_CHAR  '\\'
@@ -111,7 +88,7 @@ extern void     ExtractFilePath(const char* const path, char* dest);
 extern void     ExtractFileBase(const char* const path, char* dest);
 extern void     ExtractFileExtension(const char* const path, char* dest);
 
-extern short    BigShort(short l);
+extern short    BigLong(short l);
 extern short    LittleShort(short l);
 extern int      BigLong(int l);
 extern int      LittleLong(int l);

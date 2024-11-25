@@ -1,6 +1,7 @@
 #include "qrad.h"
-#include <vector>
 #include <algorithm>
+#include <numbers>
+#include <vector>
 
 int             g_lerp_enabled = DEFAULT_LERP_ENABLED;
 
@@ -151,7 +152,7 @@ static vec_t GetAngleDiff (vec_t angle, vec_t base)
 	diff = angle - base;
 	if (diff < 0)
 	{
-		diff += 2 * Q_PI;
+		diff += 2 * std::numbers::pi_v<double>;
 	}
 	return diff;
 }
@@ -1102,7 +1103,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	return dist > 1.4 * (size1 + size2);
 }
 
-#define TRIANGLE_SHAPE_THRESHOLD (115.0*Q_PI/180)
+#define TRIANGLE_SHAPE_THRESHOLD (115.0*std::numbers::pi_v<double>/180)
 // If one of the angles in a triangle exceeds this threshold, the most distant point will be removed or the triangle will break into a convex-type wedge.
 
 static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *facetrian)
@@ -1234,8 +1235,8 @@ static void PurgePatches (localtriangulation_t *lt)
 		while (next[cur] != cur && valid[next[cur]] != 2)
 		{
 			angle = GetAngle (points[cur].leftdirection, points[next[cur]].leftdirection, lt->normal);
-			if (fabs (angle) <= (1.0*Q_PI/180) ||
-				GetAngleDiff (angle, 0) <= Q_PI + NORMAL_EPSILON
+			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
+				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
 				&& DotProduct (points[next[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
 			{
 				// remove next patch
@@ -1255,8 +1256,8 @@ static void PurgePatches (localtriangulation_t *lt)
 		while (prev[cur] != cur && valid[prev[cur]] != 2)
 		{
 			angle = GetAngle (points[prev[cur]].leftdirection, points[cur].leftdirection, lt->normal);
-			if (fabs (angle) <= (1.0*Q_PI/180) ||
-				GetAngleDiff (angle, 0) <= Q_PI + NORMAL_EPSILON
+			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
+				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
 				&& DotProduct (points[prev[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
 			{
 				// remove previous patch
@@ -1357,7 +1358,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
 		if ((int)lt->sortedwedges.size () == 1)
 		{
-			angle = 2 * Q_PI;
+			angle = 2 * std::numbers::pi_v<double>;
 		}
 		else
 		{
@@ -1397,7 +1398,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 		{
 			while (prev[j] != -1)
 			{
-				if (arc_angles[next[j]] - arc_angles[prev[j]] <= Q_PI + NORMAL_EPSILON)
+				if (arc_angles[next[j]] - arc_angles[prev[j]] <= std::numbers::pi_v<double> + NORMAL_EPSILON)
 				{
 					frac = GetFrac (arc_spots[prev[j]].spot, arc_spots[next[j]].spot, arc_spots[j].direction, lt->normal);
 					len = (1 - frac) * DotProduct (arc_spots[prev[j]].spot, arc_spots[j].direction)
@@ -1549,18 +1550,18 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 		wnext = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
 
 		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
-		if (g_drawlerp && ((int)lt->sortedwedges.size () >= 2 && fabs (angle) <= (0.9*Q_PI/180)))
+		if (g_drawlerp && ((int)lt->sortedwedges.size () >= 2 && fabs (angle) <= (0.9*std::numbers::pi_v<double>/180)))
 		{
 			Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 9.\n");
 		}
 		angle = GetAngleDiff (angle, 0);
 		if ((int)lt->sortedwedges.size () == 1)
 		{
-			angle = 2 * Q_PI;
+			angle = 2 * std::numbers::pi_v<double>;
 		}
 		total += angle;
 
-		if (angle <= Q_PI + NORMAL_EPSILON)
+		if (angle <= std::numbers::pi_v<double> + NORMAL_EPSILON)
 		{
 			if (angle < TRIANGLE_SHAPE_THRESHOLD)
 			{
@@ -1588,7 +1589,7 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 			}
 		}
 	}
-	if (g_drawlerp && ((int)lt->sortedwedges.size () > 0 && fabs (total - 2 * Q_PI) > 10 * NORMAL_EPSILON))
+	if (g_drawlerp && ((int)lt->sortedwedges.size () > 0 && fabs (total - 2 * std::numbers::pi_v<double>) > 10 * NORMAL_EPSILON))
 	{
 		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 11.\n");
 	}

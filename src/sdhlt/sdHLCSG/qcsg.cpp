@@ -1049,8 +1049,8 @@ void     ReuseModel ()
 // =====================================================================================
 //  SetLightStyles
 // =====================================================================================
-#define	MAX_SWITCHED_LIGHTS	    32 
-#define MAX_LIGHTTARGETS_NAME   64
+constexpr std::size_t MAX_SWITCHED_LIGHTS = 32;
+constexpr std::size_t MAX_LIGHTTARGETS_NAME = 64;
 
 static void     SetLightStyles()
 {
@@ -1666,7 +1666,8 @@ int             main(const int argc, char** argv)
     // Hard coded list of -wadinclude files, used for HINT texture brushes so lazy
     // mapmakers wont cause beta testers (or possibly end users) to get a wad 
     // error on zhlt.wad etc
-    g_WadInclude.push_back("sdhlt.wad"); //seedee
+    g_WadInclude.push_back("zhlt.wad"); // Zoner's HLT
+    g_WadInclude.push_back("sdhlt.wad"); // seedee's HLT
 
 	InitDefaultHulls ();
 
@@ -2088,23 +2089,21 @@ int             main(const int argc, char** argv)
 		{
 			entity_t *ent = &g_entities[i];
 			const char *value;
-			char *newvalue;
 
-			if (strcmp (ValueForKey (ent, u8"classname"), "game_text"))
+			if (!classname_is(ent, u8"game_text"))
 			{
 				continue;
 			}
 
-			value = ValueForKey (ent, u8"message");
-			if (*value)
+			value = value_for_key (ent, u8"message");
+			if (!value.empty())
 			{
-				newvalue = ANSItoUTF8 (value);
-				if (strcmp (newvalue, value))
+				std::u8string newvalue = ANSItoUTF8 (value);
+				if (newvalue != value)
 				{
 					SetKeyValue (ent, u8"message", newvalue);
 					count++;
 				}
-				free (newvalue);
 			}
 		}
 

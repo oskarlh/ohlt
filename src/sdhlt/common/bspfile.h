@@ -129,15 +129,15 @@ dmodel_t;
 
 typedef struct
 {
-    int             version;
+    std::int32_t             version;
     lump_t          lumps[HEADER_LUMPS];
 }
 dheader_t;
 
 typedef struct
 {
-    int             nummiptex;
-    int             dataofs[4];                            // [nummiptex]
+    std::int32_t             nummiptex;
+    std::int32_t             dataofs[4];                            // [nummiptex]
 }
 dmiptexlump_t;
 
@@ -145,8 +145,8 @@ dmiptexlump_t;
 typedef struct miptex_s
 {
     char            name[16];
-    unsigned        width, height;
-    unsigned        offsets[MIPLEVELS];                    // four mip maps stored
+    std::uint32_t        width, height;
+    std::uint32_t        offsets[MIPLEVELS];                    // four mip maps stored
 }
 miptex_t;
 
@@ -196,27 +196,27 @@ contents_t;
 // !!! if this is changed, it must be changed in asm_i386.h too !!!
 typedef struct
 {
-    int             planenum;
-    short           children[2];                           // negative numbers are -(leafs+1), not nodes
-    short           mins[3];                               // for sphere culling
-    short           maxs[3];
-    unsigned short  firstface;
-    unsigned short  numfaces;                              // counting both sides
+    std::int32_t             planenum;
+    std::int16_t           children[2];                           // negative numbers are -(leafs+1), not nodes
+    std::int16_t           mins[3];                               // for sphere culling
+    std::int16_t           maxs[3];
+    std::uint16_t  firstface;
+    std::uint16_t  numfaces;                              // counting both sides
 }
 dnode_t;
 
 typedef struct
 {
-    int             planenum;
-    short           children[2];                           // negative numbers are contents
+    std::int32_t             planenum;
+    std::int16_t           children[2];                           // negative numbers are contents
 }
 dclipnode_t;
 
 typedef struct texinfo_s
 {
     float           vecs[2][4];                            // [s/t][xyz offset]
-    int             miptex;
-    int             flags;
+    std::int32_t             miptex;
+    std::int32_t             flags;
 }
 texinfo_t;
 
@@ -233,16 +233,16 @@ dedge_t;
 #define MAXLIGHTMAPS    4
 typedef struct
 {
-    unsigned short	planenum;
-    short           side;
+    std::uint16_t	planenum;
+    std::int16_t           side;
 
-    int             firstedge;                             // we must support > 64k edges
-    short           numedges;
-    short           texinfo;
+    std::int32_t             firstedge;                             // we must support > 64k edges
+    std::int16_t           numedges;
+    std::int16_t           texinfo;
 
     // lighting info
-    byte            styles[MAXLIGHTMAPS];
-    int             lightofs;                              // start of [numstyles*surfsize] samples
+    std::uint8_t            styles[MAXLIGHTMAPS];
+    std::int32_t             lightofs;                              // start of [numstyles*surfsize] samples
 }
 dface_t;
 
@@ -257,16 +257,16 @@ dface_t;
 // all other leafs need visibility info
 typedef struct
 {
-    int             contents;
-    int             visofs;                                // -1 = no visibility info
+    std::int32_t             contents;
+    std::int32_t             visofs;                                // -1 = no visibility info
 
-    short           mins[3];                               // for frustum culling
-    short           maxs[3];
+    std::int16_t           mins[3];                               // for frustum culling
+    std::int16_t           maxs[3];
 
-    unsigned short  firstmarksurface;
-    unsigned short  nummarksurfaces;
+    std::uint16_t  firstmarksurface;
+    std::uint16_t  nummarksurfaces;
 
-    byte            ambient_level[NUM_AMBIENTS];
+    std::uint8_t            ambient_level[NUM_AMBIENTS];
 }
 dleaf_t;
 

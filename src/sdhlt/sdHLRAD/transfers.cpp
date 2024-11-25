@@ -6,9 +6,6 @@
 #include "win32fix.h"
 #endif
 
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
 
 /*
  * =============
@@ -84,7 +81,7 @@ void            writetransfers(const char* const transferfile, const long total_
 
   FailedWrite:
     fclose(file);
-    unlink(transferfile);
+    std::filesystem::remove(transferfile);
     //Warning("Failed to generate incremental file [%s] (probably ran out of disk space)\n");
     Warning("Failed to generate incremental file [%s] (probably ran out of disk space)\n", transferfile); //--vluzacn
 }
@@ -187,6 +184,6 @@ bool            readtransfers(const char* const transferfile, const long numpatc
         }
     }
     fclose(file);
-    unlink(transferfile);
+    std::filesystem::remove(transferfile);
     return false;
 }

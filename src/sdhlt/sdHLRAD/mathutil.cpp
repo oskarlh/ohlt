@@ -1,4 +1,5 @@
 #include "qrad.h"
+#include <numbers>
 
 // =====================================================================================
 //  point_in_winding
@@ -398,7 +399,7 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 			}
 			area += dot * (*psize);
 		}
-		area = area * 4 * Q_PI; // convert to absolute sphere area
+		area = area * 4 * std::numbers::pi_v<double>; // convert to absolute sphere area
 	}
 	free (edges);
 	area *= lighting_scale;
@@ -472,7 +473,7 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 			}
 			area += dot * (*psize);
 		}
-		area = area * 4 * Q_PI; // convert to absolute sphere area
+		area = area * 4 * std::numbers::pi_v<double>; // convert to absolute sphere area
 	}
 	free (edges);
 	area *= lighting_scale;

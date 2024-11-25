@@ -512,11 +512,13 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		return false;
 	}
 
-#ifdef VERSION_64BIT
-	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + /*pseqgroup->data +*/ pseqdesc->animindex);
-#else
-	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
-#endif
+// WTF?? Why was pseqgroup->data added on for 32-bit builds? Is that correct
+	//#ifdef VERSION_64BIT
+		mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + /*pseqgroup->data +*/ pseqdesc->animindex);
+	//#else
+	//mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
+	//#endif
+
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
 	static vec3_t pos[MAXSTUDIOBONES];
 	static vec4_t q[MAXSTUDIOBONES];

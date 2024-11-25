@@ -575,8 +575,8 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     }
 	if (leakfile && !ret)
 	{
-		unlink(g_linefilename.c_str());
-		unlink(g_pointfilename.c_str());
+		std::filesystem::remove(g_linefilename);
+		std::filesystem::remove(g_pointfilename);
 	}
 
     // now go back and fill things in

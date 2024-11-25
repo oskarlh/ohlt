@@ -225,14 +225,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         PLATFORM_VERSION="Linux"
         VERSION_LINUX
         SYSTEM_POSIX
-        STDC_HEADERS
-        HAVE_FCNTL_H
         HAVE_PTHREAD_H
-        HAVE_STDDEF_H
-        HAVE_SYS_RESOURCE_H
-        HAVE_SYS_STAT_H
-        HAVE_SYS_TIME_H
-        HAVE_UNISTD_H
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -240,32 +233,13 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         PLATFORM_VERSION="MacOS"
         VERSION_MACOS
         SYSTEM_POSIX
-        STDC_HEADERS
-        HAVE_FCNTL_H
         HAVE_PTHREAD_H
-        HAVE_STDDEF_H
-        HAVE_SYS_RESOURCE_H
-        HAVE_SYS_STAT_H
-        HAVE_SYS_TIME_H
-        HAVE_UNISTD_H
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    option(SDHLT_64BIT "Flag targets as 64-bit." ON)
-    if (SDHLT_64BIT)
-        add_compile_definitions(
-            PLATFORM_VERSION="64-bit Windows"
-            VERSION_64BIT
-        )
-    else()
-        add_compile_definitions(
-            PLATFORM_VERSION="32-bit Windows"
-            VERSION_32BIT
-        )
-    endif()
     add_compile_definitions(
+        PLATFORM_VERSION="64-bit Windows"
         SYSTEM_WIN32
-        STDC_HEADERS
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 else()

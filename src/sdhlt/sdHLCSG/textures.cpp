@@ -1,4 +1,5 @@
 #include "csg.h"
+#include <numbers>
 #include <vector>
 #include <tuple>
 
@@ -871,7 +872,9 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
             }
             else
             {
-                ang = bt->vects.valve.rotate / 180 * Q_PI;
+                // std::numbers::pi_v<double> could be unnecessary precision, try using
+                // std::numbers::pi_v<float> instead. -- Oskar
+                ang = bt->vects.valve.rotate / 180 * std::numbers::pi_v<double>;
                 sinv = sin(ang);
                 cosv = cos(ang);
             }

@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <filesystem>
+#include <numbers>
 #include <span>
+
 #include "cmdlib.h"
 #include "filelib.h"
 #include "messages.h"
@@ -545,14 +547,6 @@ void            WriteBSPFile(const std::filesystem::path& filename)
 //  GetFaceExtents
 // =====================================================================================
 
-
-#ifdef SYSTEM_POSIX
-static void CorrectFPUPrecision ()
-{
-	// just leave it to default and see if CalcFaceExtents_test gives us any error
-}
-#endif
-
 float CalculatePointVecsProduct (const volatile float *point, const volatile float *vecs)
 {
 	volatile double val;
@@ -572,19 +566,17 @@ bool CalcFaceExtents_test ()
 {
 	const int numtestcases = 6;
 	volatile float testcases[numtestcases][8] = {
-		{1, 1, 1, 1, 0.375 * DBL_EPSILON, 0.375 * DBL_EPSILON, -1, 0},
-		{1, 1, 1, 0.375 * DBL_EPSILON, 0.375 * DBL_EPSILON, 1, -1, DBL_EPSILON},
-		{DBL_EPSILON, DBL_EPSILON, 1, 0.375, 0.375, 1, -1, DBL_EPSILON},
-		{1, 1, 1, 1, 1, 0.375 * FLT_EPSILON, -2, 0.375 * FLT_EPSILON},
-		{1, 1, 1, 1, 0.375 * FLT_EPSILON, 1, -2, 0.375 * FLT_EPSILON},
-		{1, 1, 1, 0.375 * FLT_EPSILON, 1, 1, -2, 0.375 * FLT_EPSILON}};
+		{1, 1, 1, 1, 0.375 * std::numeric_limits<double>::epsilon(), 0.375 * std::numeric_limits<double>::epsilon(), -1, 0},
+		{1, 1, 1, 0.375 * std::numeric_limits<double>::epsilon(), 0.375 * std::numeric_limits<double>::epsilon(), 1, -1, std::numeric_limits<double>::epsilon()},
+		{std::numeric_limits<double>::epsilon(), std::numeric_limits<double>::epsilon(), 1, 0.375, 0.375, 1, -1, std::numeric_limits<double>::epsilon()},
+		{1, 1, 1, 1, 1, 0.375 * std::numeric_limits<float>::epsilon(), -2, 0.375 * std::numeric_limits<float>::epsilon()},
+		{1, 1, 1, 1, 0.375 * std::numeric_limits<float>::epsilon(), 1, -2, 0.375 * std::numeric_limits<float>::epsilon()},
+		{1, 1, 1, 0.375 * std::numeric_limits<float>::epsilon(), 1, 1, -2, 0.375 * std::numeric_limits<float>::epsilon()}};
 	bool ok;
 
 	// If the test failed, please check:
 	//   1. whether the calculation is performed on FPU
 	//   2. whether the register precision is too low
-		
-	CorrectFPUPrecision ();
 
 	ok = true;
 	for (int i = 0; i < 6; i++)
@@ -601,8 +593,6 @@ bool CalcFaceExtents_test ()
 
 void GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2])
 {
-	CorrectFPUPrecision ();
-
 	dface_t *f;
 	float mins[2], maxs[2], val;
 	int i, j, e;
@@ -1343,7 +1333,9 @@ int anglesforvector (float angles[3], const float vector[3])
 		}
 		else
 		{
-			angles[0] = atan (z / r) / Q_PI * 180;
+			// std::numbers::pi_v<double> could be unnecessary precision, try using
+			// std::numbers::pi_v<float> instead. -- Oskar
+			angles[0] = atan (z / r) / std::numbers::pi_v<double> * 180;
 			float x = vector[0], y = vector[1];
 			tmp = sqrt (x*x + y*y);
 			x /= tmp, y /= tmp;
@@ -1355,11 +1347,11 @@ int anglesforvector (float angles[3], const float vector[3])
 			{
 				if (y >= 0)
 				{
-					angles[1] = 2 * atan (y / (1+x)) / Q_PI * 180;
+					angles[1] = 2 * atan (y / (1+x)) / std::numbers::pi_v<double> * 180;
 				}
 				else
 				{
-					angles[1] = 2 * atan (y / (1+x)) / Q_PI * 180 + 360;
+					angles[1] = 2 * atan (y / (1+x)) / std::numbers::pi_v<double> * 180 + 360;
 				}
 			}
 		}

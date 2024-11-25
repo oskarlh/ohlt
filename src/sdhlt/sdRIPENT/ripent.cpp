@@ -462,14 +462,14 @@ static void		WriteTextures(const char* const name)
 	char wadfilename[_MAX_PATH];
 	FILE *wadfile;
 	safe_snprintf(wadfilename, _MAX_PATH, "%s.wad", name);
-    _unlink(wadfilename);
+    std::filesystem::remove(wadfilename);
 	wadfile = SafeOpenWrite (wadfilename);
 	Log("\nWriting %s.\n", wadfilename);
 
     char texfilename[_MAX_PATH];
 	FILE *texfile;
 	safe_snprintf(texfilename, _MAX_PATH, "%s.tex", name);
-    _unlink(texfilename);
+    std::filesystem::remove(texfilename);
 	if (!g_textureparse)
 	{
 		int dataofs = (int)(intptr_t)&((dmiptexlump_t*)NULL)->dataofs[((dmiptexlump_t*)g_dtexdata)->nummiptex];
@@ -696,7 +696,7 @@ static void     WriteEntities(const char* const name)
 	filePath = name;
 	filePath += u8".ent";
 
-    _unlink(filePath.c_str());
+    std::filesystem::remove(filePath);
 
     {
 		if(g_parse)

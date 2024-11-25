@@ -2,14 +2,6 @@
 
 #include "cmdlib.h" //--vluzacn
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#ifdef STDC_HEADERS
-#include <math.h>
-#include <float.h>
-#endif
 
 #if !defined(qmax) 
 #define qmax(a,b)            (((a) > (b)) ? (a) : (b)) // changed 'max' to 'qmax'. --vluzacn
@@ -18,8 +10,6 @@
 #if !defined(qmin)
 #define qmin(a,b)            (((a) < (b)) ? (a) : (b)) // changed 'min' to 'qmin'. --vluzacn
 #endif
-
-#define	Q_PI	3.14159265358979323846
 
 extern const vec3_t vec3_origin;
 
@@ -132,7 +122,7 @@ inline unsigned int rotl(unsigned value, unsigned int amt)
 {
     unsigned        t1, t2;
 
-    t1 = value >> ((sizeof(unsigned) * CHAR_BIT) - amt);
+    t1 = value >> ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
 
     t2 = value << amt;
     return (t1 | t2);
@@ -142,7 +132,7 @@ inline unsigned int rotr(unsigned value, unsigned int amt)
 {
     unsigned        t1, t2;
 
-    t1 = value << ((sizeof(unsigned) * CHAR_BIT) - amt);
+    t1 = value << ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
 
     t2 = value >> amt;
     return (t1 | t2);

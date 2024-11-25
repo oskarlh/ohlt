@@ -196,7 +196,7 @@ void            MakeScalesNoVismatrix()
         }
         else
         {
-            unlink(transferfile);
+            std::filesystem::remove(transferfile);
         }
         DumpTransfersMemoryUsage();
 		CreateFinalStyleArrays ("dynamic shadow array");

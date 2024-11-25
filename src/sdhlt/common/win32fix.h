@@ -18,7 +18,6 @@
 #define _open open //--vluzacn
 #define _read read //--vluzacn
 #define _close close //--vluzacn
-#define _unlink unlink //--vluzacn
 
 #define FORMAT_PRINTF(STRING_INDEX,FIRST_TO_CHECK) __attribute__((format (printf, STRING_INDEX, FIRST_TO_CHECK))) //--vluzacn
 

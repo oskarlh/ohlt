@@ -12,13 +12,10 @@
 
 */
 
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 #include <vector>
 #include <string>
+#include <numbers>
 
 #include "qrad.h"
 #include "../common/cli_option_defaults.h"
@@ -272,7 +269,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     if (flTmp)
     {
         /*g_smoothing_threshold = flTmp;*/
-		g_smoothing_threshold = cos(g_smoothing_value * (Q_PI / 180.0)); // --vluzacn
+		g_smoothing_threshold = cos(g_smoothing_value * (std::numbers::pi_v<double> / 180.0)); // --vluzacn
         Log("%30s [ %-9s ]\n", "Smoothing threshold", (const char*) ValueForKey(mapent, u8"smooth"));
     }
 
@@ -1085,7 +1082,7 @@ void ReadCustomSmoothValue()
 					continue;
 				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
 					continue;
-				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (Q_PI / 180.0));
+				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (std::numbers::pi_v<double> / 180.0));
 				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname, atof ((const char*) ep->value.c_str()));
 			}
 		}
@@ -2082,10 +2079,7 @@ static void     CollectLight()
 //      Get light from other g_patches
 //      Run multi-threaded
 // =====================================================================================
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
+
 static void     GatherLight(int threadnum)
 {
     int             j;
@@ -2407,10 +2401,6 @@ static void     GatherRGBLight(int threadnum)
 		}
     }
 }
-
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 // =====================================================================================
 //  BounceLight
@@ -3913,7 +3903,7 @@ int             main(const int argc, char** argv)
         Usage();
     }
 
-    g_smoothing_threshold = (float)cos(g_smoothing_value * (Q_PI / 180.0));
+    g_smoothing_threshold = (float)cos(g_smoothing_value * (std::numbers::pi_v<double> / 180.0));
 
     safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
     FlipSlashes(g_Mapname);
@@ -3972,7 +3962,7 @@ int             main(const int argc, char** argv)
 	ReadCustomSmoothValue ();
 	ReadTranslucentTextures ();
 	ReadLightingCone ();
-    g_smoothing_threshold_2 = g_smoothing_value_2 < 0 ? g_smoothing_threshold : (float)cos(g_smoothing_value_2 * (Q_PI / 180.0));
+    g_smoothing_threshold_2 = g_smoothing_value_2 < 0 ? g_smoothing_threshold : (float)cos(g_smoothing_value_2 * (std::numbers::pi_v<double> / 180.0));
 	{
 		int style;
 		for (style = 0; style < ALLSTYLES; ++style)

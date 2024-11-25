@@ -1,4 +1,5 @@
 #include "qrad.h"
+#include <numbers>
 
 edgeshare_t     g_edgeshare[MAX_MAP_EDGES];
 vec3_t          g_face_centroids[MAX_MAP_EDGES]; // BUG: should this be [MAX_MAP_FACES]?
@@ -1189,9 +1190,9 @@ static bool FindBestEdge (samplefraginfo_t *info, samplefrag_t *&bestfrag, sampl
 			{
 				better = true;
 			}
-			else if ((e->flippedangle < Q_PI + NORMAL_EPSILON) != (bestedge->flippedangle < Q_PI + NORMAL_EPSILON))
+			else if ((e->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON) != (bestedge->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON))
 			{
-				better = ((e->flippedangle < Q_PI + NORMAL_EPSILON) && !(bestedge->flippedangle < Q_PI + NORMAL_EPSILON));
+				better = ((e->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON) && !(bestedge->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON));
 			}
 			else if (e->noseam != bestedge->noseam)
 			{
@@ -1686,12 +1687,12 @@ void            CreateDirectLights()
 				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone"))
 				{
 					dl->stopdot = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone");
-					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * Q_PI);
+					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * std::numbers::pi_v<double>);
 				}
 				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone2"))
 				{
 					dl->stopdot2 = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone2");
-					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * Q_PI);
+					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * std::numbers::pi_v<double>);
 				}
 				if (dl->stopdot2 > dl->stopdot)
 					dl->stopdot2 = dl->stopdot;
@@ -1710,7 +1711,7 @@ void            CreateDirectLights()
 			}
             VectorScale(dl->intensity, p->area, dl->intensity);
 			VectorScale (dl->intensity, p->exposure, dl->intensity);
-			VectorScale (dl->intensity, 1.0 / Q_PI, dl->intensity);
+			VectorScale (dl->intensity, 1.0 / std::numbers::pi_v<double>, dl->intensity);
 			VectorMultiply (dl->intensity, p->texturereflectivity, dl->intensity);
         
 			dface_t *f = &g_dfaces[p->faceNumber];
@@ -1883,8 +1884,8 @@ void            CreateDirectLights()
             {
                 dl->stopdot2 = dl->stopdot;
             }
-            dl->stopdot2 = (float)cos(dl->stopdot2 / 180 * Q_PI);
-            dl->stopdot = (float)cos(dl->stopdot / 180 * Q_PI);
+            dl->stopdot2 = (float)cos(dl->stopdot2 / 180 * std::numbers::pi_v<double>);
+            dl->stopdot = (float)cos(dl->stopdot / 180 * std::numbers::pi_v<double>);
 
             if (!FindTargetEntity(target)) //--vluzacn
             {
@@ -1933,8 +1934,8 @@ void            CreateDirectLights()
                     }
 
                     dl->normal[2] = 0;
-                    dl->normal[0] = (float)cos(angle / 180 * Q_PI);
-                    dl->normal[1] = (float)sin(angle / 180 * Q_PI);
+                    dl->normal[0] = (float)cos(angle / 180 * std::numbers::pi_v<double>);
+                    dl->normal[1] = (float)sin(angle / 180 * std::numbers::pi_v<double>);
                 }
 
                 angle = FloatForKey(e, u8"pitch");
@@ -1944,9 +1945,9 @@ void            CreateDirectLights()
                     angle = vAngles[0];
                 }
 
-                dl->normal[2] = (float)sin(angle / 180 * Q_PI);
-                dl->normal[0] *= (float)cos(angle / 180 * Q_PI);
-                dl->normal[1] *= (float)cos(angle / 180 * Q_PI);
+                dl->normal[2] = (float)sin(angle / 180 * std::numbers::pi_v<double>);
+                dl->normal[0] *= (float)cos(angle / 180 * std::numbers::pi_v<double>);
+                dl->normal[1] *= (float)cos(angle / 180 * std::numbers::pi_v<double>);
             }
 
             if (FloatForKey(e, u8"_sky") || !strcmp(name, "light_environment"))
@@ -2044,7 +2045,7 @@ void            CreateDirectLights()
 					{
 						vec_t totalweight = 0;
 						int count;
-						vec_t testdot = cos (testangle * (Q_PI / 180.0));
+						vec_t testdot = cos (testangle * (std::numbers::pi_v<double> / 180.0));
 						for (count = 0, i = 0; i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++)
 						{
 							vec3_t &testnormal = g_skynormals[SUNSPREAD_SKYLEVEL][i];

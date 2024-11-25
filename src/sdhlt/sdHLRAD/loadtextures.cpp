@@ -145,17 +145,20 @@ void OpenWadFile (const char *name
 
 void TryOpenWadFiles ()
 {
-	if (!g_wadfiles_opened)
+	if (g_wadfiles_opened)
 	{
-		g_wadfiles_opened = true;
-		char filename[_MAX_PATH];
-		safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
-	   if (std::filesystem::exists (filename))
-	   {
+		return;
+	}
+	g_wadfiles_opened = true;
+
+	char filename[_MAX_PATH];
+	safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
+	if (std::filesystem::exists (filename))
+	{
 		OpenWadFile (filename, true);
-	   }
-	   else
-	   {
+	}
+	else
+	{
 		Warning ("Couldn't open %s", filename);
 		Log ("Opening wad files from directories:\n");
 		if (!g_waddirs)
@@ -193,26 +196,26 @@ void TryOpenWadFiles ()
 				j++;
 			}
 		}
-	   }
-		CheckFatal ();
 	}
+	CheckFatal ();
 }
 
 void TryCloseWadFiles ()
 {
-	if (g_wadfiles_opened)
+	if (!g_wadfiles_opened)
 	{
-		g_wadfiles_opened = false;
-		wadfile_t *wadfile, *next;
-		for (wadfile = g_wadfiles; wadfile; wadfile = next)
-		{
-			next = wadfile->next;
-			free (wadfile->lumpinfos);
-			fclose (wadfile->file);
-			free (wadfile);
-		}
-		g_wadfiles = nullptr;
+		return;
 	}
+	g_wadfiles_opened = false;
+	wadfile_t *wadfile, *next;
+	for (wadfile = g_wadfiles; wadfile; wadfile = next)
+	{
+		next = wadfile->next;
+		free (wadfile->lumpinfos);
+		fclose (wadfile->file);
+		free (wadfile);
+	}
+	g_wadfiles = nullptr;
 }
 
 void DefaultTexture (radtexture_t *tex, const char *name)
@@ -236,7 +239,6 @@ void DefaultTexture (radtexture_t *tex, const char *name)
 
 void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 {
-	int i, j;
 	const miptex_t *header = mt;
 	const byte *data = (const byte *)mt;
 	tex->width = header->width;
@@ -248,7 +250,7 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	{
 		Error ("Texture '%s': dimension (%dx%d) is not multiple of %d.", tex->name, tex->width, tex->height, 2 * (1 << (MIPLEVELS - 1)));
 	}
-	int mipsize;
+	int mipsize, i;
 	for (mipsize = 0, i = 0; i < MIPLEVELS; i++)
 	{
 		if ((int)mt->offsets[i] != (int)sizeof (miptex_t) + mipsize)
@@ -267,16 +269,16 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	}
 	tex->canvas = (byte *)malloc (tex->width * tex->height);
 	hlassume (tex->canvas != nullptr, assume_NoMemory);
-	for (i = 0; i < tex->height; i++)
+	for (int i = 0; i < tex->height; i++)
 	{
-		for (j = 0; j < tex->width; j++)
+		for (int j = 0; j < tex->width; j++)
 		{
 			tex->canvas[i * tex->width + j] = data[sizeof (miptex_t) + i * tex->width + j];
 		}
 	}
-	for (i = 0; i < 256; i++)
+	for (int i = 0; i < 256; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			tex->palette[i][j] = data[sizeof (miptex_t) + mipsize + 2 + i * 3 + j];
 		}
