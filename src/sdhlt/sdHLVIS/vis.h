@@ -68,7 +68,7 @@ typedef struct
 #ifdef ZHLT_NETVIS
     int             fromclient;                            // which client did this come from
 #endif
-    UINT32          zone;                                  // Which zone is this portal a member of
+    std::uint_least32_t          zone;                                  // Which zone is this portal a member of
 } portal_t;
 
 typedef struct seperating_plane_s

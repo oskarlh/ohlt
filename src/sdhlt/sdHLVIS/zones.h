@@ -4,7 +4,6 @@
 // This file is licensed under the terms of the Lesser GNU Public License
 // (see LPGL.txt, or http://www.gnu.org/copyleft/lesser.txt)
 
-#include "basictypes.h"
 #include "winding.h"
 #include "boundingbox.h"
 
@@ -13,7 +12,7 @@
 class Zones
 {
 public:
-    inline void flag(UINT32 src, UINT32 dst)
+    inline void flag(std::uint_least32_t src, std::uint_least32_t dst)
     {
         if ((src < m_ZoneCount) && (dst < m_ZoneCount))
         {
@@ -21,7 +20,7 @@ public:
             m_ZonePtrs[dst][src] = true;
         }
     }
-    inline bool check(UINT32 zone1, UINT32 zone2)
+    inline bool check(std::uint_least32_t zone1, std::uint_least32_t zone2)
     {
         if ((zone1 < m_ZoneCount) && (zone2 < m_ZoneCount))
         {
@@ -30,12 +29,12 @@ public:
         return false;
     }
     
-    void set(UINT32 zone, const BoundingBox& bounds);
-    UINT32 getZoneFromBounds(const BoundingBox& bounds);
-    UINT32 getZoneFromWinding(const Winding& winding);
+    void set(std::uint_least32_t zone, const BoundingBox& bounds);
+    std::uint_least32_t getZoneFromBounds(const BoundingBox& bounds);
+    std::uint_least32_t getZoneFromWinding(const Winding& winding);
 
 public:
-    Zones(UINT32 ZoneCount)
+    Zones(std::uint_least32_t ZoneCount)
     {
         m_ZoneCount = ZoneCount + 1;    // Zone 0 is used for all points outside all nodes
         m_ZoneVisMatrix = new bool[m_ZoneCount * m_ZoneCount];
@@ -43,7 +42,7 @@ public:
         m_ZonePtrs = new bool*[m_ZoneCount];
         m_ZoneBounds = new BoundingBox[m_ZoneCount];
 
-        UINT32 x;
+        std::uint_least32_t x;
         bool* dstPtr = m_ZoneVisMatrix;
         bool** srcPtr = m_ZonePtrs;
         for (x=0; x<m_ZoneCount; x++, srcPtr++, dstPtr += m_ZoneCount)
@@ -59,7 +58,7 @@ public:
     }
 
 protected:
-    UINT32       m_ZoneCount;
+    std::uint_least32_t       m_ZoneCount;
     bool*        m_ZoneVisMatrix;  // Size is (m_ZoneCount * m_ZoneCount) and data is duplicated for efficiency
     bool**       m_ZonePtrs;    // Lookups into m_ZoneMatrix for m_ZonePtrs[x][y] style;
     BoundingBox* m_ZoneBounds;

@@ -4,9 +4,6 @@
 
 #include "cmdlib.h" //--vluzacn
 
-extern time_t   getfiletime(const char* const filename);
-extern long     getfilesize(const char* const filename);
-extern long     getfiledata(const char* const filename, char* buffer, const int buffersize);
 extern int      q_filelength(FILE* f);
 
 extern FILE*    SafeOpenWrite(const char* const filename);

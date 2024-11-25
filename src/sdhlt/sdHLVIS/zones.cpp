@@ -5,7 +5,7 @@
 #include "vis.h"
 
 
-void Zones::set(UINT32 zone, const BoundingBox& bounds)
+void Zones::set(std::uint_least32_t zone, const BoundingBox& bounds)
 {
     if (zone < m_ZoneCount)
     {
@@ -13,9 +13,9 @@ void Zones::set(UINT32 zone, const BoundingBox& bounds)
     }
 }
 
-UINT32 Zones::getZoneFromBounds(const BoundingBox& bounds)
+std::uint_least32_t Zones::getZoneFromBounds(const BoundingBox& bounds)
 {
-    UINT32 x;
+    std::uint_least32_t x;
     for (x=0; x<m_ZoneCount; x++)
     {
         if (m_ZoneBounds[x].testSuperset(bounds))
@@ -26,9 +26,9 @@ UINT32 Zones::getZoneFromBounds(const BoundingBox& bounds)
     return 0;
 }
 
-UINT32 Zones::getZoneFromWinding(const Winding& winding)
+std::uint_least32_t Zones::getZoneFromWinding(const Winding& winding)
 {
-    UINT32          x;
+    std::uint_least32_t          x;
     BoundingBox     bounds;
 
     for (x=0; x<winding.m_NumPoints; x++)
@@ -70,8 +70,8 @@ static Winding*      WindingFromFace(const dface_t* f)
 
 Zones* MakeZones(void)
 {
-    UINT32 x;
-    UINT32 func_vis_count = 0;
+    std::uint_least32_t x;
+    std::uint_least32_t func_vis_count = 0;
 
     ParseEntities();
 
@@ -84,7 +84,7 @@ Zones* MakeZones(void)
 
         if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
         {
-            UINT32 value = atoi((const char*) ValueForKey(ent, u8"node"));
+            std::uint_least32_t value = atoi((const char*) ValueForKey(ent, u8"node"));
             if (value)
             {
                 func_vis_count++;
@@ -110,12 +110,12 @@ Zones* MakeZones(void)
 
         if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
         {
-            UINT32 func_vis_id = atoi((const char*) ValueForKey(ent, u8"node"));
+            std::uint_least32_t func_vis_id = atoi((const char*) ValueForKey(ent, u8"node"));
 
             {
                 for (const epair_t* keyvalue = ent->epairs; keyvalue; keyvalue = keyvalue->next)
                 {
-                    UINT32 other_id = atoi((const char*) keyvalue->key.c_str());
+                    std::uint_least32_t other_id = atoi((const char*) keyvalue->key.c_str());
                     if (other_id)
                     {
                         zones->flag(func_vis_id, other_id);
@@ -124,14 +124,14 @@ Zones* MakeZones(void)
             }
     
             {
-                UINT32          j;
+                std::uint_least32_t          j;
                 BoundingBox     bounds;
                 dface_t*        f = g_dfaces + mod->firstface;
             
                 for (j = 0; j < mod->numfaces; j++, f++)
                 {
                     Winding*        w = WindingFromFace(f);
-                    UINT32          k;
+                    std::uint_least32_t          k;
 
                     for (k = 0; k < w->m_NumPoints; k++)
                     {

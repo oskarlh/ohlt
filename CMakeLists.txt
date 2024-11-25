@@ -31,7 +31,6 @@ set(SDHLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
 #================
 
 set(COMMON_DIR ${SDHLT_DIR}/common)
-set(TEMPLATE_DIR ${SDHLT_DIR}/template)
 
 set(COMMON_SOURCES
     ${COMMON_DIR}/blockmem.cpp
@@ -48,7 +47,6 @@ set(COMMON_SOURCES
 )
 
 set(COMMON_HEADERS
-    ${TEMPLATE_DIR}/basictypes.h
     ${COMMON_DIR}/blockmem.h
     ${COMMON_DIR}/boundingbox.h
     ${COMMON_DIR}/bspfile.h

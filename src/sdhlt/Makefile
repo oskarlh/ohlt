@@ -58,7 +58,6 @@ COMMON_INCLUDEDIRS = \
 			common \
 
 COMMON_INCLUDEFILES = \
-			template/basictypes.h \
 			common/blockmem.h \
 			common/boundingbox.h \
 			common/bspfile.h \

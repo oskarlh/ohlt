@@ -43,10 +43,6 @@
 /////////////////////////////
 #ifdef SYSTEM_POSIX
 #define _MAX_PATH  4096
-#define _MAX_DRIVE 4096
-#define _MAX_DIR   4096
-#define _MAX_FNAME 4096
-#define _MAX_EXT   4096
 
 #define STDCALL
 #define FASTCALL
