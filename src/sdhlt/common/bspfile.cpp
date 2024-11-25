@@ -1434,33 +1434,33 @@ void            UnparseEntities()
 		{
 			SetKeyValue (mapent, u8"convertfrom", ValueForKey (mapent, u8"classname"));
 			SetKeyValue (mapent, u8"classname", (*ValueForKey (mapent, u8"convertto")? ValueForKey (mapent, u8"convertto"): u8"light"));
-			SetKeyValue (mapent, u8"convertto", u8"");
+			DeleteKey (mapent, u8"convertto");
 		}
 	}
 	// ugly code
 	for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_surface"))
+		if (classname_is(mapent, u8"light_surface"))
 		{
-			if (!*ValueForKey (mapent, u8"_tex"))
+			if (key_value_is_empty(mapent, u8"_tex"))
 			{
 				SetKeyValue (mapent, u8"_tex", u8"                ");
 			}
-			const char8_t *newclassname = ValueForKey (mapent, u8"convertto");
-			if (!*newclassname)
+			std::u8string_view newclassname = value_for_key (mapent, u8"convertto");
+			if (newclassname.empty())
 			{
 				SetKeyValue (mapent, u8"classname", u8"light");
 			}
-			else if (strncmp ((const char*) newclassname, "light", 5))
+			else if (!newclassname.starts_with(u8"light"))
 			{
-				Error ("New classname for 'light_surface' should begin with 'light' not '%s'.\n", (const char*) newclassname);
+				Error ("New classname for 'light_surface' should begin with 'light' not '%s'.\n", (const char*) newclassname.data());
 			}
 			else
 			{
 				SetKeyValue (mapent, u8"classname", newclassname);
 			}
-			SetKeyValue (mapent, u8"convertto", u8"");
+			DeleteKey (mapent, u8"convertto");
 		}
 	}
 #ifdef SDHLCSG //seedee
@@ -1609,7 +1609,11 @@ std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view k
 
 bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key)
 {
-	return !value_for_key(ent, key).empty();
+	return !key_value_is_empty(ent, key);
+}
+bool key_value_is_empty(const entity_t* const ent, std::u8string_view key)
+{
+	return value_for_key(ent, key).empty();
 }
 bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value)
 {
