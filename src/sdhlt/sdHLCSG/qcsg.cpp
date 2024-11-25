@@ -37,7 +37,7 @@ static int      c_tiny;
 static int      c_tiny_clip;
 static int      c_outfaces;
 static int      c_csgfaces;
-BoundingBox     world_bounds;
+bounding_box     world_bounds;
 
 
 vec_t           g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
@@ -724,7 +724,7 @@ static void     CSGBrush(int brushnum)
 
             // check brush bounding box first
             // TODO: use boundingbox method instead
-            if (bh1->bounds.testDisjoint(bh2->bounds))
+            if (test_disjoint(bh1->bounds, bh2->bounds))
             {
                 continue;
             }
@@ -739,7 +739,7 @@ static void     CSGBrush(int brushnum)
                 next = f->next;
 
                 // check face bounding box first
-                if (bh2->bounds.testDisjoint(f->bounds))
+                if (test_disjoint(bh2->bounds, f->bounds))
                 {                                          // this face doesn't intersect brush2's bbox
                     f->next = outside;
                     outside = f;
@@ -1440,7 +1440,7 @@ static void     SetModelCenters(int entitynum)
     int             last;
     char            string[MAXTOKEN];
     entity_t*       e = &g_entities[entitynum];
-    BoundingBox     bounds;
+    bounding_box     bounds;
     vec3_t          center;
 
     if ((entitynum == 0) || (e->numbrushes == 0)) // skip worldspawn and point entities
@@ -1455,11 +1455,11 @@ static void     SetModelCenters(int entitynum)
 			&& g_mapbrushes[i].contents != CONTENTS_BOUNDINGBOX
 			)
         {
-            bounds.add(g_mapbrushes[i].hulls->bounds);
+            add_to_bounding_box(bounds, g_mapbrushes[i].hulls->bounds);
         }
     }
 
-    VectorAdd(bounds.m_Mins, bounds.m_Maxs, center);
+    VectorAdd(bounds.mins, bounds.maxs, center);
     VectorScale(center, 0.5, center);
 
     safe_snprintf(string, MAXTOKEN, "%i %i %i", (int)center[0], (int)center[1], (int)center[2]);
@@ -1478,7 +1478,7 @@ static void     BoundWorld()
     int             i;
     brushhull_t*    h;
 
-    world_bounds.reset();
+    reset_bounding_box(world_bounds);
 
     for (i = 0; i < g_nummapbrushes; i++)
     {
@@ -1487,12 +1487,12 @@ static void     BoundWorld()
         {
             continue;
         }
-        world_bounds.add(h->bounds);
+        add_to_bounding_box(world_bounds, h->bounds);
     }
 
     Verbose("World bounds: (%i %i %i) to (%i %i %i)\n",
-            (int)world_bounds.m_Mins[0], (int)world_bounds.m_Mins[1], (int)world_bounds.m_Mins[2],
-            (int)world_bounds.m_Maxs[0], (int)world_bounds.m_Maxs[1], (int)world_bounds.m_Maxs[2]);
+            (int)world_bounds.mins[0], (int)world_bounds.mins[1], (int)world_bounds.mins[2],
+            (int)world_bounds.maxs[0], (int)world_bounds.maxs[1], (int)world_bounds.maxs[2]);
 }
 
 // =====================================================================================

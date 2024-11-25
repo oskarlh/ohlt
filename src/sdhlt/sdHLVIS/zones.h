@@ -1,7 +1,7 @@
 #pragma once
 
 #include "winding.h"
-#include "boundingbox.h"
+#include "bounding_box.h"
 
 
 // Simple class of visibily flags and zone IDs.  No concept of location is in this class
@@ -25,8 +25,8 @@ class Zones {
             return false;
         }
         
-        void set(std::uint_least32_t zone, const BoundingBox& bounds);
-        std::uint_least32_t getZoneFromBounds(const BoundingBox& bounds);
+        void set(std::uint_least32_t zone, const bounding_box& bounds);
+        std::uint_least32_t getZoneFromBounds(const bounding_box& bounds);
         std::uint_least32_t getZoneFromWinding(const Winding& winding);
 
     public:
@@ -36,7 +36,7 @@ class Zones {
             m_ZoneVisMatrix = new bool[m_ZoneCount * m_ZoneCount];
             memset(m_ZoneVisMatrix, 0, sizeof(bool) * m_ZoneCount * m_ZoneCount);
             m_ZonePtrs = new bool*[m_ZoneCount];
-            m_ZoneBounds = new BoundingBox[m_ZoneCount];
+            m_ZoneBounds = std::make_unique<bounding_box[]>(m_ZoneCount);
 
             std::uint_least32_t x;
             bool* dstPtr = m_ZoneVisMatrix;
@@ -50,14 +50,13 @@ class Zones {
         {
             delete[] m_ZoneVisMatrix;
             delete[] m_ZonePtrs;
-            delete[] m_ZoneBounds;
         }
 
     protected:
         std::uint_least32_t       m_ZoneCount;
         bool*        m_ZoneVisMatrix;  // Size is (m_ZoneCount * m_ZoneCount) and data is duplicated for efficiency
         bool**       m_ZonePtrs;    // Lookups into m_ZoneMatrix for m_ZonePtrs[x][y] style;
-        BoundingBox* m_ZoneBounds;
+        std::unique_ptr<bounding_box[]> m_ZoneBounds;
 };
 
 Zones* MakeZones();

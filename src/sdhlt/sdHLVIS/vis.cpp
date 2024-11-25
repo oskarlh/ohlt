@@ -86,9 +86,6 @@ int             g_room_count = 0;
 
 static int      totalvis = 0;
 
-#if ZHLT_ZONES
-Zones*          g_Zones;
-#endif
 
 #ifdef ZHLT_NETVIS
 // -- these are definitions and initializations of C/CPP common variables
@@ -1129,52 +1126,6 @@ static void     LoadPortalsByFilename(const char* const filename)
 }
 
 
-#if ZHLT_ZONES
-// =====================================================================================
-//  AssignPortalsToZones
-// =====================================================================================
-static void     AssignPortalsToZones()
-{
-    hlassert(g_Zones != nullptr);
-
-    std::uint_least32_t count = 0;
-
-    portal_t* p;
-    std::uint_least32_t x;
-
-    std::uint_least32_t tmp[20];
-    memset(tmp, 0, sizeof(tmp));
-
-    std::uint_least32_t numportals = g_numportals * 2;
-    for (x=0, p=g_portals; x<numportals; x++, p++)
-    {
-        BoundingBox bounds;
-        winding_t* w = p->winding;
-        std::uint_least32_t numpoints = w->numpoints;
-
-        std::uint_least32_t y;
-
-        for (y=0; y<numpoints; y++)
-        {
-            bounds.add(w->points[y]);
-        }
-
-        p->zone = g_Zones->getZoneFromBounds(bounds);
-        tmp[p->zone]++;
-        if (p->zone)
-        {
-            count++;
-        }
-    }
-
-    for (x=0; x<15; x++)
-    {
-        Log("Zone %2u : %u\n", x, tmp[x]);
-    }
-    Log("%u of %u portals were contained in func_vis zones\n", count, numportals);
-}
-#endif
-
 // =====================================================================================
 //  Usage
 // =====================================================================================
@@ -1904,11 +1855,6 @@ int             main(const int argc, char** argv)
 		}
 	}
     LoadPortalsByFilename(portalfile);
-
-#   if ZHLT_ZONES
-        g_Zones = MakeZones();
-        AssignPortalsToZones();
-#   endif
 
 #endif
 

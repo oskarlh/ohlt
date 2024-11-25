@@ -413,14 +413,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
     {
         portal_t* p = *plist;
 
-#if ZHLT_ZONES
-        portal_t * head_p = stack.head->portal;
-        if (g_Zones->check(head_p->zone, p->zone))
-        {
-            continue;
-        }
-#endif
-
         {
             const unsigned offset = p->leaf >> 3;
             const unsigned bit = 1 << (p->leaf & 7);
@@ -701,22 +693,12 @@ void            BasePortalVis(int unused)
 
         memset(portalsee, 0, portalsize);
 
-#if ZHLT_ZONES
-        std::uint_least32_t zone = p->zone;
-#endif
-
         for (j = 0, tp = g_portals; j < portalsize; j++, tp++)
         {
             if (j == i)
             {
                 continue;
             }
-#if ZHLT_ZONES
-            if (g_Zones->check(zone, tp->zone))
-            {
-                continue;
-            }
-#endif
 
             w = tp->winding;
             for (k = 0; k < w->numpoints; k++)

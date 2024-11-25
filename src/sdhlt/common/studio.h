@@ -421,8 +421,6 @@ typedef struct
 	int		groupindex;	// UNUSED
 } mstudiomodel_t;
 
-// vec3_t	boundingbox[model][bone][2];	// complex intersection info
-
 // meshes
 typedef struct 
 {

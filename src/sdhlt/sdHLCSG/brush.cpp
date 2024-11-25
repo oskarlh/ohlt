@@ -635,30 +635,30 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	//completely axial brush, this is the only necessary step
 
 	//add mins
-	VectorAdd(brush->hulls[0].bounds.m_Mins, g_hull_size[hullnum][0], origin);
+	VectorAdd(brush->hulls[0].bounds.mins, g_hull_size[hullnum][0], origin);
 	normal[0] = -1;
 	normal[1] = 0;
 	normal[2] = 0;
-	AddHullPlane(hull,normal,(axialbevel[plane_x][0] ? brush->hulls[0].bounds.m_Mins : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_x][0] ? brush->hulls[0].bounds.mins.data() : origin),false);
 	normal[0] = 0;
 	normal[1] = -1;
-	AddHullPlane(hull,normal,(axialbevel[plane_y][0] ? brush->hulls[0].bounds.m_Mins : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_y][0] ? brush->hulls[0].bounds.mins.data() : origin),false);
 	normal[1] = 0;
 	normal[2] = -1;
-	AddHullPlane(hull,normal,(axialbevel[plane_z][0] ? brush->hulls[0].bounds.m_Mins : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_z][0] ? brush->hulls[0].bounds.mins.data() : origin),false);
 
 	normal[2] = 0;
 
 	//add maxes
-	VectorAdd(brush->hulls[0].bounds.m_Maxs, g_hull_size[hullnum][1], origin);
+	VectorAdd(brush->hulls[0].bounds.maxs, g_hull_size[hullnum][1], origin);
 	normal[0] = 1;
-	AddHullPlane(hull,normal,(axialbevel[plane_x][1] ? brush->hulls[0].bounds.m_Maxs : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_x][1] ? brush->hulls[0].bounds.maxs.data() : origin),false);
 	normal[0] = 0;
 	normal[1] = 1;
-	AddHullPlane(hull,normal,(axialbevel[plane_y][1] ? brush->hulls[0].bounds.m_Maxs : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_y][1] ? brush->hulls[0].bounds.maxs.data() : origin),false);
 	normal[1] = 0;
 	normal[2] = 1;
-	AddHullPlane(hull,normal,(axialbevel[plane_z][1] ? brush->hulls[0].bounds.m_Maxs : origin),false);
+	AddHullPlane(hull,normal,(axialbevel[plane_z][1] ? brush->hulls[0].bounds.maxs.data() : origin),false);
 /*
 	bface_t* hull_face; //sanity check
 
@@ -755,7 +755,7 @@ void            MakeHullFaces(const brush_t* const b, brushhull_t *h)
 	SortSides (h);
 
 restart:
-    h->bounds.reset();
+    reset_bounding_box(h->bounds);
 
     // for each face in this brushes hull
     for (f = h->faces; f; f = f->next)
@@ -800,7 +800,7 @@ restart:
             unsigned int    i;
             for (i = 0; i < w->m_NumPoints; i++)
             {
-                h->bounds.add(w->m_Points[i]);
+                add_to_bounding_box(h->bounds, w->m_Points[i]);
             }
         }
     }
@@ -808,13 +808,13 @@ restart:
     unsigned int    i;
     for (i = 0; i < 3; i++)
     {
-        if (h->bounds.m_Mins[i] < -BOGUS_RANGE / 2 || h->bounds.m_Maxs[i] > BOGUS_RANGE / 2)
+        if (h->bounds.mins[i] < -BOGUS_RANGE / 2 || h->bounds.maxs[i] > BOGUS_RANGE / 2)
         {
             Fatal(assume_BRUSH_OUTSIDE_WORLD, "Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
 				b->originalentitynum, b->originalbrushnum,
                   BOGUS_RANGE / 2,
-                  h->bounds.m_Mins[0], h->bounds.m_Mins[1], h->bounds.m_Mins[2],
-                  h->bounds.m_Maxs[0], h->bounds.m_Maxs[1], h->bounds.m_Maxs[2]);
+                  h->bounds.mins[0], h->bounds.mins[1], h->bounds.mins[2],
+                  h->bounds.maxs[0], h->bounds.maxs[1], h->bounds.maxs[2]);
         }
     }
 }

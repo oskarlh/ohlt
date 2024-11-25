@@ -34,6 +34,7 @@ set(COMMON_DIR ${SDHLT_DIR}/common)
 
 set(COMMON_SOURCES
     ${COMMON_DIR}/blockmem.cpp
+    ${COMMON_DIR}/bounding_box.cpp
     ${COMMON_DIR}/bspfile.cpp
     ${COMMON_DIR}/cmdlib.cpp
     ${COMMON_DIR}/cmdlinecfg.cpp
@@ -48,7 +49,7 @@ set(COMMON_SOURCES
 
 set(COMMON_HEADERS
     ${COMMON_DIR}/blockmem.h
-    ${COMMON_DIR}/boundingbox.h
+    ${COMMON_DIR}/bounding_box.h
     ${COMMON_DIR}/bspfile.h
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h

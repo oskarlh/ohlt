@@ -518,7 +518,7 @@ static void ParseBrush(entity_t* mapent)
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
         {
-            VectorAdd(b->hulls[0].bounds.m_Mins, b->hulls[0].bounds.m_Maxs, origin);
+            VectorAdd(b->hulls[0].bounds.mins, b->hulls[0].bounds.maxs, origin);
             VectorScale(origin, 0.5, origin);
     
             safe_snprintf(string, MAXTOKEN, "%i %i %i", (int)origin[0], (int)origin[1], (int)origin[2]);
@@ -572,8 +572,8 @@ static void ParseBrush(entity_t* mapent)
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
         {
-            VectorCopy(b->hulls[0].bounds.m_Mins, mins);
-            VectorCopy(b->hulls[0].bounds.m_Maxs, maxs);
+            VectorCopy(b->hulls[0].bounds.mins, mins);
+            VectorCopy(b->hulls[0].bounds.maxs, maxs);
     
        		char string[MAXTOKEN];
             safe_snprintf(string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f", mins[0], mins[1], mins[2], maxs[0], maxs[1], maxs[2]);

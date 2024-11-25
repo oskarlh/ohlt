@@ -1,20 +1,20 @@
 #include "vis.h"
 
 
-void Zones::set(std::uint_least32_t zone, const BoundingBox& bounds)
+void Zones::set(std::uint_least32_t zone, const bounding_box& bounds)
 {
     if (zone < m_ZoneCount)
     {
-        m_ZoneBounds[zone] = bounds;
+        set_bounding_box(m_ZoneBounds[zone], bounds);
     }
 }
 
-std::uint_least32_t Zones::getZoneFromBounds(const BoundingBox& bounds)
+std::uint_least32_t Zones::getZoneFromBounds(const bounding_box& bounds)
 {
     std::uint_least32_t x;
     for (x=0; x<m_ZoneCount; x++)
     {
-        if (m_ZoneBounds[x].testSuperset(bounds))
+        if (test_superset(m_ZoneBounds[x], bounds))
         {
             return x;
         }
@@ -25,11 +25,11 @@ std::uint_least32_t Zones::getZoneFromBounds(const BoundingBox& bounds)
 std::uint_least32_t Zones::getZoneFromWinding(const Winding& winding)
 {
     std::uint_least32_t          x;
-    BoundingBox     bounds;
+    bounding_box     bounds;
 
     for (x=0; x<winding.m_NumPoints; x++)
     {
-        bounds.add(winding.m_Points[x]);
+        add_to_bounding_box(bounds, winding.m_Points[x]);
     }
 
     return getZoneFromBounds(bounds);
@@ -121,7 +121,7 @@ Zones* MakeZones(void)
     
             {
                 std::uint_least32_t          j;
-                BoundingBox     bounds;
+                bounding_box     bounds;
                 dface_t*        f = g_dfaces + mod->firstface;
             
                 for (j = 0; j < mod->numfaces; j++, f++)
@@ -131,7 +131,7 @@ Zones* MakeZones(void)
 
                     for (k = 0; k < w->m_NumPoints; k++)
                     {
-                        bounds.add(w->m_Points[k]);
+                        add_to_bounding_box(bounds, w->m_Points[k]);
                     }
                     delete w;
                 }
@@ -139,8 +139,8 @@ Zones* MakeZones(void)
                 zones->set(func_vis_id, bounds);
 
                 Log("Adding zone %u : mins(%4.3f %4.3f %4.3f) maxs(%4.3f %4.3f %4.3f)\n", func_vis_id, 
-                    bounds.m_Mins[0],bounds.m_Mins[1],bounds.m_Mins[2],
-                    bounds.m_Maxs[0],bounds.m_Maxs[1],bounds.m_Maxs[2]);
+                    bounds.mins[0],bounds.mins[1],bounds.mins[2],
+                    bounds.maxs[0],bounds.maxs[1],bounds.maxs[2]);
             }
         }
     }

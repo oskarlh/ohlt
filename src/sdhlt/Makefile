@@ -59,7 +59,7 @@ COMMON_INCLUDEDIRS = \
 
 COMMON_INCLUDEFILES = \
 			common/blockmem.h \
-			common/boundingbox.h \
+			common/bounding_box.h \
 			common/bspfile.h \
 			common/cli_option_defaults.h \
 			common/cmdlib.h \

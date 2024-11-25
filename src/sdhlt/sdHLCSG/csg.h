@@ -16,7 +16,7 @@
 #include "bspfile.h"
 #include "blockmem.h"
 #include "filelib.h"
-#include "boundingbox.h"
+#include "bounding_box.h"
 // AJM: added in
 #include "wadpath.h"
 #include "cmdlinecfg.h"
@@ -114,7 +114,7 @@ typedef struct bface_s
     int             contents;
     int             backcontents;
 	bool			bevel; //used for ExpandBrush
-    BoundingBox     bounds;
+    bounding_box     bounds;
 } bface_t;
 
 // NUM_HULLS should be no larger than MAX_MAP_HULLS
@@ -122,7 +122,7 @@ typedef struct bface_s
 
 typedef struct
 {
-    BoundingBox     bounds;
+    bounding_box     bounds;
     bface_t*        faces;
 } brushhull_t;
 

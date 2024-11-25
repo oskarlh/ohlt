@@ -7,7 +7,7 @@
 #include "win32fix.h"
 #include "mathlib.h"
 #include "bspfile.h"
-#include "boundingbox.h"
+#include "bounding_box.h"
 
 #define MAX_POINTS_ON_WINDING 128
 // TODO: FIX THIS STUPID SHIT (MAX_POINTS_ON_WINDING)
@@ -42,7 +42,7 @@ public:
     void            getPlane(dplane_t& plane) const;
     void            getPlane(vec3_t& normal, vec_t& dist) const;
     vec_t           getArea() const;
-    void            getBounds(BoundingBox& bounds) const;
+    void            getBounds(bounding_box& bounds) const;
     void            getBounds(vec3_t& mins, vec3_t& maxs) const;
     void            getCenter(vec3_t& center) const;
     Winding*        Copy() const;

@@ -96,25 +96,25 @@ vec_t           Winding::getArea() const
 
 void            Winding::getBounds(vec3_t& mins, vec3_t& maxs) const
 {
-    BoundingBox     bounds;
+    bounding_box     bounds;
     unsigned    x;
 
     for (x=0; x<m_NumPoints; x++)
     {
-        bounds.add(m_Points[x]);
+        add_to_bounding_box(bounds, m_Points[x]);
     }
-    VectorCopy(bounds.m_Mins, mins);
-    VectorCopy(bounds.m_Maxs, maxs);
+    VectorCopy(bounds.maxs, maxs);
+    VectorCopy(bounds.mins, mins);
 }
 
-void            Winding::getBounds(BoundingBox& bounds) const
+void            Winding::getBounds(bounding_box& bounds) const
 {
-    bounds.reset();
+    reset_bounding_box(bounds);
     unsigned    x;
 
     for (x=0; x<m_NumPoints; x++)
     {
-        bounds.add(m_Points[x]);
+        add_to_bounding_box(bounds, m_Points[x]);
     }
 }
 
