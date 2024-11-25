@@ -4600,7 +4600,7 @@ void MdlLightHack ()
 		ent2 = FindTargetEntity (target);
 		if (ent2 == nullptr)
 		{
-			Warning ("target entity '%s' not found", target);
+			Warning ("target entity '%s' not found", (const char*) target.data());
 			continue;
 		}
 		GetVectorForKey (ent1, u8"origin", origin1);
@@ -4824,7 +4824,7 @@ void            FinalLightFace(const int facenum)
 			const int pos_count = 15;
 			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
 			int i, j, k;
-			vec3_t v, dist;
+			vec3_array v, dist;
 			for (i = 0; i < g_numfaces; ++i)
 			{
 				const facelight_t *fl=&facelight[i];

@@ -1,5 +1,3 @@
-//#pragma warning(disable: 4018) // '<' : signed/unsigned mismatch
-
 /*
  
     CONSTRUCTIVE SOLID GEOMETRY    -aka-    C S G 
@@ -15,6 +13,7 @@
 */
 
 #include "csg.h" 
+#include "filelib.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
@@ -1980,13 +1979,7 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				char tmp[_MAX_PATH];
-#ifdef SYSTEM_WIN32
-				GetModuleFileName (nullptr, tmp, _MAX_PATH);
-#else
-				safe_strncpy (tmp, argv[0], _MAX_PATH);
-#endif
-				LoadLangFile (argv[++i], tmp);
+				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
 			}
 			else
 			{
@@ -2083,79 +2076,51 @@ int             main(const int argc, char** argv)
     start = I_FloatTime();
 	if (g_hullfile)
 	{
-		char temp[_MAX_PATH];
-		char test[_MAX_PATH];
-		safe_strncpy (temp, g_Mapname, _MAX_PATH);
-		ExtractFilePath (temp, test);
-		safe_strncat (test, g_hullfile, _MAX_PATH);
+		std::filesystem::path test = std::filesystem::path(g_Mapname).parent_path() / g_hullfile;
 		if (std::filesystem::exists (test))
 		{
-			g_hullfile = strdup (test);
+			g_hullfile = strdup (test.c_str());
 		}
 		else
 		{
-#ifdef SYSTEM_WIN32
-			GetModuleFileName (nullptr, temp, _MAX_PATH);
-#else
-			safe_strncpy (temp, argv[0], _MAX_PATH);
-#endif
-			ExtractFilePath (temp, test);
-			safe_strncat (test, g_hullfile, _MAX_PATH);
+            test = get_path_to_directory_with_executable(argv) / g_hullfile;
 			if (std::filesystem::exists (test))
 			{
-				g_hullfile = strdup (test);
+				g_hullfile = strdup (test.c_str());
 			}
 		}
 	}
 	if (g_nullfile)
 	{
-		char temp[_MAX_PATH];
-		char test[_MAX_PATH];
-		safe_strncpy (temp, g_Mapname, _MAX_PATH);
-		ExtractFilePath (temp, test);
-		safe_strncat (test, g_nullfile, _MAX_PATH);
+
+		std::filesystem::path test = std::filesystem::path(g_Mapname).parent_path() / g_nullfile;
 		if (std::filesystem::exists (test))
 		{
-			g_nullfile = strdup (test);
+			g_nullfile = strdup (test.c_str());
 		}
 		else
 		{
-#ifdef SYSTEM_WIN32
-			GetModuleFileName (nullptr, temp, _MAX_PATH);
-#else
-			safe_strncpy (temp, argv[0], _MAX_PATH);
-#endif
-			ExtractFilePath (temp, test);
-			safe_strncat (test, g_nullfile, _MAX_PATH);
+            std::filesystem::path test = get_path_to_directory_with_executable(argv) / g_nullfile;
 			if (std::filesystem::exists (test))
 			{
-				g_nullfile = strdup (test); //Todo rename all these vars //seedee
+				g_nullfile = strdup (test.c_str());
 			}
 		}
 	}
-	if (g_wadcfgfile) //If wad.cfg exists //seedee
+	if (g_wadcfgfile) // If wad.cfg exists
 	{
-		char mapDirPath[_MAX_PATH];
-		safe_strncpy (mapDirPath, g_Mapname, _MAX_PATH); //Extract path
-        char wadCfgPath[_MAX_PATH];
-		ExtractFilePath (mapDirPath, wadCfgPath); //Append wad.cfg name
-		safe_strncat (wadCfgPath, g_wadcfgfile, _MAX_PATH);
-		if (std::filesystem::exists (wadCfgPath)) //Update global if file exists
+        std::filesystem::path wadCfgPath = std::filesystem::path(g_Mapname).parent_path() / g_wadcfgfile;
+		if (std::filesystem::exists (wadCfgPath)) // Use global wad.cfg if file exists
 		{
-			g_wadcfgfile = strdup (wadCfgPath); 
+			g_wadcfgfile = strdup (wadCfgPath.c_str()); 
 		}
 		else
 		{
-#ifdef SYSTEM_WIN32 //Look relative to exe
-			GetModuleFileName (nullptr, mapDirPath, _MAX_PATH);
-#else //Fallback
-			safe_strncpy (mapDirPath, argv[0], _MAX_PATH);
-#endif
-			ExtractFilePath (mapDirPath, wadCfgPath);
-			safe_strncat (wadCfgPath, g_wadcfgfile, _MAX_PATH);
+            // Look for wad.cfg relative to exe
+            wadCfgPath = get_path_to_directory_with_executable(argv) / g_wadcfgfile;
 			if (std::filesystem::exists (wadCfgPath))
 			{
-				g_wadcfgfile = strdup (wadCfgPath);
+				g_wadcfgfile = strdup (wadCfgPath.c_str());
 			}
 		}
 	}
@@ -2212,21 +2177,13 @@ int             main(const int argc, char** argv)
   {
 	if (g_wadconfigname) //If wadconfig had a name provided //seedee
 	{
-        char exePath[_MAX_PATH];
-        char wadCfgPath[_MAX_PATH];
-#ifdef SYSTEM_WIN32 //Get exe path
-        GetModuleFileName(nullptr, exePath, _MAX_PATH);
-#else //Fallback
-        safe_strncpy(exePath, argv[0], _MAX_PATH);
-#endif
-        ExtractFilePath(exePath, wadCfgPath);
-        safe_strncat(wadCfgPath, "wad.cfg", _MAX_PATH);
+        std::filesystem::path wadCfgPath = get_path_to_directory_with_executable(argv) / u8"wad.cfg";
 
         if (g_wadcfgfile) //If provided override the default
         {
-            safe_strncpy(wadCfgPath, g_wadcfgfile, _MAX_PATH);
+            wadCfgPath = g_wadcfgfile;
         }
-        LoadWadconfig(wadCfgPath, g_wadconfigname);
+        LoadWadconfig(wadCfgPath.c_str(), g_wadconfigname);
 	}
 	else if (g_wadcfgfile)
 	{

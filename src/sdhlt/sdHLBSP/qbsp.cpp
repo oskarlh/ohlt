@@ -1840,13 +1840,7 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				char tmp[_MAX_PATH];
-#ifdef SYSTEM_WIN32
-				GetModuleFileName (nullptr, tmp, _MAX_PATH);
-#else
-				safe_strncpy (tmp, argv[0], _MAX_PATH);
-#endif
-				LoadLangFile (argv[++i], tmp);
+				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
 			}
 			else
 			{
@@ -1910,29 +1904,22 @@ int             main(const int argc, char** argv)
 
     // Load the .void files for allowable entities in the void
     {
-        char            strSystemEntitiesVoidFile[_MAX_PATH];
         char            strMapEntitiesVoidFile[_MAX_PATH];
 
 
         // try looking in the current directory
-        safe_strncpy(strSystemEntitiesVoidFile, ENTITIES_VOID, _MAX_PATH);
+        std::filesystem::path strSystemEntitiesVoidFile = ENTITIES_VOID;
         if (!std::filesystem::exists(strSystemEntitiesVoidFile))
         {
-            char tmp[_MAX_PATH];
             // try looking in the directory we were run from
-#ifdef SYSTEM_WIN32
-            GetModuleFileName(nullptr, tmp, _MAX_PATH);
-#else
-            safe_strncpy(tmp, argv[0], _MAX_PATH);
-#endif
-            ExtractFilePath(tmp, strSystemEntitiesVoidFile);
-            safe_strncat(strSystemEntitiesVoidFile, ENTITIES_VOID, _MAX_PATH);
+            strSystemEntitiesVoidFile = get_path_to_directory_with_executable(argv) / ENTITIES_VOID;
+
         }
 
         // Set the optional level specific lights filename
 		safe_snprintf(strMapEntitiesVoidFile, _MAX_PATH, "%s" ENTITIES_VOID_EXT, g_Mapname);
 
-        LoadAllowableOutsideList(strSystemEntitiesVoidFile);    // default entities.void
+        LoadAllowableOutsideList(strSystemEntitiesVoidFile.c_str());    // default entities.void
         if (*strMapEntitiesVoidFile)
         {
             LoadAllowableOutsideList(strMapEntitiesVoidFile);   // automatic mapname.void

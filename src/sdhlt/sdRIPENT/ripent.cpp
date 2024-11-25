@@ -961,13 +961,7 @@ int             main(int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				char tmp[_MAX_PATH];
-#ifdef SYSTEM_WIN32
-				GetModuleFileName (nullptr, tmp, _MAX_PATH);
-#else
-				safe_strncpy (tmp, argv[0], _MAX_PATH);
-#endif
-				LoadLangFile (argv[++i], tmp);
+				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
 			}
 			else
 			{

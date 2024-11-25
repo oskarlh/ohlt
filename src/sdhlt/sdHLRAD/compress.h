@@ -24,15 +24,14 @@ extern const char *float_type_string[];
 
 extern const size_t float_size[];
 
-typedef enum
+enum vector_type
 {
 	VECTOR96 = 0,
 	VECTOR48,
 	VECTOR32,
 	VECTOR24,
 	vector_type_count
-}
-vector_type;
+};
 
 extern const char *vector_type_string[];
 

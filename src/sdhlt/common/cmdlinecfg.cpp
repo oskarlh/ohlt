@@ -2,6 +2,7 @@
 #include "scriplib.h"
 #include "cmdlinecfg.h"
 #include "log.h"
+#include "filelib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -264,18 +265,11 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 	FILE *f;
 	char *s;
 	const char *c, *c0;
-	char filepath[_MAX_PATH];
 	s = nullptr;
 
-	char tmp[_MAX_PATH];
-#ifdef SYSTEM_WIN32
-	GetModuleFileName (nullptr, tmp, _MAX_PATH);
-#else
-	safe_strncpy (tmp, argv[0], _MAX_PATH);
-#endif
-	ExtractFilePath (tmp, filepath);
-	strcat (filepath, paramfilename);
-	f = fopen (filepath, "r");
+    std::filesystem::path filepath = get_path_to_directory_with_executable(argv) / paramfilename;
+
+	f = fopen (filepath.c_str(), "r");
 	if (f)
 	{
 		int len = 0x100000;

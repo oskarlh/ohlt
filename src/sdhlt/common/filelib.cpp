@@ -32,6 +32,138 @@
 #include "blockmem.h"
 
 
+
+std::optional<std::filesystem::path> try_to_get_canonical_path(const std::filesystem::path& path) {
+    std::error_code canonicalErrorCode;
+    const std::filesystem::path canonicalPath = std::filesystem::canonical(
+        path,
+        canonicalErrorCode
+    );
+    if(canonicalErrorCode) {
+        return std::nullopt;
+    }
+    return canonicalPath;
+}
+
+#ifdef VERSION_LINUX
+std::optional<std::filesystem::path> try_to_get_executable_path_linux() {
+  return try_to_get_canonical_path("/proc/self/exe");
+}
+#endif
+
+
+#ifdef VERSION_MACOS
+#include <mach-o/dyld.h>
+#include <utility>
+
+std::optional<std::filesystem::path> try_to_get_executable_path_macos() {
+  std::string pathString;
+  std::uint32_t sizeToTry = (1 << 8) - 1;
+  int errorCode = 0;
+  bool reachedSizeLimit = false;
+  do {
+    sizeToTry = sizeToTry * 2 + 1;
+    if(std::cmp_greater_equal(sizeToTry, pathString.max_size())) {
+        sizeToTry = (std::uint32_t) pathString.max_size();
+        reachedSizeLimit = true;
+    }
+    if (sizeToTry == std::numeric_limits<std::uint32_t>::max()) {
+        reachedSizeLimit = true;
+    }
+
+    pathString.resize_and_overwrite(
+        sizeToTry,
+        [&errorCode] (char* buffer, std::size_t bufferSize) constexpr{
+            std::uint32_t resultLength = bufferSize;
+            errorCode = _NSGetExecutablePath(buffer, &resultLength);
+            return (std::size_t) resultLength;
+    });
+    // errorCode == -1 means the buffer wasn't large enough to store the string
+  } while(errorCode == -1 && !reachedSizeLimit);
+    if(errorCode !=0) {
+        return std::nullopt;
+    }
+
+    return try_to_get_canonical_path(pathString);
+}
+#endif
+
+#ifdef SYSTEM_WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+std::optional<std::filesystem::path> try_to_get_executable_path_win32() {
+  std::wstring pathString;
+  std::size_t nextSizeAttempt = (1 << 8) - 1;
+  bool tooSmall;
+  bool reachedSizeLimit = false;
+  do {
+    nextSizeAttempt = nextSizeAttempt * 2 + 1;
+    if(std::cmp_greater_equal(sizeToTry, pathString.max_size())) {
+        sizeToTry = (DWORD) pathString.max_size();
+        reachedSizeLimit = true;
+    }
+    if (sizeToTry == std::numeric_limits<DWORD>::max()) {
+        reachedSizeLimit = true;
+    }
+
+    tooSmall = false;
+    pathString.resize_and_overwrite(
+        nextSizeAttempt,
+        [&errorCode] (wchar_t* buffer, std::size_t bufferSize) constexpr{
+            DWORD resultLength = GetModuleFileNameW(nullptr, buffer, (DWORD) bufferSize);
+            if(resultLength == bufferSize) {
+                tooSmall = true;
+                return 0;
+            }
+            return (std::size_t) resultLength;
+    });
+  } while(tooSmall && !reachedSizeLimit);
+    if(pathString.empty()) {
+        return std::nullopt;
+    }
+
+    return try_to_get_canonical_path(pathString);
+}
+#endif
+
+std::filesystem::path get_path_to_directory_with_executable(char** argvForFallback)
+{  
+    // argv0 may be nulltpr, because while argv[0] is guaranteed by the standard to be available,
+    // in the case of argc == 0, this is also true: arg[0] == nullptr
+    const char* argv0 = argvForFallback[0];
+
+    const std::optional<std::filesystem::path> executablePath = std::optional<std::filesystem::path>{}
+#ifdef VERSION_LINUX
+    .or_else(try_to_get_executable_path_linux)
+#endif
+#ifdef VERSION_MACOS
+    .or_else(try_to_get_executable_path_macos)
+#endif
+#ifdef SYSTEM_WIN32
+    .or_else(try_to_get_executable_path_windows)
+#endif
+    .or_else(
+       [argv0] () -> std::optional<std::filesystem::path> {
+          if(argv0 == nullptr || argv0[0] == '\0') {
+            return std::nullopt;
+          }
+          return std::filesystem::canonical(argv0);
+       }
+    );
+
+    const std::filesystem::path parentFolderPath = executablePath
+    .transform([] (const std::filesystem::path& exec) {
+        return exec.parent_path();
+    }).or_else(
+        []() { return std::make_optional(std::filesystem::current_path()); }
+    ).value();
+    
+    return try_to_get_canonical_path(parentFolderPath).or_else(
+        []() { return std::make_optional(std::filesystem::current_path()); }
+    ).value();
+}
+
 /*
  * ================
  * filelength

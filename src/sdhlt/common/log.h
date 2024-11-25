@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include "cmdlib.h"
 #include "developer_level.h"
 #include "mathtypes.h"
@@ -43,7 +44,7 @@ extern void FORMAT_PRINTF(2,3) Developer(developer_level_t level, const char* co
 #endif
 
 extern const char * Localize (const char *s);
-extern void LoadLangFile (const char *name, const char *programpath);
+extern void LoadLangFile (const char *name, std::filesystem::path programDirectoryPath);
 extern int InitConsole(int argc, char **argv);
 extern void FORMAT_PRINTF(1,2) PrintConsole(const char* const message, ...);
 extern void FORMAT_PRINTF(1,2) Verbose(const char* const message, ...);

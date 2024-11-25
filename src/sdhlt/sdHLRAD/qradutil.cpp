@@ -755,7 +755,7 @@ void FreePositionMaps ()
 			const int pos_count = 15;
 			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
 			int i, j, k;
-			vec3_t v, dist;
+			vec3_array v, dist;
 			for (i = 0; i < g_numfaces; ++i)
 			{
 				positionmap_t *map = &g_face_positions[i];

@@ -112,7 +112,7 @@ vec_t g_texreflectscale = DEFAULT_TEXREFLECTSCALE;
 bool g_bleedfix = DEFAULT_BLEEDFIX;
 bool g_drawpatch = false;
 bool g_drawsample = false;
-vec3_t g_drawsample_origin = {0,0,0};
+vec3_array g_drawsample_origin = {0,0,0};
 vec_t g_drawsample_radius = 0;
 bool g_drawedge = false;
 bool g_drawlerp = false;
@@ -1639,9 +1639,9 @@ static void		LoadOpaqueEntities()
 				{
 					entity_t *lightent = &g_entities[j];
 
-					if (!strcmp ((const char*) ValueForKey (lightent, u8"classname"), "light_shadow") //If light_shadow targeting the current entity
-						&& *ValueForKey (lightent, u8"target")
-						&& !strcmp ((const char*) ValueForKey (lightent, u8"target"),(const char*)  ValueForKey (ent, u8"targetname")))
+					if (classname_is(lightent, u8"light_shadow") //If light_shadow targeting the current entity
+						&& key_value_is_not_empty (lightent, u8"target")
+						&& key_value_is (lightent, u8"target", value_for_key(ent, u8"targetname")))
 					{
 						opaquestyle = IntForKey (lightent, u8"style"); //Get the style number and validate it
 
@@ -1713,32 +1713,32 @@ static entity_t *FindTexlightEntity (int facenum)
 	for (int i = 0; i < g_numentities; i++)
 	{
 		entity_t *ent = &g_entities[i];
-		if (strcmp ((const char*) ValueForKey (ent, u8"classname"), "light_surface"))
+		if (!classname_is(ent, u8"light_surface"))
 			continue;
-		if (strcasecmp ((const char*) ValueForKey (ent, u8"_tex"), texname))
+		if (strcasecmp ((const char*) value_for_key (ent, u8"_tex").data(), texname))
 			continue;
 		vec3_t delta;
 		GetVectorForKey (ent, u8"origin", delta);
 		VectorSubtract (delta, centroid, delta);
 		vec_t dist = VectorLength (delta);
-		if (*ValueForKey (ent, u8"_frange"))
+		if (key_value_is_not_empty (ent, u8"_frange"))
 		{
 			if (dist > FloatForKey (ent, u8"_frange"))
 				continue;
 		}
-		if (*ValueForKey (ent, u8"_fdist"))
+		if (key_value_is_not_empty (ent, u8"_fdist"))
 		{
 			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey (ent, u8"_fdist"))
 				continue;
 		}
-		if (*ValueForKey (ent, u8"_fclass"))
+		if (key_value_is_not_empty (ent, u8"_fclass"))
 		{
-			if (strcmp ((const char*) ValueForKey (faceent, u8"classname"), (const char*) ValueForKey (ent, u8"_fclass")))
+			if (value_for_key (faceent, u8"classname") != value_for_key (ent, u8"_fclass"))
 				continue;
 		}
-		if (*ValueForKey (ent, u8"_fname"))
+		if (key_value_is_not_empty (ent, u8"_fname"))
 		{
-			if (strcmp ((const char*) ValueForKey (faceent, u8"targetname"), (const char*) ValueForKey (ent, u8"_fname")))
+			if (value_for_key (faceent, u8"targetname") != value_for_key (ent, u8"_fname"))
 				continue;
 		}
 		if (bestdist >= 0 && dist > bestdist)
@@ -3013,17 +3013,16 @@ void            ReadInfoTexAndMinlights()
     int         k;
     int         values;
     float       r, g, b, i, min;
-    entity_t*   mapent;
     texlight_t  texlight;
 	minlight_t minlight;
 
     for (k = 0; k < g_numentities; k++)
     {
-        mapent = &g_entities[k];
+   		entity_t* mapent = &g_entities[k];
 		bool foundMinlights = false;
 		bool foundTexlights = false;
 
-		if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_minlights")) {
+		if (classname_is(mapent, u8"info_minlights")) {
 			Log("Reading per-tex minlights from info_minlights map entity\n");
 
 			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
@@ -3043,13 +3042,13 @@ void            ReadInfoTexAndMinlights()
 			}
 			
 		}
-		else if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_texlights")) {
+		else if (classname_is(mapent, u8"info_texlights")) {
 			Log("Reading texlights from info_texlights map entity\n");
 
 			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (!strcmp((const char*) ep->key.c_str(), "classname")
-					|| !strcmp((const char*) ep->key.c_str(), "origin")
+				if (ep->key == u8"classname"
+					|| ep->key == u8"origin"
 					)
 					continue; // we dont care about these keyvalues
 
@@ -3092,61 +3091,46 @@ const char* ext_rad = ".rad";
 // =====================================================================================
 //  LoadRadFiles
 // =====================================================================================
-void            LoadRadFiles(const char* const mapname, const char* const user_rad, const char* argv0)
+void            LoadRadFiles(const char* const mapname, const char* const user_rad, char* argv0)
 {
-    char global_lights[_MAX_PATH];
     char mapname_lights[_MAX_PATH];
 
     char mapfile[_MAX_PATH];
-    char mapdir[_MAX_PATH];
-    char appdir[_MAX_PATH];
 
-    // Get application directory (only an approximation on posix systems)
-    // try looking in the directory we were run from
-    {
-        char tmp[_MAX_PATH];
-        memset(tmp, 0, sizeof(tmp));
-#ifdef SYSTEM_WIN32
-        GetModuleFileName(nullptr, tmp, _MAX_PATH);
-#else
-        safe_strncpy(tmp, argv0, _MAX_PATH);
-#endif
-        ExtractFilePath(tmp, appdir);
-    }
+    // Get application directory. Try looking in the directory we were run from
+    std::filesystem::path appDir = get_path_to_directory_with_executable(&argv0);
 
     // Get map directory
-    ExtractFilePath(mapname, mapdir);
+    std::filesystem::path mapDir = std::filesystem::path(mapname).parent_path();
 	ExtractFile(mapname, mapfile);
 
     // Look for lights.rad in mapdir
-    safe_strncpy(global_lights, mapdir, _MAX_PATH);
-    safe_strncat(global_lights, lights_rad, _MAX_PATH);
-    if (std::filesystem::exists(global_lights))
+	std::filesystem::path globalLights = mapDir / lights_rad;
+    if (std::filesystem::exists(globalLights))
     {
-        ReadLightFile(global_lights);
+        ReadLightFile(globalLights.c_str());
     }
     else
     {
         // Look for lights.rad in appdir
-        safe_strncpy(global_lights, appdir, _MAX_PATH);
-        safe_strncat(global_lights, lights_rad, _MAX_PATH);
-        if (std::filesystem::exists(global_lights))
+		globalLights =appDir / lights_rad;
+        if (std::filesystem::exists(globalLights))
         {
-            ReadLightFile(global_lights);
+            ReadLightFile(globalLights.c_str());
         }
         else
         {
             // Look for lights.rad in current working directory
-            safe_strncpy(global_lights, lights_rad, _MAX_PATH);
-            if (std::filesystem::exists(global_lights))
+			globalLights = lights_rad;
+            if (std::filesystem::exists(globalLights))
             {
-                ReadLightFile(global_lights);
+                ReadLightFile(globalLights.c_str());
             }
         }
     }
    
     // Look for mapname.rad in mapdir
-    safe_strncpy(mapname_lights, mapdir, _MAX_PATH);
+    safe_strncpy(mapname_lights, mapDir.c_str(), _MAX_PATH);
     safe_strncat(mapname_lights, mapfile, _MAX_PATH);
 	safe_strncat(mapname_lights, ext_rad, _MAX_PATH);
     if (std::filesystem::exists(mapname_lights))
@@ -3179,7 +3163,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
             else
             {
                 // Look for user.rad in mapdir
-                safe_strncpy(user_lights, mapdir, _MAX_PATH);
+                safe_strncpy(user_lights, mapDir.c_str(), _MAX_PATH);
                 safe_strncat(user_lights, userfile, _MAX_PATH);
                 DefaultExtension(user_lights, ext_rad);
                 if (std::filesystem::exists(user_lights))
@@ -3189,7 +3173,7 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
                 else
                 {
                     // Look for user.rad in appdir
-                    safe_strncpy(user_lights, appdir, _MAX_PATH);
+                    safe_strncpy(user_lights, appDir.c_str(), _MAX_PATH);
                     safe_strncat(user_lights, userfile, _MAX_PATH);
                     DefaultExtension(user_lights, ext_rad);
                     if (std::filesystem::exists(user_lights))
@@ -3895,13 +3879,7 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				char tmp[_MAX_PATH];
-#ifdef SYSTEM_WIN32
-				GetModuleFileName (nullptr, tmp, _MAX_PATH);
-#else
-				safe_strncpy (tmp, argv[0], _MAX_PATH);
-#endif
-				LoadLangFile (argv[++i], tmp);
+				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
 			}
 			else
 			{

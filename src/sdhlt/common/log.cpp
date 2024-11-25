@@ -712,22 +712,21 @@ const char * Localize (const char *s)
 	}
 	return s;
 }
-void LoadLangFile (const char *name, const char *programpath)
+void LoadLangFile (const char *name, std::filesystem::path programDirectoryPath)
 {
-	char filepath[_MAX_PATH];
+	std::filesystem::path filePath;
 	char line1[MAXTOKEN];
 	char line2[MAXTOKEN];
 	FILE *f = nullptr;
 	if (!f)
 	{
-		strcpy (filepath, name);
-		f = fopen (filepath, "r");
+        filePath = name;
+		f = fopen (filePath.c_str(), "r");
 	}
 	if (!f)
 	{
-		ExtractFilePath (programpath, filepath);
-		strcat (filepath, name);
-		f = fopen (filepath, "r");
+		filePath = programDirectoryPath / name;
+		f = fopen (filePath.c_str(), "r");
 	}
 	if (!f)
 	{
@@ -752,5 +751,5 @@ void LoadLangFile (const char *name, const char *programpath)
 		}
 	}
 	fclose (f);
-	Log ("Localization file: '%s'\n", filepath);
+	Log ("Localization file: '%s'\n", filePath.c_str());
 }
