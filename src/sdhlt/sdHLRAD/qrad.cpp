@@ -2093,7 +2093,6 @@ static void     GatherLight(int threadnum)
     transfer_index_t* tIndex;
 	float f;
 	vec3_t			adds[ALLSTYLES];
-	int				style;
 	unsigned int	fastfind_index = 0;
 
     while (1)
@@ -2191,7 +2190,7 @@ static void     GatherLight(int threadnum)
         }
 
 		vec_t maxlights[ALLSTYLES];
-		for (style = 0; style < ALLSTYLES; style++)
+		for (std::size_t style = 0; style < ALLSTYLES; style++)
 		{
 			maxlights[style] = VectorMaximum (adds[style]);
 		}
@@ -2205,7 +2204,7 @@ static void     GatherLight(int threadnum)
 			else
 			{
 				vec_t bestmaxlight = 0;
-				for (style = 1; style < ALLSTYLES; style++)
+				for (std::size_t style = 1; style < ALLSTYLES; style++)
 				{
 					if (maxlights[style] > bestmaxlight + NORMAL_EPSILON)
 					{
@@ -2225,7 +2224,7 @@ static void     GatherLight(int threadnum)
 				newstyles[j][m] = 255;
 			}
 		}
-		for (style = 1; style < ALLSTYLES; style++)
+		for (std::size_t style = 1; style < ALLSTYLES; style++)
 		{
 			if (maxlights[style] > g_maxdiscardedlight + NORMAL_EPSILON)
 			{
