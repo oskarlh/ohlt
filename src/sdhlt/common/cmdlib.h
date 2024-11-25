@@ -88,9 +88,6 @@ extern void     ExtractFilePath(const char* const path, char* dest);
 extern void     ExtractFileBase(const char* const path, char* dest);
 extern void     ExtractFileExtension(const char* const path, char* dest);
 
-extern short    BigLong(short l);
-extern short    LittleShort(short l);
-extern int      BigLong(int l);
-extern int      LittleLong(int l);
-extern float    BigFloat(float l);
+extern std::int16_t    LittleShort(short l);
+extern std::int32_t      LittleLong(int l);
 extern float    LittleFloat(float l);

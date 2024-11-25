@@ -1014,7 +1014,7 @@ static void     SubdividePatch(patch_t* patch)
 static float    totalarea = 0;
 // =====================================================================================
 
-vec_t *chopscales; //[nummiptex]
+std::unique_ptr<vec_t[]> chopscales; //[nummiptex]
 void ReadCustomChopValue()
 {
 	int num;
@@ -1022,7 +1022,7 @@ void ReadCustomChopValue()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
-	chopscales = (vec_t *)malloc (num * sizeof(vec_t));
+	chopscales = std::make_unique<vec_t[]>(num);
 	for (i = 0; i < num; i++)
 	{
 		chopscales[i] = 1.0;
@@ -1030,7 +1030,7 @@ void ReadCustomChopValue()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_chopscale"))
+		if (!classname_is(mapent, u8"info_chopscale"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)

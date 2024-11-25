@@ -7,11 +7,10 @@
 #include "log.h"
 #include "mathlib.h"
 
+#include <bit>
 #ifdef SYSTEM_POSIX
 #include <sys/time.h>
 #endif
-
-#define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
 
 /*
  * ================
@@ -225,15 +224,8 @@ void ExtractFileExtension(const char* const path, char* dest)
  * ============================================================================
  */
 
-#include <bit>
 std::int16_t LittleShort(std::int16_t l) {
     if (std::endian::native == std::endian::big) {
-        return std::byteswap(l);
-    }
-    return l;
-}
-std::int16_t BigLong(std::int16_t l) {
-    if (std::endian::native == std::endian::little) {
         return std::byteswap(l);
     }
     return l;
@@ -244,42 +236,24 @@ std::int32_t LittleLong(std::int32_t l) {
     }
     return l;
 }
-std::int32_t BigLong(std::int32_t l) {
-    if (std::endian::native == std::endian::little) {
-        return std::byteswap(l);
-    }
-    return l;
-}
-
-float FlipFloat(const float l) {
-    // TODO: Replace this with something legal
-    union
-    {
-        byte            b[4];
-        float           f;
-    } in, out;
-
-    in.f = l;
-    out.b[0] = in.b[3];
-    out.b[1] = in.b[2];
-    out.b[2] = in.b[1];
-    out.b[3] = in.b[0];
-
-    return out.f;
-}
-
 
 float LittleFloat(const float l)
 {
     if (std::endian::native == std::endian::big) {
-       return FlipFloat(l);
-    }
-    return l;
-}
-float BigFloat(const float l)
-{
-    if (std::endian::native == std::endian::little) {
-       return FlipFloat(l);
+        // TODO: Replace this with something legal
+        union
+        {
+            byte            b[4];
+            float           f;
+        } in, out;
+
+        in.f = l;
+        out.b[0] = in.b[3];
+        out.b[1] = in.b[2];
+        out.b[2] = in.b[1];
+        out.b[3] = in.b[0];
+
+        return out.f;
     }
     return l;
 }

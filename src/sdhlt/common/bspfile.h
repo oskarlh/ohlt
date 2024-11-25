@@ -121,9 +121,9 @@ typedef struct
 {
     float           mins[3], maxs[3];
     float           origin[3];
-    int             headnode[MAX_MAP_HULLS];
-    int             visleafs;                              // not including the solid leaf 0
-    int             firstface, numfaces;
+    std::int32_t             headnode[MAX_MAP_HULLS];
+    std::int32_t             visleafs;                              // not including the solid leaf 0
+    std::int32_t             firstface, numfaces;
 }
 dmodel_t;
 
@@ -226,7 +226,7 @@ texinfo_t;
 // counterclockwise use of the edge in a face
 typedef struct
 {
-    unsigned short  v[2];                                  // vertex numbers
+    std::uint16_t  v[2];                                  // vertex numbers
 }
 dedge_t;
 
