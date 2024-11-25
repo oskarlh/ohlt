@@ -1,6 +1,7 @@
 {
 	"files.associations": {
-    "*.h": "cpp",
-    "*.cpp": "cpp"
-}
+        "**/usr/include/**": "cpp",
+        "*.h": "cpp",
+        "*.cpp": "cpp"
+    }
 }
