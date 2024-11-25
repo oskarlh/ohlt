@@ -1618,7 +1618,6 @@ void            CreateDirectLights()
     entity_t*       e;
     entity_t*       e2;
     const char*     name;
-    const char*     target;
     float           angle;
     vec3_t          dest;
 
@@ -1862,9 +1861,9 @@ void            CreateDirectLights()
         }
 
 
-        target = (const char*) ValueForKey(e, u8"target");
+        std::u8string_view target = value_for_key(e, u8"target");
 
-        if (!strcmp(name, "light_spot") || !strcmp(name, "light_environment") || target[0])
+        if (!strcmp(name, "light_spot") || !strcmp(name, "light_environment") || !target.empty())
         {
             if (!VectorAvg(dl->intensity))
             {
@@ -1891,9 +1890,9 @@ void            CreateDirectLights()
             {
                 Warning("light at (%i %i %i) has missing target",
                         (int)dl->origin[0], (int)dl->origin[1], (int)dl->origin[2]);
-				target = "";
+				target = u8"";
             }
-            if (target[0])
+            if (!target.empty())
             {                                              // point towards target
                 e2 = FindTargetEntity(target);
                 if (!e2)
@@ -4590,13 +4589,12 @@ void MdlLightHack ()
 	int ient;
 	entity_t *ent1, *ent2;
 	vec3_t origin1, origin2;
-	const char *target;
 	int used = 0, countent = 0, countsample = 0, r;
 	for (ient = 0; ient < g_numentities; ++ient)
 	{
 		ent1 = &g_entities[ient];
-		target = (const char*) ValueForKey (ent1, u8"zhlt_copylight");
-		if (!strcmp (target, ""))
+		std::u8string_view target = value_for_key (ent1, u8"zhlt_copylight");
+		if (target.empty())
 			continue;
 		used = 1;
 		ent2 = FindTargetEntity (target);

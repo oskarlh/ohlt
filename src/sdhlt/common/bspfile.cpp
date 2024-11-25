@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <filesystem>
+#include <span>
 #include "cmdlib.h"
 #include "filelib.h"
 #include "messages.h"
@@ -1275,7 +1276,7 @@ bool            ParseEntity()
 		SetKeyValue (mapent, u8"classname", u8"light_surface");
 	}
 	if (key_value_is(mapent, u8"convertfrom", u8"light_shadow")
-		|| key_value_is (mapent, u8"convertfrom", "light_bounce")
+		|| key_value_is (mapent, u8"convertfrom", u8"light_bounce")
 		)
 	{
 		SetKeyValue (mapent, u8"convertto", value_for_key (mapent, u8"classname"));
@@ -1392,8 +1393,8 @@ void            UnparseEntities()
 				if (pitch)
 					vec[0] = pitch;
 
-				const char *target = (const char*) ValueForKey (mapent, u8"target");
-				if (target[0])
+				std::u8string_view target = value_for_key (mapent, u8"target");
+				if (!target.empty())
 				{
 					entity_t *targetent = FindTargetEntity (target);
 					if (targetent)
@@ -1619,10 +1620,6 @@ bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8stri
 {
 	return value_for_key(ent, key) == value;
 }
-bool key_value_is(const entity_t* const ent, std::u8string_view key, std::string_view value)
-{
-	return value_for_key(ent, key) == std::u8string_view((const char8_t*) value.data(), value.length());
-}
 bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix)
 {
 	return value_for_key(ent, key).starts_with(prefix);
@@ -1670,15 +1667,12 @@ void            GetVectorForKey(const entity_t* const ent, std::u8string_view ke
 //  FindTargetEntity
 //      
 // =====================================================================================
-entity_t *FindTargetEntity(const char* const target)
-{
-    for (std::size_t i = 0; i < g_numentities; i++)
-    {
-        if (key_value_is(&g_entities[i], u8"targetname", target))
-        {
-            return &g_entities[i];
+entity_t *FindTargetEntity(std::u8string_view target) {
+	for(entity_t& ent : std::span(&g_entities[0], g_numentities)) {
+        if (key_value_is(&ent, u8"targetname", target)) {
+            return &ent;
         }
-    }
+	}
     return nullptr;
 }
 

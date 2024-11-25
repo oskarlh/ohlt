@@ -1587,7 +1587,7 @@ static void		LoadOpaqueEntities()
 
 				if (*ValueForKey (ent, u8"light_origin") && *ValueForKey (ent, u8"model_center")) //If the entity has a light_origin and model_center, calculate a new origin
 				{
-					entity_t *ent2 = FindTargetEntity ((const char*) ValueForKey (ent, u8"light_origin"));
+					entity_t *ent2 = FindTargetEntity (value_for_key (ent, u8"light_origin"));
 
 					if (ent2)
 					{
@@ -1759,7 +1759,6 @@ static void     MakePatches()
     dmodel_t*       mod;
     vec3_t          origin;
     entity_t*       ent;
-    const char*     s;
     vec3_t          light_origin;
     vec3_t          model_center;
     bool            b_light_origin;
@@ -1785,17 +1784,19 @@ static void     MakePatches()
         ent = EntityForModel(i);
         VectorCopy(vec3_origin, origin);
 
-        if (*(s = (const char*) ValueForKey(ent, u8"zhlt_lightflags")))
+		std::u8string_view zhltLightFlagsString = value_for_key(ent, u8"zhlt_lightflags");
+        if (!zhltLightFlagsString.empty())
         {
-            lightmode = (eModelLightmodes)atoi(s);
+            lightmode = (eModelLightmodes)atoi((const char*) zhltLightFlagsString.data());
         }
 
+		std::u8string_view originString = value_for_key(ent, u8"origin");
         // models with origin brushes need to be offset into their in-use position
-        if (*(s = (const char*) ValueForKey(ent, u8"origin")))
+        if (!originString.empty())
         {
             double          v1, v2, v3;
 
-            if (sscanf(s, "%lf %lf %lf", &v1, &v2, &v3) == 3)
+            if (sscanf((const char*) originString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
             {
                 origin[0] = v1;
                 origin[1] = v2;
@@ -1804,18 +1805,20 @@ static void     MakePatches()
 
         }
 
+		std::u8string_view lightOriginString = value_for_key(ent, u8"light_origin");
         // Allow models to be lit in an alternate location (pt1)
-        if (*(s = (const char*) ValueForKey(ent, u8"light_origin")))
+        if (!lightOriginString.empty())
         {
-            entity_t*       e = FindTargetEntity(s);
+            entity_t*       e = FindTargetEntity(lightOriginString);
 
             if (e)
             {
-                if (*(s = (const char*) ValueForKey(e, u8"origin")))
+				std::u8string_view targetOriginString = value_for_key(e, u8"origin");
+                if (!targetOriginString.empty())
                 {
                     double          v1, v2, v3;
 
-                    if (sscanf(s, "%lf %lf %lf", &v1, &v2, &v3) == 3)
+                    if (sscanf((const char*) targetOriginString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
                     {
                         light_origin[0] = v1;
                         light_origin[1] = v2;
@@ -1827,12 +1830,13 @@ static void     MakePatches()
             }
         }
 
+		std::u8string_view modelCenterString = value_for_key(ent, u8"model_center");
         // Allow models to be lit in an alternate location (pt2)
-        if (*(s =(const char*)  ValueForKey(ent, u8"model_center")))
+        if (!modelCenterString.empty())
         {
             double          v1, v2, v3;
 
-            if (sscanf(s, "%lf %lf %lf", &v1, &v2, &v3) == 3)
+            if (sscanf((const char*) modelCenterString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
             {
                 model_center[0] = v1;
                 model_center[1] = v2;
@@ -1849,9 +1853,10 @@ static void     MakePatches()
         }
 
 		//LRC:
-		if (*(s = (const char*) ValueForKey(ent, u8"style")))
+		std::u8string_view styleString = value_for_key(ent, u8"style");
+		if (!styleString.empty())
 		{
-			style = atoi(s);
+			style = atoi((const char*) styleString.data());
 			if (style < 0)
 				style = -style;
 		}
@@ -1871,9 +1876,9 @@ static void     MakePatches()
 			for (j = 0; j < g_numentities; j++)
 			{
 				entity_t *lightent = &g_entities[j];
-				if (!strcmp ((const char*) ValueForKey (lightent, u8"classname"), "light_bounce")
-					&& *ValueForKey (lightent, u8"target")
-					&& !strcmp ((const char*) ValueForKey (lightent, u8"target"), (const char*) ValueForKey (ent, u8"targetname")))
+				if (classname_is (lightent, u8"light_bounce")
+					&& key_value_is_not_empty (lightent, u8"target")
+					&& key_value_is(lightent, u8"target", value_for_key(ent, u8"targetname")))
 				{
 					bouncestyle = IntForKey (lightent, u8"style");
 					if (bouncestyle < 0)

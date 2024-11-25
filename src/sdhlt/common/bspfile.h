@@ -389,7 +389,6 @@ std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view k
 bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key);
 bool key_value_is_empty(const entity_t* const ent, std::u8string_view key);
 bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value);
-bool key_value_is(const entity_t* const ent, std::u8string_view key, std::string_view value);
 bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix);
 bool classname_is(const entity_t* const ent, std::u8string_view classname);
 
@@ -397,7 +396,7 @@ extern int             IntForKey(const entity_t* const ent, std::u8string_view k
 extern vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key);
 extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_t vec);
 
-extern entity_t* FindTargetEntity(const char* const target);
+extern entity_t* FindTargetEntity(std::u8string_view target);
 extern std::unique_ptr<epair_t> ParseEpair();
 extern entity_t* EntityForModel(int modnum);
 

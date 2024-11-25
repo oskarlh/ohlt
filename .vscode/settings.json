@@ -2,6 +2,8 @@
 	"files.associations": {
         "**/usr/include/**": "cpp",
         "*.h": "cpp",
-        "*.cpp": "cpp"
+        "*.cpp": "cpp",
+        "algorithm": "cpp",
+        "cmath": "cpp"
     }
 }
