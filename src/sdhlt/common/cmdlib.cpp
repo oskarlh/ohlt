@@ -351,7 +351,7 @@ float           LittleFloat(const float l)
 
 //=============================================================================
 
-bool CDECL FORMAT_PRINTF(3,4)      safe_snprintf(char* const dest, const size_t count, const char* const args, ...)
+bool FORMAT_PRINTF(3,4)      safe_snprintf(char* const dest, const size_t count, const char* const args, ...)
 {
     size_t          amt;
     va_list         argptr;

@@ -459,13 +459,6 @@ typedef struct opaquenode_s
 } opaquenode_t;
 opaquenode_t *opaquenodes;
 
-#ifndef OPAQUE_NODE_INLINECALL
-typedef struct
-{
-	vec3_t mins, maxs;
-	int headnode;
-} opaquemodel_t;
-#endif
 opaquemodel_t *opaquemodels;
 
 bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
@@ -964,7 +957,6 @@ int TestPointOpaque_r (int nodenum, bool solid, const vec3_t point)
 		|| TestPointOpaque_r (thisnode->children[1], solid, point);
 }
 
-#ifndef OPAQUE_NODE_INLINECALL
 int TestPointOpaque (int modelnum, const vec3_t modelorigin, bool solid, const vec3_t point)
 {
 	opaquemodel_t *thismodel = &opaquemodels[modelnum];
@@ -980,5 +972,3 @@ int TestPointOpaque (int modelnum, const vec3_t modelorigin, bool solid, const v
 	}
 	return TestPointOpaque_r (thismodel->headnode, solid, newpoint);
 }
-#endif
-

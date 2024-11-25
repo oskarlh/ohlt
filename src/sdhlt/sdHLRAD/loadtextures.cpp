@@ -53,7 +53,7 @@ typedef struct wadfile_s
 wadfile_t *g_wadfiles = nullptr;
 bool g_wadfiles_opened;
 
-static int CDECL lump_sorter_by_name (const void *lump1, const void *lump2)
+static int lump_sorter_by_name (const void *lump1, const void *lump2)
 {
 	lumpinfo_t *plump1 = (lumpinfo_t *)lump1;
 	lumpinfo_t *plump2 = (lumpinfo_t *)lump2;

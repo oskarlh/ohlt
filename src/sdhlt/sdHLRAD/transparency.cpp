@@ -108,7 +108,7 @@ void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_
 //===============================================
 // SortList
 //===============================================
-static int CDECL SortList(const void *a, const void *b)
+static int SortList(const void *a, const void *b)
 {
 	const transList_t* item1 = (transList_t *)a;
 	const transList_t* item2 = (transList_t *)b;
@@ -314,7 +314,7 @@ void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style)
 	//unlock list
 	ThreadUnlock();
 }
-static int CDECL SortStyleList(const void *a, const void *b)
+static int SortStyleList(const void *a, const void *b)
 {
 	const styleList_t* item1 = (styleList_t *)a;
 	const styleList_t* item2 = (styleList_t *)b;

@@ -399,7 +399,7 @@ extern entity_t* EntityForModel(int modnum);
 
 extern std::ptrdiff_t g_max_map_miptex;
 extern std::ptrdiff_t g_max_map_lightdata;
-extern void     dtexdata_init();
-extern void CDECL dtexdata_free();
+extern void dtexdata_init();
+extern void dtexdata_free();
 
 extern char*    GetTextureByNumber(int texturenumber);

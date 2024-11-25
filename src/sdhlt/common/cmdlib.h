@@ -94,7 +94,7 @@ extern char*    strupr(char* string);
 extern char*    strlwr(char* string);
 #endif
 extern const char* stristr(const char* const string, const char* const substring);
-extern bool CDECL FORMAT_PRINTF(3,4) safe_snprintf(char* const dest, const size_t count, const char* const args, ...);
+extern bool FORMAT_PRINTF(3,4) safe_snprintf(char* const dest, const size_t count, const char* const args, ...);
 extern bool     safe_strncpy(char* const dest, const char* const src, const size_t count);
 extern bool     safe_strncat(char* const dest, const char* const src, const size_t count);
 extern bool     TerminatedString(const char* buffer, const int size);

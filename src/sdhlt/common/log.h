@@ -28,13 +28,13 @@ extern void     ResetLog();
 extern void     ResetErrorLog();
 extern void     CheckForErrorLog();
 
-extern void CDECL OpenLog(int clientid);
-extern void CDECL CloseLog();
+extern void OpenLog(int clientid);
+extern void CloseLog();
 extern void     WriteLog(const char* const message);
 
 extern void     CheckFatal();
 
-extern void CDECL FORMAT_PRINTF(2,3) Developer(developer_level_t level, const char* const message, ...);
+extern void FORMAT_PRINTF(2,3) Developer(developer_level_t level, const char* const message, ...);
 
 #ifdef _DEBUG
 #define IfDebug(x) (x)
@@ -45,14 +45,14 @@ extern void CDECL FORMAT_PRINTF(2,3) Developer(developer_level_t level, const ch
 extern const char * Localize (const char *s);
 extern void LoadLangFile (const char *name, const char *programpath);
 extern int InitConsole(int argc, char **argv);
-extern void CDECL FORMAT_PRINTF(1,2) PrintConsole(const char* const message, ...);
-extern void CDECL FORMAT_PRINTF(1,2) Verbose(const char* const message, ...);
-extern void CDECL FORMAT_PRINTF(1,2) Log(const char* const message, ...);
-extern void CDECL FORMAT_PRINTF(1,2) Error(const char* const error, ...);
-extern void CDECL FORMAT_PRINTF(2,3) Fatal(assume_msgs msgid, const char* const error, ...);
-extern void CDECL FORMAT_PRINTF(1,2) Warning(const char* const warning, ...);
+extern void FORMAT_PRINTF(1,2) PrintConsole(const char* const message, ...);
+extern void FORMAT_PRINTF(1,2) Verbose(const char* const message, ...);
+extern void FORMAT_PRINTF(1,2) Log(const char* const message, ...);
+extern void FORMAT_PRINTF(1,2) Error(const char* const error, ...);
+extern void FORMAT_PRINTF(2,3) Fatal(assume_msgs msgid, const char* const error, ...);
+extern void FORMAT_PRINTF(1,2) Warning(const char* const warning, ...);
 
-extern void CDECL FORMAT_PRINTF(1,2) PrintOnce(const char* const message, ...);
+extern void FORMAT_PRINTF(1,2) PrintOnce(const char* const message, ...);
 
 extern void     LogStart(const int argc, char** argv);
 extern void     LogEnd();

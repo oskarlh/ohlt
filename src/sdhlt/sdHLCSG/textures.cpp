@@ -115,7 +115,7 @@ static void     CleanupName(const char* const in, char* out)
 //  lump_sorters
 // =====================================================================================
 
-static int CDECL lump_sorter_by_wad_and_name(const void* lump1, const void* lump2)
+static int lump_sorter_by_wad_and_name(const void* lump1, const void* lump2)
 {
     lumpinfo_t*     plump1 = (lumpinfo_t*)lump1;
     lumpinfo_t*     plump2 = (lumpinfo_t*)lump2;
@@ -130,7 +130,7 @@ static int CDECL lump_sorter_by_wad_and_name(const void* lump1, const void* lump
     }
 }
 
-static int CDECL lump_sorter_by_name(const void* lump1, const void* lump2)
+static int lump_sorter_by_name(const void* lump1, const void* lump2)
 {
     lumpinfo_t*     plump1 = (lumpinfo_t*)lump1;
     lumpinfo_t*     plump2 = (lumpinfo_t*)lump2;

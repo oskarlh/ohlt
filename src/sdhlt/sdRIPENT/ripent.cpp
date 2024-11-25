@@ -692,13 +692,14 @@ static void     WriteEntities(const char* const name)
 {
 	char *bak_dentdata;
 	int bak_entdatasize;
-    char filename[_MAX_PATH];
+	std::filesystem::path filePath;
+	filePath = name;
+	filePath += u8".ent";
 
-	safe_snprintf(filename, _MAX_PATH, "%s.ent", name);
-    _unlink(filename);
+    _unlink(filePath.c_str());
 
     {
-		if(g_parse)  // Added by Nem.
+		if(g_parse)
 		{
 			bak_entdatasize = g_entdatasize;
 			bak_dentdata = (char *)malloc (g_entdatasize);
@@ -707,8 +708,8 @@ static void     WriteEntities(const char* const name)
 			ParseEntityData("  ", 2, "\r\n", 2, "", 0);
 		}
 
-        FILE *f = SafeOpenWrite(filename);
-		Log("\nWriting %s.\n", filename);  // Added by Nem.
+        FILE *f = SafeOpenWrite(filePath.c_str());
+		Log("\nWriting %s.\n", filePath.c_str());
         SafeWrite(f, g_dentdata, g_entdatasize);
         fclose(f);
 		if (g_parse)

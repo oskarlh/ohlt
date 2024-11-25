@@ -905,7 +905,7 @@ static void     CalcVis()
 // =====================================================================================
 //  CheckNullToken
 // =====================================================================================
-static INLINE void FASTCALL CheckNullToken(const char*const token)
+static inline void CheckNullToken(const char*const token)
 {
     if (token == nullptr) 
     {

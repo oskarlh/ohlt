@@ -1914,7 +1914,7 @@ static void     MakePatches()
 // =====================================================================================
 //  patch_sorter
 // =====================================================================================
-static int CDECL patch_sorter(const void* p1, const void* p2)
+static int patch_sorter(const void* p1, const void* p2)
 {
     patch_t*        patch1 = (patch_t*)p1;
     patch_t*        patch2 = (patch_t*)p2;

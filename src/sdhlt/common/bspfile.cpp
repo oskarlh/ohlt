@@ -1660,7 +1660,7 @@ void            dtexdata_init()
 	hlassume(g_dlightdata != nullptr, assume_NoMemory);
 }
 
-void CDECL      dtexdata_free()
+void dtexdata_free()
 {
     FreeBlock(g_dtexdata);
     g_dtexdata = nullptr;

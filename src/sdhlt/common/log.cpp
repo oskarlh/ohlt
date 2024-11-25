@@ -192,7 +192,7 @@ void            LogError(const char* const message)
     }
 }
 
-void CDECL      OpenLog(const int clientid)
+void       OpenLog(const int clientid)
 {
     if (g_log)
     {
@@ -245,7 +245,7 @@ void CDECL      OpenLog(const int clientid)
     }
 }
 
-void CDECL      CloseLog()
+void     CloseLog()
 {
     if (g_log && CompileLog)
     {
@@ -332,7 +332,7 @@ void            CheckFatal()
 //  Error
 //      for formatted error messages, fatals out
 // =====================================================================================
-void CDECL FORMAT_PRINTF(1,2)      Error(const char* const error, ...)
+void FORMAT_PRINTF(1,2)      Error(const char* const error, ...)
 {
     char            message[MAX_ERROR];
     char            message2[MAX_ERROR];
@@ -372,7 +372,7 @@ void CDECL FORMAT_PRINTF(1,2)      Error(const char* const error, ...)
 //      automatically appends an extra newline to the message
 //      This function sets a flag that the compile should abort before completing
 // =====================================================================================
-void CDECL FORMAT_PRINTF(2,3)      Fatal(assume_msgs msgid, const char* const warning, ...)
+void FORMAT_PRINTF(2,3)      Fatal(assume_msgs msgid, const char* const warning, ...)
 {
     char            message[MAX_WARNING];
     char            message2[MAX_WARNING];
@@ -402,7 +402,7 @@ void CDECL FORMAT_PRINTF(2,3)      Fatal(assume_msgs msgid, const char* const wa
 //  PrintOnce
 //      This function is only callable one time. Further calls will be ignored
 // =====================================================================================
-void CDECL FORMAT_PRINTF(1,2)      PrintOnce(const char* const warning, ...)
+void FORMAT_PRINTF(1,2)      PrintOnce(const char* const warning, ...)
 {
     char            message[MAX_WARNING];
     char            message2[MAX_WARNING];
@@ -429,7 +429,7 @@ void CDECL FORMAT_PRINTF(1,2)      PrintOnce(const char* const warning, ...)
 //      For formatted warning messages
 //      automatically appends an extra newline to the message
 // =====================================================================================
-void CDECL FORMAT_PRINTF(1,2)      Warning(const char* const warning, ...)
+void FORMAT_PRINTF(1,2)      Warning(const char* const warning, ...)
 {
     char            message[MAX_WARNING];
     char            message2[MAX_WARNING];
@@ -448,7 +448,7 @@ void CDECL FORMAT_PRINTF(1,2)      Warning(const char* const warning, ...)
 //  Verbose
 //      Same as log but only prints when in verbose mode
 // =====================================================================================
-void CDECL FORMAT_PRINTF(1,2)      Verbose(const char* const warning, ...)
+void FORMAT_PRINTF(1,2)      Verbose(const char* const warning, ...)
 {
     if (g_verbose)
     {
@@ -468,7 +468,7 @@ void CDECL FORMAT_PRINTF(1,2)      Verbose(const char* const warning, ...)
 //  Developer
 //      Same as log but only prints when in developer mode
 // =====================================================================================
-void CDECL FORMAT_PRINTF(2,3)      Developer(developer_level_t level, const char* const warning, ...)
+void FORMAT_PRINTF(2,3)      Developer(developer_level_t level, const char* const warning, ...)
 {
     if (level <= g_developer)
     {
@@ -527,7 +527,7 @@ static void     DisplayDeveloperLevel()
 //  Log
 //      For formatted log output messages
 // =====================================================================================
-void CDECL FORMAT_PRINTF(1,2)      Log(const char* const warning, ...)
+void FORMAT_PRINTF(1,2)      Log(const char* const warning, ...)
 {
     char            message[MAX_MESSAGE];
 
@@ -668,7 +668,7 @@ int InitConsole (int argc, char **argv)
 	return 0;
 }
 
-void CDECL FORMAT_PRINTF(1,2) PrintConsole(const char* const warning, ...)
+void FORMAT_PRINTF(1,2) PrintConsole(const char* const warning, ...)
 {
     char            message[MAX_MESSAGE];
 
