@@ -383,8 +383,15 @@ extern void            UnparseEntities();
 
 extern void DeleteAllKeys(entity_t* ent);
 extern void            DeleteKey(entity_t* ent, std::u8string_view key);
-extern void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string value);
+extern void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value);
 extern const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key);
+std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key);
+bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key);
+bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value);
+bool key_value_is(const entity_t* const ent, std::u8string_view key, std::string_view value);
+bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix);
+bool classname_is(const entity_t* const ent, std::u8string_view classname);
+
 extern int             IntForKey(const entity_t* const ent, std::u8string_view key);
 extern vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key);
 extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_t vec);

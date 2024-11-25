@@ -1263,34 +1263,34 @@ bool            ParseEntity()
         mapent->epairs = e.release();
     }
 
-    if (!strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_compile_parameters"))
+    if (key_value_is(mapent, u8"classname", u8"info_compile_parameters"))
     {
         Log("Map entity info_compile_parameters detected, using compile settings\n");
         GetParamsFromEnt(mapent);
     }
 	// ugly code
-	if (!strncmp((const char*) ValueForKey (mapent, u8"classname"), "light", 5) && *ValueForKey (mapent, u8"_tex"))
+	if (key_value_starts_with(mapent, u8"classname", u8"light") && key_value_is_not_empty(mapent, u8"_tex"))
 	{
-		SetKeyValue (mapent, u8"convertto", ValueForKey (mapent, u8"classname"));
+		SetKeyValue (mapent, u8"convertto", value_for_key(mapent, u8"classname"));
 		SetKeyValue (mapent, u8"classname", u8"light_surface");
 	}
-	if (!strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "light_shadow")
-		|| !strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "light_bounce")
+	if (key_value_is(mapent, u8"convertfrom", u8"light_shadow")
+		|| key_value_is (mapent, u8"convertfrom", "light_bounce")
 		)
 	{
-		SetKeyValue (mapent, u8"convertto", ValueForKey (mapent, u8"classname"));
-		SetKeyValue (mapent, u8"classname", ValueForKey (mapent, u8"convertfrom"));
-		SetKeyValue (mapent, u8"convertfrom", u8"");
+		SetKeyValue (mapent, u8"convertto", value_for_key (mapent, u8"classname"));
+		SetKeyValue (mapent, u8"classname", value_for_key (mapent, u8"convertfrom"));
+		DeleteKey (mapent, u8"convertfrom");
 	}
-	if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") &&
-		!strcmp ((const char*) ValueForKey (mapent, u8"convertfrom"), "info_sunlight"))
+	if (classname_is(mapent, u8"light_environment") &&
+		key_value_is(mapent, u8"convertfrom", u8"info_sunlight"))
 	{
 		DeleteAllKeys(mapent);
 		memset (mapent, 0, sizeof(entity_t));
 		g_numentities--;
 		return true;
 	}
-	if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") &&
+	if (classname_is (mapent, u8"light_environment") &&
 		IntForKey (mapent, u8"_fake"))
 	{
 		SetKeyValue (mapent, u8"classname", u8"info_sunlight");
@@ -1381,8 +1381,9 @@ void            UnparseEntities()
 	for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_sunlight") ||
-			!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_environment") )
+		if (
+			classname_is(mapent, u8"info_sunlight") ||
+			classname_is(mapent, u8"light_environment"))
 		{
 			float vec[3] = {0,0,0};
 			{
@@ -1558,9 +1559,8 @@ void DeleteKey(entity_t* ent, std::u8string_view key)
 		}
 	}
 }
-void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string value)
-{
-	if (!value[0])
+void SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value) {
+	if (value.empty())
 	{
 		DeleteKey (ent, key);
 		return;
@@ -1597,6 +1597,37 @@ const char8_t*     ValueForKey(const entity_t* const ent, std::u8string_view key
     }
     return u8"";
 }
+
+
+std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key)
+{
+	// TODO: This is inefficient. When ValueForKey is no longer used, move its code in here
+	// but without the .c_str()
+    return ValueForKey(ent, key);
+}
+
+
+bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key)
+{
+	return !value_for_key(ent, key).empty();
+}
+bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value)
+{
+	return value_for_key(ent, key) == value;
+}
+bool key_value_is(const entity_t* const ent, std::u8string_view key, std::string_view value)
+{
+	return value_for_key(ent, key) == std::u8string_view((const char8_t*) value.data(), value.length());
+}
+bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix)
+{
+	return value_for_key(ent, key).starts_with(prefix);
+}
+bool classname_is(const entity_t* const ent, std::u8string_view classname)
+{
+	return key_value_is(ent, u8"classname", classname);
+}
+
 
 // =====================================================================================
 //  IntForKey
@@ -1637,17 +1668,13 @@ void            GetVectorForKey(const entity_t* const ent, std::u8string_view ke
 // =====================================================================================
 entity_t *FindTargetEntity(const char* const target)
 {
-    int             i;
-
-    for (i = 0; i < g_numentities; i++)
+    for (std::size_t i = 0; i < g_numentities; i++)
     {
-        const char* n = (const char*)  ValueForKey(&g_entities[i], u8"targetname");
-        if (!strcmp(n, target))
+        if (key_value_is(&g_entities[i], u8"targetname", target))
         {
             return &g_entities[i];
         }
     }
-
     return nullptr;
 }
 
