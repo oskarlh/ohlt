@@ -13,6 +13,7 @@
 */
 
 
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <numbers>
@@ -474,27 +475,25 @@ static void     ReadLightFile(const char* const filename)
             continue;
         }
 
-        texlight_i it;
-        for (it = s_texlights.begin(); it != s_texlights.end(); it++)
-        {
-            if (strcmp(it->name.c_str(), szTexlight) == 0)
-            {
-                if (strcmp(it->filename, filename) == 0)
-                {
-                    Warning("Duplication of texlight '%s' in file '%s'!", it->name.c_str(), it->filename);
-                }
-                else if (it->value[0] != r || it->value[1] != g || it->value[2] != b)
-                {
-                    Warning("Overriding '%s' from '%s' with '%s'!", it->name.c_str(), it->filename, filename);
-                }
-                else
-                {
-                    Warning("Redundant '%s' def in '%s' AND '%s'!", it->name.c_str(), it->filename, filename);
-                }
-                s_texlights.erase(it);
-                break;
-            }
-        }
+		auto it = std::ranges::find_if(s_texlights, [&szTexlight](const texlight_t& tl) {
+			return tl.name == szTexlight;
+		});
+		if(it != s_texlights.end()) {
+
+			if (strcmp(it->filename, filename) == 0)
+			{
+				Warning("Duplication of texlight '%s' in file '%s'!", it->name.c_str(), it->filename);
+			}
+			else if (it->value[0] != r || it->value[1] != g || it->value[2] != b)
+			{
+				Warning("Overriding '%s' from '%s' with '%s'!", it->name.c_str(), it->filename, filename);
+			}
+			else
+			{
+				Warning("Redundant '%s' def in '%s' AND '%s'!", it->name.c_str(), it->filename, filename);
+			}
+			s_texlights.erase(it);
+		}
 
         texlight_t      texlight;
         texlight.name = szTexlight;
@@ -1240,7 +1239,6 @@ static vec_t    getScale(const patch_t* const patch)
 // =====================================================================================
 static bool		getEmitMode (const patch_t *patch)
 {
-	bool emitmode = false;
 	vec_t value = 
 		DotProduct (patch->baselight, patch->texturereflectivity) / 3
 		;
@@ -1251,14 +1249,7 @@ static bool		getEmitMode (const patch_t *patch)
 			value *= FloatForKey (g_face_texlights[patch->faceNumber], u8"_scale");
 		}
 	}
-	if (value > 0.0)
-	{
-		emitmode = true;
-	}
-	if (value < g_dlight_threshold)
-	{
-		emitmode = false;
-	}
+	bool emitmode = value > 0.0 && value >= g_dlight_threshold;
 	if (g_face_texlights[patch->faceNumber])
 	{
 		switch (IntForKey (g_face_texlights[patch->faceNumber], u8"_fast"))
@@ -3397,7 +3388,7 @@ int             main(const int argc, char** argv)
             }
             else
             {
-                Error("expected three color values after '-ambient'\n");
+                Error("Expected three color values after '-ambient'\n");
             }
         }
         else if (!strcasecmp(argv[i], "-limiter"))
@@ -3984,7 +3975,7 @@ int             main(const int argc, char** argv)
     
     if (!g_visdatasize)
     {
-		Warning("No vis information.");
+		Warning("No VIS information.");
     }
 	if (g_blur < 1.0)
 	{
