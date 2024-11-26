@@ -1,15 +1,18 @@
 #pragma once
 
 #include "cmdlib.h" //--vluzacn
-
+#include <algorithm>
 
 #if !defined(qmax) 
-#define qmax(a,b)            (((a) > (b)) ? (a) : (b)) // changed 'max' to 'qmax'. --vluzacn
+#define qmax(a,b)        (((a) > (b)) ? (a) : (b))
 #endif
 
 #if !defined(qmin)
-#define qmin(a,b)            (((a) < (b)) ? (a) : (b)) // changed 'min' to 'qmin'. --vluzacn
+#define qmin(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
+
+// #define qmax(a,b) std::max((a),(b))
+// #define qmin(a,b) std::min((a),(b))
 
 extern const vec3_array vec3_origin;
 
@@ -55,8 +58,8 @@ extern const vec3_array vec3_origin;
 #define VectorCopy(a,b) { (b)[0]=(a)[0]; (b)[1]=(a)[1]; (b)[2]=(a)[2]; }
 #define VectorClear(a)  { (a)[0] = (a)[1] = (a)[2] = 0.0; }
 
-#define VectorMaximum(a) ( qmax( (a)[0], qmax( (a)[1], (a)[2] ) ) )
-#define VectorMinimum(a) ( qmin( (a)[0], qmin( (a)[1], (a)[2] ) ) )
+#define VectorMaximum(a) ( std::max({ (a)[0], (a)[1], (a)[2] }) )
+#define VectorMinimum(a) ( std::min({ (a)[0], (a)[1], (a)[2] }) )
 
 #define VectorInverse(a) \
 { \
@@ -72,8 +75,8 @@ extern const vec3_array vec3_origin;
     (dest)[2] = (a)[2] + (scale) * (b)[2]; \
 }
 #define VectorLength(a)  sqrt((double) ((double)((a)[0] * (a)[0]) + (double)( (a)[1] * (a)[1]) + (double)( (a)[2] * (a)[2])) )
-#define VectorCompareMinimum(a,b,c) { (c)[0] = qmin((a)[0], (b)[0]); (c)[1] = qmin((a)[1], (b)[1]); (c)[2] = qmin((a)[2], (b)[2]); }
-#define VectorCompareMaximum(a,b,c) { (c)[0] = qmax((a)[0], (b)[0]); (c)[1] = qmax((a)[1], (b)[1]); (c)[2] = qmax((a)[2], (b)[2]); }
+#define VectorCompareMinimum(a,b,c) { (c)[0] = std::min((a)[0], (b)[0]); (c)[1] = std::min((a)[1], (b)[1]); (c)[2] = std::min((a)[2], (b)[2]); }
+#define VectorCompareMaximum(a,b,c) { (c)[0] = std::max((a)[0], (b)[0]); (c)[1] = std::max((a)[1], (b)[1]); (c)[2] = std::max((a)[2], (b)[2]); }
 
 inline vec_t   VectorNormalize(vec3_t v)
 {

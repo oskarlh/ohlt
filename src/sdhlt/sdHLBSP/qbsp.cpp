@@ -1177,8 +1177,8 @@ static bool     ProcessModel()
 			}
 			for (i = 0; i < 3; i++)
 			{
-				model->maxs[i] = qmax (model->maxs[i], maxs[i]);
-				model->mins[i] = qmin (model->mins[i], mins[i]);
+				model->maxs[i] = std::max (model->maxs[i], (float) maxs[i]);
+				model->mins[i] = std::min (model->mins[i], (float) mins[i]);
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 #include "./bounding_box.h"
-
+#include <algorithm>
 #include "mathlib.h"
 
 // Tests if other box is completely outside of this box
@@ -34,12 +34,12 @@ bool test_superset(const bounding_box& thisBox, const bounding_box& otherBox)
 bool test_union(const bounding_box& thisBox, const bounding_box& otherBox)
 {
     bounding_box tempBox;
-    tempBox.mins[0] = qmax(thisBox.mins[0], otherBox.mins[0]);
-    tempBox.mins[1] = qmax(thisBox.mins[1], otherBox.mins[1]);
-    tempBox.mins[2] = qmax(thisBox.mins[2], otherBox.mins[2]);
-    tempBox.maxs[0] = qmin(thisBox.maxs[0], otherBox.maxs[0]);
-    tempBox.maxs[1] = qmin(thisBox.maxs[1], otherBox.maxs[1]);
-    tempBox.maxs[2] = qmin(thisBox.maxs[2], otherBox.maxs[2]);
+    tempBox.mins[0] = std::max(thisBox.mins[0], otherBox.mins[0]);
+    tempBox.mins[1] = std::max(thisBox.mins[1], otherBox.mins[1]);
+    tempBox.mins[2] = std::max(thisBox.mins[2], otherBox.mins[2]);
+    tempBox.maxs[0] = std::min(thisBox.maxs[0], otherBox.maxs[0]);
+    tempBox.maxs[1] = std::min(thisBox.maxs[1], otherBox.maxs[1]);
+    tempBox.maxs[2] = std::min(thisBox.maxs[2], otherBox.maxs[2]);
 
     return !((tempBox.mins[0] > tempBox.maxs[0]) ||
         (tempBox.mins[1] > tempBox.maxs[1]) ||
