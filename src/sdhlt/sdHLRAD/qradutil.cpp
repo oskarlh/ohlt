@@ -131,7 +131,7 @@ const dplane_t* getPlaneFromFaceNumber(const unsigned int faceNumber)
 void getAdjustedPlaneFromFaceNumber(unsigned int faceNumber, dplane_t* plane)
 {
     dface_t*        face = &g_dfaces[faceNumber];
-    const vec_t*    face_offset = g_face_offset[faceNumber];
+    const vec3_array&    face_offset = g_face_offset[faceNumber];
 
     plane->type = (planetypes)0;
     
@@ -160,7 +160,7 @@ void            TranslatePlane(dplane_t* plane, const vec_t* delta)
 }
 
 // HuntForWorld will never return CONTENTS_SKY or CONTENTS_SOLID leafs
-dleaf_t*        HuntForWorld(vec_t* point, const vec_t* plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset)
+dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset)
 {
     dleaf_t*        leaf;
     int             x, y, z;
@@ -185,7 +185,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec_t* plane_offset, const dpla
     VectorCopy(point, best_point);
     VectorCopy(point, original_point);
 
-    TranslatePlane(&new_plane, plane_offset);
+    TranslatePlane(&new_plane, plane_offset.data());
 
 
 	for (a = 0; a < hunt_size; a++)
@@ -324,6 +324,10 @@ void MatrixForScale (const vec3_t center, vec_t scale, matrix_t &m)
 	}
 	VectorScale (center, 1 - scale, m.v[3]);
 }
+void MatrixForScale (const vec3_array& center, vec_t scale, matrix_t &m)
+{
+	MatrixForScale(center.data(), scale, m);
+}
 
 matrix_t MatrixForScale (const vec3_t center, vec_t scale)
 {
@@ -332,6 +336,11 @@ matrix_t MatrixForScale (const vec3_t center, vec_t scale)
 	MatrixForScale (center, scale, m);
 	return m;
 }
+matrix_t MatrixForScale (const vec3_array& center, vec_t scale)
+{
+	return MatrixForScale(center.data(), scale);
+}
+
 
 vec_t CalcMatrixSign (const matrix_t &m)
 {

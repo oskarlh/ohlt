@@ -55,7 +55,7 @@ static vec3_t   (*emitlight)[MAXLIGHTMAPS]; //LRC
 static vec3_t   (*addlight)[MAXLIGHTMAPS]; //LRC
 static unsigned char (*newstyles)[MAXLIGHTMAPS];
 
-vec3_t          g_face_offset[MAX_MAP_FACES];              // for rotating bmodels
+vec3_array          g_face_offset[MAX_MAP_FACES];              // for rotating bmodels
 
 vec_t           g_direct_scale = DEFAULT_DLIGHT_SCALE;
 
@@ -597,7 +597,7 @@ static bool     IsSpecial(const dface_t* const f)
 static bool     PlacePatchInside(patch_t* patch)
 {
     const dplane_t* plane;
-    const vec_t*    face_offset = g_face_offset[patch->faceNumber];
+    const vec3_array&    face_offset = g_face_offset[patch->faceNumber];
 
     plane = getPlaneFromFaceNumber(patch->faceNumber);
 

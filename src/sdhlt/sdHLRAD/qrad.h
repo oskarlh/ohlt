@@ -360,7 +360,7 @@ typedef std::vector<minlight_t>::iterator minlight_i;
 extern std::vector<minlight_t> s_minlights;
 extern patch_t* g_face_patches[MAX_MAP_FACES];
 extern entity_t* g_face_entity[MAX_MAP_FACES];
-extern vec3_t   g_face_offset[MAX_MAP_FACES];              // for models with origins
+extern vec3_array   g_face_offset[MAX_MAP_FACES];              // for models with origins
 extern eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
 extern vec3_t   g_face_centroids[MAX_MAP_EDGES];
 extern entity_t* g_face_texlights[MAX_MAP_FACES];
@@ -506,13 +506,15 @@ extern void     MakeBackplanes();
 extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
 extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
-extern dleaf_t* HuntForWorld(vec_t* point, const vec_t* plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
+extern dleaf_t* HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
 extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_t &out);
 extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_t in_normal, vec_t in_dist, vec3_t &out_normal, vec_t &out_dist);
 extern void		MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right, matrix_t &m);
 extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right);
 extern void		MatrixForScale (const vec3_t center, vec_t scale, matrix_t &m);
+extern void		MatrixForScale (const vec3_array& center, vec_t scale, matrix_t &m);
 extern matrix_t	MatrixForScale (const vec3_t center, vec_t scale);
+extern matrix_t	MatrixForScale (const vec3_array& center, vec_t scale);
 extern vec_t	CalcMatrixSign (const matrix_t &m);
 extern void		TranslateWorldToTex (int facenum, matrix_t &m);
 extern bool		InvertMatrix (const matrix_t &m, matrix_t &m_inverse);

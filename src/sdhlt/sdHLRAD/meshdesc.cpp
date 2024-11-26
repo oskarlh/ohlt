@@ -811,7 +811,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	// calculate plane for this triangle
 	PlaneFromPoints( triangle, &mainplane );
 
-	if( ComparePlanes( &mainplane, vec3_origin, 0.0f ))
+	if( ComparePlanes( &mainplane, vec3_origin.data(), 0.0f ))
 		return false; // bad plane
 
 	mplane_t planes[MAX_FACET_PLANES];

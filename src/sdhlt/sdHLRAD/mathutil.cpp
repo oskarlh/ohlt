@@ -486,13 +486,12 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 void GetAlternateOrigin (const vec3_t pos, const vec3_t normal, const patch_t *patch, vec3_t &origin)
 {
 	const dplane_t *faceplane;
-	const vec_t *faceplaneoffset;
 	const vec_t *facenormal;
 	dplane_t clipplane;
 	Winding w;
 
 	faceplane = getPlaneFromFaceNumber (patch->faceNumber);
-	faceplaneoffset = g_face_offset[patch->faceNumber];
+	const vec3_array& faceplaneoffset = g_face_offset[patch->faceNumber];
 	facenormal = faceplane->normal;
 	VectorCopy (normal, clipplane.normal);
 	clipplane.dist = DotProduct (pos, clipplane.normal);

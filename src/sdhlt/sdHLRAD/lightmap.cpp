@@ -1487,7 +1487,6 @@ static void		CalcPoints(lightinfo_t* l)
 	const int       facenum = l->surfnum;
 	const dface_t*  f = g_dfaces + facenum;
 	const dplane_t* p = getPlaneFromFace (f);
-	const vec_t*    face_delta = g_face_offset[facenum];
 	const eModelLightmodes lightmode = g_face_lightmode[facenum];
 	const int       h = l->texsize[1] + 1;
 	const int       w = l->texsize[0] + 1;

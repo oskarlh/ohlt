@@ -219,7 +219,7 @@ bool TestSegmentAgainstStudioList( const vec_t* p1, const vec_t* p2 )
 
 	vec3_t	trace_mins, trace_maxs;
 
-	MoveBounds( p1, vec3_origin, vec3_origin, p2, trace_mins, trace_maxs );
+	MoveBounds( p1, vec3_origin.data(), vec3_origin.data(), p2, trace_mins, trace_maxs );
 
 	for( int i = 0; i < num_models; i++ )
 	{

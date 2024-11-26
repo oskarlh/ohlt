@@ -11,7 +11,7 @@
 #define qmin(a,b)            (((a) < (b)) ? (a) : (b)) // changed 'min' to 'qmin'. --vluzacn
 #endif
 
-extern const vec3_t vec3_origin;
+extern const vec3_array vec3_origin;
 
 // HLCSG_HLBSP_DOUBLEPLANE: We could use smaller epsilon for hlcsg and hlbsp (hlcsg and hlbsp use double as vec_t), which will totally eliminate all epsilon errors. But we choose this big epsilon to tolerate the imprecision caused by Hammer. Basically, this is a balance between precision and flexibility.
 #define NORMAL_EPSILON   0.00001
@@ -107,6 +107,19 @@ inline bool     VectorCompare(const vec3_t v1, const vec3_t v2)
     }
     return true;
 }
+inline bool     VectorCompare(const vec3_t v1, const vec3_array& v2)
+{
+   return VectorCompare(v1, v2.data());
+}
+inline bool     VectorCompare(const vec3_array& v1, const vec3_array& v2)
+{
+   return VectorCompare(v1.data(), v2.data());
+}
+inline bool     VectorCompare(const vec3_array& v1, const vec3_t v2)
+{
+   return VectorCompare(v1.data(), v2);
+}
+
 
 
 //

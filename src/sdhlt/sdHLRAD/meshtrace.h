@@ -73,7 +73,7 @@ public:
 
 	// trace stuff
 	void SetTraceMesh( mmesh_t *cached_mesh, areanode_t *tree ) { mesh = cached_mesh; areanodes = tree; }
-	void SetupTrace( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end ); 
+	void SetupTrace( const vec3_t start, const vec3_array& mins, const vec3_array& maxs, const vec3_t end ); 
 	void SetTraceModExtradata( void *data ) { m_extradata = data; }
 	bool ClipRayToBox( const vec3_t mins, const vec3_t maxs );
 	bool ClipRayToTriangle( const mfacet_t *facet );	// obsolete

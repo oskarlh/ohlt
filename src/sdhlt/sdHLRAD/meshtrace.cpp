@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "qrad.h"
 #include "meshtrace.h"
 
-void TraceMesh :: SetupTrace( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end )
+void TraceMesh :: SetupTrace( const vec3_t start, const vec3_array& mins, const vec3_array& maxs, const vec3_t end )
 {
 	m_bHitTriangle = false;
 
