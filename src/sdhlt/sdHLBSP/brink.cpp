@@ -29,27 +29,25 @@
 
 typedef struct bpartition_s
 {
-	int planenum;
-	bool planeside;
-	int content;
 	bbrinklevel_e type;
-
 	bpartition_s *next;
+	int planenum;
+	int content;
+	bool planeside;
 }
 bpartition_t;
 
 typedef struct bclipnode_s
 {
-	bool isleaf;
 
-	int planenum;
 	const dplane_t *plane;
 	bclipnode_s *children[2]; // children[0] is the front side of the plane (SIDE_FRONT = 0)
-
-	int content;
 	bpartition_t *partitions;
-
 	struct btreeleaf_s *treeleaf;
+
+	int planenum;
+	int content;
+	bool isleaf;
 }
 bclipnode_t;
 
@@ -68,13 +66,12 @@ bbrinknode_t;
 
 typedef struct
 {
+	std::vector< bbrinknode_t > *nodes;
+	struct btreeedge_s *edge; // only for use in deciding brink type
 	vec3_t start, stop;
 	vec3_t direction;
 
 	int numnodes; // including both nodes and leafs
-	std::vector< bbrinknode_t > *nodes;
-
-	struct btreeedge_s *edge; // only for use in deciding brink type
 }
 bbrink_t;
 
@@ -257,54 +254,48 @@ typedef std::list< btreeleaf_r > btreeleaf_l;
 
 typedef struct btreepoint_s
 {
-	vec3_t v;
-	bool infinite;
-
 	btreeedge_l *edges; // this is a reversed reference
-
-	bool tmp_tested;
+	vec3_t v;
 	vec_t tmp_dist;
 	int tmp_side;
+	bool infinite;
+	bool tmp_tested;
 }
 btreepoint_t;
 
 typedef struct btreeedge_s
 {
-	btreepoint_r points[2]; // pointing from points[1] to points[0]
-	bool infinite; // both points are infinite (i.e. this edge lies on the bounding box)
-
 	btreeface_l *faces; // this is a reversed reference
-
 	bbrink_t *brink; // not defined for infinite edges
-
-	bool tmp_tested;
+	btreepoint_r points[2]; // pointing from points[1] to points[0]
 	int tmp_side;
+	bool infinite; // both points are infinite (i.e. this edge lies on the bounding box)
+	bool tmp_tested;
 	bool tmp_onleaf[2];
 }
 btreeedge_t;
 
 typedef struct btreeface_s
 {
+	const dplane_t *plane; // not defined for infinite face
 	btreeedge_l *edges; // empty faces are allowed (in order to preserve topological correctness)
-	bool infinite; // when the face is infinite, all its edges must also be infinite
-
 	btreeleaf_r leafs[2]; // pointing from leafs[0] to leafs[1] // this is a reversed reference
 
-	const dplane_t *plane; // not defined for infinite face
 	int planenum;
-	bool planeside; // if ture, this face is pointing at -plane->normal
-
-	bool tmp_tested;
 	int tmp_side;
+	bool infinite; // when the face is infinite, all its edges must also be infinite
+	bool planeside; // if ture, this face is pointing at -plane->normal
+	bool tmp_tested;
 }
 btreeface_t;
 
 typedef struct btreeleaf_s
 {
 	btreeface_l *faces;
-	bool infinite; // note: the infinite leaf is not convex
 
 	bclipnode_t *clipnode; // not defined for infinite leaf
+
+	bool infinite; // note: the infinite leaf is not convex
 }
 btreeleaf_t;
 
