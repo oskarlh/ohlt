@@ -53,45 +53,41 @@
                                                                               // because it can be split more later
 #define MAXNODESIZE     1024                               // Valve default is 1024
 
-typedef enum
+enum facestyle_e
 {
     face_normal = 0,
     face_hint,
     face_skip,
     face_null,
 	face_discardable, // contents must not differ between front and back
-}
-facestyle_e;
+};
 
 typedef struct face_s                                      // This structure is layed out so 'pts' is on a quad-word boundary (and the pointers are as well)
 {
     struct face_s*  next;
+    struct face_s*  original;                              // face on node
     int             planenum;
     int             texturenum;
     int             contents;                              // contents in front of face
 	int				detaillevel; // defined by hlcsg
 	int				*outputedges; // used in WriteDrawNodes
 
-    struct face_s*  original;                              // face on node
     int             outputnumber;                          // only valid for original faces after write surfaces
     int             numpoints;
-    facestyle_e     facestyle;
 	int				referenced;                            // only valid for original faces
-
+    facestyle_e     facestyle;
     // vector quad word aligned
     vec3_t          pts[MAXEDGES];                         // FIXME: change to use winding_t
-
 }
 face_t;
 
 typedef struct surface_s
 {
     struct surface_s* next;
-    int             planenum;
-    vec3_t          mins, maxs;
-    struct node_s*  onnode;                                // true if surface has already been used
-    // as a splitting node
     face_t*         faces;                                 // links to all the faces on either side of the surf
+    struct node_s*  onnode;                                // true if surface has already been used as a splitting node
+    vec3_t          mins, maxs;
+    int             planenum;
 	int				detaillevel; // minimum detail level of its faces
 }
 surface_t;
