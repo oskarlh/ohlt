@@ -1069,14 +1069,14 @@ void	MaxDistVis(int unused)
 						{
 							VectorSubtract (w->points[b], center[side], v);
 							dist = DotProduct (v, v);
-							radius[side] = qmax (radius[side], dist);
+							radius[side] = std::max(radius[side], dist);
 						}
 					}
 					radius[side] = sqrt (radius[side]);
 				}
 				VectorSubtract (center[0], center[1], v);
 				dist = VectorLength (v);
-				if (qmax (dist - radius[0] - radius[1], 0) >= g_maxdistance - ON_EPSILON)
+				if (std::max (dist - radius[0] - radius[1], (vec_t) 0) >= g_maxdistance - ON_EPSILON)
 				{
 					goto Work;
 				}
@@ -1098,7 +1098,7 @@ void	MaxDistVis(int unused)
 						w[0] = l->portals[k]->winding;
 						w[1] = tl->portals[m]->winding;
 						dist = WindingDist (w);
-						mindist = qmin (dist, mindist);
+						mindist = std::min(dist, mindist);
 					}
 				}
 				if (mindist >= g_maxdistance - ON_EPSILON)

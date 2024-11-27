@@ -88,21 +88,21 @@ void reset_bounding_box(bounding_box& thisBox)
 }
 void add_to_bounding_box(bounding_box& thisBox, const vec3_t point)
 {
-    thisBox.mins[0] = qmin(thisBox.mins[0], point[0]);
-    thisBox.maxs[0] = qmax(thisBox.maxs[0], point[0]);
-    thisBox.mins[1] = qmin(thisBox.mins[1], point[1]);
-    thisBox.maxs[1] = qmax(thisBox.maxs[1], point[1]);
-    thisBox.mins[2] = qmin(thisBox.mins[2], point[2]);
-    thisBox.maxs[2] = qmax(thisBox.maxs[2], point[2]);
+    thisBox.mins[0] = std::min(thisBox.mins[0], point[0]);
+    thisBox.maxs[0] = std::max(thisBox.maxs[0], point[0]);
+    thisBox.mins[1] = std::min(thisBox.mins[1], point[1]);
+    thisBox.maxs[1] = std::max(thisBox.maxs[1], point[1]);
+    thisBox.mins[2] = std::min(thisBox.mins[2], point[2]);
+    thisBox.maxs[2] = std::max(thisBox.maxs[2], point[2]);
 }
 void add_to_bounding_box(bounding_box& thisBox, const vec3_array point)
 {
-    thisBox.mins[0] = qmin(thisBox.mins[0], point[0]);
-    thisBox.maxs[0] = qmax(thisBox.maxs[0], point[0]);
-    thisBox.mins[1] = qmin(thisBox.mins[1], point[1]);
-    thisBox.maxs[1] = qmax(thisBox.maxs[1], point[1]);
-    thisBox.mins[2] = qmin(thisBox.mins[2], point[2]);
-    thisBox.maxs[2] = qmax(thisBox.maxs[2], point[2]);
+    thisBox.mins[0] = std::min(thisBox.mins[0], point[0]);
+    thisBox.maxs[0] = std::max(thisBox.maxs[0], point[0]);
+    thisBox.mins[1] = std::min(thisBox.mins[1], point[1]);
+    thisBox.maxs[1] = std::max(thisBox.maxs[1], point[1]);
+    thisBox.mins[2] = std::min(thisBox.mins[2], point[2]);
+    thisBox.maxs[2] = std::max(thisBox.maxs[2], point[2]);
 }
 void add_to_bounding_box(bounding_box& thisBox, bounding_box& other)
 {

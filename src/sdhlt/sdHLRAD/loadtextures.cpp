@@ -756,7 +756,7 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 		for (int k = 0; k < CQ_DIM; k++)
 		{
 			int val = (int)floor (n->centerofpoints[k] + 0.5 + 0.00001);
-			val = qmax (0, qmin (val, 255));
+			val = std::max(0, std::min(val, 255));
 			colors_out[numcolors_out][k] = val;
 		}
 		numcolors_out++;
@@ -932,8 +932,8 @@ static unsigned int Hash (int size, void *data)
 
 static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, vec3_t &light)
 {
-	ix = qmax (0, qmin (ix, texsize[0]));
-	iy = qmax (0, qmin (iy, texsize[1]));
+	ix = std::max(0, std::min(ix, texsize[0]));
+	iy = std::max(0, std::min(iy, texsize[1]));
 	VectorClear (light);
 	if (face->lightofs < 0)
 	{
@@ -956,9 +956,9 @@ static void GetLight (dface_t *face, const int texsize[2], double x, double y, v
 	ix = (int)floor (x);
 	iy = (int)floor (y);
 	dx = x - ix;
-	dx = qmax (0, qmin (dx, 1));
+	dx = std::max(0.0, std::min(dx, 1.0));
 	dy = y - iy;
-	dy = qmax (0, qmin (dy, 1));
+	dy = std::max(0.0, std::min(dy, 1.0));
 	
 	// do bilinear interpolation
 	vec3_t light00, light10, light01, light11;
@@ -1186,8 +1186,8 @@ void EmbedLightmapInTextures ()
 				dest_t = dest_t - texturesize[1] * floor (dest_t / texturesize[1]);
 				dest_is = (int)floor (dest_s); // dest_is = dest_s % texturesize[0]
 				dest_it = (int)floor (dest_t); // dest_it = dest_t % texturesize[1]
-				dest_is = qmax (0, qmin (dest_is, texturesize[0] - 1));
-				dest_it = qmax (0, qmin (dest_it, texturesize[1] - 1));
+				dest_is = std::max(0, std::min(dest_is, texturesize[0] - 1));
+				dest_it = std::max(0, std::min(dest_it, texturesize[1] - 1));
 				dest = &texture[dest_it * texturesize[0] + dest_is];
 
 				src_s = s_vec;
@@ -1196,8 +1196,8 @@ void EmbedLightmapInTextures ()
 				src_t = src_t - tex->height * floor (src_t / tex->height);
 				src_is = (int)floor (src_s); // src_is = src_s % tex->width
 				src_it = (int)floor (src_t); // src_it = src_t % tex->height
-				src_is = qmax (0, qmin (src_is, tex->width - 1));
-				src_it = qmax (0, qmin (src_it, tex->height - 1));
+				src_is = std::max(0, std::min(src_is, tex->width - 1));
+				src_it = std::max(0, std::min(src_it, tex->height - 1));
 				src_index = tex->canvas[src_it * tex->width + src_is];
 				VectorCopy (tex->palette[src_index], src_color);
 
@@ -1212,7 +1212,7 @@ void EmbedLightmapInTextures ()
 					for (k = 0; k < 3; k++)
 					{
 						float v = src_color[k] * pow (light[k] / denominator, gamma);
-						(*dest)[k] += 255 * qmax (0, qmin (v, 255));
+						(*dest)[k] += 255 * std::max(0.0f, std::min(v, 255.0f));
 					}
 					(*dest)[3] += 255;
 				}
@@ -1242,7 +1242,7 @@ void EmbedLightmapInTextures ()
 						for (j = 0; j < 3; j++)
 						{
 							int val = (int)floor ((*src)[j] / (*src)[3] + 0.5);
-							(*dest)[j] = qmax (0, qmin (val, 255));
+							(*dest)[j] = std::max(0, std::min(val, 255));
 						}
 						(*dest)[3] = 255;
 					}
@@ -1287,7 +1287,7 @@ void EmbedLightmapInTextures ()
 						for (j = 0; j < 3; j++)
 						{
 							int val = (int)floor (average[j] / average[3] + 0.5);
-							(*dest)[j] = qmax (0, qmin (val, 255));
+							(*dest)[j] = std::max(0, std::min(val, 255));
 						}
 						(*dest)[3] = 255;
 					}

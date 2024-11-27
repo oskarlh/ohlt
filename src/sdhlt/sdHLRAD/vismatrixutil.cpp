@@ -327,7 +327,7 @@ void            MakeScales(const int threadnum)
 				vec_t frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition between the two methods
-				frac = qmax (0, qmin (frac, 1));
+				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 				trans = frac * trans + (1 - frac) * (sightarea / patch2->area); // because later we will multiply this back
 			}
 			else
@@ -589,7 +589,7 @@ void            MakeRGBScales(const int threadnum)
 				vec_t frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition between the two methods
-				frac = qmax (0, qmin (frac, 1));
+				frac = std::max((vec_t) 0, std::min(frac,(vec_t)  1));
 				trans_one = frac * trans_one + (1 - frac) * (sightarea / patch2->area); // because later we will multiply this back
 			}
 			else

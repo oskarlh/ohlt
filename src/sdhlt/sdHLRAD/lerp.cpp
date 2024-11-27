@@ -115,7 +115,7 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_t positi
 	if (fabs (dot) > ON_EPSILON)
 	{
 		frac = DotProduct (surfacespot, phongnormal) / dot;
-		frac = qmax (0, qmin (frac, 1)); // to correct some extreme cases
+		frac = std::max(vec_t(0), std::min(frac, vec_t(1))); // to correct some extreme cases
 	}
 	else
 	{
@@ -188,7 +188,7 @@ static vec_t GetFrac (const vec3_t leftspot, const vec3_t rightspot, const vec3_
 	else
 	{
 		frac = dot1 / (dot1 - dot2);
-		frac = qmax (0, qmin (frac, 1));
+		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 	}
 
 	return frac;
@@ -267,7 +267,7 @@ static bool CalcWeight (const localtriangulation_t *lt, const vec3_t spot, vec_t
 	{
 		istoofar = false;
 		ratio = dist / len;
-		ratio = qmax (0, qmin (ratio, 1));
+		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 	}
 
 	*weight_out = 1 - ratio;
@@ -325,7 +325,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		frac = dot1 / (dot1 + dot2);
-		frac = qmax (0, qmin (frac, 1));
+		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 	}
 
 	dot1 = DotProduct (w3->leftspot, normal1) - 0;
@@ -376,7 +376,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		ratio = dot / dot1;
-		ratio = qmax (0, qmin (ratio, 1));
+		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 	}
 
 	VectorScale (mid_near, 1 - ratio, test);
@@ -410,7 +410,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		frac = dot1 / (dot1 + dot2);
-		frac = qmax (0, qmin (frac, 1));
+		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 	}
 
 	dot1 = DotProduct (w1->leftspot, normal1) - 0;
@@ -461,7 +461,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		ratio = dot / dot1;
-		ratio = qmax (0, qmin (ratio, 1));
+		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 	}
 
 	VectorScale (mid_near, 1 - ratio, test);
@@ -573,7 +573,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_t spot
 			{
 				istoofar = false;
 				ratio = dist / len;
-				ratio = qmax (0, qmin (ratio, 1));
+				ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 			}
 
 			if (istoofar)
@@ -647,7 +647,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_t spot
 			else if (dot > 0) // dot1 < 0 < dot < dot2
 			{
 				frac = dot1 / (dot1 - dot);
-				frac = qmax (0, qmin (frac, 1));
+				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 
 				interp->isbiased = true;
 				interp->totalweight = 1.0;
@@ -660,7 +660,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_t spot
 			else // dot1 < dot <= 0 < dot2
 			{
 				frac = dot / (dot - dot2);
-				frac = qmax (0, qmin (frac, 1));
+				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 			
 				interp->isbiased = true;
 				interp->totalweight = 1.0;
@@ -705,7 +705,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_t spot
 				else
 				{
 					ratio = dist / len;
-					ratio = qmax (0, qmin (ratio, 1));
+					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 
 					interp->isbiased = true;
 					interp->totalweight = 1.0;
@@ -743,7 +743,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_t spot
 				else
 				{
 					ratio = dist / len;
-					ratio = qmax (0, qmin (ratio, 1));
+					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 
 					interp->isbiased = true;
 					interp->totalweight = 1.0;
@@ -1047,16 +1047,16 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 		dot2 = DotProduct (p2, wall->direction);
 		if (fabs (front) <= 2 * ON_EPSILON && fabs (back) <= 2 * ON_EPSILON)
 		{
-			top = qmin (top, qmax (dot1, dot2));
-			bottom = qmax (bottom, qmin (dot1, dot2));
+			top = std::min(top, std::max(dot1, dot2));
+			bottom = std::max(bottom, std::min(dot1, dot2));
 		}
 		else
 		{
 			frac = front / (front - back);
-			frac = qmax (0, qmin (frac, 1));
+			frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 			dot = dot1 + frac * (dot2 - dot1);
-			top = qmin (top, dot);
-			bottom = qmax (bottom, dot);
+			top = std::min(top, dot);
+			bottom = std::max(bottom, dot);
 		}
 		if (top - bottom >= -ON_EPSILON)
 		{

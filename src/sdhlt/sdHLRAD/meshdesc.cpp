@@ -570,7 +570,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 
 		int index = pModel->body / pbodypart->base;
 		index = index % pbodypart->nummodels;
-		int m_skinnum = qmin( qmax( 0, pModel->skin ), MAXSTUDIOSKINS );
+		int m_skinnum = std::min( std::max( 0, pModel->skin ), MAXSTUDIOSKINS );
 
 		mstudiomodel_t *psubmodel = (mstudiomodel_t *)((byte *)phdr + pbodypart->modelindex) + index;
 		vec3_t *pstudioverts = (vec3_t *)((byte *)phdr + psubmodel->vertindex);

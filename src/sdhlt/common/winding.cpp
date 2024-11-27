@@ -1040,11 +1040,11 @@ void            Winding::resize(std::uint_least32_t newsize)
 {
     newsize = (newsize + 3) & ~3;   // groups of 4
 
-    vec3_t* newpoints = new vec3_t[newsize];
-    m_NumPoints = qmin(newsize, m_NumPoints);
-    memcpy(newpoints, m_Points, m_NumPoints);
+    auto newpoints = std::make_unique<vec3_t[]>(newsize);
+    m_NumPoints = std::min(newsize, m_NumPoints);
+    memcpy(newpoints.get(), m_Points, m_NumPoints);
     delete[] m_Points;
-    m_Points = newpoints;
+    m_Points = newpoints.release();
     m_MaxPoints = newsize;
 }
 

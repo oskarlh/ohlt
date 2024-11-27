@@ -12,6 +12,7 @@
 
 */
 
+#include <algorithm>
 #include <filesystem>
 
 #include "bsp5.h"
@@ -1049,7 +1050,7 @@ static surfchain_t* ReadSurfs(FILE* file)
 				inaccuracy = fabs (DotProduct (f->pts[i], plane->normal) - plane->dist);
 				inaccuracy_count++;
 				inaccuracy_total += inaccuracy;
-				inaccuracy_max = qmax (inaccuracy, inaccuracy_max);
+				inaccuracy_max = std::max(inaccuracy, inaccuracy_max);
 			}
         }
         fscanf(file, "\n");
@@ -1291,8 +1292,8 @@ static bool     ProcessModel()
 				}
 				for (i = 0; i < 3; i++)
 				{
-					model->maxs[i] = qmax (model->maxs[i], maxs[i]);
-					model->mins[i] = qmin (model->mins[i], mins[i]);
+					model->maxs[i] = std::max(model->maxs[i], (float) maxs[i]);
+					model->mins[i] = std::min(model->mins[i], (float) mins[i]);
 				}
 			}
 		}

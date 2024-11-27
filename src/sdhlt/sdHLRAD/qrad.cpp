@@ -755,7 +755,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 	
 	winding = new Winding (*patch->winding); // perform all the operations on the copy
 	chop = patch->chop;
-	chop = qmax (1.0, chop);
+	chop = std::max((vec_t) 1.0, chop);
 	epsilon = 0.6;
 
 	// optimize the grid
@@ -774,16 +774,16 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			vec_t dotB;
 			point = winding->m_Points[x];
 			dotA = DotProduct (point, plA->normal);
-			minA = qmin (minA, dotA);
-			maxA = qmax (maxA, dotA);
+			minA = std::min(minA, dotA);
+			maxA = std::max(maxA, dotA);
 			dotB = DotProduct (point, plB->normal);
-			minB = qmin (minB, dotB);
-			maxB = qmax (maxB, dotB);
+			minB = std::min(minB, dotB);
+			maxB = std::max(maxB, dotB);
 		}
 
 		gridchopA = chop;
 		gridsizeA = (int)ceil ((maxA - minA - 2 * epsilon) / gridchopA);
-		gridsizeA = qmax (1, gridsizeA);
+		gridsizeA = std::max(1, gridsizeA);
 		if (gridsizeA > max_gridsize)
 		{
 			gridsizeA = max_gridsize;
@@ -793,7 +793,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 
 		gridchopB = chop;
 		gridsizeB = (int)ceil ((maxB - minB - 2 * epsilon) / gridchopB);
-		gridsizeB = qmax (1, gridsizeB);
+		gridsizeB = std::max(1, gridsizeB);
 		if (gridsizeB > max_gridsize)
 		{
 			gridsizeB = max_gridsize;
@@ -1221,8 +1221,8 @@ static vec_t    getScale(const patch_t* const patch)
 			VectorMA (tx->vecs[x], -dot, faceplane->normal, vecs_perpendicular[x]);
 		}
 		
-		scale[0] = 1 / qmax (NORMAL_EPSILON, VectorLength (vecs_perpendicular[0]));
-		scale[1] = 1 / qmax (NORMAL_EPSILON, VectorLength (vecs_perpendicular[1]));
+		scale[0] = 1 / std::max(NORMAL_EPSILON, VectorLength (vecs_perpendicular[0]));
+		scale[1] = 1 / std::max(NORMAL_EPSILON, VectorLength (vecs_perpendicular[1]));
 
 		// don't care about the angle between vecs[0] and vecs[1] (given the length of "vecs", smaller angle = larger texel area), because gridplanes will have the same angle (also smaller angle = larger patch area)
 
@@ -3684,7 +3684,7 @@ int             main(const int argc, char** argv)
 			if (i + 1 < argc)
 			{
 				int v = atoi(argv[++i]);
-				v = qmax (0, qmin (v, 255));
+				v = std::max(0, std::min(v, 255));
 				g_minlight = (unsigned char)v;
 			}
 			else

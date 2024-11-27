@@ -219,8 +219,8 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 		vec_t high = -BOGUS_RANGE;
 		for (int x = 0; x < f->numpoints; x++)
 		{
-			low = qmin (low, f->pts[x][bestaxis]);
-			high = qmax (high, f->pts[x][bestaxis]);
+			low = std::min(low, f->pts[x][bestaxis]);
+			high = std::max(high, f->pts[x][bestaxis]);
 		}
 		if (low < dist1 + ON_EPSILON && high > dist2 - ON_EPSILON)
 		{
@@ -1503,8 +1503,8 @@ static bool     CalcNodeBounds(node_t* node
 	}
 	for (i = 0; i < 3; i++)
 	{
-		validmins[i] = qmax (node->mins[i], -(ENGINE_ENTITY_RANGE + g_maxnode_size));
-		validmaxs[i] = qmin (node->maxs[i], ENGINE_ENTITY_RANGE + g_maxnode_size);
+		validmins[i] = std::max(node->mins[i], -(ENGINE_ENTITY_RANGE + g_maxnode_size));
+		validmaxs[i] = std::min(node->maxs[i], ENGINE_ENTITY_RANGE + g_maxnode_size);
 	}
 	for (i = 0; i < 3; i++)
 	{

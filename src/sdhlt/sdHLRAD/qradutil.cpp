@@ -845,10 +845,10 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 		itmax = (int)floor ((original_st[1] - map->start[1] + 2 * ON_EPSILON) / map->step[1]);
 		ismin = (int)ceil ((original_st[0] - map->start[0] - 2 * ON_EPSILON) / map->step[0]) - 1;
 		ismax = (int)floor ((original_st[0] - map->start[0] + 2 * ON_EPSILON) / map->step[0]);
-		itmin = qmax (0, itmin);
-		itmax = qmin (itmax, map->h - 1);
-		ismin = qmax (0, ismin);
-		ismax = qmin (ismax, map->w - 1);
+		itmin = std::max(0, itmin);
+		itmax = std::min(itmax, map->h - 1);
+		ismin = std::max(0, ismin);
+		ismax = std::min(ismax, map->w - 1);
 
 		found = false;
 		bool best_nudged = true;
@@ -909,18 +909,18 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 	for (x = 0; x < texwinding->m_NumPoints; x++)
 	{
 		it = (int)floor ((texwinding->m_Points[x][1] - map->start[1] + 0.5 * ON_EPSILON) / map->step[1]);
-		itmin = qmin (itmin, it);
+		itmin = std::min(itmin, it);
 		it = (int)ceil ((texwinding->m_Points[x][1] - map->start[1] - 0.5 * ON_EPSILON) / map->step[1]) - 1;
-		itmax = qmax (it, itmax);
+		itmax = std::max(it, itmax);
 		is = (int)floor ((texwinding->m_Points[x][0] - map->start[0] + 0.5 * ON_EPSILON) / map->step[0]);
-		ismin = qmin (ismin, is);
+		ismin = std::min(ismin, is);
 		is = (int)ceil ((texwinding->m_Points[x][0] - map->start[0] - 0.5 * ON_EPSILON) / map->step[0]) - 1;
-		ismax = qmax (is, ismax);
+		ismax = std::max(is, ismax);
 	}
-	itmin = qmax (0, itmin);
-	itmax = qmin (itmax, map->h - 1);
-	ismin = qmax (0, ismin);
-	ismax = qmin (ismax, map->w - 1);
+	itmin = std::max(0, itmin);
+	itmax = std::min(itmax, map->h - 1);
+	ismin = std::max(0, ismin);
+	ismax = std::min(ismax, map->w - 1);
 	
 	found = false;
 	for (it = itmin; it <= itmax; it++)

@@ -62,14 +62,14 @@ bool TraceMesh :: ClipRayToBox( const vec3_t mins, const vec3_t maxs )
 	CrossProduct( t0, ray_inv, t0 );
 	CrossProduct( t1, ray_inv, t1 );
 
-	n[0] = qmin( t0[0], t1[0] );
-	n[1] = qmin( t0[1], t1[1] );
-	n[2] = qmin( t0[2], t1[2] );
+	n[0] = std::min( t0[0], t1[0] );
+	n[1] = std::min( t0[1], t1[1] );
+	n[2] = std::min( t0[2], t1[2] );
 	d = VectorMaximum( n );
 
-	f[0] = qmax( t0[0], t1[0] );
-	f[1] = qmax( t0[1], t1[1] );
-	f[2] = qmax( t0[2], t1[2] );
+	f[0] = std::max( t0[0], t1[0] );
+	f[1] = std::max( t0[1], t1[1] );
+	f[2] = std::max( t0[2], t1[2] );
 	t = VectorMinimum( f );
 
 	return ( t >= 0.0f ) && ( t >= d ); 

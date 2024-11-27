@@ -74,7 +74,7 @@ void        GetUsedWads()
 		}
 		if (j - i > 0) //If wadpath is not empty
 		{
-			int length = qmin (j - i, _MAX_PATH - 1); //Get length of wadpath
+			int length = std::min(j - i, _MAX_PATH - 1); //Get length of wadpath
 			memcpy (szTmp, &pszWadPaths[i], length);
 			szTmp[length] = '\0'; //Null terminate
 

@@ -1765,7 +1765,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 			}
 			if (*pp && (*pp)->planenum == current->planenum && (*pp)->planeside == current->planeside)
 			{
-				(*pp)->type = qmin ((*pp)->type, current->type); // pick the lowest (most important) level from the existing partition and the current partition
+				(*pp)->type = std::min((*pp)->type, current->type); // pick the lowest (most important) level from the existing partition and the current partition
 				free (current);
 				continue;
 			}

@@ -44,7 +44,7 @@ static unsigned AddTransparencyToDataList(const vec3_t trans)
 	while( s_trans_count >= s_max_trans_count )
 	{
 		unsigned int old_max_count = s_max_trans_count;
-		s_max_trans_count = qmax (64u, (unsigned int)((double)s_max_trans_count * 1.41));
+		s_max_trans_count = std::max(64u, (unsigned int)((double)s_max_trans_count * 1.41));
 		if (s_max_trans_count >= (unsigned int)INT_MAX)
 		{
 			Error ("AddTransparencyToDataList: array size exceeded INT_MAX");
@@ -82,7 +82,7 @@ void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_
 	while( s_raw_count >= s_max_raw_count )
 	{
 		unsigned int old_max_count = s_max_raw_count;
-		s_max_raw_count = qmax (64u, (unsigned int)((double)s_max_raw_count * 1.41));
+		s_max_raw_count = std::max(64u, (unsigned int)((double)s_max_raw_count * 1.41));
 		if (s_max_raw_count >= (unsigned int)INT_MAX)
 		{
 			Error ("AddTransparencyToRawArray: array size exceeded INT_MAX");
@@ -292,7 +292,7 @@ void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style)
 	while( s_style_count >= s_max_style_count )
 	{
 		unsigned int old_max_count = s_max_style_count;
-		s_max_style_count = qmax (64u, (unsigned int)((double)s_max_style_count * 1.41));
+		s_max_style_count = std::max(64u, (unsigned int)((double)s_max_style_count * 1.41));
 		if (s_max_style_count >= (unsigned int)INT_MAX)
 		{
 			Error ("AddStyleToStyleArray: array size exceeded INT_MAX");

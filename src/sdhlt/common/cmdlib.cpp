@@ -100,7 +100,7 @@ inline void getFilePositions(const char* path, int* extension_position, int* dir
 	else
 	{ *extension_position = ptr - path; }
 
-	ptr = qmax(strrchr(path,'/'),strrchr(path,'\\'));
+	ptr = std::max(strrchr(path,'/'),strrchr(path,'\\'));
 	if(ptr == 0)
 	{ *directory_position = -1; }
 	else

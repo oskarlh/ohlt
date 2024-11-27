@@ -217,8 +217,8 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			{
 				vec_t dot;
 				dot = DotProduct (*v, brushface.normal);
-				dotmin = qmin (dotmin, dot);
-				dotmax = qmax (dotmax, dot);
+				dotmin = std::min(dotmin, dot);
+				dotmax = std::max(dotmax, dot);
 			}
 			if (dotmax - dotmin <= EQUAL_EPSILON)
 			{

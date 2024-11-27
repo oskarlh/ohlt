@@ -248,10 +248,10 @@ static float ComputeEdgeCollapseCost( CVertex *u, CVertex *v )
 		for( int j = 0; j < sides.num; j++ )
 		{
 			float dotprod = DotProduct( u->face[i]->normal, sides[j]->normal );
-			mincurv = qmin( mincurv, ( 1.0f - dotprod ) / 2.0f );
+			mincurv = std::min( mincurv, ( 1.0f - dotprod ) / 2.0f );
 		}
 
-		curvature = qmax( curvature, mincurv );
+		curvature = std::max( curvature, mincurv );
 	}
 
 	// the more coplanar the lower the curvature term   

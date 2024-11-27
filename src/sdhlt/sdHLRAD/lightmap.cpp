@@ -1,5 +1,6 @@
 #include "qrad.h"
 #include <numbers>
+#include <algorithm>
 
 edgeshare_t     g_edgeshare[MAX_MAP_EDGES];
 vec3_t          g_face_centroids[MAX_MAP_EDGES]; // BUG: should this be [MAX_MAP_FACES]?
@@ -312,10 +313,10 @@ void            PairEdges()
 					vec_t smoothvalue;
 					int m0 = g_texinfo[e->faces[0]->texinfo].miptex;
 					int m1 = g_texinfo[e->faces[1]->texinfo].miptex;
-					smoothvalue = qmax (g_smoothvalues[m0], g_smoothvalues[m1]);
+					smoothvalue = std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
 					if (m0 != m1)
 					{
-						smoothvalue = qmax (smoothvalue, g_smoothing_threshold_2);
+						smoothvalue = std::max(smoothvalue, g_smoothing_threshold_2);
 					}
 					if (smoothvalue >= 1.0 - NORMAL_EPSILON)
 					{
@@ -327,7 +328,7 @@ void            PairEdges()
 						VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
 						e->cos_normals_angle = 1.0;
                     }
-                    else if (e->cos_normals_angle >= qmax (smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
+                    else if (e->cos_normals_angle >= std::max(smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
 					{
                         {
                             VectorAdd(normals[0], normals[1], e->interface_normal);
@@ -433,16 +434,16 @@ void            PairEdges()
 							vec_t smoothvalue;
 							int m0 = g_texinfo[f->texinfo].miptex;
 							int m1 = g_texinfo[fcurrent->texinfo].miptex;
-							smoothvalue = qmax (g_smoothvalues[m0], g_smoothvalues[m1]);
+							smoothvalue = std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
 							if (m0 != m1)
 							{
-								smoothvalue = qmax (smoothvalue, g_smoothing_threshold_2);
+								smoothvalue = std::max(smoothvalue, g_smoothing_threshold_2);
 							}
 							if (smoothvalue >= 1.0 - NORMAL_EPSILON)
 							{
 								smoothvalue = 2.0;
 							}
-							if (DotProduct (edgenormal, normal) < qmax (smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
+							if (DotProduct (edgenormal, normal) < std::max(smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
 								break;
 							if (fcurrent != e->faces[0] && fcurrent != e->faces[1] &&
 								(TestFaceIntersect (test0, fcurrent - g_dfaces) || TestFaceIntersect (test1, fcurrent - g_dfaces)))
@@ -1011,11 +1012,11 @@ void ChopFrag (samplefrag_t *frag)
 			}
 			else if (dot1 < 0)
 			{
-				frac1 = qmax (frac1, dot1 / (dot1 - dot2));
+				frac1 = std::max(frac1, dot1 / (dot1 - dot2));
 			}
 			else if (dot2 < 0)
 			{
-				frac2 = qmin (frac2, dot1 / (dot1 - dot2));
+				frac2 = std::min(frac2, dot1 / (dot1 - dot2));
 			}
 		}
 		if (edgelen * (frac2 - frac1) <= ON_EPSILON)
@@ -1030,14 +1031,14 @@ void ChopFrag (samplefrag_t *frag)
 		dot = DotProduct (frag->origin, e->direction);
 		dot1 = DotProduct (e->point1, e->direction);
 		dot2 = DotProduct (e->point2, e->direction);
-		dot = qmax (dot1, qmin (dot, dot2));
+		dot = std::max(dot1, std::min(dot, dot2));
 		VectorMA (e->point1, dot - dot1, e->direction, v);
 		VectorSubtract (v, frag->origin, v);
 		e->distance = VectorLength (v);
 		CrossProduct (e->direction, frag->windingplane.normal, normal);
 		VectorNormalize (normal); // points inward
 		e->distancereduction = DotProduct (v, normal);
-		e->flippedangle = frag->flippedangle + acos (qmin (es->cos_normals_angle, 1.0));
+		e->flippedangle = frag->flippedangle + acos (std::min (es->cos_normals_angle, (vec_t) 1.0));
 
 		// calculate the matrix
 		e->ratio = (*m_inverse).v[2][2];
@@ -2051,7 +2052,7 @@ void            CreateDirectLights()
 							vec_t dot = DotProduct (dl->normal, testnormal);
 							if (dot >= testdot - NORMAL_EPSILON)
 							{
-								totalweight += qmax (0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i]; // This is not the right formula when dl->sunspreadangle < SUNSPREAD_THRESHOLD, but it gives almost the same result as the right one.
+								totalweight += std::max((vec_t) 0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i]; // This is not the right formula when dl->sunspreadangle < SUNSPREAD_THRESHOLD, but it gives almost the same result as the right one.
 								count++;
 							}
 						}
@@ -2075,7 +2076,7 @@ void            CreateDirectLights()
 									Error ("collect spread normals: internal error.");
 								}
 								VectorCopy (testnormal, dl->sunnormals[count]);
-								dl->sunnormalweights[count] = qmax (0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i] / totalweight;
+								dl->sunnormalweights[count] = std::max((vec_t) 0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i] / totalweight;
 								count++;
 							}
 						}
@@ -2119,7 +2120,7 @@ void            CreateDirectLights()
         if (dl->type != emit_skylight)
         {
 			//why? --vluzacn
-            l1 = qmax(dl->intensity[0], qmax(dl->intensity[1], dl->intensity[2]));
+            l1 = std::max(dl->intensity[0], std::max(dl->intensity[1], dl->intensity[2]));
             l1 = l1 * l1 / 10;
 
             dl->intensity[0] *= l1;
@@ -2631,7 +2632,7 @@ static void     GatherSampleLight(const vec3_t pos, const byte* const pvs, const
 									continue;
 								}
 
-								vec_t factor = qmin (qmax (0.0, (1 - DotProduct (l->normal, skynormals[j])) / 2), 1.0); // how far this piece of sky has deviated from the sun
+								vec_t factor = std::min(std::max ((vec_t) 0.0, (1 - DotProduct (l->normal, skynormals[j])) / 2), (vec_t) 1.0); // how far this piece of sky has deviated from the sun
 								VectorScale (l->diffuse_intensity, 1 - factor, sky_intensity);
 								VectorMA (sky_intensity, factor, l->diffuse_intensity2, sky_intensity);
 								VectorScale (sky_intensity, skyweights[j] * g_indirect_sun / 2, sky_intensity);
@@ -2741,9 +2742,9 @@ static void     GatherSampleLight(const vec3_t pos, const byte* const pvs, const
 							{
 								vec_t range_scale;
 								range_scale = 1 - l->stopdot2 * l->stopdot2;
-								range_scale = 1 / sqrt (qmax (NORMAL_EPSILON, range_scale));
+								range_scale = 1 / sqrt (std::max ((vec_t) NORMAL_EPSILON, range_scale));
 								// range_scale = 1 / sin (cone2)
-								range_scale = qmin (range_scale, 2); // restrict this to 2, because skylevel has limit.
+								range_scale = std::min(range_scale, (vec_t) 2); // restrict this to 2, because skylevel has limit.
 								range *= range_scale; // because smaller cones are more likely to create the ugly grid effect.
 
 								if (dot2 <= l->stopdot2 + NORMAL_EPSILON)
@@ -2804,7 +2805,7 @@ static void     GatherSampleLight(const vec3_t pos, const byte* const pvs, const
 
 								vec_t frac = dist / range;
 								frac = (frac - 0.5) * 2; // make a smooth transition between the two methods
-								frac = qmax (0, qmin (frac, 1));
+								frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 
 								vec_t ratio2 = (sightarea / l->patch_area); // because l->patch->area has been multiplied into l->intensity
 								ratio = frac * ratio + (1 - frac) * ratio2;
@@ -3249,8 +3250,8 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			t = ((i / l->lmcachewidth) - l->lmcache_offset) / (vec_t)l->lmcache_density;
 			s_vec = l->texmins[0] * TEXTURE_STEP + s * TEXTURE_STEP;
 			t_vec = l->texmins[1] * TEXTURE_STEP + t * TEXTURE_STEP;
-			nearest_s = qmax (0, qmin ((int)floor (s + 0.5), l->texsize[0]));
-			nearest_t = qmax (0, qmin ((int)floor (t + 0.5), l->texsize[1]));
+			nearest_s = std::max(0, std::min((int)floor (s + 0.5), l->texsize[0]));
+			nearest_t = std::max(0, std::min((int)floor (t + 0.5), l->texsize[1]));
 			sampled = l->lmcache[i];
 			normal_out = &l->lmcache_normal[i];
 			wallflags_out = &l->lmcache_wallflags[i];
@@ -3654,8 +3655,8 @@ void            BuildFacelights(const int facenum)
 		{
 			for (t = t_center - l.lmcache_side; t <= t_center + l.lmcache_side; t++)
 			{
-				weighting = (qmin (0.5, sizehalf - (s - s_center)) - qmax (-0.5, -sizehalf - (s - s_center)))
-					* (qmin (0.5, sizehalf - (t - t_center)) - qmax (-0.5, -sizehalf - (t - t_center)));
+				weighting = (std::min ((vec_t) 0.5, sizehalf - (s - s_center)) - std::max((vec_t) -0.5, -sizehalf - (s - s_center)))
+					* (std::min ((vec_t) 0.5, sizehalf - (t - t_center)) - std::max((vec_t) -0.5, -sizehalf - (t - t_center)));
 				if (g_bleedfix && !g_drawnudge)
 				{
 					int wallflags = sample_wallflags[(s - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (t - t_center + l.lmcache_side)];
@@ -3922,7 +3923,7 @@ void            BuildFacelights(const int facenum)
 			for (i = 0; i < fl->numsamples; i++)
 			{
 				vec_t b = VectorMaximum (fl_samples[j][i].light);
-				maxlights[j] = qmax (maxlights[j], b);
+				maxlights[j] = std::max(maxlights[j], b);
 			}
 			if (maxlights[j] <= g_corings[f_styles[j]] * 0.1) // light is too dim, discard this style to reduce RAM usage
 			{
@@ -4349,7 +4350,7 @@ void ReduceLightmap ()
 			for (i = 0; i < fl->numsamples; i++)
 			{
 				unsigned char *v = &oldlightdata[oldofs + fl->numsamples * 3 * k + i * 3];
-				maxb = qmax (maxb, VectorMaximum (v));
+				maxb = std::max(maxb, VectorMaximum (v));
 			}
 			if (maxb <= 0) // black
 			{

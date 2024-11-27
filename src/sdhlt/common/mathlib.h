@@ -3,17 +3,6 @@
 #include "cmdlib.h" //--vluzacn
 #include <algorithm>
 
-#if !defined(qmax) 
-#define qmax(a,b)        (((a) > (b)) ? (a) : (b))
-#endif
-
-#if !defined(qmin)
-#define qmin(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-// #define qmax(a,b) std::max((a),(b))
-// #define qmin(a,b) std::min((a),(b))
-
 extern const vec3_array vec3_origin;
 
 // HLCSG_HLBSP_DOUBLEPLANE: We could use smaller epsilon for hlcsg and hlbsp (hlcsg and hlbsp use double as vec_t), which will totally eliminate all epsilon errors. But we choose this big epsilon to tolerate the imprecision caused by Hammer. Basically, this is a balance between precision and flexibility.
@@ -122,39 +111,6 @@ inline bool     VectorCompare(const vec3_array& v1, const vec3_t v2)
 {
    return VectorCompare(v1.data(), v2);
 }
-
-
-
-//
-// Portable bit rotation
-//
-
-
-#ifdef SYSTEM_POSIX
-#undef rotl
-#undef rotr
-
-inline unsigned int rotl(unsigned value, unsigned int amt)
-{
-    unsigned        t1, t2;
-
-    t1 = value >> ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
-
-    t2 = value << amt;
-    return (t1 | t2);
-}
-
-inline unsigned int rotr(unsigned value, unsigned int amt)
-{
-    unsigned        t1, t2;
-
-    t1 = value << ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
-
-    t2 = value >> amt;
-    return (t1 | t2);
-}
-#endif
-
 
 //
 // Misc

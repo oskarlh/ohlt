@@ -91,6 +91,26 @@ entity_t        g_entities[MAX_MAP_ENTITIES];
  * ===============
  */
 
+inline unsigned int rotleft(unsigned value, unsigned int amt)
+{
+    unsigned        t1, t2;
+
+    t1 = value >> ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
+
+    t2 = value << amt;
+    return (t1 | t2);
+}
+
+inline unsigned int rotright(unsigned value, unsigned int amt)
+{
+    unsigned        t1, t2;
+
+    t1 = value << ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
+
+    t2 = value >> amt;
+    return (t1 | t2);
+}
+
 static int      FastChecksum(const void* const buffer, int bytes)
 {
     int             checksum = 0;
@@ -98,7 +118,7 @@ static int      FastChecksum(const void* const buffer, int bytes)
 
     while (bytes--)
     {
-        checksum = rotl(checksum, 4) ^ (*buf);
+        checksum = rotleft(checksum, 4) ^ (*buf);
         buf++;
     }
 
@@ -111,7 +131,7 @@ template<class T> static std::int32_t fast_checksum(std::span<T> buffer)
 
     while (buf != (const char*) &*buffer.end())
     {
-        checksum = rotl(checksum, 4) ^ (*buf);
+        checksum = rotright(checksum, 4) ^ (*buf);
         buf++;
     }
 
@@ -653,7 +673,7 @@ int CountBlocks ()
 				VectorCopy (v->point, point);
 			}
 		}
-		if (extents[0] < 0 || extents[1] < 0 || extents[0] > qmax (512, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > qmax (512, MAX_SURFACE_EXTENT * TEXTURE_STEP))
+		if (extents[0] < 0 || extents[1] < 0 || extents[0] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP))
 			// the default restriction from the engine is 512, but place 'max (512, MAX_SURFACE_EXTENT * TEXTURE_STEP)' here in case someone raise the limit
 		{
 			Warning ("Bad surface extents %d/%d at position (%.0f,%.0f,%.0f)", extents[0], extents[1], point[0], point[1], point[2]);
