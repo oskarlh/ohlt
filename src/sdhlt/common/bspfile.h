@@ -93,29 +93,9 @@
 
 typedef struct
 {
-    int             fileofs, filelen;
+    std::uint32_t fileofs, filelen;
 }
 lump_t;
-
-#define LUMP_ENTITIES      0
-#define LUMP_PLANES        1
-#define LUMP_TEXTURES      2
-#define LUMP_VERTEXES      3
-#define LUMP_VISIBILITY    4
-#define LUMP_NODES         5
-#define LUMP_TEXINFO       6
-#define LUMP_FACES         7
-#define LUMP_LIGHTING      8
-#define LUMP_CLIPNODES     9
-#define LUMP_LEAFS        10
-#define LUMP_MARKSURFACES 11
-#define LUMP_EDGES        12
-#define LUMP_SURFEDGES    13
-#define LUMP_MODELS       14
-#define HEADER_LUMPS      15
-
-//#define LUMP_MISCPAD      -1
-//#define LUMP_ZEROPAD      -2
 
 typedef struct
 {
@@ -127,12 +107,6 @@ typedef struct
 }
 dmodel_t;
 
-typedef struct
-{
-    std::int32_t             version;
-    lump_t          lumps[HEADER_LUMPS];
-}
-dheader_t;
 
 typedef struct
 {
@@ -269,6 +243,60 @@ typedef struct
     std::uint8_t            ambient_level[NUM_AMBIENTS];
 }
 dleaf_t;
+
+
+
+constexpr std::size_t LUMP_ENTITIES    = 0;
+constexpr std::size_t LUMP_PLANES       = 1;
+constexpr std::size_t LUMP_TEXTURES     = 2;
+constexpr std::size_t LUMP_VERTEXES     = 3;
+constexpr std::size_t LUMP_VISIBILITY   = 4;
+constexpr std::size_t LUMP_NODES        = 5;
+constexpr std::size_t LUMP_TEXINFO      = 6;
+constexpr std::size_t LUMP_FACES        = 7;
+constexpr std::size_t LUMP_LIGHTING     = 8;
+constexpr std::size_t LUMP_CLIPNODES    = 9;
+constexpr std::size_t LUMP_LEAFS        = 10;
+constexpr std::size_t LUMP_MARKSURFACES = 11;
+constexpr std::size_t LUMP_EDGES        = 12;
+constexpr std::size_t LUMP_SURFEDGES    = 13;
+constexpr std::size_t LUMP_MODELS       = 14;
+
+
+enum class lump_id : std::size_t {
+    entities = 0,
+    planes,
+    textures,
+    vertexes,
+    visibility,
+    nodes,
+    texinfo,
+    faces,
+    lighting,
+    clipnodes,
+    leafs,
+    marksurfaces,
+    edges,
+    surfedges,
+    models
+};
+constexpr std::size_t num_lump_types = std::size_t(lump_id::models) + 1;
+
+template<lump_id Id> struct lump_element_type_map {};
+template<> struct lump_element_type_map<lump_id::textures> { using type = std::byte; };
+template<> struct lump_element_type_map<lump_id::lighting> { using type = std::byte; };
+template<> struct lump_element_type_map<lump_id::models> { using type = dmodel_t; };
+
+template <lump_id Id> using lump_element_type = lump_element_type_map<Id>::type;
+
+
+
+typedef struct
+{
+    std::int32_t             version;
+    lump_t          lumps[num_lump_types];
+}
+dheader_t;
 
 //============================================================================
 

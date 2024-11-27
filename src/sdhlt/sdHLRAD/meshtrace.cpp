@@ -77,8 +77,6 @@ bool TraceMesh :: ClipRayToBox( const vec3_t mins, const vec3_t maxs )
 
 bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 {
-	float uu, uv, vv, wu, wv, s, t;
-	float d1, d2, d, frac;
 	vec3_t w, n, p;
 
 	// we have two edge directions, we can calculate the normal
@@ -90,13 +88,13 @@ bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 	VectorSubtract( m_vecEnd, m_vecStart, p );
 	VectorSubtract( m_vecStart, facet->triangle[0].point, w );
 
-	d1 = -DotProduct( n, w );
-	d2 = DotProduct( n, p );
+	const float d1 = -DotProduct( n, w );
+	const float d2 = DotProduct( n, p );
 	if( fabs( d2 ) < FRAC_EPSILON )
 		return false; // parallel with plane
 
 	// get intersect point of ray with triangle plane
-	frac = d1 / d2;
+	const float frac = d1 / d2;
 
 	if( frac < 0.0f )
 		return false;
@@ -107,21 +105,21 @@ bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 	p[2] = m_vecStart[2] + (m_vecEnd[2] - m_vecStart[2]) * frac;
 
 	// does p lie inside triangle?
-	uu = DotProduct( facet->edge1, facet->edge1 );
-	uv = DotProduct( facet->edge1, facet->edge2 );
-	vv = DotProduct( facet->edge2, facet->edge2 );
+	const float uu = DotProduct( facet->edge1, facet->edge1 );
+	const float uv = DotProduct( facet->edge1, facet->edge2 );
+	const float vv = DotProduct( facet->edge2, facet->edge2 );
 
 	VectorSubtract( p, facet->triangle[0].point, w );
-	wu = DotProduct( w, facet->edge1 );
-	wv = DotProduct( w, facet->edge2 );
-	d = uv * uv - uu * vv;
+	const float wu = DotProduct( w, facet->edge1 );
+	const float wv = DotProduct( w, facet->edge2 );
+	const float d = uv * uv - uu * vv;
 
 	// get and test parametric coords
-	s = (uv * wv - vv * wu) / d;
+	const float s = (uv * wv - vv * wu) / d;
 	if( s < 0.0f || s > 1.0f )
 		return false; // p is outside
 
-	t = (uv * wu - uu * wv) / d;
+	const float t = (uv * wu - uu * wv) / d;
 	if( t < 0.0 || (s + t) > 1.0 )
 		return false; // p is outside
 
