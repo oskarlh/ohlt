@@ -252,6 +252,11 @@ else()
     message("${CMAKE_PROJECT_NAME} > WARNING: Unknown system \"${CMAKE_SYSTEM_NAME}\"")
 endif()
 
+
+# Tell MSVC the source files are in UTF-8
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 #================
 # Targets
 #================
