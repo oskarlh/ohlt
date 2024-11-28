@@ -15,7 +15,6 @@ GNU General Public License for more details.
 
 #include "qrad.h"
 #include "meshdesc.h"
-#include "stringlib.h"
 #include "TimeCounter.h"
 
 //#define AABB_OFFSET
@@ -782,7 +781,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	profile.stop();
 #if 1
 	// g-cont. i'm leave this for debug
-	Verbose( "%s: build time %g secs, size %s\n", m_debugName, profile.getTotal(), Q_memprint( mesh_size ));
+	Verbose( "%s: build time %g secs, size %zuB\n", m_debugName, profile.getTotal(), mesh_size);
 #endif
 	// done
 	return true;

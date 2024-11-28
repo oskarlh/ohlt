@@ -16,18 +16,8 @@
 #include "../common/cli_option_defaults.h"
 #include "bsp_file_sizes.h"
 #include "vis.h"
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-// std:clamp() is at least MVSC 19
-#define CLAMP(x, min, max) x <= min ? min : x >= max ? max : x
-#endif
 
-#ifdef SYSTEM_POSIX
 #include <algorithm>
-#define CLAMP(x, min, max) std::clamp(x, min, max)
-#endif
-
 #include <string>
 #include <fstream> //FixPrt
 #include <vector> //FixPrt
@@ -1238,7 +1228,7 @@ int             main(const int argc, char** argv)
 
                     GetVectorForKey (&g_entities[i], u8"origin", room_origin);
                     g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
-                    g_room[g_room_count].neighbor = CLAMP(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
+                    g_room[g_room_count].neighbor = std::clamp(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
 
                     const char* target = (const char*) ValueForKey (&g_entities[i], u8"target");
 

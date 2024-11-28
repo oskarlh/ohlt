@@ -137,7 +137,6 @@ set(RAD_SOURCES
     ${RAD_DIR}/qrad.cpp
     ${RAD_DIR}/qradutil.cpp
     ${RAD_DIR}/sparse.cpp
-	${RAD_DIR}/stringlib.cpp
 	${RAD_DIR}/studio.cpp
     ${RAD_DIR}/trace.cpp
     ${RAD_DIR}/transfers.cpp
