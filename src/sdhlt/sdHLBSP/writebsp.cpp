@@ -1,4 +1,5 @@
 #include "bsp5.h"
+#include "bsp_file_sizes.h"
 
 //  WriteClipNodes_r
 //  WriteClipNodes
@@ -584,7 +585,7 @@ void            BeginBSPFile()
 // =====================================================================================
 //  FinishBSPFile
 // =====================================================================================
-void            FinishBSPFile()
+void            FinishBSPFile(const bsp_data& bspData)
 {
     Verbose("--- FinishBSPFile ---\n");
 
@@ -835,7 +836,7 @@ void            FinishBSPFile()
 
 	if (g_chart)
     {
-        PrintBSPFileSizes();
+        print_bsp_file_sizes(bspData);
     }
 
 #undef dplane_t // this allow us to temporarily access the raw data directly without the layer of indirection

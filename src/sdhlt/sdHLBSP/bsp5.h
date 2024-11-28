@@ -198,7 +198,7 @@ extern void     WriteClipNodes(node_t* headnode);
 extern void     WriteDrawNodes(node_t* headnode);
 
 extern void     BeginBSPFile();
-extern void     FinishBSPFile();
+extern void     FinishBSPFile(const bsp_data& bspData);
 
 //=============================================================================
 // outside.c

@@ -101,7 +101,7 @@ void AddFaceForVertexNormal_printerror (const int edgeabs, const int edgeend, df
 			Log (" e=%d v0=%d(%f,%f,%f) v1=%d(%f,%f,%f) share0=%li share1=%li\n", e,
 				v0, g_dvertexes[v0].point[0], g_dvertexes[v0].point[1], g_dvertexes[v0].point[2],
 				v1, g_dvertexes[v1].point[0], g_dvertexes[v1].point[1], g_dvertexes[v1].point[2],
-				(es->faces[0]==nullptr? -1: es->faces[0]-g_dfaces), (es->faces[1]==nullptr? -1: es->faces[1]-g_dfaces));
+				(es->faces[0]==nullptr? -1: es->faces[0]-g_dfaces.data()), (es->faces[1]==nullptr? -1: es->faces[1]-g_dfaces.data()));
 		}
 	}
 }
@@ -267,7 +267,7 @@ void            PairEdges()
 
     memset(&g_edgeshare, 0, sizeof(g_edgeshare));
 
-    f = g_dfaces;
+    f = g_dfaces.data();
     for (i = 0; i < g_numfaces; i++, f++)
     {
 		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
@@ -359,14 +359,14 @@ void            PairEdges()
 				if (e->smooth)
 				{
 					// compute the matrix in advance
-					if (!TranslateTexToTex (e->faces[0] - g_dfaces, abs (k), e->faces[1] - g_dfaces, e->textotex[0], e->textotex[1]))
+					if (!TranslateTexToTex (e->faces[0] - g_dfaces.data(), abs (k), e->faces[1] - g_dfaces.data(), e->textotex[0], e->textotex[1]))
 					{
 						e->smooth = false;
 						e->coplanar = false;
 						VectorClear (e->interface_normal);
 
 						dvertex_t *dv = &g_dvertexes[g_dedges[abs(k)].v[0]];
-						Developer (DEVELOPER_LEVEL_MEGASPAM, "TranslateTexToTex failed on face %d and %d @(%f,%f,%f)", (int)(e->faces[0] - g_dfaces), (int)(e->faces[1] - g_dfaces), dv->point[0], dv->point[1], dv->point[2]);
+						Developer (DEVELOPER_LEVEL_MEGASPAM, "TranslateTexToTex failed on face %d and %d @(%f,%f,%f)", (int)(e->faces[0] - g_dfaces.data()), (int)(e->faces[1] - g_dfaces.data()), dv->point[0], dv->point[1], dv->point[2]);
 					}
 				}
             }
@@ -391,7 +391,7 @@ void            PairEdges()
 			{
 				vec3_t errorpos;
 				VectorCopy (g_dvertexes[g_dedges[edgeabs].v[0]].point, errorpos);
-				VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces], errorpos);
+				VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
 				Developer (DEVELOPER_LEVEL_WARNING, "PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
 				VectorCopy(edgenormal, e->vertex_normal[0]);
 				VectorCopy(edgenormal, e->vertex_normal[1]);
@@ -400,13 +400,13 @@ void            PairEdges()
 			{
 				const dplane_t *p0 = getPlaneFromFace (e->faces[0]);
 				const dplane_t *p1 = getPlaneFromFace (e->faces[1]);
-				intersecttest_t *test0 = CreateIntersectTest (p0, e->faces[0] - g_dfaces);
-				intersecttest_t *test1 = CreateIntersectTest (p1, e->faces[1] - g_dfaces);
+				intersecttest_t *test0 = CreateIntersectTest (p0, e->faces[0] - g_dfaces.data());
+				intersecttest_t *test1 = CreateIntersectTest (p1, e->faces[1] - g_dfaces.data());
 				for (edgeend = 0; edgeend < 2; edgeend++)
 				{
 					vec3_t errorpos;
 					VectorCopy (g_dvertexes[g_dedges[edgeabs].v[edgeend]].point, errorpos);
-					VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces], errorpos);
+					VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
 					angles = 0;
 					VectorClear (normals);
 
@@ -446,7 +446,7 @@ void            PairEdges()
 							if (DotProduct (edgenormal, normal) < std::max(smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
 								break;
 							if (fcurrent != e->faces[0] && fcurrent != e->faces[1] &&
-								(TestFaceIntersect (test0, fcurrent - g_dfaces) || TestFaceIntersect (test1, fcurrent - g_dfaces)))
+								(TestFaceIntersect (test0, fcurrent - g_dfaces.data()) || TestFaceIntersect (test1, fcurrent - g_dfaces.data())))
 							{
 								Developer (DEVELOPER_LEVEL_WARNING, "Overlapping faces around corner (%f,%f,%f)\n", errorpos[0], errorpos[1], errorpos[2]);
 								break;
@@ -645,7 +645,7 @@ static void     CalcFaceExtents(lightinfo_t* l)
 			)
 		{
 			ThreadLock();
-			PrintOnce("\nfor Face %li (texture %s) at ", s - g_dfaces, TextureNameFromFace(s));
+			PrintOnce("\nfor Face %li (texture %s) at ", s - g_dfaces.data(), TextureNameFromFace(s));
 
 			for (i = 0; i < s->numedges; i++)
 			{
@@ -727,7 +727,7 @@ static void     CalcFaceVectors(lightinfo_t* l)
     distscale = DotProduct(texnormal, l->facenormal);
     if (distscale == 0.0)
     {
-        const unsigned facenum = l->face - g_dfaces;
+        const unsigned facenum = l->face - g_dfaces.data();
     
         ThreadLock();
         Log("Malformed face (%d) normal @ \n", facenum);
@@ -964,13 +964,13 @@ void ChopFrag (samplefrag_t *frag)
 		{
 			continue;
 		}
-		if (es->faces[e->edgeside] - g_dfaces != frag->facenum)
+		if (es->faces[e->edgeside] - g_dfaces.data() != frag->facenum)
 		{
 			Error ("internal error 1 in GrowSingleSampleFrag");
 		}
 		m = &es->textotex[e->edgeside];
 		m_inverse = &es->textotex[1-e->edgeside];
-		e->nextfacenum = es->faces[1-e->edgeside] - g_dfaces;
+		e->nextfacenum = es->faces[1-e->edgeside] - g_dfaces.data();
 		if (e->nextfacenum == frag->facenum)
 		{
 			continue; // an invalid edge (usually very short)
@@ -1486,7 +1486,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 static void		CalcPoints(lightinfo_t* l)
 {
 	const int       facenum = l->surfnum;
-	const dface_t*  f = g_dfaces + facenum;
+	const dface_t*  f = g_dfaces.data() + facenum;
 	const dplane_t* p = getPlaneFromFace (f);
 	const eModelLightmodes lightmode = g_face_lightmode[facenum];
 	const int       h = l->texsize[1] + 1;
@@ -3057,7 +3057,7 @@ void            GetPhongNormal(int facenum, const vec3_t spot, vec3_t phongnorma
 {
     int             j;
 	int				s; // split every edge into two parts
-    const dface_t*  f = g_dfaces + facenum;
+    const dface_t*  f = g_dfaces.data() + facenum;
     const dplane_t* p = getPlaneFromFace(f);
     vec3_t          facenormal;
 
@@ -4471,7 +4471,7 @@ void MLH_CalcExtents (const dface_t *f, int *texturemins, int *extents)
 	int bmaxs[2];
 	int i;
 
-	GetFaceExtents (f - g_dfaces, bmins, bmaxs);
+	GetFaceExtents (f - g_dfaces.data(), bmins, bmaxs);
 	for (i = 0; i < 2; i++)
 	{
 		texturemins[i] = bmins[i] * TEXTURE_STEP;

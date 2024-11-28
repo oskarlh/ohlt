@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmdlib.h" //--vluzacn
+#include "mathlib.h"
 #include <cstddef>
 #include <filesystem>
 
@@ -304,86 +305,6 @@ dheader_t;
 #define ANGLE_DOWN  -2.0 //#define ANGLE_DOWN  -2 //--vluzacn
 
 //
-// BSP File Data
-//
-
-extern int      g_nummodels;
-extern dmodel_t g_dmodels[MAX_MAP_MODELS];
-extern int      g_dmodels_checksum;
-
-extern int      g_visdatasize;
-extern byte     g_dvisdata[MAX_MAP_VISIBILITY];
-extern int      g_dvisdata_checksum;
-
-extern int      g_lightdatasize;
-extern byte*    g_dlightdata;
-extern int      g_dlightdata_checksum;
-
-extern int      g_texdatasize;
-extern byte*    g_dtexdata;                                  // (dmiptexlump_t)
-extern int      g_dtexdata_checksum;
-
-extern int      g_entdatasize;
-extern char     g_dentdata[MAX_MAP_ENTSTRING];
-extern int      g_dentdata_checksum;
-
-extern int      g_numleafs;
-extern dleaf_t  g_dleafs[MAX_MAP_LEAFS];
-extern int      g_dleafs_checksum;
-
-extern int      g_numplanes;
-extern dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];
-extern int      g_dplanes_checksum;
-
-extern int      g_numvertexes;
-extern dvertex_t g_dvertexes[MAX_MAP_VERTS];
-extern int      g_dvertexes_checksum;
-
-extern int      g_numnodes;
-extern dnode_t  g_dnodes[MAX_MAP_NODES];
-extern int      g_dnodes_checksum;
-
-extern int      g_numtexinfo;
-extern texinfo_t g_texinfo[MAX_INTERNAL_MAP_TEXINFO];
-extern int      g_texinfo_checksum;
-
-extern int      g_numfaces;
-extern dface_t  g_dfaces[MAX_MAP_FACES];
-extern int      g_dfaces_checksum;
-
-extern int      g_iWorldExtent;
-
-extern int      g_numclipnodes;
-extern dclipnode_t g_dclipnodes[MAX_MAP_CLIPNODES];
-extern int      g_dclipnodes_checksum;
-
-extern int      g_numedges;
-extern dedge_t  g_dedges[MAX_MAP_EDGES];
-extern int      g_dedges_checksum;
-
-extern int      g_nummarksurfaces;
-extern unsigned short g_dmarksurfaces[MAX_MAP_MARKSURFACES];
-extern int      g_dmarksurfaces_checksum;
-
-extern int      g_numsurfedges;
-extern int      g_dsurfedges[MAX_MAP_SURFEDGES];
-extern int      g_dsurfedges_checksum;
-
-extern void     DecompressVis(const byte* src, byte* const dest, const unsigned int dest_length);
-extern int      CompressVis(const byte* const src, const unsigned int src_length, byte* dest, unsigned int dest_length);
-
-extern void     LoadBSPImage(dheader_t* header);
-extern void     LoadBSPFile(const std::filesystem::path& filename);
-extern void     WriteBSPFile(const std::filesystem::path& filename);
-extern void     PrintBSPFileSizes();
-extern void		WriteExtentFile (const std::filesystem::path& filename);
-extern bool		CalcFaceExtents_test ();
-extern void		GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2]);
-extern int		ParseImplicitTexinfoFromTexture (int miptex);
-extern int		ParseTexinfoForFace (const dface_t *f);
-extern void		DeleteEmbeddedLightmaps ();
-
-//
 // Entity Related Stuff
 //
 
@@ -438,3 +359,153 @@ extern void dtexdata_init();
 extern void dtexdata_free();
 
 extern char*    GetTextureByNumber(int texturenumber);
+
+
+//
+// BSP File Data
+//
+
+struct bsp_data {
+	std::array<dmodel_t, MAX_MAP_MODELS> mapModels{};
+	int             mapModelsChecksum{0};
+	int             mapModelsLength{0};
+
+	std::array<byte, MAX_MAP_VISIBILITY> visData{byte(0)};
+	int             visDataByteSize{0};
+	int             visDataChecksum{0};
+
+	byte*           lightData{nullptr};
+	int             lightDataByteSize{0};
+	int             lightDataChecksum{0};
+
+	byte*           textureData{nullptr}; // (dmiptexlump_t)
+	int             textureDataByteSize{0};
+	int             textureDataChecksum{0};
+
+	std::array<char8_t, MAX_MAP_ENTSTRING> entityData;
+	int             entityDataChecksum;
+	int             entityDataLength;
+
+	dleaf_t         g_dleafs[MAX_MAP_LEAFS];
+	int             g_dleafs_checksum;
+	int             g_numleafs;
+
+	dplane_t        g_dplanes[MAX_INTERNAL_MAP_PLANES];
+	int             g_dplanes_checksum;
+	int             g_numplanes;
+
+	dvertex_t       g_dvertexes[MAX_MAP_VERTS];
+	int             g_dvertexes_checksum;
+	int             g_numvertexes;
+
+	dnode_t         g_dnodes[MAX_MAP_NODES];
+	int             g_dnodes_checksum;
+	int             g_numnodes;
+
+	texinfo_t       g_texinfo[MAX_INTERNAL_MAP_TEXINFO];
+	int             g_texinfo_checksum;
+	int             g_numtexinfo;
+
+	std::array<dface_t, MAX_MAP_FACES> faces;
+	int facesChecksum;
+	int facesLength;
+
+	int worldExtent = 65536; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
+
+	dclipnode_t     g_dclipnodes[MAX_MAP_CLIPNODES];
+	int             g_numclipnodes;
+	int             g_dclipnodes_checksum;
+
+	dedge_t         g_dedges[MAX_MAP_EDGES];
+	int             g_numedges;
+	int             g_dedges_checksum;
+
+	std::uint16_t g_dmarksurfaces[MAX_MAP_MARKSURFACES];
+	int             g_nummarksurfaces;
+	int             g_dmarksurfaces_checksum;
+
+	int             g_dsurfedges[MAX_MAP_SURFEDGES];
+	int             g_numsurfedges;
+	int             g_dsurfedges_checksum;
+
+	entity_t        g_entities[MAX_MAP_ENTITIES];
+	int             g_numentities;
+};
+
+extern bsp_data bspGlobals;
+
+extern int&      g_nummodels;
+extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
+extern int&      g_dmodels_checksum;
+
+extern int&      g_visdatasize;
+extern std::array<byte, MAX_MAP_VISIBILITY>&     g_dvisdata;
+extern int&      g_dvisdata_checksum;
+
+extern int&      g_lightdatasize;
+extern byte*&    g_dlightdata;
+extern int&      g_dlightdata_checksum;
+
+extern int&      g_texdatasize;
+extern byte*&    g_dtexdata;                                  // (dmiptexlump_t)
+extern int&      g_dtexdata_checksum;
+
+extern int&      g_entdatasize;
+extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;
+extern int&      g_dentdata_checksum;
+
+extern int      g_numleafs;
+extern dleaf_t  g_dleafs[MAX_MAP_LEAFS];
+extern int      g_dleafs_checksum;
+
+extern int      g_numplanes;
+extern dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];
+extern int      g_dplanes_checksum;
+
+extern int      g_numvertexes;
+extern dvertex_t g_dvertexes[MAX_MAP_VERTS];
+extern int      g_dvertexes_checksum;
+
+extern int      g_numnodes;
+extern dnode_t  g_dnodes[MAX_MAP_NODES];
+extern int      g_dnodes_checksum;
+
+extern int      g_numtexinfo;
+extern texinfo_t g_texinfo[MAX_INTERNAL_MAP_TEXINFO];
+extern int      g_texinfo_checksum;
+
+extern int& g_numfaces;
+extern std::array<dface_t, MAX_MAP_FACES>& g_dfaces;
+extern int& g_dfaces_checksum;
+
+extern int& g_iWorldExtent;
+
+extern int      g_numclipnodes;
+extern dclipnode_t g_dclipnodes[MAX_MAP_CLIPNODES];
+extern int      g_dclipnodes_checksum;
+
+extern int      g_numedges;
+extern dedge_t  g_dedges[MAX_MAP_EDGES];
+extern int      g_dedges_checksum;
+
+extern int      g_nummarksurfaces;
+extern std::uint16_t g_dmarksurfaces[MAX_MAP_MARKSURFACES];
+extern int      g_dmarksurfaces_checksum;
+
+extern int      g_numsurfedges;
+extern int      g_dsurfedges[MAX_MAP_SURFEDGES];
+extern int      g_dsurfedges_checksum;
+
+extern void     DecompressVis(const byte* src, byte* const dest, const unsigned int dest_length);
+extern int      CompressVis(const byte* const src, const unsigned int src_length, byte* dest, unsigned int dest_length);
+
+extern void     LoadBSPImage(dheader_t* header);
+extern void     LoadBSPFile(const std::filesystem::path& filename);
+extern void     WriteBSPFile(const std::filesystem::path& filename);
+extern void		WriteExtentFile (const std::filesystem::path& filename);
+extern bool		CalcFaceExtents_test ();
+extern void		GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2]);
+extern int		ParseImplicitTexinfoFromTexture (int miptex);
+extern int		ParseTexinfoForFace (const dface_t *f);
+extern void		DeleteEmbeddedLightmaps ();
+

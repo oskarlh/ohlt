@@ -11,7 +11,7 @@
 // csg4.c
 
 #include <filesystem>
-
+#include "bsp_file_sizes.h"
 #include "ripent.h"
 #include "../common/cli_option_defaults.h"
 
@@ -53,14 +53,14 @@ bool ScanForToken(char cToken, int &iIndex, int &iLine, bool bIgnoreWhiteSpace, 
 	for(; iIndex < g_entdatasize; iIndex++)
 	{
 		// If we found a null char, consider it end of data.
-		if(g_dentdata[iIndex] == '\0')
+		if(g_dentdata[iIndex] == u8'\0')
 		{
 			iIndex = g_entdatasize;
 			return false;
 		}
 
 		// Count lines (for error message).
-		if(g_dentdata[iIndex] == '\n')
+		if(g_dentdata[iIndex] == u8'\n')
 		{
 			iLine++;
 		}
@@ -177,7 +177,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 				// Parse the end of an entity.
 				if(!ScanForToken('}', iIndex, iLine, false, false))
 				{
-					if(g_dentdata[iIndex] == '\"')
+					if(g_dentdata[iIndex] == u8'\"')
 					{
 						// We arn't done the entity yet.
 						continue;
@@ -269,7 +269,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 		for(CEntityList::iterator i = EntityList.begin(); i != EntityList.end(); ++i)
 		{
 			// Opening brace.
-			g_dentdata[g_entdatasize] = '{';
+			g_dentdata[g_entdatasize] = u8'{';
 			g_entdatasize += 1;
 
 			// New line.
@@ -285,25 +285,25 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 				g_entdatasize += iTabLength;
 
 				// String.
-				g_dentdata[g_entdatasize] = '\"';
+				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
 				memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
 				g_entdatasize += (int)strlen(*j);
-				g_dentdata[g_entdatasize] = '\"';
+				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
 
 				// String seperator.
-				g_dentdata[g_entdatasize] = ' ';
+				g_dentdata[g_entdatasize] = u8' ';
 				g_entdatasize += 1;
 
 				++j;
 
 				// String.
-				g_dentdata[g_entdatasize] = '\"';
+				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
 				memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
 				g_entdatasize += (int)strlen(*j);
-				g_dentdata[g_entdatasize] = '\"';
+				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
 
 				// New line.
@@ -312,7 +312,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 			}
 
 			// Closing brace.
-			g_dentdata[g_entdatasize] = '}';
+			g_dentdata[g_entdatasize] = u8'}';
 			g_entdatasize += 1;
 
 			// New line.
@@ -704,18 +704,18 @@ static void     WriteEntities(const char* const name)
 			bak_entdatasize = g_entdatasize;
 			bak_dentdata = (char *)malloc (g_entdatasize);
 			hlassume (bak_dentdata != nullptr, assume_NoMemory);
-			memcpy (bak_dentdata, g_dentdata, g_entdatasize);
+			memcpy (bak_dentdata, g_dentdata.data(), g_entdatasize);
 			ParseEntityData("  ", 2, "\r\n", 2, "", 0);
 		}
 
         FILE *f = SafeOpenWrite(filePath.c_str());
 		Log("\nWriting %s.\n", filePath.c_str());
-        SafeWrite(f, g_dentdata, g_entdatasize);
+        SafeWrite(f, g_dentdata.data(), g_entdatasize);
         fclose(f);
 		if (g_parse)
 		{
 			g_entdatasize = bak_entdatasize;
-			memcpy (g_dentdata, bak_dentdata, bak_entdatasize);
+			memcpy (g_dentdata.data(), bak_dentdata, bak_entdatasize);
 			free (bak_dentdata);
 		}
     }
@@ -736,11 +736,11 @@ static void     ReadEntities(const char* const name)
 		assume(g_entdatasize != 0, "No entity data.");
         assume(g_entdatasize < sizeof(g_dentdata), "Entity data size exceedes dentdata limit.");
 
-        SafeRead(f, g_dentdata, g_entdatasize);
+        SafeRead(f, g_dentdata.data(), g_entdatasize);
 
         fclose(f);
 
-        if (g_dentdata[g_entdatasize-1] != 0)
+        if (g_dentdata[g_entdatasize-1] != u8'\0')
         {
 //            Log("g_dentdata[g_entdatasize-1] = %d\n", g_dentdata[g_entdatasize-1]);
 
@@ -750,9 +750,9 @@ static void     ReadEntities(const char* const name)
 			}
 			else
 			{
-				if(g_dentdata[g_entdatasize - 1] != '\0')
+				if(g_dentdata[g_entdatasize - 1] != u8'\0')
 				{
-					g_dentdata[g_entdatasize] = '\0';
+					g_dentdata[g_entdatasize] = u8'\0';
 					g_entdatasize++;
 				}
 			}
@@ -1056,7 +1056,7 @@ int             main(int argc, char** argv)
 		{
 			Warning ("internal error: CalcFaceExtents_test failed.");
 		}
-        PrintBSPFileSizes();
+        print_bsp_file_sizes(bspGlobals);
 	}
 	if (updatebsp)
 	{

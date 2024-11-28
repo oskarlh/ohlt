@@ -1638,7 +1638,7 @@ static void FindNeighbors (facetriangulation_t *facetrian)
 			continue;
 		}
 		f2 = es->faces[e > 0? 1: 0];
-		facenum2 = f2 - g_dfaces;
+		facenum2 = f2 - g_dfaces.data();
 		dp2 = getPlaneFromFace (f2);
 		if (DotProduct (dp->normal, dp2->normal) < -NORMAL_EPSILON)
 		{
@@ -1670,7 +1670,7 @@ static void FindNeighbors (facetriangulation_t *facetrian)
 			for (fl = es->vertex_facelist[side]; fl; fl = fl->next)
 			{
 				f2 = fl->face;
-				facenum2 = f2 - g_dfaces;
+				facenum2 = f2 - g_dfaces.data();
 				dp2 = getPlaneFromFace (f2);
 				if (DotProduct (dp->normal, dp2->normal) < -NORMAL_EPSILON)
 				{

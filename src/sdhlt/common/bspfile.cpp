@@ -19,25 +19,27 @@
 std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
 std::ptrdiff_t g_max_map_lightdata = cli_option_defaults::max_map_lightdata;
 
-int             g_nummodels;
-dmodel_t        g_dmodels[MAX_MAP_MODELS];
-int             g_dmodels_checksum;
+bsp_data bspGlobals;
 
-int             g_visdatasize;
-byte            g_dvisdata[MAX_MAP_VISIBILITY];
-int             g_dvisdata_checksum;
+int& g_nummodels{bspGlobals.mapModelsLength};
+std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{bspGlobals.mapModels};
+int& g_dmodels_checksum{bspGlobals.mapModelsChecksum};
 
-int             g_lightdatasize;
-byte*           g_dlightdata;
-int             g_dlightdata_checksum;
+int& g_visdatasize{bspGlobals.visDataByteSize};
+std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
+int& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
-int             g_texdatasize;
-byte*           g_dtexdata;                                  // (dmiptexlump_t)
-int             g_dtexdata_checksum;
+int& g_lightdatasize{bspGlobals.lightDataByteSize};
+byte*& g_dlightdata{bspGlobals.lightData};
+int& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
-int             g_entdatasize;
-char            g_dentdata[MAX_MAP_ENTSTRING];
-int             g_dentdata_checksum;
+int& g_texdatasize{bspGlobals.textureDataByteSize};
+byte*& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
+int& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
+
+int& g_entdatasize{bspGlobals.entityDataLength};
+std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata{bspGlobals.entityData};
+int& g_dentdata_checksum{bspGlobals.entityDataChecksum};
 
 int             g_numleafs;
 dleaf_t         g_dleafs[MAX_MAP_LEAFS];
@@ -56,15 +58,14 @@ dnode_t         g_dnodes[MAX_MAP_NODES];
 int             g_dnodes_checksum;
 
 int             g_numtexinfo;
-
 texinfo_t       g_texinfo[MAX_INTERNAL_MAP_TEXINFO];
 int             g_texinfo_checksum;
 
-int             g_numfaces;
-dface_t         g_dfaces[MAX_MAP_FACES];
-int             g_dfaces_checksum;
+int& g_numfaces{bspGlobals.facesLength};
+std::array<dface_t, MAX_MAP_FACES>& g_dfaces{bspGlobals.faces};
+int& g_dfaces_checksum{bspGlobals.facesChecksum};
 
-int				g_iWorldExtent = 65536; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
+int& g_iWorldExtent{bspGlobals.worldExtent}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
 int             g_numclipnodes;
 dclipnode_t     g_dclipnodes[MAX_MAP_CLIPNODES];
@@ -75,7 +76,7 @@ dedge_t         g_dedges[MAX_MAP_EDGES];
 int             g_dedges_checksum;
 
 int             g_nummarksurfaces;
-unsigned short  g_dmarksurfaces[MAX_MAP_MARKSURFACES];
+std::uint16_t  g_dmarksurfaces[MAX_MAP_MARKSURFACES];
 int             g_dmarksurfaces_checksum;
 
 int             g_numsurfedges;
@@ -205,7 +206,7 @@ void            DecompressVis(const byte* src, byte* const dest, const unsigned 
 
     do
 	{
-		hlassume (src - g_dvisdata < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
+		hlassume (src - g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
 
         if (*src)
         {
@@ -218,7 +219,7 @@ void            DecompressVis(const byte* src, byte* const dest, const unsigned 
             continue;
         }
 		
-		hlassume (&src[1] - g_dvisdata < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
+		hlassume (&src[1] - g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
 
         c = src[1];
         src += 2;
@@ -324,7 +325,7 @@ void            LoadBSPImage(dheader_t* const header)
     }
 
 	auto modelData = get_lump_data<lump_id::models>(header);
-	memcpy(g_dmodels, modelData.data(), modelData.size() * sizeof(modelData[0]));
+	memcpy(g_dmodels.data(), modelData.data(), modelData.size() * sizeof(modelData[0]));
 	g_nummodels = modelData.size();
 
     g_numvertexes = CopyLump(LUMP_VERTEXES, g_dvertexes, sizeof(dvertex_t), header);
@@ -333,7 +334,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_numnodes = CopyLump(LUMP_NODES, g_dnodes, sizeof(dnode_t), header);
     g_numtexinfo = CopyLump(LUMP_TEXINFO, g_texinfo, sizeof(texinfo_t), header);
     g_numclipnodes = CopyLump(LUMP_CLIPNODES, g_dclipnodes, sizeof(dclipnode_t), header);
-    g_numfaces = CopyLump(LUMP_FACES, g_dfaces, sizeof(dface_t), header);
+    g_numfaces = CopyLump(LUMP_FACES, g_dfaces.data(), sizeof(dface_t), header);
     g_nummarksurfaces = CopyLump(LUMP_MARKSURFACES, g_dmarksurfaces, sizeof(g_dmarksurfaces[0]), header);
     g_numsurfedges = CopyLump(LUMP_SURFEDGES, g_dsurfedges, sizeof(g_dsurfedges[0]), header);
     g_numedges = CopyLump(LUMP_EDGES, g_dedges, sizeof(dedge_t), header);
@@ -342,31 +343,31 @@ void            LoadBSPImage(dheader_t* const header)
 	memcpy(g_dtexdata, textureData.data(), textureData.size() * sizeof(textureData[0]));
 	g_texdatasize = textureData.size();
 
-    g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata, 1, header);
+    g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata.data(), 1, header);
 
 	auto lightingData = get_lump_data<lump_id::lighting>(header);
 	memcpy(g_dlightdata, lightingData.data(), lightingData.size() * sizeof(lightingData[0]));
 	g_lightdatasize = lightingData.size();
-    g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata, 1, header);
+    g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
 
     Free(header);                                          // everything has been copied out
 
 	// WTF???? THESE ARE UNUSED!
-    g_dmodels_checksum = fast_checksum(std::span(g_dmodels, g_nummodels));
+    g_dmodels_checksum = fast_checksum(std::span(g_dmodels.data(), g_nummodels));
     g_dvertexes_checksum = FastChecksum(g_dvertexes, g_numvertexes * sizeof(g_dvertexes[0]));
     g_dplanes_checksum = FastChecksum(g_dplanes, g_numplanes * sizeof(g_dplanes[0]));
     g_dleafs_checksum = FastChecksum(g_dleafs, g_numleafs * sizeof(g_dleafs[0]));
     g_dnodes_checksum = FastChecksum(g_dnodes, g_numnodes * sizeof(g_dnodes[0]));
     g_texinfo_checksum = FastChecksum(g_texinfo, g_numtexinfo * sizeof(g_texinfo[0]));
     g_dclipnodes_checksum = FastChecksum(g_dclipnodes, g_numclipnodes * sizeof(g_dclipnodes[0]));
-    g_dfaces_checksum = FastChecksum(g_dfaces, g_numfaces * sizeof(g_dfaces[0]));
+    g_dfaces_checksum = FastChecksum(g_dfaces.data(), g_numfaces * sizeof(g_dfaces[0]));
     g_dmarksurfaces_checksum = FastChecksum(g_dmarksurfaces, g_nummarksurfaces * sizeof(g_dmarksurfaces[0]));
     g_dsurfedges_checksum = FastChecksum(g_dsurfedges, g_numsurfedges * sizeof(g_dsurfedges[0]));
     g_dedges_checksum = FastChecksum(g_dedges, g_numedges * sizeof(g_dedges[0]));
     g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata, g_texdatasize));
-    g_dvisdata_checksum = FastChecksum(g_dvisdata, g_visdatasize * sizeof(g_dvisdata[0]));
+    g_dvisdata_checksum = FastChecksum(g_dvisdata.data(), g_visdatasize * sizeof(g_dvisdata[0]));
     g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata, g_lightdatasize));
-    g_dentdata_checksum = FastChecksum(g_dentdata, g_entdatasize * sizeof(g_dentdata[0]));
+    g_dentdata_checksum = FastChecksum(g_dentdata.data(), g_entdatasize * sizeof(g_dentdata[0]));
 }
 
 //
@@ -418,17 +419,17 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     AddLump(LUMP_VERTEXES,  g_dvertexes,    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
     AddLump(LUMP_NODES,     g_dnodes,       g_numnodes * sizeof(dnode_t),       header, bspfile);
     AddLump(LUMP_TEXINFO,   g_texinfo,      g_numtexinfo * sizeof(texinfo_t),   header, bspfile);
-    AddLump(LUMP_FACES,     g_dfaces,       g_numfaces * sizeof(dface_t),       header, bspfile);
+    AddLump(LUMP_FACES,     g_dfaces.data(),       g_numfaces * sizeof(dface_t),       header, bspfile);
     AddLump(LUMP_CLIPNODES, g_dclipnodes,   g_numclipnodes * sizeof(dclipnode_t), header, bspfile);
 
     AddLump(LUMP_MARKSURFACES, g_dmarksurfaces, g_nummarksurfaces * sizeof(g_dmarksurfaces[0]), header, bspfile);
     AddLump(LUMP_SURFEDGES, g_dsurfedges,   g_numsurfedges * sizeof(g_dsurfedges[0]), header, bspfile);
     AddLump(LUMP_EDGES,     g_dedges,       g_numedges * sizeof(dedge_t),       header, bspfile);
-    AddLump(LUMP_MODELS,    g_dmodels,      g_nummodels * sizeof(dmodel_t),     header, bspfile);
+    AddLump(LUMP_MODELS,    g_dmodels.data(),      g_nummodels * sizeof(dmodel_t),     header, bspfile);
 
     add_lump<lump_id::lighting>(std::span<std::byte>((std::byte*) g_dlightdata, g_lightdatasize), header, bspfile);
-    AddLump(LUMP_VISIBILITY,g_dvisdata,     g_visdatasize,                      header, bspfile);
-    AddLump(LUMP_ENTITIES,  g_dentdata,     g_entdatasize,                      header, bspfile);
+    AddLump(LUMP_VISIBILITY,g_dvisdata.data(),     g_visdatasize,                      header, bspfile);
+    AddLump(LUMP_ENTITIES,  g_dentdata.data(),     g_entdatasize,                      header, bspfile);
     add_lump<lump_id::textures>(std::span<std::byte>((std::byte*) g_dtexdata, g_texdatasize), header, bspfile);
 
     fseek(bspfile, 0, SEEK_SET);
@@ -571,321 +572,6 @@ void WriteExtentFile (const std::filesystem::path& filename)
 }
 
 
-//
-// =====================================================================================
-//
-const int BLOCK_WIDTH = 128;
-const int BLOCK_HEIGHT = 128;
-typedef struct lightmapblock_s
-{
-	lightmapblock_s *next;
-	bool used;
-	int allocated[BLOCK_WIDTH];
-}
-lightmapblock_t;
-void DoAllocBlock (lightmapblock_t *blocks, int w, int h)
-{
-	lightmapblock_t *block;
-	// code from Quake
-	int i, j;
-	int best, best2;
-	int x, y;
-	if (w < 1 || h < 1)
-	{
-		Error ("DoAllocBlock: internal error.");
-	}
-	for (block = blocks; block; block = block->next)
-	{
-		best = BLOCK_HEIGHT;
-		for (i = 0; i < BLOCK_WIDTH - w; i++)
-		{
-			best2 = 0;
-			for (j = 0; j < w; j++)
-			{
-				if (block->allocated[i + j] >= best)
-					break;
-				if (block->allocated[i + j] > best2)
-					best2 = block->allocated[i + j];
-			}
-			if (j == w)
-			{
-				x = i;
-				y = best = best2;
-			}
-		}
-		if (best + h <= BLOCK_HEIGHT)
-		{
-			block->used = true;
-			for (i = 0; i < w; i++)
-			{
-				block->allocated[x + i] = best + h;
-			}
-			return;
-		}
-		if (!block->next)
-		{ // need to allocate a new block
-			if (!block->used)
-			{
-				Warning ("CountBlocks: invalid extents %dx%d", w, h);
-				return;
-			}
-			block->next = (lightmapblock_t *)malloc (sizeof (lightmapblock_t));
-			hlassume (block->next != nullptr, assume_NoMemory);
-			memset (block->next, 0, sizeof (lightmapblock_t));
-		}
-	}
-}
-int CountBlocks ()
-{
-	lightmapblock_t *blocks;
-	blocks = (lightmapblock_t *)malloc (sizeof (lightmapblock_t));
-	hlassume (blocks != nullptr, assume_NoMemory);
-	memset (blocks, 0, sizeof (lightmapblock_t));
-	int k;
-	for (k = 0; k < g_numfaces; k++)
-	{
-		dface_t *f = &g_dfaces[k];
-		const char *texname =  GetTextureByNumber (ParseTexinfoForFace (f));
-		if (!strncmp (texname, "sky", 3) //sky, no lightmap allocation.
-			|| !strncmp (texname, "!", 1) || !strncasecmp (texname, "water", 5) || !strncasecmp (texname, "laser", 5) //water, no lightmap allocation.
-			|| (g_texinfo[ParseTexinfoForFace (f)].flags & TEX_SPECIAL) //aaatrigger, I don't know.
-			)
-		{
-			continue;
-		}
-		int extents[2];
-		vec3_t point;
-		{
-			int bmins[2];
-			int bmaxs[2];
-			int i;
-			GetFaceExtents (k, bmins, bmaxs);
-			for (i = 0; i < 2; i++)
-			{
-				extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
-			}
-
-			VectorClear (point);
-			if (f->numedges > 0)
-			{
-				int e = g_dsurfedges[f->firstedge];
-				dvertex_t *v = &g_dvertexes[g_dedges[abs (e)].v[e >= 0? 0: 1]];
-				VectorCopy (v->point, point);
-			}
-		}
-		if (extents[0] < 0 || extents[1] < 0 || extents[0] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP))
-			// the default restriction from the engine is 512, but place 'max (512, MAX_SURFACE_EXTENT * TEXTURE_STEP)' here in case someone raise the limit
-		{
-			Warning ("Bad surface extents %d/%d at position (%.0f,%.0f,%.0f)", extents[0], extents[1], point[0], point[1], point[2]);
-			continue;
-		}
-		DoAllocBlock (blocks, (extents[0] / TEXTURE_STEP) + 1, (extents[1] / TEXTURE_STEP) + 1);
-	}
-	int count = 0;
-	lightmapblock_t *next;
-	for (; blocks; blocks = next)
-	{
-		if (blocks->used)
-		{
-			count++;
-		}
-		next = blocks->next;
-		free (blocks);
-	}
-	return count;
-}
-bool NoWadTextures ()
-{
-	// copied from loadtextures.cpp
-	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
-	for (int i = 0; i < numtextures; i++)
-	{
-		int offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[i];
-		int size = g_texdatasize - offset;
-		if (offset < 0 || size < (int)sizeof (miptex_t))
-		{
-			// missing textures have ofs -1
-			continue;
-		}
-		miptex_t *mt = (miptex_t *)&g_dtexdata[offset];
-		if (!mt->offsets[0]) //Check for valid mip texture
-		{
-			return false;
-		}
-	}
-	return true;
-}
-char *FindWadValue ()
-	// return NULL for syntax error
-	// this function needs to be as stable as possible because it might be called from ripent
-{
-	int linestart, lineend;
-	bool inentity = false;
-	for (linestart = 0; linestart < g_entdatasize; )
-	{
-		for (lineend = linestart; lineend < g_entdatasize; lineend++)
-			if (g_dentdata[lineend] == '\r' || g_dentdata[lineend] == '\n')
-				break;
-		if (lineend == linestart + 1)
-		{
-			if (g_dentdata[linestart] == '{')
-			{
-				if (inentity)
-					return nullptr;
-				inentity = true;
-			}
-			else if (g_dentdata[linestart] == '}')
-			{
-				if (!inentity)
-					return nullptr;
-				inentity = false;
-				return _strdup (""); // only parse the first entity
-			}
-			else
-				return nullptr;
-		}
-		else
-		{
-			if (!inentity)
-				return nullptr;
-			int quotes[4];
-			int i, j;
-			for (i = 0, j = linestart; i < 4; i++, j++)
-			{
-				for (; j < lineend; j++)
-					if (g_dentdata[j] == '\"')
-						break;
-				if (j >= lineend)
-					break;
-				quotes[i] = j;
-			}
-			if (i != 4 || quotes[0] != linestart || quotes[3] != lineend - 1)
-			{
-				return nullptr;
-			}
-			if (quotes[1] - (quotes[0] + 1) == (int)strlen ("wad") && !strncmp (&g_dentdata[quotes[0] + 1], "wad", strlen ("wad")))
-			{
-				int len = quotes[3] - (quotes[2] + 1);
-				char *value = (char *)malloc (len + 1);
-				hlassume (value != nullptr, assume_NoMemory);
-				memcpy (value, &g_dentdata[quotes[2] + 1], len);
-				value[len] = '\0';
-				return value;
-			}
-		}
-		for (linestart = lineend; linestart < g_entdatasize; linestart++)
-			if (g_dentdata[linestart] != '\r' && g_dentdata[linestart] != '\n')
-				break;
-	}
-	return nullptr;
-}
-
-#define ENTRIES(a)		(sizeof(a)/sizeof(*(a)))
-#define ENTRYSIZE(a)	(sizeof(*(a)))
-
-// =====================================================================================
-//  ArrayUsage
-//      blah
-// =====================================================================================
-static int      ArrayUsage(const char* const szItem, const int items, const int maxitems, const int itemsize)
-{
-    float           percentage = maxitems ? items * 100.0 / maxitems : 0.0;
-
-    Log("%-13s %7i/%-7i %8i/%-8i (%4.1f%%)\n", szItem, items, maxitems, items * itemsize, maxitems * itemsize, percentage);
-
-    return items * itemsize;
-}
-
-// =====================================================================================
-//  GlobUsage
-//      pritn out global ussage line in chart
-// =====================================================================================
-static int      GlobUsage(const char* const szItem, const int itemstorage, const int maxstorage)
-{
-    float           percentage = maxstorage ? itemstorage * 100.0 / maxstorage : 0.0;
-
-    Log("%-13s    [variable]   %8i/%-8i (%4.1f%%)\n", szItem, itemstorage, maxstorage, percentage);
-
-    return itemstorage;
-}
-
-// =====================================================================================
-//  PrintBSPFileSizes
-//      Dumps info about current file
-// =====================================================================================
-void            PrintBSPFileSizes()
-{
-    int             numtextures = g_texdatasize ? ((dmiptexlump_t*)g_dtexdata)->nummiptex : 0;
-    int             totalmemory = 0;
-	int numallocblocks = CountBlocks ();
-	int maxallocblocks = 64;
-	bool nowadtextures = NoWadTextures (); // We don't have this check at hlcsg, because only legacy compile tools don't empty "wad" value in "-nowadtextures" compiles.
-	char *wadvalue = FindWadValue ();
-
-    Log("\n");
-    Log("Object names  Objects/Maxobjs  Memory / Maxmem  Fullness\n");
-    Log("------------  ---------------  ---------------  --------\n");
-
-    totalmemory += ArrayUsage("models", g_nummodels, ENTRIES(g_dmodels), ENTRYSIZE(g_dmodels));
-    totalmemory += ArrayUsage("planes", g_numplanes, MAX_MAP_PLANES, ENTRYSIZE(g_dplanes));
-    totalmemory += ArrayUsage("vertexes", g_numvertexes, ENTRIES(g_dvertexes), ENTRYSIZE(g_dvertexes));
-    totalmemory += ArrayUsage("nodes", g_numnodes, ENTRIES(g_dnodes), ENTRYSIZE(g_dnodes));
-    totalmemory += ArrayUsage("texinfos", g_numtexinfo, MAX_MAP_TEXINFO, ENTRYSIZE(g_texinfo));
-    totalmemory += ArrayUsage("faces", g_numfaces, ENTRIES(g_dfaces), ENTRYSIZE(g_dfaces));
-	totalmemory += ArrayUsage("* worldfaces", (g_nummodels > 0? g_dmodels[0].numfaces: 0), MAX_MAP_WORLDFACES, 0);
-    totalmemory += ArrayUsage("clipnodes", g_numclipnodes, ENTRIES(g_dclipnodes), ENTRYSIZE(g_dclipnodes));
-    totalmemory += ArrayUsage("leaves", g_numleafs, MAX_MAP_LEAFS, ENTRYSIZE(g_dleafs));
-    totalmemory += ArrayUsage("* worldleaves", (g_nummodels > 0? g_dmodels[0].visleafs: 0), MAX_MAP_LEAFS_ENGINE, 0);
-    totalmemory += ArrayUsage("marksurfaces", g_nummarksurfaces, ENTRIES(g_dmarksurfaces), ENTRYSIZE(g_dmarksurfaces));
-    totalmemory += ArrayUsage("surfedges", g_numsurfedges, ENTRIES(g_dsurfedges), ENTRYSIZE(g_dsurfedges));
-    totalmemory += ArrayUsage("edges", g_numedges, ENTRIES(g_dedges), ENTRYSIZE(g_dedges));
-
-    totalmemory += GlobUsage("texdata", g_texdatasize, g_max_map_miptex);
-    totalmemory += GlobUsage("lightdata", g_lightdatasize, g_max_map_lightdata);
-    totalmemory += GlobUsage("visdata", g_visdatasize, sizeof(g_dvisdata));
-    totalmemory += GlobUsage("entdata", g_entdatasize, sizeof(g_dentdata));
-	if (numallocblocks == -1)
-	{
-		Log ("* AllocBlock    [ not available to the " PLATFORM_VERSION " version ]\n");
-	}
-	else
-	{
-	totalmemory += ArrayUsage ("* AllocBlock", numallocblocks, maxallocblocks, 0);
-	}
-
-    Log("%i textures referenced\n", numtextures);
-
-    Log("=== Total BSP file data space used: %d bytes ===\n\n", totalmemory);
-	if (nowadtextures)
-	{
-		Log ("No wad files required to run the map\n");
-	}
-	else if (wadvalue == nullptr)
-	{
-		Log ("Wad files required to run the map: (Couldn't parse wad keyvalue from entity data)\n");
-	}
-	else //If we have any wads still required //seedee
-	{
-		Log("Wad files required to run the map\n");
-		Log("---------------------------------\n");
-		size_t length = strlen(wadvalue) + 1;
-		char* wadvalueNewline = new char[length]; //+1 for null terminator
-		safe_strncpy(wadvalueNewline, wadvalue, length); //Defensive copy
-
-		for (size_t i = 0; i < length; ++i) {
-			if (wadvalueNewline[i] == ';') {
-				wadvalueNewline[i] = '\n';
-			}
-		}
-		Log("%s", wadvalueNewline);
-		delete[] wadvalueNewline;
-		Log("---------------------------------\n\n");
-	}
-	if (wadvalue)
-	{
-		free (wadvalue);
-	}
-}
 
 
 // =====================================================================================
@@ -1192,7 +878,7 @@ bool            ParseEntity()
 void            ParseEntities()
 {
     g_numentities = 0;
-    ParseFromMemory(g_dentdata, g_entdatasize);
+    ParseFromMemory((char*) g_dentdata.data(), g_entdatasize);
 
     while (ParseEntity())
     {
@@ -1256,13 +942,13 @@ int anglesforvector (float angles[3], const float vector[3])
 }
 void            UnparseEntities()
 {
-    char*           buf;
-    char*           end;
+    char8_t*           buf;
+    char8_t*           end;
     epair_t*        ep;
     char            line[MAXTOKEN];
     int             i;
 
-    buf = g_dentdata;
+    buf = g_dentdata.data();
     end = buf;
     *end = 0;
 
@@ -1403,16 +1089,16 @@ void            UnparseEntities()
             continue;                                      // ent got removed
         }
 
-        strcat(end, "{\n");
+        strcat((char*) end, (const char*) "{\n");
         end += 2;
 
         for (ep = g_entities[i].epairs; ep; ep = ep->next)
         {
             snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", (const char*) ep->key.c_str(), (const char*) ep->value.c_str());
-            strcat(end, line);
+            strcat((char*) end, line);
             end += strlen(line);
         }
-        strcat(end, "}\n");
+        strcat((char*) end, (const char*) u8"}\n");
         end += 2;
 
         if (end > buf + MAX_MAP_ENTSTRING)

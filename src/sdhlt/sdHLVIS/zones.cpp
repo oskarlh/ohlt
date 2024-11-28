@@ -101,7 +101,7 @@ Zones* MakeZones(void)
 
     for (x=0; x<g_nummodels; x++)
     {
-        dmodel_t*       mod = g_dmodels + x;
+        dmodel_t*       mod = &g_dmodels[x];
         entity_t*       ent = EntityForModel(x);
 
         if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
@@ -122,7 +122,7 @@ Zones* MakeZones(void)
             {
                 std::uint_least32_t          j;
                 bounding_box     bounds;
-                dface_t*        f = g_dfaces + mod->firstface;
+                dface_t*        f = &g_dfaces[mod->firstface];
             
                 for (j = 0; j < mod->numfaces; j++, f++)
                 {

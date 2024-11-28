@@ -1129,7 +1129,7 @@ static brush_t *ReadBrushes (FILE *file)
 // =====================================================================================
 //  ProcessModel
 // =====================================================================================
-static bool     ProcessModel()
+static bool     ProcessModel(bsp_data& bspData)
 {
     surfchain_t*    surfs;
 	brush_t			*detailbrushes;
@@ -1143,11 +1143,11 @@ static bool     ProcessModel()
         return false;                                      // all models are done
 	detailbrushes = ReadBrushes (brushfiles[0]);
 
-    hlassume(g_nummodels < MAX_MAP_MODELS, assume_MAX_MAP_MODELS);
+    hlassume(bspData.mapModelsLength < MAX_MAP_MODELS, assume_MAX_MAP_MODELS);
 
     startleafs = g_numleafs;
-    int modnum = g_nummodels;
-    model = &g_dmodels[modnum];
+    int modnum = bspData.mapModelsLength;
+    model = &bspData.mapModels[modnum];
     g_nummodels++;
 
 //    Log("ProcessModel: %i (%i f)\n", modnum, model->numfaces);
@@ -1191,7 +1191,7 @@ static bool     ProcessModel()
 
     // build all the portals in the bsp tree
     // some portals are solid polygons, and some are paths to other leafs
-    if (g_nummodels == 1 && !g_nofill)                       // assume non-world bmodels are simple
+    if (bspData.mapModelsLength == 1 && !g_nofill)                       // assume non-world bmodels are simple
     {
 		if (!g_noinsidefill)
 			FillInside (nodes);
@@ -1485,7 +1485,7 @@ static void     Settings()
 // =====================================================================================
 //  ProcessFile
 // =====================================================================================
-static void     ProcessFile(const char* const filename)
+static void     ProcessFile(const char* const filename, bsp_data& bspData)
 {
     int             i;
     char            name[_MAX_PATH];
@@ -1594,11 +1594,10 @@ static void     ProcessFile(const char* const filename)
     BeginBSPFile();
 
     // process each model individually
-    while (ProcessModel())
-        ;
+    while (ProcessModel(bspData));
 
     // write the updated bsp file out
-    FinishBSPFile();
+    FinishBSPFile(bspData);
 
 	// Because the bsp file has been updated, these polyfiles are no longer valid.
     for (i = 0; i < NUM_HULLS; i++)
@@ -1930,7 +1929,7 @@ int             main(const int argc, char** argv)
     // BEGIN BSP
     start = I_FloatTime();
 
-    ProcessFile(g_Mapname);
+    ProcessFile(g_Mapname, bspGlobals);
 
     end = I_FloatTime();
     LogTimeElapsed(end - start);

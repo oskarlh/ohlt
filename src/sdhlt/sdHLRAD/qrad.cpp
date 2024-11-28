@@ -18,6 +18,7 @@
 #include <string>
 #include <numbers>
 
+#include "bsp_file_sizes.h"
 #include "qrad.h"
 #include "../common/cli_option_defaults.h"
 
@@ -537,7 +538,7 @@ static void     LightForTexture(const char* const name, vec3_t result)
 // =====================================================================================
 static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 {
-	int fn = f - g_dfaces;
+	int fn = f - g_dfaces.data();
 	if (g_face_texlights[fn])
 	{
 		double r, g, b, scaler;
@@ -935,7 +936,7 @@ static void     getGridPlanes(const patch_t* const p, dplane_t* const pl)
 {
     const patch_t*  patch = p;
     dplane_t*       planes = pl;
-    const dface_t*  f = g_dfaces + patch->faceNumber;
+    const dface_t*  f = &g_dfaces[patch->faceNumber];
     texinfo_t*      tx = &g_texinfo[f->texinfo];
     dplane_t*       plane = planes;
     const dplane_t* faceplane = getPlaneFromFaceNumber(patch->faceNumber);
@@ -1204,7 +1205,7 @@ void ReadLightingCone ()
 
 static vec_t    getScale(const patch_t* const patch)
 {
-    dface_t*        f = g_dfaces + patch->faceNumber;
+    dface_t*        f = &g_dfaces[patch->faceNumber];
     texinfo_t*      tx = &g_texinfo[f->texinfo];
 
     if (g_texscale)
@@ -1301,7 +1302,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	, int bouncestyle
 	) //LRC
 {
-    const dface_t*  f = g_dfaces + fn;
+    const dface_t*  f = &g_dfaces[fn];
 
     // No g_patches at all for the sky!
     if (!IsSpecial(f))
@@ -1768,7 +1769,7 @@ static void     MakePatches()
         lightmode = eModelLightmodeNull;
 
 
-        mod = g_dmodels + i;
+        mod = g_dmodels.data() + i;
         ent = EntityForModel(i);
         VectorCopy(vec3_origin, origin);
 
@@ -1888,7 +1889,7 @@ static void     MakePatches()
             VectorCopy(origin, g_face_offset[fn]);
 			g_face_texlights[fn] = FindTexlightEntity (fn);
             g_face_lightmode[fn] = lightmode;
-            f = g_dfaces + fn;
+            f = &g_dfaces[fn];
             w = new Winding(*f);
             for (k = 0; k < w->m_NumPoints; k++)
             {
@@ -2604,7 +2605,7 @@ static void     RadWorld()
 					VectorAdd (g_dvertexes[v0].point, g_dvertexes[v1].point, v);
 					VectorScale (v, 0.5, v);
 					VectorAdd (v, es->interface_normal, v);
-					VectorAdd (v, g_face_offset[es->faces[0] - g_dfaces], v);
+					VectorAdd (v, g_face_offset[es->faces[0] - g_dfaces.data()], v);
 					for (k = 0; k < pos_count; ++k)
 						fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
 				}
@@ -3989,7 +3990,7 @@ int             main(const int argc, char** argv)
 
 	EmbedLightmapInTextures ();
     if (g_chart)
-        PrintBSPFileSizes();
+        print_bsp_file_sizes(bspGlobals);
 
     WriteBSPFile(g_source);
 

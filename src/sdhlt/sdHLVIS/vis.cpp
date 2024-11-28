@@ -14,6 +14,7 @@
 */
 
 #include "../common/cli_option_defaults.h"
+#include "bsp_file_sizes.h"
 #include "vis.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -463,7 +464,7 @@ void		SaveVisData(const char *filename)
 	if(!fp)
 		return;
 
-	SafeWrite(fp, g_dvisdata, (vismap_p - g_dvisdata));
+	SafeWrite(fp, g_dvisdata.data(), (vismap_p - g_dvisdata.data()));
 
 	// BUG BUG BUG!
 	// Leaf offsets need to be saved too!!!!
@@ -557,7 +558,7 @@ static void     CalcVis()
 			free(g_uncompressed);
 			g_uncompressed = (byte*)calloc(g_portalleafs, g_bitbytes);
 
-			vismap_p = g_dvisdata;
+			vismap_p = g_dvisdata.data();
 
 			// We don't need to run BasePortalVis again			
 			NamedRunThreadsOn(g_portalleafs, g_estimate, MaxDistVis);
@@ -632,7 +633,7 @@ static void     LoadPortals(char* portal_image)
 
     originalvismapsize = g_portalleafs * ((g_portalleafs + 7) / 8);
 
-    vismap = vismap_p = g_dvisdata;
+    vismap = vismap_p = g_dvisdata.data();
     vismap_end = vismap + MAX_MAP_VISIBILITY;
 
 	if (g_portalleafs > MAX_MAP_LEAFS)
@@ -1325,7 +1326,7 @@ int             main(const int argc, char** argv)
 
     CalcVis();
 
-    g_visdatasize = vismap_p - g_dvisdata;
+    g_visdatasize = vismap_p - g_dvisdata.data();
     Log("g_visdatasize:%i  compressed from %i\n", g_visdatasize, originalvismapsize);
 
     if (!g_nofixprt) //seedee
@@ -1335,7 +1336,7 @@ int             main(const int argc, char** argv)
 
     if (g_chart)
     {
-        PrintBSPFileSizes();
+        print_bsp_file_sizes(bspGlobals);
     }
 
     WriteBSPFile(source);

@@ -14,6 +14,7 @@
 
 #include "csg.h" 
 #include "filelib.h"
+#include "bsp_file_sizes.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
@@ -1153,7 +1154,7 @@ static void     ConvertHintToEmpty()
 void LoadWadValue ()
 {
     std::u8string wadValue;
-	ParseFromMemory (g_dentdata, g_entdatasize);
+	ParseFromMemory ((char*) g_dentdata.data(), g_entdatasize);
 	entity_t ent0;
 	entity_t *mapent = &ent0;
 	memset (mapent, 0, sizeof (entity_t));
@@ -1198,7 +1199,7 @@ void WriteBSP(const char* const name)
     UnparseEntities();
     ConvertHintToEmpty(); // this is ridiculous. --vluzacn
     if (g_chart)
-        PrintBSPFileSizes();
+        print_bsp_file_sizes(bspGlobals);
     WriteBSPFile(bspPath);
 }
 
@@ -1520,7 +1521,7 @@ static void     DumpWadinclude()
 //  Settings
 //      prints out settings sheet
 // =====================================================================================
-static void     Settings()
+static void     Settings(const bsp_data& bspData)
 {
     const char*           tmp;
 
@@ -1623,7 +1624,7 @@ static void     Settings()
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
 	Log("convert game_text     [ %7s ] [ %7s ]\n", !g_noutf8? "on" : "off", !DEFAULT_NOUTF8? "on" : "off");
 #endif
-    Log("world extent          [ %7d ] [ %7d ]\n", g_iWorldExtent, 65536);
+    Log("world extent          [ %7d ] [ %7d ]\n", bspData.worldExtent, 65536);
 
     Log("\n");
 }
@@ -1644,6 +1645,7 @@ void            CSGCleanup()
 // =====================================================================================
 int             main(const int argc, char** argv)
 {
+    bsp_data& bspData = bspGlobals;
     int             i;                          
     char            name[_MAX_PATH];            // mapanme 
     double          start, end;                 // start/end time log
@@ -1693,7 +1695,7 @@ int             main(const int argc, char** argv)
 
         else if (!strcasecmp(argv[i], "-worldextent"))
         {
-            g_iWorldExtent = atoi(argv[++i]);
+            bspData.worldExtent = atoi(argv[++i]);
         }
 
 #ifdef SYSTEM_POSIX
@@ -2077,7 +2079,7 @@ int             main(const int argc, char** argv)
     LoadMapFile(name);
     ThreadSetDefault();                    
     ThreadSetPriority(g_threadpriority);  
-    Settings();
+    Settings(bspData);
 
 
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
