@@ -3184,7 +3184,6 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
 int             main(const int argc, char** argv)
 {
     int             i;
-    double          start, end;
     const char*     mapname_from_arg = nullptr;
     const char*     user_lights = nullptr;
 	char temp[_MAX_PATH]; //seedee
@@ -3907,9 +3906,8 @@ int             main(const int argc, char** argv)
     ThreadSetPriority(g_threadpriority);
     LogStart(argcold, argvold);
 	{
-		int			 i;
 		Log("Arguments: ");
-		for (i = 1; i < argc; i++)
+		for (int i = 1; i < argc; i++)
 		{
 			if (strchr(argv[i], ' '))
 			{
@@ -3933,7 +3931,7 @@ int             main(const int argc, char** argv)
     // END INIT
 
     // BEGIN RAD
-    start = I_FloatTime();
+    const double start = I_FloatTime();
 
     // normalise maxlight
 
@@ -3955,11 +3953,8 @@ int             main(const int argc, char** argv)
 	ReadLightingCone ();
     g_smoothing_threshold_2 = g_smoothing_value_2 < 0 ? g_smoothing_threshold : (float)cos(g_smoothing_value_2 * (std::numbers::pi_v<double> / 180.0));
 	{
-		int style;
-		for (style = 0; style < ALLSTYLES; ++style)
-		{
-			g_corings[style] = style? g_coring: 0;
-		}
+		g_corings[0] = 0;
+		std::fill(&g_corings[1], &g_corings[ALLSTYLES], g_coring);
 	}
 	if (g_direct_scale != 1.0)
 	{
@@ -3994,7 +3989,7 @@ int             main(const int argc, char** argv)
 
     WriteBSPFile(g_source);
 
-    end = I_FloatTime();
+    const double end = I_FloatTime();
     LogTimeElapsed(end - start);
     // END RAD
 
