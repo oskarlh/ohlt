@@ -1,6 +1,7 @@
 #include "cmdlib.h"
 #include "compress.h"
 #include "log.h"
+#include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,30 +45,29 @@ void fail ()
 
 void compress_compatability_test ()
 {
-	unsigned char *v = (unsigned char *)malloc (16u);
-	memset (v, 0, 16u);
+	std::array<unsigned char, 16> v{};
 	if (sizeof(char) !=1 || sizeof(unsigned int) != 4 || sizeof(float) != 4)
 		fail ();
-	*(float *)(v+1) = 0.123f;
-	if (*(unsigned int *)v != 4226247936u || *(unsigned int *)(v+1) != 1039918957u)
+	*(float *)(&v[1]) = 0.123f;
+	if (*(unsigned int *)v.data() != 4226247936u || *(unsigned int *)(&v[1]) != 1039918957u)
 		fail ();
-	*(float *)(v+1) = -58;
-	if (*(unsigned int *)v != 1744830464u || *(unsigned int *)(v+1) != 3261595648u)
+	*(float *)(&v[1]) = -58;
+	if (*(unsigned int *)v.data() != 1744830464u || *(unsigned int *)(&v[1]) != 3261595648u)
 		fail ();
 	float f[5] = {0.123f, 1.f, 0.f, 0.123f, 0.f};
-	memset (v, ~0, 16u);
-	vector_compress (VECTOR24, v, &f[0], &f[1], &f[2]);
-	float_compress (FLOAT16, v+6, &f[3]);
-	float_compress (FLOAT16, v+4, &f[4]);
-	if (((unsigned int *)v)[0] != 4286318595u || ((unsigned int *)v)[1] != 3753771008u)
+	std::ranges::fill(v, ~0);
+	vector_compress (VECTOR24, v.data(), &f[0], &f[1], &f[2]);
+	float_compress (FLOAT16, &v[6], &f[3]);
+	float_compress (FLOAT16, &v[4], &f[4]);
+	if (((unsigned int *)v.data())[0] != 4286318595u || ((unsigned int *)v.data())[1] != 3753771008u)
 		fail ();
-	float_decompress (FLOAT16, v+6, &f[3]);
-	float_decompress (FLOAT16, v+4, &f[4]);
-	vector_decompress (VECTOR24, v, &f[0], &f[1], &f[2]);
-	float ans[5] = {0.109375f,1.015625f,0.015625f,0.123001f,0.000000f};
-	int i;
-	for (i=0; i<5; ++i)
-		if (f[i]-ans[i] > 0.00001f || f[i]-ans[i] < -0.00001f)
-			fail ();
-	free (v);
+	float_decompress (FLOAT16, &v[6], &f[3]);
+	float_decompress (FLOAT16, &v[4], &f[4]);
+	vector_decompress (VECTOR24, v.data(), &f[0], &f[1], &f[2]);
+	constexpr float ans[5] = {0.109375f,1.015625f,0.015625f,0.123001f,0.000000f};
+	for (std::size_t i = 0; i < 5; ++i) {
+		if (f[i] - ans[i] > 0.00001f || f[i] - ans[i] < -0.00001f) {
+			fail();
+		}
+	}
 }
