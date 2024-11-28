@@ -216,47 +216,6 @@ void ExtractFileExtension(const char* const path, char* dest)
 }
 //-------------------------------------------------------------------
 
-/*
- * ============================================================================
- * 
- * BYTE ORDER FUNCTIONS
- * 
- * ============================================================================
- */
-
-std::int16_t LittleShort(std::int16_t l) {
-    if (std::endian::native == std::endian::big) {
-        return std::byteswap(l);
-    }
-    return l;
-}
-std::int32_t LittleLong(std::int32_t l) {
-    if (std::endian::native == std::endian::big) {
-        return std::byteswap(l);
-    }
-    return l;
-}
-
-float LittleFloat(const float l)
-{
-    if (std::endian::native == std::endian::big) {
-        // TODO: Replace this with something legal
-        union
-        {
-            byte            b[4];
-            float           f;
-        } in, out;
-
-        in.f = l;
-        out.b[0] = in.b[3];
-        out.b[1] = in.b[2];
-        out.b[2] = in.b[1];
-        out.b[3] = in.b[0];
-
-        return out.f;
-    }
-    return l;
-}
 
 //=============================================================================
 

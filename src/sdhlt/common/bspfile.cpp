@@ -316,7 +316,7 @@ void            LoadBSPImage(dheader_t* const header)
     // swap the header
     for (i = 0; i < sizeof(dheader_t) / 4; i++)
     {
-        ((int*)header)[i] = LittleLong(((int*)header)[i]);
+        ((int*)header)[i] = (((int*)header)[i]);
     }
 
     if (header->version != BSPVERSION)
@@ -408,7 +408,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     header = &outheader;
     memset(header, 0, sizeof(dheader_t));
 
-    header->version = LittleLong(BSPVERSION);
+    header->version = (BSPVERSION);
 
     bspfile = SafeOpenWrite(filename.c_str());
     SafeWrite(bspfile, header, sizeof(dheader_t));         // overwritten later
