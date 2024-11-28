@@ -2,17 +2,16 @@
 
 #include "cmdlib.h" //--vluzacn
 
-#define	MAX_THREADS	64
+constexpr std::size_t MAX_THREADS = 64;
 
-typedef enum
+enum class q_threadpriority
 {
     eThreadPriorityLow = -1,
     eThreadPriorityNormal,
     eThreadPriorityHigh
-}
-q_threadpriority;
+};
 
-typedef void    (*q_threadfunction) (int);
+typedef void (*q_threadfunction) (int);
 
 #ifdef SYSTEM_WIN32
 #define DEFAULT_NUMTHREADS -1
@@ -21,7 +20,6 @@ typedef void    (*q_threadfunction) (int);
 #define DEFAULT_NUMTHREADS 1
 #endif
 
-#define DEFAULT_THREAD_PRIORITY eThreadPriorityNormal
 
 extern int      g_numthreads;
 extern q_threadpriority g_threadpriority;

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include "developer_level.h"
+#include "threads.h"
 
 namespace cli_option_defaults {
 	constexpr bool chart = true;
@@ -11,6 +12,7 @@ namespace cli_option_defaults {
 	constexpr bool log = true;
 	constexpr bool nulltex = true;
 	constexpr bool verbose = false;
+	constexpr q_threadpriority threadPriority = q_threadpriority::eThreadPriorityNormal;
 
 	// These values are arbitrary
 	constexpr std::size_t max_map_miptex = 0x2000000;

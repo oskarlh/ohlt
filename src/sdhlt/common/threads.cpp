@@ -4,6 +4,7 @@
 #include <malloc.h>
 #endif
 
+#include "cli_option_defaults.h"
 #include "cmdlib.h"
 #include "messages.h"
 #include "log.h"
@@ -18,7 +19,7 @@
 
 #include "hlassert.h"
 
-q_threadpriority g_threadpriority = DEFAULT_THREAD_PRIORITY;
+q_threadpriority g_threadpriority = cli_option_defaults::threadPriority;
 
 #define THREADTIMES_SIZE 100
 #define THREADTIMES_SIZEf (float)(THREADTIMES_SIZE)
@@ -200,15 +201,15 @@ void            ThreadSetPriority(q_threadpriority type)
 
     switch (g_threadpriority)
     {
-    case eThreadPriorityLow:
+    case q_threadpriority::eThreadPriorityLow:
         val = IDLE_PRIORITY_CLASS;
         break;
 
-    case eThreadPriorityHigh:
+    case q_threadpriority::eThreadPriorityHigh:
         val = HIGH_PRIORITY_CLASS;
         break;
 
-    case eThreadPriorityNormal:
+    case q_threadpriority::eThreadPriorityNormal:
     default:
         val = NORMAL_PRIORITY_CLASS;
         break;
@@ -224,15 +225,15 @@ static void     AdjustPriority(HANDLE hThread)
 
     switch (g_threadpriority)
     {
-    case eThreadPriorityLow:
+    case q_threadpriority::eThreadPriorityLow:
         val = THREAD_PRIORITY_HIGHEST;
         break;
 
-    case eThreadPriorityHigh:
+    case q_threadpriority::eThreadPriorityHigh:
         val = THREAD_PRIORITY_LOWEST;
         break;
 
-    case eThreadPriorityNormal:
+    case q_threadpriority::eThreadPriorityNormal:
     default:
         val = THREAD_PRIORITY_NORMAL;
         break;
@@ -431,15 +432,15 @@ void            ThreadSetPriority(q_threadpriority type)
     // Unless you are root -high is useless . . . 
     switch (g_threadpriority)
     {
-    case eThreadPriorityLow:
+    case q_threadpriority::eThreadPriorityLow:
         val = PRIO_MAX;
         break;
 
-    case eThreadPriorityHigh:
+    case q_threadpriority::eThreadPriorityHigh:
         val = PRIO_MIN;
         break;
 
-    case eThreadPriorityNormal:
+    case q_threadpriority::eThreadPriorityNormal:
     default:
         val = 0;
         break;

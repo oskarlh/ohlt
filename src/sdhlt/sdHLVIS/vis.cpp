@@ -69,10 +69,8 @@ bool            g_estimate = cli_option_defaults::estimate;
 bool            g_chart = cli_option_defaults::chart;
 bool            g_info = cli_option_defaults::info;
 
-// AJM: MVD
 unsigned int	g_maxdistance = DEFAULT_MAXDISTANCE_RANGE;
-//bool			g_postcompile = DEFAULT_POST_COMPILE;
-//
+
 const int		g_overview_max = MAX_MAP_ENTITIES;
 overview_t		g_overview[g_overview_max];
 int				g_overview_count = 0;
@@ -125,12 +123,12 @@ void            GetParamsFromEnt(entity_t* mapent)
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
 	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
-        g_threadpriority = eThreadPriorityHigh;
+        g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
     else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
-        g_threadpriority = eThreadPriorityLow;
+        g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
     }
 
@@ -438,9 +436,7 @@ static void     CalcPortalVis()
     // g_fastvis just uses mightsee for a very loose bound
     if (g_fastvis)
     {
-        int             i;
-
-        for (i = 0; i < g_numportals * 2; i++)
+        for (std::size_t i = 0; i < g_numportals * 2; i++)
         {
             g_portals[i].visbits = g_portals[i].mightsee;
             g_portals[i].status = stat_done;
@@ -476,12 +472,6 @@ void		SaveVisData(const char *filename)
 	fclose(fp);
 }
 
-
-
-
-// AJM UNDONE HLVIS_MAXDIST THIS!!!!!!!!!!!!!
-
-// AJM: MVD modified
 // =====================================================================================
 //  CalcVis
 // =====================================================================================
@@ -495,86 +485,62 @@ static void     CalcVis()
 	// Remove this file
 	std::filesystem::remove(visdatafile);
 
-/*    if(g_postcompile)
-	{
-		if(!g_maxdistance)
-		{
-			Error("Must use -maxdistance parameter with -postcompile");
-		}
+    NamedRunThreadsOn(g_numportals * 2, g_estimate, BasePortalVis);
 
-		// Decompress everything so we can edit it
-		DecompressAll();
-		
-		NamedRunThreadsOn(g_portalleafs, g_estimate, PostMaxDistVis);
+    // First do a normal VIS, save to file, then redo MaxDistVis
 
-		// Recompress it
-		CompressAll();
-	}
-	else
-	{*/
-//		InitVisBlock();
-//		SetupVisBlockLeafs();
+    CalcPortalVis();
 
-		NamedRunThreadsOn(g_numportals * 2, g_estimate, BasePortalVis);
-
-//		if(g_numvisblockers)
-//			NamedRunThreadsOn(g_numvisblockers, g_estimate, BlockVis);
-
-		// First do a normal VIS, save to file, then redo MaxDistVis
-
-		CalcPortalVis();
-
-        // Add additional leaves to the uncompressed vis.
-        for (i = 0; i < g_portalleafs; i++)
+    // Add additional leaves to the uncompressed vis.
+    for (i = 0; i < g_portalleafs; i++)
+    {
+        if (!g_leafinfos[i].additional_leaves.empty())
         {
-            if (!g_leafinfos[i].additional_leaves.empty())
+            for (int leaf : g_leafinfos[i].additional_leaves)
             {
-                for (int leaf : g_leafinfos[i].additional_leaves)
-                {
-                    LeafFlowNeighborAddLeaf(i, leaf, g_leafinfos[i].neighbor);
-                    leaf_flow_add_exclude.clear();
-                }
+                LeafFlowNeighborAddLeaf(i, leaf, g_leafinfos[i].neighbor);
+                leaf_flow_add_exclude.clear();
             }
         }
+    }
 
-		//
-		// assemble the leaf vis lists by oring and compressing the portal lists
-		//
-		for (i = 0; i < g_portalleafs; i++)
-		{
-	        LeafFlow(i);
-	    }
+    //
+    // assemble the leaf vis lists by oring and compressing the portal lists
+    //
+    for (i = 0; i < g_portalleafs; i++)
+    {
+        LeafFlow(i);
+    }
 
-		Log("average leafs visible: %i\n", totalvis / g_portalleafs);
+    Log("average leafs visible: %i\n", totalvis / g_portalleafs);
 
-		if(g_maxdistance)
-		{
-			totalvis = 0;
-			
-			Log("saving visdata to %s...\n", visdatafile);
-			SaveVisData(visdatafile);
+    if(g_maxdistance)
+    {
+        totalvis = 0;
+        
+        Log("saving visdata to %s...\n", visdatafile);
+        SaveVisData(visdatafile);
 
-			// We need to reset the uncompressed variable and portal visbits
-			free(g_uncompressed);
-			g_uncompressed = (byte*)calloc(g_portalleafs, g_bitbytes);
+        // We need to reset the uncompressed variable and portal visbits
+        free(g_uncompressed);
+        g_uncompressed = (byte*)calloc(g_portalleafs, g_bitbytes);
 
-			vismap_p = g_dvisdata.data();
+        vismap_p = g_dvisdata.data();
 
-			// We don't need to run BasePortalVis again			
-			NamedRunThreadsOn(g_portalleafs, g_estimate, MaxDistVis);
+        // We don't need to run BasePortalVis again			
+        NamedRunThreadsOn(g_portalleafs, g_estimate, MaxDistVis);
 
-			// No need to run this - MaxDistVis now writes directly to visbits after the initial VIS
-			//CalcPortalVis();
-		
-			for (i = 0; i < g_portalleafs; i++)
-			{
-			    LeafFlow(i);
-			}
+        // No need to run this - MaxDistVis now writes directly to visbits after the initial VIS
+        //CalcPortalVis();
+    
+        for (i = 0; i < g_portalleafs; i++)
+        {
+            LeafFlow(i);
+        }
 
 
-			Log("average maxdistance leafs visible: %i\n", totalvis / g_portalleafs);
-		}
-//	}
+        Log("average maxdistance leafs visible: %i\n", totalvis / g_portalleafs);
+    }
 }
 
 
@@ -871,18 +837,17 @@ static void     Settings()
     Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
 
     Log("max vis distance    [ %7d ] [ %7d ]\n", g_maxdistance, DEFAULT_MAXDISTANCE_RANGE);
-	//Log("max dist only       [ %7s ] [ %7s ]\n", g_postcompile ? "on" : "off", DEFAULT_POST_COMPILE ? "on" : "off");
 
     switch (g_threadpriority)
     {
-    case eThreadPriorityNormal:
+    case q_threadpriority::eThreadPriorityNormal:
     default:
         tmp = "Normal";
         break;
-    case eThreadPriorityLow:
+    case q_threadpriority::eThreadPriorityLow:
         tmp = "Low";
         break;
-    case eThreadPriorityHigh:
+    case q_threadpriority::eThreadPriorityHigh:
         tmp = "High";
         break;
     }
@@ -934,8 +899,6 @@ void FixPrt(const char* portalfile)
     std::vector<std::string> prtVector;
     std::ifstream inputFileStream{ portalfile }; //Import from .prt file
 
-    int portalFileLines;
-    int optimizedPortalFileLines;
 
     if (!inputFileStream) //If import fails
     {
@@ -952,7 +915,7 @@ void FixPrt(const char* portalfile)
     }
     inputFileStream.close();
 
-    portalFileLines = prtVector.size(); //Count lines before optimization
+    std::size_t portalFileLines = prtVector.size(); //Count lines before optimization
 
     auto itPortalCoords = std::find_if(
         prtVector.begin(),
@@ -988,9 +951,9 @@ void FixPrt(const char* portalfile)
         prtVector.begin() + 2,
         itPortalCoords);
 
-    optimizedPortalFileLines = prtVector.size(); //Count lines after optimization
+    std::size_t optimizedPortalFileLines = prtVector.size(); //Count lines after optimization
 
-    Log("Reduced %i lines to %i\n", portalFileLines, optimizedPortalFileLines);
+    Log("Reduced %zu lines to %zu\n", portalFileLines, optimizedPortalFileLines);
 
     //Print contents of vector
     /*
@@ -1111,11 +1074,11 @@ int             main(const int argc, char** argv)
         }
         else if (!strcasecmp(argv[i], "-low"))
         {
-            g_threadpriority = eThreadPriorityLow;
+            g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
         else if (!strcasecmp(argv[i], "-high"))
         {
-            g_threadpriority = eThreadPriorityHigh;
+            g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
         else if (!strcasecmp(argv[i], "-nolog"))
         {
@@ -1167,10 +1130,6 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-/*		else if(!strcasecmp(argv[i], "-postcompile"))
-		{
-			g_postcompile = true;
-		}*/
 		else if (!strcasecmp (argv[i], "-lang"))
 		{
 			if (i + 1 < argc)

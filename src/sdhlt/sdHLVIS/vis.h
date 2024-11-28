@@ -129,7 +129,6 @@ extern int      g_numportals;
 extern unsigned g_portalleafs;
 
 extern unsigned int g_maxdistance;
-//extern bool		g_postcompile;
 
 // This allows the current leaf to have portal to selected leaf.
 // TODO: vector for target so it can do a lot. Though doing the entity won't be as simple.

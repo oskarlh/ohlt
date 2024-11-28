@@ -110,12 +110,12 @@ void            GetParamsFromEnt(entity_t* mapent)
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
 	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
-        g_threadpriority = eThreadPriorityHigh;
+        g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
     else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
-        g_threadpriority = eThreadPriorityLow;
+        g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
     }
 
@@ -1554,14 +1554,14 @@ static void     Settings(const bsp_data& bspData)
 
     switch (g_threadpriority)
     {
-    case eThreadPriorityNormal:
+    case q_threadpriority::eThreadPriorityNormal:
     default:
         tmp = "Normal";
         break;
-    case eThreadPriorityLow:
+    case q_threadpriority::eThreadPriorityLow:
         tmp = "Low";
         break;
-    case eThreadPriorityHigh:
+    case q_threadpriority::eThreadPriorityHigh:
         tmp = "High";
         break;
     }
@@ -1730,11 +1730,11 @@ int             main(const int argc, char** argv)
         }
         else if (!strcasecmp(argv[i], "-low"))
         {
-            g_threadpriority = eThreadPriorityLow;
+            g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
         else if (!strcasecmp(argv[i], "-high"))
         {
-            g_threadpriority = eThreadPriorityHigh;
+            g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
         else if (!strcasecmp(argv[i], "-nolog"))
         {
