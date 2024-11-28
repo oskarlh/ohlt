@@ -43,9 +43,7 @@ typedef vec_t		vec4_t[4];	// x,y,z,w
 typedef vec_t		matrix3x4[3][4];
 
 #define Q_rint( x )		((x) < 0 ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
-#ifndef __MSC_VER
-#define _inline inline
-#endif
+
 
 typedef struct mplane_s
 {
@@ -167,7 +165,7 @@ public:
 	// AABB tree contsruction
 	areanode_t *CreateAreaNode( int depth, const vec3_t mins, const vec3_t maxs );
 	void RelinkFacet( mfacet_t *facet );
-	_inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : nullptr; }
+	inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : nullptr; }
 
 	// plane cache
 	uint AddPlaneToPool( const mplane_t *pl );
@@ -179,7 +177,7 @@ public:
 	void SnapVectorToGrid( vec3_t normal );
 
 	// check for cache
-	_inline mmesh_t *GetMesh() { return &m_mesh; } 
+	inline mmesh_t *GetMesh() { return &m_mesh; } 
 
 	void ClearBounds( vec3_t mins, vec3_t maxs )
 	{

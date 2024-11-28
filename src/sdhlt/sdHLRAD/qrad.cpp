@@ -52,9 +52,9 @@ patch_t*		g_patches;
 entity_t*		g_face_texlights[MAX_MAP_FACES];
 unsigned        g_num_patches;
 
-static vec3_t   (*emitlight)[MAXLIGHTMAPS]; //LRC
-static vec3_t   (*addlight)[MAXLIGHTMAPS]; //LRC
-static unsigned char (*newstyles)[MAXLIGHTMAPS];
+static std::array<vec3_array, MAXLIGHTMAPS> *addlight;
+static std::array<vec3_array, MAXLIGHTMAPS> *emitlight;
+static std::array<unsigned char, MAXLIGHTMAPS>* newstyles;
 
 vec3_array          g_face_offset[MAX_MAP_FACES];              // for rotating bmodels
 
@@ -2398,6 +2398,12 @@ static void     GatherRGBLight(int threadnum)
 // =====================================================================================
 static void     BounceLight()
 {
+
+	// these arrays are only used in CollectLight, GatherLight and BounceLight
+	emitlight = new std::array<vec3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+	addlight = new std::array<vec3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+	newstyles = new std::array<unsigned char, MAXLIGHTMAPS>[g_num_patches + 1]();
+	
     unsigned        i;
     char            name[64];
 
@@ -2435,6 +2441,13 @@ static void     BounceLight()
 			VectorCopy (emitlight[i][j], patch->totallight[j]);
 		}
 	}
+
+	delete[] (emitlight);
+	emitlight = nullptr;
+	delete[] (addlight);
+	addlight = nullptr;
+	delete[] newstyles;
+	newstyles = nullptr;
 }
 
 // =====================================================================================
@@ -2480,10 +2493,8 @@ static void     MakeScalesStub()
 // =====================================================================================
 static void     FreeTransfers()
 {
-    unsigned        x;
     patch_t*        patch = g_patches;
-
-    for (x = 0; x < g_num_patches; x++, patch++)
+    for (std::size_t x = 0; x < g_num_patches; x++, patch++)
     {
         if (patch->tData)
         {
@@ -2639,19 +2650,8 @@ static void     RadWorld()
         // build transfer lists
         MakeScalesStub();
 
-		// these arrays are only used in CollectLight, GatherLight and BounceLight
-		emitlight = (vec3_t (*)[MAXLIGHTMAPS])AllocBlock ((g_num_patches + 1) * sizeof (vec3_t [MAXLIGHTMAPS]));
-		addlight = (vec3_t (*)[MAXLIGHTMAPS])AllocBlock ((g_num_patches + 1) * sizeof (vec3_t [MAXLIGHTMAPS]));
-		newstyles = (unsigned char (*)[MAXLIGHTMAPS])AllocBlock ((g_num_patches + 1) * sizeof (unsigned char [MAXLIGHTMAPS]));
         // spread light around
         BounceLight();
-
-		FreeBlock (emitlight);
-		emitlight = nullptr;
-		FreeBlock (addlight);
-		addlight = nullptr;
-		FreeBlock (newstyles);
-		newstyles = nullptr;
     }
 
     FreeTransfers();
