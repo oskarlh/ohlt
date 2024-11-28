@@ -1433,13 +1433,13 @@ static void     Settings()
     Log("Name               |  Setting  |  Default\n" "-------------------|-----------|-------------------------\n");
 
     // ZHLT Common Settings
-    if (DEFAULT_NUMTHREADS == -1)
+    if (cli_option_defaults::numberOfThreads == -1)
     {
         Log("threads             [ %7d ] [  Varies ]\n", g_numthreads);
     }
     else
     {
-        Log("threads             [ %7d ] [ %7d ]\n", g_numthreads, DEFAULT_NUMTHREADS);
+        Log("threads             [ %7d ] [ %7d ]\n", g_numthreads, cli_option_defaults::numberOfThreads);
     }
 
     Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");

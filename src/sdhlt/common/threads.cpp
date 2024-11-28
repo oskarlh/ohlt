@@ -189,7 +189,7 @@ void            RunThreadsOnIndividual(int workcnt, bool showpacifier, q_threadf
 #define	USED
 #include <windows.h>
 
-int             g_numthreads = DEFAULT_NUMTHREADS;
+int             g_numthreads = cli_option_defaults::numberOfThreads;
 static CRITICAL_SECTION crit;
 static int      enter;
 
@@ -420,7 +420,7 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
 #define	USED
 
-int             g_numthreads = DEFAULT_NUMTHREADS;
+int             g_numthreads = cli_option_defaults::numberOfThreads;
 
 void            ThreadSetPriority(q_threadpriority type)
 {

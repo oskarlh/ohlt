@@ -13,13 +13,6 @@ enum class q_threadpriority
 
 typedef void (*q_threadfunction) (int);
 
-#ifdef SYSTEM_WIN32
-#define DEFAULT_NUMTHREADS -1
-#endif
-#ifdef SYSTEM_POSIX
-#define DEFAULT_NUMTHREADS 1
-#endif
-
 
 extern int      g_numthreads;
 extern q_threadpriority g_threadpriority;

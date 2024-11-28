@@ -14,6 +14,13 @@ namespace cli_option_defaults {
 	constexpr bool verbose = false;
 	constexpr q_threadpriority threadPriority = q_threadpriority::eThreadPriorityNormal;
 
+#ifdef SYSTEM_WIN32
+	constexpr int numberOfThreads = -1;
+#else
+	constexpr int numberOfThreads = 1;
+#endif
+
+
 	// These values are arbitrary
 	constexpr std::size_t max_map_miptex = 0x2000000;
 	constexpr std::size_t max_map_lightdata = 0x3000000;
