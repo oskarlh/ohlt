@@ -1,9 +1,3 @@
-
-
-
-/// ********* POSIX **********
-
-#ifdef SYSTEM_POSIX
 #include "cmdlib.h"
 #include "messages.h"
 #include "log.h"
@@ -17,7 +11,7 @@ void*           AllocBlock(const unsigned long size)
     {
         Warning("Attempting to allocate 0 bytes");
     }
-    return calloc(1, size);
+    return new std::byte[size]();
 }
 
 // =====================================================================================
@@ -29,7 +23,7 @@ bool            FreeBlock(void* pointer)
     {
         Warning("Freeing a null pointer");
     }
-    free(pointer);
+    delete[] (std::byte*) pointer;
     return true;
 }
 
@@ -38,7 +32,7 @@ bool            FreeBlock(void* pointer)
 // =====================================================================================
 void*           Alloc(const unsigned long size)
 {
-    return AllocBlock(size);
+    return new std::byte[size]();
 }
 
 // =====================================================================================
@@ -46,7 +40,6 @@ void*           Alloc(const unsigned long size)
 // =====================================================================================
 bool            Free(void* pointer)
 {
-    return FreeBlock(pointer);
+    delete[] (std::byte*) pointer;
+    return true;
 }
-
-#endif /// ********* POSIX **********

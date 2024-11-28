@@ -1760,7 +1760,7 @@ static void     MakePatches()
     Log("%i faces\n", g_numfaces);
 
     Log("Create Patches : ");
-	g_patches = (patch_t *)AllocBlock (MAX_PATCHES * sizeof (patch_t));
+	g_patches = new patch_t[MAX_PATCHES]();
 
     for (i = 0; i < g_nummodels; i++)
     {
@@ -1935,9 +1935,9 @@ static void     SortPatches()
 {
 	// SortPatches is the ideal place to do this, because the address of the patches are going to be invalidated.
 	patch_t *old_patches = g_patches;
-	g_patches = (patch_t *)AllocBlock ((g_num_patches + 1) * sizeof (patch_t)); // allocate one extra slot considering how terribly the code were written
+	g_patches = new patch_t[((g_num_patches + 1))](); // allocate one extra slot considering how terribly the code were written
 	memcpy (g_patches, old_patches, g_num_patches * sizeof (patch_t));
-	FreeBlock (old_patches);
+	delete[] old_patches;
     qsort((void*)g_patches, (size_t) g_num_patches, sizeof(patch_t), patch_sorter);
 
     // Fixup g_face_patches & Fixup patch->next
@@ -1986,7 +1986,7 @@ static void     FreePatches()
         delete patch->winding;
     }
     memset(g_patches, 0, sizeof(patch_t) * g_num_patches);
-	FreeBlock (g_patches);
+	delete[] g_patches;
 	g_patches = nullptr;
 }
 

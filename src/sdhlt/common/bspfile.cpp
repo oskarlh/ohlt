@@ -1251,17 +1251,17 @@ entity_t *FindTargetEntity(std::u8string_view target) {
 
 void            dtexdata_init()
 {
-    g_dtexdata = (byte*)AllocBlock(g_max_map_miptex);
+    g_dtexdata = (byte*)new std::byte[g_max_map_miptex]();
     hlassume(g_dtexdata != nullptr, assume_NoMemory);
-	g_dlightdata = (byte*)AllocBlock(g_max_map_lightdata);
+	g_dlightdata = (byte*) new std::byte[g_max_map_lightdata]();
 	hlassume(g_dlightdata != nullptr, assume_NoMemory);
 }
 
 void dtexdata_free()
 {
-    FreeBlock(g_dtexdata);
+    delete g_dtexdata;
     g_dtexdata = nullptr;
-	FreeBlock(g_dlightdata);
+	delete g_dlightdata;
 	g_dlightdata = nullptr;
 }
 

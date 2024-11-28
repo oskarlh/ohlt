@@ -19,7 +19,7 @@ void do_alloc_block (std::deque<lightmapblock>& blocks, int w, int h)
 {
 	if (w < 1 || h < 1)
 	{
-		Error("DoAllocBlock: internal error.");
+		Error("do_alloc_block: internal error.");
 	}
 	std::int32_t best, best2;
 	std::int32_t x;
