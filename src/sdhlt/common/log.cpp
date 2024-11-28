@@ -513,12 +513,12 @@ static void     LogArgs(int argc, char** argv)
 // =====================================================================================
 void            Banner()
 {
-    Log("%s " VERSION_STRING
+    Log((const char*) u8"%s " VERSION_STRING
 		" " PLATFORM_VERSION
 		" (%s)\n", g_Program, __DATE__);
     //Log("BUGGY %s (built: %s)\nUse at own risk.\n", g_Program, __DATE__);
 
-    Log(PROJECT_DESCRIPTION "\n"
+    Log((const char*) u8"" PROJECT_DESCRIPTION "\n"
         "Based on code modifications by Sean 'Zoner' Cavanaugh, Vluzacn, and seedee.\n"
         "Based on Valve's version, modified with permission.\n"
         MODIFICATIONS_STRING);

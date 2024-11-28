@@ -1,5 +1,4 @@
 #pragma once
-
 #define MODIFICATIONS_STRING "Submit detailed bug reports to (" PROJECT_ISSUE_TRACKER ")\n"
 
 #define VERSION_STRING "v" PROJECT_VERSION
@@ -33,14 +32,6 @@
 
 #if _MSC_VER <1400
 #define strcpy_s strcpy //--vluzacn
-#endif
-
-#if 0 //--vluzacn
-// AJM: gnu compiler fix
-#ifdef __GNUC__
-#define _alloca __builtin_alloca
-#define alloca __builtin_alloca
-#endif
 #endif
 
 #include "win32fix.h"
