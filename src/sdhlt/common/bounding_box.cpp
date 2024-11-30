@@ -65,11 +65,6 @@ bounding_box_state test(const bounding_box& thisBox, const bounding_box& otherBo
 }
 
 
-void set_bounding_box(bounding_box& thisBox, const vec3_t maxs, const vec3_t mins)
-{
-    VectorCopy(maxs, thisBox.maxs);
-    VectorCopy(mins, thisBox.mins);
-}
 void set_bounding_box(bounding_box& thisBox, const vec3_array maxs, const vec3_array mins)
 {
     thisBox.maxs = maxs;

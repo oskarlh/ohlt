@@ -17,7 +17,7 @@ cd test-and-compare
 ../tools/sdHLCSG ./valve/maps/pool
 ../tools/sdHLBSP ./valve/maps/pool
 ../tools/sdHLVIS -fast ./valve/maps/pool
-../tools/sdHLRAD ./valve/maps/pool
+../tools/sdHLRAD -vismatrix sparse ./valve/maps/pool
 
 if cmp "./valve/maps/pool.bsp" "./valve/maps/pool-first-compile.bsp"; then
 	echo "Compiled the map successfully :)"

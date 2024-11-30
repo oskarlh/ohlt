@@ -56,24 +56,24 @@
 
 #define MAX_HULLSHAPES 128 // arbitrary
 
-typedef struct
+struct plane_t
 {
-    vec3_t          normal;
-    vec3_t          origin;
-    vec_t           dist;
-    planetypes      type;
-} plane_t;
+    vec3_t normal;
+    vec3_t origin;
+    vec_t dist;
+    planetypes type;
+};
 
 
 
-typedef struct
+struct valve_vects
 {
-    vec3_t          UAxis;
-    vec3_t          VAxis;
-    vec_t           shift[2];
-    vec_t           rotate;
-    vec_t           scale[2];
-} valve_vects;
+    vec3_array UAxis;
+    vec3_array VAxis;
+    vec_t shift[2];
+    vec_t rotate;
+    vec_t scale[2];
+};
 
 typedef struct
 {
@@ -192,7 +192,7 @@ typedef struct
 } hullshape_t;
 
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-extern char *	ANSItoUTF8 (const char *);
+std::u8string ansiToUtf8(std::string_view ansiString);
 #endif
 
 //=============================================================================
@@ -231,30 +231,30 @@ extern const char *GetTextureByNumber_CSG(int texturenumber);
 extern brush_t* Brush_LoadEntity(entity_t* ent, int hullnum);
 extern contents_t CheckBrushContents(const brush_t* const b);
 
-extern void     CreateBrush(int brushnum);
-extern void		CreateHullShape (int entitynum, bool disabled, const char *id, int defaulthulls);
-extern void		InitDefaultHulls ();
+extern void CreateBrush(int brushnum);
+extern void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulthulls);
+extern void InitDefaultHulls ();
 
 //=============================================================================
 // csg.c
 
-extern bool     g_chart;
-extern bool     g_onlyents;
-extern bool     g_noclip;
-extern bool     g_wadtextures;
-extern bool     g_skyclip;
-extern bool     g_estimate;         
+extern bool g_chart;
+extern bool g_onlyents;
+extern bool g_noclip;
+extern bool g_wadtextures;
+extern bool g_skyclip;
+extern bool g_estimate;         
 extern const char* g_hullfile;        
 
-extern bool     g_bUseNullTex; 
+extern bool g_bUseNullTex; 
 
 
-extern bool     g_bClipNazi; 
+extern bool g_bClipNazi; 
 
 #define EnumPrint(a) #a
 typedef enum{clip_smallest,clip_normalized,clip_simple,clip_precise,clip_legacy} cliptype;
 extern cliptype g_cliptype;
-extern const char*	GetClipTypeString(cliptype);
+extern const char* GetClipTypeString(cliptype);
 
 extern vec_t g_scalesize;
 extern bool g_resetlog;
@@ -264,31 +264,31 @@ extern bool g_noutf8;
 #endif
 extern bool g_nullifytrigger;
 
-extern vec_t    g_tiny_threshold;
-extern vec_t    g_BrushUnionThreshold;
+extern vec_t g_tiny_threshold;
+extern vec_t g_BrushUnionThreshold;
 
-extern plane_t  g_mapplanes[MAX_INTERNAL_MAP_PLANES];
-extern int      g_nummapplanes;
+extern plane_t g_mapplanes[MAX_INTERNAL_MAP_PLANES];
+extern int g_nummapplanes;
 
 extern bface_t* NewFaceFromFace(const bface_t* const in);
 extern bface_t* CopyFace(const bface_t* const f);
 
-extern void     FreeFace(bface_t* f);
+extern void FreeFace(bface_t* f);
 
 extern bface_t* CopyFaceList(bface_t* f);
-extern void     FreeFaceList(bface_t* f);
+extern void FreeFaceList(bface_t* f);
 
-extern void     GetParamsFromEnt(entity_t* mapent);
+extern void GetParamsFromEnt(entity_t* mapent);
 
 
 //=============================================================================
 // brushunion.c
-void            CalculateBrushUnions(int brushnum);
+void CalculateBrushUnions(int brushnum);
  
 //============================================================================
 // hullfile.cpp
-extern vec3_t   g_hull_size[NUM_HULLS][2];
-extern void     LoadHullfile(const char* filename);
+extern vec3_t g_hull_size[NUM_HULLS][2];
+extern void LoadHullfile(const char* filename);
 
 extern const char *g_wadcfgfile;
 extern const char *g_wadconfigname;
@@ -298,7 +298,7 @@ extern void LoadWadconfig (const char *filename, const char *configname);
 //============================================================================
 // autowad.cpp      AJM
 
-extern bool     g_bWadAutoDetect; 
+extern bool g_bWadAutoDetect; 
 
 
 //=============================================================================

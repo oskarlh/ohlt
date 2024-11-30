@@ -33,7 +33,6 @@ bool test_union(const bounding_box& thisBox, const bounding_box& otherBox);
 bounding_box_state test(const bounding_box& thisBox, const bounding_box& otherBox);
 
 
-void set_bounding_box(bounding_box& thisBox, const vec3_t maxs, const vec3_t mins);
 
 void set_bounding_box(bounding_box& thisBox, const vec3_array maxs, const vec3_array mins);
 

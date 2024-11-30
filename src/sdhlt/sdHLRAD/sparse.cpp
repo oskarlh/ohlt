@@ -2,50 +2,42 @@
 
 
 
-typedef struct
+struct sparse_row_t
 {
-    unsigned        offset:24;
-    unsigned        values:8;
-}
-sparse_row_t;
+    std::uint32_t        offset:24;
+    std::uint32_t        values:8;
+};
 
-typedef struct
-{
-    sparse_row_t*   row;
-    int             count;
-}
-sparse_column_t;
+typedef std::vector<sparse_row_t> sparse_column_t;
 
-sparse_column_t* s_vismatrix;
+std::vector<sparse_column_t> s_vismatrix;
 
 // Vismatrix protected
-static unsigned IsVisbitInArray(const unsigned x, const unsigned y)
+static unsigned IsVisbitInArray(std::uint32_t x, std::uint32_t y)
 {
-    int             first, last, current;
-    int             y_byte = y / 8;
-    sparse_row_t*  row;
-    sparse_column_t* column = s_vismatrix + x;
+    int first, last, current;
+    int y_byte = y / 8;
+    const sparse_column_t& column = s_vismatrix[x];
 
-    if (!column->count)
+    if (column.empty())
     {
         return -1;
     }
 
     first = 0;
-    last = column->count - 1;
+    last = column.size() - 1;
 
-    //    Warning("Searching . . .");
+    // Warning("Searching . . .");
     // binary search to find visbit
     while (1)
     {
         current = (first + last) / 2;
-        row = column->row + current;
-        //        Warning("first %u, last %u, current %u, row %p, row->offset %u", first, last, current, row, row->offset);
-        if ((row->offset) < y_byte)
+        const sparse_row_t& row = column[current];
+        if ((row.offset) < y_byte)
         {
             first = current + 1;
         }
-        else if ((row->offset) > y_byte)
+        else if ((row.offset) > y_byte)
         {
             last = current - 1;
         }
@@ -60,20 +52,20 @@ static unsigned IsVisbitInArray(const unsigned x, const unsigned y)
     }
 }
 
-static void		SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES])
+static void SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES])
 {
-	sparse_column_t *column;
 	int mbegin;
 	int m;
 	int i;
 	unsigned int bits;
 	
-	column = &s_vismatrix[patchnum];
-	if (column->count || column->row)
+	sparse_column_t& column = s_vismatrix[patchnum];
+	if (!column.empty())
 	{
 		Error ("SetVisColumn: column has been set");
 	}
 
+    std::size_t rowCount = 0;
 	for (mbegin = 0; mbegin < g_num_patches; mbegin += 8)
 	{
 		bits = 0;
@@ -94,17 +86,17 @@ static void		SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISM
 		}
 		if (bits)
 		{
-			column->count++;
+            rowCount++;
 		}
 	}
 
-	if (!column->count)
+	if (!rowCount)
 	{
 		return;
 	}
-	column->row = (sparse_row_t *)malloc (column->count * sizeof (sparse_row_t));
-	hlassume (column->row != nullptr, assume_NoMemory);
-	
+
+    column.resize(rowCount);
+
 	i = 0;
 	for (mbegin = 0; mbegin < g_num_patches; mbegin += 8)
 	{
@@ -115,41 +107,39 @@ static void		SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISM
 			{
 				break;
 			}
-			if (uncompressedcolumn[m]) // visible
+			if (uncompressedcolumn[m]) // Visible
 			{
 				bits |= (1 << (m - mbegin));
 			}
 		}
 		if (bits)
 		{
-			column->row[i].offset = mbegin / 8;
-			column->row[i].values = bits;
+			column[i].offset = mbegin / 8;
+			column[i].values = bits;
 			i++;
 		}
 	}
-	if (i != column->count)
+	if (i != column.size())
 	{
 		Error ("SetVisColumn: internal error");
 	}
 }
 
 // Vismatrix public
-static bool     CheckVisBitSparse(unsigned x, unsigned y
+static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
 								  , vec3_t &transparency_out
 								  , unsigned int &next_index
 								  )
 {
-    int                offset;
-
-    	VectorFill(transparency_out, 1.0);
+    VectorFill(transparency_out, 1.0);
 
     if (x == y)
     {
         return 1;
     }
 
-    const unsigned a = x;
-    const unsigned b = y;
+    const std::uint32_t a = x;
+    const std::uint32_t b = y;
 
     if (x > y)
     {
@@ -165,14 +155,14 @@ static bool     CheckVisBitSparse(unsigned x, unsigned y
     {
         Warning("in CheckVisBit(), y > num_patches");
     }
-
-    if ((offset = IsVisbitInArray(x, y)) != -1)
+    int offset = IsVisbitInArray(x, y);
+    if (offset != -1)
     {
     	if(g_customshadow_with_bouncelight)
     	{
     	     GetTransparency(a, b, transparency_out, next_index);
     	}
-        return s_vismatrix[x].row[offset].values & (1 << (y & 7));
+        return s_vismatrix[x][offset].values & (1 << (y & 7));
     }
 
 	return false;
@@ -290,10 +280,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
  * This is run by multiple threads
  * ===========
  */
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
+
 static void     BuildVisLeafs(int threadnum)
 {
     int             i;
@@ -304,7 +291,7 @@ static void     BuildVisLeafs(int threadnum)
     patch_t*        patch;
     int             head;
     unsigned        patchnum;
-	bool *uncompressedcolumn = (bool *)malloc (MAX_SPARSE_VISMATRIX_PATCHES * sizeof (bool));
+	std::unique_ptr<bool[]> uncompressedcolumn = std::make_unique<bool[]>(MAX_SPARSE_VISMATRIX_PATCHES);
 	hlassume (uncompressedcolumn != nullptr, assume_NoMemory);
 
     while (1)
@@ -347,85 +334,53 @@ static void     BuildVisLeafs(int threadnum)
 				if (patch->leafnum != i)
 					continue;
 				patchnum = patch - g_patches;
-				for (int m = 0; m < g_num_patches; m++)
+				for (std::size_t m = 0; m < g_num_patches; m++)
 				{
 					uncompressedcolumn[m] = false;
 				}
 				for (facenum2 = facenum + 1; facenum2 < g_numfaces; facenum2++)
 					TestPatchToFace (patchnum, facenum2, head, pvs
-									, uncompressedcolumn
+									, uncompressedcolumn.get()
 									);
-				SetVisColumn (patchnum, uncompressedcolumn);
+				SetVisColumn (patchnum, uncompressedcolumn.get());
 			}
 		}
 
     }
-	free (uncompressedcolumn);
 }
-
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 /*
  * ==============
  * BuildVisMatrix
  * ==============
  */
-static void     BuildVisMatrix()
+static void BuildVisMatrix()
 {
-    s_vismatrix = (sparse_column_t*)AllocBlock(g_num_patches * sizeof(sparse_column_t));
-
-    if (!s_vismatrix)
-    {
-        Log("Failed to allocate vismatrix");
-        hlassume(s_vismatrix != nullptr, assume_NoMemory);
-    }
+    s_vismatrix.resize(g_num_patches);
 
     NamedRunThreadsOn(g_dmodels[0].visleafs, g_estimate, BuildVisLeafs);
 }
 
 static void     FreeVisMatrix()
 {
-    if (s_vismatrix)
-    {
-        unsigned        x;
-        sparse_column_t* item;
-
-        for (x = 0, item = s_vismatrix; x < g_num_patches; x++, item++)
-        {
-            if (item->row)
-            {
-                free(item->row);
-            }
-        }
-        if (FreeBlock(s_vismatrix))
-        {
-            s_vismatrix = nullptr;
-        }
-        else
-        {
-            Warning("Unable to free vismatrix");
-        }
-    }
-
-
+    s_vismatrix.clear();
+    s_vismatrix.shrink_to_fit();
 }
 
 static void     DumpVismatrixInfo()
 {
-    unsigned        totals[8];
-    size_t          total_vismatrix_memory;
+    unsigned totals[8];
+    std::size_t total_vismatrix_memory;
 	total_vismatrix_memory = sizeof(sparse_column_t) * g_num_patches;
 
-    sparse_column_t* column_end = s_vismatrix + g_num_patches;
-    sparse_column_t* column = s_vismatrix;
+    sparse_column_t* column_end = &s_vismatrix[g_num_patches];
+    sparse_column_t* column = &s_vismatrix[0];
 
     memset(totals, 0, sizeof(totals));
 
     while (column < column_end)
     {
-        total_vismatrix_memory += column->count * sizeof(sparse_row_t);
+        total_vismatrix_memory += column->size() * sizeof(sparse_row_t);
         column++;
     }
 

@@ -2100,7 +2100,7 @@ int             main(const int argc, char** argv)
 			value = value_for_key (ent, u8"message");
 			if (!value.empty())
 			{
-				std::u8string newvalue = ANSItoUTF8 (value);
+				std::u8string newvalue = ansiToUtf8 (value);
 				if (newvalue != value)
 				{
 					SetKeyValue (ent, u8"message", newvalue);

@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <string>
 
-std::u8string ANSItoUTF8 (std::string_view ansiString)
+std::u8string ansiToUtf8 (std::string_view ansiString)
 {
 	const int utf16Length = MultiByteToWideChar (CP_ACP, 0, ansiString.data(), ansiString.size(), nullptr, 0);
 	std::wstring utf16;

@@ -500,8 +500,7 @@ void            MakeRGBScales(const int threadnum)
             vec_t           dot1;
             vec_t           dot2;
             vec3_t          transparency = {1.0,1.0,1.0};
-			bool useback;
-			useback = false;
+			bool useback = false;
 
             if (!g_CheckVisBit(i, j
 				, transparency
@@ -589,7 +588,7 @@ void            MakeRGBScales(const int threadnum)
 				vec_t frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition between the two methods
-				frac = std::max((vec_t) 0, std::min(frac,(vec_t)  1));
+				frac = std::max((vec_t) 0, std::min(frac,(vec_t) 1));
 				trans_one = frac * trans_one + (1 - frac) * (sightarea / patch2->area); // because later we will multiply this back
 			}
 			else
@@ -624,10 +623,7 @@ void            MakeRGBScales(const int threadnum)
 			{
 				continue;
 			}
-			{
-
-                VectorScale(trans, patch2 -> area, trans);
-            }
+            VectorScale(trans, patch2 -> area, trans);
 
 			VectorCopy(trans, tRGBData);
             *tIndex = j;
@@ -640,7 +636,7 @@ void            MakeRGBScales(const int threadnum)
         // copy the transfers out
         if (patch->iData)
         {
-			unsigned	data_size = patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size;
+			std::size_t data_size = patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size;
 
             patch->tRGBData = (rgb_transfer_data_t*)AllocBlock(data_size);
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
