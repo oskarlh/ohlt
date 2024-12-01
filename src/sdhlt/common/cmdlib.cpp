@@ -60,27 +60,24 @@ char*           strlwr(char* string)
 }
 
 // Case Insensitive substring matching
-const char*     stristr(const char* const string, const char* const substring)
+bool    stristr(const char* const string, const char* const substring)
 {
-    char*           string_copy;
-    char*           substring_copy;
+    std::string string_copy;
+    std::string substring_copy;
     const char*     match;
 
-    string_copy = _strdup(string);
-    _strlwr(string_copy);
+    string_copy = string;
+    _strlwr(string_copy.data());
 
-    substring_copy = _strdup(substring);
-    _strlwr(substring_copy);
+    substring_copy = substring;
+    _strlwr(substring_copy.data());
 
-    match = strstr(string_copy, substring_copy);
+    match = strstr(string_copy.data(), substring_copy.data());
     if (match)
     {
-        match = (string + (match - string_copy));
+       return true;
     }
-
-    free(string_copy);
-    free(substring_copy);
-    return match;
+    return false;
 }
 
 /*--------------------------------------------------------------------
