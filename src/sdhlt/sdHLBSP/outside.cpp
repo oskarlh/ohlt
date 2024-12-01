@@ -67,7 +67,6 @@ static FILE*    linefile;
 static void     MarkLeakTrail(portal_t* n2)
 {
     int             i;
-    vec3_t          p1, p2, dir;
     float           len;
     portal_t*       n1;
 
@@ -79,8 +78,8 @@ static void     MarkLeakTrail(portal_t* n2)
         return;
     }
 
-    n1->winding->getCenter(p1);
-    n2->winding->getCenter(p2);
+    vec3_array p1 = n1->winding->getCenter();
+    vec3_array p2 = n2->winding->getCenter();
 
     // Linefile
     fprintf(linefile, "%f %f %f - %f %f %f\n", p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
@@ -88,9 +87,10 @@ static void     MarkLeakTrail(portal_t* n2)
     // Pointfile
     fprintf(pointfile, "%f %f %f\n", p1[0], p1[1], p1[2]);
 
+    vec3_array          dir;
     VectorSubtract(p2, p1, dir);
     len = VectorLength(dir);
-    VectorNormalize(dir);
+    VectorNormalize(vec3_arg(dir));
 
     while (len > 2)
     {

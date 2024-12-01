@@ -219,9 +219,9 @@ static void     WritePortalFile_r(const node_t* const node)
                 fprintf(pf, "\n");
 				if (g_viewportal)
 				{
-					vec3_t center, center1, center2;
-					vec3_t from = {0.0, 0.0, -65536};
-					w->getCenter (center);
+					vec3_array center1, center2;
+					vec3_array from = {0.0, 0.0, -65536};
+					vec3_array center = w->getCenter ();
 					VectorMA (center, 0.5, p->plane.normal, center1);
 					VectorMA (center, -0.5, p->plane.normal, center2);
 					fprintf (pf_view, "%5.2f %5.2f %5.2f\n", from[0], from[1], from[2]);

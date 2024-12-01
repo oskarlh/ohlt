@@ -483,7 +483,7 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 // =====================================================================================
 //  GetAlternateOrigin
 // =====================================================================================
-void GetAlternateOrigin (const vec3_t pos, const vec3_t normal, const patch_t *patch, vec3_t &origin)
+void GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch_t *patch, vec3_t &origin)
 {
 	const dplane_t *faceplane;
 	const vec_t *facenormal;
@@ -510,7 +510,6 @@ void GetAlternateOrigin (const vec3_t pos, const vec3_t normal, const patch_t *p
 		}
 		else
 		{
-			vec3_t center;
 			bool found;
 			vec3_t bestpoint;
 			vec_t bestdist = -1.0;
@@ -518,7 +517,7 @@ void GetAlternateOrigin (const vec3_t pos, const vec3_t normal, const patch_t *p
 			vec_t dist;
 			vec3_t v;
 
-			w.getCenter (center);
+			vec3_array center = w.getCenter ();
 			found = false;
 
 			VectorMA (center, PATCH_HUNT_OFFSET, facenormal, point);

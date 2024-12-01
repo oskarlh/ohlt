@@ -318,8 +318,8 @@ void            WriteFace(const int hull, const bface_t* const f
 		side = !side;
 		if (side)
 		{
-			vec3_t center, center2;
-			w->getCenter (center);
+			vec3_array center = w->getCenter ();
+			vec3_array center2;
 			VectorAdd (center, f->plane->normal, center2);
 			fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);
 			for (i = 0; i < w->m_NumPoints; i++)

@@ -44,7 +44,7 @@ public:
     vec_t           getArea() const;
     void            getBounds(bounding_box& bounds) const;
     void            getBounds(vec3_t& mins, vec3_t& maxs) const;
-    void            getCenter(vec3_t& center) const;
+    vec3_array      getCenter() const;
     Winding*        Copy() const;
     void            Check(
 		vec_t epsilon = ON_EPSILON

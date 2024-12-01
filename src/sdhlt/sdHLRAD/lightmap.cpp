@@ -1657,7 +1657,7 @@ void            CreateDirectLights()
 
             VectorCopy(p->origin, dl->origin);
 
-            leaf = PointInLeaf(dl->origin);
+            leaf = PointInLeaf(const_vec3_arg(dl->origin));
             leafnum = leaf - g_dleafs;
 
             dl->next = directlights[leafnum];
@@ -1724,7 +1724,7 @@ void            CreateDirectLights()
 				*dl2 = *dl;
 				VectorMA (dl->origin, -2, dl->normal, dl2->origin);
 				VectorSubtract (vec3_origin, dl->normal, dl2->normal);
-				leaf = PointInLeaf (dl2->origin);
+				leaf = PointInLeaf (const_vec3_arg(dl2->origin));
 				leafnum = leaf - g_dleafs;
 				dl2->next = directlights[leafnum];
 				directlights[leafnum] = dl2;
@@ -1792,7 +1792,7 @@ void            CreateDirectLights()
 
         GetVectorForKey(e, u8"origin", dl->origin);
 
-        leaf = PointInLeaf(dl->origin);
+        leaf = PointInLeaf(const_vec3_arg(dl->origin));
         leafnum = leaf - g_dleafs;
 
         dl->next = directlights[leafnum];
@@ -2782,7 +2782,7 @@ static void     GatherSampleLight(const vec3_t pos, const byte* const pvs, const
 									dot = 0.0;
 									ratio = 0.0;
 								}
-								GetAlternateOrigin (pos, normal, l->patch, testline_origin);
+								GetAlternateOrigin (vec3_arg(pos), normal, l->patch, testline_origin);
 								vec_t sightarea;
 								int skylevel = l->patch->emitter_skylevel;
 								if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
@@ -3370,7 +3370,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			}
 			else
 			{
-				dleaf_t *leaf = PointInLeaf(spot);
+				dleaf_t *leaf = PointInLeaf(const_vec3_arg(spot));
 				int thisoffset = leaf->visofs;
 				if (i == 0 || thisoffset != lastoffset)
 				{
@@ -3396,7 +3396,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 				}
 				else
 				{
-					dleaf_t *leaf2 = PointInLeaf(spot2);
+					dleaf_t *leaf2 = PointInLeaf(const_vec3_arg(spot2));
 					int thisoffset2 = leaf2->visofs;
 					if (i == 0 || thisoffset2 != lastoffset2)
 					{
@@ -3742,7 +3742,7 @@ void            BuildFacelights(const int facenum)
 		}
 		else
 		{
-			dleaf_t*        leaf = PointInLeaf(patch->origin);
+			dleaf_t*        leaf = PointInLeaf(const_vec3_arg(patch->origin));
 
 			thisoffset = leaf->visofs;
 			if (patch == g_face_patches[facenum] || thisoffset != lastoffset)
@@ -3768,7 +3768,7 @@ void            BuildFacelights(const int facenum)
 			else
 			{
 				VectorMA (patch->origin, -(g_translucentdepth+2*PATCH_HUNT_OFFSET), l.facenormal, spot2);
-				dleaf_t*        leaf2 = PointInLeaf(spot2);
+				dleaf_t*        leaf2 = PointInLeaf(const_vec3_arg(spot2));
 
 				thisoffset2 = leaf2->visofs;
 				if (l.numsurfpt == 0 || thisoffset2 != lastoffset2)
@@ -3791,7 +3791,7 @@ void            BuildFacelights(const int facenum)
 				VectorClear (backsampled[j]);
 			}
 			VectorSubtract (vec3_origin, l.facenormal, normal2);
-			GatherSampleLight (patch->origin, pvs, l.facenormal, frontsampled, 
+			GatherSampleLight (const_vec3_arg(patch->origin), pvs, l.facenormal, frontsampled, 
 				patch->totalstyle_all
 				, 1
 				, l.miptex
@@ -3813,7 +3813,7 @@ void            BuildFacelights(const int facenum)
 		}
 		else
 		{
-			GatherSampleLight (patch->origin, pvs, l.facenormal, 
+			GatherSampleLight (patch->origin.data(), pvs, l.facenormal, 
 				patch->totallight_all, 
 				patch->totalstyle_all
 				, 1

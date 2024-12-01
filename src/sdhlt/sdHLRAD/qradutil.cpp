@@ -2,7 +2,7 @@
 
 static dplane_t backplanes[MAX_MAP_PLANES];
 
-dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_t point)
+dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_array& point)
 {
 	vec_t			dist;
 	dnode_t*		node;
@@ -42,11 +42,11 @@ dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_t point)
 
 	return &g_dleafs[-nodenum - 1];
 }
-dleaf_t*		PointInLeaf_Worst(const vec3_t point)
+dleaf_t*		PointInLeaf_Worst(const vec3_array& point)
 {
 	return PointInLeaf_Worst_r(0, point);
 }
-dleaf_t*        PointInLeaf(const vec3_t point)
+dleaf_t*        PointInLeaf(const vec3_array& point)
 {
     int             nodenum;
     vec_t           dist;
@@ -224,7 +224,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
 					}
                     if (dist < best_dist)
                     {
-                        if ((leaf = PointInLeaf_Worst(current_point)) != g_dleafs)
+                        if ((leaf = PointInLeaf_Worst(const_vec3_arg(current_point))) != g_dleafs)
                         {
                             if ((leaf->contents != CONTENTS_SKY) && (leaf->contents != CONTENTS_SOLID))
                             {
@@ -557,7 +557,7 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 	else
 	{
 		vec3_t original_st;
-		vec3_t test_st;
+		vec3_array test_st;
 
 		original_st[0] = map->start[0] + (is + 0.5) * map->step[0];
 		original_st[1] = map->start[1] + (it + 0.5) * map->step[1];
@@ -568,9 +568,9 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 		if (!p->valid)
 		{
 			VectorCopy (original_st, test_st);
-			snap_to_winding (*zone, map->texplane, test_st);
+			snap_to_winding (*zone, map->texplane, vec3_arg(test_st));
 
-			if (IsPositionValid (map, test_st, p->pos))
+			if (IsPositionValid (map, vec3_arg(test_st), p->pos))
 			{
 				p->valid = true;
 				p->nudged = false;
@@ -581,8 +581,8 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 		
 		if (!p->valid)
 		{
-			zone->getCenter (test_st);
-			if (IsPositionValid (map, test_st, p->pos))
+			test_st = zone->getCenter ();
+			if (IsPositionValid (map, vec3_arg(test_st), p->pos))
 			{
 				p->valid = true;
 				p->best_s = test_st[0];
@@ -603,9 +603,9 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 			{
 				VectorMultiply (nudgelist[i], map->step, test_st);
 				VectorAdd (test_st, original_st, test_st);
-				snap_to_winding (*zone, map->texplane, test_st);
+				snap_to_winding (*zone, map->texplane, vec3_arg(test_st));
 
-				if (IsPositionValid (map, test_st, p->pos))
+				if (IsPositionValid (map, vec3_arg(test_st), p->pos))
 				{
 					p->valid = true;
 					p->best_s = test_st[0];

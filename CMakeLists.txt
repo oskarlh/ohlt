@@ -49,6 +49,7 @@ set(COMMON_SOURCES
 )
 
 set(COMMON_HEADERS
+    ${COMMON_DIR}/transition.h
     ${COMMON_DIR}/blockmem.h
     ${COMMON_DIR}/bounding_box.h
     ${COMMON_DIR}/bsp_file_sizes.h

@@ -179,9 +179,7 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
 
     for (face = hull->faces; face; face = face->next, x++)
     {
-        vec3_t          facemid;
-
-        face->w->getCenter(facemid);
+        vec3_array          facemid = face->w->getCenter();
         VectorAdd(midpoint, facemid, midpoint);
         Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for face %d is %f %f %f\n", x, facemid[0], facemid[1], facemid[2]);
     }

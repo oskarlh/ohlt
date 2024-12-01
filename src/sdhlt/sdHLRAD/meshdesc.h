@@ -118,6 +118,8 @@ public:
 	float x, y, z;
 };
 
+struct model_t; // Forward declaration
+
 class CMeshDesc
 {
 private:
@@ -155,7 +157,7 @@ public:
 	// studio models processing
 	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t q );
 	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t pos );
-	bool StudioConstructMesh( struct model_s *pModel );
+	bool StudioConstructMesh( model_t *pModel );
 
 	// linked list operations
 	void InsertLinkBefore( link_t *l, link_t *before );
@@ -211,7 +213,7 @@ void PermuteVertices( List<int> &permutation, List<vector> &vert, List<triset> &
 int MapVertex( int a, int mx, List<int> &map );
 
 // collision description
-typedef struct model_s
+struct model_t
 {
 	char		name[64];		// model name
 	vec3_t		origin;
@@ -225,4 +227,4 @@ typedef struct model_s
 	void		*anims;		// studio animations
 
 	CMeshDesc		mesh;		// cform
-} model_t;
+};

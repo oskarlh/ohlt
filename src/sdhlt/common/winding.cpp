@@ -118,8 +118,9 @@ void            Winding::getBounds(bounding_box& bounds) const
     }
 }
 
-void            Winding::getCenter(vec3_t& center) const
+vec3_array Winding::getCenter() const
 {
+    vec3_array center;
     unsigned int    i;
     vec_t           scale;
 
@@ -138,6 +139,7 @@ void            Winding::getCenter(vec3_t& center) const
     {
         VectorClear(center);
     }
+    return center;
 }
 
 Winding*        Winding::Copy() const

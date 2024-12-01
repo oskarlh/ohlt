@@ -167,47 +167,6 @@ matrix_t;
 // LIGHTMAP.C STUFF
 //
 
-typedef enum
-{
-    emit_surface,
-    emit_point,
-    emit_spotlight,
-    emit_skylight
-}
-emittype_t;
-
-typedef struct directlight_s
-{
-    struct directlight_s* next;
-    emittype_t      type;
-    int             style;
-    vec3_t          origin;
-    vec3_t          intensity;
-    vec3_t          normal;                                // for surfaces and spotlights
-    float           stopdot;                               // for spotlights
-    float           stopdot2;                              // for spotlights
-
-    // 'Arghrad'-like features
-    vec_t           fade;                                  // falloff scaling for linear and inverse square falloff 1.0 = normal, 0.5 = farther, 2.0 = shorter etc
-
-	// -----------------------------------------------------------------------------------
-	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-	// Diffuse light_environment light colour
-	// Really horrible hack which probably won't work!
-	vec3_t			diffuse_intensity;
-	// -----------------------------------------------------------------------------------
-	vec3_t			diffuse_intensity2;
-	vec_t			sunspreadangle;
-	int				numsunnormals;
-	vec3_t*			sunnormals;
-	vec_t*			sunnormalweights;
-
-	vec_t			patch_area;
-	vec_t			patch_emitter_range;
-	struct patch_s	*patch;
-	vec_t			texlightgap;
-	bool			topatch;
-} directlight_t;
 
 
 typedef struct
@@ -233,10 +192,10 @@ typedef enum
     ePatchFlagOutside = 1
 } ePatchFlags;
 
-typedef struct patch_s
+struct patch_t
 {
-    struct patch_s* next;                                  // next in face
-    vec3_t          origin;                                // Center centroid of winding (cached info calculated from winding)
+    patch_t* next;                                  // next in face
+    vec3_array          origin;                                // Center centroid of winding (cached info calculated from winding)
     vec_t           area;                                  // Surface area of this patch (cached info calculated from winding)
 	vec_t			exposure;
 	vec_t			emitter_range;                         // Range from patch origin (cached info calculated from winding)
@@ -275,7 +234,51 @@ typedef struct patch_s
 	vec3_t*			totallight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
 	vec3_t*			directlight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
 	int				leafnum;
-} patch_t;
+};
+
+
+typedef enum
+{
+    emit_surface,
+    emit_point,
+    emit_spotlight,
+    emit_skylight
+}
+emittype_t;
+
+typedef struct directlight_s
+{
+    struct directlight_s* next;
+    emittype_t      type;
+    int             style;
+    vec3_t          origin;
+    vec3_t          intensity;
+    vec3_t          normal;                                // for surfaces and spotlights
+    float           stopdot;                               // for spotlights
+    float           stopdot2;                              // for spotlights
+
+    // 'Arghrad'-like features
+    vec_t           fade;                                  // falloff scaling for linear and inverse square falloff 1.0 = normal, 0.5 = farther, 2.0 = shorter etc
+
+	// -----------------------------------------------------------------------------------
+	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
+	// Diffuse light_environment light colour
+	// Really horrible hack which probably won't work!
+	vec3_t			diffuse_intensity;
+	// -----------------------------------------------------------------------------------
+	vec3_t			diffuse_intensity2;
+	vec_t			sunspreadangle;
+	int				numsunnormals;
+	vec3_t*			sunnormals;
+	vec_t*			sunnormalweights;
+
+	vec_t			patch_area;
+	vec_t			patch_emitter_range;
+	patch_t			*patch;
+	vec_t			texlightgap;
+	bool			topatch;
+} directlight_t;
+
 
 //LRC
 vec3_t* GetTotalLight(patch_t* patch, int style
@@ -498,7 +501,7 @@ extern void	    MdlLightHack(void);
 
 // qradutil.c
 extern vec_t    PatchPlaneDist(const patch_t* const patch);
-extern dleaf_t* PointInLeaf(const vec3_t point);
+extern dleaf_t* PointInLeaf(const vec3_array& point);
 extern void     MakeBackplanes();
 extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
@@ -574,7 +577,7 @@ extern vec_t	CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_
 extern vec_t	CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, const vec3_t emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					);
-extern void		GetAlternateOrigin (const vec3_t pos, const vec3_t normal, const patch_t *patch, vec3_t &origin);
+extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch_t *patch, vec3_t &origin);
 
 // studio.cpp
 extern void LoadStudioModels(void);

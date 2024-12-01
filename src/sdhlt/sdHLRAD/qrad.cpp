@@ -604,7 +604,6 @@ static bool     PlacePatchInside(patch_t* patch)
 	vec_t pointsfound;
 	vec_t pointstested;
 	pointsfound = pointstested = 0;
-	vec3_t center;
 	bool found;
 	vec3_t bestpoint;
 	vec_t bestdist = -1.0;
@@ -612,7 +611,7 @@ static bool     PlacePatchInside(patch_t* patch)
 	vec_t dist;
 	vec3_t v;
 
-	patch->winding->getCenter (center);
+	vec3_array center = patch->winding->getCenter ();
 	found = false;
 	
 	VectorMA (center, PATCH_HUNT_OFFSET, plane->normal, point);
@@ -679,7 +678,7 @@ static void		UpdateEmitterInfo (patch_t *patch)
 #if ACCURATEBOUNCE_DEFAULT_SKYLEVEL + 3 > SKYLEVELMAX
 #error "please raise SKYLEVELMAX"
 #endif
-	const vec_t *origin = patch->origin;
+	const vec_t *origin = patch->origin.data();
 	const Winding *winding = patch->winding;
 	vec_t radius = ON_EPSILON;
 	for (int x = 0; x < winding->m_NumPoints; x++)
@@ -982,7 +981,7 @@ static void     SubdividePatch(patch_t* patch)
     winding++;
     x++;
     patch->area = patch->winding->getArea();
-    patch->winding->getCenter(patch->origin);
+    patch->origin = patch->winding->getCenter();
     PlacePatchInside(patch);
 	UpdateEmitterInfo (patch);
 
@@ -995,7 +994,7 @@ static void     SubdividePatch(patch_t* patch)
 
             new_patch->winding = *winding;
             new_patch->area = new_patch->winding->getArea();
-            new_patch->winding->getCenter(new_patch->origin);
+            new_patch->origin = new_patch->winding->getCenter();
             PlacePatchInside(new_patch);
 			UpdateEmitterInfo (new_patch);
 
@@ -1341,7 +1340,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
         patch->winding = w;
 
         patch->area = patch->winding->getArea();
-        patch->winding->getCenter(patch->origin);
+        patch->origin = patch->winding->getCenter();
         patch->faceNumber = fn;
 
         totalarea += patch->area;
@@ -1670,9 +1669,8 @@ static entity_t *FindTexlightEntity (int facenum)
 	const dplane_t *dplane = getPlaneFromFace (face);
 	const char *texname = GetTextureByNumber (face->texinfo);
 	entity_t *faceent = g_face_entity[facenum];
-	vec3_t centroid;
 	Winding *w = new Winding (*face);
-	w->getCenter (centroid);
+	vec3_array centroid = w->getCenter ();
 	delete w;
 	VectorAdd (centroid, g_face_offset[facenum], centroid);
 
