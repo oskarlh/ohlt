@@ -214,12 +214,12 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
 
 					{
 						int x;
-						for (x = 0; x < g_opaque_face_count; x++)
+						for (x = 0; x < g_opaque_face_list.size(); x++)
 						{
 							if (TestPointOpaque (g_opaque_face_list[x].modelnum, g_opaque_face_list[x].origin, g_opaque_face_list[x].block, current_point))
 								break;
 						}
-						if (x < g_opaque_face_count)
+						if (x < g_opaque_face_list.size())
 							continue;
 					}
                     if (dist < best_dist)

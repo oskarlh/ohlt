@@ -130,9 +130,8 @@ vec_t           g_chop = DEFAULT_CHOP;
 vec_t           g_texchop = DEFAULT_TEXCHOP;
 
 // Opaque faces
-opaqueList_t*   g_opaque_face_list = nullptr;
-unsigned        g_opaque_face_count = 0;
-unsigned        g_max_opaque_face_count = 0;               // Current array maximum (used for reallocs)
+std::vector<opaqueList_t>   g_opaque_face_list;
+
 vec_t			g_corings[ALLSTYLES];
 vec3_t*			g_translucenttextures = nullptr;
 vec_t			g_translucentdepth = DEFAULT_TRANSLUCENTDEPTH;
@@ -1391,7 +1390,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 			else
 			{
 				int x;
-				for (x = 0; x < g_opaque_face_count; x++)
+				for (x = 0; x < g_opaque_face_list.size(); x++)
 				{
 					opaqueList_t *op = &g_opaque_face_list[x];
 					if (op->entitynum == g_face_entity[fn] - g_entities)
@@ -1412,7 +1411,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 						break;
 					}
 				}
-				if (x == g_opaque_face_count)
+				if (x == g_opaque_face_list.size())
 				{ // not opaque
 					if (bouncestyle != -1)
 					{ // with light_bounce
@@ -1509,32 +1508,21 @@ static void     AddFaceToOpaqueList(
 									, bool block
 									)
 {
-    if (g_opaque_face_count == g_max_opaque_face_count)
-    {
-        g_max_opaque_face_count += OPAQUE_ARRAY_GROWTH_SIZE;
-        g_opaque_face_list = (opaqueList_t*)realloc(g_opaque_face_list, sizeof(opaqueList_t) * g_max_opaque_face_count);
-
-		hlassume (g_opaque_face_list != nullptr, assume_NoMemory);
-    }
-
-    {
-        opaqueList_t*   opaque = &g_opaque_face_list[g_opaque_face_count];
-
-        g_opaque_face_count++;
+        opaqueList_t   opaque{};
 
 		if (transparency && style != -1)
 		{
 			Warning ("Dynamic shadow is not allowed in entity with custom shadow.\n");
 			style = -1;
 		}
-        VectorCopy(transparency_scale, opaque->transparency_scale);
-        opaque->transparency = transparency;
-		opaque->entitynum = entitynum;
-		opaque->modelnum = modelnum;
-		VectorCopy (origin, opaque->origin);
-		opaque->style = style;
-		opaque->block = block;
-    }
+        VectorCopy(transparency_scale, opaque.transparency_scale);
+        opaque.transparency = transparency;
+		opaque.entitynum = entitynum;
+		opaque.modelnum = modelnum;
+		VectorCopy (origin, opaque.origin);
+		opaque.style = style;
+		opaque.block = block;
+		g_opaque_face_list.push_back(std::move(opaque));
 }
 
 // =====================================================================================
@@ -1542,17 +1530,8 @@ static void     AddFaceToOpaqueList(
 // =====================================================================================
 static void     FreeOpaqueFaceList()
 {
-    unsigned        x;
-    opaqueList_t*   opaque = g_opaque_face_list;
-
-    for (x = 0; x < g_opaque_face_count; x++, opaque++)
-    {
-    }
-    free(g_opaque_face_list);
-
-    g_opaque_face_list = nullptr;
-    g_opaque_face_count = 0;
-    g_max_opaque_face_count = 0;
+    g_opaque_face_list.clear();
+	g_opaque_face_list.shrink_to_fit();
 }
 static void		LoadOpaqueEntities()
 {
@@ -1671,10 +1650,10 @@ static void		LoadOpaqueEntities()
 		}
 	}
 	{
-		Log("%i opaque models\n", g_opaque_face_count);
+		Log("%zu opaque models\n", g_opaque_face_list.size());
 		int i, facecount;
 
-		for (facecount = 0, i = 0; i < g_opaque_face_count; i++)
+		for (facecount = 0, i = 0; i < g_opaque_face_list.size(); i++)
 		{
 			facecount += CountOpaqueFaces (g_opaque_face_list[i].modelnum);
 		}
@@ -3183,6 +3162,8 @@ void            LoadRadFiles(const char* const mapname, const char* const user_r
 // =====================================================================================
 int             main(const int argc, char** argv)
 {
+	g_opaque_face_list.reserve(1024); // Just for the performance improvement
+
     int             i;
     const char*     mapname_from_arg = nullptr;
     const char*     user_lights = nullptr;

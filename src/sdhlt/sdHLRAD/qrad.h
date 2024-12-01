@@ -328,7 +328,6 @@ typedef struct
 
 } opaqueList_t;
 
-#define OPAQUE_ARRAY_GROWTH_SIZE 1024
 
 typedef struct
 {
@@ -399,9 +398,7 @@ extern bool		g_allow_spread;
 extern bool     g_sky_lighting_fix;
 extern vec_t    g_chop;    // Chop value for normal textures
 extern vec_t    g_texchop; // Chop value for texture lights
-extern opaqueList_t* g_opaque_face_list;
-extern unsigned      g_opaque_face_count; // opaque entity count //HLRAD_OPAQUE_NODE
-extern unsigned      g_max_opaque_face_count;    // Current array maximum (used for reallocs)
+extern std::vector<opaqueList_t> g_opaque_face_list;
 
 
 // ------------------------------------------------------------------------

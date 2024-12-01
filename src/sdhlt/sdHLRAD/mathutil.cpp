@@ -300,7 +300,7 @@ bool            TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
 		int x;
 		VectorFill (scaleout, 1.0);
 		opaquestyleout = -1;
-	    for (x = 0; x < g_opaque_face_count; x++)
+	    for (x = 0; x < g_opaque_face_list.size(); x++)
 		{
 			if (!TestLineOpaque (g_opaque_face_list[x].modelnum, g_opaque_face_list[x].origin, p1, p2))
 			{
