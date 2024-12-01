@@ -2475,17 +2475,17 @@ static void     FreeTransfers()
     {
         if (patch->tData)
         {
-            FreeBlock(patch->tData);
+            delete[] patch->tData;
             patch->tData = nullptr;
         }
         if (patch->tRGBData)
         {
-            FreeBlock(patch->tRGBData);
+            delete[] patch->tRGBData;
             patch->tRGBData = nullptr;
         }
         if (patch->tIndex)
         {
-            FreeBlock(patch->tIndex);
+            delete[] patch->tIndex;
             patch->tIndex = nullptr;
         }
     }

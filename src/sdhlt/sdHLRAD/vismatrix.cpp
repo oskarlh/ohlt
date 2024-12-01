@@ -233,14 +233,8 @@ static void     FreeVisMatrix()
 {
     if (s_vismatrix)
     {
-        if (FreeBlock(s_vismatrix))
-        {
-            s_vismatrix = nullptr;
-        }
-        else
-        {
-            Warning("Unable to free s_vismatrix");
-        }
+        delete[] s_vismatrix;
+        s_vismatrix = nullptr;
     }
 
 

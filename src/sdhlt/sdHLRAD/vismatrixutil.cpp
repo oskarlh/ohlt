@@ -401,8 +401,10 @@ void            MakeScales(const int threadnum)
         }
     }
 
-    FreeBlock(tIndex_All);
-    FreeBlock(tData_All);
+    delete[] tIndex_All;
+	tIndex_All = nullptr;
+    delete[] tData_All;
+	tData_All = nullptr;
 
     ThreadLock();
     g_total_transfer += count;
@@ -664,8 +666,10 @@ void            MakeRGBScales(const int threadnum)
         }
     }
 
-    FreeBlock(tIndex_All);
-    FreeBlock(tRGBData_All);
+    delete[] tIndex_All;
+	tIndex_All = nullptr;
+    delete[] tRGBData_All;
+	tRGBData_All = nullptr;
 
     ThreadLock();
     g_total_transfer += count;

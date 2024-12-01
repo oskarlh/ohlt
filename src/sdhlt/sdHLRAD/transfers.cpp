@@ -175,12 +175,13 @@ bool            readtransfers(const char* const transferfile, const long numpatc
 
         for (x = 0; x < g_num_patches; x++, patch++)
         {
-            FreeBlock(patch->tData);
-            FreeBlock(patch->tIndex);
+            delete[] patch->tData;
+            patch->tData = nullptr;
+            delete[] patch->tIndex;
+            patch->tIndex = nullptr;
+            
             patch->iData = 0;
             patch->iIndex = 0;
-            patch->tData = nullptr;
-            patch->tIndex = nullptr;
         }
     }
     fclose(file);
