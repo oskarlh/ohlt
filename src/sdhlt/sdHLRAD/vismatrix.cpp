@@ -218,7 +218,7 @@ static void     BuildVisMatrix()
 
     Log("%-20s: %5.1f megs\n", "visibility matrix", c / (1024 * 1024.0));
 
-    s_vismatrix = (byte*)AllocBlock(c);
+    s_vismatrix = (byte*) new std::byte[c]();
 
     if (!s_vismatrix)
     {

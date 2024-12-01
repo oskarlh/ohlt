@@ -125,7 +125,7 @@ bool            readtransfers(const char* const transferfile, const long numpatc
             }
             if (patch->iIndex)
             {
-                patch->tIndex = (transfer_index_t*)AllocBlock(patch->iIndex * sizeof(transfer_index_t *));
+                patch->tIndex = new transfer_index_t[patch->iIndex]();
                 hlassume(patch->tIndex != nullptr, assume_NoMemory);
                 amtread = fread(patch->tIndex, sizeof(transfer_index_t), patch->iIndex, file);
                 if (amtread != patch->iIndex)

@@ -98,7 +98,7 @@ static transfer_index_t* CompressTransferIndicies(transfer_raw_index_t* tRaw, co
 		return nullptr;
 	}
 
-	transfer_index_t* CompressedArray = (transfer_index_t*)AllocBlock(sizeof(transfer_index_t) * compressed_count_1);
+	transfer_index_t* CompressedArray = new transfer_index_t[compressed_count_1]();
     transfer_index_t* compressed = CompressedArray;
 
     for (x = 0; x < size; x++, raw++, compressed++)
