@@ -150,7 +150,7 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
 
         if (new_winding)
         {
-            bface_t*        new_face = (bface_t*)Alloc(sizeof(bface_t));
+            bface_t*        new_face = new bface_t();
 
             new_face->planenum = planenum;
             new_face->w = new_winding;

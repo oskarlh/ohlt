@@ -262,7 +262,7 @@ bface_t*        NewFaceFromFace(const bface_t* const in)
 {
     bface_t*        newf;
 
-    newf = (bface_t*)Alloc(sizeof(bface_t));
+    newf = new bface_t();
 
     newf->contents = in->contents;
     newf->texinfo = in->texinfo;
@@ -279,7 +279,7 @@ bface_t*        NewFaceFromFace(const bface_t* const in)
 void            FreeFace(bface_t* f)
 {
     delete f->w;
-    Free(f);
+    delete f;
 }
 
 
