@@ -140,7 +140,7 @@ static transfer_index_t* CompressTransferIndicies(const transfer_raw_index_t* tR
 		return nullptr;
 	}
 
-	transfer_index_t CompressedArray = (transfer_index_t*)AllocBlock(sizeof(transfer_index_t) * size);
+	transfer_index_t CompressedArray = (transfer_index_t*)new transfer_index_t[size]();
     transfer_index_t* compressed = CompressedArray;
 
     for (x = 0; x < size; x++, raw++, compressed++)
@@ -192,8 +192,8 @@ void            MakeScales(const int threadnum)
     transfer_raw_index_t* tIndex;
     float* tData;
 
-    transfer_raw_index_t* tIndex_All = (transfer_raw_index_t*)AllocBlock(sizeof(transfer_index_t) * (g_num_patches + 1));
-    float* tData_All = (float*)AllocBlock(sizeof(float) * (g_num_patches + 1));
+    transfer_raw_index_t* tIndex_All = (transfer_raw_index_t*)new transfer_index_t[g_num_patches + 1]();
+    float* tData_All = (float*)new float[g_num_patches + 1]();
 
     count = 0;
 
@@ -375,7 +375,7 @@ void            MakeScales(const int threadnum)
         {
 			unsigned	data_size = patch->iData * float_size[g_transfer_compress_type] + unused_size;
 
-            patch->tData = (transfer_data_t*)AllocBlock(data_size);
+            patch->tData = (transfer_data_t*) new transfer_data_t[data_size]();
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
 
             hlassume(patch->tData != nullptr, assume_NoMemory);
@@ -455,8 +455,9 @@ void            MakeRGBScales(const int threadnum)
     transfer_raw_index_t* tIndex;
     float* tRGBData;
 
-    transfer_raw_index_t* tIndex_All = (transfer_raw_index_t*)AllocBlock(sizeof(transfer_index_t) * (g_num_patches + 1));
-    float* tRGBData_All = (float*)AllocBlock(sizeof(float[3]) * (g_num_patches + 1));
+											// Why are the types (and sizes thereof) different?
+    transfer_raw_index_t* tIndex_All = (transfer_raw_index_t*) new transfer_index_t[g_num_patches + 1]();
+    float* tRGBData_All = (float*)new float[3 * (g_num_patches + 1)]();
 
     count = 0;
 
@@ -640,7 +641,7 @@ void            MakeRGBScales(const int threadnum)
         {
 			std::size_t data_size = patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size;
 
-            patch->tRGBData = (rgb_transfer_data_t*)AllocBlock(data_size);
+            patch->tRGBData = (rgb_transfer_data_t*) new rgb_transfer_data_t[data_size]();
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
 
             hlassume(patch->tRGBData != nullptr, assume_NoMemory);

@@ -143,13 +143,13 @@ bool            readtransfers(const char* const transferfile, const long numpatc
             {
 				if(g_rgb_transfers)
 				{
-                    patch->tRGBData = (rgb_transfer_data_t*)AllocBlock(patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size);
+                    patch->tRGBData = (rgb_transfer_data_t*)new std::byte[patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size]();
                     hlassume(patch->tRGBData != nullptr, assume_NoMemory);
                     amtread = fread(patch->tRGBData, vector_size[g_rgbtransfer_compress_type], patch->iData, file);		    
 				}
 				else
 				{
-                    patch->tData = (transfer_data_t*)AllocBlock(patch->iData * float_size[g_transfer_compress_type] + unused_size);
+                    patch->tData = (transfer_data_t*)new std::byte[patch->iData * float_size[g_transfer_compress_type] + unused_size]();
                     hlassume(patch->tData != nullptr, assume_NoMemory);
                     amtread = fread(patch->tData, float_size[g_transfer_compress_type], patch->iData, file);		    
 				}
@@ -179,7 +179,7 @@ bool            readtransfers(const char* const transferfile, const long numpatc
             patch->tData = nullptr;
             delete[] patch->tIndex;
             patch->tIndex = nullptr;
-            
+
             patch->iData = 0;
             patch->iIndex = 0;
         }
