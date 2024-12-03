@@ -328,8 +328,8 @@ void            WriteFace(const int hull, const bface_t* const f
 			for (i = 0; i < w->m_NumPoints; i++)
 			{
 				vec_t *p1, *p2;
-				p1 = w->m_Points[i];
-				p2 = w->m_Points[(i+1)%w->m_NumPoints];
+				p1 = w->m_Points[i].data();
+				p2 = w->m_Points[(i+1)%w->m_NumPoints].data();
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center[0], center[1], center[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p2[0], p2[1], p2[2]);
@@ -472,7 +472,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 				// check for "Malformed face (%d) normal"
 				vec3_t texnormal;
 				CrossProduct (tex->vecs[1], tex->vecs[0], texnormal);
-				VectorNormalize (texnormal);
+				VectorNormalize (vec3_arg(texnormal));
 				if (fabs (DotProduct (texnormal, f->plane->normal)) <= NORMAL_EPSILON)
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",

@@ -115,7 +115,7 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
 
     for (i = 0; i < in->numpoints; i++)
     {
-        vec_t* p1 = in->points[i];
+        vec_t* p1 = in->points[i].data();
 
         if (neww->numpoints == MAX_POINTS_ON_FIXED_WINDING)
         {
@@ -155,11 +155,11 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
             {
                 tmp = 0;
             }
-            const vec_t* p2 = in->points[tmp];
+            const vec_t* p2 = in->points[tmp].data();
 
             dot = dists[i] / (dists[i] - dists[i + 1]);
 
-            const vec_t* normal = split->normal;
+            const vec3_array& normal = split->normal;
             const vec_t dist = split->dist;
             unsigned int j;
             for (j = 0; j < 3; j++)
@@ -727,11 +727,11 @@ void            BasePortalVis(int unused)
     }
 }
 
-bool BestNormalFromWinding (const vec3_t *points, int numpoints, vec3_t &normal_out)
+static bool BestNormalFromWinding (const vec3_array* points, int numpoints, vec3_array& normal_out)
 {
-	const vec3_t *pt1, *pt2, *pt3;
+	const vec3_array *pt1, *pt2, *pt3;
 	int k;
-	vec3_t d, normal, edge;
+	vec3_array d, normal, edge;
 	vec_t dist, maxdist;
 	if (numpoints < 3)
 	{
@@ -816,12 +816,12 @@ vec_t WindingDist (const winding_t *w[2])
 		{
 			for (b = 0; b < w[!side]->numpoints; b++)
 			{
-				const vec3_t &p = w[side]->points[a];
-				const vec3_t &p1 = w[!side]->points[b];
-				const vec3_t &p2 = w[!side]->points[(b + 1) % w[!side]->numpoints];
-				vec3_t delta;
+				const vec3_array &p = w[side]->points[a];
+				const vec3_array &p1 = w[!side]->points[b];
+				const vec3_array &p2 = w[!side]->points[(b + 1) % w[!side]->numpoints];
+				vec3_array delta;
 				vec_t frac;
-				vec3_t v;
+				vec3_array v;
 				VectorSubtract (p2, p1, delta);
 				if (VectorNormalize (delta) <= ON_EPSILON)
 				{
@@ -848,15 +848,15 @@ vec_t WindingDist (const winding_t *w[2])
 	{
 		for (b = 0; b < w[1]->numpoints; b++)
 		{
-			const vec3_t &p1 = w[0]->points[a];
-			const vec3_t &p2 = w[0]->points[(a + 1) % w[0]->numpoints];
-			const vec3_t &p3 = w[1]->points[b];
-			const vec3_t &p4 = w[1]->points[(b + 1) % w[1]->numpoints];
-			vec3_t delta1;
-			vec3_t delta2;
-			vec3_t normal;
-			vec3_t normal1;
-			vec3_t normal2;
+			const vec3_array &p1 = w[0]->points[a];
+			const vec3_array &p2 = w[0]->points[(a + 1) % w[0]->numpoints];
+			const vec3_array &p3 = w[1]->points[b];
+			const vec3_array &p4 = w[1]->points[(b + 1) % w[1]->numpoints];
+			vec3_array delta1;
+			vec3_array delta2;
+			vec3_array normal;
+			vec3_array normal1;
+			vec3_array normal2;
 			VectorSubtract (p2, p1, delta1);
 			VectorSubtract (p4, p3, delta2);
 			CrossProduct (delta1, delta2, normal);
@@ -889,23 +889,23 @@ vec_t WindingDist (const winding_t *w[2])
 	// point to face and edge to face
 	for (int side = 0; side < 2; side++)
 	{
-		vec3_t planenormal;
+		vec3_array planenormal;
 		vec_t planedist;
-		vec3_t *boundnormals;
+		vec3_array *boundnormals;
 		vec_t *bounddists;
 		if (!BestNormalFromWinding (w[!side]->points, w[!side]->numpoints, planenormal))
 		{
 			continue;
 		}
 		planedist = DotProduct (planenormal, w[!side]->points[0]);
-		hlassume (boundnormals = (vec3_t *)malloc (w[!side]->numpoints * sizeof (vec3_t)), assume_NoMemory);
+		hlassume (boundnormals = (vec3_array *)malloc (w[!side]->numpoints * sizeof (vec3_array)), assume_NoMemory);
 		hlassume (bounddists = (vec_t *)malloc (w[!side]->numpoints * sizeof (vec_t)), assume_NoMemory);
 		// build boundaries
 		for (b = 0; b < w[!side]->numpoints; b++)
 		{
-			vec3_t v;
-			const vec3_t &p1 = w[!side]->points[b];
-			const vec3_t &p2 = w[!side]->points[(b + 1) % w[!side]->numpoints];
+			vec3_array v;
+			const vec3_array &p1 = w[!side]->points[b];
+			const vec3_array &p2 = w[!side]->points[(b + 1) % w[!side]->numpoints];
 			VectorSubtract (p2, p1, v);
 			CrossProduct (v, planenormal, boundnormals[b]);
 			if (!VectorNormalize (boundnormals[b]))
@@ -919,7 +919,7 @@ vec_t WindingDist (const winding_t *w[2])
 		}
 		for (a = 0; a < w[side]->numpoints; a++)
 		{
-			const vec3_t &p = w[side]->points[a];
+			const vec3_array &p = w[side]->points[a];
 			for (b = 0; b < w[!side]->numpoints; b++)
 			{
 				if (DotProduct (p, boundnormals[b]) - bounddists[b] >= -ON_EPSILON)
@@ -940,13 +940,13 @@ vec_t WindingDist (const winding_t *w[2])
 		}
 		for (a = 0; a < w[side]->numpoints; a++)
 		{
-			const vec3_t &p1 = w[side]->points[a];
-			const vec3_t &p2 = w[side]->points[(a + 1) % w[side]->numpoints];
+			const vec3_array &p1 = w[side]->points[a];
+			const vec3_array &p2 = w[side]->points[(a + 1) % w[side]->numpoints];
 			vec_t dist1 = DotProduct (p1, planenormal) - planedist;
 			vec_t dist2 = DotProduct (p2, planenormal) - planedist;
-			vec3_t delta;
+			vec3_array delta;
 			vec_t frac;
-			vec3_t v;
+			vec3_array v;
 			if (dist1 > ON_EPSILON && dist2 < -ON_EPSILON || dist1 < -ON_EPSILON && dist2 > ON_EPSILON)
 			{
 				frac = dist1 / (dist1 - dist2);

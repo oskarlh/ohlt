@@ -126,13 +126,13 @@ miptex_t;
 
 typedef struct
 {
-    float           point[3];
+    std::array<float, 3> point;
 }
 dvertex_t;
 
 typedef struct
 {
-    float           normal[3];
+    std::array<float, 3> normal;
     float           dist;
     planetypes      type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 }
@@ -315,7 +315,7 @@ struct epair_t
 
 typedef struct
 {
-    vec3_t          origin;
+    vec3_array          origin;
     int             firstbrush;
     int             numbrushes;
     epair_t*        epairs;
@@ -341,7 +341,7 @@ bool classname_is(const entity_t* const ent, std::u8string_view classname);
 
 extern int             IntForKey(const entity_t* const ent, std::u8string_view key);
 extern vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key);
-extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_t vec);
+extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_array& vec);
 
 extern entity_t* FindTargetEntity(std::u8string_view target);
 extern std::unique_ptr<epair_t> ParseEpair();

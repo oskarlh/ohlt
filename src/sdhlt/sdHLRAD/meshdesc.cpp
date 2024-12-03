@@ -137,7 +137,7 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 		has_tree = true;	// too many triangles invoke to build AABB tree
 	else has_tree = false;
 
-	ClearBounds( m_mesh.mins, m_mesh.maxs );
+	ClearBounds( m_mesh.mins.data(), m_mesh.maxs.data() );
 
 	memset( areanodes, 0, sizeof( areanodes ));
 	numareanodes = 0;
@@ -283,7 +283,7 @@ SnapPlaneToGrid
 */
 void CMeshDesc :: SnapPlaneToGrid( mplane_t *plane )
 {
-	SnapVectorToGrid( plane->normal );
+	SnapVectorToGrid( plane->normal.data() );
 
 	if( fabs( plane->dist - Q_rint( plane->dist )) < PLANE_DIST_EPSILON )
 		plane->dist = Q_rint( plane->dist );
@@ -802,7 +802,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 
 	// add triangle to bounds
 	for( i = 0; i < 3; i++ )
-		AddPointToBounds( triangle[i].point, m_mesh.mins, m_mesh.maxs );
+		AddPointToBounds( triangle[i].point.data(), m_mesh.mins.data(), m_mesh.maxs.data() );
 
 	mfacet_t *facet = &facets[m_mesh.numfacets];
 	mplane_t mainplane;
@@ -814,7 +814,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 		return false; // bad plane
 
 	mplane_t planes[MAX_FACET_PLANES];
-	vec3_t normal;
+	vec3_array normal;
 	int numplanes;
 	float dist;
 
@@ -829,11 +829,11 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	numplanes++;
 
 	// calculate mins & maxs
-	ClearBounds( facet->mins, facet->maxs );
+	ClearBounds( facet->mins.data(), facet->maxs.data() );
 
 	for( i = 0; i < 3; i++ )
 	{
-		AddPointToBounds( triangle[i].point, facet->mins, facet->maxs );
+		AddPointToBounds( triangle[i].point.data(), facet->mins.data(), facet->maxs.data() );
 		facet->triangle[i] = triangle[i];
 	}
 
@@ -870,13 +870,13 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	for( i = 0; i < 3; i++ )
 	{
 		int j = (i + 1) % 3;
-		vec3_t vec;
+		vec3_array vec;
 
 		VectorSubtract( triangle[i].point, triangle[j].point, vec );
 		if( VectorLength( vec ) < 0.5f ) continue;
 
 		VectorNormalize( vec );
-		SnapVectorToGrid( vec );
+		SnapVectorToGrid( vec.data() );
 
 		for( j = 0; j < 3; j++ )
 		{
@@ -892,7 +892,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 			for( int dir = -1; dir <= 1; dir += 2 )
 			{
 				// construct a plane
-				vec3_t vec2 = { 0.0f, 0.0f, 0.0f };
+				vec3_array vec2 = { 0.0f, 0.0f, 0.0f };
 				vec2[axis] = dir;
 				CrossProduct( vec, vec2, normal );
 
@@ -905,7 +905,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 				for( j = 0; j < numplanes; j++ )
 				{
 					// if this plane has already been used, skip it
-					if( ComparePlanes( &planes[j], normal, dist ))
+					if( ComparePlanes( &planes[j], normal.data(), dist ))
 						break;
 				}
 
@@ -1043,7 +1043,7 @@ bool CMeshDesc :: FinishMeshBuild( void )
 	if( has_tree )
 	{
 		// create tree
-		CreateAreaNode( 0, m_mesh.mins, m_mesh.maxs );
+		CreateAreaNode( 0, m_mesh.mins.data(), m_mesh.maxs.data() );
 
 		for( int i = 0; i < m_mesh.numfacets; i++ )
 			RelinkFacet( &m_mesh.facets[i] );

@@ -113,7 +113,7 @@ void LoadStudioModels( void )
 	for( int i = 0; i < g_numentities; i++ )
 	{
 		const char *name, *model;
-		vec3_t origin, angles;
+		vec3_array origin, angles;
 
 		entity_t* e = &g_entities[i];
 		name = (const char*) ValueForKey( e, u8"classname" );
@@ -157,7 +157,7 @@ void LoadStudioModels( void )
 		int skin = IntForKey( e, u8"skin" );
 
 		float scale = FloatForKey( e, u8"scale" );
-		vec3_t xform;
+		vec3_array xform;
 
 		GetVectorForKey( e, u8"xform", xform );
 
@@ -172,7 +172,7 @@ void LoadStudioModels( void )
 		if( xform[1] > 16.0f ) xform[1] = 16.0f;
 		if( xform[2] > 16.0f ) xform[2] = 16.0f;
 
-		LoadStudioModel( model, origin, angles, xform, body, skin, trace_mode );
+		LoadStudioModel( model, origin.data(), angles.data(), xform.data(), body, skin, trace_mode );
 	}
 
 	Log( "%i opaque studio models\n", num_models );

@@ -707,7 +707,7 @@ bool            ParseMapEntity()
 	if (strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_hullshape")) // info_hullshape is not affected by '-scale'
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
-		vec3_t ent_move = {0,0,0}, ent_scale_origin = {0,0,0};
+		vec3_array ent_move = {0,0,0}, ent_scale_origin = {0,0,0};
 		vec_t ent_scale = 1, ent_gscale = 1;
 
 		if (g_scalesize > 0)
@@ -863,7 +863,7 @@ bool            ParseMapEntity()
 				{
 					if (*ValueForKey (mapent, u8"origin"))
 					{
-						double v[3];
+						std::array<double, 3> v;
 						int origin[3];
 						char8_t string[MAXTOKEN];
 						int i;

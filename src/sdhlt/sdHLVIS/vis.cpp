@@ -189,7 +189,7 @@ static winding_t* NewWinding(const int points)
         Error("NewWinding: %i points > MAX_POINTS_ON_WINDING", points);
     }
 
-    size = (int)(intptr_t)((winding_t*)0)->points[points];
+    size = (int)(intptr_t)((winding_t*)0)->points[points].data();
     w = (winding_t*)calloc(1, size);
 
     return w;
@@ -594,7 +594,7 @@ static void     LoadPortals(char* portal_image)
 
 	if (g_portalleafs > MAX_MAP_LEAFS)
 	{ // this may cause hlvis to overflow, because numportalleafs can be larger than g_numleafs in some special cases
-		Error ("Too many portalleafs (g_portalleafs(%d) > MAX_MAP_LEAFS(%d)).", g_portalleafs, MAX_MAP_LEAFS);
+		Error ("Too many portalleafs (g_portalleafs(%d) > MAX_MAP_LEAFS(%zd)).", g_portalleafs, MAX_MAP_LEAFS);
 	}
 	g_leafcount_all = 0;
 	for (i = 0; i < g_portalleafs; i++)
@@ -1181,10 +1181,10 @@ int             main(const int argc, char** argv)
 			{
 				if (g_overview_count < g_overview_max)
 				{
-					vec3_t p;
+					vec3_array p;
 					GetVectorForKey (&g_entities[i], u8"origin", p);
 					VectorCopy (p, g_overview[g_overview_count].origin);
-					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p);
+					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p.data());
 					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], u8"reverse");
 					g_overview_count++;
 				}
@@ -1194,10 +1194,10 @@ int             main(const int argc, char** argv)
             {
                 if (g_room_count < g_room_max)
                 {
-                    vec3_t room_origin;
+                    vec3_array room_origin;
 
                     GetVectorForKey (&g_entities[i], u8"origin", room_origin);
-                    g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
+                    g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin.data());
                     g_room[g_room_count].neighbor = std::clamp(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
 
                     const char* target = (const char*) ValueForKey (&g_entities[i], u8"target");
@@ -1219,10 +1219,10 @@ int             main(const int argc, char** argv)
                         if (!strcmp (current_entity_classname_nested, "info_leaf")
                             && !strcmp((const char*) ValueForKey (&g_entities[j], u8"targetname"), target))
                         {
-                            vec3_t room_target_origin;
+                            vec3_array room_target_origin;
 
                             GetVectorForKey (&g_entities[j], u8"origin", room_target_origin);
-                            g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin);
+                            g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin.data());
 
                             has_target = true;
                         }

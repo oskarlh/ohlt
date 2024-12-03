@@ -338,7 +338,7 @@ void TraceMesh :: ClipToLinks( areanode_t *node )
 		if( mesh->trace_mode == SHADOW_FAST )
 		{
 			// ultra-fast mode, no real tracing here
-			if( ClipRayToBox( facet->mins, facet->maxs ))
+			if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
 			{
 				m_bHitTriangle = true;
 				return;
@@ -400,7 +400,7 @@ bool TraceMesh :: DoTrace( void )
 			if( mesh->trace_mode == SHADOW_FAST )
 			{
 				// ultra-fast mode, no real tracing here
-				if( ClipRayToBox( facet->mins, facet->maxs ))
+				if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
 					return true;
 			}
 			else if( mesh->trace_mode == SHADOW_NORMAL )

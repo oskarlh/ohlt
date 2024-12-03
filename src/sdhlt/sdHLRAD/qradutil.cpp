@@ -258,7 +258,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
 }
 
 // ApplyMatrix: (x y z 1)T -> matrix * (x y z 1)T
-void ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_t &out)
+void ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array& out)
 {
 	int i;
 
@@ -271,7 +271,7 @@ void ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_t &out)
 }
 
 // ApplyMatrixOnPlane: (x y z -dist) -> (x y z -dist) * matrix
-void ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_t in_normal, vec_t in_dist, vec3_t &out_normal, vec_t &out_dist)
+void ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist)
 	// out_normal is not normalized
 {
 	int i;
@@ -442,8 +442,8 @@ typedef struct
 {
 	bool valid;
 	int facenum;
-	vec3_t face_offset;
-	vec3_t face_centroid;
+	vec3_array face_offset;
+	vec3_array face_centroid;
 	matrix_t worldtotex;
 	matrix_t textoworld;
 	Winding *facewinding;
@@ -452,9 +452,9 @@ typedef struct
 	dplane_t faceplanewithoffset;
 	Winding *texwinding;
 	dplane_t texplane; // (0, 0, 1, 0) or (0, 0, -1, 0)
-	vec3_t texcentroid;
-	vec3_t start; // s_start, t_start, 0
-	vec3_t step; // s_step, t_step, 0
+	vec3_array texcentroid;
+	vec3_array start; // s_start, t_start, 0
+	vec3_array step; // s_step, t_step, 0
 	int w; // number of s
 	int h; // number of t
 	position_t *grid; // [h][w]
@@ -465,8 +465,8 @@ static positionmap_t g_face_positions[MAX_MAP_FACES];
 
 static bool IsPositionValid (positionmap_t *map, const vec3_t &pos_st, vec3_t &pos_out, bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2, vec_t hunt_scale = 0.2)
 {
-	vec3_t pos;
-	vec3_t pos_normal;
+	vec3_array pos;
+	vec3_array pos_normal;
 	vec_t hunt_offset;
 
 	ApplyMatrix (map->textoworld, pos_st, pos);
@@ -484,32 +484,32 @@ static bool IsPositionValid (positionmap_t *map, const vec3_t &pos_st, vec3_t &p
 	hunt_offset = DotProduct (pos, map->faceplanewithoffset.normal) - map->faceplanewithoffset.dist; // might be smaller than DEFAULT_HUNT_OFFSET
 
 	// push the point 0.2 units around to avoid walls
-	if (!HuntForWorld (pos, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+	if (!HuntForWorld (pos.data(), vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 	{
 		return false;
 	}
 
-	if (doedgetest && !point_in_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, pos, DEFAULT_EDGE_WIDTH))
+	if (doedgetest && !point_in_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, pos.data(), DEFAULT_EDGE_WIDTH))
 	{
 		// if the sample has gone beyond face boundaries, be careful that it hasn't passed a wall
-		vec3_t test;
-		vec3_t transparency;
+		vec3_array test;
+		vec3_array transparency;
 		int opaquestyle;
 
 		VectorCopy (pos, test);
-		snap_to_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, test, DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
+		snap_to_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, test.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
 
-		if (!HuntForWorld (test, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+		if (!HuntForWorld (test.data(), vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 		{
 			return false;
 		}
 
-		if (TestLine (pos, test) != CONTENTS_EMPTY)
+		if (TestLine (pos.data(), test.data()) != CONTENTS_EMPTY)
 		{
 			return false;
 		}
 
-		if (TestSegmentAgainstOpaqueList (pos, test
+		if (TestSegmentAgainstOpaqueList (pos.data(), test.data()
 				, transparency
 				, opaquestyle
 				) == true
@@ -671,7 +671,7 @@ void FindFacePositions (int facenum)
 	map->texwinding = new Winding (map->facewinding->m_NumPoints);
 	for (x = 0; x < map->facewinding->m_NumPoints; x++)
 	{
-		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x], map->texwinding->m_Points[x]);
+		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x].data(), map->texwinding->m_Points[x]);
 		map->texwinding->m_Points[x][2] = 0.0;
 	}
 	map->texwinding->RemoveColinearPoints ();

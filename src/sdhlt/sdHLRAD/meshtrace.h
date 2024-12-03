@@ -31,11 +31,11 @@ GNU General Public License for more details.
 class TraceMesh
 {
 private:
-	vec3_t		m_vecStart, m_vecEnd;
-	vec3_t		m_vecStartMins, m_vecEndMins;
-	vec3_t		m_vecStartMaxs, m_vecEndMaxs;
-	vec3_t		m_vecAbsMins, m_vecAbsMaxs;
-	vec3_t		m_vecTraceDirection;// ray direction
+	vec3_array		m_vecStart, m_vecEnd;
+	vec3_array		m_vecStartMins, m_vecEndMins;
+	vec3_array		m_vecStartMaxs, m_vecEndMaxs;
+	vec3_array		m_vecAbsMins, m_vecAbsMaxs;
+	vec3_array		m_vecTraceDirection;// ray direction
 	float		m_flTraceDistance;
 	bool		m_bHitTriangle;	// now we hit triangle
 	areanode_t	*areanodes;	// AABB for static meshes
@@ -43,14 +43,14 @@ private:
 	int		checkcount;	// debug
 	void		*m_extradata;	// pointer to model extradata
 
-	void ClearBounds( vec3_t mins, vec3_t maxs )
+	inline void ClearBounds( vec3_array& mins, vec3_array& maxs )
 	{
 		// make bogus range
 		mins[0] = mins[1] = mins[2] =  999999.0f;
 		maxs[0] = maxs[1] = maxs[2] = -999999.0f;
 	}
 
-	void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs )
+	inline void AddPointToBounds( const vec3_array& v, vec3_array& mins, vec3_array& maxs )
 	{
 		for( int i = 0; i < 3; i++ )
 		{
@@ -59,7 +59,7 @@ private:
 		}
 	}
 
-	bool BoundsIntersect( const vec3_t mins1, const vec3_t maxs1, const vec3_t mins2, const vec3_t maxs2 )
+	inline bool BoundsIntersect( const vec3_array& mins1, const vec3_array& maxs1, const vec3_array& mins2, const vec3_array& maxs2 )
 	{
 		if( mins1[0] > maxs2[0] || mins1[1] > maxs2[1] || mins1[2] > maxs2[2] )
 			return false;

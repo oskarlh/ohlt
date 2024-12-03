@@ -67,7 +67,7 @@ extern const vec3_array vec3_origin;
 #define VectorCompareMinimum(a,b,c) { (c)[0] = std::min((a)[0], (b)[0]); (c)[1] = std::min((a)[1], (b)[1]); (c)[2] = std::min((a)[2], (b)[2]); }
 #define VectorCompareMaximum(a,b,c) { (c)[0] = std::max((a)[0], (b)[0]); (c)[1] = std::max((a)[1], (b)[1]); (c)[2] = std::max((a)[2], (b)[2]); }
 
-inline vec_t   VectorNormalize(vec3_t v)
+inline vec_t   VectorNormalize(vec3_array& v)
 {
     double          length;
 

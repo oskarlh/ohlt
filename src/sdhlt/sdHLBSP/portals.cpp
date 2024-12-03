@@ -229,8 +229,8 @@ static void     WritePortalFile_r(const node_t* const node)
 					for (i = 0; i < w->m_NumPoints; i++)
 					{
 						vec_t *p1, *p2;
-						p1 = w->m_Points[i];
-						p2 = w->m_Points[(i+1)%w->m_NumPoints];
+						p1 = w->m_Points[i].data();
+						p2 = w->m_Points[(i+1)%w->m_NumPoints].data();
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", p2[0], p2[1], p2[2]);
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);

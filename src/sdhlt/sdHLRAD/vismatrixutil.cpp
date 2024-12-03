@@ -173,14 +173,14 @@ void            MakeScales(const int threadnum)
 {
     int             i;
     unsigned        j;
-    vec3_t          delta;
+    vec3_array          delta;
     vec_t           dist;
     int             count;
     float           trans;
     patch_t*        patch;
     patch_t*        patch2;
     float           send;
-    vec3_t          origin;
+    vec3_array          origin;
     vec_t           area;
     const vec_t*    normal1;
     const vec_t*    normal2;
@@ -212,11 +212,11 @@ void            MakeScales(const int threadnum)
         tData = tData_All;
 
         VectorCopy(patch->origin, origin);
-        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
+        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal.data();
 
         area = patch->area;
-		vec3_t backorigin;
-		vec3_t backnormal;
+		vec3_array backorigin;
+		vec3_array backnormal;
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
@@ -239,7 +239,7 @@ void            MakeScales(const int threadnum)
             vec_t           dot1;
             vec_t           dot2;
 
-            vec3_t          transparency = {1.0,1.0,1.0};
+            vec3_array          transparency = {1.0,1.0,1.0};
 			bool useback;
 			useback = false;
 
@@ -265,7 +265,7 @@ void            MakeScales(const int threadnum)
 				}
             }
 
-            normal2 = getPlaneFromFaceNumber(patch2->faceNumber)->normal;
+            normal2 = getPlaneFromFaceNumber(patch2->faceNumber)->normal.data();
 
             // calculate transferemnce
             VectorSubtract(patch2->origin, origin, delta);
@@ -312,12 +312,12 @@ void            MakeScales(const int threadnum)
 				const vec_t *receiver_origin;
 				const vec_t *receiver_normal;
 				const Winding *emitter_winding;
-				receiver_origin = origin;
+				receiver_origin = origin.data();
 				receiver_normal = normal1;
 				if (useback)
 				{
-					receiver_origin = backorigin;
-					receiver_normal = backnormal;
+					receiver_origin = backorigin.data();
+					receiver_normal = backnormal.data();
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea (receiver_origin, receiver_normal, emitter_winding, patch2->emitter_skylevel
@@ -436,7 +436,7 @@ void            MakeRGBScales(const int threadnum)
 {
     int             i;
     unsigned        j;
-    vec3_t          delta;
+    vec3_array          delta;
     vec_t           dist;
     int             count;
     float           trans[3];
@@ -444,7 +444,7 @@ void            MakeRGBScales(const int threadnum)
     patch_t*        patch;
     patch_t*        patch2;
     float           send;
-    vec3_t          origin;
+    vec3_array          origin;
     vec_t           area;
     const vec_t*    normal1;
     const vec_t*    normal2;
@@ -476,11 +476,11 @@ void            MakeRGBScales(const int threadnum)
         tRGBData = tRGBData_All;
 
         VectorCopy(patch->origin, origin);
-        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
+        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal.data();
 
         area = patch->area;
-		vec3_t backorigin;
-		vec3_t backnormal;
+		vec3_array backorigin;
+		vec3_array backnormal;
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
@@ -502,7 +502,7 @@ void            MakeRGBScales(const int threadnum)
         {
             vec_t           dot1;
             vec_t           dot2;
-            vec3_t          transparency = {1.0,1.0,1.0};
+            vec3_array          transparency = {1.0,1.0,1.0};
 			bool useback = false;
 
             if (!g_CheckVisBit(i, j
@@ -526,7 +526,7 @@ void            MakeRGBScales(const int threadnum)
 				}
             }
 
-            normal2 = getPlaneFromFaceNumber(patch2->faceNumber)->normal;
+            normal2 = getPlaneFromFaceNumber(patch2->faceNumber)->normal.data();
 
             // calculate transferemnce
             VectorSubtract(patch2->origin, origin, delta);
@@ -576,12 +576,12 @@ void            MakeRGBScales(const int threadnum)
 				const vec_t *receiver_origin;
 				const vec_t *receiver_normal;
 				const Winding *emitter_winding;
-				receiver_origin = origin;
+				receiver_origin = origin.data();
 				receiver_normal = normal1;
 				if (useback)
 				{
-					receiver_origin = backorigin;
-					receiver_normal = backnormal;
+					receiver_origin = backorigin.data();
+					receiver_normal = backnormal.data();
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea (receiver_origin, receiver_normal, emitter_winding, patch2->emitter_skylevel

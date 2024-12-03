@@ -40,7 +40,7 @@ void     Winding::getPlane(dplane_t& plane) const
         VectorSubtract(m_Points[0], m_Points[1], v2);
 
         CrossProduct(v2, v1, plane_normal);
-        VectorNormalize(plane_normal);
+        VectorNormalize(vec3_arg(plane_normal));
         VectorCopy(plane_normal, plane.normal);               // change from vec_t
         plane.dist = DotProduct(m_Points[0], plane.normal);
     }
@@ -62,7 +62,7 @@ void            Winding::getPlane(vec3_t& normal, vec_t& dist) const
         VectorSubtract(m_Points[1], m_Points[0], v1);
         VectorSubtract(m_Points[2], m_Points[0], v2);
         CrossProduct(v2, v1, normal);
-        VectorNormalize(normal);
+        VectorNormalize(vec3_arg(normal));
         dist = DotProduct(m_Points[0], normal);
     }
     else
@@ -175,7 +175,7 @@ void            Winding::Check(
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        p1 = m_Points[i];
+        p1 = m_Points[i].data();
 
         for (j = 0; j < 3; j++)
         {
@@ -195,7 +195,7 @@ void            Winding::Check(
         }
 
         // check the edge isn't degenerate
-        p2 = m_Points[j];
+        p2 = m_Points[j].data();
         VectorSubtract(p2, p1, dir);
 
         if (VectorLength(dir) < ON_EPSILON)
@@ -204,7 +204,7 @@ void            Winding::Check(
         }
 
         CrossProduct(facenormal, dir, edgenormal);
-        VectorNormalize(edgenormal);
+        VectorNormalize(vec3_arg(edgenormal));
         edgedist = DotProduct(p1, edgenormal);
         edgedist += ON_EPSILON;
 
@@ -250,7 +250,7 @@ Winding::Winding(vec3_t *points, std::uint_least32_t numpoints)
 	m_NumPoints = numpoints;
 	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
 
-	m_Points = new vec3_t[m_MaxPoints];
+	m_Points = new vec3_array[m_MaxPoints];
 	memcpy(m_Points, points, sizeof(vec3_t) * m_NumPoints);
 }
 
@@ -263,7 +263,7 @@ void			Winding::initFromPoints(vec3_t *points, std::uint_least32_t numpoints)
 	m_NumPoints = numpoints;
 	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
 
-	m_Points = new vec3_t[m_MaxPoints];
+	m_Points = new vec3_array[m_MaxPoints];
 	memcpy(m_Points, points, sizeof(vec3_t) * m_NumPoints);
 }
 
@@ -273,7 +273,7 @@ Winding&      Winding::operator=(const Winding& other)
     m_NumPoints = other.m_NumPoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_t[m_MaxPoints];
+    m_Points = new vec3_array[m_MaxPoints];
     memcpy(m_Points, other.m_Points, sizeof(vec3_t) * m_NumPoints);
     return *this;
 }
@@ -285,7 +285,7 @@ Winding::Winding(std::uint_least32_t numpoints)
     m_NumPoints = numpoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_t[m_MaxPoints];
+    m_Points = new vec3_array[m_MaxPoints];
     memset(m_Points, 0, sizeof(vec3_t) * m_NumPoints);
 }
 
@@ -294,7 +294,7 @@ Winding::Winding(const Winding& other)
     m_NumPoints = other.m_NumPoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_t[m_MaxPoints];
+    m_Points = new vec3_array[m_MaxPoints];
     memcpy(m_Points, other.m_Points, sizeof(vec3_t) * m_NumPoints);
 }
 
@@ -342,7 +342,7 @@ void Winding::initFromPlane(const vec3_t normal, const vec_t dist)
 
     v = DotProduct(vup, normal);
     VectorMA(vup, -v, normal, vup);
-    VectorNormalize(vup);
+    VectorNormalize(vec3_arg(vup));
 
     VectorScale(normal, dist, org);
 
@@ -353,7 +353,7 @@ void Winding::initFromPlane(const vec3_t normal, const vec_t dist)
 
     // project a really big     axis aligned box onto the plane
     m_NumPoints = 4;
-    m_Points = new vec3_t[m_NumPoints];
+    m_Points = new vec3_array[m_NumPoints];
 
     VectorSubtract(org, vright, m_Points[0]);
     VectorAdd(m_Points[0], vup, m_Points[0]);
@@ -382,7 +382,7 @@ Winding::Winding(const dface_t& face
     int             v;
 
     m_NumPoints = face.numedges;
-    m_Points = new vec3_t[m_NumPoints];
+    m_Points = new vec3_array[m_NumPoints];
 
     unsigned i;
     for (i = 0; i < face.numedges; i++)
@@ -430,9 +430,9 @@ void			Winding::RemoveColinearPoints(
 	vec_t			*p1, *p2, *p3;
 	for (i = 0; i < m_NumPoints; i++)
 	{
-		p1 = m_Points[(i+m_NumPoints-1)%m_NumPoints];
-		p2 = m_Points[i];
-		p3 = m_Points[(i+1)%m_NumPoints];
+		p1 = m_Points[(i+m_NumPoints-1)%m_NumPoints].data();
+		p2 = m_Points[i].data();
+		p3 = m_Points[(i+1)%m_NumPoints].data();
 		VectorSubtract (p2, p1, v1);
 		VectorSubtract (p3, p2, v2);
 		// v1 or v2 might be close to 0
@@ -529,7 +529,7 @@ void            Winding::Clip(const vec3_t normal, const vec_t dist, Winding** f
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i];
+        vec_t* p1 = m_Points[i].data();
 
         if (sides[i] == SIDE_ON)
         {
@@ -562,7 +562,7 @@ void            Winding::Clip(const vec3_t normal, const vec_t dist, Winding** f
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp];
+        vec_t* p2 = m_Points[tmp].data();
         dot = dists[i] / (dists[i] - dists[i + 1]);
 #if 0
         for (j = 0; j < 3; j++)
@@ -761,12 +761,12 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 
     unsigned maxpts = m_NumPoints + 4;                            // can't use counts[0]+2 because of fp grouping errors
     unsigned newNumPoints = 0;
-    vec3_t* newPoints = new vec3_t[maxpts];
-    memset(newPoints, 0, sizeof(vec3_t) * maxpts);
+    vec3_array* newPoints = new vec3_array[maxpts];
+    memset(newPoints, 0, sizeof(vec3_array) * maxpts);
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i];
+        vec_t* p1 = m_Points[i].data();
 
         if (sides[i] == SIDE_ON)
         {
@@ -792,7 +792,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp];
+        vec_t* p2 = m_Points[tmp].data();
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -923,7 +923,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i];
+        vec_t* p1 = m_Points[i].data();
 
         if (sides[i] == SIDE_ON)
         {
@@ -956,7 +956,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp];
+        vec_t* p2 = m_Points[tmp].data();
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -1042,7 +1042,7 @@ void            Winding::resize(std::uint_least32_t newsize)
 {
     newsize = (newsize + 3) & ~3;   // groups of 4
 
-    auto newpoints = std::make_unique<vec3_t[]>(newsize);
+    auto newpoints = std::make_unique<vec3_array[]>(newsize);
     m_NumPoints = std::min(newsize, m_NumPoints);
     memcpy(newpoints.get(), m_Points, m_NumPoints);
     delete[] m_Points;

@@ -214,25 +214,25 @@ struct patch_t
     int             faceNumber;
     ePatchFlags     flags;
 	bool			translucent_b;                           // gather light from behind
-	vec3_t			translucent_v;
-	vec3_t			texturereflectivity;
-	vec3_t			bouncereflectivity;
+	vec3_array			translucent_v;
+	vec3_array			texturereflectivity;
+	vec3_array			bouncereflectivity;
 
 	unsigned char	totalstyle[MAXLIGHTMAPS];
 	unsigned char	directstyle[MAXLIGHTMAPS];
 	// HLRAD_AUTOCORING: totallight: all light gathered by patch
-	vec3_t          totallight[MAXLIGHTMAPS];				// accumulated by radiosity does NOT include light accounted for by direct lighting
+	vec3_array          totallight[MAXLIGHTMAPS];				// accumulated by radiosity does NOT include light accounted for by direct lighting
 	// HLRAD_AUTOCORING: directlight: emissive light gathered by sample
-	vec3_t			directlight[MAXLIGHTMAPS];				// direct light only
+	vec3_array			directlight[MAXLIGHTMAPS];				// direct light only
 	int				bouncestyle; // light reflected from this patch must convert to this style. -1 = normal (don't convert)
 	unsigned char	emitstyle;
-    vec3_t          baselight;                             // emissivity only, uses emitstyle
+    vec3_array          baselight;                             // emissivity only, uses emitstyle
 	bool			emitmode;								// texlight emit mode. 1 for normal, 0 for fast.
 	vec_t			samples;
-	vec3_t*			samplelight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
+	vec3_array*			samplelight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
 	unsigned char*	totalstyle_all;						// NULL, or [ALLSTYLES] during BuildFacelights
-	vec3_t*			totallight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
-	vec3_t*			directlight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
+	vec3_array*			totallight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
+	vec3_array*			directlight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
 	int				leafnum;
 };
 
@@ -251,9 +251,9 @@ typedef struct directlight_s
     struct directlight_s* next;
     emittype_t      type;
     int             style;
-    vec3_t          origin;
-    vec3_t          intensity;
-    vec3_t          normal;                                // for surfaces and spotlights
+    vec3_array          origin;
+    vec3_array          intensity;
+    vec3_array          normal;                                // for surfaces and spotlights
     float           stopdot;                               // for spotlights
     float           stopdot2;                              // for spotlights
 
@@ -264,12 +264,12 @@ typedef struct directlight_s
 	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
 	// Diffuse light_environment light colour
 	// Really horrible hack which probably won't work!
-	vec3_t			diffuse_intensity;
+	vec3_array			diffuse_intensity;
 	// -----------------------------------------------------------------------------------
-	vec3_t			diffuse_intensity2;
+	vec3_array			diffuse_intensity2;
 	vec_t			sunspreadangle;
 	int				numsunnormals;
-	vec3_t*			sunnormals;
+	vec3_array*			sunnormals;
 	vec_t*			sunnormalweights;
 
 	vec_t			patch_area;
@@ -281,7 +281,7 @@ typedef struct directlight_s
 
 
 //LRC
-vec3_t* GetTotalLight(patch_t* patch, int style
+vec3_array* GetTotalLight(patch_t* patch, int style
 	);
 
 typedef struct facelist_s
@@ -292,8 +292,8 @@ typedef struct facelist_s
 typedef struct
 {
     dface_t*        faces[2];
-    vec3_t          interface_normal; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
-	vec3_t			vertex_normal[2];
+    vec3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
+	vec3_array vertex_normal[2];
     vec_t           cos_normals_angle; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
     bool            coplanar;
 	bool			smooth;
@@ -457,7 +457,7 @@ extern void     PairEdges();
 #define SUNSPREAD_SKYLEVEL 7
 #define SUNSPREAD_THRESHOLD 15.0
 extern int		g_numskynormals[SKYLEVELMAX+1]; // 0, 6, 18, 66, 258, 1026, 4098, 16386, 65538
-extern vec3_t*	g_skynormals[SKYLEVELMAX+1]; //[numskynormals]
+extern vec3_array*	g_skynormals[SKYLEVELMAX+1]; //[numskynormals]
 extern vec_t*	g_skynormalsizes[SKYLEVELMAX+1]; // the weight of each normal
 extern void     BuildDiffuseNormals ();
 extern void     BuildFacelights(int facenum);
@@ -487,15 +487,15 @@ extern int		TestPointOpaque (int modelnum, const vec3_t modelorigin, bool solid,
 
 extern void     CreateDirectLights();
 extern void     DeleteDirectLights();
-extern void     GetPhongNormal(int facenum, const vec3_t spot, vec3_t phongnormal); // added "const" --vluzacn
+extern void     GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& phongnormal); // added "const" --vluzacn
 
 typedef bool (*funcCheckVisBit) (unsigned, unsigned
-								 , vec3_t&
+								 , vec3_array&
 								 , unsigned int&
 								 );
 extern funcCheckVisBit g_CheckVisBit;
-extern bool CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_t &backorigin, const vec3_t &backnormal
-								, vec3_t &transparency_out
+extern bool CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_array& backorigin, const vec3_array& backnormal
+								, vec3_array& transparency_out
 								);
 extern void	    MdlLightHack(void);
 
@@ -507,8 +507,8 @@ extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
 extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
 extern dleaf_t* HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
-extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_t &out);
-extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_t in_normal, vec_t in_dist, vec3_t &out_normal, vec_t &out_dist);
+extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array &out);
+extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist);
 extern void		MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right, matrix_t &m);
 extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right);
 extern void		MatrixForScale (const vec3_t center, vec_t scale, matrix_t &m);
@@ -540,7 +540,7 @@ extern void     DumpTransfersMemoryUsage();
 extern void     MakeRGBScales(int threadnum);
 
 // transparency.c (transparency array functions - shared between vismatrix.c and sparse.c)
-extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_t &trans, unsigned int &next_index);
+extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index);
 extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_t trans);
 extern void	CreateFinalTransparencyArrays(const char *print_name);
 extern void	FreeTransparencyArrays();
@@ -552,13 +552,13 @@ extern void	FreeStyleArrays();
 // lerp.c
 extern void CreateTriangulations (int facenum);
 extern void GetTriangulationPatches (int facenum, int *numpatches, const int **patches);
-extern void InterpolateSampleLight (const vec3_t position, int surface, int numstyles, const int *styles, vec3_t *outs
+extern void InterpolateSampleLight (const vec3_array& position, int surface, int numstyles, const int *styles, vec3_t *outs
 				);
 extern void FreeTriangulations ();
 
 // mathutil.c
 extern bool     TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
-					, vec3_t &scaleout
+					, vec3_array& scaleout
 					, int &opaquestyleout
 					);
 extern bool     intersect_line_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2, vec3_t point);
@@ -577,7 +577,7 @@ extern vec_t	CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_
 extern vec_t	CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, const vec3_t emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					);
-extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch_t *patch, vec3_t &origin);
+extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin);
 
 // studio.cpp
 extern void LoadStudioModels(void);

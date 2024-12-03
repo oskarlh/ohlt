@@ -227,7 +227,7 @@ void	FreeTransparencyArrays( )
 //===============================================
 // GetTransparency -- find transparency from list. remembers last location
 //===============================================
-void GetTransparency(const unsigned p1, const unsigned p2, vec3_t &trans, unsigned int &next_index)
+void GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index)
 {
 	VectorFill( trans, 1.0 );
 	

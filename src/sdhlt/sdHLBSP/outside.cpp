@@ -436,7 +436,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     int             i;
     bool            inside;
     bool            ret;
-    vec3_t          origin;
+    vec3_array          origin;
 
     Verbose("----- FillOutside ----\n");
 
@@ -476,7 +476,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
                         {
                             origin[0] += x;
                             origin[1] += y;
-                            if (PlaceOccupant(i, origin, node))
+                            if (PlaceOccupant(i, origin.data(), node))
                             {
                                 inside = true;
                                 goto gotit;
@@ -489,7 +489,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
                 }
                 else
                 {
-                    if (PlaceOccupant(i, origin, node))
+                    if (PlaceOccupant(i, origin.data(), node))
                         inside = true;
                 }
             }
@@ -660,14 +660,14 @@ void			FillInside (node_t* node)
     {
 		if (*ValueForKey(&g_entities[i], u8"origin"))
 		{
-			vec3_t origin;
+			vec3_array origin;
 			node_t* innode;
 			GetVectorForKey(&g_entities[i], u8"origin", origin);
 			origin[2] += 1;
-			innode = PointInLeaf (node, origin);
+			innode = PointInLeaf (node, origin.data());
 			MarkOccupied_r (innode);
 			origin[2] -= 2;
-			innode = PointInLeaf (node, origin);
+			innode = PointInLeaf (node, origin.data());
 			MarkOccupied_r (innode);
 		}
 	}

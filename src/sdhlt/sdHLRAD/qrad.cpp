@@ -547,7 +547,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 			b *= scaler / 255.0;
 			break;
 		default:
-			vec3_t origin;
+			vec3_array origin;
 			GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
 				origin[0], origin[1], origin[2], (const char*) ValueForKey (g_face_texlights[fn], u8"_light"));
@@ -625,8 +625,8 @@ static bool     PlacePatchInside(patch_t* patch)
 		{
 			const vec_t *p1;
 			const vec_t *p2;
-			p1 = patch->winding->m_Points[i];
-			p2 = patch->winding->m_Points[(i+1)%patch->winding->m_NumPoints];
+			p1 = patch->winding->m_Points[i].data();
+			p2 = patch->winding->m_Points[(i+1)%patch->winding->m_NumPoints].data();
 			VectorAdd (p1, p2, point);
 			VectorAdd (point, center, point);
 			VectorScale (point, 1.0/3.0, point);
@@ -762,7 +762,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			vec_t *point;
 			vec_t dotA;
 			vec_t dotB;
-			point = winding->m_Points[x];
+			point = winding->m_Points[x].data();
 			dotA = DotProduct (point, plA->normal);
 			minA = std::min(minA, dotA);
 			maxA = std::max(maxA, dotA);
@@ -802,9 +802,9 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			Winding *back = nullptr;
 
 			dist = gridstartA + i * gridchopA;
-			winding->Clip (plA->normal, dist, &front, &back);
+			winding->Clip (vec3_arg(plA->normal), dist, &front, &back);
 
-			if (!front || front->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
+			if (!front || front->WindingOnPlaneSide (vec3_arg(plA->normal), dist, epsilon) == SIDE_ON) // ended
 			{
 				if (front)
 				{
@@ -818,7 +818,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				}
 				break;
 			}
-			if (!back || back->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
+			if (!back || back->WindingOnPlaneSide (vec3_arg(plA->normal), dist, epsilon) == SIDE_ON) // didn't begin
 			{
 				if (front)
 				{
@@ -864,9 +864,9 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				Winding *back = nullptr;
 
 				dist = gridstartB + j * gridchopB;
-				strip->Clip (plB->normal, dist, &front, &back);
+				strip->Clip (vec3_arg(plB->normal), dist, &front, &back);
 				
-				if (!front || front->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
+				if (!front || front->WindingOnPlaneSide (vec3_arg(plB->normal), dist, epsilon) == SIDE_ON) // ended
 				{
 					if (front)
 					{
@@ -880,7 +880,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 					}
 					break;
 				}
-				if (!back || back->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
+				if (!back || back->WindingOnPlaneSide (vec3_arg(plB->normal), dist, epsilon) == SIDE_ON) // didn't begin
 				{
 					if (front)
 					{
@@ -1346,8 +1346,8 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
 		if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
 		{
-			vec3_t texturecolor;
-			vec3_t texturereflectivity;
+			vec3_array texturecolor;
+			vec3_array texturereflectivity;
 			GetVectorForKey (g_face_texlights[fn], u8"_texcolor", texturecolor);
 			for (int k = 0; k < 3; k++)
 			{
@@ -1355,7 +1355,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 			}
 			if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
 			{
-				vec3_t origin;
+				vec3_array origin;
 				GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
 				Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
 			}
@@ -1539,7 +1539,7 @@ static void		LoadOpaqueEntities()
 
 			if (strcmp ((const char*) ValueForKey (ent, u8"model"), stringmodel)) //Skip ents that don't match the current model
 				continue;
-			vec3_t origin;
+			vec3_array origin;
 			{
 				GetVectorForKey (ent, u8"origin", origin); //Get origin vector of the ent
 
@@ -1549,7 +1549,7 @@ static void		LoadOpaqueEntities()
 
 					if (ent2)
 					{
-						vec3_t light_origin, model_center;
+						vec3_array light_origin, model_center;
 						GetVectorForKey (ent2, u8"origin", light_origin);
 						GetVectorForKey (ent, u8"model_center", model_center);
 						VectorSubtract (light_origin, model_center, origin); //New origin
@@ -1631,7 +1631,7 @@ static void		LoadOpaqueEntities()
 			}
 			if (opaque) //If opaque add it to the opaque list with its properties
 			{
-				AddFaceToOpaqueList (entnum, modelnum, origin
+				AddFaceToOpaqueList (entnum, modelnum, origin.data()
 					, d_transparency, b_transparency
 					, opaquestyle
 					, block
@@ -1674,7 +1674,7 @@ static entity_t *FindTexlightEntity (int facenum)
 			continue;
 		if (strcasecmp ((const char*) value_for_key (ent, u8"_tex").data(), texname))
 			continue;
-		vec3_t delta;
+		vec3_array delta;
 		GetVectorForKey (ent, u8"origin", delta);
 		VectorSubtract (delta, centroid, delta);
 		vec_t dist = VectorLength (delta);

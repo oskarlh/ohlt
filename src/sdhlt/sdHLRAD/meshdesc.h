@@ -47,7 +47,7 @@ typedef vec_t		matrix3x4[3][4];
 
 typedef struct mplane_s
 {
-	vec3_t		normal;
+	vec3_array		normal;
 	float		dist;
 	byte		type;		// for fast side tests
 	byte		signbits;		// signx + (signy<<1) + (signz<<1)
@@ -75,7 +75,7 @@ typedef struct areanode_s
 
 typedef struct mvert_s
 {
-	vec3_t		point;
+	vec3_array		point;
 	float		st[2];		// for alpha-texture test
 } mvert_t;
 
@@ -84,8 +84,8 @@ typedef struct
 	link_t		area;		// linked to a division node or leaf
 	mstudiotexture_t	*texture;		// valid for alpha-testing surfaces
 	mvert_t		triangle[3];	// store triangle points
-	vec3_t		mins, maxs;	// an individual size of each facet
-	vec3_t		edge1, edge2;	// new trace stuff
+	vec3_array		mins, maxs;	// an individual size of each facet
+	vec3_array		edge1, edge2;	// new trace stuff
 	byte		numplanes;	// because numplanes for each facet can't exceeds MAX_FACET_PLANES!
 	uint		*indices;		// a indexes into mesh plane pool
 } mfacet_t;
@@ -93,7 +93,7 @@ typedef struct
 typedef struct
 {
 	int		trace_mode;	// trace method
-	vec3_t		mins, maxs;
+	vec3_array		mins, maxs;
 	uint		numfacets;
 	uint		numplanes;
 	mfacet_t		*facets;

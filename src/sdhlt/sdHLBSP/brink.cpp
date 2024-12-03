@@ -1326,7 +1326,7 @@ bcircle_t;
 bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 {
 	VectorCopy (b->direction, c->axis);
-	if (!VectorNormalize (c->axis))
+	if (!VectorNormalize (vec3_arg(c->axis)))
 	{
 		return false;
 	}
@@ -1335,7 +1335,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 	int side, i;
 	for (side = 0; side < 2; side++)
 	{
-		vec3_t facing;
+		vec3_array facing;
 		CrossProduct (c->basenormal, c->axis, facing);
 		VectorScale (facing, side? -1: 1, facing);
 		if (VectorNormalize (facing) < 1 - 0.01)
@@ -1415,7 +1415,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 			{
 				continue;
 			}
-			vec3_t v;
+			vec3_array v;
 			CrossProduct (w->prev->normal, w->next->normal, v);
 			if (!VectorNormalize (v) ||
 				DotProduct (v, c->axis) < 1 - 0.01)

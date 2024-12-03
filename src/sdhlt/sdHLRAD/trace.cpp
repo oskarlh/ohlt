@@ -488,14 +488,14 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	{
 		for (i2 = 0; i2 < w2->m_NumPoints; i2++)
 		{
-			pA = w->m_Points[(i+w->m_NumPoints-1)%w->m_NumPoints];
-			pB = w->m_Points[i];
-			pC = w->m_Points[(i+1)%w->m_NumPoints];
-			pD = w->m_Points[(i+2)%w->m_NumPoints];
-			p2A = w2->m_Points[(i2+w2->m_NumPoints-1)%w2->m_NumPoints];
-			p2B = w2->m_Points[i2];
-			p2C = w2->m_Points[(i2+1)%w2->m_NumPoints];
-			p2D = w2->m_Points[(i2+2)%w2->m_NumPoints];
+			pA = w->m_Points[(i+w->m_NumPoints-1)%w->m_NumPoints].data();
+			pB = w->m_Points[i].data();
+			pC = w->m_Points[(i+1)%w->m_NumPoints].data();
+			pD = w->m_Points[(i+2)%w->m_NumPoints].data();
+			p2A = w2->m_Points[(i2+w2->m_NumPoints-1)%w2->m_NumPoints].data();
+			p2B = w2->m_Points[i2].data();
+			p2C = w2->m_Points[(i2+1)%w2->m_NumPoints].data();
+			p2D = w2->m_Points[(i2+2)%w2->m_NumPoints].data();
 			if (!VectorCompare (pB, p2C) || !VectorCompare (pC, p2B))
 			{
 				continue;
@@ -513,8 +513,8 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 		return false;
 	}
 
-	const vec_t *normal = f->plane.normal;
-	vec3_t e1, e2;
+	const vec_t *normal = f->plane.normal.data();
+	vec3_array e1, e2;
 	dplane_t pl1, pl2;
 	int side1, side2;
 
@@ -621,14 +621,14 @@ void BuildFaceEdges (opaqueface_t *f)
 	f->numedges = f->winding->m_NumPoints;
 	f->edges = (dplane_t *)calloc (f->numedges, sizeof (dplane_t));
 	const vec_t *p1, *p2;
-	const vec_t *n = f->plane.normal;
+	const vec_t *n = f->plane.normal.data();
 	vec3_t e;
 	dplane_t *pl;
 	int x;
 	for (x = 0; x < f->winding->m_NumPoints; x++)
 	{
-		p1 = f->winding->m_Points[x];
-		p2 = f->winding->m_Points[(x+1)%f->winding->m_NumPoints];
+		p1 = f->winding->m_Points[x].data();
+		p2 = f->winding->m_Points[(x+1)%f->winding->m_NumPoints].data();
 		pl = &f->edges[x];
 		VectorSubtract (p2, p1, e);
 		CrossProduct (n, e, pl->normal);

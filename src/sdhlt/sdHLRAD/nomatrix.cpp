@@ -4,7 +4,7 @@
 //  CheckVisBit
 // =====================================================================================
 static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
-									   , vec3_t &transparency_out
+									   , vec3_array &transparency_out
 									   , unsigned int &
 									   )
 	// patchnum1=receiver, patchnum2=emitter. //HLRAD_CheckVisBitNoVismatrix_NOSWAP
@@ -36,14 +36,14 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 
             const dplane_t* plane = getPlaneFromFaceNumber(patch->faceNumber);
 
-            vec3_t transparency = {1.0,1.0,1.0};
+            vec3_array transparency = {1.0,1.0,1.0};
 			int opaquestyle = -1;
 
             // check vis between patch and patch2
             //  if v2 is not behind light plane
             //  && v2 is visible from v1
-			vec3_t origin1, origin2;
-			vec3_t delta;
+			vec3_array origin1, origin2;
+			vec3_array delta;
 			vec_t dist;
 			VectorSubtract (patch->origin, patch2->origin, delta);
 			dist = VectorLength (delta);
@@ -72,13 +72,13 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 				return false;
 			}
             if (TestLine(
-				origin1, origin2
+				origin1.data(), origin2.data()
 				) != CONTENTS_EMPTY)
 			{
 				return false;
 			}
             if (TestSegmentAgainstOpaqueList(
-				origin1, origin2
+				origin1.data(), origin2.data()
 				, transparency
 				, opaquestyle
 				))
@@ -102,8 +102,8 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 
     return false;
 }
-       bool     CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_t &backorigin, const vec3_t &backnormal
-									   , vec3_t &transparency_out
+       bool     CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_array& backorigin, const vec3_array& backnormal
+									   , vec3_array& transparency_out
 									   )
 {	
     patch_t*        patch = &g_patches[receiver];
@@ -118,11 +118,11 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
         if (DotProduct(backorigin, emitplane->normal) > (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE))
         {
 
-            vec3_t transparency = {1.0,1.0,1.0};
+            vec3_array transparency = {1.0,1.0,1.0};
 			int opaquestyle = -1;
 
-			vec3_t emitorigin;
-			vec3_t delta;
+			vec3_array emitorigin;
+			vec3_array delta;
 			vec_t dist;
 			VectorSubtract (backorigin, emitpatch->origin, delta);
 			dist = VectorLength (delta);
@@ -139,13 +139,13 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 				return false;
 			}
             if (TestLine(
-				backorigin, emitorigin
+				backorigin.data(), emitorigin.data()
 				) != CONTENTS_EMPTY)
 			{
 				return false;
 			}
             if (TestSegmentAgainstOpaqueList(
-				backorigin, emitorigin
+				backorigin.data(), emitorigin.data()
 				, transparency
 				, opaquestyle
 				))

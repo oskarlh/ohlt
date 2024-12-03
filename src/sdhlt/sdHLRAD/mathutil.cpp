@@ -74,11 +74,11 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 	int				numpoints;
 	int				x;
 	vec_t			*p1, *p2;
-	vec3_t			delta;
-	vec3_t			normal;
+	vec3_array			delta;
+	vec3_array			normal;
 	vec_t			dist;
 	vec_t			dot1, dot2, dot;
-	vec3_t			bestpoint;
+	vec3_array			bestpoint;
 	vec_t			bestdist;
 	bool			in;
 
@@ -87,8 +87,8 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 	in = true;
 	for (x = 0; x < numpoints; x++)
 	{
-		p1 = w.m_Points[x];
-		p2 = w.m_Points[(x + 1) % numpoints];
+		p1 = w.m_Points[x].data();
+		p2 = w.m_Points[(x + 1) % numpoints].data();
 		VectorSubtract (p2, p1, delta);
 		CrossProduct (delta, plane.normal, normal);
 		dist = DotProduct (point, normal) - DotProduct (p1, normal);
@@ -116,7 +116,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 
 	for (x = 0; x < numpoints; x++)
 	{
-		p1 = w.m_Points[x];
+		p1 = w.m_Points[x].data();
 		VectorSubtract (p1, point, delta);
 		dist = DotProduct (delta, plane.normal) / DotProduct (plane.normal, plane.normal);
 		VectorMA (delta, -dist, plane.normal, delta);
@@ -248,9 +248,9 @@ bool			intersect_linesegment_plane(const dplane_t* const plane, const vec_t* con
 // =====================================================================================
 void            plane_from_points(const vec3_t p1, const vec3_t p2, const vec3_t p3, dplane_t* plane)
 {
-    vec3_t          delta1;
-    vec3_t          delta2;
-    vec3_t          normal;
+    vec3_array          delta1;
+    vec3_array          delta2;
+    vec3_array          normal;
 
     VectorSubtract(p3, p2, delta1);
     VectorSubtract(p1, p2, delta2);
@@ -293,7 +293,7 @@ inline bool LineSegmentIntersectsBounds (const vec3_t p1, const vec3_t p2, const
 //      Returns true if the segment intersects an item in the opaque list
 // =====================================================================================
 bool            TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
-					, vec3_t &scaleout
+					, vec3_array& scaleout
 					, int &opaquestyleout // light must convert to this style. -1 = no convert
 					)
 	{
@@ -355,12 +355,12 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 	vec_t area = 0.0;
 
 	int numedges = emitter_winding->m_NumPoints;
-	vec3_t *edges = (vec3_t *)malloc (numedges * sizeof (vec3_t));
+	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{
-		vec3_t v1, v2, normal;
+		vec3_array v1, v2, normal;
 		VectorSubtract (emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract (emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
@@ -373,10 +373,10 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 	if (!error)
 	{
 		int i, j;
-		vec3_t *pnormal;
+		vec3_array *pnormal;
 		vec_t *psize;
 		vec_t dot;
-		vec3_t *pedge;
+		vec3_array *pedge;
 		for (i = 0, pnormal = g_skynormals[skylevel], psize = g_skynormalsizes[skylevel]; i < g_numskynormals[skylevel]; i++, pnormal++, psize++)
 		{
 			dot = DotProduct (*pnormal, receiver_normal);
@@ -419,12 +419,12 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 	vec_t area = 0.0;
 
 	int numedges = emitter_winding->m_NumPoints;
-	vec3_t *edges = (vec3_t *)malloc (numedges * sizeof (vec3_t));
+	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{
-		vec3_t v1, v2, normal;
+		vec3_array v1, v2, normal;
 		VectorSubtract (emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract (emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
@@ -437,11 +437,11 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 	if (!error)
 	{
 		int i, j;
-		vec3_t *pnormal;
+		vec3_array *pnormal;
 		vec_t *psize;
 		vec_t dot;
 		vec_t dot2;
-		vec3_t *pedge;
+		vec3_array *pedge;
 		for (i = 0, pnormal = g_skynormals[skylevel], psize = g_skynormalsizes[skylevel]; i < g_numskynormals[skylevel]; i++, pnormal++, psize++)
 		{
 			dot = DotProduct (*pnormal, receiver_normal);
@@ -483,7 +483,7 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 // =====================================================================================
 //  GetAlternateOrigin
 // =====================================================================================
-void GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch_t *patch, vec3_t &origin)
+void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin)
 {
 	const dplane_t *faceplane;
 	const vec_t *facenormal;
@@ -492,12 +492,12 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch
 
 	faceplane = getPlaneFromFaceNumber (patch->faceNumber);
 	const vec3_array& faceplaneoffset = g_face_offset[patch->faceNumber];
-	facenormal = faceplane->normal;
+	facenormal = faceplane->normal.data();
 	VectorCopy (normal, clipplane.normal);
 	clipplane.dist = DotProduct (pos, clipplane.normal);
 	
 	w = *patch->winding;
-	if (w.WindingOnPlaneSide (clipplane.normal, clipplane.dist) != SIDE_CROSS)
+	if (w.WindingOnPlaneSide (clipplane.normal.data(), clipplane.dist) != SIDE_CROSS)
 	{
 		VectorCopy (patch->origin, origin);
 	}
@@ -538,8 +538,8 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_t normal, const patch
 				{
 					const vec_t *p1;
 					const vec_t *p2;
-					p1 = w.m_Points[i];
-					p2 = w.m_Points[(i + 1) % w.m_NumPoints];
+					p1 = w.m_Points[i].data();
+					p2 = w.m_Points[(i + 1) % w.m_NumPoints].data();
 					VectorAdd (p1, p2, point);
 					VectorAdd (point, center, point);
 					VectorScale (point, 1.0/3.0, point);

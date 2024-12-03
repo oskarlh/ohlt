@@ -122,7 +122,11 @@ void CTriangle :: ComputeNormal( void )
 	if( VectorLength( normal ) == 0.0f )
 		return;
 
-	VectorNormalize( normal );
+	vec3_array n{normal[0], normal[1], normal[2]};
+	VectorNormalize( n );
+	normal[0] = n[0];
+	normal[1] = n[1];
+	normal[2] = n[2];
 }
 
 void CTriangle :: ReplaceVertex( CVertex *vold, CVertex *vnew )

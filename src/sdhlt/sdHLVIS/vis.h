@@ -35,12 +35,12 @@ typedef struct
 {
     bool            original;                              // don't free, it's part of the portal
     int             numpoints;
-    vec3_t          points[MAX_POINTS_ON_FIXED_WINDING];
+    vec3_array          points[MAX_POINTS_ON_FIXED_WINDING];
 } winding_t;
 
 typedef struct
 {
-    vec3_t          normal;
+    vec3_array          normal;
     float           dist;
 } plane_t;
 

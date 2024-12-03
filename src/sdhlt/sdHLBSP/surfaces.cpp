@@ -88,7 +88,7 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
             subdivides++;
 
             VectorCopy(tex->vecs[axis], temp);
-            v = VectorNormalize(temp);
+            v = VectorNormalize(vec3_arg(temp));
 
             VectorCopy(temp, plane.normal);
             plane.dist = (mins + g_subdivide_size - TEXTURE_STEP) / v; //plane.dist = (mins + g_subdivide_size - 16) / v; //--vluzacn

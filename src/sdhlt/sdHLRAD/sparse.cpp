@@ -127,7 +127,7 @@ static void SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMA
 
 // Vismatrix public
 static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
-								  , vec3_t &transparency_out
+								  , vec3_array &transparency_out
 								  , unsigned int &next_index
 								  )
 {
@@ -198,7 +198,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
             {
                 unsigned        m = patch2 - g_patches;
 
-                vec3_t		transparency = {1.0,1.0,1.0};
+                vec3_array		transparency = {1.0,1.0,1.0};
 				int opaquestyle = -1;
 
                 // check vis between patch and patch2
@@ -211,8 +211,8 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					{
 						continue;
 					}
-					vec3_t origin1, origin2;
-					vec3_t delta;
+					vec3_array origin1, origin2;
+					vec3_array delta;
 					vec_t dist;
 					VectorSubtract (patch->origin, patch2->origin, delta);
 					dist = VectorLength (delta);
@@ -241,13 +241,13 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 						continue;
 					}
                     if (TestLine(
-						origin1, origin2
+						origin1.data(), origin2.data()
 						) != CONTENTS_EMPTY)
 					{
 						continue;
 					}
                     if (TestSegmentAgainstOpaqueList(
-						origin1, origin2
+						origin1.data(), origin2.data()
 						, transparency
 						, opaquestyle
 					))
@@ -263,7 +263,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
                                         
                     if(g_customshadow_with_bouncelight && !VectorCompare(transparency, vec3_one) )
                     {
-                    	AddTransparencyToRawArray(patchnum, m, transparency);
+                    	AddTransparencyToRawArray(patchnum, m, transparency.data());
                     }
 					uncompressedcolumn[m] = true;
                 }

@@ -54,7 +54,7 @@ int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 
 	VectorCopy(origin,p->origin);
 	VectorCopy(normal,p->normal);
-    VectorNormalize(p->normal);
+    VectorNormalize(vec3_arg(p->normal));
 	p->type = PlaneTypeForNormal(p->normal);
 	if (p->type <= last_axial)
 	{
@@ -93,15 +93,15 @@ int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 
 int PlaneFromPoints(const vec_t* const p0, const vec_t* const p1, const vec_t* const p2)
 {
-    vec3_t          v1, v2;
-    vec3_t          normal;
+    vec3_array          v1, v2;
+    vec3_array          normal;
 
     VectorSubtract(p0, p1, v1);
     VectorSubtract(p2, p1, v2);
     CrossProduct(v1, v2, normal);
     if (VectorNormalize(normal))
     {
-        return FindIntPlane(normal, p0);
+        return FindIntPlane(vec3_arg(normal), p0);
     }
     return -1;
 }
@@ -304,7 +304,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			vec_t len;
 			len = VectorLength (brushedge.delta);
 			CrossProduct (brushedge.normals[0], brushedge.normals[1], brushedge.delta);
-			if (!VectorNormalize (brushedge.delta))
+			if (!VectorNormalize (vec3_arg(brushedge.delta)))
 			{
 				continue;
 			}
@@ -329,11 +329,11 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 				vec3_t e1;
 				vec3_t e2;
 				VectorCopy (brushedge.delta, e1);
-				VectorNormalize (e1);
+				VectorNormalize (vec3_arg(e1));
 				VectorCopy (hbe->delta, e2);
-				VectorNormalize (e2);
+				VectorNormalize (vec3_arg(e2));
 				CrossProduct (e1, e2, normal);
-				if (!VectorNormalize (normal))
+				if (!VectorNormalize (vec3_arg(normal)))
 				{
 					continue;
 				}
@@ -356,7 +356,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		for (f = hull0->faces; f; f = f->next)
 		{
-			for (vec3_t *v = f->w->m_Points; v < f->w->m_Points + f->w->m_NumPoints; v++)
+			for (vec3_array *v = f->w->m_Points; v < f->w->m_Points + f->w->m_NumPoints; v++)
 			{
 				if (DotProduct (*v, hbf->normal) < bestdist - NORMAL_EPSILON)
 				{
@@ -588,7 +588,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 						CrossProduct(edge,bevel_edge,normal);
 
 						//normalize to length 1
-						VectorNormalize(normal);
+						VectorNormalize(vec3_arg(normal));
 						if (fabs (normal[(dir+1)%3]) <= NORMAL_EPSILON || fabs (normal[(dir+2)%3]) <= NORMAL_EPSILON)
 						{ // coincide with axial plane
 							continue;
@@ -829,7 +829,7 @@ bool            MakeBrushPlanes(brush_t* b)
     int             planenum;
     side_t*         s;
     bface_t*        f;
-    vec3_t          origin;
+    vec3_array          origin;
 
     //
     // if the origin key is set (by an origin brush), offset all of the values
@@ -875,7 +875,7 @@ bool            MakeBrushPlanes(brush_t* b)
         f->plane = &g_mapplanes[planenum];
         f->next = b->hulls[0].faces;
         b->hulls[0].faces = f;
-        f->texinfo = g_onlyents ? 0 : TexinfoForBrushTexture(f->plane, &s->td, origin
+        f->texinfo = g_onlyents ? 0 : TexinfoForBrushTexture(f->plane, &s->td, origin.data()
 						);
 		f->bevel = b->bevel || s->bevel;
     }
@@ -1220,7 +1220,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	int k;
 	int e;
 	int e2;
-	vec3_t origin;
+	vec3_array origin;
 	bool failed = false;
 
 	// planes
@@ -1254,7 +1254,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		VectorSubtract (p[0], p[1], v1);
 		VectorSubtract (p[2], p[1], v2);
 		CrossProduct (v1, v2, normal);
-		if (!VectorNormalize (normal))
+		if (!VectorNormalize (vec3_arg(normal)))
 		{
 			failed = true;
 			continue;
@@ -1264,7 +1264,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			if (fabs (normal[k]) < NORMAL_EPSILON)
 			{
 				normal[k] = 0.0;
-				VectorNormalize (normal);
+				VectorNormalize (vec3_arg(normal));
 			}
 		}
 		axial = PlaneTypeForNormal (normal);

@@ -104,7 +104,7 @@ private:
 public:
     // Data
     std::uint_least32_t  m_NumPoints;
-    vec3_t* m_Points;
+    vec3_array* m_Points;
 protected:
     std::uint_least32_t  m_MaxPoints;
 };

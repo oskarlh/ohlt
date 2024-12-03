@@ -123,7 +123,7 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 
 //============================================================================
 
-static bool     CanonicalVector(vec3_t vec)
+static bool     CanonicalVector(vec3_array& vec)
 {
     if (VectorNormalize(vec))
     {
@@ -177,8 +177,8 @@ static bool     CanonicalVector(vec3_t vec)
 
 static wedge_t *FindEdge(const vec3_t p1, const vec3_t p2, vec_t* t1, vec_t* t2)
 {
-    vec3_t          origin;
-    vec3_t          dir;
+    vec3_array          origin;
+    vec3_array          dir;
     wedge_t*        w;
     vec_t           temp;
     int             h;
@@ -205,7 +205,7 @@ static wedge_t *FindEdge(const vec3_t p1, const vec3_t p2, vec_t* t1, vec_t* t2)
         *t2 = temp;
     }
 
-	h = HashVec(origin, &num_hashneighbors, hashneighbors);
+	h = HashVec(origin.data(), &num_hashneighbors, hashneighbors);
 
   for (int i = 0; i < num_hashneighbors; ++i)
 	for (w = wedge_hash[hashneighbors[i]]; w; w = w->next)
@@ -356,11 +356,11 @@ static void     SplitFaceForTjunc(face_t* f, face_t* original)
 restart:
         // find the last corner 
         VectorSubtract(f->pts[f->numpoints - 1], f->pts[0], dir);
-        VectorNormalize(dir);
+        VectorNormalize(vec3_arg(dir));
         for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--)
         {
             VectorSubtract(f->pts[lastcorner - 1], f->pts[lastcorner], test);
-            VectorNormalize(test);
+            VectorNormalize(vec3_arg(test));
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
@@ -370,11 +370,11 @@ restart:
 
         // find the first corner        
         VectorSubtract(f->pts[1], f->pts[0], dir);
-        VectorNormalize(dir);
+        VectorNormalize(vec3_arg(dir));
         for (firstcorner = 1; firstcorner < f->numpoints - 1; firstcorner++)
         {
             VectorSubtract(f->pts[firstcorner + 1], f->pts[firstcorner], test);
-            VectorNormalize(test);
+            VectorNormalize(vec3_arg(test));
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
