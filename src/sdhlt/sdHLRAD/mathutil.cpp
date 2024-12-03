@@ -6,12 +6,12 @@
 //      returns whether the point is in the winding (including its edges)
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool            point_in_winding(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t epsilon/* = 0.0*/)
+bool point_in_winding(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t epsilon/* = 0.0*/)
 {
 	int				numpoints;
 	int				x;
-	vec3_t			delta;
-	vec3_t			normal;
+	vec3_array delta;
+	vec3_array normal;
 	vec_t			dist;
 
 	numpoints = w.m_NumPoints;
@@ -38,12 +38,12 @@ bool            point_in_winding(const Winding& w, const dplane_t& plane, const 
 //      parameter 'width' : the radius of the ball
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool            point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t width)
+bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t width)
 {
 	int				numpoints;
 	int				x;
-	vec3_t			delta;
-	vec3_t			normal;
+	vec3_array delta;
+	vec3_array normal;
 	vec_t			dist;
 
 	numpoints = w.m_NumPoints;
@@ -144,16 +144,16 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 //      returns the maximal distance that the point can be kept away from all the edges
 //      in most of the cases, the maximal distance = width; in other cases, the maximal distance < width
 // =====================================================================================
-vec_t			snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* const point, vec_t width, vec_t maxmove)
+vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* const point, vec_t width, vec_t maxmove)
 {
 	int pass;
 	int numplanes;
 	dplane_t *planes;
 	int x;
-	vec3_t v;
+	vec3_array v;
 	vec_t newwidth;
 	vec_t bestwidth;
-	vec3_t bestpoint;
+	vec3_array bestpoint;
 
 	snap_to_winding (w, plane, point);
 
@@ -179,7 +179,7 @@ vec_t			snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* c
 	for (pass = 0; pass < 5; pass++) // apply binary search method for 5 iterations to find the maximal distance that the point can be kept away from all the edges
 	{
 		bool failed;
-		vec3_t newpoint;
+		vec3_array newpoint;
 		Winding *newwinding;
 
 		failed = true;
@@ -195,7 +195,7 @@ vec_t			snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* c
 		if (newwinding->m_NumPoints > 0)
 		{
 			VectorCopy (point, newpoint);
-			snap_to_winding (*newwinding, plane, newpoint);
+			snap_to_winding (*newwinding, plane, newpoint.data());
 
 			VectorSubtract (newpoint, point, v);
 			if (VectorLength (v) <= maxmove + ON_EPSILON)
