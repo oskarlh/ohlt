@@ -283,14 +283,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 
 static void     BuildVisLeafs(int threadnum)
 {
-    int             i;
-    int             lface, facenum, facenum2;
-    byte            pvs[(MAX_MAP_LEAFS + 7) / 8];
-    dleaf_t*        srcleaf;
-    dleaf_t*        leaf;
-    patch_t*        patch;
-    int             head;
-    unsigned        patchnum;
+    std::array<std::byte, (MAX_MAP_LEAFS + 7) / 8> pvs;
 	std::unique_ptr<bool[]> uncompressedcolumn = std::make_unique<bool[]>(MAX_SPARSE_VISMATRIX_PATCHES);
 	hlassume (uncompressedcolumn != nullptr, assume_NoMemory);
 
@@ -300,46 +293,45 @@ static void     BuildVisLeafs(int threadnum)
         // build a minimal BSP tree that only
         // covers areas relevent to the PVS
         //
-        i = GetThreadWork();
+        int i = GetThreadWork();
         if (i == -1)
         {
             break;
         }
-        i++;                                               // skip leaf 0
-        srcleaf = &g_dleafs[i];
+        i++; // skip leaf 0
+        const dleaf_t& srcleaf = g_dleafs[i];
         if (!g_visdatasize)
 		{
-			memset (pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
+			memset (pvs.data(), 255, (g_dmodels[0].visleafs + 7) / 8);
 		}
 		else
 		{
-		if (srcleaf->visofs == -1)
+		if (srcleaf.visofs == -1)
 		{
 			Developer (DEVELOPER_LEVEL_ERROR, "Error: No visdata for leaf %d\n", i);
 			continue;
 		}
-        DecompressVis(&g_dvisdata[srcleaf->visofs], pvs, sizeof(pvs));
+        DecompressVis(&g_dvisdata[srcleaf.visofs], (byte*) pvs.data(), sizeof(pvs));
 		}
-        head = 0;
 
         //
         // go through all the faces inside the
         // leaf, and process the patches that
         // actually have origins inside
         //
-		for (facenum = 0; facenum < g_numfaces; facenum++)
+		for (int facenum = 0; facenum < g_numfaces; facenum++)
 		{
-			for (patch = g_face_patches[facenum]; patch; patch = patch->next)
+			for (const patch_t* patch = g_face_patches[facenum]; patch; patch = patch->next)
 			{
 				if (patch->leafnum != i)
 					continue;
-				patchnum = patch - g_patches;
+				std::uint32_t patchnum = patch - g_patches;
 				for (std::size_t m = 0; m < g_num_patches; m++)
 				{
 					uncompressedcolumn[m] = false;
 				}
-				for (facenum2 = facenum + 1; facenum2 < g_numfaces; facenum2++)
-					TestPatchToFace (patchnum, facenum2, head, pvs
+				for (int facenum2 = facenum + 1; facenum2 < g_numfaces; facenum2++)
+					TestPatchToFace (patchnum, facenum2, 0, (byte*) pvs.data()
 									, uncompressedcolumn.get()
 									);
 				SetVisColumn (patchnum, uncompressedcolumn.get());
