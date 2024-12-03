@@ -99,7 +99,7 @@ std::size_t count_blocks (const bsp_data& bspData)
 				VectorCopy (v->point, point);
 			}
 		}
-		if (extents[0] < 0 || extents[1] < 0 || extents[0] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > std::max(512, MAX_SURFACE_EXTENT * TEXTURE_STEP))
+		if (extents[0] < 0 || extents[1] < 0 || extents[0] > std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP))
 			// the default restriction from the engine is 512, but place 'max (512, MAX_SURFACE_EXTENT * TEXTURE_STEP)' here in case someone raise the limit
 		{
 			Warning ("Bad surface extents %d/%d at position (%.0f,%.0f,%.0f)", extents[0], extents[1], point[0], point[1], point[2]);
@@ -234,7 +234,7 @@ void print_bsp_file_sizes(const bsp_data& bspData)
     Log("------------  ---------------  ---------------  --------\n");
 
     totalmemory += array_usage("models", bspData.mapModelsLength, bspData.mapModels.size(), sizeof(bspData.mapModels[0]));
-    totalmemory += array_usage("planes", g_numplanes, MAX_MAP_PLANES, ENTRYSIZE(g_dplanes));
+    totalmemory += array_usage("planes", g_numplanes, MAX_MAP_PLANES, sizeof(bspData.planes[0]));
     totalmemory += array_usage("vertexes", g_numvertexes, ENTRIES(g_dvertexes), ENTRYSIZE(g_dvertexes));
     totalmemory += array_usage("nodes", g_numnodes, ENTRIES(g_dnodes), ENTRYSIZE(g_dnodes));
     totalmemory += array_usage("texinfos", g_numtexinfo, MAX_MAP_TEXINFO, ENTRYSIZE(g_texinfo));

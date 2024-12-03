@@ -8,24 +8,24 @@
 
 // upper design bounds
 
-#define MAX_MAP_HULLS            4
+constexpr std::ptrdiff_t MAX_MAP_HULLS = 4;
 // hard limit
 
-#define MAX_MAP_MODELS         512 //400 //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_MODELS = 512; //400 //vluzacn
 // variable, but 400 brush entities is very stressful on the engine and network code as it is
 
-#define MAX_MAP_BRUSHES       32768
+constexpr std::ptrdiff_t MAX_MAP_BRUSHES = 32768;
 // arbitrary, but large numbers of brushes generally require more lightmap's than the compiler can handle
 
-#define MAX_ENGINE_ENTITIES   16384 //1024 //vluzacn
-#define MAX_MAP_ENTITIES      16384 //2048 //vluzacn
+constexpr std::ptrdiff_t MAX_ENGINE_ENTITIES = 16384; //1024 //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384; //2048 //vluzacn
 // hard limit, in actuallity it is too much, as temporary entities in the game plus static map entities can overflow
 
-#define MAX_MAP_ENTSTRING   (2048*1024) //(512*1024) //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_ENTSTRING = 2048 * 1024; //(512*1024) //vluzacn
 // abitrary, 512Kb of string data should be plenty even with TFC FGD's
 
-#define MAX_MAP_PLANES      32768 // TODO: This can be larger, because although faces can only use plane 0~32767, clipnodes can use plane 0-65535. --vluzacn
-#define MAX_INTERNAL_MAP_PLANES (256*1024)
+constexpr std::ptrdiff_t MAX_MAP_PLANES = 32768; // TODO: This can be larger, because although faces can only use plane 0~32767, clipnodes can use plane 0-65535. --vluzacn
+constexpr std::ptrdiff_t MAX_INTERNAL_MAP_PLANES = 256 * 1024;
 // (from email): I have been building a rather complicated map, and using your latest 
 // tools (1.61) it seemed to compile fine.  However, in game, the engine was dropping
 // a lot of faces from almost every FUNC_WALL, and also caused a strange texture 
@@ -33,58 +33,57 @@
 // I noticed that it hit the MAX_MAP_PLANES limit of 32k.  After deleting some brushes
 // I was able to bring the map under the limit, and all of the previous errors went away.
 
-#define MAX_MAP_NODES        32767
+constexpr std::ptrdiff_t MAX_MAP_NODES = 32767;
 // hard limit (negative short's are used as contents values)
-#define MAX_MAP_CLIPNODES    32767
+constexpr std::ptrdiff_t MAX_MAP_CLIPNODES = 32767;
 // hard limit (negative short's are used as contents values)
 
-#define MAX_MAP_LEAFS        32760
-#define MAX_MAP_LEAFS_ENGINE 8192
+constexpr std::ptrdiff_t MAX_MAP_LEAFS = 32760;
+constexpr std::ptrdiff_t MAX_MAP_LEAFS_ENGINE = 8192;
 // No problem has been observed in testmap or reported, except when viewing the map from outside (some leafs missing, no crash).
 // This problem indicates that engine's MAX_MAP_LEAFS is 8192 (for reason, see: Quake - gl_model.c - Mod_Init).
 // I don't know if visleafs > 8192 will cause Mod_DecompressVis overflow.
 
-#define MAX_MAP_VERTS        65535
-#define MAX_MAP_FACES        65535 // This ought to be 32768, otherwise faces(in world) can become invisible. --vluzacn
-#define MAX_MAP_WORLDFACES   32768
-#define MAX_MAP_MARKSURFACES 65535
+constexpr std::ptrdiff_t MAX_MAP_VERTS = 65535;
+constexpr std::ptrdiff_t MAX_MAP_FACES = 65535; // This ought to be 32768, otherwise faces(in world) can become invisible. --vluzacn
+constexpr std::ptrdiff_t MAX_MAP_WORLDFACES = 32768;
+constexpr std::ptrdiff_t MAX_MAP_MARKSURFACES = 65535;
 // hard limit (data structures store them as unsigned shorts)
 
-#define MAX_MAP_TEXTURES      4096 //512 //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_TEXTURES = 4096; //512 //vluzacn
 // hard limit (halflife limitation) // I used 2048 different textures in a test map and everything looks fine in both opengl and d3d mode.
 
-#define MAX_MAP_TEXINFO      32767
+constexpr std::ptrdiff_t MAX_MAP_TEXINFO = 32767;
 // hard limit (face.texinfo is signed short)
-#define MAX_INTERNAL_MAP_TEXINFO 262144
+constexpr std::ptrdiff_t MAX_INTERNAL_MAP_TEXINFO = 262144;
 
 
-#define MAX_MAP_EDGES       256000
-#define MAX_MAP_SURFEDGES   512000
+constexpr std::ptrdiff_t MAX_MAP_EDGES = 256000;
+constexpr std::ptrdiff_t MAX_MAP_SURFEDGES = 512000;
 // arbtirary
 
-#define MAX_MAP_VISIBILITY  0x800000
+constexpr std::ptrdiff_t MAX_MAP_VISIBILITY = 0x800000;
 // arbitrary
 
 // these are for entity key:value pairs
-#define MAX_KEY                 128 //32 //vluzacn
-#define MAX_VAL               4096 // the name used to be MAX_VALUE //vluzacn
+constexpr std::ptrdiff_t MAX_KEY = 128; //32 //vluzacn
+constexpr std::ptrdiff_t MAX_VAL = 4096; // the name used to be MAX_VALUE //vluzacn
 // quote from yahn: 'probably can raise these values if needed'
 
 // texture size limit
 
-#define MAX_TEXTURE_SIZE     348972 //Bytes in a 512x512 image((256 * 256 * sizeof(short) * 3) / 2) //stop compiler from warning 512*512 texture. --vluzacn
+constexpr std::ptrdiff_t MAX_TEXTURE_SIZE = 348972; //Bytes in a 512x512 image((256 * 256 * sizeof(short) * 3) / 2) //stop compiler from warning 512*512 texture. --vluzacn
 // this is arbitrary, and needs space for the largest realistic texture plus
 // room for its mipmaps.'  This value is primarily used to catch damanged or invalid textures
 // in a wad file
 
-#define TEXTURE_STEP        16 // this constant was previously defined in lightmap.cpp. --vluzacn
-#define MAX_SURFACE_EXTENT  16 // if lightmap extent exceeds 16, the map will not be able to load in 'Software' renderer and HLDS. //--vluzacn
+constexpr std::ptrdiff_t TEXTURE_STEP = 16; // this constant was previously defined in lightmap.cpp. --vluzacn
+constexpr std::ptrdiff_t MAX_SURFACE_EXTENT = 16; // if lightmap extent exceeds 16, the map will not be able to load in 'Software' renderer and HLDS. //--vluzacn
 
-#define ENGINE_ENTITY_RANGE 4096.0
+constexpr double ENGINE_ENTITY_RANGE = 4096.0;
 //=============================================================================
 
-#define BSPVERSION  30
-#define TOOLVERSION 2
+constexpr std::uint32_t BSPVERSION = 30;
 
 
 //
@@ -291,11 +290,10 @@ template<> struct lump_element_type_map<lump_id::models> { using type = dmodel_t
 template <lump_id Id> using lump_element_type = lump_element_type_map<Id>::type;
 
 
-
 typedef struct
 {
-    std::int32_t             version;
-    lump_t          lumps[num_lump_types];
+    std::uint32_t version;
+    lump_t lumps[num_lump_types];
 }
 dheader_t;
 
@@ -393,9 +391,9 @@ struct bsp_data {
 	int             leafsChecksum;
 	int             leafsLength;
 
-	dplane_t        g_dplanes[MAX_INTERNAL_MAP_PLANES];
-	int             g_dplanes_checksum;
-	int             g_numplanes;
+	std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> planes;
+	int planesChecksum;
+	int planesLength;
 
 	dvertex_t       g_dvertexes[MAX_MAP_VERTS];
 	int             g_dvertexes_checksum;
@@ -460,9 +458,9 @@ extern int&      g_numleafs;
 extern std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs;
 extern int&      g_dleafs_checksum;
 
-extern int      g_numplanes;
-extern dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];
-extern int      g_dplanes_checksum;
+extern int& g_numplanes;
+extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes;
+extern int& g_dplanes_checksum;
 
 extern int      g_numvertexes;
 extern dvertex_t g_dvertexes[MAX_MAP_VERTS];

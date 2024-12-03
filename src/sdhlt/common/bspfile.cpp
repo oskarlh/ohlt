@@ -46,9 +46,9 @@ int& g_numleafs{bspGlobals.leafsLength};
 std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs{bspGlobals.leafs};
 int& g_dleafs_checksum{bspGlobals.leafsChecksum};
 
-int             g_numplanes;
-dplane_t        g_dplanes[MAX_INTERNAL_MAP_PLANES];
-int             g_dplanes_checksum;
+int& g_numplanes{bspGlobals.planesLength};
+std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes{bspGlobals.planes};
+int& g_dplanes_checksum{bspGlobals.planesChecksum};
 
 int             g_numvertexes;
 dvertex_t       g_dvertexes[MAX_MAP_VERTS];
@@ -321,7 +321,7 @@ void            LoadBSPImage(dheader_t* const header)
 	g_nummodels = modelData.size();
 
     g_numvertexes = CopyLump(LUMP_VERTEXES, g_dvertexes, sizeof(dvertex_t), header);
-    g_numplanes = CopyLump(LUMP_PLANES, g_dplanes, sizeof(dplane_t), header);
+    g_numplanes = CopyLump(LUMP_PLANES, g_dplanes.data(), sizeof(dplane_t), header);
     g_numleafs = CopyLump(LUMP_LEAFS, g_dleafs.data(), sizeof(dleaf_t), header);
     g_numnodes = CopyLump(LUMP_NODES, g_dnodes, sizeof(dnode_t), header);
     g_numtexinfo = CopyLump(LUMP_TEXINFO, g_texinfo, sizeof(texinfo_t), header);
@@ -347,7 +347,7 @@ void            LoadBSPImage(dheader_t* const header)
 	// WTF???? THESE ARE UNUSED!
     g_dmodels_checksum = fast_checksum(std::span(g_dmodels.data(), g_nummodels));
     g_dvertexes_checksum = FastChecksum(g_dvertexes, g_numvertexes * sizeof(g_dvertexes[0]));
-    g_dplanes_checksum = FastChecksum(g_dplanes, g_numplanes * sizeof(g_dplanes[0]));
+    g_dplanes_checksum = fast_checksum(std::span(g_dplanes.data(), g_numplanes));
     g_dleafs_checksum = FastChecksum(g_dleafs.data(), g_numleafs * sizeof(g_dleafs[0]));
     g_dnodes_checksum = FastChecksum(g_dnodes, g_numnodes * sizeof(g_dnodes[0]));
     g_texinfo_checksum = FastChecksum(g_texinfo, g_numtexinfo * sizeof(g_texinfo[0]));
@@ -406,7 +406,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     SafeWrite(bspfile, header, sizeof(dheader_t));         // overwritten later
 
     //      LUMP TYPE       DATA            LENGTH                              HEADER  BSPFILE   
-    AddLump(LUMP_PLANES,    g_dplanes,      g_numplanes * sizeof(dplane_t),     header, bspfile);
+    AddLump(LUMP_PLANES,    g_dplanes.data(),      g_numplanes * sizeof(dplane_t),     header, bspfile);
     AddLump(LUMP_LEAFS,     g_dleafs.data(),       g_numleafs * sizeof(dleaf_t),       header, bspfile);
     AddLump(LUMP_VERTEXES,  g_dvertexes,    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
     AddLump(LUMP_NODES,     g_dnodes,       g_numnodes * sizeof(dnode_t),       header, bspfile);

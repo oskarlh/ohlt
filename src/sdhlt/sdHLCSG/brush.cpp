@@ -1,6 +1,6 @@
 #include "csg.h"
 
-plane_t         g_mapplanes[MAX_INTERNAL_MAP_PLANES];
+std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 int             g_nummapplanes;
 hullshape_t		g_defaulthulls[NUM_HULLS];
 int				g_numhullshapes;

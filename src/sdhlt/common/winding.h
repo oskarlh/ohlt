@@ -32,7 +32,7 @@ typedef struct
 	vec_t			dist;
 	planetypes		type;
 } dplane_t;
-extern dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];
+extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 #endif
 class Winding
 {

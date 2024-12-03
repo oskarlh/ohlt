@@ -953,19 +953,18 @@ static void     CSGBrush(int brushnum)
 static void     EmitPlanes()
 {
     int             i;
-    dplane_t*       dp;
     plane_t*        mp;
 
     g_numplanes = g_nummapplanes;
-    mp = g_mapplanes;
-    dp = g_dplanes;
+    mp = g_mapplanes.data();
+    dplane_t* dp = g_dplanes.data();
 	{
 		char name[_MAX_PATH];
 		safe_snprintf (name, _MAX_PATH, "%s.pln", g_Mapname);
 		FILE *planeout = fopen (name, "wb");
 		if (!planeout)
 			Error("Couldn't open %s", name);
-		SafeWrite (planeout, g_mapplanes, g_nummapplanes * sizeof (plane_t));
+		SafeWrite (planeout, g_mapplanes.data(), g_nummapplanes * sizeof (plane_t));
 		fclose (planeout);
 	}
     for (i = 0; i < g_nummapplanes; i++, mp++, dp++)

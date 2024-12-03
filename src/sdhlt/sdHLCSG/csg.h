@@ -267,7 +267,7 @@ extern bool g_nullifytrigger;
 extern vec_t g_tiny_threshold;
 extern vec_t g_BrushUnionThreshold;
 
-extern plane_t g_mapplanes[MAX_INTERNAL_MAP_PLANES];
+extern std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 extern int g_nummapplanes;
 
 extern bface_t* NewFaceFromFace(const bface_t* const in);

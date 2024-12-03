@@ -22,16 +22,12 @@
 #define DEFAULT_FULLVIS     false
 #define DEFAULT_NOFIXPRT    false
 #define DEFAULT_FASTVIS     false
-#define DEFAULT_NETVIS_PORT 21212
-#define DEFAULT_NETVIS_RATE 60
 
 #define	MAX_PORTALS	32768
 
 //#define USE_CHECK_STACK
 #define RVIS_LEVEL_1
 #define RVIS_LEVEL_2
-
-#define PORTALFILE      "PRT1" // WTF?
 
 #define	MAX_POINTS_ON_FIXED_WINDING	32
 

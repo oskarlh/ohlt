@@ -29,19 +29,18 @@ static tnode_t* tnode_p;
 static void     MakeTnode(const int nodenum)
 {
     tnode_t*        t;
-    dplane_t*       plane;
     int             i;
     dnode_t*        node;
 
     t = tnode_p++;
 
     node = g_dnodes + nodenum;
-    plane = g_dplanes + node->planenum;
+    const dplane_t& plane = g_dplanes[node->planenum];
 
-    t->type = plane->type;
-    VectorCopy(plane->normal, t->normal);
-	if (plane->normal[(plane->type)%3] < 0) {
-		if (plane->type < 3)
+    t->type = plane.type;
+    VectorCopy(plane.normal, t->normal);
+	if (plane.normal[(plane.type)%3] < 0) {
+		if (plane.type < 3)
 		{
 			Warning ("MakeTnode: negative plane");
 		}
@@ -50,7 +49,7 @@ static void     MakeTnode(const int nodenum)
 			Developer (DEVELOPER_LEVEL_MESSAGE, "Warning: MakeTnode: negative plane\n");
 		}
 	}
-    t->dist = plane->dist;
+    t->dist = plane.dist;
 
     for (i = 0; i < 2; i++)
     {

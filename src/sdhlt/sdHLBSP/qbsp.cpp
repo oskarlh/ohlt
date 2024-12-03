@@ -79,7 +79,7 @@ bool g_nohull2 = false;
 
 bool g_viewportal = false;
 
-dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];
+std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 
 
 // =====================================================================================
@@ -1472,7 +1472,7 @@ static void     Settings()
     Log("null tex. stripping [ %7s ] [ %7s ]\n", g_bUseNullTex ? "on" : "off", cli_option_defaults::nulltex ? "on" : "off" );
     Log("notjunc             [ %7s ] [ %7s ]\n", g_notjunc ? "on" : "off", DEFAULT_NOTJUNC ? "on" : "off");
 	Log("nobrink             [ %7s ] [ %7s ]\n", g_nobrink? "on": "off", DEFAULT_NOBRINK? "on": "off");
-    Log("subdivide size      [ %7d ] [ %7d ] (Min %d) (Max %d)\n",
+    Log("subdivide size      [ %7d ] [ %7zd ] (Min %d) (Max %d)\n",
         g_subdivide_size, DEFAULT_SUBDIVIDE_SIZE, MIN_SUBDIVIDE_SIZE, MAX_SUBDIVIDE_SIZE);
     Log("max node size       [ %7d ] [ %7d ] (Min %d) (Max %d)\n",
         g_maxnode_size, DEFAULT_MAXNODE_SIZE, MIN_MAXNODE_SIZE, MAX_MAXNODE_SIZE);
@@ -1584,7 +1584,7 @@ static void     ProcessFile(const char* const filename, bsp_data& bspData)
 			{
 				Error ("Invalid plane data");
 			}
-			SafeRead (planefile, g_dplanes, g_numplanes * sizeof (dplane_t));
+			SafeRead (planefile, g_dplanes.data(), g_numplanes * sizeof (dplane_t));
 			fclose (planefile);
 		}
 	}
