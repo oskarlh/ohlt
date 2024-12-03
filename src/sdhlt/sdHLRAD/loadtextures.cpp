@@ -342,13 +342,13 @@ void LoadTextures ()
 	{
 		Log ("Load Textures:\n");
 	}
-	g_numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
+	g_numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 	g_textures = (radtexture_t *)malloc (g_numtextures * sizeof (radtexture_t));
 	hlassume (g_textures != nullptr, assume_NoMemory);
 	int i;
 	for (i = 0; i < g_numtextures; i++)
 	{
-		int offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[i];
+		int offset = ((dmiptexlump_t *)g_dtexdata.data())->dataofs[i];
 		int size = g_texdatasize - offset;
 		radtexture_t *tex = &g_textures[i];
 		if (g_notextures)
@@ -861,7 +861,7 @@ static int g_newtextures_size[RADTEXTURES_MAX];
 
 int NewTextures_GetCurrentMiptexIndex ()
 {
-	dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata;
+	dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata.data();
 	return texdata->nummiptex + g_newtextures_num;
 }
 
@@ -886,10 +886,10 @@ void NewTextures_Write ()
 	}
 
 	int i;
-	dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata;
+	dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata.data();
 
 	std::byte *dataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex];
-	int datasize = (g_dtexdata + g_texdatasize) - dataaddr;
+	int datasize = (g_dtexdata.data() + g_texdatasize) - dataaddr;
 	std::byte *newdataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex + g_newtextures_num];
 	hlassume (g_texdatasize + (newdataaddr - dataaddr) <= g_max_map_miptex, assume_MAX_MAP_MIPTEX);
 	memmove (newdataaddr, dataaddr, datasize);
@@ -907,7 +907,7 @@ void NewTextures_Write ()
 	for (i = 0; i < g_newtextures_num; i++)
 	{
 		hlassume (g_texdatasize + g_newtextures_size[i] <= g_max_map_miptex, assume_MAX_MAP_MIPTEX);
-		memcpy (g_dtexdata + g_texdatasize, g_newtextures_data[i], g_newtextures_size[i]);
+		memcpy (g_dtexdata.data() + g_texdatasize, g_newtextures_data[i], g_newtextures_size[i]);
 		texdata->dataofs[texdata->nummiptex + i] = g_texdatasize;
 		g_texdatasize += g_newtextures_size[i];
 	}
@@ -977,7 +977,7 @@ static void GetLight (dface_t *face, const int texsize[2], double x, double y, v
 
 static bool GetValidTextureName (int miptex, char name[16])
 {
-	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
+	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 	int offset;
 	int size;
 	miptex_t *mt;
@@ -986,15 +986,15 @@ static bool GetValidTextureName (int miptex, char name[16])
 	{
 		return false;
 	}
-	offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[miptex];
+	offset = ((dmiptexlump_t *)g_dtexdata.data())->dataofs[miptex];
 	size = g_texdatasize - offset;
-	if (offset < 0 || g_dtexdata + offset < (std::byte *)&((dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
+	if (offset < 0 || g_dtexdata.data() + offset < (std::byte *)&((dmiptexlump_t *)g_dtexdata.data())->dataofs[numtextures] ||
 		size < (int)sizeof (miptex_t))
 	{
 		return false;
 	}
 
-	mt = (miptex_t *)&g_dtexdata[offset];
+	mt = (miptex_t *)&g_dtexdata.data()[offset];
 	safe_strncpy (name, mt->name, 16);
 
 	if (strcmp (name, mt->name))

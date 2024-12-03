@@ -568,8 +568,8 @@ static const char* TextureNameFromFace(const dface_t* const f)
     //
     tx = &g_texinfo[f->texinfo];
 
-    ofs = ((dmiptexlump_t*)g_dtexdata)->dataofs[tx->miptex];
-    mt = (miptex_t*)((byte*) g_dtexdata + ofs);
+    ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
+    mt = (miptex_t*)((std::byte*) g_dtexdata.data() + ofs);
 
 	return mt->name;
 }

@@ -21,6 +21,6 @@ namespace cli_option_defaults {
 #endif
 
 
-	// These values are arbitrary
+	// This value is arbitrary
 	constexpr std::size_t max_map_miptex = 0x2000000;
 }

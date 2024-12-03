@@ -35,7 +35,7 @@ std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
 int& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
 int& g_texdatasize{bspGlobals.textureDataByteSize};
-std::byte*& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
+std::vector<std::byte>& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
 int& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
 
 int& g_entdatasize{bspGlobals.entityDataLength};
@@ -93,7 +93,7 @@ entity_t        g_entities[MAX_MAP_ENTITIES];
  * ===============
  */
 
-inline unsigned int rotleft(unsigned value, unsigned int amt)
+static unsigned int rotleft(unsigned value, unsigned int amt)
 {
     unsigned        t1, t2;
 
@@ -103,15 +103,6 @@ inline unsigned int rotleft(unsigned value, unsigned int amt)
     return (t1 | t2);
 }
 
-inline unsigned int rotright(unsigned value, unsigned int amt)
-{
-    unsigned        t1, t2;
-
-    t1 = value << ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
-
-    t2 = value >> amt;
-    return (t1 | t2);
-}
 
 static int      FastChecksum(const void* const buffer, int bytes)
 {
@@ -133,7 +124,7 @@ template<class T> static std::int32_t fast_checksum(std::span<T> buffer)
 
     while (buf != (const char*) &*buffer.end())
     {
-        checksum = rotright(checksum, 4) ^ (*buf);
+        checksum = rotleft(checksum, 4) ^ (*buf);
         buf++;
     }
 
@@ -341,7 +332,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_numedges = CopyLump(LUMP_EDGES, g_dedges, sizeof(dedge_t), header);
 
 	auto textureData = get_lump_data<lump_id::textures>(header);
-	memcpy(g_dtexdata, textureData.data(), textureData.size() * sizeof(textureData[0]));
+	memcpy(g_dtexdata.data(), textureData.data(), textureData.size() * sizeof(textureData[0]));
 	g_texdatasize = textureData.size();
 
     g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata.data(), 1, header);
@@ -365,7 +356,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_dmarksurfaces_checksum = FastChecksum(g_dmarksurfaces, g_nummarksurfaces * sizeof(g_dmarksurfaces[0]));
     g_dsurfedges_checksum = FastChecksum(g_dsurfedges, g_numsurfedges * sizeof(g_dsurfedges[0]));
     g_dedges_checksum = FastChecksum(g_dedges, g_numedges * sizeof(g_dedges[0]));
-    g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata, g_texdatasize));
+    g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata.data(), g_texdatasize));
     g_dvisdata_checksum = FastChecksum(g_dvisdata.data(), g_visdatasize * sizeof(g_dvisdata[0]));
     g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata));
     g_dentdata_checksum = FastChecksum(g_dentdata.data(), g_entdatasize * sizeof(g_dentdata[0]));
@@ -431,7 +422,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     add_lump<lump_id::lighting>(g_dlightdata, header, bspfile);
     AddLump(LUMP_VISIBILITY,g_dvisdata.data(),     g_visdatasize,                      header, bspfile);
     AddLump(LUMP_ENTITIES,  g_dentdata.data(),     g_entdatasize,                      header, bspfile);
-    add_lump<lump_id::textures>(std::span<std::byte>((std::byte*) g_dtexdata, g_texdatasize), header, bspfile);
+    add_lump<lump_id::textures>(std::span<std::byte>(g_dtexdata.data(), g_texdatasize), header, bspfile);
 
     fseek(bspfile, 0, SEEK_SET);
     SafeWrite(bspfile, header, sizeof(dheader_t));
@@ -582,7 +573,7 @@ void WriteExtentFile (const std::filesystem::path& filename)
 int	ParseImplicitTexinfoFromTexture (int miptex)
 {
 	int texinfo;
-	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
+	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 	int offset;
 	int size;
 	miptex_t *mt;
@@ -593,9 +584,9 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 		Warning ("ParseImplicitTexinfoFromTexture: internal error: invalid texture number %d.", miptex);
 		return -1;
 	}
-	offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[miptex];
+	offset = ((dmiptexlump_t *)g_dtexdata.data())->dataofs[miptex];
 	size = g_texdatasize - offset;
-	if (offset < 0 || g_dtexdata + offset < (const std::byte *)&((const dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
+	if (offset < 0 || g_dtexdata.data() + offset < (const std::byte *)&((const dmiptexlump_t *)g_dtexdata.data())->dataofs[numtextures] ||
 		size < (int)sizeof (miptex_t))
 	{
 		return -1;
@@ -649,7 +640,7 @@ void DeleteEmbeddedLightmaps ()
 	int countrestoredfaces = 0;
 	int countremovedtexinfos = 0;
 	int countremovedtextures = 0;
-	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata)->nummiptex: 0;
+	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 
 	// Step 1: parse the original texinfo index stored in each "?_rad*" texture
 	//         and restore the texinfo for the faces that have had their lightmap embedded
@@ -741,12 +732,12 @@ void DeleteEmbeddedLightmaps ()
 
 		if (numremaining < numtextures)
 		{
-			dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata;
+			dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata.data();
 			std::byte *dataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex];
-			int datasize = (g_dtexdata + texdata->dataofs[numremaining]) - dataaddr;
+			int datasize = (g_dtexdata.data() + texdata->dataofs[numremaining]) - dataaddr;
 			std::byte *newdataaddr = (std::byte *)&texdata->dataofs[numremaining];
 			memmove (newdataaddr, dataaddr, datasize);
-			g_texdatasize = (newdataaddr + datasize) - g_dtexdata;
+			g_texdatasize = (newdataaddr + datasize) - g_dtexdata.data();
 			texdata->nummiptex = numremaining;
 			for (i = 0; i < numremaining; i++)
 			{
@@ -1251,14 +1242,13 @@ entity_t *FindTargetEntity(std::u8string_view target) {
 
 void            dtexdata_init()
 {
-    g_dtexdata = new std::byte[g_max_map_miptex]();
-    hlassume(g_dtexdata != nullptr, assume_NoMemory);
+    g_dtexdata.resize(g_max_map_miptex, std::byte(0));
 }
 
 void dtexdata_free()
 {
-    delete g_dtexdata;
-    g_dtexdata = nullptr;
+    g_dtexdata.clear();
+	g_dtexdata.shrink_to_fit();
 	g_dlightdata.clear();
 	g_dlightdata.shrink_to_fit();
 }
@@ -1278,7 +1268,7 @@ char*           GetTextureByNumber(int texturenumber)
     int             ofs;
 
     info = &g_texinfo[texturenumber];
-    ofs = ((dmiptexlump_t*)g_dtexdata)->dataofs[info->miptex];
+    ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[info->miptex];
     miptex = (miptex_t*)(&g_dtexdata[ofs]);
 
     return miptex->name;

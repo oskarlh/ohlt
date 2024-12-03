@@ -472,7 +472,7 @@ static void		WriteTextures(const char* const name)
     std::filesystem::remove(texfilename);
 	if (!g_textureparse)
 	{
-		int dataofs = (int)(intptr_t)&((dmiptexlump_t*)NULL)->dataofs[((dmiptexlump_t*)g_dtexdata)->nummiptex];
+		int dataofs = (int)(intptr_t)&((dmiptexlump_t*)NULL)->dataofs[((dmiptexlump_t*)g_dtexdata.data())->nummiptex];
 		int wadofs = sizeof(wadinfo_t);
 
 		wadinfo_t header;
@@ -480,35 +480,35 @@ static void		WriteTextures(const char* const name)
 		header.identification[1] = 'A';
 		header.identification[2] = 'D';
 		header.identification[3] = '3';
-		header.numlumps = ((dmiptexlump_t*)g_dtexdata)->nummiptex;
+		header.numlumps = ((dmiptexlump_t*)g_dtexdata.data())->nummiptex;
 		header.infotableofs = g_texdatasize - dataofs + wadofs;
 		SafeWrite (wadfile, &header, wadofs);
 
-		SafeWrite (wadfile, (byte *)g_dtexdata + dataofs, g_texdatasize - dataofs);
+		SafeWrite (wadfile, (byte *)g_dtexdata.data() + dataofs, g_texdatasize - dataofs);
 
 		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata)->nummiptex * sizeof (lumpinfo_t));
+		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (lumpinfo_t));
 		hlassume (info != nullptr, assume_NoMemory);
 		memset (info, 0, header.numlumps * sizeof(lumpinfo_t));
 
 		for (int i = 0; i < header.numlumps; i++)
 		{
-			int ofs = ((dmiptexlump_t*)g_dtexdata)->dataofs[i];
+			int ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[i];
 			int size = 0;
 			if (ofs >= 0)
 			{
 				size = g_texdatasize - ofs;
-				for (int j = 0; j < ((dmiptexlump_t*)g_dtexdata)->nummiptex; ++j)
-					if (ofs < ((dmiptexlump_t*)g_dtexdata)->dataofs[j] &&
-						ofs + size > ((dmiptexlump_t*)g_dtexdata)->dataofs[j])
-						size = ((dmiptexlump_t*)g_dtexdata)->dataofs[j] - ofs;
+				for (int j = 0; j < ((dmiptexlump_t*)g_dtexdata.data())->nummiptex; ++j)
+					if (ofs < ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j] &&
+						ofs + size > ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j])
+						size = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j] - ofs;
 			}
 			info[i].filepos = ofs - dataofs + wadofs;
 			info[i].disksize = size;
 			info[i].size = size;
-			info[i].type = (ofs >= 0 && ((miptex_t*)(g_dtexdata+ofs))->offsets[0] > 0)? 67: 0; // prevent invalid texture from being processed by Wally
+			info[i].type = (ofs >= 0 && ((miptex_t*)(g_dtexdata.data()+ofs))->offsets[0] > 0)? 67: 0; // prevent invalid texture from being processed by Wally
 			info[i].compression = 0;
-			strcpy (info[i].name, ofs >= 0? ((miptex_t*)(g_dtexdata+ofs))->name: "\rTEXTUREMISSING");
+			strcpy (info[i].name, ofs >= 0? ((miptex_t*)(g_dtexdata.data()+ofs))->name: "\rTEXTUREMISSING");
 		}
 		SafeWrite (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
 		free (info);
@@ -526,16 +526,16 @@ static void		WriteTextures(const char* const name)
 		header.numlumps = 0;
 		
 		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata)->nummiptex * sizeof (lumpinfo_t)); // might be more than needed
+		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (lumpinfo_t)); // might be more than needed
 		hlassume (info != nullptr, assume_NoMemory);
 
-		fprintf (texfile, "%d\r\n", ((dmiptexlump_t*)g_dtexdata)->nummiptex);
+		fprintf (texfile, "%d\r\n", ((dmiptexlump_t*)g_dtexdata.data())->nummiptex);
 		fseek (wadfile, sizeof(wadinfo_t), SEEK_SET);
 
-		for (int itex = 0; itex < ((dmiptexlump_t*)g_dtexdata)->nummiptex; ++itex)
+		for (int itex = 0; itex < ((dmiptexlump_t*)g_dtexdata.data())->nummiptex; ++itex)
 		{
-			int ofs = ((dmiptexlump_t*)g_dtexdata)->dataofs[itex];
-			miptex_t *tex = (miptex_t*)(g_dtexdata+ofs);
+			int ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[itex];
+			miptex_t *tex = (miptex_t*)(g_dtexdata.data()+ofs);
 			if (ofs < 0)
 			{
 				fprintf (texfile, "[-1]\r\n");
@@ -543,10 +543,10 @@ static void		WriteTextures(const char* const name)
 			else
 			{
 				int size = g_texdatasize - ofs;
-				for (int j = 0; j < ((dmiptexlump_t*)g_dtexdata)->nummiptex; ++j)
-					if (ofs < ((dmiptexlump_t*)g_dtexdata)->dataofs[j] &&
-						ofs + size > ((dmiptexlump_t*)g_dtexdata)->dataofs[j])
-						size = ((dmiptexlump_t*)g_dtexdata)->dataofs[j] - ofs;
+				for (int j = 0; j < ((dmiptexlump_t*)g_dtexdata.data())->nummiptex; ++j)
+					if (ofs < ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j] &&
+						ofs + size > ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j])
+						size = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[j] - ofs;
 				bool included = false;
 				if (tex->offsets[0] > 0)
 					included = true;
@@ -595,11 +595,11 @@ static void		ReadTextures(const char *name)
 		wadinfo_t header;
 		int wadofs = sizeof(wadinfo_t);
 		SafeRead (wadfile, &header, wadofs);
-		((dmiptexlump_t*)g_dtexdata)->nummiptex = header.numlumps;
-		int dataofs = (int)(intptr_t)&((dmiptexlump_t*)NULL)->dataofs[((dmiptexlump_t*)g_dtexdata)->nummiptex];
+		((dmiptexlump_t*)g_dtexdata.data())->nummiptex = header.numlumps;
+		int dataofs = (int)(intptr_t)&((dmiptexlump_t*)NULL)->dataofs[((dmiptexlump_t*)g_dtexdata.data())->nummiptex];
 		g_texdatasize = header.infotableofs - wadofs + dataofs;
 
-		SafeRead (wadfile, (byte *)g_dtexdata + dataofs, g_texdatasize - dataofs);
+		SafeRead (wadfile, (byte *)g_dtexdata.data() + dataofs, g_texdatasize - dataofs);
 		
 		lumpinfo_t *info;
 		info = (lumpinfo_t *)malloc (header.numlumps * sizeof (lumpinfo_t));
@@ -608,7 +608,7 @@ static void		ReadTextures(const char *name)
 
 		for (int i = 0; i < header.numlumps; i++)
 		{
-			((dmiptexlump_t*)g_dtexdata)->dataofs[i] = info[i].filepos - wadofs + dataofs;
+			((dmiptexlump_t*)g_dtexdata.data())->dataofs[i] = info[i].filepos - wadofs + dataofs;
 		}
 
 		free (info);
@@ -630,8 +630,8 @@ static void		ReadTextures(const char *name)
 		int nummiptex = 0;
 		if (skipspace (texfile), fscanf (texfile, "%d", &nummiptex) != 1)
 			Error ("File read failure");
-		((dmiptexlump_t*)g_dtexdata)->nummiptex = nummiptex;
-		g_texdatasize = (std::byte *)(&((dmiptexlump_t*)g_dtexdata)->dataofs[nummiptex]) - g_dtexdata;
+		((dmiptexlump_t*)g_dtexdata.data())->nummiptex = nummiptex;
+		g_texdatasize = (std::byte *)(&((dmiptexlump_t*)g_dtexdata.data())->dataofs[nummiptex]) - g_dtexdata.data();
 
 		for (int itex = 0; itex < nummiptex; ++itex)
 		{
@@ -640,7 +640,7 @@ static void		ReadTextures(const char *name)
 				Error ("File read failure");
 			if (len < 0)
 			{
-				((dmiptexlump_t*)g_dtexdata)->dataofs[itex] = -1;
+				((dmiptexlump_t*)g_dtexdata.data())->dataofs[itex] = -1;
 			}
 			else
 			{
@@ -649,8 +649,8 @@ static void		ReadTextures(const char *name)
 					Error ("Texture name is too long");
 				memset (name, '\0', 16);
 				SafeRead (texfile, name, len);
-				((dmiptexlump_t*)g_dtexdata)->dataofs[itex] = g_texdatasize;
-				miptex_t *tex = (miptex_t*)(g_dtexdata + g_texdatasize);
+				((dmiptexlump_t*)g_dtexdata.data())->dataofs[itex] = g_texdatasize;
+				miptex_t *tex = (miptex_t*)(g_dtexdata.data() + g_texdatasize);
 				int j;
 				for (j = 0; j < header.numlumps; ++j)
 					if (!strcasecmp (name, info[j].name))

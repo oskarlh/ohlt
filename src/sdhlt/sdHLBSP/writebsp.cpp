@@ -613,7 +613,7 @@ void            FinishBSPFile(const bsp_data& bspData)
 			g_numtexinfo = g_nummappedtexinfo;
 		}
 		{
-			dmiptexlump_t *l = (dmiptexlump_t *)g_dtexdata;
+			dmiptexlump_t *l = (dmiptexlump_t *)g_dtexdata.data();
 			int &g_nummiptex = l->nummiptex;
 			bool *Used = (bool *)calloc (g_nummiptex, sizeof(bool));
 			int Num = 0, Size = 0;

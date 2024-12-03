@@ -374,10 +374,14 @@ struct bsp_data {
 	int             visDataByteSize{0};
 	int             visDataChecksum{0};
 
+    // This one can be resized and reallocated
 	std::vector<std::byte> lightData;
 	int lightDataChecksum{0};
 
-	std::byte* textureData{nullptr}; // (dmiptexlump_t)
+    // This one can perhaps not be resized and reallocated
+    // Now it's always initialized with g_max_map_miptex 0s
+    // TODO: See if that can be changed
+	std::vector<std::byte> textureData; // (dmiptexlump_t)
 	int textureDataByteSize{0};
 	int textureDataChecksum{0};
 
@@ -444,9 +448,9 @@ extern int& g_dvisdata_checksum;
 extern std::vector<std::byte>& g_dlightdata;
 extern int& g_dlightdata_checksum;
 
-extern int&      g_texdatasize;
-extern std::byte*&    g_dtexdata;                                  // (dmiptexlump_t)
-extern int&      g_dtexdata_checksum;
+extern int& g_texdatasize;
+extern std::vector<std::byte>& g_dtexdata; // (dmiptexlump_t)
+extern int& g_dtexdata_checksum;
 
 extern int&      g_entdatasize;
 extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;

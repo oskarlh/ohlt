@@ -114,10 +114,10 @@ std::size_t count_blocks (const bsp_data& bspData)
 
 bool no_wad_textures (const bsp_data& bspData)
 {
-	const int numtextures = bspGlobals.textureDataByteSize ? ((const dmiptexlump_t *) bspData.textureData)->nummiptex: 0;
+	const int numtextures = bspGlobals.textureDataByteSize ? ((const dmiptexlump_t *) bspData.textureData.data())->nummiptex: 0;
 	for (int i = 0; i < numtextures; i++)
 	{
-		const int offset = ((const dmiptexlump_t*) bspData.textureData)->dataofs[i];
+		const int offset = ((const dmiptexlump_t*) bspData.textureData.data())->dataofs[i];
 		std::size_t size = bspGlobals.textureDataByteSize - offset;
 		if (offset < 0 || size < sizeof (miptex_t))
 		{
@@ -223,7 +223,7 @@ static int      global_usage(const char* const szItem, const int itemstorage, co
 // =====================================================================================
 void print_bsp_file_sizes(const bsp_data& bspData)
 {
-    int             numtextures = bspData.textureDataByteSize ? ((dmiptexlump_t*)bspData.textureData)->nummiptex : 0;
+    int             numtextures = bspData.textureDataByteSize ? ((dmiptexlump_t*)bspData.textureData.data())->nummiptex : 0;
     int             totalmemory = 0;
 	std::size_t numallocblocks = count_blocks (bspData);
 	std::size_t maxallocblocks = 64;

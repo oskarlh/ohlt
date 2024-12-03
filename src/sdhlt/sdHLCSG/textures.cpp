@@ -650,7 +650,7 @@ void            WriteMiptex()
         int             i;
 
         // Now setup to get the miptex data (or just the headers if using -wadtextures) from the wadfile
-        l = (dmiptexlump_t*)g_dtexdata;
+        l = (dmiptexlump_t*)g_dtexdata.data();
         data = (std::byte*) & l->dataofs[nummiptex];
         l->nummiptex = nummiptex;
 		char writewad_name[_MAX_PATH]; //Write temp wad file with processed textures
@@ -722,7 +722,7 @@ void            WriteMiptex()
             }
             data += len;
         }
-        g_texdatasize = data - g_dtexdata;
+        g_texdatasize = data - g_dtexdata.data();
         //Write lump info and header to the temp wad file
 		writewad_header.infotableofs = ftell (writewad_file);
 		SafeWrite (writewad_file, writewad_lumpinfos, writewad_header.numlumps * sizeof (dlumpinfo_t));

@@ -568,8 +568,8 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
     //
     tx = &g_texinfo[f->texinfo];
 
-    ofs = ((dmiptexlump_t*)g_dtexdata)->dataofs[tx->miptex];
-    mt = (miptex_t*)((byte*) g_dtexdata + ofs);
+    ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
+    mt = (miptex_t*)((byte*) g_dtexdata.data() + ofs);
 
     LightForTexture(mt->name, light);
 }
@@ -1010,7 +1010,7 @@ void ReadCustomChopValue()
 	int i, k;
 	entity_t *mapent;
 
-	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
+	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
 	chopscales = std::make_unique<vec_t[]>(num);
 	for (i = 0; i < num; i++)
 	{
@@ -1024,7 +1024,7 @@ void ReadCustomChopValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
+			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
@@ -1050,7 +1050,7 @@ void ReadCustomSmoothValue()
 	int i, k;
 	entity_t *mapent;
 
-	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
+	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
 	g_smoothvalues = (vec_t *)malloc (num * sizeof(vec_t));
 	for (i = 0; i < num; i++)
 	{
@@ -1064,7 +1064,7 @@ void ReadCustomSmoothValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
+			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
@@ -1083,7 +1083,7 @@ void ReadTranslucentTextures()
 	int i, k;
 	entity_t *mapent;
 
-	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
+	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
 	g_translucenttextures = (vec3_t *)malloc (num * sizeof(vec3_t));
 	for (i = 0; i < num; i++)
 	{
@@ -1097,7 +1097,7 @@ void ReadTranslucentTextures()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
+			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
@@ -1144,7 +1144,7 @@ void ReadLightingCone ()
 	entity_t *mapent;
 	epair_t *ep;
 
-	num = ((dmiptexlump_t *)g_dtexdata)->nummiptex;
+	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
 	g_lightingconeinfo = (vec3_t *)malloc (num * sizeof(vec3_t));
 	for (i = 0; i < num; i++)
 	{
@@ -1159,7 +1159,7 @@ void ReadLightingCone ()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata+((dmiptexlump_t*)g_dtexdata)->dataofs[i]))->name;
+			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
 			for (ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
