@@ -631,7 +631,7 @@ static void		ReadTextures(const char *name)
 		if (skipspace (texfile), fscanf (texfile, "%d", &nummiptex) != 1)
 			Error ("File read failure");
 		((dmiptexlump_t*)g_dtexdata)->nummiptex = nummiptex;
-		g_texdatasize = (byte *)(&((dmiptexlump_t*)g_dtexdata)->dataofs[nummiptex]) - g_dtexdata;
+		g_texdatasize = (std::byte *)(&((dmiptexlump_t*)g_dtexdata)->dataofs[nummiptex]) - g_dtexdata;
 
 		for (int itex = 0; itex < nummiptex; ++itex)
 		{

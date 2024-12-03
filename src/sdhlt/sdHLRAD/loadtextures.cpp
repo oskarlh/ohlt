@@ -888,9 +888,9 @@ void NewTextures_Write ()
 	int i;
 	dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata;
 
-	byte *dataaddr = (byte *)&texdata->dataofs[texdata->nummiptex];
+	std::byte *dataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex];
 	int datasize = (g_dtexdata + g_texdatasize) - dataaddr;
-	byte *newdataaddr = (byte *)&texdata->dataofs[texdata->nummiptex + g_newtextures_num];
+	std::byte *newdataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex + g_newtextures_num];
 	hlassume (g_texdatasize + (newdataaddr - dataaddr) <= g_max_map_miptex, assume_MAX_MAP_MIPTEX);
 	memmove (newdataaddr, dataaddr, datasize);
 	g_texdatasize += newdataaddr - dataaddr;
@@ -941,10 +941,10 @@ static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, ve
 	}
 	for (int k = 0; k < MAXLIGHTMAPS && face->styles[k] != 255; k++)
 	{
-		byte *samples = &g_dlightdata[face->lightofs + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
+		std::byte *samples = &g_dlightdata[face->lightofs + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
 		if (face->styles[k] == 0)
 		{
-			VectorAdd (light, &samples[(iy * (texsize[0] + 1) + ix) * 3], light);
+			VectorAdd (light, (const std::uint8_t*) &samples[(iy * (texsize[0] + 1) + ix) * 3], light);
 		}
 	}
 }
@@ -988,7 +988,7 @@ static bool GetValidTextureName (int miptex, char name[16])
 	}
 	offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[miptex];
 	size = g_texdatasize - offset;
-	if (offset < 0 || g_dtexdata + offset < (byte *)&((dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
+	if (offset < 0 || g_dtexdata + offset < (std::byte *)&((dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
 		size < (int)sizeof (miptex_t))
 	{
 		return false;

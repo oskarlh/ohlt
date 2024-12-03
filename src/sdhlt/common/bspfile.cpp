@@ -33,20 +33,20 @@ std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
 int& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
 int& g_lightdatasize{bspGlobals.lightDataByteSize};
-byte*& g_dlightdata{bspGlobals.lightData};
+std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
 int& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
 int& g_texdatasize{bspGlobals.textureDataByteSize};
-byte*& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
+std::byte*& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
 int& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
 
 int& g_entdatasize{bspGlobals.entityDataLength};
 std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata{bspGlobals.entityData};
 int& g_dentdata_checksum{bspGlobals.entityDataChecksum};
 
-int             g_numleafs;
-dleaf_t         g_dleafs[MAX_MAP_LEAFS];
-int             g_dleafs_checksum;
+int& g_numleafs{bspGlobals.leafsLength};
+std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs{bspGlobals.leafs};
+int& g_dleafs_checksum{bspGlobals.leafsChecksum};
 
 int             g_numplanes;
 dplane_t        g_dplanes[MAX_INTERNAL_MAP_PLANES];
@@ -333,7 +333,7 @@ void            LoadBSPImage(dheader_t* const header)
 
     g_numvertexes = CopyLump(LUMP_VERTEXES, g_dvertexes, sizeof(dvertex_t), header);
     g_numplanes = CopyLump(LUMP_PLANES, g_dplanes, sizeof(dplane_t), header);
-    g_numleafs = CopyLump(LUMP_LEAFS, g_dleafs, sizeof(dleaf_t), header);
+    g_numleafs = CopyLump(LUMP_LEAFS, g_dleafs.data(), sizeof(dleaf_t), header);
     g_numnodes = CopyLump(LUMP_NODES, g_dnodes, sizeof(dnode_t), header);
     g_numtexinfo = CopyLump(LUMP_TEXINFO, g_texinfo, sizeof(texinfo_t), header);
     g_numclipnodes = CopyLump(LUMP_CLIPNODES, g_dclipnodes, sizeof(dclipnode_t), header);
@@ -349,7 +349,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata.data(), 1, header);
 
 	auto lightingData = get_lump_data<lump_id::lighting>(header);
-	memcpy(g_dlightdata, lightingData.data(), lightingData.size() * sizeof(lightingData[0]));
+	memcpy(g_dlightdata.data(), lightingData.data(), lightingData.size() * sizeof(lightingData[0]));
 	g_lightdatasize = lightingData.size();
     g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
 
@@ -359,7 +359,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_dmodels_checksum = fast_checksum(std::span(g_dmodels.data(), g_nummodels));
     g_dvertexes_checksum = FastChecksum(g_dvertexes, g_numvertexes * sizeof(g_dvertexes[0]));
     g_dplanes_checksum = FastChecksum(g_dplanes, g_numplanes * sizeof(g_dplanes[0]));
-    g_dleafs_checksum = FastChecksum(g_dleafs, g_numleafs * sizeof(g_dleafs[0]));
+    g_dleafs_checksum = FastChecksum(g_dleafs.data(), g_numleafs * sizeof(g_dleafs[0]));
     g_dnodes_checksum = FastChecksum(g_dnodes, g_numnodes * sizeof(g_dnodes[0]));
     g_texinfo_checksum = FastChecksum(g_texinfo, g_numtexinfo * sizeof(g_texinfo[0]));
     g_dclipnodes_checksum = FastChecksum(g_dclipnodes, g_numclipnodes * sizeof(g_dclipnodes[0]));
@@ -369,7 +369,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_dedges_checksum = FastChecksum(g_dedges, g_numedges * sizeof(g_dedges[0]));
     g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata, g_texdatasize));
     g_dvisdata_checksum = FastChecksum(g_dvisdata.data(), g_visdatasize * sizeof(g_dvisdata[0]));
-    g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata, g_lightdatasize));
+    g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata.begin(), g_lightdatasize));
     g_dentdata_checksum = FastChecksum(g_dentdata.data(), g_entdatasize * sizeof(g_dentdata[0]));
 }
 
@@ -418,7 +418,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
 
     //      LUMP TYPE       DATA            LENGTH                              HEADER  BSPFILE   
     AddLump(LUMP_PLANES,    g_dplanes,      g_numplanes * sizeof(dplane_t),     header, bspfile);
-    AddLump(LUMP_LEAFS,     g_dleafs,       g_numleafs * sizeof(dleaf_t),       header, bspfile);
+    AddLump(LUMP_LEAFS,     g_dleafs.data(),       g_numleafs * sizeof(dleaf_t),       header, bspfile);
     AddLump(LUMP_VERTEXES,  g_dvertexes,    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
     AddLump(LUMP_NODES,     g_dnodes,       g_numnodes * sizeof(dnode_t),       header, bspfile);
     AddLump(LUMP_TEXINFO,   g_texinfo,      g_numtexinfo * sizeof(texinfo_t),   header, bspfile);
@@ -430,7 +430,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     AddLump(LUMP_EDGES,     g_dedges,       g_numedges * sizeof(dedge_t),       header, bspfile);
     AddLump(LUMP_MODELS,    g_dmodels.data(),      g_nummodels * sizeof(dmodel_t),     header, bspfile);
 
-    add_lump<lump_id::lighting>(std::span<std::byte>((std::byte*) g_dlightdata, g_lightdatasize), header, bspfile);
+    add_lump<lump_id::lighting>(std::span<std::byte>(g_dlightdata.begin(), g_lightdatasize), header, bspfile);
     AddLump(LUMP_VISIBILITY,g_dvisdata.data(),     g_visdatasize,                      header, bspfile);
     AddLump(LUMP_ENTITIES,  g_dentdata.data(),     g_entdatasize,                      header, bspfile);
     add_lump<lump_id::textures>(std::span<std::byte>((std::byte*) g_dtexdata, g_texdatasize), header, bspfile);
@@ -597,7 +597,7 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 	}
 	offset = ((dmiptexlump_t *)g_dtexdata)->dataofs[miptex];
 	size = g_texdatasize - offset;
-	if (offset < 0 || g_dtexdata + offset < (byte *)&((dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
+	if (offset < 0 || g_dtexdata + offset < (const std::byte *)&((const dmiptexlump_t *)g_dtexdata)->dataofs[numtextures] ||
 		size < (int)sizeof (miptex_t))
 	{
 		return -1;
@@ -744,9 +744,9 @@ void DeleteEmbeddedLightmaps ()
 		if (numremaining < numtextures)
 		{
 			dmiptexlump_t *texdata = (dmiptexlump_t *)g_dtexdata;
-			byte *dataaddr = (byte *)&texdata->dataofs[texdata->nummiptex];
+			std::byte *dataaddr = (std::byte *)&texdata->dataofs[texdata->nummiptex];
 			int datasize = (g_dtexdata + texdata->dataofs[numremaining]) - dataaddr;
-			byte *newdataaddr = (byte *)&texdata->dataofs[numremaining];
+			std::byte *newdataaddr = (std::byte *)&texdata->dataofs[numremaining];
 			memmove (newdataaddr, dataaddr, datasize);
 			g_texdatasize = (newdataaddr + datasize) - g_dtexdata;
 			texdata->nummiptex = numremaining;
@@ -1253,18 +1253,17 @@ entity_t *FindTargetEntity(std::u8string_view target) {
 
 void            dtexdata_init()
 {
-    g_dtexdata = (byte*)new std::byte[g_max_map_miptex]();
+    g_dtexdata = new std::byte[g_max_map_miptex]();
     hlassume(g_dtexdata != nullptr, assume_NoMemory);
-	g_dlightdata = (byte*) new std::byte[g_max_map_lightdata]();
-	hlassume(g_dlightdata != nullptr, assume_NoMemory);
+	g_dlightdata.resize(g_max_map_lightdata);
 }
 
 void dtexdata_free()
 {
     delete g_dtexdata;
     g_dtexdata = nullptr;
-	delete g_dlightdata;
-	g_dlightdata = nullptr;
+	g_dlightdata.clear();
+	g_dlightdata.shrink_to_fit();
 }
 
 // =====================================================================================

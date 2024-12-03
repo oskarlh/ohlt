@@ -412,9 +412,9 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 // =====================================================================================
 //  LoadLump
 // =====================================================================================
-int             LoadLump(const lumpinfo_t* const source, byte* dest, int* texsize
+static int             LoadLump(const lumpinfo_t* const source, std::byte* dest, int* texsize
 						, int dest_maxsize
-						, byte *&writewad_data, int &writewad_datasize
+						, std::byte *&writewad_data, int &writewad_datasize
 						)
 {
 	writewad_data = nullptr;
@@ -442,7 +442,7 @@ int             LoadLump(const lumpinfo_t* const source, byte* dest, int* texsiz
 
             for (i = 0; i < MIPLEVELS; i++)
                 miptex->offsets[i] = 0;
-			writewad_data = (byte *)malloc (source->disksize);
+			writewad_data = (std::byte *)malloc (source->disksize);
 			hlassume (writewad_data != nullptr, assume_NoMemory);
 			if (fseek (texfiles[source->iTexFile], source->filepos, SEEK_SET))
 				Error ("File read failure");
@@ -521,7 +521,7 @@ void            AddAnimatingTextures()
 void            WriteMiptex()
 {
     int             len, texsize, totaltexsize = 0;
-    byte*           data;
+    std::byte*           data;
     dmiptexlump_t*  l;
     double          start, end;
 
@@ -651,7 +651,7 @@ void            WriteMiptex()
 
         // Now setup to get the miptex data (or just the headers if using -wadtextures) from the wadfile
         l = (dmiptexlump_t*)g_dtexdata;
-        data = (byte*) & l->dataofs[nummiptex];
+        data = (std::byte*) & l->dataofs[nummiptex];
         l->nummiptex = nummiptex;
 		char writewad_name[_MAX_PATH]; //Write temp wad file with processed textures
 		FILE *writewad_file;
@@ -688,8 +688,8 @@ void            WriteMiptex()
 			Error ("File write failure");
         for (i = 0; i < nummiptex; i++) //Process each miptex, writing its data to the temp wad file
         {
-            l->dataofs[i] = data - (byte*) l;
-			byte *writewad_data;
+            l->dataofs[i] = data - (std::byte*) l;
+			std::byte *writewad_data;
 			int writewad_datasize;
 			len = LoadLump (miptex + i, data, &texsize, &g_dtexdata[g_max_map_miptex] - data, writewad_data, writewad_datasize); //Load lump data
 

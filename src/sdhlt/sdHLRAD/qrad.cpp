@@ -1943,7 +1943,7 @@ static void     SortPatches()
 	for (unsigned x = 0; x < g_num_patches; x++)
 	{
 		patch_t *patch = &g_patches[x];
-		patch->leafnum = PointInLeaf (patch->origin) - g_dleafs;
+		patch->leafnum = PointInLeaf (patch->origin) - g_dleafs.data();
 	}
 }
 
@@ -2663,7 +2663,7 @@ static void     RadWorld()
 	if (g_lightdatasize == 0)
 	{
 		g_lightdatasize = 1;
-		g_dlightdata[0] = 0;
+		g_dlightdata[0] = std::byte(0);
 	}
 	ExtendLightmapBuffer (); // expand the size of lightdata array (for a few KB) to ensure that game engine reads within its valid range
 }

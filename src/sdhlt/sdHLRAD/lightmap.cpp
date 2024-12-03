@@ -1658,7 +1658,7 @@ void            CreateDirectLights()
             VectorCopy(p->origin, dl->origin);
 
             leaf = PointInLeaf(const_vec3_arg(dl->origin));
-            leafnum = leaf - g_dleafs;
+            leafnum = leaf - g_dleafs.data();
 
             dl->next = directlights[leafnum];
             directlights[leafnum] = dl;
@@ -1725,7 +1725,7 @@ void            CreateDirectLights()
 				VectorMA (dl->origin, -2, dl->normal, dl2->origin);
 				VectorSubtract (vec3_origin, dl->normal, dl2->normal);
 				leaf = PointInLeaf (const_vec3_arg(dl2->origin));
-				leafnum = leaf - g_dleafs;
+				leafnum = leaf - g_dleafs.data();
 				dl2->next = directlights[leafnum];
 				directlights[leafnum] = dl2;
 			}
@@ -1793,7 +1793,7 @@ void            CreateDirectLights()
         GetVectorForKey(e, u8"origin", dl->origin);
 
         leaf = PointInLeaf(const_vec3_arg(dl->origin));
-        leafnum = leaf - g_dleafs;
+        leafnum = leaf - g_dleafs.data();
 
         dl->next = directlights[leafnum];
         directlights[leafnum] = dl;
@@ -4270,10 +4270,8 @@ void            PrecompLightmapOffsets()
 }
 void ReduceLightmap ()
 {
-	byte *oldlightdata = (byte *)malloc (g_lightdatasize);
-	hlassume (oldlightdata != nullptr, assume_NoMemory);
-	memcpy (oldlightdata, g_dlightdata, g_lightdatasize);
-	g_lightdatasize = 0;
+	std::vector<std::byte> oldlightdata{g_dlightdata};
+	std::size_t newLightDataSize = 0;
 
 	int facenum;
 	for (facenum = 0; facenum < g_numfaces; facenum++)
@@ -4287,47 +4285,13 @@ void ReduceLightmap ()
 		// just need to zero the lightmap so that it won't contribute to lightdata size
 		if (IntForKey (g_face_entity[facenum], u8"zhlt_striprad"))
 		{
-			f->lightofs = g_lightdatasize;
+			f->lightofs = newLightDataSize;
 			for (int k = 0; k < MAXLIGHTMAPS; k++)
 			{
 				f->styles[k] = 255;
 			}
 			continue;
 		}
-#if 0 //debug. --vluzacn
-		const char *lightmapcolor = ValueForKey (g_face_entity[facenum], u8"zhlt_rad");
-		if (*lightmapcolor)
-		{
-			hlassume (MAXLIGHTMAPS == 4, assume_first);
-			int styles[4], values[4][3];
-			if (sscanf (lightmapcolor, "%d=%d,%d,%d %d=%d,%d,%d %d=%d,%d,%d %d=%d,%d,%d"
-					, &styles[0], &values[0][0], &values[0][1], &values[0][2]
-					, &styles[1], &values[1][0], &values[1][1], &values[1][2]
-					, &styles[2], &values[2][0], &values[2][1], &values[2][2]
-					, &styles[3], &values[3][0], &values[3][1], &values[3][2]
-				) != 16)
-			{
-				Error ("Bad value for 'zhlt_rad'.");
-			}
-			f->lightofs = g_lightdatasize;
-			int i, k;
-			for (k = 0; k < 4; k++)
-			{
-				f->styles[k] = 255;
-			}
-			for (k = 0; k < 4 && styles[k] != 255; k++)
-			{
-				f->styles[k] = styles[k];
-				hlassume (g_lightdatasize + fl->numsamples * 3 <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
-				for (i = 0; i < fl->numsamples; i++)
-				{
-					VectorCopy (values[k], (byte *)&g_dlightdata[g_lightdatasize + i * 3]);
-				}
-				g_lightdatasize += fl->numsamples * 3;
-			}
-			continue;
-		}
-#endif
 		if (f->lightofs == -1)
 		{
 			continue;
@@ -4337,7 +4301,7 @@ void ReduceLightmap ()
 		int oldofs;
 		unsigned char oldstyles[MAXLIGHTMAPS];
 		oldofs = f->lightofs;
-		f->lightofs = g_lightdatasize;
+		f->lightofs = newLightDataSize;
 		for (k = 0; k < MAXLIGHTMAPS; k++)
 		{
 			oldstyles[k] = f->styles[k];
@@ -4349,21 +4313,21 @@ void ReduceLightmap ()
 			unsigned char maxb = 0;
 			for (i = 0; i < fl->numsamples; i++)
 			{
-				unsigned char *v = &oldlightdata[oldofs + fl->numsamples * 3 * k + i * 3];
-				maxb = std::max(maxb, VectorMaximum (v));
+				std::byte *v = &oldlightdata[oldofs + fl->numsamples * 3 * k + i * 3];
+				maxb = std::max({maxb, (std::uint8_t) v[0], (std::uint8_t) v[1], (std::uint8_t) v[2]});
 			}
 			if (maxb <= 0) // black
 			{
 				continue;
 			}
 			f->styles[numstyles] = oldstyles[k];
-			hlassume (g_lightdatasize + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
+			hlassume (newLightDataSize + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
 			memcpy (&g_dlightdata[f->lightofs + fl->numsamples * 3 * numstyles], &oldlightdata[oldofs + fl->numsamples * 3 * k], fl->numsamples * 3);
 			numstyles++;
 		}
-		g_lightdatasize += fl->numsamples * 3 * numstyles;
+		newLightDataSize += fl->numsamples * 3 * numstyles;
 	}
-	free (oldlightdata);
+	g_lightdatasize = newLightDataSize;
 }
 
 
@@ -4392,7 +4356,7 @@ typedef struct
 		{
 			int num;
 			vec3_t pos;
-			unsigned char* (style[ALLSTYLES]);
+			std::byte* (style[ALLSTYLES]);
 		}
 		sample[MLH_MAXSAMPLECOUNT];
 		int samplecount;
@@ -5051,11 +5015,11 @@ void            FinalLightFace(const int facenum)
 				if (lbi[i] > 255) lbi[i] = 255;
 			}
             {
-                unsigned char* colors = &g_dlightdata[f->lightofs + k * fl->numsamples * 3 + j * 3];
+                std::byte* colors = &g_dlightdata[f->lightofs + k * fl->numsamples * 3 + j * 3];
 
-                colors[0] = (unsigned char)lbi[0];
-                colors[1] = (unsigned char)lbi[1];
-                colors[2] = (unsigned char)lbi[2];
+                colors[0] = (std::byte) lbi[0];
+                colors[1] = (std::byte) lbi[1];
+                colors[2] = (std::byte) lbi[2];
             }
         }
     }

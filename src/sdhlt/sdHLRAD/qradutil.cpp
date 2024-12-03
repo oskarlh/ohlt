@@ -26,9 +26,9 @@ dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_array& point)
 			dleaf_t* result[2];
 			result[0] = PointInLeaf_Worst_r(node->children[0], point);
 			result[1] = PointInLeaf_Worst_r(node->children[1], point);
-			if (result[0] == g_dleafs || result[0]->contents == CONTENTS_SOLID)
+			if (result[0] == g_dleafs.data() || result[0]->contents == CONTENTS_SOLID)
 				return result[0];
-			if (result[1] == g_dleafs || result[1]->contents == CONTENTS_SOLID)
+			if (result[1] == g_dleafs.data() || result[1]->contents == CONTENTS_SOLID)
 				return result[1];
 			if (result[0]->contents == CONTENTS_SKY)
 				return result[0];
@@ -36,7 +36,7 @@ dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_array& point)
 				return result[1];
 			if (result[0]->contents == result[1]->contents)
 				return result[0];
-			return g_dleafs;
+			return g_dleafs.data();
 		}
 	}
 
@@ -224,7 +224,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
 					}
                     if (dist < best_dist)
                     {
-                        if ((leaf = PointInLeaf_Worst(const_vec3_arg(current_point))) != g_dleafs)
+                        if ((leaf = PointInLeaf_Worst(const_vec3_arg(current_point))) != g_dleafs.data())
                         {
                             if ((leaf->contents != CONTENTS_SKY) && (leaf->contents != CONTENTS_SOLID))
                             {

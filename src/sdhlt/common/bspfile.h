@@ -374,21 +374,21 @@ struct bsp_data {
 	int             visDataByteSize{0};
 	int             visDataChecksum{0};
 
-	byte*           lightData{nullptr};
-	int             lightDataByteSize{0};
-	int             lightDataChecksum{0};
+	std::vector<std::byte> lightData;
+	int lightDataByteSize{0};
+	int lightDataChecksum{0};
 
-	byte*           textureData{nullptr}; // (dmiptexlump_t)
-	int             textureDataByteSize{0};
-	int             textureDataChecksum{0};
+	std::byte* textureData{nullptr}; // (dmiptexlump_t)
+	int textureDataByteSize{0};
+	int textureDataChecksum{0};
 
 	std::array<char8_t, MAX_MAP_ENTSTRING> entityData;
 	int             entityDataChecksum;
 	int             entityDataLength;
 
-	dleaf_t         g_dleafs[MAX_MAP_LEAFS];
-	int             g_dleafs_checksum;
-	int             g_numleafs;
+	std::array<dleaf_t, MAX_MAP_LEAFS> leafs;
+	int             leafsChecksum;
+	int             leafsLength;
 
 	dplane_t        g_dplanes[MAX_INTERNAL_MAP_PLANES];
 	int             g_dplanes_checksum;
@@ -443,20 +443,20 @@ extern std::array<byte, MAX_MAP_VISIBILITY>&     g_dvisdata;
 extern int&      g_dvisdata_checksum;
 
 extern int&      g_lightdatasize;
-extern byte*&    g_dlightdata;
+extern std::vector<std::byte>&    g_dlightdata;
 extern int&      g_dlightdata_checksum;
 
 extern int&      g_texdatasize;
-extern byte*&    g_dtexdata;                                  // (dmiptexlump_t)
+extern std::byte*&    g_dtexdata;                                  // (dmiptexlump_t)
 extern int&      g_dtexdata_checksum;
 
 extern int&      g_entdatasize;
 extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;
 extern int&      g_dentdata_checksum;
 
-extern int      g_numleafs;
-extern dleaf_t  g_dleafs[MAX_MAP_LEAFS];
-extern int      g_dleafs_checksum;
+extern int&      g_numleafs;
+extern std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs;
+extern int&      g_dleafs_checksum;
 
 extern int      g_numplanes;
 extern dplane_t g_dplanes[MAX_INTERNAL_MAP_PLANES];

@@ -241,7 +241,7 @@ void print_bsp_file_sizes(const bsp_data& bspData)
     totalmemory += array_usage("faces", g_numfaces, bspData.faces.size(), sizeof(bspData.faces[0]));
 	totalmemory += array_usage("* worldfaces", (bspData.mapModelsLength > 0 ? bspData.mapModels[0].numfaces: 0), MAX_MAP_WORLDFACES, 0);
     totalmemory += array_usage("clipnodes", g_numclipnodes, ENTRIES(g_dclipnodes), ENTRYSIZE(g_dclipnodes));
-    totalmemory += array_usage("leaves", g_numleafs, MAX_MAP_LEAFS, ENTRYSIZE(g_dleafs));
+    totalmemory += array_usage("leaves", g_numleafs, MAX_MAP_LEAFS, sizeof(bspData.leafs[0]));
     totalmemory += array_usage("* worldleaves", (bspData.mapModelsLength > 0 ? bspData.mapModels[0].visleafs: 0), MAX_MAP_LEAFS_ENGINE, 0);
     totalmemory += array_usage("marksurfaces", g_nummarksurfaces, ENTRIES(g_dmarksurfaces), ENTRYSIZE(g_dmarksurfaces));
     totalmemory += array_usage("surfedges", g_numsurfedges, ENTRIES(g_dsurfedges), ENTRYSIZE(g_dsurfedges));
