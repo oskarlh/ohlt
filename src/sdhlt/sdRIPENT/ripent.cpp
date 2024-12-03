@@ -772,7 +772,6 @@ static void     Usage(void)
 	Banner();
 	Log("\n-= %s Options =-\n\n", g_Program);
 
-	Log("    -lang file      : localization file\n");
 	Log("    -export         : Export entity data\n");
 	Log("    -import         : Import entity data\n\n");
 
@@ -956,17 +955,6 @@ int             main(int argc, char** argv)
 		else if (!strcasecmp(argv[i], "-deleteembeddedlightmaps"))
 		{
 			g_deleteembeddedlightmaps = true;
-		}
-		else if (!strcasecmp (argv[i], "-lang"))
-		{
-			if (i + 1 < argc)
-			{
-				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
-			}
-			else
-			{
-				Usage();
-			}
 		}
 		else if (argv[i][0] == '-') //--vluzacn
 		{

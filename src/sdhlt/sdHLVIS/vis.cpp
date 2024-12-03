@@ -769,7 +769,6 @@ static void     Usage()
     Banner();
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -lang file      : localization file\n");
     Log("    -full           : Full vis\n");
     Log("    -fast           : Fast vis\n\n");
     Log("    -nofixprt       : Disables optimization of portal file for import to J.A.C.K. map editor\n\n"); //seedee
@@ -1120,18 +1119,6 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-lang"))
-		{
-			if (i + 1 < argc)
-			{
-				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
-			}
-			else
-			{
-				Usage();
-			}
-		}
-
         else if (argv[i][0] == '-')
         {
             Log("Unknown option \"%s\"", argv[i]);

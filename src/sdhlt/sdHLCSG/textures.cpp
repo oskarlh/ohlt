@@ -34,7 +34,7 @@ typedef struct
 
 } lumpinfo_t;
 
-std::deque< std::string > g_WadInclude;
+std::deque<std::u8string> g_WadInclude;
 
 static int      nummiptex = 0;
 static lumpinfo_t miptex[MAX_MAP_TEXTURES];
@@ -175,13 +175,13 @@ bool            TEX_InitFromWad()
 {
     int             i, j;
     wadinfo_t       wadinfo;
-    char*           pszWadFile;
+    std::u8string_view pszWadFile;
     const char*     pszWadroot;
     wadpath_t*      currentwad;
 
     Log("\n"); // looks cleaner
 	// update wad inclusion
-	for (i = 0; i < g_iNumWadPaths; i++) // loop through all wadpaths in map
+	for (i = 0; i < g_pWadPaths.size(); i++) // loop through all wadpaths in map
 	{
         currentwad = g_pWadPaths[i];
 		if (!g_wadtextures) //If -nowadtextures used
@@ -190,7 +190,7 @@ bool            TEX_InitFromWad()
 		}
 		for (WadInclude_i it = g_WadInclude.begin (); it != g_WadInclude.end (); it++) //Check -wadinclude list
 		{
-			if (stristr (currentwad->path, it->c_str ()))
+			if (a_contains_b_ignoring_ascii_character_case_differences (currentwad->path, *it))
 			{
 				currentwad->usedbymap = false;
 			}
@@ -200,25 +200,13 @@ bool            TEX_InitFromWad()
     pszWadroot = getenv("WADROOT");
 
     // for eachwadpath
-    for (i = 0; i < g_iNumWadPaths; i++)
+    for (i = 0; i < g_pWadPaths.size(); i++)
     {
         FILE* texfile; // temporary used in this loop
         currentwad = g_pWadPaths[i];
         pszWadFile = currentwad->path;
 		texwadpathes[nTexFiles] = currentwad;
-        texfiles[nTexFiles] = fopen(pszWadFile, "rb");
-
-        #ifdef SYSTEM_WIN32
-        if (!texfiles[nTexFiles])
-        {
-            // cant find it, maybe this wad file has a hard code drive
-            if (pszWadFile[1] == ':')
-            {
-                pszWadFile += 2; // skip past the drive
-                texfiles[nTexFiles] = fopen(pszWadFile, "rb");
-            }
-        }
-        #endif
+        texfiles[nTexFiles] = fopen((const char*) pszWadFile.data(), "rb");
 
         if (!texfiles[nTexFiles] && pszWadroot)
         {
@@ -226,9 +214,9 @@ bool            TEX_InitFromWad()
             char            szFile[_MAX_PATH];
             char            szSubdir[_MAX_PATH];
 
-            ExtractFile(pszWadFile, szFile);
+            ExtractFile((const char*) pszWadFile.data(), szFile);
 
-            ExtractFilePath(pszWadFile, szTmp);
+            ExtractFilePath((const char*) pszWadFile.data(), szTmp);
             ExtractFile(szTmp, szSubdir);
 
             // szSubdir will have a trailing separator
@@ -245,29 +233,11 @@ bool            TEX_InitFromWad()
             #endif
         }
 
-        #ifdef SYSTEM_WIN32
-		if (!texfiles[nTexFiles] && pszWadFile[0] == '\\')
-		{
-			char tmp[_MAX_PATH];
-			int l;
-			for (l = 'C'; l <= 'Z'; ++l)
-			{
-				safe_snprintf (tmp, _MAX_PATH, "%c:%s", l, pszWadFile);
-				texfiles[nTexFiles] = fopen (tmp, "rb");
-				if (texfiles[nTexFiles])
-				{
-					Developer (DEVELOPER_LEVEL_MESSAGE, "wad file found in drive '%c:' : %s\n", l, pszWadFile);
-					break;
-				}
-			}
-		}
-		#endif
-
         if (!texfiles[nTexFiles])
         {
 			pszWadFile = currentwad->path; // correct it back
             // still cant find it, error out
-            Fatal(assume_COULD_NOT_FIND_WAD, "Could not open wad file %s", pszWadFile);
+            Fatal(assume_COULD_NOT_FIND_WAD, "Could not open wad file %s", (const char*) pszWadFile.data());
             continue;
         }
 
@@ -283,7 +253,7 @@ bool            TEX_InitFromWad()
         if (strncmp(wadinfo.identification, "WAD2", 4) && strncmp(wadinfo.identification, "WAD3", 4))
         {
             Log(" - ");
-            Error("%s isn't a Wadfile!", pszWadFile);
+            Error("%s isn't a Wadfile!", (const char*) pszWadFile.data());
         }
 
         wadinfo.numlumps        = (wadinfo.numlumps);
@@ -291,7 +261,7 @@ bool            TEX_InitFromWad()
 
         // read in lump
         if (fseek(texfile, wadinfo.infotableofs, SEEK_SET))
-            Warning("fseek to %d in wadfile %s failed\n", wadinfo.infotableofs, pszWadFile);
+            Warning("fseek to %d in wadfile %s failed\n", wadinfo.infotableofs, (const char*) pszWadFile.data());
 
         // memalloc for this lump
         lumpinfo = (lumpinfo_t*)realloc(lumpinfo, (nTexLumps + wadinfo.numlumps) * sizeof(lumpinfo_t));
@@ -304,7 +274,7 @@ bool            TEX_InitFromWad()
         {
             SafeRead(texfile, &lumpinfo[nTexLumps], (sizeof(lumpinfo_t) - sizeof(int)) );  // iTexFile is NOT read from file
             char szWadFileName[_MAX_PATH];
-            ExtractFile(pszWadFile, szWadFileName);
+            ExtractFile((const char*) pszWadFile.data(), szWadFileName);
 
             if (!TerminatedString(lumpinfo[nTexLumps].name, MAXWADNAME)) //If texture name too long
             {
@@ -606,7 +576,7 @@ void            WriteMiptex()
             if (currentwad->usedbymap && (currentwad->usedtextures > 0 || !g_bWadAutoDetect))
             {
                 char tmp[_MAX_PATH];
-                ExtractFile(currentwad->path, tmp);
+                ExtractFile((const char*) currentwad->path.c_str(), tmp);
                 safe_strncat(szUsedWads, tmp, MAX_VAL); //Concat wad names
                 safe_strncat(szUsedWads, ";", MAX_VAL);
                 usedWads.push_back(currentwad);
@@ -776,10 +746,10 @@ void LogWadUsage(wadpath_t *currentwad, int nummiptex)
         return;
     }
     char currentwadName[_MAX_PATH];
-    ExtractFile(currentwad->path, currentwadName);
+    ExtractFile((const char*) currentwad->path.c_str(), currentwadName);
     double percentUsed = (double)currentwad->usedtextures / (double)nummiptex * 100;
 
-    Log("[%s] %i/%i texture%s (%2.2f%%)\n - %s\n", currentwadName, currentwad->usedtextures, currentwad->totaltextures, currentwad->usedtextures == 1 ? "" : "s", percentUsed, currentwad->path);
+    Log("[%s] %i/%i texture%s (%2.2f%%)\n - %s\n", currentwadName, currentwad->usedtextures, currentwad->totaltextures, currentwad->usedtextures == 1 ? "" : "s", percentUsed, (const char*) currentwad->path.c_str());
 }
 
 // =====================================================================================

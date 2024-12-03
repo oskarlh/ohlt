@@ -1,6 +1,6 @@
-//#pragma warning(disable: 4018) // '<' : signed/unsigned mismatch
-
 #include "csg.h"
+#include <string_view>
+using namespace std::literals;
 
 int             g_nummapbrushes;
 brush_t         g_mapbrushes[MAX_MAP_BRUSHES];
@@ -219,7 +219,7 @@ static void ParseBrush(entity_t* mapent)
     while (ok) //Loop through brush sides
     {
         g_TXcommand = 0;
-        if (!strcmp(g_token, "}")) //If we have reached the end of the brush
+        if (g_token == u8"}"sv) //If we have reached the end of the brush
         {
             break;
         }
@@ -237,126 +237,121 @@ static void ParseBrush(entity_t* mapent)
             {
                 GetToken(true);
             }
-            if (strcmp(g_token, "(")) //Token must be '('
+            if (g_token != u8"("sv) //Token must be '('
             {
                 Error("Parsing Entity %i, Brush %i, Side %i : Expecting '(' got '%s'",
 					b->originalentitynum, b->originalbrushnum, 
-					  b->numsides, g_token);
+					  b->numsides, (const char*) g_token.c_str());
             }
             for (j = 0; j < 3; j++) //Get three coords for the point
             {
                 GetToken(false); //Get next token on same line
-                side->planepts[i][j] = atof(g_token); //Convert token to float and store in planepts
+                side->planepts[i][j] = atof((const char*) g_token.c_str()); //Convert token to float and store in planepts
             }
             GetToken(false);
 
-            if (strcmp(g_token, ")"))
+            if (g_token != u8")"sv)
             {
                 Error("Parsing	Entity %i, Brush %i, Side %i : Expecting ')' got '%s'",
 					b->originalentitynum, b->originalbrushnum, 
-					  b->numsides, g_token);
+					  b->numsides, (const char*) g_token.c_str());
             }
         }
 
         // read the     texturedef
         GetToken(false);
-        _strupr(g_token);
+		std::u8string uppercaseToken = ascii_characters_to_uppercase_in_utf8_string(g_token);
 		{ //Check for tool textures on the brush
-			if (!strncasecmp (g_token, "NOCLIP", 6) || !strncasecmp (g_token, "NULLNOCLIP", 10))
+			if (uppercaseToken.starts_with(u8"NOCLIP"sv) || uppercaseToken.starts_with(u8"NULLNOCLIP"sv))
 			{
-				strcpy (g_token, "NULL");
+				g_token = u8"NULL"sv;
 				b->noclip = true;
-			}
-			if (!strncasecmp (g_token, "BEVELBRUSH", 10))
+			} else if (uppercaseToken.starts_with(u8"BEVEL"sv)) // Including BEVEL, BEVELBRUSH, and BEVELHINT
 			{
-				strcpy (g_token, "NULL");
-				b->bevel = true;
-			}
-			if (!strncasecmp (g_token, "BEVEL", 5))
-			{
-				strcpy (g_token, "NULL");
+				g_token = u8"NULL"sv;
 				side->bevel = true;
-			}
-			if (!strncasecmp(g_token, "BEVELHINT", 9))
-			{
-				side->bevel = true;
-			}
-			if (!strncasecmp (g_token, "CLIP", 4))
-			{
-				b->cliphull |= (1 << NUM_HULLS); // arbitrary nonexistent hull
-				int h;
-				if (!strncasecmp (g_token, "CLIPHULL", 8) && (h = g_token[8] - '0', 0 < h && h < NUM_HULLS))
-				{
-					b->cliphull |= (1 << h); // hull h
-				}
-				if (!strncasecmp (g_token, "CLIPBEVEL", 9))
-				{
-					side->bevel = true;
-				}
-				if (!strncasecmp (g_token, "CLIPBEVELBRUSH", 14))
+				if (uppercaseToken.starts_with(u8"BEVELBRUSH"sv))
 				{
 					b->bevel = true;
 				}
-				strcpy (g_token, "SKIP");
+			} else if (uppercaseToken.starts_with(u8"CLIP"sv)) {
+				b->cliphull |= (1 << NUM_HULLS); // arbitrary nonexistent hull
+				if (uppercaseToken.starts_with(u8"CLIPHULL"sv) && uppercaseToken.size() == u8"CLIPHULL"sv.size() + 1)
+				{
+					const char8_t asciiDigit = g_token[u8"CLIPHULL"sv.size()];
+					const bool isHullDigit = asciiDigit >= u8'0' && asciiDigit < NUM_HULLS;
+					if (isHullDigit) {
+						std::size_t hullNumber = asciiDigit - u8'0';
+						b->cliphull |= (1 << hullNumber);
+					}
+				} else if (uppercaseToken.starts_with(u8"CLIPBEVEL"sv))
+				{
+					side->bevel = true;
+					if (uppercaseToken.starts_with(u8"CLIPBEVELBRUSH"sv))
+					{
+						b->bevel = true;
+					}
+				}
+				g_token = u8"SKIP"sv;
 			}
 		}
-        safe_strncpy(side->td.name, g_token, sizeof(side->td.name));
+        safe_strncpy(side->td.name, (const char*) g_token.c_str(), sizeof(side->td.name));
 
         if (g_nMapFileVersion < 220)                       // Worldcraft 2.1-, Radiant
         {
             GetToken(false);
-            side->td.vects.valve.shift[0] = atof(g_token);
+            side->td.vects.valve.shift[0] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.shift[1] = atof(g_token);
+            side->td.vects.valve.shift[1] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.rotate = atof(g_token);
+            side->td.vects.valve.rotate = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.scale[0] = atof(g_token);
+            side->td.vects.valve.scale[0] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.scale[1] = atof(g_token);
+            side->td.vects.valve.scale[1] = atof((const char*) g_token.c_str());
         }
         else                                               // Worldcraft 2.2+
         {
             // texture U axis
             GetToken(false);
-            if (strcmp(g_token, "["))
+            if (g_token != u8"["sv)
             {
                 hlassume(false, assume_MISSING_BRACKET_IN_TEXTUREDEF);
             }
 
             GetToken(false);
-            side->td.vects.valve.UAxis[0] = atof(g_token);
+            side->td.vects.valve.UAxis[0] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.UAxis[1] = atof(g_token);
+            side->td.vects.valve.UAxis[1] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.UAxis[2] = atof(g_token);
+            side->td.vects.valve.UAxis[2] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.shift[0] = atof(g_token);
+            side->td.vects.valve.shift[0] = atof((const char*) g_token.c_str());
 
             GetToken(false);
-            if (strcmp(g_token, "]"))
+            if (g_token != u8"]"sv)
             {
                 Error("missing ']' in texturedef (U)");
             }
 
             // texture V axis
             GetToken(false);
-            if (strcmp(g_token, "["))
+            if (g_token != u8"["sv)
             {
                 Error("missing '[' in texturedef (V)");
             }
 
             GetToken(false);
-            side->td.vects.valve.VAxis[0] = atof(g_token);
+            side->td.vects.valve.VAxis[0] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.VAxis[1] = atof(g_token);
+            side->td.vects.valve.VAxis[1] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.VAxis[2] = atof(g_token);
+            side->td.vects.valve.VAxis[2] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.shift[1] = atof(g_token);
+            side->td.vects.valve.shift[1] = atof((const char*) g_token.c_str());
 
             GetToken(false);
-            if (strcmp(g_token, "]"))
+            if (g_token != u8"]"sv)
             {
                 Error("missing ']' in texturedef (V)");
             }
@@ -367,9 +362,9 @@ static void ParseBrush(entity_t* mapent)
 
             // texure scale
             GetToken(false);
-            side->td.vects.valve.scale[0] = atof(g_token);
+            side->td.vects.valve.scale[0] = atof((const char*) g_token.c_str());
             GetToken(false);
-            side->td.vects.valve.scale[1] = atof(g_token);
+            side->td.vects.valve.scale[1] = atof((const char*) g_token.c_str());
         }
 
         ok = GetToken(true);                               // Done with line, this reads the first item from the next line
@@ -644,11 +639,11 @@ bool            ParseMapEntity()
 
     this_entity = g_numentities;
 
-    if (strcmp(g_token, "{"))
+    if (g_token != u8"{"sv)
     {
         Error("Parsing Entity %i, expected '{' got '%s'", 
 			g_numparsedentities, 
-			g_token);
+			(const char*) g_token.c_str());
     }
 
     hlassume(g_numentities < MAX_MAP_ENTITIES, assume_MAX_MAP_ENTITIES);
@@ -663,10 +658,10 @@ bool            ParseMapEntity()
         if (!GetToken(true))
             Error("ParseEntity: EOF without closing brace");
 
-        if (!strcmp(g_token, "}"))  // end of our context
+        if (g_token == u8"}"sv)  // end of our context
             break;
 
-        if (!strcmp(g_token, "{"))  // must be a brush
+        if (g_token == u8"{"sv)  // must be a brush
         {
 			ParseBrush (mapent);
 			g_numparsedbrushes++;

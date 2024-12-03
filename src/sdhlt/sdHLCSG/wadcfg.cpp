@@ -1,6 +1,9 @@
-// AJM: ADDED THIS ENTIRE FILE IN
-
 #include "csg.h"
+
+#include <string_view>
+using namespace std::literals;
+
+
 void LoadWadconfig (const char *filename, const char *configname)
 {
     char filenameOnly[_MAX_PATH];
@@ -28,12 +31,12 @@ void LoadWadconfig (const char *filename, const char *configname)
 	{
 		bool skip = true; //Skip until the -wadconfig configname is found
 
-		if (!strcasecmp (g_token, configname)) //If we find configname line
+		if (strings_equal_with_ascii_case_insensitivity(g_token, (const char8_t*) configname)) //If we find configname line
 		{
 			skip = false;
 			wadconfigsFound++;
 		}
-		if (!GetToken (true) || strcasecmp(g_token, "{")) //If next line is not an opening bracket
+		if (!GetToken (true) || !strings_equal_with_ascii_case_insensitivity(g_token, u8"{"sv)) //If next line is not an opening bracket
 		{
 			Error ("Parsing %s (missing '{' opening bracket in '%s' config)\n", filenameOnly, configname);
 		}
@@ -43,7 +46,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 			{
 				Error("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configname);
 			}
-			if (!strcasecmp (g_token, "}")) //If we find closing bracket
+			if (strings_equal_with_ascii_case_insensitivity(g_token, u8"}"sv)) //If we find closing bracket
 			{
 				break;
 			}
@@ -52,7 +55,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 				continue;
 			}
 			bool include = false;
-			if (!strcasecmp (g_token, "include"))
+			if (strings_equal_with_ascii_case_insensitivity(g_token, u8"include"sv))
 			{
 				Log("[include] ");
 				include = true;
@@ -62,11 +65,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 					Error ("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configname);
 				}
 			}
-			Log ("%s\n", g_token);
-			if (g_iNumWadPaths >= MAX_WADPATHS)
-			{
-				Error ("Parsing '%s': too many wad files (%i/%i) in '%s'\n", filenameOnly, g_iNumWadPaths, MAX_WADPATHS, configname);
-			}
+			Log ("%s\n", (const char*) g_token.c_str());
 			wadPathsFound++;
 			PushWadPath (g_token, !include);
 		}
@@ -97,7 +96,7 @@ void LoadWadcfgfile (const char *filename)
 	while (GetToken (true)) //Loop through file
 	{
 		bool include = false;
-		if (!strcasecmp (g_token, "include")) //If line starts with include (or contains?)
+		if (strings_equal_with_ascii_case_insensitivity(g_token, u8"include"sv)) //If line starts with include (or contains?)
 		{
 			Log ("include ");
 			include = true;
@@ -106,11 +105,7 @@ void LoadWadcfgfile (const char *filename)
 				Error ("parsing '%s': unexpected end of file.", filename);
 			}
 		}
-		Log ("\"%s\"\n", g_token);
-		if (g_iNumWadPaths >= MAX_WADPATHS)
-		{
-			Error ("parsing '%s': too many wad files.", filename);
-		}
+		Log ("\"%s\"\n", (const char*) g_token.c_str());
 		wadPathsCount++;
 		PushWadPath (g_token, !include);
 	}

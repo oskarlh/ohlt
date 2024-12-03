@@ -13,8 +13,6 @@
 
 
 #define _strdup strdup //--vluzacn
-#define _strupr strupr //--vluzacn
-#define _strlwr strlwr //--vluzacn
 #define _open open //--vluzacn
 #define _read read //--vluzacn
 #define _close close //--vluzacn

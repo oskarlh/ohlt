@@ -14,6 +14,9 @@
 #include "blockmem.h"
 #include "cli_option_defaults.h"
 
+
+using namespace std::literals;
+
 //=============================================================================
 
 std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
@@ -776,16 +779,16 @@ std::unique_ptr<epair_t>        ParseEpair()
 {
 	std::unique_ptr<epair_t> e = std::make_unique<epair_t>();
 
-    if (strlen(g_token) >= MAX_KEY - 1)
-        Error("ParseEpair: Key token too long (%i > MAX_KEY)", (int)strlen(g_token));
+    if (g_token.size() >= MAX_KEY - 1)
+        Error("ParseEpair: Key token too long (%zu > MAX_KEY)", g_token.size());
 
-    e->key = std::u8string((const char8_t*) g_token);
+    e->key = g_token;
     GetToken(false);
 
-    if (strlen(g_token) >= MAX_VAL - 1) //MAX_VALUE //vluzacn
-        Error("ParseEpar: Value token too long (%i > MAX_VALUE)", (int)strlen(g_token));
+    if (g_token.size() >= MAX_VAL - 1) //MAX_VALUE //vluzacn
+        Error("ParseEpar: Value token too long (%zu > MAX_VALUE)", g_token.size());
 
-    e->value = std::u8string((const char8_t*) g_token);
+    e->value = g_token;
 
     return e;
 }
@@ -801,13 +804,12 @@ extern void     GetParamsFromEnt(entity_t* mapent);
 
 bool            ParseEntity()
 {
-
     if (!GetToken(true))
     {
         return false;
     }
 
-    if (strcmp(g_token, "{"))
+    if (g_token != u8"{"sv)
     {
         Error("ParseEntity: { not found");
     }
@@ -826,7 +828,7 @@ bool            ParseEntity()
         {
             Error("ParseEntity: EOF without closing brace");
         }
-        if (!strcmp(g_token, "}"))
+        if (g_token == u8"}"sv)
         {
             break;
         }

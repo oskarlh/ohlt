@@ -36,14 +36,8 @@ int             GetThreadWork()
 {
     int             r, f, i;
     double          ct, finish, finish2, finish3;
-	static const char *s1 = nullptr; // avoid frequent call of Localize() in PrintConsole
-	static const char *s2 = nullptr;
 
     ThreadLock();
-	if (s1 == nullptr)
-		s1 = Localize ("  (%d%%: est. time to completion %ld/%ld/%ld secs)   ");
-	if (s2 == nullptr)
-		s2 = Localize ("  (%d%%: est. time to completion <1 sec)   ");
 
     if (dispatch == 0)
     {
@@ -97,13 +91,13 @@ int             GetThreadWork()
                 if (finish > 1.0)
                 {
 					PrintConsole
-						(s1, f, (long)(finish), (long)(finish2),
+						("  (%d%%: est. time to completion %ld/%ld/%ld secs)   ", f, (long)(finish), (long)(finish2),
                            (long)(finish3));
                 }
                 else
                 {
 					PrintConsole
-						(s2, f);
+						("  (%d%%: est. time to completion <1 sec)   ", f);
 
                 }
             }

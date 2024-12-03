@@ -1,21 +1,19 @@
 #pragma once
 
 #include "cmdlib.h" //--vluzacn
-
-#define MAX_WADPATHS 128    // arbitrary
+#include <string>
 
 typedef struct    
 {
-    char            path[_MAX_PATH];
-    bool            usedbymap;        // does this map requrie this wad to be included in the bsp?
-    int             usedtextures;     // number of textures in this wad the map actually uses
-	int             totaltextures;    // total textures in this wad
-} wadpath_t;                          // !!! the above two are VERY DIFFERENT. ie (usedtextures == 0) != (usedbymap == false)
+    std::u8string path;
+	int totaltextures; // Total number of textures in this WAD
+    int usedtextures; // Number of textures in this WAD the map actually uses
+    bool usedbymap; // Does the map require this WAD to be included in the .bsp?
+    // !!! the above two are VERY DIFFERENT. ie (usedtextures == 0) != (usedbymap == false)
+} wadpath_t;                         
 
-extern wadpath_t*  g_pWadPaths[MAX_WADPATHS];
-extern int         g_iNumWadPaths;    
+extern std::vector<wadpath_t*> g_pWadPaths;
 
-
-extern void        PushWadPath(const char* const path, bool inuse);
+extern void        PushWadPath(std::u8string_view path, bool inuse);
 extern void        FreeWadPaths();
 extern void        GetUsedWads();

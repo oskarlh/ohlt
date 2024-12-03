@@ -4,7 +4,7 @@
 #include "log.h"
 #include "scriplib.h"
 
-char            g_token[MAXTOKEN];
+std::u8string g_token;
 char            g_TXcommand;
 
 typedef struct
@@ -146,8 +146,6 @@ bool            EndOfScript(const bool crossline)
 // =====================================================================================
 bool            GetToken(const bool crossline)
 {
-    char           *token_p;
-
     if (s_tokenready)                                        // is a g_token allready waiting?
     {
         s_tokenready = false;
@@ -200,21 +198,19 @@ skipspace:
         goto skipspace;
     }
 
-    // copy g_token
-    token_p = g_token;
-
+    g_token.clear();
     if (*s_script->script_p == '"')
     {
         // quoted token
         s_script->script_p++;
         while (*s_script->script_p != '"')
         {
-            *token_p++ = *s_script->script_p++;
+            g_token.push_back(*s_script->script_p++);
 
             if (s_script->script_p == s_script->end_p)
                 break;
 
-            if (token_p == &g_token[MAXTOKEN])
+            if (g_token.size() == MAXTOKEN)
                 Error("Token too large on line %i\n", s_scriptline);
         }
         s_script->script_p++;
@@ -224,112 +220,26 @@ skipspace:
         // regular token
 		while ((*s_script->script_p > 32 || *s_script->script_p < 0) && *s_script->script_p != ';')
         {
-            *token_p++ = *s_script->script_p++;
+            g_token.push_back(*s_script->script_p++);
 
             if (s_script->script_p == s_script->end_p)
                 break;
 
-            if (token_p == &g_token[MAXTOKEN])
+            if (g_token.size() == MAXTOKEN)
                 Error("Token too large on line %i\n", s_scriptline);
         }
     }
 
-    *token_p = 0;
-
-    if (!strcmp(g_token, "$include"))
+    if (g_token == u8"$include")
     {
         GetToken(false);
-        AddScriptToStack(g_token);
+        AddScriptToStack((const char*) g_token.c_str());
         return GetToken(crossline);
     }
 
     return true;
 }
 
-#if 0
-// AJM: THIS IS REDUNDANT
-// =====================================================================================
-//  ParseWadToken
-//      basically the same as gettoken, except it isnt limited by MAXTOKEN and is
-//      specificaly designed to parse out the wadpaths from the wad keyvalue and dump
-//      them into the wadpaths list
-//      this was implemented as a hack workaround for Token Too Large errors caused by
-//      having long wadpaths or lots of wads in the map editor.
-extern void        PushWadPath(const char* const path, bool inuse);
-// =====================================================================================
-void            ParseWadToken(const bool crossline)
-{
-    // code somewhat copied from GetToken()
-    int             i, j;
-    char*           token_p;
-    char            temp[_MAX_PATH];
-
-    if (s_script->script_p >= s_script->end_p)
-        return;
-
-    // skip space
-    while (*s_script->script_p <= 32)
-    {
-        if (s_script->script_p >= s_script->end_p)
-            return;
-
-        if (*s_script->script_p++ == '\n')
-        {
-            if (!crossline)
-                Error("Line %i is incomplete (did you place a \" inside an entity string?) \n", s_scriptline);
-            s_scriptline = s_script->line++;
-        }
-    }
-
-    // EXPECT A QUOTE
-    if (*s_script->script_p++ != '"')
-        Error("Line %i: Expected a wadpaths definition, got '%s'\n", s_scriptline, *--s_script->script_p);
-
-    // load wadpaths manually
-    bool    endoftoken = false;
-    for (i = 0; !endoftoken; i++)
-    {
-        // get the path
-        for (j = 0; ; j++)
-        {
-            token_p = ++s_script->script_p;
-            
-            // assert max path length
-            if (j > _MAX_PATH)
-                Error("Line %i: Wadpath definition %i is too long (%s)\n", s_scriptline, temp);
-
-            if (*token_p == '\n')
-                Error("Line %i: Expected a wadpaths definition, got linebreak\n", s_scriptline);
-
-            if (*token_p == '"')            // end of wadpath definition
-            {
-                if (i == 0 && j == 0)       // no wadpaths!
-                {
-                    Warning("No wadpaths specified.\n");
-                    return;
-                }
-
-                endoftoken = true;
-                break;
-            }
-
-            if (*token_p == ';')            // end of this wadpath
-                break;
-
-            temp[j] = *token_p;
-            temp[j + 1] = 0;
-        }
-
-        // push it into the list
-        PushWadPath(temp, true);
-        temp[0] = 0;
-    }
-
-    for (; *s_script->script_p != '\n'; s_script->script_p++)
-    {
-    }
-}
-#endif
 
 // =====================================================================================
 //  TokenAvailable

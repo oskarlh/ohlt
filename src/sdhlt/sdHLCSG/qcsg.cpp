@@ -21,6 +21,9 @@
 #endif
 #include "../common/cli_option_defaults.h"
 
+#include <string_view>
+using namespace std::literals;
+
 /*
 
  NOTES
@@ -1159,7 +1162,7 @@ void LoadWadValue ()
 	entity_t *mapent = &ent0;
 	memset (mapent, 0, sizeof (entity_t));
 	if (GetToken (true)) {
-		if (strcmp (g_token, "{"))
+		if (g_token != u8"{"sv)
 		{
 			Error ("ParseEntity: { not found");
 		}
@@ -1169,7 +1172,7 @@ void LoadWadValue ()
 			{
 				Error ("ParseEntity: EOF without closing brace");
 			}
-			if (!strcmp (g_token, "}"))
+			if (g_token == u8"}"sv)
 			{
 				break;
 			}
@@ -1445,7 +1448,6 @@ static void     Usage()
     Banner(); // TODO: Call banner from main CSG process? 
 
     Log("\n-= %s Options =-\n\n", g_Program);
-	Log("    -lang file       : localization file\n");
     Log("    -nowadtextures   : Include all used textures into bsp\n");
     Log("    -wadinclude file : Include specific wad or directory into bsp\n");
     Log("    -noclip          : don't create clipping hull\n");
@@ -1512,7 +1514,7 @@ static void     DumpWadinclude()
 
     for (it = g_WadInclude.begin(); it != g_WadInclude.end(); it++)
     {
-        Log("%s\n", it->c_str());
+        Log("%s\n", (const char*) it->c_str());
     }
     Log("---------------\n\n");
 }
@@ -1668,8 +1670,8 @@ int             main(const int argc, char** argv)
     // Hard coded list of -wadinclude files, used for HINT texture brushes so lazy
     // mapmakers wont cause beta testers (or possibly end users) to get a wad 
     // error on zhlt.wad etc
-    g_WadInclude.push_back("zhlt.wad"); // Zoner's HLT
-    g_WadInclude.push_back("sdhlt.wad"); // seedee's HLT
+    g_WadInclude.push_back(u8"zhlt.wad"); // Zoner's HLT
+    g_WadInclude.push_back(u8"sdhlt.wad"); // seedee's HLT
 
 	InitDefaultHulls ();
 
@@ -1814,7 +1816,7 @@ int             main(const int argc, char** argv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
-                g_WadInclude.push_back(argv[++i]);
+                g_WadInclude.push_back((const char8_t*) argv[++i]);
             }
             else
             {
@@ -1919,17 +1921,6 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp (argv[i], "-lang"))
-		{
-			if (i + 1 < argc)
-			{
-				LoadLangFile (argv[++i], get_path_to_directory_with_executable(argv));
-			}
-			else
-			{
-				Usage();
-			}
-		}
 		else if (!strcasecmp (argv[i], "-noresetlog"))
 		{
 			g_resetlog = false;
