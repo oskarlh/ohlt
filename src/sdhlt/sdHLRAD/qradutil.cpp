@@ -166,14 +166,14 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
     int             x, y, z;
     int             a;
 
-    vec3_t          current_point;
-    vec3_t          original_point;
+    vec3_array          current_point;
+    vec3_array          original_point;
 
-    vec3_t          best_point;
+    vec3_array          best_point;
     dleaf_t*        best_leaf = nullptr;
     vec_t           best_dist = 99999999.0;
 
-    vec3_t          scales;
+    vec3_array          scales;
 
     dplane_t        new_plane = *plane;
 
@@ -200,31 +200,27 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
                 {
 					if (a == 0)
 					{
-						if (x || y || z)
+						if (x || y || z) {
 							continue;
+						}
 					}
-                    vec3_t          delta;
+                    vec3_array          delta;
                     vec_t           dist;
 
                     current_point[2] = original_point[2] + (scales[z % 3] * a);
 
-                    SnapToPlane(&new_plane, current_point, hunt_offset);
+                    SnapToPlane(&new_plane, current_point.data(), hunt_offset);
                     VectorSubtract(current_point, original_point, delta);
                     dist = DotProduct(delta, delta);
 
-					{
-						int x;
-						for (x = 0; x < g_opaque_face_list.size(); x++)
-						{
-							if (TestPointOpaque (g_opaque_face_list[x].modelnum, g_opaque_face_list[x].origin, g_opaque_face_list[x].block, current_point))
-								break;
-						}
-						if (x < g_opaque_face_list.size())
-							continue;
+					if(std::ranges::any_of(g_opaque_face_list, [&current_point](const opaqueList_t& of) {
+						return TestPointOpaque (of.modelnum, of.origin, of.block, current_point.data());
+					})) {
+						continue;
 					}
                     if (dist < best_dist)
                     {
-                        if ((leaf = PointInLeaf_Worst(const_vec3_arg(current_point))) != g_dleafs.data())
+                        if ((leaf = PointInLeaf_Worst(current_point)) != g_dleafs.data())
                         {
                             if ((leaf->contents != CONTENTS_SKY) && (leaf->contents != CONTENTS_SOLID))
                             {
@@ -430,7 +426,7 @@ typedef struct
 	bool nudged;
 	vec_t best_s; // FindNearestPosition will return this value
 	vec_t best_t;
-	vec3_t pos; // with DEFAULT_HUNT_OFFSET
+	vec3_array pos; // with DEFAULT_HUNT_OFFSET
 }
 position_t;
 
@@ -463,13 +459,13 @@ positionmap_t;
 
 static positionmap_t g_face_positions[MAX_MAP_FACES];
 
-static bool IsPositionValid (positionmap_t *map, const vec3_t &pos_st, vec3_t &pos_out, bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2, vec_t hunt_scale = 0.2)
+static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_array& pos_out, bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2, vec_t hunt_scale = 0.2)
 {
 	vec3_array pos;
 	vec3_array pos_normal;
 	vec_t hunt_offset;
 
-	ApplyMatrix (map->textoworld, pos_st, pos);
+	ApplyMatrix (map->textoworld, pos_st.data(), pos);
 	VectorAdd (pos, map->face_offset, pos);
 	if (usephongnormal)
 	{
@@ -568,9 +564,9 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 		if (!p->valid)
 		{
 			VectorCopy (original_st, test_st);
-			snap_to_winding (*zone, map->texplane, vec3_arg(test_st));
+			snap_to_winding (*zone, map->texplane, test_st.data());
 
-			if (IsPositionValid (map, vec3_arg(test_st), p->pos))
+			if (IsPositionValid (map, test_st, p->pos))
 			{
 				p->valid = true;
 				p->nudged = false;
@@ -582,7 +578,7 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 		if (!p->valid)
 		{
 			test_st = zone->getCenter ();
-			if (IsPositionValid (map, vec3_arg(test_st), p->pos))
+			if (IsPositionValid (map, test_st, p->pos))
 			{
 				p->valid = true;
 				p->best_s = test_st[0];
@@ -603,9 +599,9 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 			{
 				VectorMultiply (nudgelist[i], map->step, test_st);
 				VectorAdd (test_st, original_st, test_st);
-				snap_to_winding (*zone, map->texplane, vec3_arg(test_st));
+				snap_to_winding (*zone, map->texplane, test_st.data());
 
-				if (IsPositionValid (map, vec3_arg(test_st), p->pos))
+				if (IsPositionValid (map, test_st, p->pos))
 				{
 					p->valid = true;
 					p->best_s = test_st[0];

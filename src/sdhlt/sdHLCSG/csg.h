@@ -152,25 +152,25 @@ typedef struct brush_s
 
 typedef struct
 {
-	vec3_t normal;
-	vec3_t point;
+	vec3_array normal;
+	vec3_array point;
 
 	int numvertexes;
-	vec3_t *vertexes;
+	vec3_array *vertexes;
 } hullbrushface_t;
 
 typedef struct
 {
-	vec3_t normals[2];
-	vec3_t point;
+	vec3_array normals[2];
+	vec3_array point;
 
-	vec3_t vertexes[2];
-	vec3_t delta; // delta has the same direction as CrossProduct(normals[0],normals[1])
+	vec3_array vertexes[2];
+	vec3_array delta; // delta has the same direction as CrossProduct(normals[0],normals[1])
 } hullbrushedge_t;
 
 typedef struct
 {
-	vec3_t point;
+	vec3_array point;
 } hullbrushvertex_t;
 
 typedef struct

@@ -470,9 +470,9 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
                 )
 			{
 				// check for "Malformed face (%d) normal"
-				vec3_t texnormal;
+				vec3_array texnormal;
 				CrossProduct (tex->vecs[1], tex->vecs[0], texnormal);
-				VectorNormalize (vec3_arg(texnormal));
+				VectorNormalize (texnormal);
 				if (fabs (DotProduct (texnormal, f->plane->normal)) <= NORMAL_EPSILON)
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",

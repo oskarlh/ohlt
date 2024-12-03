@@ -326,7 +326,7 @@ static void     SplitFaceForTjunc(face_t* f, face_t* original)
     int             i;
     face_t*         newface;
     face_t*         chain;
-    vec3_t          dir, test;
+    vec3_array          dir, test;
     vec_t           v;
     int             firstcorner, lastcorner;
 
@@ -356,11 +356,11 @@ static void     SplitFaceForTjunc(face_t* f, face_t* original)
 restart:
         // find the last corner 
         VectorSubtract(f->pts[f->numpoints - 1], f->pts[0], dir);
-        VectorNormalize(vec3_arg(dir));
+        VectorNormalize(dir);
         for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--)
         {
             VectorSubtract(f->pts[lastcorner - 1], f->pts[lastcorner], test);
-            VectorNormalize(vec3_arg(test));
+            VectorNormalize(test);
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
@@ -370,11 +370,11 @@ restart:
 
         // find the first corner        
         VectorSubtract(f->pts[1], f->pts[0], dir);
-        VectorNormalize(vec3_arg(dir));
+        VectorNormalize(dir);
         for (firstcorner = 1; firstcorner < f->numpoints - 1; firstcorner++)
         {
             VectorSubtract(f->pts[firstcorner + 1], f->pts[firstcorner], test);
-            VectorNormalize(vec3_arg(test));
+            VectorNormalize(test);
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
