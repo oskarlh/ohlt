@@ -354,7 +354,7 @@ extern entity_t* EntityForModel(int modnum);
 //
 
 extern std::ptrdiff_t g_max_map_miptex;
-extern std::ptrdiff_t g_max_map_lightdata;
+constexpr std::ptrdiff_t g_max_map_lightdata = std::numeric_limits<std::int32_t>::max();
 extern void dtexdata_init();
 extern void dtexdata_free();
 
@@ -375,7 +375,6 @@ struct bsp_data {
 	int             visDataChecksum{0};
 
 	std::vector<std::byte> lightData;
-	int lightDataByteSize{0};
 	int lightDataChecksum{0};
 
 	std::byte* textureData{nullptr}; // (dmiptexlump_t)
@@ -434,17 +433,16 @@ struct bsp_data {
 
 extern bsp_data bspGlobals;
 
-extern int&      g_nummodels;
+extern int& g_nummodels;
 extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
-extern int&      g_dmodels_checksum;
+extern int& g_dmodels_checksum;
 
-extern int&      g_visdatasize;
-extern std::array<byte, MAX_MAP_VISIBILITY>&     g_dvisdata;
-extern int&      g_dvisdata_checksum;
+extern int& g_visdatasize;
+extern std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata;
+extern int& g_dvisdata_checksum;
 
-extern int&      g_lightdatasize;
-extern std::vector<std::byte>&    g_dlightdata;
-extern int&      g_dlightdata_checksum;
+extern std::vector<std::byte>& g_dlightdata;
+extern int& g_dlightdata_checksum;
 
 extern int&      g_texdatasize;
 extern std::byte*&    g_dtexdata;                                  // (dmiptexlump_t)

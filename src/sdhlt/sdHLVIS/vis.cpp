@@ -773,7 +773,6 @@ static void     Usage()
     Log("    -fast           : Fast vis\n\n");
     Log("    -nofixprt       : Disables optimization of portal file for import to J.A.C.K. map editor\n\n"); //seedee
     Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n");
-    Log("    -lightdata #    : Alter maximum lighting memory limit (in kb)\n"); //lightdata //--vluzacn
     Log("    -chart          : display bsp statitics\n");
     Log("    -low | -high    : run program an altered priority level\n");
     Log("    -nolog          : don't generate the compile logfiles\n");
@@ -1082,22 +1081,6 @@ int             main(const int argc, char** argv)
                 //if (x > g_max_map_miptex) //--vluzacn
                 {
                     g_max_map_miptex = x;
-                }
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-lightdata")) //lightdata
-        {
-            if (i + 1 < argc) //--vluzacn
-            {
-                int             x = atoi(argv[++i]) * 1024;
-
-                //if (x > g_max_map_lightdata) //--vluzacn
-                {
-                    g_max_map_lightdata = x; //--vluzacn
                 }
             }
             else

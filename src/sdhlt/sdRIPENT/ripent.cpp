@@ -783,7 +783,6 @@ static void     Usage(void)
 	Log("    -deleteembeddedlightmaps : Delete textures created by hlrad\n");
 
     Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n");
-    Log("    -lightdata #    : Alter maximum lighting memory limit (in kb)\n");
 	Log("    -chart          : Display bsp statitics\n");
 	Log("    -noinfo         : Do not show tool configuration information\n\n");
 
@@ -812,7 +811,6 @@ static void     Settings()
     // ZHLT Common Settings
     Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
-	Log("max lighting memory [ %7td ] [ %7td ]\n", g_max_map_lightdata, cli_option_defaults::max_map_lightdata);
 
 	switch (g_mode)
 	{
@@ -905,22 +903,6 @@ int             main(int argc, char** argv)
                 //if (x > g_max_map_miptex) //--vluzacn
                 {
                     g_max_map_miptex = x;
-                }
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-lightdata"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                int             x = atoi(argv[++i]) * 1024;
-
-                //if (x > g_max_map_lightdata) //--vluzacn
-                {
-                    g_max_map_lightdata = x;
                 }
             }
             else

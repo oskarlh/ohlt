@@ -20,7 +20,6 @@ using namespace std::literals;
 //=============================================================================
 
 std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
-std::ptrdiff_t g_max_map_lightdata = cli_option_defaults::max_map_lightdata;
 
 bsp_data bspGlobals;
 
@@ -32,7 +31,6 @@ int& g_visdatasize{bspGlobals.visDataByteSize};
 std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
 int& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
-int& g_lightdatasize{bspGlobals.lightDataByteSize};
 std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
 int& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
@@ -349,8 +347,8 @@ void            LoadBSPImage(dheader_t* const header)
     g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata.data(), 1, header);
 
 	auto lightingData = get_lump_data<lump_id::lighting>(header);
-	memcpy(g_dlightdata.data(), lightingData.data(), lightingData.size() * sizeof(lightingData[0]));
-	g_lightdatasize = lightingData.size();
+	g_dlightdata.assign_range(lightingData);
+
     g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
 
     Free(header);                                          // everything has been copied out
@@ -369,7 +367,7 @@ void            LoadBSPImage(dheader_t* const header)
     g_dedges_checksum = FastChecksum(g_dedges, g_numedges * sizeof(g_dedges[0]));
     g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata, g_texdatasize));
     g_dvisdata_checksum = FastChecksum(g_dvisdata.data(), g_visdatasize * sizeof(g_dvisdata[0]));
-    g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata.begin(), g_lightdatasize));
+    g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata));
     g_dentdata_checksum = FastChecksum(g_dentdata.data(), g_entdatasize * sizeof(g_dentdata[0]));
 }
 
@@ -430,7 +428,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     AddLump(LUMP_EDGES,     g_dedges,       g_numedges * sizeof(dedge_t),       header, bspfile);
     AddLump(LUMP_MODELS,    g_dmodels.data(),      g_nummodels * sizeof(dmodel_t),     header, bspfile);
 
-    add_lump<lump_id::lighting>(std::span<std::byte>(g_dlightdata.begin(), g_lightdatasize), header, bspfile);
+    add_lump<lump_id::lighting>(g_dlightdata, header, bspfile);
     AddLump(LUMP_VISIBILITY,g_dvisdata.data(),     g_visdatasize,                      header, bspfile);
     AddLump(LUMP_ENTITIES,  g_dentdata.data(),     g_entdatasize,                      header, bspfile);
     add_lump<lump_id::textures>(std::span<std::byte>((std::byte*) g_dtexdata, g_texdatasize), header, bspfile);
@@ -1255,7 +1253,6 @@ void            dtexdata_init()
 {
     g_dtexdata = new std::byte[g_max_map_miptex]();
     hlassume(g_dtexdata != nullptr, assume_NoMemory);
-	g_dlightdata.resize(g_max_map_lightdata);
 }
 
 void dtexdata_free()

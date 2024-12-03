@@ -1465,7 +1465,6 @@ static void     Usage()
 	Log("    -wadcfgfile file : wad configuration file\n");
 	Log("    -wadconfig name  : use the old wad configuration approach (select a group from wad.cfg)\n");
     Log("    -texdata #       : Alter maximum texture memory limit (in kb)\n");
-    Log("    -lightdata #     : Alter maximum lighting memory limit (in kb)\n");
     Log("    -chart           : display bsp statitics\n");
     Log("    -low | -high     : run program an altered priority level\n");
     Log("    -nolog           : don't generate the compile logfiles\n");
@@ -1552,7 +1551,6 @@ static void     Settings(const bsp_data& bspData)
     Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate              [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory    [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
-	Log("max lighting memory   [ %7td ] [ %7td ]\n", g_max_map_lightdata, cli_option_defaults::max_map_lightdata);
 
     switch (g_threadpriority)
     {
@@ -1832,22 +1830,6 @@ int             main(const int argc, char** argv)
                 //if (x > g_max_map_miptex) //--vluzacn
                 {
                     g_max_map_miptex = x;
-                }
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-lightdata"))
-        {
-            if (i + 1 < argc)	//added "1" .--vluzacn
-            {
-                int             x = atoi(argv[++i]) * 1024;
-
-                //if (x > g_max_map_lightdata) //--vluzacn
-                {
-                    g_max_map_lightdata = x;
                 }
             }
             else

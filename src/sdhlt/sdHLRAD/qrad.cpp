@@ -162,15 +162,6 @@ void            GetParamsFromEnt(entity_t* mapent)
 
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
-    // lightdata(string) : "Lighting Data Memory" : "8192"
-    iTmp = IntForKey(mapent, u8"lightdata") * 1024; //lightdata
-    if (iTmp > g_max_map_lightdata) //--vluzacn
-    {
-        g_max_map_lightdata = iTmp;
-        snprintf(szTmp, sizeof(szTmp), "%td", g_max_map_lightdata);
-        Log("%30s [ %-9s ]\n", "Lighting Data Memory", szTmp);
-    }
-
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
     iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
@@ -2516,11 +2507,11 @@ static void ExtendLightmapBuffer ()
 			}
 		}
 	}
-	if (maxsize >= g_lightdatasize)
+	if (maxsize >= g_dlightdata.size())
 	{
 		hlassume (maxsize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
-		memset (&g_dlightdata[g_lightdatasize], 0, maxsize - g_lightdatasize);
-		g_lightdatasize = maxsize;
+
+		g_dlightdata.resize(maxsize, std::byte(0));
 	}
 }
 
@@ -2660,10 +2651,9 @@ static void     RadWorld()
 	}
 	MdlLightHack ();
 	ReduceLightmap();
-	if (g_lightdatasize == 0)
+	if (g_dlightdata.empty())
 	{
-		g_lightdatasize = 1;
-		g_dlightdata[0] = std::byte(0);
+		g_dlightdata.push_back(std::byte(0));
 	}
 	ExtendLightmapBuffer (); // expand the size of lightdata array (for a few KB) to ensure that game engine reads within its valid range
 }
@@ -2706,7 +2696,6 @@ static void     Usage()
     Log("    -incremental    : Use or create an incremental transfer list file\n\n");
     Log("    -dump           : Dumps light patches to a file for hlrad debugging info\n\n");
     Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n");
-    Log("    -lightdata #    : Alter maximum lighting memory limit (in kb)\n"); //lightdata
     Log("    -chart          : display bsp statitics\n");
     Log("    -low | -high    : run program an altered priority level\n");
     Log("    -nolog          : Do not generate the compile logfiles\n");
@@ -2804,7 +2793,6 @@ static void     Settings()
     Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate             [ %17s ] [ %17s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory   [ %17td ] [ %17td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
-	Log("max lighting memory  [ %17td ] [ %17td ]\n", g_max_map_lightdata, cli_option_defaults::max_map_lightdata); //lightdata
 
     switch (g_threadpriority)
     {
@@ -3505,22 +3493,6 @@ int             main(const int argc, char** argv)
                 //if (x > g_max_map_miptex) //--vluzacn
                 {
                     g_max_map_miptex = x;
-                }
-            }
-            else
-            {
-                Usage();
-            }
-        }
-        else if (!strcasecmp(argv[i], "-lightdata")) //lightdata
-        {
-            if (i + 1 < argc) //--vluzacn
-            {
-                int             x = atoi(argv[++i]) * 1024;
-
-                //if (x > g_max_map_lightdata) //--vluzacn
-                {
-                    g_max_map_lightdata = x;
                 }
             }
             else

@@ -941,7 +941,7 @@ static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, ve
 	}
 	for (int k = 0; k < MAXLIGHTMAPS && face->styles[k] != 255; k++)
 	{
-		std::byte *samples = &g_dlightdata[face->lightofs + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
+		const std::byte *samples = &g_dlightdata[face->lightofs + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
 		if (face->styles[k] == 0)
 		{
 			VectorAdd (light, (const std::uint8_t*) &samples[(iy * (texsize[0] + 1) + ix) * 3], light);
@@ -1012,7 +1012,7 @@ static bool GetValidTextureName (int miptex, char name[16])
 
 void EmbedLightmapInTextures ()
 {
-	if (!g_lightdatasize)
+	if (g_dlightdata.empty())
 	{
 		// hlrad hasn't run
 		return;

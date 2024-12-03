@@ -1,6 +1,7 @@
 #include "qrad.h"
-#include <numbers>
 #include <algorithm>
+#include <numbers>
+#include <span>
 
 edgeshare_t     g_edgeshare[MAX_MAP_EDGES];
 vec3_t          g_face_centroids[MAX_MAP_EDGES]; // BUG: should this be [MAX_MAP_FACES]?
@@ -4118,7 +4119,7 @@ void            PrecompLightmapOffsets()
     int             i; //LRC
 	patch_t*        patch; //LRC
 
-    g_lightdatasize = 0;
+    std::size_t newLightDataSize = 0;
 
     for (facenum = 0; facenum < g_numfaces; facenum++)
     {
@@ -4262,16 +4263,17 @@ void            PrecompLightmapOffsets()
             continue;
         }
 
-        f->lightofs = g_lightdatasize;
-        g_lightdatasize += fl->numsamples * 3 * lightstyles;
-		hlassume (g_lightdatasize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING); //lightdata
+        f->lightofs = newLightDataSize;
+        newLightDataSize += fl->numsamples * 3 * lightstyles;
+		hlassume (newLightDataSize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING); //lightdata
 
     }
+	g_dlightdata.resize(newLightDataSize, std::byte(0));
 }
 void ReduceLightmap ()
 {
-	std::vector<std::byte> oldlightdata{g_dlightdata};
-	std::size_t newLightDataSize = 0;
+	std::vector<std::byte> oldlightdata;
+	std::swap(oldlightdata, g_dlightdata);
 
 	int facenum;
 	for (facenum = 0; facenum < g_numfaces; facenum++)
@@ -4285,7 +4287,7 @@ void ReduceLightmap ()
 		// just need to zero the lightmap so that it won't contribute to lightdata size
 		if (IntForKey (g_face_entity[facenum], u8"zhlt_striprad"))
 		{
-			f->lightofs = newLightDataSize;
+			f->lightofs = g_dlightdata.size();
 			for (int k = 0; k < MAXLIGHTMAPS; k++)
 			{
 				f->styles[k] = 255;
@@ -4301,7 +4303,7 @@ void ReduceLightmap ()
 		int oldofs;
 		unsigned char oldstyles[MAXLIGHTMAPS];
 		oldofs = f->lightofs;
-		f->lightofs = newLightDataSize;
+		f->lightofs = g_dlightdata.size();
 		for (k = 0; k < MAXLIGHTMAPS; k++)
 		{
 			oldstyles[k] = f->styles[k];
@@ -4321,13 +4323,12 @@ void ReduceLightmap ()
 				continue;
 			}
 			f->styles[numstyles] = oldstyles[k];
-			hlassume (newLightDataSize + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
-			memcpy (&g_dlightdata[f->lightofs + fl->numsamples * 3 * numstyles], &oldlightdata[oldofs + fl->numsamples * 3 * k], fl->numsamples * 3);
+			hlassume (g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
+			
+			g_dlightdata.append_range(std::span(&oldlightdata[oldofs + fl->numsamples * 3 * k], fl->numsamples * 3));
 			numstyles++;
 		}
-		newLightDataSize += fl->numsamples * 3 * numstyles;
 	}
-	g_lightdatasize = newLightDataSize;
 }
 
 

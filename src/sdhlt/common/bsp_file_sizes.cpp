@@ -248,7 +248,7 @@ void print_bsp_file_sizes(const bsp_data& bspData)
     totalmemory += array_usage("edges", g_numedges, ENTRIES(g_dedges), ENTRYSIZE(g_dedges));
 
     totalmemory += global_usage("texdata", g_texdatasize, g_max_map_miptex);
-    totalmemory += global_usage("lightdata", g_lightdatasize, g_max_map_lightdata);
+    totalmemory += global_usage("lightdata", g_dlightdata.size(), g_max_map_lightdata);
     totalmemory += global_usage("visdata", g_visdatasize, bspData.mapModels.size());
     totalmemory += global_usage("entdata", g_entdatasize, bspData.entityData.size() * sizeof(bspData.entityData[0]));
 	if (numallocblocks == -1)
