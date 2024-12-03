@@ -804,7 +804,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			dist = gridstartA + i * gridchopA;
 			winding->Clip (vec3_arg(plA->normal), dist, &front, &back);
 
-			if (!front || front->WindingOnPlaneSide (vec3_arg(plA->normal), dist, epsilon) == SIDE_ON) // ended
+			if (!front || front->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
 			{
 				if (front)
 				{
@@ -818,7 +818,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				}
 				break;
 			}
-			if (!back || back->WindingOnPlaneSide (vec3_arg(plA->normal), dist, epsilon) == SIDE_ON) // didn't begin
+			if (!back || back->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
 			{
 				if (front)
 				{
@@ -866,7 +866,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				dist = gridstartB + j * gridchopB;
 				strip->Clip (vec3_arg(plB->normal), dist, &front, &back);
 				
-				if (!front || front->WindingOnPlaneSide (vec3_arg(plB->normal), dist, epsilon) == SIDE_ON) // ended
+				if (!front || front->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
 				{
 					if (front)
 					{
@@ -880,7 +880,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 					}
 					break;
 				}
-				if (!back || back->WindingOnPlaneSide (vec3_arg(plB->normal), dist, epsilon) == SIDE_ON) // didn't begin
+				if (!back || back->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
 				{
 					if (front)
 					{

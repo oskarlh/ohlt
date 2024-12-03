@@ -27,8 +27,8 @@
 #define g_dplanes g_mapplanes
 typedef struct
 {
-	vec3_t			normal;
-	vec3_t			unused_origin;
+	vec3_array			normal;
+	vec3_array			unused_origin;
 	vec_t			dist;
 	planetypes		type;
 } dplane_t;
@@ -39,8 +39,8 @@ class Winding
 public:
     // General Functions
     void            Print() const;
-    void            getPlane(dplane_t& plane) const;
-    void            getPlane(vec3_t& normal, vec_t& dist) const;
+    void getPlane(dplane_t& plane) const;
+    void getPlane(vec3_array& normal, vec_t& dist) const;
     vec_t           getArea() const;
     void            getBounds(bounding_box& bounds) const;
     void            getBounds(vec3_t& mins, vec3_t& maxs) const;
@@ -63,16 +63,16 @@ public:
     void            Clip(const dplane_t& split, Winding** front, Winding** back
 		, vec_t epsilon = ON_EPSILON
 		);
-    void            Clip(const vec3_t normal, const vec_t dist, Winding** front, Winding** back
+    void            Clip(const vec3_array& normal, const vec_t dist, Winding** front, Winding** back
 		, vec_t epsilon = ON_EPSILON
 		);
-    bool            Chop(const vec3_t normal, const vec_t dist
+    bool            Chop(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
     void            Divide(const dplane_t& split, Winding** front, Winding** back
 		, vec_t epsilon = ON_EPSILON
 		);
-    int             WindingOnPlaneSide(const vec3_t normal, const vec_t dist
+    int             WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
 	void			CopyPoints(vec3_t *points, int &numpoints);
@@ -86,12 +86,12 @@ protected:
 public:
     // Construction
 	Winding();										// Do nothing :)
-	Winding(vec3_t *points, std::uint_least32_t numpoints);		// Create from raw points
+	Winding(vec3_array *points, std::uint_least32_t numpoints);		// Create from raw points
     Winding(const dface_t& face
 		, vec_t epsilon = ON_EPSILON
 		);
     Winding(const dplane_t& face);
-    Winding(const vec3_t normal, const vec_t dist);
+    Winding(const vec3_array& normal, const vec_t dist);
     Winding(std::uint_least32_t points);
     Winding(const Winding& other);
     virtual ~Winding();
@@ -99,7 +99,7 @@ public:
 
     // Misc
 private:
-    void initFromPlane(const vec3_t normal, const vec_t dist);
+    void initFromPlane(const vec3_array& normal, const vec_t dist);
 
 public:
     // Data

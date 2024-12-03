@@ -55,7 +55,7 @@ int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 	VectorCopy(origin,p->origin);
 	VectorCopy(normal,p->normal);
     VectorNormalize(vec3_arg(p->normal));
-	p->type = PlaneTypeForNormal(p->normal);
+	p->type = PlaneTypeForNormal(p->normal.data());
 	if (p->type <= last_axial)
 	{
 		for (int i = 0; i < 3; i++)
@@ -1296,7 +1296,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			{
 				continue;
 			}
-			vec3_t normal;
+			vec3_array normal;
 			vec_t dist;
 			VectorSubtract (vec3_origin, planes[j].normal, normal);
 			dist = -planes[j].dist;

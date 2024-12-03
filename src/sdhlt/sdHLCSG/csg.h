@@ -58,8 +58,8 @@
 
 struct plane_t
 {
-    vec3_t normal;
-    vec3_t origin;
+    vec3_array normal;
+    vec3_array origin;
     vec_t dist;
     planetypes type;
 };

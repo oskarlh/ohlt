@@ -29,8 +29,8 @@ void            Winding::Print() const
 
 void     Winding::getPlane(dplane_t& plane) const
 {
-    vec3_t          v1, v2;
-    vec3_t          plane_normal;
+    vec3_array          v1, v2;
+    vec3_array          plane_normal;
 
     //hlassert(m_NumPoints >= 3);
 
@@ -40,7 +40,7 @@ void     Winding::getPlane(dplane_t& plane) const
         VectorSubtract(m_Points[0], m_Points[1], v2);
 
         CrossProduct(v2, v1, plane_normal);
-        VectorNormalize(vec3_arg(plane_normal));
+        VectorNormalize(plane_normal);
         VectorCopy(plane_normal, plane.normal);               // change from vec_t
         plane.dist = DotProduct(m_Points[0], plane.normal);
     }
@@ -51,9 +51,9 @@ void     Winding::getPlane(dplane_t& plane) const
     }
 }
 
-void            Winding::getPlane(vec3_t& normal, vec_t& dist) const
+void            Winding::getPlane(vec3_array& normal, vec_t& dist) const
 {
-    vec3_t          v1, v2;
+    vec3_array          v1, v2;
 
     //hlassert(m_NumPoints >= 3);
 
@@ -62,7 +62,7 @@ void            Winding::getPlane(vec3_t& normal, vec_t& dist) const
         VectorSubtract(m_Points[1], m_Points[0], v1);
         VectorSubtract(m_Points[2], m_Points[0], v2);
         CrossProduct(v2, v1, normal);
-        VectorNormalize(vec3_arg(normal));
+        VectorNormalize(normal);
         dist = DotProduct(m_Points[0], normal);
     }
     else
@@ -156,7 +156,7 @@ void            Winding::Check(
     vec_t*          p1;
     vec_t*          p2;
     vec_t           d, edgedist;
-    vec3_t          dir, edgenormal, facenormal;
+    vec3_array          dir, edgenormal, facenormal;
     vec_t           area;
     vec_t           facedist;
 
@@ -204,7 +204,7 @@ void            Winding::Check(
         }
 
         CrossProduct(facenormal, dir, edgenormal);
-        VectorNormalize(vec3_arg(edgenormal));
+        VectorNormalize(edgenormal);
         edgedist = DotProduct(p1, edgenormal);
         edgedist += ON_EPSILON;
 
@@ -244,7 +244,7 @@ Winding::Winding()
 	m_NumPoints = m_MaxPoints = 0;
 }
 
-Winding::Winding(vec3_t *points, std::uint_least32_t numpoints)
+Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
 {
 	hlassert(numpoints >= 3);
 	m_NumPoints = numpoints;
@@ -304,11 +304,11 @@ Winding::~Winding()
 }
 
 
-void Winding::initFromPlane(const vec3_t normal, const vec_t dist)
+void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 {
     int             i;
     vec_t           max, v;
-    vec3_t          org, vright, vup;
+    vec3_array          org, vright, vup;
 
     // find the major axis               
 
@@ -342,7 +342,7 @@ void Winding::initFromPlane(const vec3_t normal, const vec_t dist)
 
     v = DotProduct(vup, normal);
     VectorMA(vup, -v, normal, vup);
-    VectorNormalize(vec3_arg(vup));
+    VectorNormalize(vup);
 
     VectorScale(normal, dist, org);
 
@@ -368,7 +368,7 @@ void Winding::initFromPlane(const vec3_t normal, const vec_t dist)
     VectorSubtract(m_Points[3], vup, m_Points[3]);
 }
 
-Winding::Winding(const vec3_t normal, const vec_t dist)
+Winding::Winding(const vec3_array& normal, const vec_t dist)
 {
     initFromPlane(normal, dist);
 }
@@ -408,7 +408,7 @@ Winding::Winding(const dface_t& face
 
 Winding::Winding(const dplane_t& plane)
 {
-    vec3_t normal;
+    vec3_array normal;
     vec_t dist;
 
     VectorCopy(plane.normal, normal);
@@ -456,7 +456,7 @@ void            Winding::Clip(const dplane_t& plane, Winding** front, Winding** 
 							  , vec_t epsilon
 							  )
 {
-    vec3_t normal;
+    vec3_array normal;
     vec_t dist;
     VectorCopy(plane.normal, normal);
     dist = plane.dist;
@@ -466,7 +466,7 @@ void            Winding::Clip(const dplane_t& plane, Winding** front, Winding** 
 }
 
 
-void            Winding::Clip(const vec3_t normal, const vec_t dist, Winding** front, Winding** back
+void            Winding::Clip(const vec3_array& normal, const vec_t dist, Winding** front, Winding** back
 							  , vec_t epsilon
 							  )
 {
@@ -627,7 +627,7 @@ void            Winding::Clip(const vec3_t normal, const vec_t dist, Winding** f
 	}
 }
 
-bool          Winding::Chop(const vec3_t normal, const vec_t dist
+bool          Winding::Chop(const vec3_array& normal, const vec_t dist
 							, vec_t epsilon
 							)
 {
@@ -660,7 +660,7 @@ bool          Winding::Chop(const vec3_t normal, const vec_t dist
     }
 }
 
-int             Winding::WindingOnPlaneSide(const vec3_t normal, const vec_t dist
+int             Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 											, vec_t epsilon
 											)
 {

@@ -27,9 +27,9 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     int             j;
     int             k;
     int             l;
-    vec3_t          normal;
-    vec3_t          delta;
-    vec3_t          planenormal;
+    vec3_array normal;
+    vec3_array          delta;
+    vec3_array         planenormal;
     vec_t           dot;
     dplane_t*       plane;
     bool            keep1;
@@ -111,7 +111,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints];
     VectorSubtract(p1, back, delta);
     CrossProduct(planenormal, delta, normal);
-    VectorNormalize(vec3_arg(normal));
+    VectorNormalize(normal);
 
     back = f2->pts[(j + 2) % f2->numpoints];
     VectorSubtract(back, p1, delta);

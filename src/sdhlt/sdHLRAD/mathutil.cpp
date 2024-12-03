@@ -497,7 +497,7 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 	clipplane.dist = DotProduct (pos, clipplane.normal);
 	
 	w = *patch->winding;
-	if (w.WindingOnPlaneSide (clipplane.normal.data(), clipplane.dist) != SIDE_CROSS)
+	if (w.WindingOnPlaneSide (clipplane.normal, clipplane.dist) != SIDE_CROSS)
 	{
 		VectorCopy (patch->origin, origin);
 	}

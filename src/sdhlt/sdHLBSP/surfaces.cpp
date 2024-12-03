@@ -30,7 +30,6 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
     face_t*         back;
     face_t*         next;
     texinfo_t*      tex;
-    vec3_t          temp;
 
     // special (non-surface cached) faces don't need subdivision
 
@@ -87,8 +86,9 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
             // split it
             subdivides++;
 
+            vec3_array temp;
             VectorCopy(tex->vecs[axis], temp);
-            v = VectorNormalize(vec3_arg(temp));
+            v = VectorNormalize(temp);
 
             VectorCopy(temp, plane.normal);
             plane.dist = (mins + g_subdivide_size - TEXTURE_STEP) / v; //plane.dist = (mins + g_subdivide_size - 16) / v; //--vluzacn

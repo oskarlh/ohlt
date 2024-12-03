@@ -1315,8 +1315,8 @@ bsurface_t;
 
 typedef struct
 {
-	vec3_t axis;
-	vec3_t basenormal;
+	vec3_array axis;
+	vec3_array basenormal;
 	int numwedges[2]; // the front and back side of nodes[0]
 	bwedge_t wedges[2][MAXBRINKWEDGES]; // in counterclosewise order
 	bsurface_t surfaces[2][MAXBRINKWEDGES]; // the surface between two adjacent wedges
@@ -1326,7 +1326,7 @@ bcircle_t;
 bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 {
 	VectorCopy (b->direction, c->axis);
-	if (!VectorNormalize (vec3_arg(c->axis)))
+	if (!VectorNormalize (c->axis))
 	{
 		return false;
 	}

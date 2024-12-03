@@ -90,7 +90,7 @@ static void     MarkLeakTrail(portal_t* n2)
     vec3_array          dir;
     VectorSubtract(p2, p1, dir);
     len = VectorLength(dir);
-    VectorNormalize(vec3_arg(dir));
+    VectorNormalize(dir);
 
     while (len > 2)
     {
