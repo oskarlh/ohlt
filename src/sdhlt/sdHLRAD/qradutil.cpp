@@ -485,7 +485,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 		return false;
 	}
 
-	if (doedgetest && !point_in_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, pos.data(), DEFAULT_EDGE_WIDTH))
+	if (doedgetest && !point_in_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, pos, DEFAULT_EDGE_WIDTH))
 	{
 		// if the sample has gone beyond face boundaries, be careful that it hasn't passed a wall
 		vec3_array test;
@@ -812,7 +812,6 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 							)
 {
 	positionmap_t *map;
-	vec3_t original_st;
 	int x;
 	int itmin, itmax, ismin, ismax;
 	const vec3_t v_s = {1, 0, 0};
@@ -831,9 +830,7 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 		return false;
 	}
 
-	original_st[0] = s;
-	original_st[1] = t;
-	original_st[2] = 0.0;
+	const vec3_array original_st = { s, t, 0.0 };
 
 	if (point_in_winding (*map->texwinding, map->texplane, original_st, 4 * ON_EPSILON))
 	{

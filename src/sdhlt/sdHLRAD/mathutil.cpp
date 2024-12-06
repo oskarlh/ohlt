@@ -6,21 +6,19 @@
 //      returns whether the point is in the winding (including its edges)
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t epsilon/* = 0.0*/)
+bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t epsilon/* = 0.0*/)
 {
-	int				numpoints;
-	int				x;
-	vec3_array delta;
-	vec3_array normal;
-	vec_t			dist;
 
-	numpoints = w.m_NumPoints;
+	const int numpoints = w.m_NumPoints;
 
-	for (x = 0; x < numpoints; x++)
+	for (int x = 0; x < numpoints; x++)
 	{
+
+		vec3_array delta;
 		VectorSubtract (w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
+		vec3_array normal;
 		CrossProduct (delta, plane.normal, normal);
-		dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
+		const vec_t dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
 
 		if (dist < 0.0
 			&& (epsilon == 0.0 || dist * dist > epsilon * epsilon * DotProduct (normal, normal)))
@@ -38,7 +36,7 @@ bool point_in_winding(const Winding& w, const dplane_t& plane, const vec_t* cons
 //      parameter 'width' : the radius of the ball
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec_t* const point, vec_t width)
+bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t width)
 {
 	int				numpoints;
 	int				x;

@@ -564,10 +564,10 @@ extern bool     TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
 extern bool     intersect_line_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2, vec3_t point);
 extern bool     intersect_linesegment_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2,vec3_t point);
 extern void     plane_from_points(const vec3_t p1, const vec3_t p2, const vec3_t p3, dplane_t* plane);
-extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const vec_t* point
+extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point
 					, vec_t epsilon = 0.0
 					);
-extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec_t* point, vec_t width);
+extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t width);
 extern void     snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* point);
 extern vec_t	snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* point, vec_t width, vec_t maxmove);
 extern void     SnapToPlane(const dplane_t* const plane, vec_t* const point, vec_t offset);

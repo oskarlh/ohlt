@@ -3333,7 +3333,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 				{
 					VectorAdd (surfacewinding->m_Points[x], g_face_offset[surface], surfacewinding->m_Points[x]);
 				}
-				if (!point_in_winding_noedge (*surfacewinding, *surfaceplane, spot2.data(), 0.2))
+				if (!point_in_winding_noedge (*surfacewinding, *surfaceplane, spot2, 0.2))
 				{
 					snap_to_winding_noedge (*surfacewinding, *surfaceplane, spot2.data(), 0.2, 4 * 0.2);
 				}

@@ -1138,7 +1138,7 @@ static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *
 			VectorMA (patch2->origin, -PATCH_HUNT_OFFSET, dp2->normal, v);
 
 			// Do permission tests using the original position of the patch
-			if (patchnum2 == lt->patchnum || point_in_winding (lt->winding, lt->plane, v.data()))
+			if (patchnum2 == lt->patchnum || point_in_winding (lt->winding, lt->plane, v))
 			{
 				continue;
 			}
@@ -1528,7 +1528,7 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 	VectorMA (patch->origin, -PATCH_HUNT_OFFSET, lt->plane.normal, lt->center);
 	dot = DotProduct (lt->center, lt->plane.normal) - lt->plane.dist;
 	VectorMA (lt->center, -dot, lt->plane.normal, lt->center);
-	if (!point_in_winding_noedge (lt->winding, lt->plane, lt->center.data(), DEFAULT_EDGE_WIDTH))
+	if (!point_in_winding_noedge (lt->winding, lt->plane, lt->center, DEFAULT_EDGE_WIDTH))
 	{
 		snap_to_winding_noedge (lt->winding, lt->plane, lt->center.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
 	}
