@@ -165,8 +165,8 @@ void            GetParamsFromEnt(entity_t* mapent)
 // =====================================================================================
 static void     PlaneFromWinding(winding_t* w, plane_t* plane)
 {
-    vec3_t          v1;
-    vec3_t          v2;
+    vec3_array          v1;
+    vec3_array          v2;
 
     // calc plane
     VectorSubtract(w->points[2], w->points[1], v1);
@@ -850,7 +850,7 @@ static void     Settings()
     Log("\n\n");
 }
 
-int        VisLeafnumForPoint(const vec3_t point)
+int        VisLeafnumForPoint(const vec3_array& point)
 {
     int             nodenum;
     vec_t           dist;
@@ -1184,7 +1184,7 @@ int             main(const int argc, char** argv)
 					vec3_array p;
 					GetVectorForKey (&g_entities[i], u8"origin", p);
 					VectorCopy (p, g_overview[g_overview_count].origin);
-					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p.data());
+					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p);
 					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], u8"reverse");
 					g_overview_count++;
 				}
@@ -1197,7 +1197,7 @@ int             main(const int argc, char** argv)
                     vec3_array room_origin;
 
                     GetVectorForKey (&g_entities[i], u8"origin", room_origin);
-                    g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin.data());
+                    g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
                     g_room[g_room_count].neighbor = std::clamp(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
 
                     const char* target = (const char*) ValueForKey (&g_entities[i], u8"target");
@@ -1222,7 +1222,7 @@ int             main(const int argc, char** argv)
                             vec3_array room_target_origin;
 
                             GetVectorForKey (&g_entities[j], u8"origin", room_target_origin);
-                            g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin.data());
+                            g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin);
 
                             has_target = true;
                         }

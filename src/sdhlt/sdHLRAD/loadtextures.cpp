@@ -225,7 +225,7 @@ void DefaultTexture (radtexture_t *tex, const char *name)
 	tex->height = 16;
 	strcpy (tex->name, name);
 	tex->name[16 - 1] = '\0';
-	tex->canvas = (byte *)malloc (tex->width * tex->height);
+	tex->canvas = (std::uint8_t *)malloc (tex->width * tex->height);
 	hlassume (tex->canvas != nullptr, assume_NoMemory);
 	for (i = 0; i < 256; i++)
 	{
@@ -240,7 +240,7 @@ void DefaultTexture (radtexture_t *tex, const char *name)
 void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 {
 	const miptex_t *header = mt;
-	const byte *data = (const byte *)mt;
+	const std::uint8_t *data = (const std::uint8_t *)mt;
 	tex->width = header->width;
 	tex->height = header->height;
 	strcpy (tex->name, header->name);
@@ -267,7 +267,7 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	{
 		Error ("Texture '%s': palette size is not 256.", tex->name);
 	}
-	tex->canvas = (byte *)malloc (tex->width * tex->height);
+	tex->canvas = (std::uint8_t*) malloc (tex->width * tex->height);
 	hlassume (tex->canvas != nullptr, assume_NoMemory);
 	for (int i = 0; i < tex->height; i++)
 	{
@@ -387,7 +387,12 @@ void LoadTextures ()
 				}
 				else
 				{
-					VectorScale (tex->palette[tex->canvas[j]], 1.0/255.0, reflectivity);
+					const auto& rgb = tex->palette[(std::size_t) tex->canvas[j]];
+					reflectivity = {
+						rgb[0] * vec_t(1.0 / 255.0),
+						rgb[1] * vec_t(1.0 / 255.0),
+						rgb[2] * vec_t(1.0 / 255.0)
+					};
 					for (int k = 0; k < 3; k++)
 					{
 						reflectivity[k] = pow (reflectivity[k], g_texreflectgamma);
@@ -1161,8 +1166,8 @@ void EmbedLightmapInTextures ()
 				double s_vec, t_vec;
 				double src_s, src_t;
 				int src_is, src_it;
-				byte src_index;
-				byte src_color[3];
+				std::uint8_t src_index;
+				std::uint8_t src_color[3];
 				double dest_s, dest_t;
 				int dest_is, dest_it;
 				float (*dest)[5];
@@ -1297,7 +1302,7 @@ void EmbedLightmapInTextures ()
 
 		// create its palette
 
-		byte palette[256][3];
+		std::uint8_t palette[256][3];
 		cq_searchnode_t *palettetree = CQ_AllocSearchTree (256);
 		int paletteoffset;
 		int palettenumcolors;

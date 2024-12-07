@@ -173,7 +173,7 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
     int             x = 0;
     vec_t           volume = 0.0;
     vec_t           inverse;
-    vec3_t          midpoint = { 0.0, 0.0, 0.0 };
+    vec3_array          midpoint = { 0.0, 0.0, 0.0 };
 
     bface_t*        face;
 

@@ -64,7 +64,7 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
     int             counts[3];
     vec_t           dot;
     int             i;
-    vec3_t          mid;
+    vec3_array          mid;
     winding_t*      neww;
 
     counts[0] = counts[1] = counts[2] = 0;
@@ -237,7 +237,7 @@ inline static winding_t* ClipToSeperators(
 {
     int             i, j, k, l;
     plane_t         plane;
-    vec3_t          v1, v2;
+    vec3_array          v1, v2;
     float           d;
     int             counts[3];
     bool            fliptest;
@@ -800,7 +800,7 @@ vec_t WindingDist (const winding_t *w[2])
 	{
 		for (b = 0; b < w[1]->numpoints; b++)
 		{
-			vec3_t v;
+			vec3_array v;
 			VectorSubtract (w[0]->points[a], w[1]->points[b], v);
 			sqrdist = DotProduct (v, v);
 			if (sqrdist < minsqrdist)
@@ -982,7 +982,7 @@ void	MaxDistVis(int unused)
 	leaf_t	*l;
 	leaf_t	*tl;
 	plane_t	*boundary = nullptr;
-	vec3_t delta;
+	vec3_array delta;
 
 	float new_dist;
 
@@ -1033,11 +1033,11 @@ void	MaxDistVis(int unused)
 			
 			// rough check
 			{
-				vec3_t v;
+				vec3_array v;
 				vec_t dist;
 				const winding_t *w;
 				const leaf_t *leaf[2] = {l, tl};
-				vec3_t center[2];
+				vec3_array center[2];
 				vec_t radius[2];
 				int count[2];
 				for (int side = 0; side < 2; side++)

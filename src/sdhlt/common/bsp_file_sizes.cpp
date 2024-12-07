@@ -80,7 +80,7 @@ std::size_t count_blocks (const bsp_data& bspData)
 			continue;
 		}
 		int extents[2];
-		vec3_t point;
+		vec3_array point;
 		{
 			int bmins[2];
 			int bmaxs[2];

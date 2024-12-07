@@ -188,7 +188,7 @@ public:
 		maxs[0] = maxs[1] = maxs[2] = -999999.0f;
 	}
 
-	void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs )
+	void AddPointToBounds( const vec3_array& v, vec3_array& mins, vec3_array& maxs )
 	{
 		for( int i = 0; i < 3; i++ )
 		{

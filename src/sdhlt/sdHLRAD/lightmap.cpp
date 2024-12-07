@@ -2537,9 +2537,9 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 							// search back to see if we can hit a sky brush
 							VectorScale (l->sunnormals[j], -BOGUS_RANGE, delta);
 							VectorAdd(pos, delta, delta);
-							vec3_t skyhit;
+							vec3_array skyhit;
 							VectorCopy (delta, skyhit);
-							if (TestLine(pos.data(), delta.data()
+							if (TestLine(pos, delta
 								, skyhit
 								) != CONTENTS_SKY)
 							{
@@ -2548,7 +2548,7 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 
 							vec3_array transparency;
 							int opaquestyle;
-							if (TestSegmentAgainstOpaqueList(pos.data(), 
+							if (TestSegmentAgainstOpaqueList(pos, 
 								skyhit
 								, transparency
 								, opaquestyle
@@ -2615,8 +2615,8 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 								VectorAdd(pos, delta, delta);
 								vec3_array skyhit;
 								VectorCopy (delta, skyhit);
-								if (TestLine(pos.data(), delta.data()
-									, skyhit.data()
+								if (TestLine(pos, delta
+									, skyhit
 									) != CONTENTS_SKY)
 								{
 									continue;                                  // occluded
@@ -2624,8 +2624,8 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 
 								vec3_array transparency;
 								int opaquestyle;
-								if (TestSegmentAgainstOpaqueList(pos.data(), 
-									skyhit.data()
+								if (TestSegmentAgainstOpaqueList(pos, 
+									skyhit
 									, transparency
 									, opaquestyle
 									))
@@ -2859,16 +2859,16 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
                             break;
                         }
                         }
-						if (TestLine (pos.data(), 
-							testline_origin.data()
+						if (TestLine (pos, 
+							testline_origin
 							) != CONTENTS_EMPTY)
 						{
 							continue;
 						}
 						vec3_array transparency;
 						int opaquestyle;
-						if (TestSegmentAgainstOpaqueList (pos.data(), 
-							testline_origin.data()
+						if (TestSegmentAgainstOpaqueList (pos, 
+							testline_origin
 							, transparency
 							, opaquestyle))
 						{

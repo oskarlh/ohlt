@@ -72,13 +72,13 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 				return false;
 			}
             if (TestLine(
-				origin1.data(), origin2.data()
+				origin1, origin2
 				) != CONTENTS_EMPTY)
 			{
 				return false;
 			}
             if (TestSegmentAgainstOpaqueList(
-				origin1.data(), origin2.data()
+				origin1, origin2
 				, transparency
 				, opaquestyle
 				))
@@ -139,13 +139,13 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 				return false;
 			}
             if (TestLine(
-				backorigin.data(), emitorigin.data()
+				backorigin, emitorigin
 				) != CONTENTS_EMPTY)
 			{
 				return false;
 			}
             if (TestSegmentAgainstOpaqueList(
-				backorigin.data(), emitorigin.data()
+				backorigin, emitorigin
 				, transparency
 				, opaquestyle
 				))

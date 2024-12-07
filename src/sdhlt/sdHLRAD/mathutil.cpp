@@ -290,7 +290,7 @@ inline bool LineSegmentIntersectsBounds (const vec3_t p1, const vec3_t p2, const
 //  TestSegmentAgainstOpaqueList
 //      Returns true if the segment intersects an item in the opaque list
 // =====================================================================================
-bool            TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
+bool            TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_array& p2
 					, vec3_array& scaleout
 					, int &opaquestyleout // light must convert to this style. -1 = no convert
 					)

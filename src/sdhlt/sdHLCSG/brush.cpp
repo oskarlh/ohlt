@@ -235,7 +235,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		
 		// find the impact point
-		vec3_t bestvertex;
+		vec3_array bestvertex;
 		vec_t bestdist;
 		bestdist = BOGUS_RANGE;
 		hlassume (hb->numvertexes >= 1, assume_first);
@@ -347,7 +347,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 	for (hbf = hb->faces; hbf < hb->faces + hb->numfaces; hbf++)
 	{
 		// find the impact point
-		vec3_t bestvertex;
+		vec3_array bestvertex;
 		vec_t bestdist;
 		bestdist = BOGUS_RANGE;
 		if (!hull0->faces)
@@ -694,7 +694,7 @@ void SortSides (brushhull_t *h)
 {
 	int numsides;
 	bface_t **sides;
-	vec3_t *normals;
+	vec3_array *normals;
 	bool *isused;
 	int i, j;
 	int *sorted;
@@ -705,7 +705,7 @@ void SortSides (brushhull_t *h)
 	}
 	sides = (bface_t **)malloc (numsides * sizeof (bface_t *));
 	hlassume (sides != nullptr, assume_NoMemory);
-	normals = (vec3_t *)malloc (numsides * sizeof (vec3_t));
+	normals = (vec3_array *)malloc (numsides * sizeof (vec3_array));
 	hlassume (normals != nullptr, assume_NoMemory);
 	isused = (bool *)malloc (numsides * sizeof (bool));
 	hlassume (isused != nullptr, assume_NoMemory);
@@ -1372,7 +1372,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	{
 		for (e = 0; e < w[i]->m_NumPoints; e++)
 		{
-			vec3_t v;
+			vec3_array v;
 			VectorCopy (w[i]->m_Points[e], v);
 			for (j = 0; j < numvertexes; j++)
 			{

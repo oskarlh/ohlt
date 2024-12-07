@@ -702,13 +702,13 @@ brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
 	return b;
 }
 
-void CalcBrushBounds (const brush_t *b, vec3_t &mins, vec3_t &maxs)
+void CalcBrushBounds (const brush_t *b, vec3_t & mins, vec3_t &maxs)
 {
 	VectorFill (mins, BOGUS_RANGE);
 	VectorFill (maxs, -BOGUS_RANGE);
 	for (side_t *s = b->sides; s; s = s->next)
 	{
-		vec3_t windingmins, windingmaxs;
+		vec3_array windingmins, windingmaxs;
 		s->w->getBounds (windingmins, windingmaxs);
 		VectorCompareMinimum (mins, windingmins, mins);
 		VectorCompareMaximum (maxs, windingmaxs, maxs);
@@ -732,7 +732,7 @@ node_t*         AllocNode()
 // =====================================================================================
 //  AddPointToBounds
 // =====================================================================================
-void            AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs)
+static void            AddPointToBounds(const vec3_t v, vec3_array& mins, vec3_array& maxs)
 {
     int             i;
     vec_t           val;
@@ -754,7 +754,7 @@ void            AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs)
 // =====================================================================================
 //  AddFaceToBounds
 // =====================================================================================
-static void     AddFaceToBounds(const face_t* const f, vec3_t mins, vec3_t maxs)
+static void     AddFaceToBounds(const face_t* const f, vec3_array& mins, vec3_array& maxs)
 {
     int             i;
 
@@ -767,7 +767,7 @@ static void     AddFaceToBounds(const face_t* const f, vec3_t mins, vec3_t maxs)
 // =====================================================================================
 //  ClearBounds
 // =====================================================================================
-static void     ClearBounds(vec3_t mins, vec3_t maxs)
+static void     ClearBounds(vec3_array& mins, vec3_array& maxs)
 {
     mins[0] = mins[1] = mins[2] = 99999;
     maxs[0] = maxs[1] = maxs[2] = -99999;
@@ -827,8 +827,8 @@ static surfchain_t* SurflistFromValidFaces()
 			}
         }
 
-        AddPointToBounds(n->mins, sc->mins, sc->maxs);
-        AddPointToBounds(n->maxs, sc->mins, sc->maxs);
+        AddPointToBounds(n->mins.data(), sc->mins, sc->maxs);
+        AddPointToBounds(n->maxs.data(), sc->mins, sc->maxs);
 
         validfaces[i] = nullptr;
         validfaces[i + 1] = nullptr;

@@ -122,12 +122,12 @@ typedef struct
 	char		name[64];
 	int		length;
 
-	vec3_t		eyeposition;	// ideal eye position
-	vec3_t		min;		// ideal movement hull size
-	vec3_t		max;			
+	vec3_array		eyeposition;	// ideal eye position
+	vec3_array		min;		// ideal movement hull size
+	vec3_array		max;			
 
-	vec3_t		bbmin;		// clipping bounding box
-	vec3_t		bbmax;		
+	vec3_array		bbmin;		// clipping bounding box
+	vec3_array		bbmax;		
 
 	int		flags;
 
@@ -267,8 +267,8 @@ typedef struct
 {
 	int		bone;
 	int		group;		// intersection group
-	vec3_t		bbmin;		// bounding box
-	vec3_t		bbmax;		
+	vec3_array		bbmin;		// bounding box
+	vec3_array		bbmax;		
 } mstudiobbox_t;
 
 #ifndef CACHE_USER
@@ -309,12 +309,12 @@ typedef struct
 
 	int		motiontype;	
 	int		motionbone;
-	vec3_t		linearmovement;
+	vec3_array		linearmovement;
 	int		automoveposindex;
 	int		automoveangleindex;
 
-	vec3_t		bbmin;		// per sequence bounding box
-	vec3_t		bbmax;		
+	vec3_array		bbmin;		// per sequence bounding box
+	vec3_array		bbmax;		
 
 	int		numblends;
 	int		animindex;	// mstudioanim_t pointer relative to start of sequence group data
@@ -346,7 +346,7 @@ typedef struct mstudioevent_s
 // pivots
 typedef struct 
 {
-	vec3_t		org;		// pivot point
+	vec3_array		org;		// pivot point
 	int		start;
 	int		end;
 } mstudiopivot_t;
@@ -357,8 +357,8 @@ typedef struct
 	char		name[32];
 	int		type;
 	int		bone;
-	vec3_t		org;		// attachment point
-	vec3_t		vectors[3];
+	vec3_array		org;		// attachment point
+	vec3_array		vectors[3];
 } mstudioattachment_t;
 
 typedef struct
@@ -412,10 +412,10 @@ typedef struct
 
 	int		numverts;		// number of unique vertices
 	int		vertinfoindex;	// vertex bone info
-	int		vertindex;	// vertex vec3_t
+	int		vertindex;	// vertex vec3_array
 	int		numnorms;		// number of unique surface normals
 	int		norminfoindex;	// normal bone info
-	int		normindex;	// normal vec3_t
+	int		normindex;	// normal vec3_array
 
 	int		numgroups;	// UNUSED
 	int		groupindex;	// UNUSED
@@ -446,7 +446,7 @@ typedef struct vbomesh_s
 	unsigned int	numElems;			// trifan elements count
 
 	unsigned int	vbo, vao, ibo;		// buffer objects
-	vec3_t		mins, maxs;		// right transform to get screencopy
+	vec3_array		mins, maxs;		// right transform to get screencopy
 	int		parentbone;		// parent bone to transform AABB
 } vbomesh_t;
 

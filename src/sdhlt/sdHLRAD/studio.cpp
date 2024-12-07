@@ -7,7 +7,7 @@
 model_t models[MAX_MODELS];
 int num_models;
 
-void LoadStudioModel( const char *modelname, const vec3_t origin, const vec3_t angles, const vec3_t scale, int body, int skin, int trace_mode )
+static void LoadStudioModel( const char *modelname, const vec3_array& origin, const vec3_array& angles, const vec3_array& scale, int body, int skin, int trace_mode )
 {
 	if( num_models >= MAX_MODELS )
 	{
@@ -172,7 +172,7 @@ void LoadStudioModels( void )
 		if( xform[1] > 16.0f ) xform[1] = 16.0f;
 		if( xform[2] > 16.0f ) xform[2] = 16.0f;
 
-		LoadStudioModel( model, origin.data(), angles.data(), xform.data(), body, skin, trace_mode );
+		LoadStudioModel( model, origin, angles, xform, body, skin, trace_mode );
 	}
 
 	Log( "%i opaque studio models\n", num_models );
@@ -195,7 +195,7 @@ void FreeStudioModels( void )
 	num_models = 0;
 }
 
-void MoveBounds( const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, vec3_t outmins, vec3_t outmaxs )
+static void MoveBounds( const vec3_array& start, const vec3_array& mins, const vec3_array& maxs, const vec3_array& end, vec3_array& outmins, vec3_array& outmaxs )
 {
 	for( int i = 0; i < 3; i++ )
 	{
@@ -212,13 +212,13 @@ void MoveBounds( const vec3_t start, const vec3_t mins, const vec3_t maxs, const
 	}
 }
 
-bool TestSegmentAgainstStudioList( const vec_t* p1, const vec_t* p2 )
+bool TestSegmentAgainstStudioList( const vec3_array& p1, const vec3_array& p2 )
 {
 	if( !num_models ) return false; // easy out
 
-	vec3_t	trace_mins, trace_maxs;
+	vec3_array	trace_mins, trace_maxs;
 
-	MoveBounds( p1, vec3_origin.data(), vec3_origin.data(), p2, trace_mins, trace_maxs );
+	MoveBounds( p1, vec3_origin, vec3_origin, p2, trace_mins, trace_maxs );
 
 	for( int i = 0; i < num_models; i++ )
 	{
@@ -227,14 +227,14 @@ bool TestSegmentAgainstStudioList( const vec_t* p1, const vec_t* p2 )
 		mmesh_t *pMesh = m->mesh.GetMesh();
 		areanode_t *pHeadNode = m->mesh.GetHeadNode();
 
-		if( !pMesh || !m->mesh.Intersect( trace_mins, trace_maxs ))
+		if( !pMesh || !m->mesh.Intersect( trace_mins.data(), trace_maxs.data() ))
 			continue; // bad model or not intersect with trace
 
 		TraceMesh	trm;	// a name like Doom3 :-)
 
 		trm.SetTraceModExtradata( m->extradata );
 		trm.SetTraceMesh( pMesh, pHeadNode );
-		trm.SetupTrace( p1, vec3_origin, vec3_origin, p2 );
+		trm.SetupTrace( p1.data(), vec3_origin, vec3_origin, p2.data() );
 
 		if( trm.DoTrace())
 			return true; // we hit studio model

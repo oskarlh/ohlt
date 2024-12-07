@@ -7,6 +7,9 @@
 #include "mathlib.h"
 #include "hlassert.h"
 
+#include <algorithm>
+#include <span>
+
 #undef BOGUS_RANGE
 #undef ON_EPSILON
 
@@ -75,7 +78,7 @@ void            Winding::getPlane(vec3_array& normal, vec_t& dist) const
 vec_t           Winding::getArea() const
 {
     unsigned int    i;
-    vec3_t          d1, d2, cross;
+    vec3_array          d1, d2, cross;
     vec_t           total;
 
     //hlassert(m_NumPoints >= 3);
@@ -94,7 +97,7 @@ vec_t           Winding::getArea() const
     return total;
 }
 
-void            Winding::getBounds(vec3_t& mins, vec3_t& maxs) const
+void            Winding::getBounds(vec3_array& mins, vec3_array& maxs) const
 {
     bounding_box     bounds;
     unsigned    x;
@@ -251,20 +254,7 @@ Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
 	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
 
 	m_Points = new vec3_array[m_MaxPoints];
-	memcpy(m_Points, points, sizeof(vec3_t) * m_NumPoints);
-}
-
-void			Winding::initFromPoints(vec3_t *points, std::uint_least32_t numpoints)
-{
-	hlassert(numpoints >= 3);
-
-	Reset();
-
-	m_NumPoints = numpoints;
-	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
-
-	m_Points = new vec3_array[m_MaxPoints];
-	memcpy(m_Points, points, sizeof(vec3_t) * m_NumPoints);
+	memcpy(m_Points, points, sizeof(vec3_array) * m_NumPoints);
 }
 
 Winding&      Winding::operator=(const Winding& other)
@@ -274,7 +264,7 @@ Winding&      Winding::operator=(const Winding& other)
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
     m_Points = new vec3_array[m_MaxPoints];
-    memcpy(m_Points, other.m_Points, sizeof(vec3_t) * m_NumPoints);
+    memcpy(m_Points, other.m_Points, sizeof(vec3_array) * m_NumPoints);
     return *this;
 }
 
@@ -286,7 +276,7 @@ Winding::Winding(std::uint_least32_t numpoints)
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
     m_Points = new vec3_array[m_MaxPoints];
-    memset(m_Points, 0, sizeof(vec3_t) * m_NumPoints);
+    memset(m_Points, 0, sizeof(vec3_array) * m_NumPoints);
 }
 
 Winding::Winding(const Winding& other)
@@ -295,7 +285,7 @@ Winding::Winding(const Winding& other)
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
     m_Points = new vec3_array[m_MaxPoints];
-    memcpy(m_Points, other.m_Points, sizeof(vec3_t) * m_NumPoints);
+    memcpy(m_Points, other.m_Points, sizeof(vec3_array) * m_NumPoints);
 }
 
 Winding::~Winding()
@@ -426,7 +416,7 @@ void			Winding::RemoveColinearPoints(
 											  )
 {
 	unsigned int	i;
-	vec3_t			v1, v2;
+	vec3_array v1, v2;
 	vec_t			*p1, *p2, *p3;
 	for (i = 0; i < m_NumPoints; i++)
 	{
@@ -556,7 +546,7 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
         }
 
         // generate a split point
-        vec3_t mid;
+        vec3_array mid;
         unsigned int tmp = i + 1;
         if (tmp >= m_NumPoints)
         {
@@ -564,26 +554,7 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
         }
         vec_t* p2 = m_Points[tmp].data();
         dot = dists[i] / (dists[i] - dists[i + 1]);
-#if 0
-        for (j = 0; j < 3; j++)
-        {                                                  // avoid round off error when possible
-            if (normal[j] < 1.0 - NORMAL_EPSILON)
-            {
-                if (normal[j] > -1.0 + NORMAL_EPSILON)
-                {
-                    mid[j] = p1[j] + dot * (p2[j] - p1[j]);
-                }
-                else
-                {
-                    mid[j] = -dist;
-                }
-            }
-            else
-            {
-                mid[j] = dist;
-            }
-        }
-#else
+
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
             if (normal[j] == 1)
@@ -593,7 +564,6 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
             else
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }
-#endif
 
         VectorCopy(mid, f->m_Points[f->m_NumPoints]);
         VectorCopy(mid, b->m_Points[b->m_NumPoints]);
@@ -786,7 +756,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         }
 
         // generate a split point
-        vec3_t mid;
+        vec3_array mid;
         unsigned int tmp = i + 1;
         if (tmp >= m_NumPoints)
         {
@@ -950,7 +920,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
         }
 
         // generate a split point
-        vec3_t mid;
+        vec3_array mid;
         unsigned int tmp = i + 1;
         if (tmp >= m_NumPoints)
         {
@@ -1002,7 +972,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
 }
 
 
-void            Winding::addPoint(const vec3_t newpoint)
+void            Winding::addPoint(const vec3_array& newpoint)
 {
     if (m_NumPoints >= m_MaxPoints)
     {
@@ -1013,7 +983,7 @@ void            Winding::addPoint(const vec3_t newpoint)
 }
 
 
-void            Winding::insertPoint(const vec3_t newpoint, const unsigned int offset)
+void            Winding::insertPoint(const vec3_array& newpoint, const unsigned int offset)
 {
     if (offset >= m_NumPoints)
     {
@@ -1048,28 +1018,4 @@ void            Winding::resize(std::uint_least32_t newsize)
     delete[] m_Points;
     m_Points = newpoints.release();
     m_MaxPoints = newsize;
-}
-
-void			Winding::CopyPoints(vec3_t *points, int &numpoints)
-{
-	if(!points)
-	{
-		numpoints = 0;
-		return;
-	}
-
-	memcpy(points, m_Points, sizeof(vec3_t) * m_NumPoints);
-
-	numpoints = m_NumPoints;
-}
-
-void			Winding::Reset(void)
-{
-	if(m_Points)
-	{
-		delete [] m_Points;
-		m_Points = nullptr;
-	}
-
-	m_NumPoints = m_MaxPoints = 0;
 }

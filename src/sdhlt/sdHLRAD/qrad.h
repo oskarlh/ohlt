@@ -321,9 +321,9 @@ typedef struct
 {
 	int entitynum;
 	int modelnum;
-	vec3_t origin;
+	vec3_array origin;
 
-    vec3_t transparency_scale;
+    vec3_array transparency_scale;
     bool transparency;
 	int style; // -1 = no style; transparency must be false if style >= 0
 	// style0 and same style will change to this style, other styles will be blocked.
@@ -336,9 +336,9 @@ typedef struct
 {
 	char name[16]; // not always same with the name in texdata
 	int width, height;
-	byte *canvas; //[height][width]
-	byte palette[256][3];
-	vec3_t reflectivity;
+	std::uint8_t *canvas; //[height][width]
+	std::array<std::array<std::uint8_t, 3>, 256> palette;
+	vec3_array reflectivity;
 } radtexture_t;
 extern int g_numtextures;
 extern radtexture_t *g_textures;
@@ -418,7 +418,6 @@ extern vec3_t	g_jitter_hack;
 
 	extern bool	g_customshadow_with_bouncelight;
 	extern bool	g_rgb_transfers;
-	extern const vec3_t vec3_one;
 
 	extern float g_transtotal_hack;
 	extern unsigned char g_minlight;
@@ -468,9 +467,14 @@ extern void		ScaleDirectLights (); // run before AddPatchLights
 extern void		CreateFacelightDependencyList (); // run before AddPatchLights
 extern void		AddPatchLights (int facenum);
 extern void		FreeFacelightDependencyList ();
-extern int      TestLine(const vec3_t start, const vec3_t stop
-						 , vec_t *skyhitout = nullptr
+extern int      TestLine(const vec3_array& start, const vec3_array& stop
+						 , vec3_array& skyhitout
 						 );
+inline int TestLine(const vec3_array& start, const vec3_array& stop) {
+	vec3_array skyhitout;
+	return TestLine(start, stop, skyhitout);
+}
+
 
 typedef struct
 {
@@ -479,11 +483,10 @@ typedef struct
 } opaquemodel_t;
 extern opaquemodel_t *opaquemodels;
 extern void		CreateOpaqueNodes();
-extern int		TestLineOpaque(int modelnum, const vec3_t modelorigin, const vec3_t start, const vec3_t stop);
+extern int		TestLineOpaque(int modelnum, const vec3_array& modelorigin, const vec3_array& start, const vec3_array& stop);
 extern int		CountOpaqueFaces(int modelnum);
 extern void		DeleteOpaqueNodes();
-extern int TestPointOpaque_r (int nodenum, bool solid, const vec3_t point);
-extern int		TestPointOpaque (int modelnum, const vec3_t modelorigin, bool solid, const vec3_t point);
+extern int		TestPointOpaque (int modelnum, const vec3_array& modelorigin, bool solid, const vec3_array& point);
 
 extern void     CreateDirectLights();
 extern void     DeleteDirectLights();
@@ -541,7 +544,7 @@ extern void     MakeRGBScales(int threadnum);
 
 // transparency.c (transparency array functions - shared between vismatrix.c and sparse.c)
 extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index);
-extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_t trans);
+extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans);
 extern void	CreateFinalTransparencyArrays(const char *print_name);
 extern void	FreeTransparencyArrays();
 extern void GetStyle(const unsigned p1, const unsigned p2, int &style, unsigned int &next_index);
@@ -557,7 +560,7 @@ extern void InterpolateSampleLight (const vec3_array& position, int surface, int
 extern void FreeTriangulations ();
 
 // mathutil.c
-extern bool     TestSegmentAgainstOpaqueList(const vec_t* p1, const vec_t* p2
+extern bool     TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_array& p2
 					, vec3_array& scaleout
 					, int &opaquestyleout
 					);
@@ -582,5 +585,5 @@ extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal
 // studio.cpp
 extern void LoadStudioModels(void);
 extern void FreeStudioModels(void);
-extern bool TestSegmentAgainstStudioList(const vec_t* p1, const vec_t* p2);
+extern bool TestSegmentAgainstStudioList(const vec3_array& p1, const vec3_array& p2);
 extern bool g_studioshadow;

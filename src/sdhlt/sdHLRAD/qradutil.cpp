@@ -214,7 +214,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
                     dist = DotProduct(delta, delta);
 
 					if(std::ranges::any_of(g_opaque_face_list, [&current_point](const opaqueList_t& of) {
-						return TestPointOpaque (of.modelnum, of.origin, of.block, current_point.data());
+						return TestPointOpaque (of.modelnum, of.origin, of.block, current_point);
 					})) {
 						continue;
 					}
@@ -500,12 +500,12 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 			return false;
 		}
 
-		if (TestLine (pos.data(), test.data()) != CONTENTS_EMPTY)
+		if (TestLine (pos, test) != CONTENTS_EMPTY)
 		{
 			return false;
 		}
 
-		if (TestSegmentAgainstOpaqueList (pos.data(), test.data()
+		if (TestSegmentAgainstOpaqueList (pos, test
 				, transparency
 				, opaquestyle
 				) == true

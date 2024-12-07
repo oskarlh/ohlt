@@ -1455,8 +1455,8 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
         }
 
         {
-            vec3_t          mins;
-            vec3_t          maxs;
+            vec3_array          mins;
+            vec3_array          maxs;
 
             patch->winding->getBounds(mins, maxs);
 
@@ -1464,7 +1464,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
             {
                 vec_t           amt;
                 vec_t           length;
-                vec3_t          delta;
+                vec3_array          delta;
 
                 VectorSubtract(maxs, mins, delta);
                 length = VectorLength(delta);

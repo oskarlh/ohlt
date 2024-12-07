@@ -86,7 +86,7 @@ typedef struct surface_s
     struct surface_s* next;
     face_t*         faces;                                 // links to all the faces on either side of the surf
     struct node_s*  onnode;                                // true if surface has already been used as a splitting node
-    vec3_t          mins, maxs;
+    vec3_array mins, maxs;
     int             planenum;
 	int				detaillevel; // minimum detail level of its faces
 }
@@ -94,7 +94,7 @@ surface_t;
 
 typedef struct
 {
-    vec3_t          mins, maxs;
+    vec3_array          mins, maxs;
     surface_t*      surfaces;
 }
 surfchain_t;

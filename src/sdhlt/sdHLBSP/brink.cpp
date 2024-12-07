@@ -68,8 +68,8 @@ typedef struct
 {
 	std::vector< bbrinknode_t > *nodes;
 	struct btreeedge_s *edge; // only for use in deciding brink type
-	vec3_t start, stop;
-	vec3_t direction;
+	vec3_array start, stop;
+	vec3_array direction;
 
 	int numnodes; // including both nodes and leafs
 }
@@ -93,7 +93,7 @@ void DeleteBrink (bbrink_t *b)
 	free (b);
 }
 
-bbrink_t *CreateBrink (vec3_t start, vec3_t stop)
+static bbrink_t *CreateBrink (vec3_array& start, vec3_array& stop)
 {
 	bbrink_t *b;
 	hlassume (b = (bbrink_t *)malloc (sizeof (bbrink_t)), assume_NoMemory);
@@ -255,7 +255,7 @@ typedef std::list< btreeleaf_r > btreeleaf_l;
 typedef struct btreepoint_s
 {
 	btreeedge_l *edges; // this is a reversed reference
-	vec3_t v;
+	vec3_array v;
 	vec_t tmp_dist;
 	int tmp_side;
 	bool infinite;
@@ -1303,7 +1303,7 @@ bwedge_t;
 
 typedef struct bsurface_s
 {
-	vec3_t normal; // pointing clockwise
+	vec3_array normal; // pointing clockwise
 	int nodenum;
 	bool nodeside;
 	bwedge_s *prev;
@@ -1594,7 +1594,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		}
 		bool bfix = false;
 		bool berror = false;
-		vec3_t vup = {0, 0, 1};
+		vec3_array vup = {0, 0, 1};
 		bool isfloor;
 		bool onfloor;
 		bool blocking;
@@ -1602,7 +1602,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			isfloor = false;
 			for (int side2 = 0; side2 < 2; side2++)
 			{
-				vec3_t normal;
+				vec3_array normal;
 				VectorScale (transitionpos[side2]->normal, transitionside[side2]? -1: 1, normal); // pointing from SOLID to EMPTY
 				if (DotProduct (normal, vup) > BRINK_FLOOR_THRESHOLD)
 				{
@@ -1630,7 +1630,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 						}
 						for (int side3 = 0; side3 < 2; side3++)
 						{
-							vec3_t normal;
+							vec3_array normal;
 							VectorScale (fi->f->plane->normal, (fi->f->planeside != (bool)side3)? -1: 1, normal);
 							if (DotProduct (normal, vup) > BRINK_FLOOR_THRESHOLD
 								&& GetLeafFromFace (fi->f, side3)->clipnode->content == CONTENTS_SOLID
@@ -1652,7 +1652,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			{
 				bwedge_t *w = transitionside[!side]? s->next: s->prev;
 				bsurface_t *snext = transitionside[!side]? w->next: w->prev;
-				vec3_t tmp;
+				vec3_array tmp;
 				vec_t dot;
 				CrossProduct (smovement->normal, snext->normal, tmp);
 				dot = DotProduct (tmp, c.axis);

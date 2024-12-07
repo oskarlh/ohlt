@@ -241,13 +241,13 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 						continue;
 					}
                     if (TestLine(
-						origin1.data(), origin2.data()
+						origin1, origin2
 						) != CONTENTS_EMPTY)
 					{
 						continue;
 					}
                     if (TestSegmentAgainstOpaqueList(
-						origin1.data(), origin2.data()
+						origin1, origin2
 						, transparency
 						, opaquestyle
 					))
@@ -261,9 +261,10 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 						AddStyleToStyleArray (patchnum, m, opaquestyle);
 					}
                                         
-                    if(g_customshadow_with_bouncelight && !VectorCompare(transparency, vec3_one) )
+
+                    if(g_customshadow_with_bouncelight && !VectorCompare(transparency, {1.0,1.0,1.0}) )
                     {
-                    	AddTransparencyToRawArray(patchnum, m, transparency.data());
+                    	AddTransparencyToRawArray(patchnum, m, transparency);
                     }
 					uncompressedcolumn[m] = true;
                 }

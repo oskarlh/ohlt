@@ -41,7 +41,7 @@ static vec3_t   hash_scale;
 static int		hash_numslots[3];
 #define MAX_HASH_NEIGHBORS	4
 
-static void     InitHash(const vec3_t mins, const vec3_t maxs)
+static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
 {
     vec3_t          size;
     vec_t           volume;
@@ -543,7 +543,7 @@ static void     tjunc_fix_r(node_t* node)
  */
 void            tjunc(node_t* headnode)
 {
-    vec3_t          maxs, mins;
+    vec3_array          maxs, mins;
     int             i;
 
     Verbose("---- tjunc ----\n");

@@ -146,7 +146,7 @@ extern std::unordered_map<int, bool> leaf_flow_add_exclude;
 
 typedef struct
 {
-	vec3_t origin;
+	vec3_array origin;
 	int visleafnum;
 	int reverse;
 }

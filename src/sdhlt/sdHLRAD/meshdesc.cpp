@@ -802,7 +802,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 
 	// add triangle to bounds
 	for( i = 0; i < 3; i++ )
-		AddPointToBounds( triangle[i].point.data(), m_mesh.mins.data(), m_mesh.maxs.data() );
+		AddPointToBounds( triangle[i].point, m_mesh.mins, m_mesh.maxs );
 
 	mfacet_t *facet = &facets[m_mesh.numfacets];
 	mplane_t mainplane;
@@ -833,7 +833,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 
 	for( i = 0; i < 3; i++ )
 	{
-		AddPointToBounds( triangle[i].point.data(), facet->mins.data(), facet->maxs.data() );
+		AddPointToBounds( triangle[i].point, facet->mins, facet->maxs );
 		facet->triangle[i] = triangle[i];
 	}
 
