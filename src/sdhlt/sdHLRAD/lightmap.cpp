@@ -3381,7 +3381,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 					}
 					else
 					{
-						DecompressVis(&g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
+						DecompressVis((byte*) &g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
 					}
 				}
 				lastoffset = thisoffset;
@@ -3407,7 +3407,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 						}
 						else
 						{
-							DecompressVis(&g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
+							DecompressVis((byte*) &g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
 						}
 					}
 					lastoffset2 = thisoffset2;
@@ -3754,7 +3754,7 @@ void            BuildFacelights(const int facenum)
 				}
 				else
 				{
-					DecompressVis(&g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
+					DecompressVis((byte*) &g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
 				}
 			}
 			lastoffset = thisoffset;
@@ -3780,7 +3780,7 @@ void            BuildFacelights(const int facenum)
 					}
 					else
 					{
-						DecompressVis(&g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
+						DecompressVis((byte*) &g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
 					}
 				}
 				lastoffset2 = thisoffset2;

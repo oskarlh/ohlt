@@ -28,7 +28,7 @@ std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{bspGlobals.mapModels};
 int& g_dmodels_checksum{bspGlobals.mapModelsChecksum};
 
 int& g_visdatasize{bspGlobals.visDataByteSize};
-std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
+std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
 int& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
 std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
@@ -184,7 +184,7 @@ void            DecompressVis(const byte* src, byte* const dest, const unsigned 
 
     do
 	{
-		hlassume (src - g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
+		hlassume (src - (byte*)g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
 
         if (*src)
         {
@@ -197,7 +197,7 @@ void            DecompressVis(const byte* src, byte* const dest, const unsigned 
             continue;
         }
 		
-		hlassume (&src[1] - g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
+		hlassume (&src[1] - (byte*)g_dvisdata.data() < g_visdatasize, assume_DECOMPRESSVIS_OVERFLOW);
 
         c = src[1];
         src += 2;
@@ -353,24 +353,32 @@ void            LoadBSPImage(dheader_t* const header)
 //
 
 // =====================================================================================
-//  AddLump
-//      balh
+//  add_lump
 // =====================================================================================
-static void     AddLump(int lumpnum, void* data, int len, dheader_t* header, FILE* bspfile)
+
+
+template<lump_id LumpId> void add_lump(std::span<const lump_element_type<LumpId>> data, dheader_t* header, FILE* bspfile)
 {
-    lump_t* lump =&header->lumps[lumpnum];
-    lump->fileofs = ftell(bspfile);
-    lump->filelen = len;
-    SafeWrite(bspfile, data, (len + 3) & ~3);
-}
-template<lump_id LumpId> static void add_lump(std::span<const lump_element_type<LumpId>> data, dheader_t* header, FILE* bspfile)
-{
+//	Log("CHECKSUM %s%i %i\n",
+//		g_Program,
+//		(int) LumpId,
+//		fast_checksum(data)
+//	);
+
 	using element_type = lump_element_type<LumpId>;
-	std::size_t byteLength = data.size() * sizeof(element_type);
+	const std::size_t byteLength = data.size() * sizeof(element_type);
     lump_t* lump = &header->lumps[std::size_t(LumpId)];
     lump->fileofs = ftell(bspfile);
     lump->filelen = byteLength;
-    SafeWrite(bspfile, (const char*) data.data(), (byteLength + 3) & ~3);
+    SafeWrite(bspfile, (const char*) data.data(), byteLength);
+
+
+	// Why do we need padding???
+	if(byteLength % 4) {
+		const std::size_t paddingLength = 4 - (byteLength % 4);
+		const std::array<std::byte, 3> zeroPadding{};
+	    SafeWrite(bspfile, zeroPadding.data(), paddingLength);
+	}
 }
 
 // =====================================================================================
@@ -392,23 +400,23 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     SafeWrite(bspfile, header, sizeof(dheader_t));         // overwritten later
 
     //      LUMP TYPE       DATA            LENGTH                              HEADER  BSPFILE   
-    AddLump(LUMP_PLANES,    g_dplanes.data(),      g_numplanes * sizeof(dplane_t),     header, bspfile);
-    AddLump(LUMP_LEAFS,     g_dleafs.data(),       g_numleafs * sizeof(dleaf_t),       header, bspfile);
-    AddLump(LUMP_VERTEXES,  g_dvertexes.data(),    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
-    AddLump(LUMP_NODES,     g_dnodes.data(),       g_numnodes * sizeof(dnode_t),       header, bspfile);
-    AddLump(LUMP_TEXINFO,   g_texinfo.data(),      g_numtexinfo * sizeof(texinfo_t),   header, bspfile);
-    AddLump(LUMP_FACES,     g_dfaces.data(),       g_numfaces * sizeof(dface_t),       header, bspfile);
-    AddLump(LUMP_CLIPNODES, g_dclipnodes.data(),   g_numclipnodes * sizeof(dclipnode_t), header, bspfile);
+    add_lump<lump_id::planes>(std::span(g_dplanes.data(), g_numplanes), header, bspfile);
+    add_lump<lump_id::leafs>(std::span(g_dleafs.data(), g_numleafs), header, bspfile);
+    add_lump<lump_id::vertexes>(std::span(g_dvertexes.data(), g_numvertexes), header, bspfile);
+    add_lump<lump_id::nodes>(std::span(g_dnodes.data(), g_numnodes), header, bspfile);
+    add_lump<lump_id::texinfo>(std::span(g_texinfo.data(), g_numtexinfo), header, bspfile);
+    add_lump<lump_id::faces>(std::span(g_dfaces.data(), g_numfaces), header, bspfile);
+    add_lump<lump_id::clipnodes>(std::span(g_dclipnodes.data(), g_numclipnodes), header, bspfile);
 
-    AddLump(LUMP_MARKSURFACES, g_dmarksurfaces.data(), g_nummarksurfaces * sizeof(g_dmarksurfaces[0]), header, bspfile);
-    AddLump(LUMP_SURFEDGES, g_dsurfedges.data(),   g_numsurfedges * sizeof(g_dsurfedges[0]), header, bspfile);
-    AddLump(LUMP_EDGES,     g_dedges.data(),       g_numedges * sizeof(dedge_t),       header, bspfile);
-    add_lump<lump_id::models>(std::span<dmodel_t>(g_dmodels.data(), g_nummodels), header, bspfile);
+    add_lump<lump_id::marksurfaces>(std::span(g_dmarksurfaces.data(), g_nummarksurfaces), header, bspfile);
+    add_lump<lump_id::surfedges>(std::span(g_dsurfedges.data(), g_numsurfedges), header, bspfile);
+    add_lump<lump_id::edges>(std::span(g_dedges.data(), g_numedges),       header, bspfile);
+    add_lump<lump_id::models>(std::span(g_dmodels.data(), g_nummodels), header, bspfile);
 
     add_lump<lump_id::lighting>(g_dlightdata, header, bspfile);
-    AddLump(LUMP_VISIBILITY, g_dvisdata.data(), g_visdatasize, header, bspfile);
-    add_lump<lump_id::entities>(std::span<char8_t>(g_dentdata.data(), g_entdatasize), header, bspfile);
-    add_lump<lump_id::textures>(std::span<std::byte>(g_dtexdata.data(), g_texdatasize), header, bspfile);
+    add_lump<lump_id::visibility>(std::span(g_dvisdata.data(), g_visdatasize), header, bspfile);
+    add_lump<lump_id::entities>(std::span(g_dentdata.data(), g_entdatasize), header, bspfile);
+    add_lump<lump_id::textures>(std::span(g_dtexdata.data(), g_texdatasize), header, bspfile);
 
     fseek(bspfile, 0, SEEK_SET);
     SafeWrite(bspfile, header, sizeof(dheader_t));

@@ -284,8 +284,19 @@ constexpr std::size_t num_lump_types = std::size_t(lump_id::models) + 1;
 
 template<lump_id Id> struct lump_element_type_map {};
 template<> struct lump_element_type_map<lump_id::entities> { using type = char8_t; };
+template<> struct lump_element_type_map<lump_id::planes> { using type = dplane_t; };
 template<> struct lump_element_type_map<lump_id::textures> { using type = std::byte; };
+template<> struct lump_element_type_map<lump_id::vertexes> { using type = dvertex_t; };
+template<> struct lump_element_type_map<lump_id::visibility> { using type = std::byte; };
+template<> struct lump_element_type_map<lump_id::nodes> { using type = dnode_t; };
+template<> struct lump_element_type_map<lump_id::texinfo> { using type = texinfo_t; };
+template<> struct lump_element_type_map<lump_id::faces> { using type = dface_t; };
 template<> struct lump_element_type_map<lump_id::lighting> { using type = std::byte; };
+template<> struct lump_element_type_map<lump_id::clipnodes> { using type = dclipnode_t; };
+template<> struct lump_element_type_map<lump_id::leafs> { using type = dleaf_t; };
+template<> struct lump_element_type_map<lump_id::marksurfaces> { using type = std::uint16_t; };
+template<> struct lump_element_type_map<lump_id::edges> { using type = dedge_t; };
+template<> struct lump_element_type_map<lump_id::surfedges> { using type = std::int32_t; };
 template<> struct lump_element_type_map<lump_id::models> { using type = dmodel_t; };
 
 template <lump_id Id> using lump_element_type = lump_element_type_map<Id>::type;
@@ -366,7 +377,7 @@ struct bsp_data {
 	int mapModelsChecksum{0};
 	int mapModelsLength{0};
 
-	std::array<byte, MAX_MAP_VISIBILITY> visData{byte(0)};
+	std::array<std::byte, MAX_MAP_VISIBILITY> visData{};
 	int visDataByteSize{0};
 	int visDataChecksum{0};
 
@@ -427,7 +438,7 @@ struct bsp_data {
     int surfEdgesChecksum{0};
     int surfEdgesLength{0};
 
-	std::array<entity_t, MAX_MAP_ENTITIES> entities;
+	std::array<entity_t, MAX_MAP_ENTITIES> entities{};
 	int entitiesLength;
 };
 
@@ -438,7 +449,7 @@ extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
 extern int& g_dmodels_checksum;
 
 extern int& g_visdatasize;
-extern std::array<byte, MAX_MAP_VISIBILITY>& g_dvisdata;
+extern std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata;
 extern int& g_dvisdata_checksum;
 
 extern std::vector<std::byte>& g_dlightdata;

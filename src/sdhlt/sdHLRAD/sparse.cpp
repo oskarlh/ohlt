@@ -312,7 +312,7 @@ static void     BuildVisLeafs(int threadnum)
 			Developer (DEVELOPER_LEVEL_ERROR, "Error: No visdata for leaf %d\n", i);
 			continue;
 		}
-        DecompressVis(&g_dvisdata[srcleaf.visofs], (byte*) pvs.data(), sizeof(pvs));
+        DecompressVis((byte*) &g_dvisdata[srcleaf.visofs], (byte*) pvs.data(), sizeof(pvs));
 		}
 
         //
