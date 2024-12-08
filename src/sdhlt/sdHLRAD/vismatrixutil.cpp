@@ -661,7 +661,7 @@ void            MakeRGBScales(const int threadnum)
                 for (x = 0; x < patch->iData; x++, t1+=vector_size[g_rgbtransfer_compress_type], t2+=3)
                 {
                      VectorScale( t2, total, f );
-					 vector_compress (g_rgbtransfer_compress_type, t1, &f[0], &f[1], &f[2]);
+					 vector_compress (g_rgbtransfer_compress_type, t1, f[0], f[1], f[2]);
                 }
             }
         }

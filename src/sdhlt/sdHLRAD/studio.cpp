@@ -74,17 +74,6 @@ static void LoadStudioModel( const char *modelname, const vec3_array& origin, co
 		free( moddata );
 		free( texdata );
 	}
-	else
-	{
-#if 0
-		for( int i = 0; i < phdr->numtextures; i++ )
-		{
-			mstudiotexture_t *ptexture = (mstudiotexture_t *)(((byte *)phdr) + phdr->textureindex);
-			// now we can replace offsets with real pointers
-			ptexture[i].pixels = (byte *)phdr + ptexture[i].index;
-		}
-#endif
-	}
 
 	VectorCopy( origin, m->origin );
 	VectorCopy( angles, m->angles );

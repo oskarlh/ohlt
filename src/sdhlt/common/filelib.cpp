@@ -207,7 +207,7 @@ int             LoadFile(const std::filesystem::path& filename, char** bufferptr
 
     f = SafeOpenRead(filename);
     length = q_filelength(f);
-    buffer = (char*)Alloc(length + 1);
+    buffer = new char[length + 1]();
     SafeRead(f, buffer, length);
     fclose(f);
 

@@ -125,12 +125,12 @@ typedef struct node_s
     surface_t*      surfaces;
 	brush_t			*detailbrushes;
 	brush_t			*boundsbrush;
-	vec3_t			loosemins, loosemaxs; // all leafs and nodes have this, while 'mins' and 'maxs' are only valid for nondetail leafs and nodes.
+	vec3_array loosemins, loosemaxs; // all leafs and nodes have this, while 'mins' and 'maxs' are only valid for nondetail leafs and nodes.
 
 	bool			isdetail; // is under a diskleaf
 	bool			isportalleaf; // not detail and children are detail; only visleafs have contents, portals, mins, maxs
 	bool			iscontentsdetail; // inside a detail brush
-    vec3_t          mins, maxs;                            // bounding volume of portals;
+    vec3_array mins, maxs;                            // bounding volume of portals;
 
     // information for decision nodes
     int             planenum;                              // -1 = leaf node
@@ -228,7 +228,7 @@ extern void		FreeBrush (brush_t *b);
 extern brush_t *NewBrushFromBrush (const brush_t *b);
 extern void		SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **back);
 extern brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs);
-extern void		CalcBrushBounds (const brush_t *b, vec3_t &mins, vec3_t &maxs);
+extern void		CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs);
 
 extern node_t*  AllocNode();
 

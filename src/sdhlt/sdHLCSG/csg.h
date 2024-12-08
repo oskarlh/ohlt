@@ -219,7 +219,7 @@ extern void     LoadMapFile(const char* const filename);
 typedef std::deque<std::u8string>::iterator WadInclude_i;
 extern std::deque<std::u8string> g_WadInclude;  // List of substrings to wadinclude
 
-extern void     WriteMiptex();
+extern void     WriteMiptex(const std::filesystem::path& bspPath);
 extern void     LogWadUsage(wadpath_t* currentwad, int nummiptex);
 extern int      TexinfoForBrushTexture(const plane_t* const plane, brush_texture_t* bt, const vec3_t origin
 					);

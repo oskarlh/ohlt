@@ -171,7 +171,7 @@ static int      FindMiptex(const char* const name)
 // =====================================================================================
 //  TEX_InitFromWad
 // =====================================================================================
-bool            TEX_InitFromWad()
+static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
 {
     int             i, j;
     wadinfo_t       wadinfo;
@@ -233,15 +233,21 @@ bool            TEX_InitFromWad()
             #endif
         }
 
+
+        if (!texfiles[nTexFiles]) {
+            // Look in the mod dir
+            const std::filesystem::path modDir = bspPath.parent_path().parent_path();
+            const std::filesystem::path wadFilename = extract_filename_from_filepath_string(pszWadFile);
+            auto wadInModDir = modDir / wadFilename;
+            texfiles[nTexFiles] = fopen((const char*) wadInModDir.c_str(), "rb");
+        }
+
         if (!texfiles[nTexFiles])
         {
-			pszWadFile = currentwad->path; // correct it back
             // still cant find it, error out
             Fatal(assume_COULD_NOT_FIND_WAD, "Could not open wad file %s", (const char*) pszWadFile.data());
             continue;
         }
-
-		pszWadFile = currentwad->path; // correct it back
 
         // temp assignment to make things cleaner:
         texfile = texfiles[nTexFiles];
@@ -518,7 +524,7 @@ void            AddAnimatingTextures()
 //  WriteMiptex
 //     Unified console logging updated //seedee
 // =====================================================================================
-void            WriteMiptex()
+void            WriteMiptex(const std::filesystem::path& bspPath)
 {
     int             len, texsize, totaltexsize = 0;
     std::byte*           data;
@@ -529,7 +535,7 @@ void            WriteMiptex()
 
     start = I_FloatTime();
     {
-        if (!TEX_InitFromWad())
+        if (!TEX_InitFromWad(bspPath))
             return;
 
         AddAnimatingTextures();

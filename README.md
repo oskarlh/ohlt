@@ -6,8 +6,8 @@ New features include shadows from studiomodels, new entities, additional tool te
 
 ## Compiling the compiler
 ```
-cmake -S . -B build
-cmake --build build
+cmake -S . --preset=release-config
+cmake --build --preset=release-build
 ```
 
 

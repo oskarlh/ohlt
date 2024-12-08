@@ -81,6 +81,8 @@ extern void     DefaultPath(char* path, char* basepath);
 extern void     StripFilename(char* path);
 extern void     StripExtension(char* path);
 
+std::u8string_view extract_filename_from_filepath_string(std::u8string_view pathString);
+
 extern void     ExtractFile(const char* const path, char* dest);
 extern void     ExtractFilePath(const char* const path, char* dest);
 extern void     ExtractFileBase(const char* const path, char* dest);

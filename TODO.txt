@@ -1,0 +1,30 @@
+TEX_InitFromWad():
+I should add .wad file lookups in:
+-someNewParameterForWadFolder
+bspFile.parent_path().parent_path().parent_path() / u8"valve" (with valve being configurable?)
+..... I'll also need to look in addon and download folders.
+// Perhaps with warnings for files that are not in the mod bspFile.parent_path() folder and
+// not in the valve folder. Since the user might forget to include those files with their bsp.
+// However, not if these WADs are -wadincluded.
+
+
+
+For testing model shadows https://twhl.info/vault/view/6031 can be used. Just set
+"zhlt_studioshadow" "1"
+"zhlt_shadowmode" "1"
+on a couple of models. More info here https://gamebanana.com/tools/6306
+
+
+For testing WAD files https://twhl.info/vault/view/6031 is insteresting.
+It has two "wad" fields:
+"wad" "C:\Program Files (x86)\Steam\steamapps\common\Half-Life\valve\tools.wad;C:\Program Files (x86)\Steam\steamapps\common\Half-Life"
+"wad" "\users\ulstaff\documents\modding\hl\programs\vluzacn's zhlt v30\tools\zhlt.wad;\program files\steam\steamapps\common\half-life\valve\decals.wad;\program files\steam\steamapps\common\half-life\valve\halflife.wad;\program files\steam\steamapps\common\half-life\valve\liquids.wad;\program files\steam\steamapps\common\half-life\valve\xmastree_tjb.wad"
+Is it possible that Alabastor_Twob used Hammer 4 in the beginning? Because there are some strange properties on worldspawn such as
+"detailmaterial" "detail/detailsprites"
+"detailvbsp" "detail.vbsp"
+"maxpropscreenwidth" "-1"
+
+
+
+We should tolerate missing WADs but produce warnings.
+This so we can compile .map files from others when they forget to include all the WADs

@@ -216,6 +216,25 @@ void ExtractFile(const char* const path, char* dest)
     dest[length] = 0;
 }
 
+std::u8string_view extract_filename_from_filepath_string(std::u8string_view pathString) {
+	std::u8string_view cutPathString = pathString;
+
+	{
+		const std::size_t lastUnixDirSeparatorPosition = cutPathString.find_last_of('/');
+		if(lastUnixDirSeparatorPosition != std::u8string_view::npos) {
+			cutPathString = cutPathString.substr(lastUnixDirSeparatorPosition + 1);
+		}
+	}
+	{
+		const std::size_t lastWindowsDirSeparatorPosition = cutPathString.find_last_of('\\');
+		if(lastWindowsDirSeparatorPosition != std::u8string_view::npos) {
+			cutPathString = cutPathString.substr(lastWindowsDirSeparatorPosition + 1);
+		}
+	}
+
+	return cutPathString;
+}
+
 void ExtractFileBase(const char* const path, char* dest)
 {
 	int extension_pos, directory_pos;

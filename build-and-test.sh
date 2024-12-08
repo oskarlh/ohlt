@@ -3,8 +3,7 @@
 # Exit on failure
 set -e
 
-cmake -S . -B build
-cmake --build build
-./test-and-compare/test-and-compare.sh
-
-
+cmake -S . --preset=release-config
+cmake --build --preset=release-build
+./test-and-compare/test-and-compare.sh pool
+#./test-and-compare/test-and-compare.sh xmastree_tjb

@@ -757,7 +757,7 @@ static void     LoadPortalsByFilename(const char* const filename)
     }
     LoadFile(filename, &file_image);
     LoadPortals(file_image);
-    free(file_image);
+    delete[] file_image;
 }
 
 

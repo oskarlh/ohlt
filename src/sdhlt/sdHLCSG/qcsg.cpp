@@ -1194,7 +1194,7 @@ void WriteBSP(const char* const name)
     SetLightStyles();
 
     if (!g_onlyents)
-        WriteMiptex();
+        WriteMiptex(bspPath);
 	if (g_onlyents)
 		LoadWadValue ();
 

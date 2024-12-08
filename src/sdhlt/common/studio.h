@@ -271,22 +271,19 @@ typedef struct
 	vec3_array		bbmax;		
 } mstudiobbox_t;
 
-#ifndef CACHE_USER
-#define CACHE_USER
-typedef struct cache_user_s
+struct cache_user_t
 {
-	void		*data;		// extradata
-} cache_user_t;
-#endif
+	void *data;		// extradata
+};
 
 // demand loaded sequence groups
-typedef struct
+struct mstudioseqgroup_t
 {
 	char		label[32];	// textual name
 	char		name[64];		// file name
-	cache_user_t	cache;		// cache index pointer
+	cache_user_t cache;		// cache index pointer
 	int		data;		// hack for group 0
-} mstudioseqgroup_t;
+};
 
 // sequence descriptions
 typedef struct

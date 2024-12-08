@@ -512,7 +512,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 //  ChoosePlaneFromList
 //      Choose the plane that splits the least faces
 // =====================================================================================
-static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_t mins, const vec3_t maxs
+static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& mins, const vec3_array& maxs
 									  // mins and maxs are invalid when detaillevel > 0
 									  , int detaillevel
 									  )

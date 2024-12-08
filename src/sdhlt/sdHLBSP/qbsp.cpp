@@ -702,7 +702,7 @@ brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
 	return b;
 }
 
-void CalcBrushBounds (const brush_t *b, vec3_t & mins, vec3_t &maxs)
+void CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs)
 {
 	VectorFill (mins, BOGUS_RANGE);
 	VectorFill (maxs, -BOGUS_RANGE);
