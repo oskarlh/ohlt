@@ -1,3 +1,5 @@
+# README.md needs to be updated - This is NOT SDHLT, but a fork of it
+
 ![Banner](media/banner.png)
 
 <sub>Half-Life engine map compile tools, based on Vluzacn's ZHLT v34 with code contributions from various contributors. Based on Valve's version, modified with permission.</sub>

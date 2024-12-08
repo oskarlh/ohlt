@@ -206,7 +206,7 @@ include_directories(
 
 add_compile_definitions(
     PROJECT_DESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
-    PROJECT_ISSUE_TRACKER="https://github.com/oskarlh/vulkan-hlt/issues"
+    PROJECT_ISSUE_TRACKER="https://github.com/oskarlh/ohlt/issues"
     PROJECT_NAME="${CMAKE_PROJECT_NAME}"
     PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
 )
