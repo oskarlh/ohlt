@@ -502,21 +502,18 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 
 	// compute default pose for building mesh from
 	mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)((byte *)phdr + phdr->seqindex);
-	mstudioseqgroup_t *pseqgroup = (mstudioseqgroup_t *)((byte *)phdr + phdr->seqgroupindex) + pseqdesc->seqgroup;
 
-	// sanity check
+	// Sanity check
 	if( pseqdesc->seqgroup != 0 )
 	{
 		Developer( DEVELOPER_LEVEL_ERROR, "StudioConstructMesh: bad sequence group (must be 0)\n" );
 		return false;
 	}
-
-// WTF?? Why was pseqgroup->data added on for 32-bit builds? Is that correct
-	//#ifdef VERSION_64BIT
-		mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + /*pseqgroup->data +*/ pseqdesc->animindex);
-	//#else
-	//mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
-	//#endif
+	mstudioseqgroup_t *pseqgroup = (mstudioseqgroup_t *)((byte *)phdr + phdr->seqgroupindex) + pseqdesc->seqgroup;
+	
+// The code here should probably match https://github.com/ValveSoftware/halflife/blob/master/cl_dll/StudioModelRenderer.cpp
+// but I'm not sure it does entirely
+	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
 
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
 	static vec3_t pos[MAXSTUDIOBONES];

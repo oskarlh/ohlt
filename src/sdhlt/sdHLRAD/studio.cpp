@@ -7,7 +7,7 @@
 model_t models[MAX_MODELS];
 int num_models;
 
-static void LoadStudioModel( const char *modelname, const vec3_array& origin, const vec3_array& angles, const vec3_array& scale, int body, int skin, int trace_mode )
+static void LoadStudioModel( const char *modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, int trace_mode )
 {
 	if( num_models >= MAX_MODELS )
 	{
@@ -47,8 +47,8 @@ static void LoadStudioModel( const char *modelname, const vec3_array& origin, co
 
 		// merge textures with main model buffer
 		m->extradata = malloc( phdr->length + thdr->length - sizeof( studiohdr_t ));	// we don't need two headers
-		memcpy( m->extradata, moddata, phdr->length );
-		memcpy( (byte *)m->extradata + phdr->length, texdata + sizeof( studiohdr_t ), thdr->length - sizeof( studiohdr_t ));
+		memcpy(m->extradata, moddata, phdr->length);
+		memcpy((byte *) m->extradata + phdr->length, texdata + sizeof( studiohdr_t ), thdr->length - sizeof( studiohdr_t ));
 
 		// merge header
 		newhdr = (studiohdr_t *)m->extradata;
@@ -102,7 +102,7 @@ void LoadStudioModels( void )
 	for( int i = 0; i < g_numentities; i++ )
 	{
 		const char *name, *model;
-		vec3_array origin, angles;
+		float3_array origin, angles;
 
 		entity_t* e = &g_entities[i];
 		name = (const char*) ValueForKey( e, u8"classname" );
@@ -146,7 +146,7 @@ void LoadStudioModels( void )
 		int skin = IntForKey( e, u8"skin" );
 
 		float scale = FloatForKey( e, u8"scale" );
-		vec3_array xform;
+		float3_array xform;
 
 		GetVectorForKey( e, u8"xform", xform );
 
@@ -184,7 +184,7 @@ void FreeStudioModels( void )
 	num_models = 0;
 }
 
-static void MoveBounds( const vec3_array& start, const vec3_array& mins, const vec3_array& maxs, const vec3_array& end, vec3_array& outmins, vec3_array& outmaxs )
+static void MoveBounds( const float3_array& start, const float3_array& mins, const float3_array& maxs, const float3_array& end, float3_array& outmins, float3_array& outmaxs )
 {
 	for( int i = 0; i < 3; i++ )
 	{
@@ -201,11 +201,11 @@ static void MoveBounds( const vec3_array& start, const vec3_array& mins, const v
 	}
 }
 
-bool TestSegmentAgainstStudioList( const vec3_array& p1, const vec3_array& p2 )
+bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p2 )
 {
 	if( !num_models ) return false; // easy out
 
-	vec3_array	trace_mins, trace_maxs;
+	float3_array	trace_mins, trace_maxs;
 
 	MoveBounds( p1, vec3_origin, vec3_origin, p2, trace_mins, trace_maxs );
 

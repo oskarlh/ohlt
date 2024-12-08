@@ -153,6 +153,7 @@ set(RAD_HEADERS
 	${RAD_DIR}/meshdesc.h
 	${RAD_DIR}/meshtrace.h
     ${RAD_DIR}/qrad.h
+	${RAD_DIR}/studio.h
 )
 
 #================
