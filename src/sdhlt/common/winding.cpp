@@ -156,8 +156,8 @@ void            Winding::Check(
 							   ) const
 {
     unsigned int    i, j;
-    vec_t*          p1;
-    vec_t*          p2;
+    const vec_t*          p1;
+    const vec_t*          p2;
     vec_t           d, edgedist;
     vec3_array          dir, edgenormal, facenormal;
     vec_t           area;
@@ -230,7 +230,7 @@ void            Winding::Check(
 bool          Winding::Valid() const
 {
     // TODO: Check to ensure there are 3 non-colinear points
-    if ((m_NumPoints < 3) || (!m_Points))
+    if ((m_NumPoints < 3) || (m_Points.empty()))
     {
         return false;
     }
@@ -242,10 +242,7 @@ bool          Winding::Valid() const
 //
 
 Winding::Winding()
-{
-	m_Points = nullptr;
-	m_NumPoints = m_MaxPoints = 0;
-}
+{}
 
 Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
 {
@@ -253,20 +250,34 @@ Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
 	m_NumPoints = numpoints;
 	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
 
-	m_Points = new vec3_array[m_MaxPoints];
-	memcpy(m_Points, points, sizeof(vec3_array) * m_NumPoints);
+    m_Points.reserve(m_MaxPoints);
+    m_Points.assign_range(std::span(points, m_NumPoints));
+	m_Points.resize(m_MaxPoints, {});
 }
 
 Winding&      Winding::operator=(const Winding& other)
 {
-    delete[] m_Points;
     m_NumPoints = other.m_NumPoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_array[m_MaxPoints];
-    memcpy(m_Points, other.m_Points, sizeof(vec3_array) * m_NumPoints);
+    m_Points = other.m_Points;
     return *this;
 }
+Winding&      Winding::operator=(Winding&& other)
+{
+    m_NumPoints = other.m_NumPoints;
+    m_MaxPoints = other.m_MaxPoints;
+
+    std::swap(m_Points, other.m_Points);
+
+    other.m_NumPoints = 0;
+    other.m_MaxPoints = 0;
+    other.m_Points.clear();
+    other.m_Points.shrink_to_fit();
+
+    return *this;
+}
+
 
 
 Winding::Winding(std::uint_least32_t numpoints)
@@ -275,8 +286,7 @@ Winding::Winding(std::uint_least32_t numpoints)
     m_NumPoints = numpoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_array[m_MaxPoints];
-    memset(m_Points, 0, sizeof(vec3_array) * m_NumPoints);
+    m_Points.resize(m_MaxPoints);
 }
 
 Winding::Winding(const Winding& other)
@@ -284,13 +294,16 @@ Winding::Winding(const Winding& other)
     m_NumPoints = other.m_NumPoints;
     m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points = new vec3_array[m_MaxPoints];
-    memcpy(m_Points, other.m_Points, sizeof(vec3_array) * m_NumPoints);
+    m_Points = other.m_Points;
+}
+
+Winding::Winding(Winding&& other)
+{
+    operator=(std::move(other));
 }
 
 Winding::~Winding()
 {
-    delete[] m_Points;
 }
 
 
@@ -343,7 +356,7 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 
     // project a really big     axis aligned box onto the plane
     m_NumPoints = 4;
-    m_Points = new vec3_array[m_NumPoints];
+    m_Points.resize(m_NumPoints);
 
     VectorSubtract(org, vright, m_Points[0]);
     VectorAdd(m_Points[0], vup, m_Points[0]);
@@ -372,7 +385,7 @@ Winding::Winding(const dface_t& face
     int             v;
 
     m_NumPoints = face.numedges;
-    m_Points = new vec3_array[m_NumPoints];
+    m_Points.resize(m_NumPoints);
 
     unsigned i;
     for (i = 0; i < face.numedges; i++)
@@ -614,18 +627,16 @@ bool          Winding::Chop(const vec3_array& normal, const vec_t dist
 
     if (f)
     {
-        delete[] m_Points;
         m_NumPoints = f->m_NumPoints;
-        m_Points = f->m_Points;
-        f->m_Points = nullptr;
+        std::swap(m_Points, f->m_Points);
         delete f;
         return true;
     }
     else
     {
         m_NumPoints = 0;
-        delete[] m_Points;
-        m_Points = nullptr;
+        m_Points.clear();
+        m_Points.shrink_to_fit();
         return false;
     }
 }
@@ -718,8 +729,8 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 
     if (!counts[0])
     {
-        delete[] m_Points;
-        m_Points = nullptr;
+        m_Points.clear();
+        m_Points.shrink_to_fit();
         m_NumPoints = 0;
         return false;
     }
@@ -731,8 +742,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 
     unsigned maxpts = m_NumPoints + 4;                            // can't use counts[0]+2 because of fp grouping errors
     unsigned newNumPoints = 0;
-    vec3_array* newPoints = new vec3_array[maxpts];
-    memset(newPoints, 0, sizeof(vec3_array) * maxpts);
+    std::vector<vec3_array> newPoints(maxpts);
 
     for (i = 0; i < m_NumPoints; i++)
     {
@@ -783,8 +793,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         Error("Winding::Clip : points exceeded estimate");
     }
 
-    delete[] m_Points;
-    m_Points = newPoints;
+    std::swap(m_Points, newPoints);
     m_NumPoints = newNumPoints;
 
     RemoveColinearPoints(
@@ -792,9 +801,9 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 		);
 	if (m_NumPoints == 0)
 	{
-		delete[] m_Points;
-		m_Points = nullptr;
-		m_NumPoints = 0;
+
+        m_Points.clear();
+        m_Points.shrink_to_fit();
 		return false;
 	}
 
@@ -976,7 +985,7 @@ void            Winding::addPoint(const vec3_array& newpoint)
 {
     if (m_NumPoints >= m_MaxPoints)
     {
-        resize(m_NumPoints + 1);
+        grow_size();
     }
     VectorCopy(newpoint, m_Points[m_NumPoints]);
     m_NumPoints++;
@@ -993,7 +1002,7 @@ void            Winding::insertPoint(const vec3_array& newpoint, const unsigned 
     {
         if (m_NumPoints >= m_MaxPoints)
         {
-            resize(m_NumPoints + 1);
+            grow_size();
         }
 
         unsigned x;
@@ -1008,14 +1017,11 @@ void            Winding::insertPoint(const vec3_array& newpoint, const unsigned 
 }
 
 
-void            Winding::resize(std::uint_least32_t newsize)
+void Winding::grow_size()
 {
+    std::uint_least32_t newsize = m_NumPoints + 1;
     newsize = (newsize + 3) & ~3;   // groups of 4
-
-    auto newpoints = std::make_unique<vec3_array[]>(newsize);
-    m_NumPoints = std::min(newsize, m_NumPoints);
-    memcpy(newpoints.get(), m_Points, m_NumPoints);
-    delete[] m_Points;
-    m_Points = newpoints.release();
+    m_Points.resize(newsize);
+    m_NumPoints = newsize;
     m_MaxPoints = newsize;
 }

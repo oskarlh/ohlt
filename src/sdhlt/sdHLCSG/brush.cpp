@@ -356,7 +356,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		for (f = hull0->faces; f; f = f->next)
 		{
-			for (vec3_array *v = f->w->m_Points; v < f->w->m_Points + f->w->m_NumPoints; v++)
+			for (vec3_array *v = f->w->m_Points.data(); v < f->w->m_Points.data() + f->w->m_NumPoints; v++)
 			{
 				if (DotProduct (*v, hbf->normal) < bestdist - NORMAL_EPSILON)
 				{

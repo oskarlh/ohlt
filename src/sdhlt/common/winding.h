@@ -34,7 +34,7 @@ typedef struct
 } dplane_t;
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 #endif
-class Winding
+class Winding final
 {
 public:
     // General Functions
@@ -77,7 +77,7 @@ public:
 		);
 
 protected:
-    void            resize(std::uint_least32_t newsize);
+    void            grow_size();
 
 public:
     // Construction
@@ -90,8 +90,10 @@ public:
     Winding(const vec3_array& normal, const vec_t dist);
     Winding(std::uint_least32_t points);
     Winding(const Winding& other);
-    virtual ~Winding();
+    Winding(Winding&& other);
+    ~Winding();
     Winding& operator=(const Winding& other);
+    Winding& operator=(Winding&& other);
 
     // Misc
 private:
@@ -99,8 +101,8 @@ private:
 
 public:
     // Data
-    std::uint_least32_t  m_NumPoints;
-    vec3_array* m_Points;
+    std::uint_least32_t  m_NumPoints{0};
+    std::vector<vec3_array> m_Points{};
 protected:
-    std::uint_least32_t  m_MaxPoints;
+    std::uint_least32_t  m_MaxPoints{0};
 };

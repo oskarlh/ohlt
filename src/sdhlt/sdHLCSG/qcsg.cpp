@@ -365,7 +365,7 @@ void WriteDetailBrush (int hull, const bface_t *faces)
 //      Passable contents (water, lava, etc) will generate a mirrored copy of the face 
 //      to be seen from the inside.
 // =====================================================================================
-static void     SaveOutside(const brush_t* const b, const int hull, bface_t* outside, const int mirrorcontents)
+static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, const int mirrorcontents)
 {
     bface_t*        f;
     bface_t*        f2;
@@ -421,7 +421,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 				frontnull = backnull = true; // not discardable, so remove "SOLIDHINT" texture name and behave like NULL
 			}
 		}
-		if (b->entitynum != 0 && !strncasecmp (texname, "!", 1))
+		if (b.entitynum != 0 && !strncasecmp (texname, "!", 1))
 		{
 			backnull = true; // strip water face on one side
 		}
@@ -432,7 +432,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
         {
             c_tiny++;
             Verbose("Entity %i, Brush %i: tiny fragment\n", 
-				b->originalentitynum, b->originalbrushnum
+				b.originalentitynum, b.originalbrushnum
 				);
             continue;
         }
@@ -440,7 +440,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
         // count unique faces
         if (!hull)
         {
-            for (f2 = b->hulls[hull].faces; f2; f2 = f2->next)
+            for (f2 = b.hulls[hull].faces; f2; f2 = f2->next)
             {
                 if (f2->planenum == f->planenum)
                 {
@@ -476,7 +476,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 				if (fabs (DotProduct (texnormal, f->plane->normal)) <= NORMAL_EPSILON)
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
-						b->originalentitynum, b->originalbrushnum,
+						b.originalentitynum, b.originalbrushnum,
 						texname
 						);
 				}
@@ -502,7 +502,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 				if (bad)
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Bad surface extents.",
-						b->originalentitynum, b->originalbrushnum,
+						b.originalentitynum, b.originalbrushnum,
 						texname
 						);
 				}
@@ -511,7 +511,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
 
         WriteFace(hull, f
 			, 
-			(hull? b->clipnodedetaillevel: b->detaillevel)
+			(hull? b.clipnodedetaillevel: b.detaillevel)
 			);
 
         //              if (mirrorcontents != CONTENTS_SOLID)
@@ -530,7 +530,7 @@ static void     SaveOutside(const brush_t* const b, const int hull, bface_t* out
             }
             WriteFace(hull, f
 				, 
-				(hull? b->clipnodedetaillevel: b->detaillevel)
+				(hull? b.clipnodedetaillevel: b.detaillevel)
 				);
         }
 
@@ -605,17 +605,15 @@ void            FreeFaceList(bface_t* f)
 //      inside list, so they can be freed when they are determined to be completely 
 //      enclosed in solid.
 // =====================================================================================
-static bface_t* CopyFacesToOutside(brushhull_t* bh)
+static bface_t* CopyFacesToOutside(const brushhull_t* bh)
 {
-    bface_t*        f;
-    bface_t*        newf;
-    bface_t*        outside;
+    bface_t* outside;
 
     outside = nullptr;
 
-    for (f = bh->faces; f; f = f->next)
+    for (const bface_t* f = bh->faces; f; f = f->next)
     {
-        newf = CopyFace(f);
+        bface_t* newf = CopyFace(f);
         newf->w->getBounds(newf->bounds);
         newf->next = outside;
         outside = newf;
@@ -630,33 +628,26 @@ static bface_t* CopyFacesToOutside(brushhull_t* bh)
 extern const char *ContentsToString (const contents_t type);
 static void     CSGBrush(int brushnum)
 {
-    int             hull;
-    brush_t*        b1;
-    brush_t*        b2;
-    brushhull_t*    bh1;
-    brushhull_t*    bh2;
     int             bn;
     bool            overwrite;
     bface_t*        f;
     bface_t*        f2;
     bface_t*        next;
-    bface_t*        outside;
-    entity_t*       e;
     vec_t           area;
 
     // get entity and brush info from the given brushnum that we can work with
-    b1 = &g_mapbrushes[brushnum];
-    e = &g_entities[b1->entitynum];
+    brush_t& b1 = g_mapbrushes[brushnum];
+    entity_t* e = &g_entities[b1.entitynum];
 
     // for each of the hulls
-    for (hull = 0; hull < NUM_HULLS; hull++)
+    for (int hull = 0; hull < NUM_HULLS; hull++)
     {
-        bh1 = &b1->hulls[hull];
+        brushhull_t* bh1 = &b1.hulls[hull];
 		if (bh1->faces && 
-			(hull? b1->clipnodedetaillevel: b1->detaillevel)
+			(hull? b1.clipnodedetaillevel: b1.detaillevel)
 			)
 		{
-			switch (b1->contents)
+			switch (b1.contents)
 			{
 			case CONTENTS_ORIGIN:
 			case CONTENTS_BOUNDINGBOX:
@@ -665,8 +656,8 @@ static void     CSGBrush(int brushnum)
 				break;
 			default:
 				Error ("Entity %i, Brush %i: %s brushes not allowed in detail\n", 
-					b1->originalentitynum, b1->originalbrushnum, 
-					ContentsToString((contents_t)b1->contents));
+					b1.originalentitynum, b1.originalbrushnum, 
+					ContentsToString((contents_t)b1.contents));
 				break;
 			case CONTENTS_SOLID:
 				WriteDetailBrush (hull, bh1->faces);
@@ -675,9 +666,9 @@ static void     CSGBrush(int brushnum)
 		}
 
         // set outside to a copy of the brush's faces
-        outside = CopyFacesToOutside(bh1);
+        bface_t* outside = CopyFacesToOutside(bh1);
         overwrite = false;
-		if (b1->contents == CONTENTS_TOEMPTY)
+		if (b1.contents == CONTENTS_TOEMPTY)
 		{
 			for (f = outside; f; f = f->next)
 			{
@@ -696,35 +687,36 @@ static void     CSGBrush(int brushnum)
 			}
             overwrite = e->firstbrush + bn > brushnum;
 
-            b2 = &g_mapbrushes[e->firstbrush + bn];
-            bh2 = &b2->hulls[hull];
-			if (b2->contents == CONTENTS_TOEMPTY)
+            const brush_t& b2 = g_mapbrushes[e->firstbrush + bn];
+            const brushhull_t& bh2 = b2.hulls[hull];
+
+			if (b2.contents == CONTENTS_TOEMPTY)
 				continue;
 			if (
-				(hull? (b2->clipnodedetaillevel - 0 > b1->clipnodedetaillevel + 0): (b2->detaillevel - b2->chopdown > b1->detaillevel + b1->chopup))
+				(hull? (b2.clipnodedetaillevel - 0 > b1.clipnodedetaillevel + 0): (b2.detaillevel - b2.chopdown > b1.detaillevel + b1.chopup))
 				)
 				continue; // you can't chop
-			if (b2->contents == b1->contents && 
-				(hull? (b2->clipnodedetaillevel != b1->clipnodedetaillevel): (b2->detaillevel != b1->detaillevel))
+			if (b2.contents == b1.contents && 
+				(hull? (b2.clipnodedetaillevel != b1.clipnodedetaillevel): (b2.detaillevel != b1.detaillevel))
 				)
 			{
 				overwrite = 
-					(hull? (b2->clipnodedetaillevel < b1->clipnodedetaillevel): (b2->detaillevel < b1->detaillevel))
+					(hull? (b2.clipnodedetaillevel < b1.clipnodedetaillevel): (b2.detaillevel < b1.detaillevel))
 					;
 			}
-			if (b2->contents == b1->contents
-				&& hull == 0 && b2->detaillevel == b1->detaillevel
-				&& b2->coplanarpriority != b1->coplanarpriority)
+			if (b2.contents == b1.contents
+				&& hull == 0 && b2.detaillevel == b1.detaillevel
+				&& b2.coplanarpriority != b1.coplanarpriority)
 			{
-				overwrite = b2->coplanarpriority > b1->coplanarpriority;
+				overwrite = b2.coplanarpriority > b1.coplanarpriority;
 			}
 
-            if (!bh2->faces)
+            if (!bh2.faces)
                 continue;                                  // brush isn't in this hull
 
             // check brush bounding box first
             // TODO: use boundingbox method instead
-            if (test_disjoint(bh1->bounds, bh2->bounds))
+            if (test_disjoint(bh1->bounds, bh2.bounds))
             {
                 continue;
             }
@@ -739,14 +731,14 @@ static void     CSGBrush(int brushnum)
                 next = f->next;
 
                 // check face bounding box first
-                if (test_disjoint(bh2->bounds, f->bounds))
+                if (test_disjoint(bh2.bounds, f->bounds))
                 {                                          // this face doesn't intersect brush2's bbox
                     f->next = outside;
                     outside = f;
                     continue;
                 }
 				if (
-					(hull? (b2->clipnodedetaillevel > b1->clipnodedetaillevel): (b2->detaillevel > b1->detaillevel))
+					(hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
 					)
 				{
 					const char *texname = GetTextureByNumber_CSG (f->texinfo);
@@ -769,7 +761,7 @@ static void     CSGBrush(int brushnum)
                 // into the outside list, return the remains on the inside
 				// find the fragment inside brush2
 				Winding *w = new Winding (*f->w);
-				for (f2 = bh2->faces; f2; f2 = f2->next)
+				for (f2 = bh2.faces; f2; f2 = f2->next)
 				{
 					if (f->planenum == f2->planenum)
 					{
@@ -809,7 +801,7 @@ static void     CSGBrush(int brushnum)
 				// do real split
 				if (w->m_NumPoints)
 				{
-					for (f2 = bh2->faces; f2; f2 = f2->next)
+					for (f2 = bh2.faces; f2; f2 = f2->next)
 					{
 						if (f->planenum == f2->planenum || f->planenum == (f2->planenum ^ 1))
 						{
@@ -865,7 +857,7 @@ static void     CSGBrush(int brushnum)
                 if (f && area < g_tiny_threshold)
                 {
                     Verbose("Entity %i, Brush %i: tiny penetration\n", 
-						b1->originalentitynum, b1->originalbrushnum
+						b1.originalentitynum, b1.originalbrushnum
 						);
                     c_tiny_clip++;
                     FreeFace(f);
@@ -877,7 +869,7 @@ static void     CSGBrush(int brushnum)
                     // face left inside brush2
 
 					if (
-						(hull? (b2->clipnodedetaillevel > b1->clipnodedetaillevel): (b2->detaillevel > b1->detaillevel))
+						(hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
 						)
 					{ // don't chop or set contents, only nullify
 						f->next = outside;
@@ -886,26 +878,26 @@ static void     CSGBrush(int brushnum)
 						continue;
 					}
 					if (
-						(hull? b2->clipnodedetaillevel < b1->clipnodedetaillevel: b2->detaillevel < b1->detaillevel)
-						&& b2->contents == CONTENTS_SOLID)
+						(hull? b2.clipnodedetaillevel < b1.clipnodedetaillevel: b2.detaillevel < b1.detaillevel)
+						&& b2.contents == CONTENTS_SOLID)
 					{ // real solid
 						FreeFace (f);
 						continue;
 					}
-					if (b1->contents == CONTENTS_TOEMPTY)
+					if (b1.contents == CONTENTS_TOEMPTY)
 					{
 						bool onfront = true, onback = true;
-						for (f2 = bh2->faces; f2; f2 = f2->next)
+						for (f2 = bh2.faces; f2; f2 = f2->next)
 						{
 							if (f->planenum == (f2->planenum ^ 1))
 								onback = false;
 							if (f->planenum == f2->planenum)
 								onfront = false;
 						}
-						if (onfront && f->contents < b2->contents)
-							f->contents = b2->contents;
-						if (onback && f->backcontents < b2->contents)
-							f->backcontents = b2->contents;
+						if (onfront && f->contents < b2.contents)
+							f->contents = b2.contents;
+						if (onback && f->backcontents < b2.contents)
+							f->backcontents = b2.contents;
 						if (f->contents == CONTENTS_SOLID && f->backcontents == CONTENTS_SOLID
 							&& strncasecmp (GetTextureByNumber_CSG (f->texinfo), "SOLIDHINT", 9)
                             && strncasecmp(GetTextureByNumber_CSG(f->texinfo), "BEVELHINT", 9)
@@ -920,12 +912,12 @@ static void     CSGBrush(int brushnum)
 						}
 						continue;
 					}
-                    if (b1->contents > b2->contents
-						|| b1->contents == b2->contents && !strncasecmp (GetTextureByNumber_CSG (f->texinfo), "SOLIDHINT", 9)
-                        || b1->contents == b2->contents && !strncasecmp(GetTextureByNumber_CSG(f->texinfo), "BEVELHINT", 9)
+                    if (b1.contents > b2.contents
+						|| b1.contents == b2.contents && !strncasecmp (GetTextureByNumber_CSG (f->texinfo), "SOLIDHINT", 9)
+                        || b1.contents == b2.contents && !strncasecmp(GetTextureByNumber_CSG(f->texinfo), "BEVELHINT", 9)
 						)
                     {                                      // inside a water brush
-                        f->contents = b2->contents;
+                        f->contents = b2.contents;
                         f->next = outside;
                         outside = f;
                     }
@@ -939,7 +931,7 @@ static void     CSGBrush(int brushnum)
         }
 
         // all of the faces left in outside are real surface faces
-        SaveOutside(b1, hull, outside, b1->contents);
+        SaveOutside(b1, hull, outside, b1.contents);
     }
 }
 
@@ -1354,7 +1346,10 @@ static void     ProcessModels()
         // csg them in order
         if (i == 0) // if its worldspawn....
         {
+            int numT = g_numthreads;
+            g_numthreads = 1;
             NamedRunThreadsOnIndividual(g_entities[i].numbrushes, g_estimate, CSGBrush);
+            g_numthreads = numT;
             CheckFatal();
         }
         else
@@ -2141,7 +2136,10 @@ int             main(const int argc, char** argv)
     CheckForNoClip(); 
 
     // createbrush
+            int numT = g_numthreads;
+         //   g_numthreads = 1;
     NamedRunThreadsOnIndividual(g_nummapbrushes, g_estimate, CreateBrush);
+    g_numthreads= numT;
     CheckFatal();
 
 

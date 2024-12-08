@@ -71,7 +71,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 {
 	int				numpoints;
 	int				x;
-	vec_t			*p1, *p2;
+	const vec_t *p1, *p2;
 	vec3_array			delta;
 	vec3_array			normal;
 	vec_t			dist;
