@@ -46,7 +46,7 @@ static wadpath_t* texwadpathes[MAX_TEXFILES]; // maps index of the wad to its pa
 
 // The old buggy code in effect limit the number of brush sides to MAX_MAP_BRUSHES
 
-static char *texmap[MAX_INTERNAL_MAP_TEXINFO];
+static char *texmap[MAX_INTERNAL_MAP_TEXINFOS];
 
 static int numtexmap = 0;
 
@@ -59,7 +59,7 @@ static int texmap_store (char *texname, bool shouldlock = true)
 		ThreadLock ();
 	}
 
-	hlassume (numtexmap < MAX_INTERNAL_MAP_TEXINFO, assume_MAX_MAP_TEXINFO); // This error should never appear.
+	hlassume (numtexmap < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO); // This error should never appear.
 
 	i = numtexmap;
 	texmap[numtexmap] = strdup (texname);
@@ -633,7 +633,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
     start = I_FloatTime();
     {
         int             i;
-        texinfo_t*      tx = g_texinfo;
+        texinfo_t*      tx = g_texinfo.data();
 
         // Sort them FIRST by wadfile and THEN by name for most efficient loading in the engine.
         qsort((void*)miptex, (size_t) nummiptex, sizeof(miptex[0]), lump_sorter_by_wad_and_name);
@@ -916,7 +916,7 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
     // find the g_texinfo
     //
     ThreadLock();
-    tc = g_texinfo;
+    tc = g_texinfo.data();
     for (i = 0; i < g_numtexinfo; i++, tc++)
     {
         // Sleazy hack 104, Pt 3 - Use strcmp on names to avoid dups
@@ -943,7 +943,7 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
 skip:;
     }
 
-    hlassume(g_numtexinfo < MAX_INTERNAL_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
+    hlassume(g_numtexinfo < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO);
 
     *tc = tx;
 	tc->miptex = texmap_store (bt->name, false);

@@ -234,23 +234,23 @@ void print_bsp_file_sizes(const bsp_data& bspData)
     Log("------------  ---------------  ---------------  --------\n");
 
     totalmemory += array_usage("models", bspData.mapModelsLength, bspData.mapModels.size(), sizeof(bspData.mapModels[0]));
-    totalmemory += array_usage("planes", g_numplanes, MAX_MAP_PLANES, sizeof(bspData.planes[0]));
-    totalmemory += array_usage("vertexes", g_numvertexes, ENTRIES(g_dvertexes), ENTRYSIZE(g_dvertexes));
-    totalmemory += array_usage("nodes", g_numnodes, ENTRIES(g_dnodes), ENTRYSIZE(g_dnodes));
-    totalmemory += array_usage("texinfos", g_numtexinfo, MAX_MAP_TEXINFO, ENTRYSIZE(g_texinfo));
-    totalmemory += array_usage("faces", g_numfaces, bspData.faces.size(), sizeof(bspData.faces[0]));
+    totalmemory += array_usage("planes", bspData.planesLength, MAX_MAP_PLANES, sizeof(bspData.planes[0]));
+    totalmemory += array_usage("vertexes", bspData.vertexesLength, bspData.vertexes.size(), sizeof(bspData.vertexes[0]));
+    totalmemory += array_usage("nodes", bspData.nodesLength, bspData.nodes.size(), sizeof(bspData.nodes[0]));
+    totalmemory += array_usage("texinfos", bspData.texInfosLength, MAX_MAP_TEXINFO, sizeof(bspData.texInfos[0]));
+    totalmemory += array_usage("faces", bspData.facesLength, bspData.faces.size(), sizeof(bspData.faces[0]));
 	totalmemory += array_usage("* worldfaces", (bspData.mapModelsLength > 0 ? bspData.mapModels[0].numfaces: 0), MAX_MAP_WORLDFACES, 0);
-    totalmemory += array_usage("clipnodes", g_numclipnodes, ENTRIES(g_dclipnodes), ENTRYSIZE(g_dclipnodes));
-    totalmemory += array_usage("leaves", g_numleafs, MAX_MAP_LEAFS, sizeof(bspData.leafs[0]));
+    totalmemory += array_usage("clipnodes", bspData.clipNodesLength, bspData.clipNodes.size(), sizeof(bspData.clipNodes[0]));
+    totalmemory += array_usage("leaves", bspData.leafsLength, MAX_MAP_LEAFS, sizeof(bspData.leafs[0]));
     totalmemory += array_usage("* worldleaves", (bspData.mapModelsLength > 0 ? bspData.mapModels[0].visleafs: 0), MAX_MAP_LEAFS_ENGINE, 0);
-    totalmemory += array_usage("marksurfaces", g_nummarksurfaces, ENTRIES(g_dmarksurfaces), ENTRYSIZE(g_dmarksurfaces));
-    totalmemory += array_usage("surfedges", g_numsurfedges, ENTRIES(g_dsurfedges), ENTRYSIZE(g_dsurfedges));
-    totalmemory += array_usage("edges", g_numedges, ENTRIES(g_dedges), ENTRYSIZE(g_dedges));
+    totalmemory += array_usage("marksurfaces", bspData.markSurfacesLength, bspData.markSurfaces.size(), sizeof(bspData.markSurfaces[0]));
+    totalmemory += array_usage("surfedges", bspData.surfEdgesLength, bspData.surfEdges.size(), sizeof(bspData.surfEdges[0]));
+    totalmemory += array_usage("edges", bspData.edgesLength, bspData.edges.size(), sizeof(bspData.edges[0]));
 
-    totalmemory += global_usage("texdata", g_texdatasize, g_max_map_miptex);
-    totalmemory += global_usage("lightdata", g_dlightdata.size(), g_max_map_lightdata);
-    totalmemory += global_usage("visdata", g_visdatasize, bspData.mapModels.size());
-    totalmemory += global_usage("entdata", g_entdatasize, bspData.entityData.size() * sizeof(bspData.entityData[0]));
+    totalmemory += global_usage("texdata", bspGlobals.textureDataByteSize, g_max_map_miptex);
+    totalmemory += global_usage("lightdata", bspGlobals.lightData.size(), g_max_map_lightdata);
+    totalmemory += global_usage("visdata", bspGlobals.visDataByteSize, bspData.mapModels.size());
+    totalmemory += global_usage("entdata", bspGlobals.entityDataLength, bspData.entityData.size() * sizeof(bspData.entityData[0]));
 	if (numallocblocks == -1)
 	{
 		Log ("* AllocBlock    [ not available to the " PLATFORM_VERSION " version ]\n");

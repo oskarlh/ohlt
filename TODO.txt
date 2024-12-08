@@ -15,7 +15,7 @@ For testing model shadows https://twhl.info/vault/view/6031 can be used. Just se
 on a couple of models. More info here https://gamebanana.com/tools/6306
 
 
-For testing WAD files https://twhl.info/vault/view/6031 is insteresting.
+For testing WAD files https://twhl.info/vault/view/6031 is interesting.
 It has two "wad" fields:
 "wad" "C:\Program Files (x86)\Steam\steamapps\common\Half-Life\valve\tools.wad;C:\Program Files (x86)\Steam\steamapps\common\Half-Life"
 "wad" "\users\ulstaff\documents\modding\hl\programs\vluzacn's zhlt v30\tools\zhlt.wad;\program files\steam\steamapps\common\half-life\valve\decals.wad;\program files\steam\steamapps\common\half-life\valve\halflife.wad;\program files\steam\steamapps\common\half-life\valve\liquids.wad;\program files\steam\steamapps\common\half-life\valve\xmastree_tjb.wad"
@@ -28,3 +28,12 @@ Is it possible that Alabastor_Twob used Hammer 4 in the beginning? Because there
 
 We should tolerate missing WADs but produce warnings.
 This so we can compile .map files from others when they forget to include all the WADs
+
+
+
+Study:
+https://developer.valvesoftware.com/wiki/BSP_(GoldSrc)
+The Source article might have additional information https://developer.valvesoftware.com/wiki/BSP_(Source)
+
+Looks interesting:
+https://developer.valvesoftware.com/wiki/BSPX

@@ -50,17 +50,17 @@ int& g_numplanes{bspGlobals.planesLength};
 std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes{bspGlobals.planes};
 int& g_dplanes_checksum{bspGlobals.planesChecksum};
 
-int             g_numvertexes;
-dvertex_t       g_dvertexes[MAX_MAP_VERTS];
-int             g_dvertexes_checksum;
+int& g_numvertexes{bspGlobals.vertexesLength};
+std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes{bspGlobals.vertexes};
+int& g_dvertexes_checksum{bspGlobals.vertexesChecksum};
 
-int             g_numnodes;
-dnode_t         g_dnodes[MAX_MAP_NODES];
-int             g_dnodes_checksum;
+int& g_numnodes{bspGlobals.nodesLength};
+std::array<dnode_t, MAX_MAP_NODES>& g_dnodes{bspGlobals.nodes};
+int& g_dnodes_checksum{bspGlobals.entityDataChecksum};
 
-int             g_numtexinfo;
-texinfo_t       g_texinfo[MAX_INTERNAL_MAP_TEXINFO];
-int             g_texinfo_checksum;
+int& g_numtexinfo{bspGlobals.texInfosLength};
+std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo{bspGlobals.texInfos};
+int& g_texinfo_checksum{bspGlobals.texInfosChecksum};
 
 int& g_numfaces{bspGlobals.facesLength};
 std::array<dface_t, MAX_MAP_FACES>& g_dfaces{bspGlobals.faces};
@@ -68,58 +68,44 @@ int& g_dfaces_checksum{bspGlobals.facesChecksum};
 
 int& g_iWorldExtent{bspGlobals.worldExtent}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
-int             g_numclipnodes;
-dclipnode_t     g_dclipnodes[MAX_MAP_CLIPNODES];
-int             g_dclipnodes_checksum;
+int& g_numclipnodes{bspGlobals.clipNodesLength};
+std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes{bspGlobals.clipNodes};
+int& g_dclipnodes_checksum{bspGlobals.clipNodesChecksum};
 
-int             g_numedges;
-dedge_t         g_dedges[MAX_MAP_EDGES];
-int             g_dedges_checksum;
+int& g_numedges{bspGlobals.edgesLength};
+std::array<dedge_t, MAX_MAP_EDGES>& g_dedges{bspGlobals.edges};
+int& g_dedges_checksum{bspGlobals.edgesChecksum};
 
-int             g_nummarksurfaces;
-std::uint16_t  g_dmarksurfaces[MAX_MAP_MARKSURFACES];
-int             g_dmarksurfaces_checksum;
+int& g_nummarksurfaces{bspGlobals.markSurfacesLength};
+std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces{bspGlobals.markSurfaces};
+int& g_dmarksurfaces_checksum{bspGlobals.markSurfacesChecksum};
 
-int             g_numsurfedges;
-int             g_dsurfedges[MAX_MAP_SURFEDGES];
-int             g_dsurfedges_checksum;
+int& g_numsurfedges{bspGlobals.surfEdgesLength};
+std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{bspGlobals.surfEdges};
+int& g_dsurfedges_checksum{bspGlobals.surfEdgesChecksum};
 
-int             g_numentities;
-entity_t        g_entities[MAX_MAP_ENTITIES];
+int& g_numentities{bspGlobals.entitiesLength};
+std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{bspGlobals.entities};
 
 /*
  * ===============
- * FastChecksum
+ * fast_checksum
  * ===============
  */
 
 static unsigned int rotleft(unsigned value, unsigned int amt)
 {
-    unsigned        t1, t2;
+    std::uint32_t t1, t2;
 
-    t1 = value >> ((sizeof(unsigned) * std::numeric_limits<unsigned char>::digits) - amt);
+    t1 = value >> (std::numeric_limits<std::uint32_t>::digits - amt);
 
     t2 = value << amt;
     return (t1 | t2);
 }
 
-
-static int      FastChecksum(const void* const buffer, int bytes)
-{
-    int             checksum = 0;
-    char*           buf = (char*)buffer;
-
-    while (bytes--)
-    {
-        checksum = rotleft(checksum, 4) ^ (*buf);
-        buf++;
-    }
-
-    return checksum;
-}
 template<class T> static std::int32_t fast_checksum(std::span<T> buffer)
 {
-    std::int32_t             checksum = 0;
+    std::int32_t checksum = 0;
     const char* buf = (const char*) buffer.data();
 
     while (buf != (const char*) &*buffer.end())
@@ -320,16 +306,16 @@ void            LoadBSPImage(dheader_t* const header)
 	memcpy(g_dmodels.data(), modelData.data(), modelData.size() * sizeof(modelData[0]));
 	g_nummodels = modelData.size();
 
-    g_numvertexes = CopyLump(LUMP_VERTEXES, g_dvertexes, sizeof(dvertex_t), header);
+    g_numvertexes = CopyLump(LUMP_VERTEXES, g_dvertexes.data(), sizeof(dvertex_t), header);
     g_numplanes = CopyLump(LUMP_PLANES, g_dplanes.data(), sizeof(dplane_t), header);
     g_numleafs = CopyLump(LUMP_LEAFS, g_dleafs.data(), sizeof(dleaf_t), header);
-    g_numnodes = CopyLump(LUMP_NODES, g_dnodes, sizeof(dnode_t), header);
-    g_numtexinfo = CopyLump(LUMP_TEXINFO, g_texinfo, sizeof(texinfo_t), header);
-    g_numclipnodes = CopyLump(LUMP_CLIPNODES, g_dclipnodes, sizeof(dclipnode_t), header);
+    g_numnodes = CopyLump(LUMP_NODES, g_dnodes.data(), sizeof(dnode_t), header);
+    g_numtexinfo = CopyLump(LUMP_TEXINFO, g_texinfo.data(), sizeof(texinfo_t), header);
+    g_numclipnodes = CopyLump(LUMP_CLIPNODES, g_dclipnodes.data(), sizeof(dclipnode_t), header);
     g_numfaces = CopyLump(LUMP_FACES, g_dfaces.data(), sizeof(dface_t), header);
-    g_nummarksurfaces = CopyLump(LUMP_MARKSURFACES, g_dmarksurfaces, sizeof(g_dmarksurfaces[0]), header);
-    g_numsurfedges = CopyLump(LUMP_SURFEDGES, g_dsurfedges, sizeof(g_dsurfedges[0]), header);
-    g_numedges = CopyLump(LUMP_EDGES, g_dedges, sizeof(dedge_t), header);
+    g_nummarksurfaces = CopyLump(LUMP_MARKSURFACES, g_dmarksurfaces.data(), sizeof(g_dmarksurfaces[0]), header);
+    g_numsurfedges = CopyLump(LUMP_SURFEDGES, g_dsurfedges.data(), sizeof(g_dsurfedges[0]), header);
+    g_numedges = CopyLump(LUMP_EDGES, g_dedges.data(), sizeof(dedge_t), header);
 
 	auto textureData = get_lump_data<lump_id::textures>(header);
 	memcpy(g_dtexdata.data(), textureData.data(), textureData.size() * sizeof(textureData[0]));
@@ -346,20 +332,20 @@ void            LoadBSPImage(dheader_t* const header)
 
 	// WTF???? THESE ARE UNUSED!
     g_dmodels_checksum = fast_checksum(std::span(g_dmodels.data(), g_nummodels));
-    g_dvertexes_checksum = FastChecksum(g_dvertexes, g_numvertexes * sizeof(g_dvertexes[0]));
+    g_dvertexes_checksum = fast_checksum(std::span(g_dvertexes.data(), g_numvertexes));
     g_dplanes_checksum = fast_checksum(std::span(g_dplanes.data(), g_numplanes));
-    g_dleafs_checksum = FastChecksum(g_dleafs.data(), g_numleafs * sizeof(g_dleafs[0]));
-    g_dnodes_checksum = FastChecksum(g_dnodes, g_numnodes * sizeof(g_dnodes[0]));
-    g_texinfo_checksum = FastChecksum(g_texinfo, g_numtexinfo * sizeof(g_texinfo[0]));
-    g_dclipnodes_checksum = FastChecksum(g_dclipnodes, g_numclipnodes * sizeof(g_dclipnodes[0]));
-    g_dfaces_checksum = FastChecksum(g_dfaces.data(), g_numfaces * sizeof(g_dfaces[0]));
-    g_dmarksurfaces_checksum = FastChecksum(g_dmarksurfaces, g_nummarksurfaces * sizeof(g_dmarksurfaces[0]));
-    g_dsurfedges_checksum = FastChecksum(g_dsurfedges, g_numsurfedges * sizeof(g_dsurfedges[0]));
-    g_dedges_checksum = FastChecksum(g_dedges, g_numedges * sizeof(g_dedges[0]));
+    g_dleafs_checksum = fast_checksum(std::span(g_dleafs.data(), g_numleafs));
+    g_dnodes_checksum = fast_checksum(std::span(g_dnodes.data(), g_numnodes));
+    g_texinfo_checksum = fast_checksum(std::span(g_texinfo.data(), g_numtexinfo));
+    g_dclipnodes_checksum = fast_checksum(std::span(g_dclipnodes.data(), g_numclipnodes));
+    g_dfaces_checksum = fast_checksum(std::span(g_dfaces.data(), g_numfaces));
+    g_dmarksurfaces_checksum = fast_checksum(std::span(g_dmarksurfaces.data(), g_nummarksurfaces));
+    g_dsurfedges_checksum = fast_checksum(std::span(g_dsurfedges.data(), g_numsurfedges));
+    g_dedges_checksum = fast_checksum(std::span(g_dedges.data(), g_numedges));
     g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata.data(), g_texdatasize));
-    g_dvisdata_checksum = FastChecksum(g_dvisdata.data(), g_visdatasize * sizeof(g_dvisdata[0]));
+    g_dvisdata_checksum = fast_checksum(std::span(g_dvisdata.data(), g_visdatasize));
     g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata));
-    g_dentdata_checksum = FastChecksum(g_dentdata.data(), g_entdatasize * sizeof(g_dentdata[0]));
+    g_dentdata_checksum = fast_checksum(std::span(g_dentdata.data(), g_entdatasize));
 }
 
 //
@@ -408,20 +394,20 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     //      LUMP TYPE       DATA            LENGTH                              HEADER  BSPFILE   
     AddLump(LUMP_PLANES,    g_dplanes.data(),      g_numplanes * sizeof(dplane_t),     header, bspfile);
     AddLump(LUMP_LEAFS,     g_dleafs.data(),       g_numleafs * sizeof(dleaf_t),       header, bspfile);
-    AddLump(LUMP_VERTEXES,  g_dvertexes,    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
-    AddLump(LUMP_NODES,     g_dnodes,       g_numnodes * sizeof(dnode_t),       header, bspfile);
-    AddLump(LUMP_TEXINFO,   g_texinfo,      g_numtexinfo * sizeof(texinfo_t),   header, bspfile);
+    AddLump(LUMP_VERTEXES,  g_dvertexes.data(),    g_numvertexes * sizeof(dvertex_t),  header, bspfile);
+    AddLump(LUMP_NODES,     g_dnodes.data(),       g_numnodes * sizeof(dnode_t),       header, bspfile);
+    AddLump(LUMP_TEXINFO,   g_texinfo.data(),      g_numtexinfo * sizeof(texinfo_t),   header, bspfile);
     AddLump(LUMP_FACES,     g_dfaces.data(),       g_numfaces * sizeof(dface_t),       header, bspfile);
-    AddLump(LUMP_CLIPNODES, g_dclipnodes,   g_numclipnodes * sizeof(dclipnode_t), header, bspfile);
+    AddLump(LUMP_CLIPNODES, g_dclipnodes.data(),   g_numclipnodes * sizeof(dclipnode_t), header, bspfile);
 
-    AddLump(LUMP_MARKSURFACES, g_dmarksurfaces, g_nummarksurfaces * sizeof(g_dmarksurfaces[0]), header, bspfile);
-    AddLump(LUMP_SURFEDGES, g_dsurfedges,   g_numsurfedges * sizeof(g_dsurfedges[0]), header, bspfile);
-    AddLump(LUMP_EDGES,     g_dedges,       g_numedges * sizeof(dedge_t),       header, bspfile);
-    AddLump(LUMP_MODELS,    g_dmodels.data(),      g_nummodels * sizeof(dmodel_t),     header, bspfile);
+    AddLump(LUMP_MARKSURFACES, g_dmarksurfaces.data(), g_nummarksurfaces * sizeof(g_dmarksurfaces[0]), header, bspfile);
+    AddLump(LUMP_SURFEDGES, g_dsurfedges.data(),   g_numsurfedges * sizeof(g_dsurfedges[0]), header, bspfile);
+    AddLump(LUMP_EDGES,     g_dedges.data(),       g_numedges * sizeof(dedge_t),       header, bspfile);
+    add_lump<lump_id::models>(std::span<dmodel_t>(g_dmodels.data(), g_nummodels), header, bspfile);
 
     add_lump<lump_id::lighting>(g_dlightdata, header, bspfile);
-    AddLump(LUMP_VISIBILITY,g_dvisdata.data(),     g_visdatasize,                      header, bspfile);
-    AddLump(LUMP_ENTITIES,  g_dentdata.data(),     g_entdatasize,                      header, bspfile);
+    AddLump(LUMP_VISIBILITY, g_dvisdata.data(), g_visdatasize, header, bspfile);
+    add_lump<lump_id::entities>(std::span<char8_t>(g_dentdata.data(), g_entdatasize), header, bspfile);
     add_lump<lump_id::textures>(std::span<std::byte>(g_dtexdata.data(), g_texdatasize), header, bspfile);
 
     fseek(bspfile, 0, SEEK_SET);

@@ -600,11 +600,11 @@ static void     CalcFaceExtents(lightinfo_t* l)
         e = g_dsurfedges[s->firstedge + i];
         if (e >= 0)
         {
-            v = g_dvertexes + g_dedges[e].v[0];
+            v = g_dvertexes.data() + g_dedges[e].v[0];
         }
         else
         {
-            v = g_dvertexes + g_dedges[-e].v[1];
+            v = g_dvertexes.data() + g_dedges[-e].v[1];
         }
 
         for (j = 0; j < 2; j++)
@@ -653,11 +653,11 @@ static void     CalcFaceExtents(lightinfo_t* l)
 				e = g_dsurfedges[s->firstedge + i];
 				if (e >= 0)
                 {
-					v = g_dvertexes + g_dedges[e].v[0];
+					v = g_dvertexes.data() + g_dedges[e].v[0];
                 }
 				else
                 {
-					v = g_dvertexes + g_dedges[-e].v[1];
+					v = g_dvertexes.data() + g_dedges[-e].v[1];
                 }
 				vec3_t pos;
 				VectorAdd (v->point, g_face_offset[facenum], pos);
@@ -1716,7 +1716,7 @@ void            CreateDirectLights()
 			VectorMultiply (dl->intensity, p->texturereflectivity, dl->intensity);
         
 			dface_t *f = &g_dfaces[p->faceNumber];
-			if (g_face_entity[p->faceNumber] - g_entities != 0 && !strncasecmp (GetTextureByNumber (f->texinfo), "!", 1))
+			if (g_face_entity[p->faceNumber] != g_entities.data() && !strncasecmp (GetTextureByNumber (f->texinfo), "!", 1))
 			{
 				directlight_t *dl2;
 				numdlights++;

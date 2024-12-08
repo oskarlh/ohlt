@@ -36,7 +36,7 @@ brush_t *CopyCurrentBrush (entity_t *entity, const brush_t *brush)
 	g_numbrushsides += brush->numsides;
 	hlassume (g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
 	memcpy (&g_brushsides[newb->firstside], &g_brushsides[brush->firstside], brush->numsides * sizeof (side_t));
-	newb->entitynum = entity - g_entities;
+	newb->entitynum = entity - g_entities.data();
 	newb->brushnum = entity->numbrushes;
 	entity->numbrushes++;
 	for (int h = 0; h < NUM_HULLS; h++)
@@ -1002,7 +1002,7 @@ unsigned int    CountEngineEntities()
 {
     unsigned int x;
     unsigned num_engine_entities = 0;
-    entity_t*       mapent = g_entities;
+    entity_t*       mapent = g_entities.data();
 
     // for each entity in the map
     for (x=0; x<g_numentities; x++, mapent++)

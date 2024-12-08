@@ -372,7 +372,7 @@ static void     MakeParents(const int nodenum, const int parent)
     dnode_t*        node;
 
     nodeparents[nodenum] = parent;
-    node = g_dnodes + nodenum;
+    node = g_dnodes.data() + nodenum;
 
     for (i = 0; i < 2; i++)
     {
@@ -1373,7 +1373,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		}
 		{
 			vec_t opacity = 0.0;
-			if (g_face_entity[fn] - g_entities == 0)
+			if (g_face_entity[fn] == g_entities.data())
 			{
 				opacity = 1.0;
 			}
@@ -1383,7 +1383,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 				for (x = 0; x < g_opaque_face_list.size(); x++)
 				{
 					opaqueList_t *op = &g_opaque_face_list[x];
-					if (op->entitynum == g_face_entity[fn] - g_entities)
+					if (&g_entities[op->entitynum] == g_face_entity[fn])
 					{
 						opacity = 1.0;
 						if (op->transparency)

@@ -34,7 +34,7 @@ static void     MakeTnode(const int nodenum)
 
     t = tnode_p++;
 
-    node = g_dnodes + nodenum;
+    node = g_dnodes.data() + nodenum;
     const dplane_t& plane = g_dplanes[node->planenum];
 
     t->type = plane.type;

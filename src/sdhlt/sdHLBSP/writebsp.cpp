@@ -762,7 +762,7 @@ void            FinishBSPFile(const bsp_data& bspData)
 			Developer (DEVELOPER_LEVEL_MESSAGE, " model %d\n", i);
 			for (j = 1; j < NUM_HULLS; j++)
 			{
-				brinkinfo[i][j] = CreateBrinkinfo (g_dclipnodes, m->headnode[j]);
+				brinkinfo[i][j] = CreateBrinkinfo (g_dclipnodes.data(), m->headnode[j]);
 			}
 		}
 		for (level = BrinkAny; level > BrinkNone; level--)
@@ -808,7 +808,7 @@ void            FinishBSPFile(const bsp_data& bspData)
 			Developer (DEVELOPER_LEVEL_MESSAGE, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
 			Log ("Increased %d clipnodes to %d.\n", g_numclipnodes, numclipnodes);
 			g_numclipnodes = numclipnodes;
-			memcpy (g_dclipnodes, clipnodes, numclipnodes * sizeof (dclipnode_t));
+			memcpy (g_dclipnodes.data(), clipnodes, numclipnodes * sizeof (dclipnode_t));
 			for (i = 0; i < g_nummodels; i++)
 			{
 				dmodel_t *m = &g_dmodels[i];
