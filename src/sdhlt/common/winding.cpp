@@ -1,5 +1,3 @@
-#pragma warning(disable: 4018) //amckern - 64bit - '<' Singed/Unsigned Mismatch
-
 #include "winding.h"
 
 #include "cmdlib.h"
@@ -10,17 +8,13 @@
 #include <algorithm>
 #include <span>
 
-#undef BOGUS_RANGE
-#undef ON_EPSILON
-
-#define	BOGUS_RANGE	80000.0
-#define ON_EPSILON epsilon
+constexpr vec_t bogus_range = 80000.0;
 
 //
 // Winding Public Methods
 //
 
-void            Winding::Print() const
+void Winding::Print() const
 {
     std::uint_least32_t x;
 
@@ -30,7 +24,7 @@ void            Winding::Print() const
     }
 }
 
-void     Winding::getPlane(dplane_t& plane) const
+void Winding::getPlane(dplane_t& plane) const
 {
     vec3_array          v1, v2;
     vec3_array          plane_normal;
@@ -182,9 +176,9 @@ void            Winding::Check(
 
         for (j = 0; j < 3; j++)
         {
-            if (p1[j] > BOGUS_RANGE || p1[j] < -BOGUS_RANGE)
+            if (p1[j] > bogus_range || p1[j] < -bogus_range)
             {
-                Error("Winding::Check : BOGUS_RANGE: %f", p1[j]);
+                Error("Winding::Check : bogus_range: %f", p1[j]);
             }
         }
 
@@ -192,7 +186,7 @@ void            Winding::Check(
 
         // check the point is on the face plane
         d = DotProduct(p1, facenormal) - facedist;
-        if (d < -ON_EPSILON || d > ON_EPSILON)
+        if (d < -epsilon || d > epsilon)
         {
             Error("Winding::Check : point off plane");
         }
@@ -201,7 +195,7 @@ void            Winding::Check(
         p2 = m_Points[j].data();
         VectorSubtract(p2, p1, dir);
 
-        if (VectorLength(dir) < ON_EPSILON)
+        if (VectorLength(dir) < epsilon)
         {
             Error("Winding::Check : degenerate edge");
         }
@@ -209,7 +203,7 @@ void            Winding::Check(
         CrossProduct(facenormal, dir, edgenormal);
         VectorNormalize(edgenormal);
         edgedist = DotProduct(p1, edgenormal);
-        edgedist += ON_EPSILON;
+        edgedist += epsilon;
 
         // all other points must be on front side
         for (j = 0; j < m_NumPoints; j++)
@@ -310,7 +304,7 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 
     // find the major axis               
 
-    max = -BOGUS_RANGE;
+    max = -bogus_range;
     int x = -1;
     for (i = 0; i < 3; i++)          
     {
@@ -346,8 +340,8 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 
     CrossProduct(vup, normal, vright);
 
-    VectorScale(vup, BOGUS_RANGE, vup);
-    VectorScale(vright, BOGUS_RANGE, vright);
+    VectorScale(vup, bogus_range, vup);
+    VectorScale(vright, bogus_range, vright);
 
     // project a really big     axis aligned box onto the plane
     m_NumPoints = 4;
@@ -418,7 +412,7 @@ Winding::Winding(const dplane_t& plane)
 // Specialized Functions
 //
 
-// Remove the colinear point of any three points that forms a triangle which is thinner than ON_EPSILON
+// Remove the colinear point of any three points that forms a triangle which is thinner than epsilon
 void			Winding::RemoveColinearPoints(
 											  vec_t epsilon
 											  )
@@ -435,8 +429,8 @@ void			Winding::RemoveColinearPoints(
 		VectorSubtract (p3, p2, v2);
 		// v1 or v2 might be close to 0
 		if (DotProduct (v1, v2) * DotProduct (v1, v2) >= DotProduct (v1, v1) * DotProduct (v2, v2) 
-			- ON_EPSILON * ON_EPSILON * (DotProduct (v1, v1) + DotProduct (v2, v2) + ON_EPSILON * ON_EPSILON))
-			// v2 == k * v1 + v3 && abs (v3) < ON_EPSILON || v1 == k * v2 + v3 && abs (v3) < ON_EPSILON
+			- epsilon * epsilon * (DotProduct (v1, v1) + DotProduct (v2, v2) + epsilon * epsilon))
+			// v2 == k * v1 + v3 && abs (v3) < epsilon || v1 == k * v2 + v3 && abs (v3) < epsilon
 		{
 			m_NumPoints--;
 			for (; i < m_NumPoints; i++)
@@ -483,11 +477,11 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
         dot = DotProduct(m_Points[i], normal);
         dot -= dist;
         dists[i] = dot;
-        if (dot > ON_EPSILON)
+        if (dot > epsilon)
         {
             sides[i] = SIDE_FRONT;
         }
-        else if (dot < -ON_EPSILON)
+        else if (dot < -epsilon)
         {
             sides[i] = SIDE_BACK;
         }
@@ -645,7 +639,7 @@ int             Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_
     for (i = 0; i < m_NumPoints; i++)
     {
         d = DotProduct(m_Points[i], normal) - dist;
-        if (d < -ON_EPSILON)
+        if (d < -epsilon)
         {
             if (front)
             {
@@ -654,7 +648,7 @@ int             Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_
             back = true;
             continue;
         }
-        if (d > ON_EPSILON)
+        if (d > epsilon)
         {
             if (back)
             {
@@ -696,11 +690,11 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         dot = DotProduct(m_Points[i], split.normal);
         dot -= split.dist;
         dists[i] = dot;
-        if (dot > ON_EPSILON)
+        if (dot > epsilon)
         {
             sides[i] = SIDE_FRONT;
         }
-        else if (dot < -ON_EPSILON)
+        else if (dot < -epsilon)
         {
             sides[i] = SIDE_BACK;
         }
@@ -830,11 +824,11 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
         dot = DotProduct(m_Points[i], split.normal);
         dot -= split.dist;
         dists[i] = dot;
-        if (dot > ON_EPSILON)
+        if (dot > epsilon)
         {
             sides[i] = SIDE_FRONT;
         }
-        else if (dot < -ON_EPSILON)
+        else if (dot < -epsilon)
         {
             sides[i] = SIDE_BACK;
         }
