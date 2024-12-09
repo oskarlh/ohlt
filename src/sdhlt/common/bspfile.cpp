@@ -1,3 +1,4 @@
+#include <bit>
 #include <cstddef>
 #include <filesystem>
 #include <numbers>
@@ -25,64 +26,64 @@ bsp_data bspGlobals;
 
 int& g_nummodels{bspGlobals.mapModelsLength};
 std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{bspGlobals.mapModels};
-int& g_dmodels_checksum{bspGlobals.mapModelsChecksum};
+std::uint32_t& g_dmodels_checksum{bspGlobals.mapModelsChecksum};
 
 int& g_visdatasize{bspGlobals.visDataByteSize};
 std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
-int& g_dvisdata_checksum{bspGlobals.visDataChecksum};
+std::uint32_t& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
 std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
-int& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
+std::uint32_t& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
 int& g_texdatasize{bspGlobals.textureDataByteSize};
 std::vector<std::byte>& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
-int& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
+std::uint32_t& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
 
 int& g_entdatasize{bspGlobals.entityDataLength};
 std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata{bspGlobals.entityData};
-int& g_dentdata_checksum{bspGlobals.entityDataChecksum};
+std::uint32_t& g_dentdata_checksum{bspGlobals.entityDataChecksum};
 
 int& g_numleafs{bspGlobals.leafsLength};
 std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs{bspGlobals.leafs};
-int& g_dleafs_checksum{bspGlobals.leafsChecksum};
+std::uint32_t& g_dleafs_checksum{bspGlobals.leafsChecksum};
 
 int& g_numplanes{bspGlobals.planesLength};
 std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes{bspGlobals.planes};
-int& g_dplanes_checksum{bspGlobals.planesChecksum};
+std::uint32_t& g_dplanes_checksum{bspGlobals.planesChecksum};
 
 int& g_numvertexes{bspGlobals.vertexesLength};
 std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes{bspGlobals.vertexes};
-int& g_dvertexes_checksum{bspGlobals.vertexesChecksum};
+std::uint32_t& g_dvertexes_checksum{bspGlobals.vertexesChecksum};
 
 int& g_numnodes{bspGlobals.nodesLength};
 std::array<dnode_t, MAX_MAP_NODES>& g_dnodes{bspGlobals.nodes};
-int& g_dnodes_checksum{bspGlobals.entityDataChecksum};
+std::uint32_t& g_dnodes_checksum{bspGlobals.entityDataChecksum};
 
 int& g_numtexinfo{bspGlobals.texInfosLength};
 std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo{bspGlobals.texInfos};
-int& g_texinfo_checksum{bspGlobals.texInfosChecksum};
+std::uint32_t& g_texinfo_checksum{bspGlobals.texInfosChecksum};
 
 int& g_numfaces{bspGlobals.facesLength};
 std::array<dface_t, MAX_MAP_FACES>& g_dfaces{bspGlobals.faces};
-int& g_dfaces_checksum{bspGlobals.facesChecksum};
+std::uint32_t& g_dfaces_checksum{bspGlobals.facesChecksum};
 
 int& g_iWorldExtent{bspGlobals.worldExtent}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
 int& g_numclipnodes{bspGlobals.clipNodesLength};
 std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes{bspGlobals.clipNodes};
-int& g_dclipnodes_checksum{bspGlobals.clipNodesChecksum};
+std::uint32_t& g_dclipnodes_checksum{bspGlobals.clipNodesChecksum};
 
 int& g_numedges{bspGlobals.edgesLength};
 std::array<dedge_t, MAX_MAP_EDGES>& g_dedges{bspGlobals.edges};
-int& g_dedges_checksum{bspGlobals.edgesChecksum};
+std::uint32_t& g_dedges_checksum{bspGlobals.edgesChecksum};
 
 int& g_nummarksurfaces{bspGlobals.markSurfacesLength};
 std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces{bspGlobals.markSurfaces};
-int& g_dmarksurfaces_checksum{bspGlobals.markSurfacesChecksum};
+std::uint32_t& g_dmarksurfaces_checksum{bspGlobals.markSurfacesChecksum};
 
 int& g_numsurfedges{bspGlobals.surfEdgesLength};
 std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{bspGlobals.surfEdges};
-int& g_dsurfedges_checksum{bspGlobals.surfEdgesChecksum};
+std::uint32_t& g_dsurfedges_checksum{bspGlobals.surfEdgesChecksum};
 
 int& g_numentities{bspGlobals.entitiesLength};
 std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{bspGlobals.entities};
@@ -93,7 +94,7 @@ std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{bspGlobals.entities};
  * ===============
  */
 
-static unsigned int rotleft(unsigned value, unsigned int amt)
+static std::uint32_t rotleftu32(std::uint32_t value, std::uint32_t amt)
 {
     std::uint32_t t1, t2;
 
@@ -103,15 +104,19 @@ static unsigned int rotleft(unsigned value, unsigned int amt)
     return (t1 | t2);
 }
 
-template<class T> static std::int32_t fast_checksum(std::span<T> buffer)
-{
-    std::int32_t checksum = 0;
-    const char* buf = (const char*) buffer.data();
 
-    while (buf != (const char*) &*buffer.end())
+template<class T> static std::uint32_t fast_checksum(std::span<T> elements)
+{
+	struct element_as_bytes {
+		unsigned char bytes[sizeof(T)];
+	};
+
+    std::uint32_t checksum = 0;
+    for (const T& element : elements)
     {
-        checksum = rotleft(checksum, 4) ^ (*buf);
-        buf++;
+		for(unsigned char byteInElement : std::bit_cast<element_as_bytes>(element).bytes) {
+	        checksum = rotleftu32(checksum, 4) ^ byteInElement;
+		}
     }
 
     return checksum;
@@ -359,7 +364,7 @@ void            LoadBSPImage(dheader_t* const header)
 
 template<lump_id LumpId> void add_lump(std::span<const lump_element_type<LumpId>> data, dheader_t* header, FILE* bspfile)
 {
-//	Log("CHECKSUM %s%i %i\n",
+//	Log("CHECKSUM %s%u %u\n",
 //		g_Program,
 //		(int) LumpId,
 //		fast_checksum(data)
@@ -373,7 +378,7 @@ template<lump_id LumpId> void add_lump(std::span<const lump_element_type<LumpId>
     SafeWrite(bspfile, (const char*) data.data(), byteLength);
 
 
-	// Why do we need padding???
+	// Why do we need padding??? Does the game need it?
 	if(byteLength % 4) {
 		const std::size_t paddingLength = 4 - (byteLength % 4);
 		const std::array<std::byte, 3> zeroPadding{};

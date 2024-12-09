@@ -374,68 +374,68 @@ extern char*    GetTextureByNumber(int texturenumber);
 
 struct bsp_data {
 	std::array<dmodel_t, MAX_MAP_MODELS> mapModels{};
-	int mapModelsChecksum{0};
+	std::uint32_t mapModelsChecksum{0};
 	int mapModelsLength{0};
 
 	std::array<std::byte, MAX_MAP_VISIBILITY> visData{};
 	int visDataByteSize{0};
-	int visDataChecksum{0};
+	std::uint32_t visDataChecksum{0};
 
     // This one can be resized and reallocated
 	std::vector<std::byte> lightData{};
-	int lightDataChecksum{0};
+	std::uint32_t lightDataChecksum{0};
 
     // This one can perhaps not be resized and reallocated
     // Now it's always initialized with g_max_map_miptex 0s
     // TODO: See if that can be changed
 	std::vector<std::byte> textureData{}; // (dmiptexlump_t)
 	int textureDataByteSize{0};
-	int textureDataChecksum{0};
+	std::uint32_t textureDataChecksum{0};
 
 	std::array<char8_t, MAX_MAP_ENTSTRING> entityData{};
-	int entityDataChecksum{0};
+	std::uint32_t entityDataChecksum{0};
 	int entityDataLength{0};
 
 	std::array<dleaf_t, MAX_MAP_LEAFS> leafs{};
-	int leafsChecksum{0};
+	std::uint32_t leafsChecksum{0};
 	int leafsLength{0};
 
 	std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> planes{};
-	int planesChecksum{0};
+	std::uint32_t planesChecksum{0};
 	int planesLength{0};
 
 	std::array<dvertex_t, MAX_MAP_VERTS> vertexes{};
-	int vertexesChecksum{0};
+	std::uint32_t vertexesChecksum{0};
 	int vertexesLength{0};
 
 	std::array<dnode_t, MAX_MAP_NODES> nodes{};
-	int nodesChecksum{0};
+	std::uint32_t nodesChecksum{0};
 	int nodesLength{0};
 
     std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS> texInfos{};
-    int texInfosChecksum{0};
+    std::uint32_t texInfosChecksum{0};
     int texInfosLength{0};
 
 	std::array<dface_t, MAX_MAP_FACES> faces{};
-	int facesChecksum{0};
+	std::uint32_t facesChecksum{0};
 	int facesLength{0};
 
 	int worldExtent{65536}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
     std::array<dclipnode_t, MAX_MAP_CLIPNODES> clipNodes{};
-    int clipNodesChecksum{0};
+    std::uint32_t clipNodesChecksum{0};
     int clipNodesLength{0};
 
 	std::array<dedge_t, MAX_MAP_EDGES> edges{};
+	std::uint32_t edgesChecksum{0};
 	int edgesLength{0};
-	int edgesChecksum{0};
 
 	std::array<std::uint16_t, MAX_MAP_MARKSURFACES> markSurfaces{};
-	int markSurfacesChecksum{0};
+	std::uint32_t markSurfacesChecksum{0};
 	int markSurfacesLength{0};
 
     std::array<std::int32_t, MAX_MAP_SURFEDGES> surfEdges{};
-    int surfEdgesChecksum{0};
+    std::uint32_t surfEdgesChecksum{0};
     int surfEdgesLength{0};
 
 	std::array<entity_t, MAX_MAP_ENTITIES> entities{};
@@ -446,64 +446,64 @@ extern bsp_data bspGlobals;
 
 extern int& g_nummodels;
 extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
-extern int& g_dmodels_checksum;
+extern std::uint32_t& g_dmodels_checksum;
 
 extern int& g_visdatasize;
 extern std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata;
-extern int& g_dvisdata_checksum;
+extern std::uint32_t& g_dvisdata_checksum;
 
 extern std::vector<std::byte>& g_dlightdata;
-extern int& g_dlightdata_checksum;
+extern std::uint32_t& g_dlightdata_checksum;
 
 extern int& g_texdatasize;
 extern std::vector<std::byte>& g_dtexdata; // (dmiptexlump_t)
-extern int& g_dtexdata_checksum;
+extern std::uint32_t& g_dtexdata_checksum;
 
 extern int& g_entdatasize;
 extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;
-extern int& g_dentdata_checksum;
+extern std::uint32_t& g_dentdata_checksum;
 
 extern int& g_numleafs;
 extern std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs;
-extern int& g_dleafs_checksum;
+extern std::uint32_t& g_dleafs_checksum;
 
 extern int& g_numplanes;
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes;
-extern int& g_dplanes_checksum;
+extern std::uint32_t& g_dplanes_checksum;
 
 extern int& g_numvertexes;
 extern std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes;
-extern int& g_dvertexes_checksum;
+extern std::uint32_t& g_dvertexes_checksum;
 
 extern int& g_numnodes;
 extern std::array<dnode_t, MAX_MAP_NODES>& g_dnodes;
-extern int& g_dnodes_checksum;
+extern std::uint32_t& g_dnodes_checksum;
 
 extern int& g_numtexinfo;
 extern std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo;
-extern int& g_texinfo_checksum;
+extern std::uint32_t& g_texinfo_checksum;
 
 extern int& g_numfaces;
 extern std::array<dface_t, MAX_MAP_FACES>& g_dfaces;
-extern int& g_dfaces_checksum;
+extern std::uint32_t& g_dfaces_checksum;
 
 extern int& g_iWorldExtent;
 
 extern int& g_numclipnodes;
 extern std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes;
-extern int& g_dclipnodes_checksum;
+extern std::uint32_t& g_dclipnodes_checksum;
 
 extern int& g_numedges;
 extern std::array<dedge_t, MAX_MAP_EDGES>& g_dedges;
-extern int& g_dedges_checksum;
+extern std::uint32_t& g_dedges_checksum;
 
 extern int& g_nummarksurfaces;
 extern std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces;
-extern int& g_dmarksurfaces_checksum;
+extern std::uint32_t& g_dmarksurfaces_checksum;
 
 extern int& g_numsurfedges;
 extern std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges;
-extern int& g_dsurfedges_checksum;
+extern std::uint32_t& g_dsurfedges_checksum;
 
 
 extern int& g_numentities;
