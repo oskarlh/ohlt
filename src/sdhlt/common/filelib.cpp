@@ -1,4 +1,7 @@
 #include <filesystem>
+#include <fstream>
+#include <string>
+
 
 #include "cmdlib.h"
 #include "messages.h"
@@ -7,7 +10,49 @@
 #include "mathlib.h"
 #include "blockmem.h"
 
+using namespace std::literals;
 
+std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePath, bool windowsLineEndingsToUnix) {
+    // Open the file and get the file size
+	std::ifstream file{filePath.c_str(), std::ios::ate | std::ios::binary | std::ios::in};
+    std::streampos file_size = file.tellg();
+    file.seekg(0, std::ios_base::beg);
+    if(!file.good()) {
+        return std::nullopt;
+    }
+
+	std::u8string text;
+    text.resize_and_overwrite(file_size, [&file](char8_t* buffer, std::size_t bufferSize) {
+        file.read((char*) buffer, bufferSize);
+
+        if(file.eof()) {
+            file.clear();
+            return std::size_t(file.gcount());
+        }
+
+        return bufferSize;
+    });
+    if(!file.good()) {
+        return std::nullopt;
+    }
+
+    if(windowsLineEndingsToUnix) {
+        std::size_t outIndex = 0;
+        for(
+            std::u8string_view remainingCharactersToCopy{text};
+            !remainingCharactersToCopy.empty();
+            remainingCharactersToCopy = remainingCharactersToCopy.substr(1)
+        ) {
+            if (remainingCharactersToCopy.starts_with(u8"\r\n"sv)) {
+                remainingCharactersToCopy = remainingCharactersToCopy.substr(1);
+            }
+            text[outIndex++] = remainingCharactersToCopy[0];
+        }
+        text.resize(outIndex);
+        text.shrink_to_fit();
+    }
+    return text;
+}
 
 std::optional<std::filesystem::path> try_to_get_canonical_path(const std::filesystem::path& path) {
     std::error_code canonicalErrorCode;

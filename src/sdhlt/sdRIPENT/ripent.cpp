@@ -66,7 +66,7 @@ bool ScanForToken(char cToken, int &iIndex, int &iLine, bool bIgnoreWhiteSpace, 
 		}
 
 		// Ignore white space, if we are ignoring it.
-		if(!bIgnoreWhiteSpace && isspace(g_dentdata[iIndex]))
+		if(!bIgnoreWhiteSpace && is_ascii_whitespace(g_dentdata[iIndex]))
 		{
 			continue;
 		}

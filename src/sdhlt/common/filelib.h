@@ -4,6 +4,7 @@
 
 #include "cmdlib.h" //--vluzacn
 
+std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePath, bool windowsLineEndingsToUnix);
 std::filesystem::path get_path_to_directory_with_executable(char** argv0Fallback);
 
 int      q_filelength(FILE* f);

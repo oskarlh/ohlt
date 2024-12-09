@@ -7,17 +7,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+using namespace std::literals;
 
 const char paramfilename[_MAX_PATH] = "settings.txt";
 const char sepchr = '\n';
 bool error = false;
 #define SEPSTR "\n"
 
-int plen (const char *p)
+int plen (const char8_t *p)
 {
 	int l;
 	for (l = 0; ; l++)
@@ -28,11 +31,11 @@ int plen (const char *p)
 			return l;
 	}
 }
-bool pvalid (const char *p)
+bool pvalid (const char8_t *p)
 {
 	return plen (p) >= 0;
 }
-bool pmatch (const char *cmdlineparam, const char *param)
+bool pmatch (const char8_t *cmdlineparam, const char8_t *param)
 {
 	int cl, cstart, cend, pl, pstart, pend, k;
 	cl = plen (cmdlineparam);
@@ -64,13 +67,13 @@ bool pmatch (const char *cmdlineparam, const char *param)
 	}
 	return false;
 }
-char * pnext (char *p)
+char8_t * pnext (char8_t *p)
 {
 	return p + (plen (p) + 1);
 }
-char * findparams (char *cmdlineparams, char *params)
+char8_t * findparams (char8_t *cmdlineparams, char8_t *params)
 {
-	char *c1, *c, *p;
+	char8_t *c1, *c, *p;
 	for (c1 = cmdlineparams; pvalid (c1); c1 = pnext (c1))
 	{
 		for (c = c1, p = params; pvalid (p); c = pnext (c), p = pnext (p))
@@ -81,23 +84,23 @@ char * findparams (char *cmdlineparams, char *params)
 	}
 	return nullptr;
 }
-void addparams (char *cmdline, char *params, unsigned int n)
+void addparams (char8_t *cmdline, char8_t *params, unsigned int n)
 {
-	if (strlen (cmdline) + strlen (params) + 1 <= n)
-		strcat (cmdline, params);
+	if (strlen ((const char*) cmdline) + strlen ((const char*) params) + 1 <= n)
+		strcat ((char*) cmdline, (char*) params);
 	else
 		error = true;
 }
-void delparams (char *cmdline, char *params)
+void delparams (char8_t *cmdline, char8_t *params)
 {
-	char *c, *p;
+	char8_t *c, *p;
 	if (!pvalid (params)) //avoid infinite loop
 		return;
 	while (cmdline = findparams (cmdline, params), cmdline != nullptr)
 	{
 		for (c = cmdline, p = params; pvalid (p); c = pnext (c), p = pnext (p))
 			;
-		memmove (cmdline, c, strlen (c) + 1);
+		memmove (cmdline, c, strlen ((char*) c) + 1);
 	}
 }
 typedef enum
@@ -112,22 +115,22 @@ typedef struct
 	int skipstack;
 }
 execute_t;
-void parsecommand (execute_t &e, char *cmdline, char *words, unsigned int n)
+void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int n)
 {
 	command_t t;
 	if (!pvalid (words))
 		return;
-	if (pmatch (words, "#ifdef" SEPSTR))
+	if (pmatch (words, u8"#ifdef" SEPSTR))
 		t = IFDEF;
-	else if (pmatch (words, "#ifndef" SEPSTR))
+	else if (pmatch (words, u8"#ifndef" SEPSTR))
 		t = IFNDEF;
-	else if (pmatch (words, "#else" SEPSTR))
+	else if (pmatch (words, u8"#else" SEPSTR))
 		t = ELSE;
-	else if (pmatch (words, "#endif" SEPSTR))
+	else if (pmatch (words, u8"#endif" SEPSTR))
 		t = ENDIF;
-	else if (pmatch (words, "#define" SEPSTR))
+	else if (pmatch (words, u8"#define" SEPSTR))
 		t = DEFINE;
-	else if (pmatch (words, "#undef" SEPSTR))
+	else if (pmatch (words, u8"#undef" SEPSTR))
 		t = UNDEF;
 	else
 		return;
@@ -179,26 +182,27 @@ void parsecommand (execute_t &e, char *cmdline, char *words, unsigned int n)
 		}
 	}
 }
-const char * nextword (const char *s, char *token, unsigned int n)
+
+const char8_t * nextword (const char8_t *s, char8_t *token, unsigned int n)
 {
 	unsigned int i;
-	const char *c;
+	const char8_t *c;
 	bool quote, comment, content;
 	for (c=s, i=0, quote=false, comment=false, content=false; c[0] != '\0'; c++)
 	{
-		if (c[0]=='\"')
+		if (c[0] == u8'\"')
 			quote = !quote;
-		if (c[0]=='\n')
+		if (c[0] == u8'\n')
 			quote = false;
-		if (c[0]=='\n')
+		if (c[0] == u8'\n')
 			comment = false;
-		if (!quote && c[0]=='/' && c[1]=='/')
+		if (!quote && c[0] == u8'/' && c[1] == u8'/')
 			comment = true;
-		if (!comment && !(c[0]=='\n' || isspace (c[0])))
+		if (!comment && !(c[0] == u8'\n' || is_ascii_whitespace (c[0])))
 			content = true;
-		if (!quote && !comment && content && (c[0]=='\n' || isspace (c[0])))
+		if (!quote && !comment && content && (c[0] == u8'\n' || is_ascii_whitespace (c[0])))
 			break;
-		if (content && c[0]!='\"')
+		if (content && c[0] != u8'\"')
 		{
 			if (i<n-1)
 			{
@@ -210,34 +214,35 @@ const char * nextword (const char *s, char *token, unsigned int n)
 			}
 		}
 	}
-	token[i] = '\0';
+	token[i] = u8'\0';
 	return content? c: nullptr;
 }
-void parsearg (int argc, char ** argv, char *cmdline, unsigned int n)
+void parsearg (int argc, char ** argv, char8_t *cmdline, unsigned int n)
 {
 	int i;
-	strcpy (cmdline, "");
-	strcat (cmdline, "<");
-	strcat (cmdline, g_Program);
-	strcat (cmdline, ">");
-	strcat (cmdline, SEPSTR);
+	strcpy ((char*) cmdline, "");
+	strcat ((char*) cmdline, "<");
+	strcat ((char*) cmdline, g_Program);
+	strcat ((char*) cmdline, ">");
+	strcat ((char*) cmdline, SEPSTR);
 	for (i=1; i<argc; ++i)
 	{
-		if (strlen (cmdline) + strlen (argv[i]) + strlen (SEPSTR) + 1 <= n)
+		if (strlen ((char*) cmdline) + strlen (argv[i]) + strlen (SEPSTR) + 1 <= n)
 		{
-			strcat (cmdline, argv[i]);
-			strcat (cmdline, SEPSTR);
+			strcat ((char*) cmdline, argv[i]);
+			strcat ((char*) cmdline, SEPSTR);
 		}
 		else
 			error = true;
 	}
 }
-void unparsearg (int &argc, char **&argv, char *cmdline)
+void unparsearg (int &argc, char **&argv, char8_t *cmdline)
 {
-	char *c;
+	// TODO: Conversion from native encoding to UTF-8 here
+	char8_t *c;
 	int i, j;
 	i = 0;
-	for (c = cmdline; pvalid (c); c = pnext (c))
+	for (c = cmdline; pvalid ( c); c = pnext (c))
 		i++;
 	argc = i;
 	argv = (char **)malloc (argc * sizeof (char *));
@@ -259,37 +264,25 @@ void unparsearg (int &argc, char **&argv, char *cmdline)
 		argv[i][j] = '\0';
 	}
 }
+
+
 void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&argvnew)
 {
-	char token[MAXTOKEN], words[MAXTOKEN], cmdline[MAXTOKEN];
+	char8_t token[MAXTOKEN], words[MAXTOKEN], cmdline[MAXTOKEN];
 	FILE *f;
 	char *s;
-	const char *c, *c0;
-	s = nullptr;
+	const char8_t *c, *c0;
 
-    std::filesystem::path filepath = get_path_to_directory_with_executable(argv) / paramfilename;
+    std::filesystem::path settingsFilePath = get_path_to_directory_with_executable(argv) / paramfilename;
 
-	f = fopen (filepath.c_str(), "r");
-	if (f)
+
+	if (auto f = read_utf8_file(settingsFilePath, true))
 	{
-		int len = 0x100000;
-		s = (char *)malloc (len+1);
-		if (s)
-		{
-			int i, j;
-			for (i=0; j=fgetc (f), i<len && j!=EOF; i++)
-				s[i] = j;
-			s[i] = '\0';
-		}
-		fclose (f);
-	}
-	if (s)
-	{
-		c = s;
+		c =  f.value().c_str();
 		execute_t e;
 		memset (&e, 0, sizeof (e));
-		strcpy (words, "");
-		strcpy (token, "");
+		words[0] = u8'\0';
+		token[0] = u8'\0';
 		parsearg (argc, argv, cmdline, MAXTOKEN);
 		while (1)
 		{
@@ -301,10 +294,10 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 			}
 			if (!c)
 				break;
-			if (strlen (token) + strlen (SEPSTR) + 1 <= MAXTOKEN)
+			if (strlen ((const char*) token) + strlen (SEPSTR) + 1 <= MAXTOKEN)
 			{
-				strcpy (words, token);
-				strcat (words, SEPSTR);
+				strcpy ((char*) words, (char*)  token);
+				strcat ((char*) words, SEPSTR);
 			}
 			else
 			{
@@ -320,10 +313,10 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 					c = c0;
 					break;
 				}
-				if (strlen (words) + strlen (token) + strlen (SEPSTR) + 1 <= MAXTOKEN)
+				if (strlen ((const char*) words) + strlen ((const char*) token) + strlen (SEPSTR) + 1 <= MAXTOKEN)
 				{
-					strcat (words, token);
-					strcat (words, SEPSTR);
+					strcat ((char*) words, (char*) token);
+					strcat ((char*) words, SEPSTR);
 				}
 				else
 				{
