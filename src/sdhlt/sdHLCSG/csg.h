@@ -51,9 +51,6 @@
 // AJM: added in
 #define UNLESS(a)  if (!(a))
 
-//#define BOGUS_RANGE    65534
-#define BOGUS_RANGE    g_iWorldExtent //seedee
-
 #define MAX_HULLSHAPES 128 // arbitrary
 
 struct plane_t

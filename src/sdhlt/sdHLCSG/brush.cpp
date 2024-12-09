@@ -1,4 +1,5 @@
 #include "csg.h"
+#include <span>
 
 std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 int             g_nummapplanes;
@@ -210,8 +211,8 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			// now test precisely
 			vec_t dotmin;
 			vec_t dotmax;
-			dotmin = BOGUS_RANGE;
-			dotmax = -BOGUS_RANGE;
+			dotmin = g_iWorldExtent;
+			dotmax = -g_iWorldExtent;
 			hlassume (hbf->numvertexes >= 1, assume_first);
 			for (vec3_array *v = hbf->vertexes; v < hbf->vertexes + hbf->numvertexes; v++)
 			{
@@ -237,7 +238,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		// find the impact point
 		vec3_array bestvertex;
 		vec_t bestdist;
-		bestdist = BOGUS_RANGE;
+		bestdist = g_iWorldExtent;
 		hlassume (hb->numvertexes >= 1, assume_first);
 		for (hbv = hb->vertexes; hbv < hb->vertexes + hb->numvertexes; hbv++)
 		{
@@ -348,20 +349,19 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 	{
 		// find the impact point
 		vec3_array bestvertex;
-		vec_t bestdist;
-		bestdist = BOGUS_RANGE;
+		vec_t bestdist = g_iWorldExtent;
 		if (!hull0->faces)
 		{
 			continue;
 		}
 		for (f = hull0->faces; f; f = f->next)
 		{
-			for (vec3_array *v = f->w->m_Points.data(); v < f->w->m_Points.data() + f->w->m_NumPoints; v++)
+			for (const vec3_array& v : std::span(f->w->m_Points.data(), f->w->m_NumPoints))
 			{
-				if (DotProduct (*v, hbf->normal) < bestdist - NORMAL_EPSILON)
+				if (DotProduct (v, hbf->normal) < bestdist - NORMAL_EPSILON)
 				{
-					bestdist = DotProduct (*v, hbf->normal);
-					VectorCopy (*v, bestvertex);
+					bestdist = DotProduct (v, hbf->normal);
+					VectorCopy (v, bestvertex);
 				}
 			}
 		}
@@ -808,11 +808,11 @@ restart:
     unsigned int    i;
     for (i = 0; i < 3; i++)
     {
-        if (h->bounds.mins[i] < -BOGUS_RANGE / 2 || h->bounds.maxs[i] > BOGUS_RANGE / 2)
+        if (h->bounds.mins[i] < -g_iWorldExtent / 2 || h->bounds.maxs[i] > g_iWorldExtent / 2)
         {
             Fatal(assume_BRUSH_OUTSIDE_WORLD, "Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
 				b->originalentitynum, b->originalbrushnum,
-                  BOGUS_RANGE / 2,
+                  g_iWorldExtent / 2,
                   h->bounds.mins[0], h->bounds.mins[1], h->bounds.mins[2],
                   h->bounds.maxs[0], h->bounds.maxs[1], h->bounds.maxs[2]);
         }

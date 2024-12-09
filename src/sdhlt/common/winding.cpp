@@ -464,12 +464,10 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
 {
     vec_t           dists[MAX_POINTS_ON_WINDING + 4];
     int             sides[MAX_POINTS_ON_WINDING + 4];
-    int             counts[3];
+    std::array<std::size_t, 3> counts{};
     vec_t           dot;
-    unsigned int    i, j;
+    unsigned int    i;
     unsigned int    maxpts;
-
-    counts[0] = counts[1] = counts[2] = 0;
 
     // determine sides for each point
     for (i = 0; i < m_NumPoints; i++)
@@ -494,13 +492,13 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
     sides[i] = sides[0];
     dists[i] = dists[0];
 
-    if (!counts[0])
+    if (!counts[SIDE_FRONT])
     {
         front = std::nullopt;
         back = *this;
         return;
     }
-    if (!counts[1])
+    if (!counts[SIDE_BACK])
     {
         front = *this;
         back = std::nullopt;
@@ -551,10 +549,10 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
         {
             tmp = 0;
         }
-        const vec_t* p2 = m_Points[tmp].data();
+        const vec3_array& p2 = m_Points[tmp];
         dot = dists[i] / (dists[i] - dists[i + 1]);
 
-        for (j = 0; j < 3; j++)
+        for (std::size_t j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
             if (normal[j] == 1)
                 mid[j] = dist;
@@ -970,7 +968,7 @@ void            Winding::addPoint(const vec3_array& newpoint)
 {
     if (m_NumPoints >= m_MaxPoints)
     {
-        grow_size();
+        grow_capacity();
     }
     VectorCopy(newpoint, m_Points[m_NumPoints]);
     m_NumPoints++;
@@ -987,7 +985,7 @@ void            Winding::insertPoint(const vec3_array& newpoint, const unsigned 
     {
         if (m_NumPoints >= m_MaxPoints)
         {
-            grow_size();
+            grow_capacity();
         }
 
         unsigned x;
@@ -1002,11 +1000,10 @@ void            Winding::insertPoint(const vec3_array& newpoint, const unsigned 
 }
 
 
-void Winding::grow_size()
+void Winding::grow_capacity()
 {
     std::uint_least32_t newsize = m_NumPoints + 1;
     newsize = (newsize + 3) & ~3;   // groups of 4
     m_Points.resize(newsize);
-    m_NumPoints = newsize;
     m_MaxPoints = newsize;
 }

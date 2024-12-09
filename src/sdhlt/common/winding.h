@@ -78,7 +78,7 @@ public:
 
 
 private:
-    void            grow_size();
+    void            grow_capacity();
 
 public:
     // Construction
