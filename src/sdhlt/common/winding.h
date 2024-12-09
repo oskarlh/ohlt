@@ -60,12 +60,12 @@ public:
     bool            Clip(const dplane_t& split, bool keepon
 		, vec_t epsilon = ON_EPSILON
 		); // For hlbsp
-    void            Clip(const dplane_t& split, Winding** front, Winding** back
+    void            Clip(const dplane_t& split, std::optional<Winding>& front, std::optional<Winding>& back
 		, vec_t epsilon = ON_EPSILON
-		);
-    void            Clip(const vec3_array& normal, const vec_t dist, Winding** front, Winding** back
+		) const;
+    void            Clip(const vec3_array& normal, const vec_t dist, std::optional<Winding>& front, std::optional<Winding>& back
 		, vec_t epsilon = ON_EPSILON
-		);
+		) const;
     bool            Chop(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
@@ -76,7 +76,8 @@ public:
 		, vec_t epsilon = ON_EPSILON
 		);
 
-protected:
+
+private:
     void            grow_size();
 
 public:
@@ -105,4 +106,12 @@ public:
     std::vector<vec3_array> m_Points{};
 protected:
     std::uint_least32_t  m_MaxPoints{0};
+public:
+
+    friend inline void swap(Winding& a, Winding& b) {
+      std::swap(a.m_Points, b.m_Points);
+      std::swap(a.m_NumPoints, b.m_NumPoints);
+      std::swap(a.m_MaxPoints, b.m_MaxPoints);
+    }
+
 };

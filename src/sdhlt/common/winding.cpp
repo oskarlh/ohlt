@@ -267,14 +267,7 @@ Winding&      Winding::operator=(Winding&& other)
 {
     m_NumPoints = other.m_NumPoints;
     m_MaxPoints = other.m_MaxPoints;
-
-    std::swap(m_Points, other.m_Points);
-
-    other.m_NumPoints = 0;
-    other.m_MaxPoints = 0;
-    other.m_Points.clear();
-    other.m_Points.shrink_to_fit();
-
+    m_Points = std::move(other.m_Points);
     return *this;
 }
 
@@ -297,9 +290,11 @@ Winding::Winding(const Winding& other)
     m_Points = other.m_Points;
 }
 
-Winding::Winding(Winding&& other)
+Winding::Winding(Winding&& other): 
+    m_NumPoints(other.m_NumPoints),
+    m_MaxPoints(other.m_MaxPoints),
+    m_Points(std::move(other.m_Points))
 {
-    operator=(std::move(other));
 }
 
 Winding::~Winding()
@@ -455,9 +450,9 @@ void			Winding::RemoveColinearPoints(
 }
 
 
-void            Winding::Clip(const dplane_t& plane, Winding** front, Winding** back
+void Winding::Clip(const dplane_t& plane, std::optional<Winding>& front, std::optional<Winding>& back
 							  , vec_t epsilon
-							  )
+							  ) const
 {
     vec3_array normal;
     vec_t dist;
@@ -469,9 +464,9 @@ void            Winding::Clip(const dplane_t& plane, Winding** front, Winding** 
 }
 
 
-void            Winding::Clip(const vec3_array& normal, const vec_t dist, Winding** front, Winding** back
+void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Winding>& front, std::optional<Winding>& back
 							  , vec_t epsilon
-							  )
+							  ) const
 {
     vec_t           dists[MAX_POINTS_ON_WINDING + 4];
     int             sides[MAX_POINTS_ON_WINDING + 4];
@@ -507,50 +502,47 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
 
     if (!counts[0])
     {
-        *front = nullptr;
-        *back = new Winding(*this);
+        front = std::nullopt;
+        back = *this;
         return;
     }
     if (!counts[1])
     {
-        *front = new Winding(*this);
-        *back = nullptr;
+        front = *this;
+        back = std::nullopt;
         return;
     }
 
     maxpts = m_NumPoints + 4;                            // can't use counts[0]+2 because
     // of fp grouping errors
 
-    Winding* f = new Winding(maxpts);
-    Winding* b = new Winding(maxpts);
+    Winding f{maxpts};
+    Winding b{maxpts};
 
-    *front = f;
-    *back = b;
-
-    f->m_NumPoints = 0;
-    b->m_NumPoints = 0;
+    f.m_NumPoints = 0;
+    b.m_NumPoints = 0;
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i].data();
+        const vec_t* p1 = m_Points[i].data();
 
         if (sides[i] == SIDE_ON)
         {
-            VectorCopy(p1, f->m_Points[f->m_NumPoints]);
-            VectorCopy(p1, b->m_Points[b->m_NumPoints]);
-            f->m_NumPoints++;
-            b->m_NumPoints++;
+            VectorCopy(p1, f.m_Points[f.m_NumPoints]);
+            VectorCopy(p1, b.m_Points[b.m_NumPoints]);
+            f.m_NumPoints++;
+            b.m_NumPoints++;
             continue;
         }
         else if (sides[i] == SIDE_FRONT)
         {
-            VectorCopy(p1, f->m_Points[f->m_NumPoints]);
-            f->m_NumPoints++;
+            VectorCopy(p1, f.m_Points[f.m_NumPoints]);
+            f.m_NumPoints++;
         }
         else if (sides[i] == SIDE_BACK)
         {
-            VectorCopy(p1, b->m_Points[b->m_NumPoints]);
-            b->m_NumPoints++;
+            VectorCopy(p1, b.m_Points[b.m_NumPoints]);
+            b.m_NumPoints++;
         }
 
         if ((sides[i + 1] == SIDE_ON) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
@@ -565,7 +557,7 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp].data();
+        const vec_t* p2 = m_Points[tmp].data();
         dot = dists[i] / (dists[i] - dists[i + 1]);
 
         for (j = 0; j < 3; j++)
@@ -578,58 +570,57 @@ void            Winding::Clip(const vec3_array& normal, const vec_t dist, Windin
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }
 
-        VectorCopy(mid, f->m_Points[f->m_NumPoints]);
-        VectorCopy(mid, b->m_Points[b->m_NumPoints]);
-        f->m_NumPoints++;
-        b->m_NumPoints++;
+        VectorCopy(mid, f.m_Points[f.m_NumPoints]);
+        VectorCopy(mid, b.m_Points[b.m_NumPoints]);
+        f.m_NumPoints++;
+        b.m_NumPoints++;
     }
 
-    if ((f->m_NumPoints > maxpts) | (b->m_NumPoints > maxpts)) // | instead of || for branch optimization
+    if ((f.m_NumPoints > maxpts) | (b.m_NumPoints > maxpts)) // | instead of || for branch optimization
     {
         Error("Winding::Clip : points exceeded estimate");
     }
-    if ((f->m_NumPoints > MAX_POINTS_ON_WINDING) | (b->m_NumPoints > MAX_POINTS_ON_WINDING)) // | instead of || for branch optimization
+    if ((f.m_NumPoints > MAX_POINTS_ON_WINDING) | (b.m_NumPoints > MAX_POINTS_ON_WINDING)) // | instead of || for branch optimization
     {
         Error("Winding::Clip : MAX_POINTS_ON_WINDING");
     }
-    f->RemoveColinearPoints(
+    f.RemoveColinearPoints(
 		epsilon
 		);
-    b->RemoveColinearPoints(
+    b.RemoveColinearPoints(
 		epsilon
 		);
-	if (f->m_NumPoints == 0)
+
+
+	if (f.m_NumPoints == 0)
 	{
-		delete f;
-		*front = nullptr;
-	}
-	if (b->m_NumPoints == 0)
+        front = std::nullopt;
+	} else {
+        front = std::move(f);
+    }
+	if (b.m_NumPoints == 0)
 	{
-		delete b;
-		*back = nullptr;
-	}
+        back = std::nullopt;
+	} else {
+        back = std::move(b);
+    }
 }
 
 bool          Winding::Chop(const vec3_array& normal, const vec_t dist
 							, vec_t epsilon
 							)
 {
-    Winding*      f;
-    Winding*      b;
+    std::optional<Winding> f;
+    std::optional<Winding> b;
 
-    Clip(normal, dist, &f, &b
+    Clip(normal, dist, f, b
 		, epsilon
 		);
-    if (b)
-    {
-        delete b;
-    }
 
     if (f)
     {
         m_NumPoints = f->m_NumPoints;
         std::swap(m_Points, f->m_Points);
-        delete f;
         return true;
     }
     else

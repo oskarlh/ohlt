@@ -9,8 +9,9 @@ export MAP_NAME=$1
 cd $( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
 
-../tools/sdHLCSG ./valve/maps/${MAP_NAME}
+../tools/sdHLCSG -threads 1 ./valve/maps/${MAP_NAME}
 ../tools/sdHLBSP ./valve/maps/${MAP_NAME}
+
 ../tools/sdHLVIS -fast ./valve/maps/${MAP_NAME}
 ../tools/sdHLRAD -vismatrix sparse ./valve/maps/${MAP_NAME}
 

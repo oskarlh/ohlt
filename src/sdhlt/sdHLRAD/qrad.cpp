@@ -798,50 +798,28 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		for (int i = 1; i < gridsizeA; i++)
 		{
 			vec_t dist;
-			Winding *front = nullptr;
-			Winding *back = nullptr;
+			std::optional<Winding> front;
+			std::optional<Winding> back;
 
 			dist = gridstartA + i * gridchopA;
-			winding->Clip (plA->normal, dist, &front, &back);
+			winding->Clip (plA->normal, dist, front, back);
 
 			if (!front || front->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
 			{
-				if (front)
-				{
-					delete front;
-					front = nullptr;
-				}
-				if (back)
-				{
-					delete back;
-					back = nullptr;
-				}
 				break;
 			}
 			if (!back || back->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
 			{
-				if (front)
-				{
-					delete front;
-					front = nullptr;
-				}
-				if (back)
-				{
-					delete back;
-					back = nullptr;
-				}
 				continue;
 			}
 
 			delete winding;
 			winding = nullptr;
 
-			windingArray[g_numwindings] = back;
+			windingArray[g_numwindings] = new Winding(std::move(back).value());
 			g_numwindings++;
-			back = nullptr;
 
-			winding = front;
-			front = nullptr;
+			winding = new Winding(std::move(front).value());
 		}
 
 		windingArray[g_numwindings] = winding;
@@ -860,50 +838,28 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			for (int j = 1; j < gridsizeB; j++)
 			{
 				vec_t dist;
-				Winding *front = nullptr;
-				Winding *back = nullptr;
+				std::optional<Winding> front;
+				std::optional<Winding> back;
 
 				dist = gridstartB + j * gridchopB;
-				strip->Clip (plB->normal, dist, &front, &back);
+				strip->Clip (plB->normal, dist, front, back);
 				
 				if (!front || front->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
 				{
-					if (front)
-					{
-						delete front;
-						front = nullptr;
-					}
-					if (back)
-					{
-						delete back;
-						back = nullptr;
-					}
 					break;
 				}
 				if (!back || back->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
 				{
-					if (front)
-					{
-						delete front;
-						front = nullptr;
-					}
-					if (back)
-					{
-						delete back;
-						back = nullptr;
-					}
 					continue;
 				}
 
 				delete strip;
 				strip = nullptr;
 
-				windingArray[g_numwindings] = back;
+				windingArray[g_numwindings] = new Winding(std::move(back).value());
 				g_numwindings++;
-				back = nullptr;
 
-				strip = front;
-				front = nullptr;
+				strip = new Winding(std::move(front).value());
 			}
 
 			windingArray[g_numwindings] = strip;
