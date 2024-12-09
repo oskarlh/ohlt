@@ -217,8 +217,8 @@ static bool     isInvalidHull(const brushhull_t* const hull)
     int             x = 0;
     bface_t*        face;
 
-    vec3_t          mins = { 99999.0, 99999.0, 99999.0 };
-    vec3_t          maxs = { -99999.0, -99999.0, -99999.0 };
+    vec3_array mins{ 99999.0, 99999.0, 99999.0 };
+    vec3_array maxs{ -99999.0, -99999.0, -99999.0 };
 
     for (face = hull->faces; face; face = face->next)
     {
