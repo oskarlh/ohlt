@@ -395,7 +395,7 @@ void            MakeScales(const int threadnum)
 				for (x = 0; x < patch->iData; x++, t1+=float_size[g_transfer_compress_type], t2++)
 				{
 					f = (*t2) * total;
-					float_compress (g_transfer_compress_type, t1, &f);
+					float_compress (g_transfer_compress_type, t1, f);
 				}
             }
         }

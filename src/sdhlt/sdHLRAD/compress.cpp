@@ -45,7 +45,7 @@ void fail ()
 
 void compress_compatability_test ()
 {
-	std::array<unsigned char, 16> v{};
+	std::array<std::byte, 16> v{};
 	if (sizeof(char) !=1 || sizeof(unsigned int) != 4 || sizeof(float) != 4)
 		fail ();
 	*(float *)(&v[1]) = 0.123f;
@@ -55,14 +55,14 @@ void compress_compatability_test ()
 	if (*(unsigned int *)v.data() != 1744830464u || *(unsigned int *)(&v[1]) != 3261595648u)
 		fail ();
 	float f[5] = {0.123f, 1.f, 0.f, 0.123f, 0.f};
-	std::ranges::fill(v, ~0);
+	std::ranges::fill(v, std::byte(~0));
 	vector_compress (VECTOR24, v.data(), f[0], f[1], f[2]);
-	float_compress (FLOAT16, &v[6], &f[3]);
-	float_compress (FLOAT16, &v[4], &f[4]);
+	float_compress (FLOAT16, &v[6], f[3]);
+	float_compress (FLOAT16, &v[4], f[4]);
 	if (((unsigned int *)v.data())[0] != 4286318595u || ((unsigned int *)v.data())[1] != 3753771008u)
 		fail ();
-	float_decompress (FLOAT16, &v[6], &f[3]);
-	float_decompress (FLOAT16, &v[4], &f[4]);
+	f[3] = float_decompress (FLOAT16, &v[6]);
+	f[4] = float_decompress (FLOAT16, &v[4]);
 	vector_decompress (VECTOR24, v.data(), &f[0], &f[1], &f[2]);
 	constexpr float ans[5] = {0.109375f,1.015625f,0.015625f,0.123001f,0.000000f};
 	for (std::size_t i = 0; i < 5; ++i) {
@@ -98,79 +98,73 @@ constexpr unsigned int float_istoobig(unsigned int i)
 	return i >= 0x40000000u;
 }
 
-constexpr unsigned int float_istoosmall(unsigned int i)
+constexpr std::uint32_t float_istoosmall(std::uint32_t i)
 {
 	return i < 0x30800000u;
 }
 
-void float_compress(float_type t, void *s, const float *f)
+void float_compress(float_type t, void *s, float f)
 {
-	unsigned int *m = (unsigned int *)s;
-	const unsigned int *p = (const unsigned int *)f;
+	std::uint32_t *m = (std::uint32_t *)s;
+	std::uint32_t p = std::bit_cast<std::uint32_t>(f);
 	switch (t)
 	{
 	case FLOAT32:
-		m[0] = *p;
+		m[0] = p;
 		break;
 	case FLOAT16:
 		m[0] = bitclr (m[0], 0, 16);
-		if (float_iswrong (*p))
+		if (float_iswrong (p))
 			;
-		else if (float_istoobig (*p))
+		else if (float_istoobig (p))
 			m[0] |= bitget (~0u, 0, 16);
-		else if (float_istoosmall (*p))
+		else if (float_istoosmall (p))
 			;
 		else
-			m[0] |= bitget (*p, 12, 28);
+			m[0] |= bitget (p, 12, 28);
 		break;
 	case FLOAT8:
 		m[0] = bitclr (m[0], 0, 8);
-		if (float_iswrong (*p))
+		if (float_iswrong (p))
 			;
-		else if (float_istoobig (*p))
+		else if (float_istoobig (p))
 			m[0] |= bitget (~0u, 0, 8);
-		else if (float_istoosmall (*p))
+		else if (float_istoosmall (p))
 			;
 		else
-			m[0] |= bitget (*p, 20, 28);
+			m[0] |= bitget (p, 20, 28);
 		break;
 	default:
 		;
 	}
 }
 
-void float_decompress
-	(float_type t, const void *s, float *f)
+float float_decompress
+	(float_type t, const std::byte *s)
 {
-	const unsigned int *m = (const unsigned int *)s;
-	unsigned int *p = (unsigned int *)f;
+	const std::uint32_t *m = (const std::uint32_t *) s;
 	switch (t)
 	{
-	case FLOAT32:
-		*p = m[0];
-		break;
-	case FLOAT16:
-		if (bitget (m[0], 0, 16) == 0)
-			*p = 0;
-		else
-			*p
-				= bitput (1, 11)
+		case FLOAT32:
+			return std::bit_cast<float>(m[0]);
+		case FLOAT16:
+			if (bitget (m[0], 0, 16) == 0) {
+				return 0;
+			}
+			return std::bit_cast<float>(
+				bitput (1, 11)
 				| bitput (bitget (m[0], 0, 16), 12)
 				| bitput (3, 28)
-				;
-		break;
-	case FLOAT8:
-		if (bitget (m[0], 0, 8) == 0)
-			*p = 0;
-		else
-			*p
-				= bitput (1, 19)
+			);
+		case FLOAT8:
+			if (bitget (m[0], 0, 8) == 0) {
+				return 0;
+			}
+			return std::bit_cast<float>(
+				bitput (1, 19)
 				| bitput (bitget (m[0], 0, 8), 20)
 				| bitput (3, 28)
-				;
-		break;
-	default:
-		;
+			);
 	}
 }
 

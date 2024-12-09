@@ -2007,7 +2007,6 @@ static void     GatherLight(int threadnum)
     unsigned        iIndex;
     transfer_data_t* tData;
     transfer_index_t* tIndex;
-	float f;
 	vec3_t			adds[ALLSTYLES];
 	unsigned int	fastfind_index = 0;
 
@@ -2045,7 +2044,7 @@ static void     GatherLight(int threadnum)
 				unsigned		emitstyle;
 				int				opaquestyle = -1;
 				GetStyle (j, patchnum, opaquestyle, fastfind_index);
-				float_decompress (g_transfer_compress_type, tData, &f);
+				const float f = float_decompress (g_transfer_compress_type, (std::byte*) tData);
 
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->directstyle[emitstyle] != 255; emitstyle++)
