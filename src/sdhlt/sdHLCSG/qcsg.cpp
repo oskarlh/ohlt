@@ -43,6 +43,7 @@ static int      c_outfaces;
 static int      c_csgfaces;
 bounding_box     world_bounds;
 
+hull_sizes g_hull_size{standard_hull_sizes};
 
 vec_t           g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
      

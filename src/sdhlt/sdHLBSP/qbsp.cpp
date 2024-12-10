@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include "hull_size.h"
 #include <utility>
 
 #include "bsp5.h"
@@ -27,24 +28,9 @@
 
 */
 
-vec3_t          g_hull_size[NUM_HULLS][2] = 
-{
-    {// 0x0x0
-        {0, 0, 0},          {0, 0, 0}
-    }
-    ,
-    {// 32x32x72
-        {-16, -16, -36},    {16, 16, 36}
-    }
-    ,                                                      
-    {// 64x64x64
-        {-32, -32, -32},    {32, 32, 32}
-    }
-    ,                                                      
-    {// 32x32x36
-        {-16, -16, -18},    {16, 16, 18}
-    }                                                     
-};
+hull_sizes g_hull_size{standard_hull_sizes};
+
+
 static FILE*    polyfiles[NUM_HULLS];
 static FILE*    brushfiles[NUM_HULLS];
 int             g_hullnum = 0;

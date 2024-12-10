@@ -1,5 +1,6 @@
 #include "bsp5.h"
 #include "bsp_file_sizes.h"
+#include "hull_size.h"
 
 //  WriteClipNodes_r
 //  WriteClipNodes

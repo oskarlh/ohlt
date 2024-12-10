@@ -863,7 +863,7 @@ bool            ParseMapEntity()
 				{
 					if (*ValueForKey (mapent, u8"origin"))
 					{
-						std::array<double, 3> v;
+						vec3_array v;
 						int origin[3];
 						char8_t string[MAXTOKEN];
 						int i;
@@ -876,12 +876,12 @@ bool            ParseMapEntity()
 					}
 				}
 				{
-					double b[2][3];
+					std::array<vec3_array, 2> b;
 					if (sscanf ((const char*) ValueForKey (mapent, u8"zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &b[0][0], &b[0][1], &b[0][2], &b[1][0], &b[1][1], &b[1][2]) == 6)
 					{
 						for (int i = 0; i < 2; i++)
 						{
-							vec_t *point = b[i];
+							vec3_array& point = b[i];
 							if (ent_scale_b)
 							{
 								VectorSubtract (point, ent_scale_origin, point);

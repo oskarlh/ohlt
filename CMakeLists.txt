@@ -31,6 +31,15 @@ set(SDHLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
 #================
 
 set(COMMON_DIR ${SDHLT_DIR}/common)
+set(COMMON_BSP_CSG_DIR ${SDHLT_DIR}/common-bsp-and-csg)
+
+set(COMMON_BSP_CSG_SOURCES
+    ${COMMON_BSP_CSG_DIR}/hull_size.cpp
+)
+
+set(COMMON_BSP_CSG_HEADERS
+    ${COMMON_BSP_CSG_DIR}/hull_size.h
+)
 
 set(COMMON_SOURCES
     ${COMMON_DIR}/blockmem.cpp
@@ -77,6 +86,7 @@ set(BSP_DIR ${SDHLT_DIR}/sdHLBSP)
 
 set(BSP_SOURCES
     ${COMMON_SOURCES}
+    ${COMMON_BSP_CSG_SOURCES}
     ${BSP_DIR}/brink.cpp
     ${BSP_DIR}/merge.cpp
     ${BSP_DIR}/outside.cpp
@@ -90,6 +100,7 @@ set(BSP_SOURCES
 
 set(BSP_HEADERS
     ${COMMON_HEADERS}
+    ${COMMON_BSP_CSG_HEADERS}
     ${BSP_DIR}/bsp5.h
 )
 
@@ -101,6 +112,7 @@ set(CSG_DIR ${SDHLT_DIR}/sdHLCSG)
 
 set(CSG_SOURCES
     ${COMMON_SOURCES}
+    ${COMMON_BSP_CSG_SOURCES}
     ${CSG_DIR}/ansitoutf8.cpp
     ${CSG_DIR}/brush.cpp
     ${CSG_DIR}/brushunion.cpp
@@ -115,6 +127,7 @@ set(CSG_SOURCES
 
 set(CSG_HEADERS
     ${COMMON_HEADERS}
+    ${COMMON_BSP_CSG_HEADERS}
     ${CSG_DIR}/csg.h
     ${CSG_DIR}/wadpath.h
 )
@@ -198,8 +211,8 @@ set(RIPENT_HEADERS
 #================
 
 include_directories(
-    ${SDHLT_DIR}/common
-    ${SDHLT_DIR}/template
+    ${COMMON_DIR}
+    ${COMMON_BSP_CSG_DIR}
 )
 
 #================

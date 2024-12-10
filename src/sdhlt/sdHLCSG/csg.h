@@ -17,13 +17,9 @@
 #include "blockmem.h"
 #include "filelib.h"
 #include "bounding_box.h"
-// AJM: added in
+#include "hull_size.h"
 #include "wadpath.h"
 #include "cmdlinecfg.h"
-
-#ifndef DOUBLEVEC_T
-#error you must add -dDOUBLEVEC_T to the project!
-#endif
 
 #define DEFAULT_BRUSH_UNION_THRESHOLD 0.0f
 #define DEFAULT_TINY_THRESHOLD        0.0
@@ -284,7 +280,7 @@ void CalculateBrushUnions(int brushnum);
  
 //============================================================================
 // hullfile.cpp
-extern vec3_t g_hull_size[NUM_HULLS][2];
+extern hull_sizes g_hull_size;
 extern void LoadHullfile(const char* filename);
 
 extern const char *g_wadcfgfile;
