@@ -1,6 +1,7 @@
 #include "bsp5.h"
 #include "bsp_file_sizes.h"
 #include "hull_size.h"
+#include "wad_structs.h"
 
 //  WriteClipNodes_r
 //  WriteClipNodes
@@ -653,7 +654,6 @@ void            FinishBSPFile(const bsp_data& bspData)
 			}
 			for (i = 0; i < g_nummiptex; i++)
 			{
-				const int MAXWADNAME = 16;
 				char name[MAXWADNAME];
 				int j, k;
 				if (l->dataofs[i] < 0)

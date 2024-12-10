@@ -19,7 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
 #endif
-#include "../common/cli_option_defaults.h"
+#include "cli_option_defaults.h"
 
 #include <string_view>
 #include <utility>
@@ -1641,8 +1641,6 @@ int             main(const int argc, char** argv)
 		char ** argv;
 		ParseParamFile (argcold, argvold, argc, argv);
 		{
-	if (InitConsole (argc, argv) < 0)
-		Usage();
     if (argc == 1)
         Usage();
 

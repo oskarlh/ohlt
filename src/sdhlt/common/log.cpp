@@ -26,8 +26,6 @@ unsigned long   g_nextclientid = 0;
 static FILE*    CompileLog = nullptr;
 static bool     fatal = false;
 
-bool twice = false;
-bool useconsole = false;
 FILE *conout = nullptr;
 
 ////////
@@ -154,11 +152,6 @@ void            LogError(const char* const message)
         {
             fprintf(stderr, "ERROR: Could not open error logfile %s", logfilename);
             fflush(stderr);
-			if (twice)
-			{
-				fprintf (conout, "ERROR: Could not open error logfile %s", logfilename);
-				fflush (conout);
-			}
         }
     }
 }
@@ -178,11 +171,6 @@ void       OpenLog(const int clientid)
         {
             fprintf(stderr, "ERROR: Could not open logfile %s", logfilename);
             fflush(stderr);
-			if (twice)
-			{
-				fprintf (conout, "ERROR: Could not open logfile %s", logfilename);
-				fflush (conout);
-			}
         }
     }
 }
@@ -247,11 +235,6 @@ void            WriteLog(const char* const message)
 
     fprintf(stdout, "%s", message); //fprintf(stdout, message); //--vluzacn
     fflush(stdout);
-	if (twice)
-	{
-		fprintf (conout, "%s", message);
-		fflush (conout);
-	}
 }
 
 // =====================================================================================
@@ -603,13 +586,6 @@ void LogTimeElapsed(float elapsed_time)
     }
 }
 
-int InitConsole (int argc, char **argv)
-{
-	twice = false;
-	useconsole = false;
-	return 0;
-}
-
 void FORMAT_PRINTF(1,2) PrintConsole(const char* const warning, ...)
 {
     char            message[MAX_MESSAGE];
@@ -621,13 +597,5 @@ void FORMAT_PRINTF(1,2) PrintConsole(const char* const warning, ...)
     vsnprintf(message, MAX_MESSAGE, warning, argptr);
     va_end(argptr);
 
-    if (useconsole)
-	{
-		fprintf (conout, "%s", message);
-		fflush (conout);
-	}
-	else
-	{
-		fprintf (stdout, "%s", message);
-	}
+    fprintf (stdout, "%s", message);
 }

@@ -6,5 +6,5 @@
 
 constexpr std::size_t NUM_HULLS = 4;
 
-using hull_sizes = std::array<std::array<double3_array, 2>, NUM_HULLS>;
+using hull_sizes = std::array<std::array<vec3_array, 2>, NUM_HULLS>;
 extern const hull_sizes standard_hull_sizes;

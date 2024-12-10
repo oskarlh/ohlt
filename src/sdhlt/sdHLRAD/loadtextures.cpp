@@ -1,8 +1,5 @@
 #include "qrad.h"
-
-#ifdef WORDS_BIGENDIAN
-#error "HLRAD_TEXTURE doesn't support WORDS_BIGENDIAN, because I have no big endian machine to test it"
-#endif
+#include "wad_structs.h"
 
 int g_numtextures;
 radtexture_t *g_textures;
@@ -29,16 +26,7 @@ void AddWadFolder (const char *path)
 	safe_snprintf (waddir->path, _MAX_PATH, "%s", path);
 }
 
-typedef struct
-{
-	int filepos;
-	int disksize;
-	int size;
-	char type;
-	char compression;
-	char pad1, pad2;
-	char name[16];
-} lumpinfo_t;
+
 
 typedef struct wadfile_s
 {
@@ -57,7 +45,7 @@ static int lump_sorter_by_name (const void *lump1, const void *lump2)
 {
 	lumpinfo_t *plump1 = (lumpinfo_t *)lump1;
 	lumpinfo_t *plump2 = (lumpinfo_t *)lump2;
-	return strcasecmp (plump1->name, plump2->name);
+	return strcasecmp ((const char*) plump1->name.data(), (const char*) plump2->name.data());
 }
 
 void OpenWadFile (const char *name
@@ -104,12 +92,7 @@ void OpenWadFile (const char *name
    }
 	Log ("Using Wadfile: %s\n", wad->path);
 	wad->filesize = q_filelength (wad->file);
-	struct
-	{
-		char identification[4];
-		int numlumps;
-		int infotableofs;
-	} wadinfo;
+	wadinfo_t wadinfo;
 	if (wad->filesize < (int)sizeof (wadinfo))
 	{
 		Error ("Invalid wad file '%s'.", wad->path);
@@ -117,7 +100,7 @@ void OpenWadFile (const char *name
 	SafeRead (wad->file, &wadinfo, sizeof (wadinfo));
 	wadinfo.numlumps  = (wadinfo.numlumps);
 	wadinfo.infotableofs = (wadinfo.infotableofs);
-	if (strncmp (wadinfo.identification, "WAD2", 4) && strncmp (wadinfo.identification, "WAD3", 4))
+	if (!has_wad_identification(wadinfo))
 		Error ("%s isn't a Wadfile!", wad->path);
 	wad->numlumps = wadinfo.numlumps;
 	if (wad->numlumps < 0 || wadinfo.infotableofs < 0 || wadinfo.infotableofs + wad->numlumps * (int)sizeof (lumpinfo_t) > wad->filesize)
@@ -131,10 +114,10 @@ void OpenWadFile (const char *name
 	for (i = 0; i < wad->numlumps; i++)
 	{
 		SafeRead (wad->file, &wad->lumpinfos[i], sizeof (lumpinfo_t));
-		if (!TerminatedString(wad->lumpinfos[i].name, 16))
+		if (!TerminatedString((const char*) wad->lumpinfos[i].name.data(), 16))
 		{
 			wad->lumpinfos[i].name[16 - 1] = 0;
-			Warning("Unterminated texture name : wad[%s] texture[%d] name[%s]\n", wad->path, i, wad->lumpinfos[i].name);
+			Warning("Unterminated texture name : wad[%s] texture[%d] name[%s]\n", wad->path, i, (const char*) wad->lumpinfos[i].name.data());
 		}
 		wad->lumpinfos[i].filepos = (wad->lumpinfos[i].filepos);
 		wad->lumpinfos[i].disksize = (wad->lumpinfos[i].disksize);
@@ -295,7 +278,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 	for (wad = g_wadfiles; wad; wad = wad->next)
 	{
 		lumpinfo_t temp, *found;
-		strcpy (temp.name, tex->name);
+		strcpy ((char*) temp.name.data(), tex->name);
 		found = (lumpinfo_t *)bsearch (&temp, wad->lumpinfos, wad->numlumps, sizeof (lumpinfo_t), lump_sorter_by_name);
 		if (found)
 		{

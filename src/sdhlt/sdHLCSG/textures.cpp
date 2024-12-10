@@ -1,7 +1,10 @@
 #include "csg.h"
+#include "wad_structs.h"
 #include <numbers>
 #include <vector>
 #include <tuple>
+
+using namespace std::literals;
 
 #define MAXWADNAME 16
 #define MAX_TEXFILES 128
@@ -12,34 +15,18 @@
 //  LoadLump
 //  AddAnimatingTextures
 
-
-typedef struct
+struct lumpinfo_with_wadfileindex
 {
-    char            identification[4];                     // should be WAD2/WAD3
-    int             numlumps;
-    int             infotableofs;
-} wadinfo_t;
-
-typedef struct
-{
-    int             filepos;
-    int             disksize;
-    int             size;                                  // uncompressed
-    char            type;
-    char            compression;
-    char            pad1, pad2;
-    char            name[MAXWADNAME];                      // must be null terminated // upper case
-
-    int             iTexFile;                              // index of the wad this texture is located in
-
-} lumpinfo_t;
+    lumpinfo_t lump_info;
+    int iTexFile;                              // index of the wad this texture is located in
+};
 
 std::deque<std::u8string> g_WadInclude;
 
 static int      nummiptex = 0;
-static lumpinfo_t miptex[MAX_MAP_TEXTURES];
+static lumpinfo_with_wadfileindex miptex[MAX_MAP_TEXTURES];
 static int      nTexLumps = 0;
-static lumpinfo_t* lumpinfo = nullptr;
+static lumpinfo_with_wadfileindex* lumpinfo = nullptr;
 static int      nTexFiles = 0;
 static FILE*    texfiles[MAX_TEXFILES];
 static wadpath_t* texwadpathes[MAX_TEXFILES]; // maps index of the wad to its path
@@ -115,28 +102,36 @@ static void     CleanupName(const char* const in, char* out)
 // =====================================================================================
 //  lump_sorters
 // =====================================================================================
+constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
+    return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
+}
 
 static int lump_sorter_by_wad_and_name(const void* lump1, const void* lump2)
 {
-    lumpinfo_t*     plump1 = (lumpinfo_t*)lump1;
-    lumpinfo_t*     plump2 = (lumpinfo_t*)lump2;
+    lumpinfo_with_wadfileindex*     plump1 = (lumpinfo_with_wadfileindex*)lump1;
+    lumpinfo_with_wadfileindex*     plump2 = (lumpinfo_with_wadfileindex*)lump2;
 
-    if (plump1->iTexFile == plump2->iTexFile)
-    {
-        return strcmp(plump1->name, plump2->name);
-    }
-    else
-    {
-        return plump1->iTexFile - plump2->iTexFile;
-    }
+    std::strong_ordering comparisonResult{
+        std::tie(plump1->iTexFile, plump1->lump_info.name)
+        <=>
+        std::tie(plump2->iTexFile, plump2->lump_info.name)
+    };
+
+    return ordering_as_int(comparisonResult);
 }
 
 static int lump_sorter_by_name(const void* lump1, const void* lump2)
 {
-    lumpinfo_t*     plump1 = (lumpinfo_t*)lump1;
-    lumpinfo_t*     plump2 = (lumpinfo_t*)lump2;
+    lumpinfo_with_wadfileindex*     plump1 = (lumpinfo_with_wadfileindex*)lump1;
+    lumpinfo_with_wadfileindex*     plump2 = (lumpinfo_with_wadfileindex*)lump2;
 
-    return strcmp(plump1->name, plump2->name);
+    std::strong_ordering comparisonResult{
+        plump1->lump_info.name
+        <=>
+        plump2->lump_info.name
+    };
+
+    return ordering_as_int(comparisonResult);
 }
 
 // =====================================================================================
@@ -154,7 +149,7 @@ static int      FindMiptex(const char* const name)
     ThreadLock();
     for (i = 0; i < nummiptex; i++)
     {
-        if (!strcmp(name, miptex[i].name))
+        if (!strcmp(name, (char*) miptex[i].lump_info.name.data()))
         {
             ThreadUnlock();
             return i;
@@ -162,7 +157,7 @@ static int      FindMiptex(const char* const name)
     }
 
     hlassume(nummiptex < MAX_MAP_TEXTURES, assume_MAX_MAP_TEXTURES);
-    safe_strncpy(miptex[i].name, name, MAXWADNAME);
+    safe_strncpy((char*) miptex[i].lump_info.name.data(), name, MAXWADNAME);
     nummiptex++;
     ThreadUnlock();
     return i;
@@ -256,7 +251,7 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
         SafeRead(texfile, &wadinfo, sizeof(wadinfo));
 
         // make sure its a valid format
-        if (strncmp(wadinfo.identification, "WAD2", 4) && strncmp(wadinfo.identification, "WAD3", 4))
+        if (!has_wad_identification(wadinfo))
         {
             Log(" - ");
             Error("%s isn't a Wadfile!", (const char*) pszWadFile.data());
@@ -270,7 +265,7 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
             Warning("fseek to %d in wadfile %s failed\n", wadinfo.infotableofs, (const char*) pszWadFile.data());
 
         // memalloc for this lump
-        lumpinfo = (lumpinfo_t*)realloc(lumpinfo, (nTexLumps + wadinfo.numlumps) * sizeof(lumpinfo_t));
+        lumpinfo = (lumpinfo_with_wadfileindex*)realloc(lumpinfo, (nTexLumps + wadinfo.numlumps) * sizeof(lumpinfo_with_wadfileindex));
 
         // for each texlump
         std::vector<std::tuple<std::string, char*, int>> texturesUnterminatedString; //2 for now in case the same texture has 2 issues
@@ -278,23 +273,23 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
 
         for (j = 0; j < wadinfo.numlumps; j++, nTexLumps++)
         {
-            SafeRead(texfile, &lumpinfo[nTexLumps], (sizeof(lumpinfo_t) - sizeof(int)) );  // iTexFile is NOT read from file
+            SafeRead(texfile, &lumpinfo[nTexLumps], (sizeof(lumpinfo_with_wadfileindex) - sizeof(int)) );  // iTexFile is NOT read from file
             char szWadFileName[_MAX_PATH];
             ExtractFile((const char*) pszWadFile.data(), szWadFileName);
 
-            if (!TerminatedString(lumpinfo[nTexLumps].name, MAXWADNAME)) //If texture name too long
+            if (!TerminatedString((const char*) lumpinfo[nTexLumps].lump_info.name.data(), MAXWADNAME)) //If texture name too long
             {
-                lumpinfo[nTexLumps].name[MAXWADNAME - 1] = 0;
-                texturesUnterminatedString.push_back(std::make_tuple(lumpinfo[nTexLumps].name, szWadFileName, nTexLumps));
+                lumpinfo[nTexLumps].lump_info.name[MAXWADNAME - 1] = 0;
+                texturesUnterminatedString.push_back(std::make_tuple((const char*) lumpinfo[nTexLumps].lump_info.name.data(), szWadFileName, nTexLumps));
             }
-            CleanupName(lumpinfo[nTexLumps].name, lumpinfo[nTexLumps].name);
-            lumpinfo[nTexLumps].filepos = (lumpinfo[nTexLumps].filepos);
-            lumpinfo[nTexLumps].disksize = (lumpinfo[nTexLumps].disksize);
+            CleanupName((const char*) lumpinfo[nTexLumps].lump_info.name.data(), (char*) lumpinfo[nTexLumps].lump_info.name.data());
+            lumpinfo[nTexLumps].lump_info.filepos = (lumpinfo[nTexLumps].lump_info.filepos);
+            lumpinfo[nTexLumps].lump_info.disksize = (lumpinfo[nTexLumps].lump_info.disksize);
             lumpinfo[nTexLumps].iTexFile = nTexFiles;
 
-            if (lumpinfo[nTexLumps].disksize > MAX_TEXTURE_SIZE)
+            if (lumpinfo[nTexLumps].lump_info.disksize > MAX_TEXTURE_SIZE)
             {
-                texturesOversized.push_back(std::make_tuple(lumpinfo[nTexLumps].name, szWadFileName, lumpinfo[nTexLumps].disksize));
+                texturesOversized.push_back(std::make_tuple((const char*) lumpinfo[nTexLumps].lump_info.name.data(), szWadFileName, lumpinfo[nTexLumps].lump_info.disksize));
             }
         }
         if (!texturesUnterminatedString.empty())
@@ -349,17 +344,17 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
 // =====================================================================================
 //  FindTexture
 // =====================================================================================
-lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
+lumpinfo_with_wadfileindex*     FindTexture(const lumpinfo_with_wadfileindex* const source)
 {
     //Log("** PnFNFUNC: FindTexture\n");
 
-    lumpinfo_t*     found = nullptr;
+    lumpinfo_with_wadfileindex*     found = nullptr;
 
-    found = (lumpinfo_t*)bsearch(source, (void*)lumpinfo, (size_t) nTexLumps, sizeof(lumpinfo[0]), lump_sorter_by_name);
+    found = (lumpinfo_with_wadfileindex*)bsearch(source, (void*)lumpinfo, (size_t) nTexLumps, sizeof(lumpinfo[0]), lump_sorter_by_name);
     if (!found)
     {
-        Warning("::FindTexture() texture %s not found!", source->name);
-        if (!strcmp(source->name, "NULL") || !strcmp (source->name, "SKIP"))
+        Warning("::FindTexture() texture %s not found!", source->lump_info.name);
+        if (!strcmp((const char*) source->lump_info.name.data(), "NULL") || !strcmp ((const char*) source->lump_info.name.data(), "SKIP"))
         {
             Log("Are you sure you included sdhlt.wad in your wadpath list?\n");
         }
@@ -368,8 +363,8 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 	if (found)
 	{
 		// get the first and last matching lump
-		lumpinfo_t *first = found;
-		lumpinfo_t *last = found;
+		lumpinfo_with_wadfileindex *first = found;
+		lumpinfo_with_wadfileindex *last = found;
 		while (first - 1 >= lumpinfo && lump_sorter_by_name (first - 1, source) == 0)
 		{
 			first = first - 1;
@@ -379,7 +374,7 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 			last = last + 1;
 		}
 		// find the best matching lump
-		lumpinfo_t *best = nullptr;
+		lumpinfo_with_wadfileindex *best = nullptr;
 		for (found = first; found < last + 1; found++)
 		{
 			bool better = false;
@@ -400,9 +395,9 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 					better = found->iTexFile < best->iTexFile; // upper in the wad list is better
 				}
 			}
-			else if (found->filepos != best->filepos)
+			else if (found->lump_info.filepos != best->lump_info.filepos)
 			{
-				better = found->filepos < best->filepos; // when there are several lumps with the same name in one wad file
+				better = found->lump_info.filepos < best->lump_info.filepos; // when there are several lumps with the same name in one wad file
 			}
 
 			if (better)
@@ -418,7 +413,7 @@ lumpinfo_t*     FindTexture(const lumpinfo_t* const source)
 // =====================================================================================
 //  LoadLump
 // =====================================================================================
-static int             LoadLump(const lumpinfo_t* const source, std::byte* dest, int* texsize
+static int             LoadLump(const lumpinfo_with_wadfileindex* const source, std::byte* dest, int* texsize
 						, int dest_maxsize
 						, std::byte *&writewad_data, int &writewad_datasize
 						)
@@ -428,14 +423,14 @@ static int             LoadLump(const lumpinfo_t* const source, std::byte* dest,
     //Log("** PnFNFUNC: LoadLump\n");
 
     *texsize = 0;
-    if (source->filepos)
+    if (source->lump_info.filepos)
     {
-        if (fseek(texfiles[source->iTexFile], source->filepos, SEEK_SET))
+        if (fseek(texfiles[source->iTexFile], source->lump_info.filepos, SEEK_SET))
         {
-            Warning("fseek to %d failed\n", source->filepos);
+            Warning("fseek to %d failed\n", source->lump_info.filepos);
 			Error ("File read failure");
         }
-        *texsize = source->disksize;
+        *texsize = source->lump_info.disksize;
 
 		if (texwadpathes[source->iTexFile]->usedbymap)
         {
@@ -448,25 +443,25 @@ static int             LoadLump(const lumpinfo_t* const source, std::byte* dest,
 
             for (i = 0; i < MIPLEVELS; i++)
                 miptex->offsets[i] = 0;
-			writewad_data = (std::byte *)malloc (source->disksize);
+			writewad_data = (std::byte *)malloc (source->lump_info.disksize);
 			hlassume (writewad_data != nullptr, assume_NoMemory);
-			if (fseek (texfiles[source->iTexFile], source->filepos, SEEK_SET))
+			if (fseek (texfiles[source->iTexFile], source->lump_info.filepos, SEEK_SET))
 				Error ("File read failure");
-			SafeRead (texfiles[source->iTexFile], writewad_data, source->disksize);
-			writewad_datasize = source->disksize;
+			SafeRead (texfiles[source->iTexFile], writewad_data, source->lump_info.disksize);
+			writewad_datasize = source->lump_info.disksize;
             return sizeof(miptex_t);
         }
         else
         {
-			Developer(DEVELOPER_LEVEL_MESSAGE,"Including texture %s\n",source->name);
+			Developer(DEVELOPER_LEVEL_MESSAGE,"Including texture %s\n",source->lump_info.name);
             // Load the entire texture here so the BSP contains the texture
-			hlassume (source->disksize <= dest_maxsize, assume_MAX_MAP_MIPTEX);
-            SafeRead(texfiles[source->iTexFile], dest, source->disksize);
-            return source->disksize;
+			hlassume (source->lump_info.disksize <= dest_maxsize, assume_MAX_MAP_MIPTEX);
+            SafeRead(texfiles[source->iTexFile], dest, source->lump_info.disksize);
+            return source->lump_info.disksize;
         }
     }
 
-	Error("::LoadLump() texture %s not found!", source->name);
+	Error("::LoadLump() texture %s not found!", source->lump_info.name);
     return 0;
 }
 
@@ -483,12 +478,12 @@ void            AddAnimatingTextures()
 
     for (i = 0; i < base; i++)
     {
-        if ((miptex[i].name[0] != '+') && (miptex[i].name[0] != '-'))
+        if ((miptex[i].lump_info.name[0] != '+') && (miptex[i].lump_info.name[0] != '-'))
         {
             continue;
         }
 
-        safe_strncpy(name, miptex[i].name, MAXWADNAME);
+        safe_strncpy(name, (const char*) miptex[i].lump_info.name.data(), MAXWADNAME);
 
         for (j = 0; j < 20; j++)
         {
@@ -504,7 +499,7 @@ void            AddAnimatingTextures()
             // see if this name exists in the wadfile
             for (k = 0; k < nTexLumps; k++)
             {
-                if (!strcmp(name, lumpinfo[k].name))
+                if (!strcmp(name, (const char*) lumpinfo[k].lump_info.name.data()))
                 {
                     FindMiptex(name);                      // add to the miptex list
                     break;
@@ -549,7 +544,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
 
         for (i = 0; i < nummiptex; i++)
         {
-            lumpinfo_t*     found;
+            lumpinfo_with_wadfileindex*     found;
 
             found = FindTexture(miptex + i);
             if (found)
@@ -559,7 +554,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
             }
             else
             {
-                miptex[i].iTexFile = miptex[i].filepos = miptex[i].disksize = 0;
+                miptex[i].iTexFile = miptex[i].lump_info.filepos = miptex[i].lump_info.disksize = 0;
             }
         }
     }
@@ -662,17 +657,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
 		char writewad_name[_MAX_PATH]; //Write temp wad file with processed textures
 		FILE *writewad_file;
 		int writewad_maxlumpinfos;
-		typedef struct //Lump info in temp wad
-		{
-			int             filepos;
-			int             disksize;
-			int             size;
-			char            type;
-			char            compression;
-			char            pad1, pad2;
-			char            name[MAXWADNAME];
-		} dlumpinfo_t;
-		dlumpinfo_t *writewad_lumpinfos;
+		lumpinfo_t *writewad_lumpinfos;
 		wadinfo_t writewad_header;
 
 		safe_snprintf (writewad_name, _MAX_PATH, "%s.wa_", g_Mapname); //Generate temp wad file name based on mapname
@@ -680,7 +665,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
 
         //Malloc for storing lump info
 		writewad_maxlumpinfos = nummiptex;
-		writewad_lumpinfos = (dlumpinfo_t *)malloc (writewad_maxlumpinfos * sizeof (dlumpinfo_t));
+		writewad_lumpinfos = (lumpinfo_t *)malloc (writewad_maxlumpinfos * sizeof (lumpinfo_t));
 		hlassume (writewad_lumpinfos != nullptr, assume_NoMemory);
 
         //Header for the temp wad file
@@ -702,15 +687,15 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
 			if (writewad_data)
 			{
                 //Prepare lump info for temp wad file
-				dlumpinfo_t *writewad_lumpinfo = &writewad_lumpinfos[writewad_header.numlumps];
+				lumpinfo_t *writewad_lumpinfo = &writewad_lumpinfos[writewad_header.numlumps];
 				writewad_lumpinfo->filepos = ftell (writewad_file);
 				writewad_lumpinfo->disksize = writewad_datasize;
-				writewad_lumpinfo->size = miptex[i].size;
-				writewad_lumpinfo->type = miptex[i].type;
-				writewad_lumpinfo->compression = miptex[i].compression;
-				writewad_lumpinfo->pad1 = miptex[i].pad1;
-				writewad_lumpinfo->pad2 = miptex[i].pad2;
-				memcpy (writewad_lumpinfo->name, miptex[i].name, MAXWADNAME);
+				writewad_lumpinfo->size = miptex[i].lump_info.size;
+				writewad_lumpinfo->type = miptex[i].lump_info.type;
+				writewad_lumpinfo->compression = miptex[i].lump_info.compression;
+				writewad_lumpinfo->pad1 = miptex[i].lump_info.pad1;
+				writewad_lumpinfo->pad2 = miptex[i].lump_info.pad2;
+                writewad_lumpinfo->name = miptex[i].lump_info.name;
 				writewad_header.numlumps++;
 				SafeWrite (writewad_file, writewad_data, writewad_datasize); //Write the processed lump info temp wad file
 				free (writewad_data);
@@ -731,7 +716,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
         g_texdatasize = data - g_dtexdata.data();
         //Write lump info and header to the temp wad file
 		writewad_header.infotableofs = ftell (writewad_file);
-		SafeWrite (writewad_file, writewad_lumpinfos, writewad_header.numlumps * sizeof (dlumpinfo_t));
+		SafeWrite (writewad_file, writewad_lumpinfos, writewad_header.numlumps * sizeof (lumpinfo_t));
 		if (fseek (writewad_file, 0, SEEK_SET))
 			Error ("File write failure");
 		SafeWrite (writewad_file, &writewad_header, sizeof (wadinfo_t));

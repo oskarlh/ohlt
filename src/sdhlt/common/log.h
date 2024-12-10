@@ -43,7 +43,6 @@ extern void FORMAT_PRINTF(2,3) Developer(developer_level_t level, const char* co
 #define IfDebug(x)
 #endif
 
-extern int InitConsole(int argc, char **argv);
 extern void FORMAT_PRINTF(1,2) PrintConsole(const char* const message, ...);
 extern void FORMAT_PRINTF(1,2) Verbose(const char* const message, ...);
 extern void FORMAT_PRINTF(1,2) Log(const char* const message, ...);

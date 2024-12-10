@@ -13,7 +13,8 @@
 #include <filesystem>
 #include "bsp_file_sizes.h"
 #include "ripent.h"
-#include "../common/cli_option_defaults.h"
+#include "cli_option_defaults.h"
+#include "wad_structs.h"
 
 
 typedef enum
@@ -399,25 +400,7 @@ static void     WriteBSP(const char* const name)
 	Log ("\nUpdating %s.\n", filename.c_str()); //--vluzacn
     WriteBSPFile(filename);
 }
-#ifdef WORDS_BIGENDIAN
-#error "I haven't added support for bigendian. Please disable RIPENT_TEXTURE in cmdlib.h ."
-#endif
-typedef struct
-{
-    char            identification[4];                     // should be WAD2/WAD3
-    int             numlumps;
-    int             infotableofs;
-} wadinfo_t;
-typedef struct
-{
-	int			filepos;
-	int			disksize;
-	int			size;					// uncompressed
-	char		type;
-	char		compression;
-	char		pad1, pad2;
-	char		name[16];				// must be null terminated
-} lumpinfo_t;
+
 /*int TextureSize(const miptex_t *tex)
 {
 	int size = 0;
@@ -508,7 +491,7 @@ static void		WriteTextures(const char* const name)
 			info[i].size = size;
 			info[i].type = (ofs >= 0 && ((miptex_t*)(g_dtexdata.data()+ofs))->offsets[0] > 0)? 67: 0; // prevent invalid texture from being processed by Wally
 			info[i].compression = 0;
-			strcpy (info[i].name, ofs >= 0? ((miptex_t*)(g_dtexdata.data()+ofs))->name: "\rTEXTUREMISSING");
+			strcpy ((char*) info[i].name.data(), ofs >= 0? ((miptex_t*)(g_dtexdata.data()+ofs))->name: "\rTEXTUREMISSING");
 		}
 		SafeWrite (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
 		free (info);
@@ -559,7 +542,7 @@ static void		WriteTextures(const char* const name)
 					info[header.numlumps].size = info[header.numlumps].disksize;
 					info[header.numlumps].type = 67;
 					info[header.numlumps].compression = 0;
-					strcpy (info[header.numlumps].name, tex->name);
+					strcpy ((char*) info[header.numlumps].name.data(), tex->name);
 					header.numlumps++;
 				}
 				fprintf (texfile, "[%d]", (int)strlen(tex->name));
@@ -653,7 +636,7 @@ static void		ReadTextures(const char *name)
 				miptex_t *tex = (miptex_t*)(g_dtexdata.data() + g_texdatasize);
 				int j;
 				for (j = 0; j < header.numlumps; ++j)
-					if (!strcasecmp (name, info[j].name))
+					if (!strcasecmp (name, (const char*) info[j].name.data()))
 						break;
 				if (j == header.numlumps)
 				{
@@ -859,7 +842,6 @@ static void     Settings()
  */
 int             main(int argc, char** argv)
 {
-    int             i;
     double          start, end;
 
     g_Program = "sdRIPENT";
@@ -871,14 +853,12 @@ int             main(int argc, char** argv)
 		char ** argv;
 		ParseParamFile (argcold, argvold, argc, argv);
 		{
-	if (InitConsole (argc, argv) < 0)
-		Usage();
     if (argc == 1)
     {
         Usage();
     }
 
-    for (i = 1; i < argc; i++)
+    for (std::size_t i = 1; i < argc; i++)
     {
         if (!strcasecmp(argv[i], "-import"))
         {

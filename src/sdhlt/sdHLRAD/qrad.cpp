@@ -3103,8 +3103,6 @@ int             main(const int argc, char** argv)
 		char ** argv;
 		ParseParamFile (argcold, argvold, argc, argv);
 		{
-	if (InitConsole (argc, argv) < 0)
-		Usage();
     if (argc == 1)
         Usage();
 

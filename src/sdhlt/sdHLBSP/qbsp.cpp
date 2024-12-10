@@ -18,7 +18,7 @@
 #include <utility>
 
 #include "bsp5.h"
-#include "../common/cli_option_defaults.h"
+#include "cli_option_defaults.h"
 
 
 /*
@@ -1612,8 +1612,6 @@ int             main(const int argc, char** argv)
 		char ** argv;
 		ParseParamFile (argcold, argvold, argc, argv);
 		{
-	if (InitConsole (argc, argv) < 0)
-		Usage();
     // if we dont have any command line argvars, print out usage and die
     if (argc == 1)
         Usage();

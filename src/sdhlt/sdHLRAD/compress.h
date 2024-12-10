@@ -3,10 +3,6 @@
 #include "cmdlib.h" //--vluzacn
 
 
-#ifdef WORDS_BIGENDIAN
-#error
-#endif
-
 void compress_compatability_test (void);
 
 constexpr std::size_t unused_size = 3; // located at the end of a block
