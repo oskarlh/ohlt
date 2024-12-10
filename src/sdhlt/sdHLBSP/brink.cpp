@@ -1179,7 +1179,7 @@ void BuildTreeCells (bbrinkinfo_t *info)
 {
 	info->numobjects = 0;
 	info->leaf_outside = BuildOutside (info->numobjects);
-	info->clipnodes[0].treeleaf = BuildBaseCell (info->numobjects, &info->clipnodes[0], BOGUS_RANGE, info->leaf_outside);
+	info->clipnodes[0].treeleaf = BuildBaseCell (info->numobjects, &info->clipnodes[0], hlbsp_bogus_range, info->leaf_outside);
 	BuildTreeCells_r (info->numobjects, &info->clipnodes[0]);
 }
 

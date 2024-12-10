@@ -165,8 +165,8 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 		return;
 	}
 
-	VectorFill (node->mins, BOGUS_RANGE);
-	VectorFill (node->maxs, -BOGUS_RANGE);
+	VectorFill (node->mins, hlbsp_bogus_range);
+	VectorFill (node->maxs, -hlbsp_bogus_range);
 	for (std::vector< face_t * >::iterator i = node->leaffaces->begin (); i != node->leaffaces->end (); ++i)
 	{
 		face_t *f = *i;
@@ -215,8 +215,8 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 	for (std::vector< face_t * >::iterator i = node->leaffaces->begin (); i != node->leaffaces->end (); ++i)
 	{
 		face_t *f = *i;
-		vec_t low = BOGUS_RANGE;
-		vec_t high = -BOGUS_RANGE;
+		vec_t low = hlbsp_bogus_range;
+		vec_t high = -hlbsp_bogus_range;
 		for (int x = 0; x < f->numpoints; x++)
 		{
 			low = std::min(low, f->pts[x][bestaxis]);
@@ -1461,8 +1461,8 @@ static bool     CalcNodeBounds(node_t* node
 	{
 		return false;
 	}
-    node->mins[0] = node->mins[1] = node->mins[2] = BOGUS_RANGE;
-    node->maxs[0] = node->maxs[1] = node->maxs[2] = -BOGUS_RANGE;
+    node->mins[0] = node->mins[1] = node->mins[2] = hlbsp_bogus_range;
+    node->maxs[0] = node->maxs[1] = node->maxs[2] = -hlbsp_bogus_range;
 
     for (p = node->portals; p; p = next_portal)
     {
@@ -1591,8 +1591,8 @@ static void     BuildBspTree_r(node_t* node)
 	}
 	else
 	{
-		VectorFill (node->loosemins, BOGUS_RANGE);
-		VectorFill (node->loosemaxs, -BOGUS_RANGE);
+		VectorFill (node->loosemins, hlbsp_bogus_range);
+		VectorFill (node->loosemaxs, -hlbsp_bogus_range);
 	}
 
 	int splitdetaillevel = CalcSplitDetaillevel (node);

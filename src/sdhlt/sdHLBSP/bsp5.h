@@ -18,7 +18,8 @@
 #define ENTITIES_VOID "entities.void"
 #define ENTITIES_VOID_EXT ".void"
 
-#define	BOGUS_RANGE	144000
+constexpr vec_t hlbsp_bogus_range = 144000.0;
+
 
 // the exact bounding box of the brushes is expanded some for the headnode
 // volume.  is this still needed?

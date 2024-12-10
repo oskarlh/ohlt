@@ -705,8 +705,8 @@ brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
 
 void CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs)
 {
-	VectorFill (mins, BOGUS_RANGE);
-	VectorFill (maxs, -BOGUS_RANGE);
+	VectorFill (mins, hlbsp_bogus_range);
+	VectorFill (maxs, -hlbsp_bogus_range);
 	for (side_t *s = b->sides; s; s = s->next)
 	{
 		vec3_array windingmins, windingmaxs;

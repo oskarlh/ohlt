@@ -145,7 +145,7 @@
 
 #define ALLSTYLES 64 // HL limit. //--vluzacn
 
-#define BOGUS_RANGE 131072
+constexpr vec_t hlrad_bogus_range = 131072;
 
 typedef struct
 {

@@ -756,8 +756,8 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		vec_t minB;
 		vec_t maxB;
 
-		minA = minB = BOGUS_RANGE;
-		maxA = maxB = -BOGUS_RANGE;
+		minA = minB = hlrad_bogus_range;
+		maxA = maxB = -hlrad_bogus_range;
 		for (int x = 0; x < winding->m_NumPoints; x++)
 		{
 			vec_t *point;
