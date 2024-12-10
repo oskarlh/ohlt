@@ -373,7 +373,7 @@ void            MakeScales(const int threadnum)
         // copy the transfers out
         if (patch->iData)
         {
-			unsigned	data_size = patch->iData * float_size[g_transfer_compress_type] + unused_size;
+			unsigned	data_size = patch->iData * float_size[(std::size_t) g_transfer_compress_type] + unused_size;
 
             patch->tData = (transfer_data_t*) new transfer_data_t[data_size]();
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
@@ -392,7 +392,7 @@ void            MakeScales(const int threadnum)
                 float* t2 = tData_All;
 
 				float	f;
-				for (x = 0; x < patch->iData; x++, t1+=float_size[g_transfer_compress_type], t2++)
+				for (x = 0; x < patch->iData; x++, t1+=float_size[(std::size_t) g_transfer_compress_type], t2++)
 				{
 					f = (*t2) * total;
 					float_compress (g_transfer_compress_type, t1, f);
@@ -639,7 +639,7 @@ void            MakeRGBScales(const int threadnum)
         // copy the transfers out
         if (patch->iData)
         {
-			std::size_t data_size = patch->iData * vector_size[g_rgbtransfer_compress_type] + unused_size;
+			std::size_t data_size = patch->iData * vector_size[(std::size_t) g_rgbtransfer_compress_type] + unused_size;
 
             patch->tRGBData = (rgb_transfer_data_t*) new rgb_transfer_data_t[data_size]();
             patch->tIndex = CompressTransferIndicies(tIndex_All, patch->iData, &patch->iIndex);
@@ -658,7 +658,7 @@ void            MakeRGBScales(const int threadnum)
 				float* t2 = tRGBData_All;
 
 				float f[3];
-                for (x = 0; x < patch->iData; x++, t1+=vector_size[g_rgbtransfer_compress_type], t2+=3)
+                for (x = 0; x < patch->iData; x++, t1+=vector_size[(std::size_t) g_rgbtransfer_compress_type], t2+=3)
                 {
                      VectorScale( t2, total, f );
 					 vector_compress (g_rgbtransfer_compress_type, t1, f[0], f[1], f[2]);

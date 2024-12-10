@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const size_t unused_size = 3u; // located at the end of a block
 
 const char *(float_type_string[float_type_count]) =
 {
@@ -56,14 +55,14 @@ void compress_compatability_test ()
 		fail ();
 	float f[5] = {0.123f, 1.f, 0.f, 0.123f, 0.f};
 	std::ranges::fill(v, std::byte(~0));
-	vector_compress (VECTOR24, v.data(), f[0], f[1], f[2]);
-	float_compress (FLOAT16, &v[6], f[3]);
-	float_compress (FLOAT16, &v[4], f[4]);
+	vector_compress (vector_type::vector24, v.data(), f[0], f[1], f[2]);
+	float_compress (float_type::float16, &v[6], f[3]);
+	float_compress (float_type::float16, &v[4], f[4]);
 	if (((unsigned int *)v.data())[0] != 4286318595u || ((unsigned int *)v.data())[1] != 3753771008u)
 		fail ();
-	f[3] = float_decompress (FLOAT16, &v[6]);
-	f[4] = float_decompress (FLOAT16, &v[4]);
-	vector_decompress (VECTOR24, v.data(), &f[0], &f[1], &f[2]);
+	f[3] = float_decompress (float_type::float16, &v[6]);
+	f[4] = float_decompress (float_type::float16, &v[4]);
+	vector_decompress (vector_type::vector24, v.data(), &f[0], &f[1], &f[2]);
 	constexpr float ans[5] = {0.109375f,1.015625f,0.015625f,0.123001f,0.000000f};
 	for (std::size_t i = 0; i < 5; ++i) {
 		if (f[i] - ans[i] > 0.00001f || f[i] - ans[i] < -0.00001f) {
@@ -73,27 +72,27 @@ void compress_compatability_test ()
 }
 
 
-constexpr unsigned int bitget(unsigned int i, unsigned int start, unsigned int end)
+constexpr std::uint32_t bitget(std::uint32_t i, std::uint32_t start, std::uint32_t end)
 {
 	return (i & ~(~0u << end)) >> start;
 }
 
-constexpr unsigned int bitput(unsigned int i, unsigned int start)
+constexpr std::uint32_t bitput(std::uint32_t i, std::uint32_t start)
 {
 	return i << start;
 }
 
-constexpr unsigned int bitclr(unsigned int i, unsigned int start, unsigned int end)
+constexpr std::uint32_t bitclr(std::uint32_t i, std::uint32_t start, std::uint32_t end)
 {
 	return i & (~(~0u << start) | (~0u << end));
 }
 
-constexpr unsigned int float_iswrong(unsigned int i)
+constexpr std::uint32_t float_iswrong(std::uint32_t i)
 {
 	return i >= 0x7F800000u;
 }
 
-constexpr unsigned int float_istoobig(unsigned int i)
+constexpr std::uint32_t float_istoobig(std::uint32_t i)
 {
 	return i >= 0x40000000u;
 }
@@ -109,10 +108,10 @@ void float_compress(float_type t, void *s, float f)
 	std::uint32_t p = std::bit_cast<std::uint32_t>(f);
 	switch (t)
 	{
-	case FLOAT32:
+	case float_type::float32:
 		m[0] = p;
 		break;
-	case FLOAT16:
+	case float_type::float16:
 		m[0] = bitclr (m[0], 0, 16);
 		if (float_iswrong (p))
 			;
@@ -123,7 +122,7 @@ void float_compress(float_type t, void *s, float f)
 		else
 			m[0] |= bitget (p, 12, 28);
 		break;
-	case FLOAT8:
+	case float_type::float8:
 		m[0] = bitclr (m[0], 0, 8);
 		if (float_iswrong (p))
 			;
@@ -145,9 +144,9 @@ float float_decompress
 	const std::uint32_t *m = (const std::uint32_t *) s;
 	switch (t)
 	{
-		case FLOAT32:
+		case float_type::float32:
 			return std::bit_cast<float>(m[0]);
-		case FLOAT16:
+		case float_type::float16:
 			if (bitget (m[0], 0, 16) == 0) {
 				return 0;
 			}
@@ -156,7 +155,7 @@ float float_decompress
 				| bitput (bitget (m[0], 0, 16), 12)
 				| bitput (3, 28)
 			);
-		case FLOAT8:
+		case float_type::float8:
 			if (bitget (m[0], 0, 8) == 0) {
 				return 0;
 			}
@@ -178,12 +177,12 @@ void vector_compress
 	unsigned int max, i1, i2, i3;
 	switch (t)
 	{
-	case VECTOR96:
+	case vector_type::vector96:
 		m[0] = p1;
 		m[1] = p2;
 		m[2] = p3;
 		break;
-	case VECTOR48:
+	case vector_type::vector48:
 		if (float_iswrong (p1) || float_iswrong (p2) || float_iswrong (p3))
 			break;
 		m[0] = 0, m[1] = bitclr (m[1], 0, 16);
@@ -206,8 +205,8 @@ void vector_compress
 		else
 			m[1] |= bitget (p3, 12, 28);
 		break;
-	case VECTOR32:
-	case VECTOR24:
+	case vector_type::vector32:
+	case vector_type::vector24:
 		if (float_iswrong (p1) || float_iswrong (p2) || float_iswrong (p3))
 		{
 			max = i1 = i2 = i3 = 0;
@@ -220,7 +219,7 @@ void vector_compress
 			i2 = float_istoobig (p2)? ~0u : (bitget (p2, 0, 23) | bitput (1, 23)) >> ((1 + max - bitget (p2, 23, 31)) % 32);
 			i3 = float_istoobig (p3)? ~0u : (bitget (p3, 0, 23) | bitput (1, 23)) >> ((1 + max - bitget (p3, 23, 31)) % 32);
 		}
-		if (t == VECTOR32)
+		if (t == vector_type::vector32)
 			m[0] = 0
 				| bitput (bitget (i1, 14, 23), 0)
 				| bitput (bitget (i2, 14, 23), 9)
@@ -250,12 +249,12 @@ void vector_decompress
 	unsigned int *p3 = (unsigned int *)f3;
 	switch (t)
 	{
-	case VECTOR96:
+	case vector_type::vector96:
 		*p1 = m[0];
 		*p2 = m[1];
 		*p3 = m[2];
 		break;
-	case VECTOR48:
+	case vector_type::vector48:
 		if (bitget (m[0], 0, 16) == 0)
 			*p1 = 0;
 		else
@@ -281,9 +280,10 @@ void vector_decompress
 				| bitput (3, 28)
 				;
 		break;
-	case VECTOR32: case VECTOR24:
+	case vector_type::vector32:
+	case vector_type::vector24:
 		float f;
-		if (t == VECTOR32)
+		if (t == vector_type::vector32)
 		{
 			*p1
 				= bitput (1, 13)

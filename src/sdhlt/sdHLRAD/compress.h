@@ -9,29 +9,34 @@
 
 void compress_compatability_test (void);
 
-extern const size_t unused_size; // located at the end of a block
+constexpr std::size_t unused_size = 3; // located at the end of a block
 
-typedef enum
+enum class float_type
 {
-	FLOAT32 = 0,
-	FLOAT16,
-	FLOAT8,
-	float_type_count
+	float32 = 0,
+	float16,
+	float8
+};
+constexpr std::size_t float_type_count = std::size_t(float_type::float8) + 1;
+template<class Num> constexpr bool is_valid_float_type(Num num) {
+	return num >= Num(float_type::float32) && num <= Num(float_type::float8);
 }
-float_type;
 
 extern const char *float_type_string[];
 
 extern const size_t float_size[];
 
-enum vector_type
+enum class vector_type
 {
-	VECTOR96 = 0,
-	VECTOR48,
-	VECTOR32,
-	VECTOR24,
-	vector_type_count
+	vector96 = 0,
+	vector48,
+	vector32,
+	vector24,
 };
+constexpr std::size_t vector_type_count = std::size_t(vector_type::vector24) + 1;
+template<class Num> constexpr bool is_valid_vector_type(Num num) {
+	return num >= Num(vector_type::vector96) && num <= Num(vector_type::vector24);
+}
 
 extern const char *vector_type_string[];
 

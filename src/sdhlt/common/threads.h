@@ -14,11 +14,11 @@ enum class q_threadpriority
 typedef void (*q_threadfunction) (int);
 
 
-extern int      g_numthreads;
+extern std::ptrdiff_t g_numthreads;
 extern q_threadpriority g_threadpriority;
 
 extern void     ThreadSetPriority(q_threadpriority type);
-extern void     ThreadSetDefault();
+void ThreadSetDefault();
 extern int      GetThreadWork();
 extern void     ThreadLock();
 extern void     ThreadUnlock();

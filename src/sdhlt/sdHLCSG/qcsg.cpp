@@ -22,6 +22,7 @@
 #include "../common/cli_option_defaults.h"
 
 #include <string_view>
+#include <utility>
 using namespace std::literals;
 
 /*
@@ -294,23 +295,22 @@ void            WriteFace(const int hull, const bface_t* const f
 						  )
 {
     unsigned int    i;
-    Winding*        w;
 
     ThreadLock();
     if (!hull)
         c_csgfaces++;
 
     // .p0 format
-    w = f->w;
+    const Winding& w = *f->w;
 
     // plane summary
-	fprintf (out[hull], "%i %i %i %i %u\n", detaillevel, f->planenum, f->texinfo, f->contents, w->m_NumPoints);
+	fprintf (out[hull], "%i %i %i %i %u\n", detaillevel, f->planenum, f->texinfo, f->contents, w.m_NumPoints);
 
     // for each of the points on the face
-    for (i = 0; i < w->m_NumPoints; i++)
+    for (i = 0; i < w.m_NumPoints; i++)
     {
         // write the co-ords
-        fprintf(out[hull], "%5.8f %5.8f %5.8f\n", w->m_Points[i][0], w->m_Points[i][1], w->m_Points[i][2]);
+        fprintf(out[hull], "%5.8f %5.8f %5.8f\n", w.m_Points[i][0], w.m_Points[i][1], w.m_Points[i][2]);
     }
 
     // put in an extra line break
@@ -321,15 +321,15 @@ void            WriteFace(const int hull, const bface_t* const f
 		side = !side;
 		if (side)
 		{
-			vec3_array center = w->getCenter ();
+			vec3_array center = w.getCenter ();
 			vec3_array center2;
 			VectorAdd (center, f->plane->normal, center2);
 			fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);
-			for (i = 0; i < w->m_NumPoints; i++)
+			for (i = 0; i < w.m_NumPoints; i++)
 			{
-				vec_t *p1, *p2;
-				p1 = w->m_Points[i].data();
-				p2 = w->m_Points[(i+1)%w->m_NumPoints].data();
+				const vec3_array& p1{w.m_Points[i]};
+                const vec3_array& p2{w.m_Points[(i+1) % w.m_NumPoints]};
+
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center[0], center[1], center[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p2[0], p2[1], p2[2]);
@@ -1524,15 +1524,7 @@ static void     Settings(const bsp_data& bspData)
         "---------------------|-----------|-------------------------\n");
 
     // ZHLT Common Settings
-    if (cli_option_defaults::numberOfThreads == -1)
-    {
-        Log("threads               [ %7d ] [  Varies ]\n", g_numthreads);
-    }
-    else
-    {
-        Log("threads               [ %7d ] [ %7d ]\n", g_numthreads, cli_option_defaults::numberOfThreads);
-    }
-
+    Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
     Log("verbose               [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");
     Log("log                   [ %7s ] [ %7s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
     Log("reset logfile         [ %7s ] [ %7s ]\n", g_resetlog ? "on" : "off", DEFAULT_RESETLOG ? "on" : "off");
@@ -1671,9 +1663,10 @@ int             main(const int argc, char** argv)
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
                 g_numthreads = atoi(argv[++i]);
-                if (g_numthreads < 1)
+
+                if (std::cmp_greater(g_numthreads, MAX_THREADS))
                 {
-                    Log("Expected value of at least 1 for '-threads'\n");
+                    Log("Expected value below %zu for '-threads'\n", MAX_THREADS);
                     Usage();
                 }
             }

@@ -107,9 +107,6 @@
 // o_O ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	#define DEFAULT_TRANSTOTAL_HACK 0.2 //0.5 //vluzacn
-	#define DEFAULT_MINLIGHT 0
-	#define DEFAULT_TRANSFER_COMPRESS_TYPE FLOAT16
-	#define DEFAULT_RGBTRANSFER_COMPRESS_TYPE VECTOR32
 	#define DEFAULT_SOFTSKY true
 	#define DEFAULT_BLOCKOPAQUE 1
 	#define DEFAULT_TRANSLUCENTDEPTH 2.0f

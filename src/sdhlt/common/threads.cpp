@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <malloc.h>
 #endif
+#include <thread>
 
 #include "cli_option_defaults.h"
 #include "cmdlib.h"
@@ -19,6 +20,7 @@
 
 #include "hlassert.h"
 
+std::ptrdiff_t g_numthreads = cli_option_defaults::numberOfThreads;
 q_threadpriority g_threadpriority = cli_option_defaults::threadPriority;
 
 #define THREADTIMES_SIZE 100
@@ -175,6 +177,16 @@ void            RunThreadsOnIndividual(int workcnt, bool showpacifier, q_threadf
 
 #ifndef SINGLE_THREADED
 
+
+void ThreadSetDefault()
+{
+    if (g_numthreads <= 0) // Set the number of threads automatically
+    {
+        g_numthreads = std::clamp<std::ptrdiff_t>(std::thread::hardware_concurrency(), 1, MAX_THREADS);
+    }
+}
+
+
 /*====================
 | Begin SYSTEM_WIN32
 =*/
@@ -183,7 +195,6 @@ void            RunThreadsOnIndividual(int workcnt, bool showpacifier, q_threadf
 #define	USED
 #include <windows.h>
 
-int             g_numthreads = cli_option_defaults::numberOfThreads;
 static CRITICAL_SECTION crit;
 static int      enter;
 
@@ -235,21 +246,6 @@ static void     AdjustPriority(HANDLE hThread)
     SetThreadPriority(hThread, val);
 }
 #endif
-
-void            ThreadSetDefault()
-{
-    SYSTEM_INFO     info;
-
-    if (g_numthreads == -1)                                // not set manually
-    {
-        GetSystemInfo(&info);
-        g_numthreads = info.dwNumberOfProcessors;
-        if (g_numthreads < 1 || g_numthreads > 32)
-        {
-            g_numthreads = 1;
-        }
-    }
-}
 
 void            ThreadLock()
 {
@@ -414,8 +410,6 @@ void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction fu
 
 #define	USED
 
-int             g_numthreads = cli_option_defaults::numberOfThreads;
-
 void            ThreadSetPriority(q_threadpriority type)
 {
     int             val;
@@ -440,14 +434,6 @@ void            ThreadSetPriority(q_threadpriority type)
         break;
     }
     setpriority(PRIO_PROCESS, 0, val);
-}
-
-void            ThreadSetDefault()
-{
-    if (g_numthreads == -1)
-    {
-        g_numthreads = 1;
-    }
 }
 
 typedef void*    pthread_addr_t;

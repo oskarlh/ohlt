@@ -10,15 +10,11 @@ namespace cli_option_defaults {
 	constexpr bool estimate = true;
 	constexpr bool info = true;
 	constexpr bool log = true;
+	constexpr std::uint8_t minLight = 0;
 	constexpr bool nulltex = true;
+	constexpr std::ptrdiff_t numberOfThreads = -1;
 	constexpr bool verbose = false;
 	constexpr q_threadpriority threadPriority = q_threadpriority::eThreadPriorityNormal;
-
-#ifdef SYSTEM_WIN32
-	constexpr int numberOfThreads = -1;
-#else
-	constexpr int numberOfThreads = 1;
-#endif
 
 
 	// This value is arbitrary

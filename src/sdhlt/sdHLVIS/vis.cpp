@@ -22,6 +22,7 @@
 #include <fstream> //FixPrt
 #include <vector> //FixPrt
 #include <iostream> //FixPrt
+#include <utility>
 
 /*
 
@@ -808,15 +809,7 @@ static void     Settings()
     Log("Name               |  Setting  |  Default\n" "-------------------|-----------|-------------------------\n");
 
     // ZHLT Common Settings
-    if (cli_option_defaults::numberOfThreads == -1)
-    {
-        Log("threads             [ %7d ] [  Varies ]\n", g_numthreads);
-    }
-    else
-    {
-        Log("threads             [ %7d ] [ %7d ]\n", g_numthreads, cli_option_defaults::numberOfThreads);
-    }
-
+    Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
     Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");
     Log("log                 [ %7s ] [ %7s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
     Log("developer           [ %7d ] [ %7d ]\n", g_developer, cli_option_defaults::developer);
@@ -1005,9 +998,10 @@ int             main(const int argc, char** argv)
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
                 g_numthreads = atoi(argv[++i]);
-                if (g_numthreads < 1)
+
+                if (std::cmp_greater(g_numthreads, MAX_THREADS))
                 {
-                    Log("Expected value of at least 1 for '-threads'\n");
+                    Log("Expected value below %zu for '-threads'\n", MAX_THREADS);
                     Usage();
                 }
             }

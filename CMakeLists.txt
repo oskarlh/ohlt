@@ -56,6 +56,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/bspfile.h
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h
+    ${COMMON_DIR}/cli_option_defaults.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/log.h
@@ -137,6 +138,7 @@ set(RAD_SOURCES
     ${RAD_DIR}/progmesh.cpp
     ${RAD_DIR}/qrad.cpp
     ${RAD_DIR}/qradutil.cpp
+    ${RAD_DIR}/rad_cli_option_defaults.h
     ${RAD_DIR}/sparse.cpp
 	${RAD_DIR}/studio.cpp
     ${RAD_DIR}/trace.cpp

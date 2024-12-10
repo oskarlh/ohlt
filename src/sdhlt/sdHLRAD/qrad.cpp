@@ -17,10 +17,11 @@
 #include <vector>
 #include <string>
 #include <numbers>
+#include <utility>
 
 #include "bsp_file_sizes.h"
 #include "qrad.h"
-#include "../common/cli_option_defaults.h"
+#include "rad_cli_option_defaults.h"
 
 
 /*
@@ -100,9 +101,9 @@ bool		g_customshadow_with_bouncelight = DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT;
 bool		g_rgb_transfers = DEFAULT_RGB_TRANSFERS;
 
 float		g_transtotal_hack = DEFAULT_TRANSTOTAL_HACK;
-unsigned char g_minlight = DEFAULT_MINLIGHT;
-float_type g_transfer_compress_type = DEFAULT_TRANSFER_COMPRESS_TYPE;
-vector_type g_rgbtransfer_compress_type = DEFAULT_RGBTRANSFER_COMPRESS_TYPE;
+std::uint8_t g_minlight = cli_option_defaults::minLight;
+float_type g_transfer_compress_type = cli_option_defaults::transferCompressType;
+vector_type g_rgbtransfer_compress_type = cli_option_defaults::rgbTransferCompressType;
 bool g_softsky = DEFAULT_SOFTSKY;
 int g_blockopaque = DEFAULT_BLOCKOPAQUE;
 bool g_notextures = DEFAULT_NOTEXTURES;
@@ -2036,7 +2037,7 @@ static void     GatherLight(int threadnum)
             unsigned        size = (tIndex->size + 1);
             unsigned        patchnum = tIndex->index;
 
-            for (l = 0; l < size; l++, tData+=float_size[g_transfer_compress_type], patchnum++)
+            for (l = 0; l < size; l++, tData+=float_size[(std::size_t) g_transfer_compress_type], patchnum++)
             {
                 vec3_t          v;
                  //LRC:
@@ -2197,7 +2198,7 @@ static void     GatherRGBLight(int threadnum)
             unsigned        l;
             unsigned        size = (tIndex->size + 1);
             unsigned        patchnum = tIndex->index;
-            for (l = 0; l < size; l++, tRGBData+=vector_size[g_rgbtransfer_compress_type], patchnum++)
+            for (l = 0; l < size; l++, tRGBData+=vector_size[(std::size_t) g_rgbtransfer_compress_type], patchnum++)
             {
                 vec3_t          v;
                  //LRC:
@@ -2733,15 +2734,7 @@ static void     Settings()
         "--------------------|---------------------|-------------------------\n");
 
     // ZHLT Common Settings
-    if (cli_option_defaults::numberOfThreads == -1)
-    {
-        Log("threads              [ %17d ] [            Varies ]\n", g_numthreads);
-    }
-    else
-    {
-        Log("threads              [ %17d ] [ %17d ]\n", g_numthreads, cli_option_defaults::numberOfThreads);
-    }
-
+    Log("threads             [ %17td ] [  Varies ]\n", g_numthreads);
     Log("verbose              [ %17s ] [ %17s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");
     Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
     Log("developer            [ %17d ] [ %17d ]\n", g_developer, cli_option_defaults::developer);
@@ -2874,12 +2867,12 @@ static void     Settings()
         "                     [ %17s ] [ %17s ]\n", g_customshadow_with_bouncelight ? "on" : "off", DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT ? "on" : "off");
     Log("rgb transfers        [ %17s ] [ %17s ]\n", g_rgb_transfers ? "on" : "off", DEFAULT_RGB_TRANSFERS ? "on" : "off"); 
 
-	Log("minimum final light  [ %17d ] [ %17d ]\n", (int)g_minlight, (int)DEFAULT_MINLIGHT);
-	snprintf (buf1, sizeof(buf1), "%d (%s)", g_transfer_compress_type, float_type_string[g_transfer_compress_type]);
-	snprintf (buf2, sizeof(buf2), "%d (%s)", DEFAULT_TRANSFER_COMPRESS_TYPE, float_type_string[DEFAULT_TRANSFER_COMPRESS_TYPE]);
+	Log("minimum final light  [ %17d ] [ %17d ]\n", (int)g_minlight, (int)cli_option_defaults::minLight);
+	snprintf (buf1, sizeof(buf1), "%d (%s)", g_transfer_compress_type, float_type_string[(std::size_t) g_transfer_compress_type]);
+	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::transferCompressType, float_type_string[(std::size_t) cli_option_defaults::transferCompressType]);
 	Log("size of transfer     [ %17s ] [ %17s ]\n", buf1, buf2);
-	snprintf (buf1, sizeof(buf1), "%d (%s)", g_rgbtransfer_compress_type, vector_type_string[g_rgbtransfer_compress_type]);
-	snprintf (buf2, sizeof(buf2), "%d (%s)", DEFAULT_RGBTRANSFER_COMPRESS_TYPE, vector_type_string[DEFAULT_RGBTRANSFER_COMPRESS_TYPE]);
+	snprintf (buf1, sizeof(buf1), "%d (%s)", g_rgbtransfer_compress_type, vector_type_string[(std::size_t) g_rgbtransfer_compress_type]);
+	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::rgbTransferCompressType, vector_type_string[(std::size_t) cli_option_defaults::rgbTransferCompressType]);
 	Log("size of rgbtransfer  [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("soft sky             [ %17s ] [ %17s ]\n", g_softsky ? "on" : "off", DEFAULT_SOFTSKY ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_translucentdepth);
@@ -3179,9 +3172,10 @@ int             main(const int argc, char** argv)
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
                 g_numthreads = atoi(argv[++i]);
-                if (g_numthreads < 1)
+
+                if (std::cmp_greater(g_numthreads, MAX_THREADS))
                 {
-                    Log("Expected value of at least 1 for '-threads'\n");
+                    Log("Expected value below %zu for '-threads'\n", MAX_THREADS);
                     Usage();
                 }
             }
@@ -3649,9 +3643,11 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				g_transfer_compress_type = (float_type)atoi(argv[++i]);
-				if (g_transfer_compress_type < 0 || g_transfer_compress_type >= float_type_count)
+				int value = atoi(argv[++i]);
+				if(!is_valid_float_type(value)) {
 					Usage();
+				}
+				g_transfer_compress_type = (float_type) value;
 			}
 			else
 			{
@@ -3662,9 +3658,12 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				g_rgbtransfer_compress_type = (vector_type)atoi(argv[++i]);
-				if (g_rgbtransfer_compress_type < 0 || g_rgbtransfer_compress_type >= vector_type_count)
+
+				int value = atoi(argv[++i]);
+				if(!is_valid_vector_type(value)) {
 					Usage();
+				}
+				g_rgbtransfer_compress_type = (vector_type) value;
 			}
 			else
 			{
