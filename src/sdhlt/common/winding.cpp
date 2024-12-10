@@ -150,8 +150,6 @@ void            Winding::Check(
 							   ) const
 {
     unsigned int    i, j;
-    const vec_t*          p1;
-    const vec_t*          p2;
     vec_t           d, edgedist;
     vec3_array          dir, edgenormal, facenormal;
     vec_t           area;
@@ -172,7 +170,7 @@ void            Winding::Check(
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        p1 = m_Points[i].data();
+        const vec3_array& p1 = m_Points[i];
 
         for (j = 0; j < 3; j++)
         {
@@ -192,7 +190,7 @@ void            Winding::Check(
         }
 
         // check the edge isn't degenerate
-        p2 = m_Points[j].data();
+        const vec3_array& p2 = m_Points[j];
         VectorSubtract(p2, p1, dir);
 
         if (VectorLength(dir) < epsilon)
@@ -510,7 +508,7 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        const vec_t* p1 = m_Points[i].data();
+        const vec3_array& p1 = m_Points[i];
 
         if (sides[i] == SIDE_ON)
         {
@@ -724,7 +722,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i].data();
+        const vec3_array& p1 = m_Points[i];
 
         if (sides[i] == SIDE_ON)
         {
@@ -881,7 +879,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
 
     for (i = 0; i < m_NumPoints; i++)
     {
-        vec_t* p1 = m_Points[i].data();
+        const vec3_array& p1 = m_Points[i];
 
         if (sides[i] == SIDE_ON)
         {
@@ -914,7 +912,7 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp].data();
+        const vec3_array& p2 = m_Points[tmp];
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
