@@ -19,7 +19,8 @@ static std::optional<Winding> NewWindingFromPlane(const brushhull_t* const hull,
 
         if (back)
         {
-            std::swap(winding, back);
+	        using std::swap;
+            swap(winding, back);
         }
         else
         {

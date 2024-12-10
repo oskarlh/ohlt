@@ -242,25 +242,22 @@ Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
 {
 	hlassert(numpoints >= 3);
 	m_NumPoints = numpoints;
-	m_MaxPoints = (m_NumPoints + 3) & ~3;	// groups of 4
+    std::size_t capacity = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points.reserve(m_MaxPoints);
+    m_Points.reserve(capacity);
     m_Points.assign_range(std::span(points, m_NumPoints));
-	m_Points.resize(m_MaxPoints, {});
+	m_Points.resize(capacity, {});
 }
 
 Winding&      Winding::operator=(const Winding& other)
 {
     m_NumPoints = other.m_NumPoints;
-    m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
-
     m_Points = other.m_Points;
     return *this;
 }
 Winding&      Winding::operator=(Winding&& other)
 {
     m_NumPoints = other.m_NumPoints;
-    m_MaxPoints = other.m_MaxPoints;
     m_Points = std::move(other.m_Points);
     return *this;
 }
@@ -271,22 +268,19 @@ Winding::Winding(std::uint_least32_t numpoints)
 {
     hlassert(numpoints >= 3);
     m_NumPoints = numpoints;
-    m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
+    std::size_t capacity = (m_NumPoints + 3) & ~3;   // groups of 4
 
-    m_Points.resize(m_MaxPoints);
+    m_Points.resize(capacity);
 }
 
 Winding::Winding(const Winding& other)
 {
     m_NumPoints = other.m_NumPoints;
-    m_MaxPoints = (m_NumPoints + 3) & ~3;   // groups of 4
-
     m_Points = other.m_Points;
 }
 
 Winding::Winding(Winding&& other): 
     m_NumPoints(other.m_NumPoints),
-    m_MaxPoints(other.m_MaxPoints),
     m_Points(std::move(other.m_Points))
 {
 }
@@ -612,7 +606,8 @@ bool          Winding::Chop(const vec3_array& normal, const vec_t dist
     if (f)
     {
         m_NumPoints = f->m_NumPoints;
-        std::swap(m_Points, f->m_Points);
+    	using std::swap;
+        swap(m_Points, f->m_Points);
         return true;
     }
     else
@@ -755,7 +750,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         {
             tmp = 0;
         }
-        vec_t* p2 = m_Points[tmp].data();
+        const vec3_array& p2 = m_Points[tmp];
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -776,7 +771,8 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         Error("Winding::Clip : points exceeded estimate");
     }
 
-    std::swap(m_Points, newPoints);
+	using std::swap;
+    swap(m_Points, newPoints);
     m_NumPoints = newNumPoints;
 
     RemoveColinearPoints(
@@ -964,18 +960,15 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
 }
 
 
-void            Winding::addPoint(const vec3_array& newpoint)
+void Winding::addPoint(const vec3_array& newpoint)
 {
-    if (m_NumPoints >= m_MaxPoints)
-    {
-        grow_capacity();
-    }
+    grow_capacity();
     VectorCopy(newpoint, m_Points[m_NumPoints]);
     m_NumPoints++;
 }
 
 
-void            Winding::insertPoint(const vec3_array& newpoint, const unsigned int offset)
+void Winding::insertPoint(const vec3_array& newpoint, const unsigned int offset)
 {
     if (offset >= m_NumPoints)
     {
@@ -983,10 +976,7 @@ void            Winding::insertPoint(const vec3_array& newpoint, const unsigned 
     }
     else
     {
-        if (m_NumPoints >= m_MaxPoints)
-        {
-            grow_capacity();
-        }
+        grow_capacity();
 
         unsigned x;
         for (x = m_NumPoints; x>offset; x--)
@@ -1005,5 +995,4 @@ void Winding::grow_capacity()
     std::uint_least32_t newsize = m_NumPoints + 1;
     newsize = (newsize + 3) & ~3;   // groups of 4
     m_Points.resize(newsize);
-    m_MaxPoints = newsize;
 }

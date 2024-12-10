@@ -104,14 +104,12 @@ public:
     // Data
     std::uint_least32_t  m_NumPoints{0};
     std::vector<vec3_array> m_Points{};
-protected:
-    std::uint_least32_t  m_MaxPoints{0};
 public:
 
     friend inline void swap(Winding& a, Winding& b) {
-      std::swap(a.m_Points, b.m_Points);
-      std::swap(a.m_NumPoints, b.m_NumPoints);
-      std::swap(a.m_MaxPoints, b.m_MaxPoints);
+	    using std::swap;
+      swap(a.m_Points, b.m_Points);
+      swap(a.m_NumPoints, b.m_NumPoints);
     }
 
 };

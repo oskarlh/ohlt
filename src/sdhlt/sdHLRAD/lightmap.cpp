@@ -4273,7 +4273,8 @@ void            PrecompLightmapOffsets()
 void ReduceLightmap ()
 {
 	std::vector<std::byte> oldlightdata;
-	std::swap(oldlightdata, g_dlightdata);
+	using std::swap;
+	swap(oldlightdata, g_dlightdata);
 
 	int facenum;
 	for (facenum = 0; facenum < g_numfaces; facenum++)
