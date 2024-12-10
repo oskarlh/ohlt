@@ -785,8 +785,7 @@ static void     CSGBrush(int brushnum)
 					w->Clip (f2->plane->normal, f2->plane->dist, frontw, backw);
 					if (backw)
 					{
-						delete w;
-						w = new Winding(std::move(backw).value());
+						*w = std::move(backw).value();
 					}
 					else
 					{
@@ -828,8 +827,7 @@ static void     CSGBrush(int brushnum)
 							}
 							if (backw)
 							{
-								delete f->w;
-								f->w = new Winding(std::move(backw).value());
+								*f->w = std::move(backw).value();
 								f->w->getBounds (f->bounds);
 							}
 							else

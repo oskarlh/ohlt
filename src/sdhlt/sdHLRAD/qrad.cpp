@@ -814,13 +814,9 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				continue;
 			}
 
-			delete winding;
-			winding = nullptr;
-
+			*winding = std::move(front).value();
 			windingArray[g_numwindings] = new Winding(std::move(back).value());
 			g_numwindings++;
-
-			winding = new Winding(std::move(front).value());
 		}
 
 		windingArray[g_numwindings] = winding;
@@ -854,13 +850,9 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 					continue;
 				}
 
-				delete strip;
-				strip = nullptr;
-
+				*strip = std::move(front).value();
 				windingArray[g_numwindings] = new Winding(std::move(back).value());
 				g_numwindings++;
-
-				strip = new Winding(std::move(front).value());
 			}
 
 			windingArray[g_numwindings] = strip;
