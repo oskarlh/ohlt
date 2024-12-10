@@ -522,96 +522,98 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 
 static void CalcSinglePosition (positionmap_t *map, int is, int it)
 {
-	position_t *p;
-	vec_t smin, smax, tmin, tmax;
-	dplane_t clipplanes[4];
-	const vec3_t v_s = {1, 0, 0};
-	const vec3_t v_t = {0, 1, 0};
-	Winding *zone;
 
-	p = &map->grid[is + map->w * it];
-	smin = map->start[0] + is * map->step[0];
-	smax = map->start[0] + (is + 1) * map->step[0];
-	tmin = map->start[1] + it * map->step[1];
-	tmax = map->start[1] + (it + 1) * map->step[1];
+	position_t& p = map->grid[is + map->w * it];
+	const vec_t smin = map->start[0] + is * map->step[0];
+	const vec_t smax = map->start[0] + (is + 1) * map->step[0];
+	const vec_t tmin = map->start[1] + it * map->step[1];
+	const vec_t tmax = map->start[1] + (it + 1) * map->step[1];
 
+	std::array<dplane_t, 4> clipplanes{};
+	const vec3_array v_s = {1, 0, 0};
+	const vec3_array v_t = {0, 1, 0};
 	VectorScale (v_s,  1, clipplanes[0].normal); clipplanes[0].dist =  smin;
 	VectorScale (v_s, -1, clipplanes[1].normal); clipplanes[1].dist = -smax;
 	VectorScale (v_t,  1, clipplanes[2].normal); clipplanes[2].dist =  tmin;
 	VectorScale (v_t, -1, clipplanes[3].normal); clipplanes[3].dist = -tmax;
 
-	p->nudged = true; // it's nudged unless it can get its position directly from its s,t
-	zone = new Winding (*map->texwinding);
-	for (int x = 0; x < 4 && zone->m_NumPoints > 0; x++)
+	p.nudged = true; // it's nudged unless it can get its position directly from its s,t
+	Winding zone{*map->texwinding};
+	for (int x = 0; x < 4 && zone.m_NumPoints > 0; x++)
 	{
-		zone->Clip (clipplanes[x], false);
+		zone.Clip (clipplanes[x], false);
 	}
-	if (zone->m_NumPoints == 0)
+	if (zone.m_NumPoints == 0)
 	{
-		p->valid = false;
+		p.valid = false;
+		return;
 	}
-	else
+
+	vec3_array original_st;
+
+	original_st[0] = map->start[0] + (is + 0.5) * map->step[0];
+	original_st[1] = map->start[1] + (it + 0.5) * map->step[1];
+	original_st[2] = 0.0;
+
+	vec3_array test_st;
+
+	VectorCopy (original_st, test_st);
+	snap_to_winding (zone, map->texplane, test_st.data());
+
+	if (IsPositionValid (map, test_st, p.pos))
 	{
-		vec3_t original_st;
-		vec3_array test_st;
+		p.nudged = false;
+		p.best_s = test_st[0];
+		p.best_t = test_st[1];
+		p.valid = true;
+		return;
+	}
 
-		original_st[0] = map->start[0] + (is + 0.5) * map->step[0];
-		original_st[1] = map->start[1] + (it + 0.5) * map->step[1];
-		original_st[2] = 0.0;
+	test_st = zone.getCenter ();
+	if (IsPositionValid (map, test_st, p.pos))
+	{
+		p.best_s = test_st[0];
+		p.best_t = test_st[1];
+		p.valid = true;
+		return;
+	}
 
-		p->valid = false;
+	if (g_fastmode) {
+		p.valid = false;
+		return;
+	}
 
-		if (!p->valid)
+	constexpr std::size_t numNudges = 12;
+	const std::array<vec3_array, 12> nudgeList{
+			vec3_array{0.1, 0, 0},
+			vec3_array{-0.1, 0, 0},
+			vec3_array{0, 0.1, 0},
+			vec3_array{0, -0.1, 0},
+			vec3_array{0.3, 0, 0},
+			vec3_array{-0.3, 0, 0},
+			vec3_array{0, 0.3, 0},
+			vec3_array{0, -0.3, 0},
+			vec3_array{0.3, 0.3, 0},
+			vec3_array{-0.3, 0.3, 0},
+			vec3_array{-0.3, -0.3, 0},
+			vec3_array{0.3, -0.3, 0}
+	};
+
+	for (const vec3_array& nudge : nudgeList)
+	{
+		VectorMultiply (nudge, map->step, test_st);
+		VectorAdd (test_st, original_st, test_st);
+		snap_to_winding (zone, map->texplane, test_st.data());
+
+		if (IsPositionValid (map, test_st, p.pos))
 		{
-			VectorCopy (original_st, test_st);
-			snap_to_winding (*zone, map->texplane, test_st.data());
-
-			if (IsPositionValid (map, test_st, p->pos))
-			{
-				p->valid = true;
-				p->nudged = false;
-				p->best_s = test_st[0];
-				p->best_t = test_st[1];
-			}
-		}
-		
-		if (!p->valid)
-		{
-			test_st = zone->getCenter ();
-			if (IsPositionValid (map, test_st, p->pos))
-			{
-				p->valid = true;
-				p->best_s = test_st[0];
-				p->best_t = test_st[1];
-			}
-		}
-
-		if (!p->valid
-			&& !g_fastmode
-			)
-		{
-			const int numnudges = 12;
-			vec3_t nudgelist[numnudges] = {{0.1, 0, 0}, {-0.1, 0, 0}, {0, 0.1, 0}, {0, -0.1, 0},
-										   {0.3, 0, 0}, {-0.3, 0, 0}, {0, 0.3, 0}, {0, -0.3, 0},
-										   {0.3, 0.3, 0}, {-0.3, 0.3, 0}, {-0.3, -0.3, 0}, {0.3, -0.3, 0}};
-
-			for (int i = 0; i < numnudges; i++)
-			{
-				VectorMultiply (nudgelist[i], map->step, test_st);
-				VectorAdd (test_st, original_st, test_st);
-				snap_to_winding (*zone, map->texplane, test_st.data());
-
-				if (IsPositionValid (map, test_st, p->pos))
-				{
-					p->valid = true;
-					p->best_s = test_st[0];
-					p->best_t = test_st[1];
-					break;
-				}
-			}
+			p.best_s = test_st[0];
+			p.best_t = test_st[1];
+			p.valid = true;
+			return;
 		}
 	}
-	delete zone;
+	p.valid = false;
 }
 
 void FindFacePositions (int facenum)
