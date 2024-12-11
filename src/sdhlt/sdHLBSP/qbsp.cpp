@@ -219,8 +219,6 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
     int             j;
     face_t*         newf;
     face_t*         new2;
-    vec_t*          p1;
-    vec_t*          p2;
     vec3_t          mid;
 
     if (in->numpoints < 0)
@@ -318,7 +316,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
             Error("SplitFace: numpoints > MAXEDGES");
         }
 
-        p1 = in->pts[i];
+        const vec3_array& p1 {in->pts[i]};
 
         if (sides[i] == SIDE_ON)
         {
@@ -346,7 +344,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
         }
 
         // generate a split point
-        p2 = in->pts[(i + 1) % in->numpoints];
+        const vec3_array& p2 {in->pts[(i + 1) % in->numpoints]};
 
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
@@ -376,19 +374,13 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
         Error("SplitFace: numpoints > MAXEDGES");
     }
 	{
-		Winding *wd = new Winding (newf->numpoints);
-		int x;
-		for (x = 0; x < newf->numpoints; x++)
+		Winding wd{newf->pts, (std::size_t) newf->numpoints};
+		wd.RemoveColinearPoints ();
+		newf->numpoints = wd.size();
+		for (int x = 0; x < newf->numpoints; x++)
 		{
-			VectorCopy (newf->pts[x], wd->m_Points[x]);
+			VectorCopy (wd.m_Points[x], newf->pts[x]);
 		}
-		wd->RemoveColinearPoints ();
-		newf->numpoints = wd->size();
-		for (x = 0; x < newf->numpoints; x++)
-		{
-			VectorCopy (wd->m_Points[x], newf->pts[x]);
-		}
-		delete wd;
 		if (newf->numpoints == 0)
 		{
 			*back = nullptr;
@@ -747,7 +739,7 @@ static void     AddFaceToBounds(const face_t* const f, vec3_array& mins, vec3_ar
 
     for (i = 0; i < f->numpoints; i++)
     {
-        AddPointToBounds(f->pts[i], mins, maxs);
+        AddPointToBounds(f->pts[i].data(), mins, maxs);
     }
 }
 

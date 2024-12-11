@@ -83,8 +83,8 @@ private:
 
 public:
     // Construction
-	Winding();										// Do nothing :)
-	Winding(vec3_array *points, std::uint_least32_t numpoints);		// Create from raw points
+	  Winding(); // Do nothing :)
+	  Winding(vec3_array *points, std::size_t numpoints); // Create from raw points
     Winding(const dface_t& face
 		, vec_t epsilon = ON_EPSILON
 		);

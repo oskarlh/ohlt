@@ -456,7 +456,7 @@ void OutputEdges_face (face_t *f)
 	int i;
 	for (i = 0; i < f->numpoints; i++)
 	{
-		int e = GetEdge (f->pts[i], f->pts[(i + 1) % f->numpoints], f);
+		int e = GetEdge (f->pts[i].data(), f->pts[(i + 1) % f->numpoints].data(), f);
 		f->outputedges[i] = e;
 	}
 }

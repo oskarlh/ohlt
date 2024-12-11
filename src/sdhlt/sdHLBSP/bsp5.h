@@ -78,7 +78,7 @@ typedef struct face_s                                      // This structure is 
 	int				referenced;                            // only valid for original faces
     facestyle_e     facestyle;
     // vector quad word aligned
-    vec3_t          pts[MAXEDGES];                         // FIXME: change to use winding_t
+    vec3_array pts[MAXEDGES]; // FIXME: change to use winding_t
 }
 face_t;
 

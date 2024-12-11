@@ -2,7 +2,7 @@
 
 #include "bsp5.h"
 
-node_t          g_outside_node;                            // portals outside the world face this
+node_t g_outside_node; // portals outside the world face this
 
 //=============================================================================
 

@@ -63,7 +63,6 @@ static int      FaceSide(face_t* in, const dplane_t* const split
 	vec_t			d_front, d_back;
     vec_t           dot;
     int             i;
-    vec_t*          p;
 
 	d_front = d_back = 0;
 
@@ -73,7 +72,9 @@ static int      FaceSide(face_t* in, const dplane_t* const split
         vec_t           splitGtEp = split->dist + ON_EPSILON;   // Invariant moved out of loop
         vec_t           splitLtEp = split->dist - ON_EPSILON;   // Invariant moved out of loop
 
-        for (i = 0, p = in->pts[0] + split->type; i < in->numpoints; i++, p += 3)
+	    const vec_t* p;
+		// TODO: This pointer logic is ugly, with the p += 3
+        for (i = 0, p = &in->pts[0][(std::size_t) split->type]; i < in->numpoints; i++, p += 3)
         {
 			dot = *p - split->dist;
 			if (dot > d_front)
@@ -85,7 +86,9 @@ static int      FaceSide(face_t* in, const dplane_t* const split
     else
     {
         // sloping planes take longer
-        for (i = 0, p = in->pts[0]; i < in->numpoints; i++, p += 3)
+	    const vec_t* p;
+		// TODO: This pointer logic is ugly, with the p += 3
+        for (i = 0, p = in->pts[0].data(); i < in->numpoints; i++, p += 3)
         {
             dot = DotProduct(p, split->normal);
             dot -= split->dist;

@@ -1605,9 +1605,7 @@ static entity_t *FindTexlightEntity (int facenum)
 	const dplane_t *dplane = getPlaneFromFace (face);
 	const char *texname = GetTextureByNumber (face->texinfo);
 	entity_t *faceent = g_face_entity[facenum];
-	Winding *w = new Winding (*face);
-	vec3_array centroid = w->getCenter ();
-	delete w;
+	vec3_array centroid{ Winding(*face).getCenter() };
 	VectorAdd (centroid, g_face_offset[facenum], centroid);
 
 	entity_t *found = nullptr;

@@ -68,12 +68,12 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
 
     for (i = 0; i < f1->numpoints; i++)
     {
-        p1 = f1->pts[i];
-        p2 = f1->pts[(i + 1) % f1->numpoints];
+        p1 = f1->pts[i].data();
+        p2 = f1->pts[(i + 1) % f1->numpoints].data();
         for (j = 0; j < f2->numpoints; j++)
         {
-            p3 = f2->pts[j];
-            p4 = f2->pts[(j + 1) % f2->numpoints];
+            p3 = f2->pts[j].data();
+            p4 = f2->pts[(j + 1) % f2->numpoints].data();
             for (k = 0; k < 3; k++)
             {
                 if (fabs(p1[k] - p4[k]) > ON_EPSILON)
@@ -108,12 +108,12 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     plane = &g_dplanes[f1->planenum];
     VectorCopy(plane->normal, planenormal);
 
-    back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints];
+    back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints].data();
     VectorSubtract(p1, back, delta);
     CrossProduct(planenormal, delta, normal);
     VectorNormalize(normal);
 
-    back = f2->pts[(j + 2) % f2->numpoints];
+    back = f2->pts[(j + 2) % f2->numpoints].data();
     VectorSubtract(back, p1, delta);
     dot = DotProduct(delta, normal);
     if (dot > CONTINUOUS_EPSILON)
@@ -122,12 +122,12 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     }
     keep1 = dot < -CONTINUOUS_EPSILON;
 
-    back = f1->pts[(i + 2) % f1->numpoints];
+    back = f1->pts[(i + 2) % f1->numpoints].data();
     VectorSubtract(back, p2, delta);
     CrossProduct(planenormal, delta, normal);
     VectorNormalize(normal);
 
-    back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints];
+    back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints].data();
     VectorSubtract(back, p2, delta);
     dot = DotProduct(delta, normal);
     if (dot > CONTINUOUS_EPSILON)

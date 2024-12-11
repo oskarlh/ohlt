@@ -188,12 +188,11 @@ bool          Winding::Valid() const
 Winding::Winding()
 {}
 
-Winding::Winding(vec3_array *points, std::uint_least32_t numpoints)
+Winding::Winding(vec3_array *points, std::size_t numpoints)
 {
 	hlassert(numpoints >= 3);
     std::size_t capacity = (numpoints + 3) & ~3;   // groups of 4
     m_Points.reserve(capacity);
-
     m_Points.assign_range(std::span(points, numpoints));
 }
 

@@ -310,7 +310,7 @@ static void     AddFaceEdges(const face_t* const f)
     for (i = 0; i < f->numpoints; i++)
     {
         j = (i + 1) % f->numpoints;
-        AddEdge(f->pts[i], f->pts[j]);
+        AddEdge(f->pts[i].data(), f->pts[j].data());
     }
 }
 
@@ -456,7 +456,7 @@ restart:
     {
         j = (i + 1) % superface->numpoints;
 
-        w = FindEdge(superface->pts[i], superface->pts[j], &t1, &t2);
+        w = FindEdge(superface->pts[i].data(), superface->pts[j].data(), &t1, &t2);
 
         for (v = w->head.next; v->t < t1 + T_EPSILON; v = v->next)
         {
