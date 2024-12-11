@@ -213,27 +213,24 @@ static void     DumpHullWindings(const brushhull_t* const hull)
     }
 }
 
-static bool     isInvalidHull(const brushhull_t* const hull)
+static bool isInvalidHull(const brushhull_t* hull)
 {
-    int             x = 0;
-    bface_t*        face;
 
     vec3_array mins{ 99999.0, 99999.0, 99999.0 };
     vec3_array maxs{ -99999.0, -99999.0, -99999.0 };
 
-    for (face = hull->faces; face; face = face->next)
+    for (bface_t* face = hull->faces; face; face = face->next)
     {
-        unsigned int    y;
-        Winding*        winding = face->w;
+        const Winding& winding = *face->w;
 
-        for (y = 0; y < winding->size(); y++)
+        for (const vec3_array& windingPoint : winding.m_Points)
         {
-            VectorCompareMinimum(mins, winding->m_Points[y], mins);
-            VectorCompareMaximum(maxs, winding->m_Points[y], maxs);
+            VectorCompareMinimum(mins, windingPoint, mins);
+            VectorCompareMaximum(maxs, windingPoint, maxs);
         }
     }
 
-    for (x = 0; x < 3; x++)
+    for (std::size_t x = 0; x < 3; ++x)
     {
         if ((mins[x] < (-g_iWorldExtent / 2)) || (maxs[x] > (g_iWorldExtent / 2)))
         {
