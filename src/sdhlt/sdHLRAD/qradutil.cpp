@@ -539,11 +539,11 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 
 	p.nudged = true; // it's nudged unless it can get its position directly from its s,t
 	Winding zone{*map->texwinding};
-	for (int x = 0; x < 4 && zone.m_NumPoints > 0; x++)
+	for (int x = 0; x < 4 && zone.size() > 0; x++)
 	{
 		zone.Clip (clipplanes[x], false);
 	}
-	if (zone.m_NumPoints == 0)
+	if (zone.size() == 0)
 	{
 		p.valid = false;
 		return;
@@ -658,16 +658,16 @@ void FindFacePositions (int facenum)
 	
 	map->facewinding = new Winding (*f);
 	map->faceplane = *getPlaneFromFace (f);
-	map->facewindingwithoffset = new Winding (map->facewinding->m_NumPoints);
-	for (x = 0; x < map->facewinding->m_NumPoints; x++)
+	map->facewindingwithoffset = new Winding (map->facewinding->size());
+	for (x = 0; x < map->facewinding->size(); x++)
 	{
 		VectorAdd (map->facewinding->m_Points[x], map->face_offset, map->facewindingwithoffset->m_Points[x]);
 	}
 	map->faceplanewithoffset = map->faceplane;
 	map->faceplanewithoffset.dist = map->faceplane.dist + DotProduct (map->face_offset, map->faceplane.normal);
 
-	map->texwinding = new Winding (map->facewinding->m_NumPoints);
-	for (x = 0; x < map->facewinding->m_NumPoints; x++)
+	map->texwinding = new Winding (map->facewinding->size());
+	for (x = 0; x < map->facewinding->size(); x++)
 	{
 		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x].data(), map->texwinding->m_Points[x]);
 		map->texwinding->m_Points[x][2] = 0.0;
@@ -679,7 +679,7 @@ void FindFacePositions (int facenum)
 		map->texplane.normal[2] *= -1;
 	}
 	map->texplane.dist = 0.0;
-	if (map->texwinding->m_NumPoints == 0)
+	if (map->texwinding->size() == 0)
 	{
 		delete map->facewinding;
 		map->facewinding = nullptr;
@@ -694,7 +694,7 @@ void FindFacePositions (int facenum)
 	ApplyMatrix (map->worldtotex, v, map->texcentroid);
 	map->texcentroid[2] = 0.0;
 
-	for (x = 0; x < map->texwinding->m_NumPoints; x++)
+	for (x = 0; x < map->texwinding->size(); x++)
 	{
 		for (k = 0; k < 2; k++)
 		{
@@ -901,7 +901,7 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 	itmax = -1;
 	ismin = map->w;
 	ismax = -1;
-	for (x = 0; x < texwinding->m_NumPoints; x++)
+	for (x = 0; x < texwinding->size(); x++)
 	{
 		it = (int)floor ((texwinding->m_Points[x][1] - map->start[1] + 0.5 * ON_EPSILON) / map->step[1]);
 		itmin = std::min(itmin, it);

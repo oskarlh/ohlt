@@ -42,16 +42,17 @@ public:
     void getPlane(dplane_t& plane) const;
     void getPlane(vec3_array& normal, vec_t& dist) const;
     vec_t           getArea() const;
-    void            getBounds(bounding_box& bounds) const;
-    void            getBounds(vec3_array& mins, vec3_array& maxs) const;
+    bounding_box getBounds() const;
     vec3_array      getCenter() const;
-    Winding*        Copy() const;
     void            Check(
 		vec_t epsilon = ON_EPSILON
 		) const;  // Developer check for validity
     bool            Valid() const;  // Runtime/user/normal check for validity
-    void            addPoint(const vec3_array& newpoint);
-    void            insertPoint(const vec3_array& newpoint, const unsigned int offset);
+
+
+    void pushPoint(const vec3_array& newpoint);
+    void insertPoint(const vec3_array& newpoint, std::size_t offset);
+    std::size_t size() const;
 
     // Specialized Functions
     void            RemoveColinearPoints(
@@ -102,14 +103,12 @@ private:
 
 public:
     // Data
-    std::uint_least32_t  m_NumPoints{0};
     std::vector<vec3_array> m_Points{};
 public:
 
     friend inline void swap(Winding& a, Winding& b) {
 	    using std::swap;
       swap(a.m_Points, b.m_Points);
-      swap(a.m_NumPoints, b.m_NumPoints);
     }
 
 };

@@ -1331,7 +1331,7 @@ static void     MakeNodePortal(node_t* node)
         }
 
         w->Clip(clipplane, true);
-		if (w->m_NumPoints == 0)
+		if (w->size() == 0)
         {
 			Developer (DEVELOPER_LEVEL_WARNING, 
 				"MakeNodePortal:new portal was clipped away from node@(%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
@@ -1480,7 +1480,7 @@ static bool     CalcNodeBounds(node_t* node
         }
         next_portal = p->next[side];
 
-        for (i = 0; i < p->winding->m_NumPoints; i++)
+        for (i = 0; i < p->winding->size(); i++)
         {
             for (j = 0; j < 3; j++)
             {

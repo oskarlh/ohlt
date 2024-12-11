@@ -23,7 +23,7 @@ bool TestFaceIntersect (intersecttest_t *t, int facenum)
 	dface_t *f2 = &g_dfaces[facenum];
 	Winding *w = new Winding (*f2);
 	int k;
-	for (k = 0; k < w->m_NumPoints; k++)
+	for (k = 0; k < w->size(); k++)
 	{
 		VectorAdd (w->m_Points[k], g_face_offset[facenum], w->m_Points[k]);
 	}
@@ -36,7 +36,7 @@ bool TestFaceIntersect (intersecttest_t *t, int facenum)
 			break;
 		}
 	}
-	bool intersect = w->m_NumPoints > 0;
+	bool intersect = w->size() > 0;
 	delete w;
 	return intersect;
 }
@@ -734,7 +734,7 @@ static void     CalcFaceVectors(lightinfo_t* l)
         Log("Malformed face (%d) normal @ \n", facenum);
         Winding* w = new Winding(*l->face);
         {
-            const unsigned numpoints = w->m_NumPoints;
+            const unsigned numpoints = w->size();
             unsigned x;
             for (x=0; x<numpoints; x++)
             {
@@ -903,8 +903,8 @@ void ChopFrag (samplefrag_t *frag)
 	facewinding = new Winding (*f);
 
 	TranslateWorldToTex (frag->facenum, worldtotex);
-	frag->mywinding = new Winding (facewinding->m_NumPoints);
-	for (int x = 0; x < facewinding->m_NumPoints; x++)
+	frag->mywinding = new Winding (facewinding->size());
+	for (int x = 0; x < facewinding->size(); x++)
 	{
 		ApplyMatrix (worldtotex, facewinding->m_Points[x].data(), frag->mywinding->m_Points[x]);
 		frag->mywinding->m_Points[x][2] = 0.0;
@@ -917,13 +917,13 @@ void ChopFrag (samplefrag_t *frag)
 	}
 	frag->mywindingplane.dist = 0.0;
 
-	for (int x = 0; x < 4 && frag->mywinding->m_NumPoints > 0; x++)
+	for (int x = 0; x < 4 && frag->mywinding->size() > 0; x++)
 	{
 		frag->mywinding->Clip (frag->myrect.planes[x], false);
 	}
 
-	frag->winding = new Winding (frag->mywinding->m_NumPoints);
-	for (int x = 0; x < frag->mywinding->m_NumPoints; x++)
+	frag->winding = new Winding (frag->mywinding->size());
+	for (int x = 0; x < frag->mywinding->size(); x++)
 	{
 		ApplyMatrix (frag->mycoordtocoord, frag->mywinding->m_Points[x].data(), frag->winding->m_Points[x]);
 	}
@@ -1112,7 +1112,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	// chop windings and edges
 	ChopFrag (frag);
 
-	if (frag->winding->m_NumPoints == 0 || frag->mywinding->m_NumPoints == 0)
+	if (frag->winding->size() == 0 || frag->mywinding->size() == 0)
 	{
 		// empty
 		delete frag->mywinding;
@@ -1125,13 +1125,13 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	// do overlap test
 	
 	overlap = false;
-	clipplanes = (dplane_t *)malloc (frag->winding->m_NumPoints * sizeof (dplane_t));
+	clipplanes = (dplane_t *)malloc (frag->winding->size() * sizeof (dplane_t));
 	hlassume (clipplanes != nullptr, assume_NoMemory);
 	numclipplanes = 0;
-	for (int x = 0; x < frag->winding->m_NumPoints; x++)
+	for (int x = 0; x < frag->winding->size(); x++)
 	{
 		vec3_t v;
-		VectorSubtract (frag->winding->m_Points[(x + 1) % frag->winding->m_NumPoints], frag->winding->m_Points[x], v);
+		VectorSubtract (frag->winding->m_Points[(x + 1) % frag->winding->size()], frag->winding->m_Points[x], v);
 		CrossProduct (v, frag->windingplane.normal, clipplanes[numclipplanes].normal);
 		if (!VectorNormalize (clipplanes[numclipplanes].normal))
 		{
@@ -1143,13 +1143,13 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	for (samplefrag_t *f2 = info->head; f2 && !overlap; f2 = f2->next)
 	{
 		Winding *w = new Winding (*f2->winding);
-		for (int x = 0; x < numclipplanes && w->m_NumPoints > 0; x++)
+		for (int x = 0; x < numclipplanes && w->size() > 0; x++)
 		{
 			w->Clip (clipplanes[x], false
 					, 4 * ON_EPSILON
 					);
 		}
-		if (w->m_NumPoints > 0)
+		if (w->size() > 0)
 		{
 			overlap = true;
 		}
@@ -1264,7 +1264,7 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, vec_t s, vec_t t,
 
 	ChopFrag (info->head);
 
-	if (info->head->winding->m_NumPoints == 0 || info->head->mywinding->m_NumPoints == 0)
+	if (info->head->winding->size() == 0 || info->head->mywinding->size() == 0)
 	{
 		// empty
 		delete info->head->mywinding;
@@ -1445,7 +1445,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 			ThreadLock ();
 			Log ("Malformed face (%d) normal @ \n", facenum);
 			Winding* w = new Winding (g_dfaces[facenum]);
-			for (int x = 0; x < w->m_NumPoints; x++)
+			for (int x = 0; x < w->size(); x++)
 			{
 				VectorAdd (w->m_Points[x], g_face_offset[facenum], w->m_Points[x]);
 			}
@@ -2960,8 +2960,8 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 	// translate world winding into winding in s,t plane
 	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
 	{
-		Winding *w = new Winding (patch->winding->m_NumPoints);
-		for (int x = 0; x < w->m_NumPoints; x++)
+		Winding *w = new Winding (patch->winding->size());
+		for (int x = 0; x < w->size(); x++)
 		{
 			vec_t s, t;
 			SetSTFromSurf (l, patch->winding->m_Points[x].data(), s, t);
@@ -3000,12 +3000,12 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 			Winding *w = new Winding (*texwindings[j]);
 			for (k = 0; k < 4; k++)
 			{
-				if (w->m_NumPoints)
+				if (w->size())
 				{
 					w->Clip (clipplanes[k], false);
 				}
 			}
-			if (w->m_NumPoints)
+			if (w->size())
 			{
 				// add sample to patch
 				vec_t area = w->getArea () / (TEXTURE_STEP * TEXTURE_STEP);
@@ -3329,7 +3329,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 				Winding *surfacewinding = new Winding (g_dfaces[surface]);
 				
 				VectorCopy (spot, spot2);
-				for (int x = 0; x < surfacewinding->m_NumPoints; x++)
+				for (int x = 0; x < surfacewinding->size(); x++)
 				{
 					VectorAdd (surfacewinding->m_Points[x], g_face_offset[surface], surfacewinding->m_Points[x]);
 				}

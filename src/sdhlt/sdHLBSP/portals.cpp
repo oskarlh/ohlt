@@ -205,14 +205,14 @@ static void     WritePortalFile_r(const node_t* const node)
 						Warning ("Backward portal @");
 						w->Print ();
 					}
-                    fprintf(pf, "%u %i %i ", w->m_NumPoints, p->nodes[1]->visleafnum, p->nodes[0]->visleafnum);
+                    fprintf(pf, "%zu %i %i ", w->size(), p->nodes[1]->visleafnum, p->nodes[0]->visleafnum);
                 }
                 else
                 {
-                    fprintf(pf, "%u %i %i ", w->m_NumPoints, p->nodes[0]->visleafnum, p->nodes[1]->visleafnum);
+                    fprintf(pf, "%zu %i %i ", w->size(), p->nodes[0]->visleafnum, p->nodes[1]->visleafnum);
                 }
 
-                for (i = 0; i < w->m_NumPoints; i++)
+                for (i = 0; i < w->size(); i++)
                 {
                     fprintf(pf, "(%f %f %f) ", w->m_Points[i][0], w->m_Points[i][1], w->m_Points[i][2]);
                 }
@@ -226,11 +226,11 @@ static void     WritePortalFile_r(const node_t* const node)
 					VectorMA (center, -0.5, p->plane.normal, center2);
 					fprintf (pf_view, "%5.2f %5.2f %5.2f\n", from[0], from[1], from[2]);
 					fprintf (pf_view, "%5.2f %5.2f %5.2f\n", center1[0], center1[1], center1[2]);
-					for (i = 0; i < w->m_NumPoints; i++)
+					for (i = 0; i < w->size(); i++)
 					{
 						vec_t *p1, *p2;
 						p1 = w->m_Points[i].data();
-						p2 = w->m_Points[(i+1)%w->m_NumPoints].data();
+						p2 = w->m_Points[(i+1)%w->size()].data();
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", p2[0], p2[1], p2[2]);
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);

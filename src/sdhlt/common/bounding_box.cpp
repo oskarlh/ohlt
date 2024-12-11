@@ -75,12 +75,6 @@ void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox)
 {
     set_bounding_box(thisBox, otherBox.maxs, otherBox.mins);
 }
-void reset_bounding_box(bounding_box& thisBox)
-{
-    thisBox = bounding_box{};
-    VectorFill(thisBox.maxs, -999999999.999);
-    VectorFill(thisBox.mins,  999999999.999);
-}
 void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point)
 {
     thisBox.mins[0] = std::min(thisBox.mins[0], point[0]);

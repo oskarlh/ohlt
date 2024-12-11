@@ -28,15 +28,15 @@ void AddWadFolder (const char *path)
 
 
 
-typedef struct wadfile_s
+struct wadfile_t
 {
-	struct wadfile_s *next;
+	struct wadfile_t *next;
 	char path[_MAX_PATH];
 	FILE *file;
 	int filesize;
 	int numlumps;
 	lumpinfo_t *lumpinfos;
-} wadfile_t;
+};
 
 wadfile_t *g_wadfiles = nullptr;
 bool g_wadfiles_opened;

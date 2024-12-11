@@ -9,7 +9,7 @@
 bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t epsilon/* = 0.0*/)
 {
 
-	const int numpoints = w.m_NumPoints;
+	const int numpoints = w.size();
 
 	for (int x = 0; x < numpoints; x++)
 	{
@@ -44,7 +44,7 @@ bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3
 	vec3_array normal;
 	vec_t			dist;
 
-	numpoints = w.m_NumPoints;
+	numpoints = w.size();
 
 	for (x = 0; x < numpoints; x++)
 	{
@@ -80,7 +80,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 	vec_t			bestdist;
 	bool			in;
 
-	numpoints = w.m_NumPoints;
+	numpoints = w.size();
 
 	in = true;
 	for (x = 0; x < numpoints; x++)
@@ -155,12 +155,12 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 
 	snap_to_winding (w, plane, point);
 
-	planes = (dplane_t *)malloc (w.m_NumPoints * sizeof (dplane_t));
+	planes = (dplane_t *)malloc (w.size() * sizeof (dplane_t));
 	hlassume (planes != nullptr, assume_NoMemory);
 	numplanes = 0;
-	for (x = 0; x < w.m_NumPoints; x++)
+	for (x = 0; x < w.size(); x++)
 	{
-		VectorSubtract (w.m_Points[(x + 1) % w.m_NumPoints], w.m_Points[x], v);
+		VectorSubtract (w.m_Points[(x + 1) % w.size()], w.m_Points[x], v);
 		CrossProduct (v, plane.normal, planes[numplanes].normal);
 		if (!VectorNormalize (planes[numplanes].normal))
 		{
@@ -183,14 +183,14 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 		failed = true;
 
 		newwinding = new Winding (w);
-		for (x = 0; x < numplanes && newwinding->m_NumPoints > 0; x++)
+		for (x = 0; x < numplanes && newwinding->size() > 0; x++)
 		{
 			dplane_t clipplane = planes[x];
 			clipplane.dist += newwidth;
 			newwinding->Clip (clipplane, false);
 		}
 
-		if (newwinding->m_NumPoints > 0)
+		if (newwinding->size() > 0)
 		{
 			VectorCopy (point, newpoint);
 			snap_to_winding (*newwinding, plane, newpoint.data());
@@ -352,7 +352,7 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 	// maybe there are faster ways in calculating the weighted area, but at least this way is not bad.
 	vec_t area = 0.0;
 
-	int numedges = emitter_winding->m_NumPoints;
+	int numedges = emitter_winding->size();
 	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
@@ -416,7 +416,7 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 	// ratio = 0.0 , when stopdot2 >= dot2
 	vec_t area = 0.0;
 
-	int numedges = emitter_winding->m_NumPoints;
+	int numedges = emitter_winding->size();
 	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
@@ -502,7 +502,7 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 	else
 	{
 		w.Clip (clipplane, false);
-		if (w.m_NumPoints == 0)
+		if (w.size() == 0)
 		{
 			VectorCopy (patch->origin, origin);
 		}
@@ -532,12 +532,12 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 			}
 			if (!found)
 			{
-				for (int i = 0; i < w.m_NumPoints; i++)
+				for (int i = 0; i < w.size(); i++)
 				{
 					const vec_t *p1;
 					const vec_t *p2;
 					p1 = w.m_Points[i].data();
-					p2 = w.m_Points[(i + 1) % w.m_NumPoints].data();
+					p2 = w.m_Points[(i + 1) % w.size()].data();
 					VectorAdd (p1, p2, point);
 					VectorAdd (point, center, point);
 					VectorScale (point, 1.0/3.0, point);

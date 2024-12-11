@@ -353,7 +353,7 @@ lumpinfo_with_wadfileindex*     FindTexture(const lumpinfo_with_wadfileindex* co
     found = (lumpinfo_with_wadfileindex*)bsearch(source, (void*)lumpinfo, (size_t) nTexLumps, sizeof(lumpinfo[0]), lump_sorter_by_name);
     if (!found)
     {
-        Warning("::FindTexture() texture %s not found!", source->lump_info.name);
+        Warning("::FindTexture() texture %s not found!", (const char*) source->lump_info.name.data());
         if (!strcmp((const char*) source->lump_info.name.data(), "NULL") || !strcmp ((const char*) source->lump_info.name.data(), "SKIP"))
         {
             Log("Are you sure you included sdhlt.wad in your wadpath list?\n");
@@ -453,7 +453,7 @@ static int             LoadLump(const lumpinfo_with_wadfileindex* const source, 
         }
         else
         {
-			Developer(DEVELOPER_LEVEL_MESSAGE,"Including texture %s\n",source->lump_info.name);
+			Developer(DEVELOPER_LEVEL_MESSAGE,"Including texture %s\n", (const char*) source->lump_info.name.data());
             // Load the entire texture here so the BSP contains the texture
 			hlassume (source->lump_info.disksize <= dest_maxsize, assume_MAX_MAP_MIPTEX);
             SafeRead(texfiles[source->iTexFile], dest, source->lump_info.disksize);
@@ -461,7 +461,7 @@ static int             LoadLump(const lumpinfo_with_wadfileindex* const source, 
         }
     }
 
-	Error("::LoadLump() texture %s not found!", source->lump_info.name);
+	Error("::LoadLump() texture %s not found!", (const char*) source->lump_info.name.data());
     return 0;
 }
 

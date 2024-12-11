@@ -37,7 +37,6 @@ bounding_box_state test(const bounding_box& thisBox, const bounding_box& otherBo
 void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_array& mins);
 
 void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox);
-void reset_bounding_box(bounding_box& thisBox);
 
 void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point);
 void add_to_bounding_box(bounding_box& thisBox, bounding_box& other);

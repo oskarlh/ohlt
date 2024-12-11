@@ -481,31 +481,31 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	const vec_t *pA, *pB, *pC, *pD, *p2A, *p2B, *p2C, *p2D;
 	int i, i2;
 
-	for (i = 0; i < w->m_NumPoints; i++)
+	for (i = 0; i < w->size(); i++)
 	{
-		for (i2 = 0; i2 < w2->m_NumPoints; i2++)
+		for (i2 = 0; i2 < w2->size(); i2++)
 		{
-			pA = w->m_Points[(i+w->m_NumPoints-1)%w->m_NumPoints].data();
+			pA = w->m_Points[(i+w->size()-1)%w->size()].data();
 			pB = w->m_Points[i].data();
-			pC = w->m_Points[(i+1)%w->m_NumPoints].data();
-			pD = w->m_Points[(i+2)%w->m_NumPoints].data();
-			p2A = w2->m_Points[(i2+w2->m_NumPoints-1)%w2->m_NumPoints].data();
+			pC = w->m_Points[(i+1)%w->size()].data();
+			pD = w->m_Points[(i+2)%w->size()].data();
+			p2A = w2->m_Points[(i2+w2->size()-1)%w2->size()].data();
 			p2B = w2->m_Points[i2].data();
-			p2C = w2->m_Points[(i2+1)%w2->m_NumPoints].data();
-			p2D = w2->m_Points[(i2+2)%w2->m_NumPoints].data();
+			p2C = w2->m_Points[(i2+1)%w2->size()].data();
+			p2D = w2->m_Points[(i2+2)%w2->size()].data();
 			if (!VectorCompare (pB, p2C) || !VectorCompare (pC, p2B))
 			{
 				continue;
 			}
 			break;
 		}
-		if (i2 == w2->m_NumPoints)
+		if (i2 == w2->size())
 		{
 			continue;
 		}
 		break;
 	}
-	if (i == w->m_NumPoints)
+	if (i == w->size())
 	{
 		return false;
 	}
@@ -543,10 +543,10 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	}
 	side2 = (DotProduct (p2B, pl2.normal) - pl2.dist > ON_EPSILON)? 1: 0;
 
-	Winding *neww = new Winding (w->m_NumPoints + w2->m_NumPoints - 4 + side1 + side2);
+	Winding *neww = new Winding (w->size() + w2->size() - 4 + side1 + side2);
 	int j, k;
 	k = 0;
-	for (j = (i + 2) % w->m_NumPoints; j != i; j = (j + 1) % w->m_NumPoints)
+	for (j = (i + 2) % w->size(); j != i; j = (j + 1) % w->size())
 	{
 		VectorCopy (w->m_Points[j], neww->m_Points[k]);
 		k++;
@@ -556,7 +556,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 		VectorCopy (w->m_Points[j], neww->m_Points[k]);
 		k++;
 	}
-	for (j = (i2 + 2) % w2->m_NumPoints; j != i2; j = (j + 1) % w2->m_NumPoints)
+	for (j = (i2 + 2) % w2->size(); j != i2; j = (j + 1) % w2->size())
 	{
 		VectorCopy (w2->m_Points[j], neww->m_Points[k]);
 		k++;
@@ -567,7 +567,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 		k++;
 	}
 	neww->RemoveColinearPoints ();
-	if (neww->m_NumPoints < 3)
+	if (neww->size() < 3)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty winding.\n");
 		delete neww;
@@ -615,17 +615,17 @@ void BuildFaceEdges (opaqueface_t *f)
 {
 	if (!f->winding)
 		return;
-	f->numedges = f->winding->m_NumPoints;
+	f->numedges = f->winding->size();
 	f->edges = (dplane_t *)calloc (f->numedges, sizeof (dplane_t));
 	const vec_t *p1, *p2;
 	const vec_t *n = f->plane.normal.data();
 	vec3_array e;
 	dplane_t *pl;
 	int x;
-	for (x = 0; x < f->winding->m_NumPoints; x++)
+	for (x = 0; x < f->winding->size(); x++)
 	{
 		p1 = f->winding->m_Points[x].data();
-		p2 = f->winding->m_Points[(x+1)%f->winding->m_NumPoints].data();
+		p2 = f->winding->m_Points[(x+1)%f->winding->size()].data();
 		pl = &f->edges[x];
 		VectorSubtract (p2, p1, e);
 		CrossProduct (n, e, pl->normal);
@@ -651,7 +651,7 @@ void CreateOpaqueNodes ()
 		opaqueface_t *of = &opaquefaces[i];
 		dface_t *df = &g_dfaces[i];
 		of->winding = new Winding (*df);
-		if (of->winding->m_NumPoints < 3)
+		if (of->winding->size() < 3)
 		{
 			delete of->winding;
 			of->winding = nullptr;

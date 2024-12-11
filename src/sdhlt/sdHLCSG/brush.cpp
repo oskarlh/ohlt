@@ -265,11 +265,11 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 	// check for edge-edge type. edge-face type and face-edge type are excluded.
 	for (f = hull0->faces; f; f = f->next)
 	{
-		for (int i = 0; i < f->w->m_NumPoints; i++) // for each edge in f
+		for (int i = 0; i < f->w->size(); i++) // for each edge in f
 		{
 			hullbrushedge_t brushedge;
 			VectorCopy (f->plane->normal, brushedge.normals[0]);
-			VectorCopy (f->w->m_Points[(i + 1) % f->w->m_NumPoints], brushedge.vertexes[0]);
+			VectorCopy (f->w->m_Points[(i + 1) % f->w->size()], brushedge.vertexes[0]);
 			VectorCopy (f->w->m_Points[i], brushedge.vertexes[1]);
 			VectorCopy (brushedge.vertexes[0], brushedge.point);
 			VectorSubtract (brushedge.vertexes[1], brushedge.vertexes[0], brushedge.delta);
@@ -279,9 +279,9 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			found = 0;
 			for (bface_t *f2 = hull0->faces; f2; f2 = f2->next)
 			{
-				for (int j = 0; j < f2->w->m_NumPoints; j++)
+				for (int j = 0; j < f2->w->size(); j++)
 				{
-					if (VectorCompare (f2->w->m_Points[(j + 1) % f2->w->m_NumPoints], brushedge.vertexes[1]) &&
+					if (VectorCompare (f2->w->m_Points[(j + 1) % f2->w->size()], brushedge.vertexes[1]) &&
 						VectorCompare (f2->w->m_Points[j], brushedge.vertexes[0]))
 					{
 						VectorCopy (f2->plane->normal, brushedge.normals[1]);
@@ -356,7 +356,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		for (f = hull0->faces; f; f = f->next)
 		{
-			for (const vec3_array& v : std::span(f->w->m_Points.data(), f->w->m_NumPoints))
+			for (const vec3_array& v : std::span(f->w->m_Points.data(), f->w->size()))
 			{
 				if (DotProduct (v, hbf->normal) < bestdist - NORMAL_EPSILON)
 				{
@@ -530,10 +530,10 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 
 			winding = current_face->w;
 
-			for(counter = 0; counter < (winding->m_NumPoints); counter++) //for each edge
+			for(counter = 0; counter < (winding->size()); counter++) //for each edge
 			{
 				VectorCopy(winding->m_Points[counter],edge_start);
-				VectorCopy(winding->m_Points[(counter+1)%winding->m_NumPoints],edge_end);
+				VectorCopy(winding->m_Points[(counter+1)%winding->size()],edge_end);
 
 				//grab the edge (find relative length)
 				VectorSubtract(edge_end,edge_start,edge);
@@ -547,7 +547,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 					start_found = false;
 					end_found = false;
 					other_winding = other_face->w;
-					for(counter2 = 0; counter2 < other_winding->m_NumPoints; counter2++)
+					for(counter2 = 0; counter2 < other_winding->size(); counter2++)
 					{
 						if(!start_found && VectorCompare(other_winding->m_Points[counter2],edge_start))
 						{ start_found = true; }
@@ -666,9 +666,9 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	{
 		for(current_face = brush->hulls[0].faces; current_face; current_face = current_face->next)
 		{
-			if(current_face->w->m_NumPoints < 3)
+			if(current_face->w->size() < 3)
 			{ continue; }
-			for(counter = 0; counter < current_face->w->m_NumPoints; counter++)
+			for(counter = 0; counter < current_face->w->size(); counter++)
 			{
 				if(DotProduct(hull_face->plane->normal,hull_face->plane->origin) < DotProduct(hull_face->plane->normal,current_face->w->m_Points[counter]))
 				{
@@ -755,7 +755,7 @@ void            MakeHullFaces(const brush_t* const b, brushhull_t *h)
 	SortSides (h);
 
 restart:
-    reset_bounding_box(h->bounds);
+    h->bounds = bounding_box{};
 
     // for each face in this brushes hull
     for (f = h->faces; f; f = f->next)
@@ -798,7 +798,7 @@ restart:
             f->w = w;
             f->contents = CONTENTS_EMPTY;
             unsigned int    i;
-            for (i = 0; i < w->m_NumPoints; i++)
+            for (i = 0; i < w->size(); i++)
             {
                 add_to_bounding_box(h->bounds, w->m_Points[i]);
             }
@@ -1312,7 +1312,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	numedges = 0;
 	for (i = 0; i < numplanes; i++)
 	{
-		for (e = 0; e < w[i]->m_NumPoints; e++)
+		for (e = 0; e < w[i]->size(); e++)
 		{
 			hullbrushedge_t *edge;
 			int found;
@@ -1322,7 +1322,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 				continue;
 			}
 			edge = &edges[numedges];
-			VectorCopy (w[i]->m_Points[(e + 1) % w[i]->m_NumPoints], edge->vertexes[0]);
+			VectorCopy (w[i]->m_Points[(e + 1) % w[i]->size()], edge->vertexes[0]);
 			VectorCopy (w[i]->m_Points[e], edge->vertexes[1]);
 			VectorCopy (edge->vertexes[0], edge->point);
 			VectorSubtract (edge->vertexes[1], edge->vertexes[0], edge->delta);
@@ -1335,9 +1335,9 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			found = 0;
 			for (k = 0; k < numplanes; k++)
 			{
-				for (e2 = 0; e2 < w[k]->m_NumPoints; e2++)
+				for (e2 = 0; e2 < w[k]->size(); e2++)
 				{
-					if (VectorCompare (w[k]->m_Points[(e2 + 1) % w[k]->m_NumPoints], edge->vertexes[1]) &&
+					if (VectorCompare (w[k]->m_Points[(e2 + 1) % w[k]->size()], edge->vertexes[1]) &&
 						VectorCompare (w[k]->m_Points[e2], edge->vertexes[0]))
 					{
 						found++;
@@ -1370,7 +1370,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	numvertexes = 0;
 	for (i = 0; i < numplanes; i++)
 	{
-		for (e = 0; e < w[i]->m_NumPoints; e++)
+		for (e = 0; e < w[i]->size(); e++)
 		{
 			vec3_array v;
 			VectorCopy (w[i]->m_Points[e], v);
@@ -1422,10 +1422,10 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			hullbrushface_t *f = &hb->faces[i];
 			VectorCopy (planes[i].normal, f->normal);
 			VectorCopy (w[i]->m_Points[0], f->point);
-			f->numvertexes = w[i]->m_NumPoints;
+			f->numvertexes = w[i]->size();
 			f->vertexes = (vec3_array *)malloc (f->numvertexes * sizeof (vec3_array));
 			hlassume (f->vertexes != nullptr, assume_NoMemory);
-			for (k = 0; k < w[i]->m_NumPoints; k++)
+			for (k = 0; k < w[i]->size(); k++)
 			{
 				VectorCopy (w[i]->m_Points[k], f->vertexes[k]);
 			}

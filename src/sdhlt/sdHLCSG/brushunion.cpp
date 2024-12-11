@@ -226,7 +226,7 @@ static bool     isInvalidHull(const brushhull_t* const hull)
         unsigned int    y;
         Winding*        winding = face->w;
 
-        for (y = 0; y < winding->m_NumPoints; y++)
+        for (y = 0; y < winding->size(); y++)
         {
             VectorCompareMinimum(mins, winding->m_Points[y], mins);
             VectorCompareMaximum(maxs, winding->m_Points[y], maxs);

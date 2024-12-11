@@ -27,7 +27,7 @@ std::uint_least32_t Zones::getZoneFromWinding(const Winding& winding)
     std::uint_least32_t          x;
     bounding_box     bounds;
 
-    for (x=0; x<winding.m_NumPoints; x++)
+    for (x=0; x<winding.size(); x++)
     {
         add_to_bounding_box(bounds, winding.m_Points[x]);
     }
@@ -129,7 +129,7 @@ Zones* MakeZones(void)
                     Winding*        w = WindingFromFace(f);
                     std::uint_least32_t          k;
 
-                    for (k = 0; k < w->m_NumPoints; k++)
+                    for (k = 0; k < w->size(); k++)
                     {
                         add_to_bounding_box(bounds, w->m_Points[k]);
                     }

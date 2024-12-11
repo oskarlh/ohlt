@@ -622,12 +622,12 @@ static bool     PlacePatchInside(patch_t* patch)
 		}
 	}
 	{
-		for (int i = 0; i < patch->winding->m_NumPoints; i++)
+		for (int i = 0; i < patch->winding->size(); i++)
 		{
 			const vec_t *p1;
 			const vec_t *p2;
 			p1 = patch->winding->m_Points[i].data();
-			p2 = patch->winding->m_Points[(i+1)%patch->winding->m_NumPoints].data();
+			p2 = patch->winding->m_Points[(i+1)%patch->winding->size()].data();
 			VectorAdd (p1, p2, point);
 			VectorAdd (point, center, point);
 			VectorScale (point, 1.0/3.0, point);
@@ -673,7 +673,7 @@ static void		UpdateEmitterInfo (patch_t *patch)
 	const vec_t *origin = patch->origin.data();
 	const Winding *winding = patch->winding;
 	vec_t radius = ON_EPSILON;
-	for (int x = 0; x < winding->m_NumPoints; x++)
+	for (int x = 0; x < winding->size(); x++)
 	{
 		vec3_t delta;
 		vec_t dist;
@@ -730,7 +730,7 @@ static unsigned g_numwindings = 0;
 static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const dplane_t *plB)
 	// This function has been rewritten because the original one is not totally correct and may fail to do what it claims.
 {
-	// patch->winding->m_NumPoints must > 0
+	// patch->winding->size() must > 0
 	// plA->dist and plB->dist will not be used
 	Winding *winding = nullptr;
 	vec_t chop;
@@ -758,7 +758,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 
 		minA = minB = hlrad_bogus_range;
 		maxA = maxB = -hlrad_bogus_range;
-		for (int x = 0; x < winding->m_NumPoints; x++)
+		for (int x = 0; x < winding->size(); x++)
 		{
 			vec_t *point;
 			vec_t dotA;
@@ -1260,7 +1260,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
         vec3_t          light;
         vec3_t          centroid = { 0, 0, 0 };
 
-        int             numpoints = w->m_NumPoints;
+        int             numpoints = w->size();
 
         if (numpoints < 3)                                 // WTF! (Actually happens in real-world maps too)
         {
@@ -1404,18 +1404,14 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
         }
 
         {
-            vec3_array          mins;
-            vec3_array          maxs;
-
-            patch->winding->getBounds(mins, maxs);
-
             if (g_subdivide)
             {
                 vec_t           amt;
                 vec_t           length;
                 vec3_array          delta;
 
-                VectorSubtract(maxs, mins, delta);
+  			    bounding_box bounds = patch->winding->getBounds();
+                VectorSubtract(bounds.maxs, bounds.mins, delta);
                 length = VectorLength(delta);
 				amt = patch->chop;
 
@@ -1808,7 +1804,7 @@ static void     MakePatches()
             g_face_lightmode[fn] = lightmode;
             f = &g_dfaces[fn];
             w = new Winding(*f);
-            for (k = 0; k < w->m_NumPoints; k++)
+            for (k = 0; k < w->size(); k++)
             {
                 VectorAdd(w->m_Points[k], origin, w->m_Points[k]);
             }
@@ -1928,8 +1924,8 @@ static void     WriteWorld(const char* const name)
     for (j = 0, patch = g_patches; j < g_num_patches; j++, patch++)
     {
         w = patch->winding;
-        Log("%i\n", w->m_NumPoints);
-        for (i = 0; i < w->m_NumPoints; i++)
+        Log("%zu\n", w->size());
+        for (i = 0; i < w->size(); i++)
         {
             Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n",
                 w->m_Points[i][0],

@@ -383,7 +383,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 			VectorCopy (newf->pts[x], wd->m_Points[x]);
 		}
 		wd->RemoveColinearPoints ();
-		newf->numpoints = wd->m_NumPoints;
+		newf->numpoints = wd->size();
 		for (x = 0; x < newf->numpoints; x++)
 		{
 			VectorCopy (wd->m_Points[x], newf->pts[x]);
@@ -402,7 +402,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 			VectorCopy (new2->pts[x], wd->m_Points[x]);
 		}
 		wd->RemoveColinearPoints ();
-		new2->numpoints = wd->m_NumPoints;
+		new2->numpoints = wd->size();
 		for (x = 0; x < new2->numpoints; x++)
 		{
 			VectorCopy (wd->m_Points[x], new2->pts[x]);
@@ -588,7 +588,7 @@ void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
 			break;
 		}
 	}
-	if (w->m_NumPoints == 0)
+	if (w->size() == 0)
 	{
 		delete w;
 	}
@@ -695,10 +695,10 @@ void CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs)
 	VectorFill (maxs, -hlbsp_bogus_range);
 	for (side_t *s = b->sides; s; s = s->next)
 	{
-		vec3_array windingmins, windingmaxs;
-		s->w->getBounds (windingmins, windingmaxs);
-		VectorCompareMinimum (mins, windingmins, mins);
-		VectorCompareMaximum (maxs, windingmaxs, maxs);
+        
+		const bounding_box bounds = s->w->getBounds ();
+		VectorCompareMinimum (mins, bounds.mins, mins);
+		VectorCompareMaximum (maxs, bounds.maxs, maxs);
 	}
 }
 

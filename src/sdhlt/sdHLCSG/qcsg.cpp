@@ -305,10 +305,10 @@ void            WriteFace(const int hull, const bface_t* const f
     const Winding& w = *f->w;
 
     // plane summary
-	fprintf (out[hull], "%i %i %i %i %u\n", detaillevel, f->planenum, f->texinfo, f->contents, w.m_NumPoints);
+	fprintf (out[hull], "%i %i %i %i %zu\n", detaillevel, f->planenum, f->texinfo, f->contents, w.size());
 
     // for each of the points on the face
-    for (i = 0; i < w.m_NumPoints; i++)
+    for (i = 0; i < w.size(); i++)
     {
         // write the co-ords
         fprintf(out[hull], "%5.8f %5.8f %5.8f\n", w.m_Points[i][0], w.m_Points[i][1], w.m_Points[i][2]);
@@ -326,10 +326,10 @@ void            WriteFace(const int hull, const bface_t* const f
 			vec3_array center2;
 			VectorAdd (center, f->plane->normal, center2);
 			fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);
-			for (i = 0; i < w.m_NumPoints; i++)
+			for (i = 0; i < w.size(); i++)
 			{
 				const vec3_array& p1{w.m_Points[i]};
-                const vec3_array& p2{w.m_Points[(i+1) % w.m_NumPoints]};
+                const vec3_array& p2{w.m_Points[(i+1) % w.size()]};
 
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center[0], center[1], center[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
@@ -349,8 +349,8 @@ void WriteDetailBrush (int hull, const bface_t *faces)
 	for (const bface_t *f = faces; f; f = f->next)
 	{
 		Winding *w = f->w;
-		fprintf (out_detailbrush[hull], "%i %u\n", f->planenum, w->m_NumPoints);
-		for (int i = 0; i < w->m_NumPoints; i++)
+		fprintf (out_detailbrush[hull], "%i %zu\n", f->planenum, w->size());
+		for (int i = 0; i < w->size(); i++)
 		{
 			fprintf (out_detailbrush[hull], "%5.8f %5.8f %5.8f\n", w->m_Points[i][0], w->m_Points[i][1], w->m_Points[i][2]);
 		}
@@ -489,7 +489,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 				vec_t val;
 				
 				bad = false;
-				for (i = 0; i < f->w->m_NumPoints; i++)
+				for (i = 0; i < f->w->size(); i++)
 				{
 					for (j = 0; j < 2; j++)
 					{
@@ -523,11 +523,11 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 			f->texinfo = backnull? -1: texinfo;
 
             // swap point orders
-            for (i = 0; i < f->w->m_NumPoints / 2; i++)      // add points backwards
+            for (i = 0; i < f->w->size() / 2; i++)      // add points backwards
             {
                 VectorCopy(f->w->m_Points[i], temp);
-                VectorCopy(f->w->m_Points[f->w->m_NumPoints - 1 - i], f->w->m_Points[i]);
-                VectorCopy(temp, f->w->m_Points[f->w->m_NumPoints - 1 - i]);
+                VectorCopy(f->w->m_Points[f->w->size() - 1 - i], f->w->m_Points[i]);
+                VectorCopy(temp, f->w->m_Points[f->w->size() - 1 - i]);
             }
             WriteFace(hull, f
 				, 
@@ -547,7 +547,7 @@ bface_t*        CopyFace(const bface_t* const f)
     bface_t*        n;
 
     n = NewFaceFromFace(f);
-    n->w = f->w->Copy();
+    n->w = new Winding(*f->w);
     n->bounds = f->bounds;
     return n;
 }
@@ -615,7 +615,7 @@ static bface_t* CopyFacesToOutside(const brushhull_t* bh)
     for (const bface_t* f = bh->faces; f; f = f->next)
     {
         bface_t* newf = CopyFace(f);
-        newf->w->getBounds(newf->bounds);
+        newf->bounds = newf->w->getBounds();
         newf->next = outside;
         outside = newf;
     }
@@ -769,7 +769,7 @@ static void     CSGBrush(int brushnum)
 						if (!overwrite)
 						{
 							// face plane is outside brush2
-							w->m_NumPoints = 0;
+							w->m_Points.clear();
 							break;
 						}
 						else
@@ -790,12 +790,12 @@ static void     CSGBrush(int brushnum)
 					}
 					else
 					{
-						w->m_NumPoints = 0;
+						w->m_Points.clear();
 						break;
 					}
 				}
 				// do real split
-				if (w->m_NumPoints)
+				if (!w->m_Points.empty())
 				{
 					for (f2 = bh2.faces; f2; f2 = f2->next)
 					{
@@ -805,7 +805,7 @@ static void     CSGBrush(int brushnum)
 						}
 						int valid = 0;
 						int x;
-						for (x = 0; x < w->m_NumPoints; x++)
+						for (x = 0; x < w->size(); x++)
 						{
 							vec_t dist = DotProduct (w->m_Points[x], f2->plane->normal) - f2->plane->dist;
 							if (dist >= -ON_EPSILON*4) // only estimate
@@ -822,14 +822,14 @@ static void     CSGBrush(int brushnum)
 							{
 								bface_t *front = NewFaceFromFace (f);
 								front->w = new Winding(std::move(frontw).value());
-								front->w->getBounds (front->bounds);
+								front->bounds = front->w->getBounds ();
 								front->next = outside;
 								outside = front;
 							}
 							if (backw)
 							{
 								*f->w = std::move(backw).value();
-								f->w->getBounds (f->bounds);
+								f->bounds = f->w->getBounds ();
 							}
 							else
 							{
@@ -1411,7 +1411,7 @@ static void     BoundWorld()
     int             i;
     brushhull_t*    h;
 
-    reset_bounding_box(world_bounds);
+    world_bounds = bounding_box{};
 
     for (i = 0; i < g_nummapbrushes; i++)
     {
