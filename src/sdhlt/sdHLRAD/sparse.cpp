@@ -15,7 +15,6 @@ std::vector<sparse_column_t> s_vismatrix;
 // Vismatrix protected
 static unsigned IsVisbitInArray(std::uint32_t x, std::uint32_t y)
 {
-    int first, last, current;
     int y_byte = y / 8;
     const sparse_column_t& column = s_vismatrix[x];
 
@@ -24,32 +23,20 @@ static unsigned IsVisbitInArray(std::uint32_t x, std::uint32_t y)
         return -1;
     }
 
-    first = 0;
-    last = column.size() - 1;
 
-    // Warning("Searching . . .");
-    // binary search to find visbit
-    while (1)
-    {
-        current = (first + last) / 2;
-        const sparse_row_t& row = column[current];
-        if ((row.offset) < y_byte)
-        {
-            first = current + 1;
-        }
-        else if ((row.offset) > y_byte)
-        {
-            last = current - 1;
-        }
-        else
-        {
-            return current;
-        }
-        if (first > last)
-        {
-            return -1;
-        }
-    }
+
+    // Binary search to find visbit
+	const sparse_row_t* base = column.data();
+	std::size_t n = column.size();
+	while (n > 1) {
+			std::size_t middle = n / 2;
+			base += (y_byte < base[middle].offset) ? 0 : middle;
+			n -= middle;
+	}
+	const std::size_t result = base - column.data();
+	const bool match = base->offset == y_byte;
+	
+	return match ? result : -1;
 }
 
 static void SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES])
@@ -128,7 +115,8 @@ static void SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMA
 // Vismatrix public
 static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
 								  , vec3_array &transparency_out
-								  , unsigned int &next_index
+								  , unsigned int &next_index,
+								  const std::vector<vec3_array>& transparencyList
 								  )
 {
     VectorFill(transparency_out, 1.0);
@@ -160,7 +148,7 @@ static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
     {
     	if(g_customshadow_with_bouncelight)
     	{
-    	     GetTransparency(a, b, transparency_out, next_index);
+    	     GetTransparency(a, b, transparency_out, next_index, transparencyList);
     	}
         return s_vismatrix[x][offset].values & (1 << (y & 7));
     }
@@ -177,7 +165,8 @@ static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
  */
 static void     TestPatchToFace(const unsigned patchnum, const int facenum, const int head
 								, byte *pvs
-								, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES]
+								, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES],
+								std::vector<vec3_array>& transparencyList
 								)
 {
     patch_t*        patch = &g_patches[patchnum];
@@ -264,7 +253,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 
                     if(g_customshadow_with_bouncelight && !VectorCompare(transparency, {1.0,1.0,1.0}) )
                     {
-                    	AddTransparencyToRawArray(patchnum, m, transparency);
+                    	AddTransparencyToRawArray(patchnum, m, transparency, transparencyList);
                     }
 					uncompressedcolumn[m] = true;
                 }
@@ -333,7 +322,8 @@ static void     BuildVisLeafs(int threadnum)
 				}
 				for (int facenum2 = facenum + 1; facenum2 < g_numfaces; facenum2++)
 					TestPatchToFace (patchnum, facenum2, 0, (byte*) pvs.data()
-									, uncompressedcolumn.get()
+									, uncompressedcolumn.get(),
+									g_transparencyList
 									);
 				SetVisColumn (patchnum, uncompressedcolumn.get());
 			}
@@ -399,7 +389,7 @@ void            MakeScalesSparseVismatrix()
         DumpVismatrixInfo();
         g_CheckVisBit = CheckVisBitSparse;
 
-        CreateFinalTransparencyArrays("custom shadow array");
+        CreateFinalTransparencyArrays("custom shadow array", g_transparencyList);
         
 	if(g_rgb_transfers)
 		{NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);}

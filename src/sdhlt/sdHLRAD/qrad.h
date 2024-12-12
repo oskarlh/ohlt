@@ -491,9 +491,11 @@ extern void     GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
 
 typedef bool (*funcCheckVisBit) (unsigned, unsigned
 								 , vec3_array&
-								 , unsigned int&
+								 , unsigned int&,
+								 const std::vector<vec3_array>& transparencyList
 								 );
 extern funcCheckVisBit g_CheckVisBit;
+extern std::vector<vec3_array> g_transparencyList;
 extern bool CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_array& backorigin, const vec3_array& backnormal
 								, vec3_array& transparency_out
 								);
@@ -540,9 +542,9 @@ extern void     DumpTransfersMemoryUsage();
 extern void     MakeRGBScales(int threadnum);
 
 // transparency.c (transparency array functions - shared between vismatrix.c and sparse.c)
-extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index);
-extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans);
-extern void	CreateFinalTransparencyArrays(const char *print_name);
+extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index, const std::vector<vec3_array>& transparencyList);
+extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans, std::vector<vec3_array>& transparencyList);
+extern void	CreateFinalTransparencyArrays(const char *print_name, std::vector<vec3_array>& transparencyList);
 extern void	FreeTransparencyArrays();
 extern void GetStyle(const unsigned p1, const unsigned p2, int &style, unsigned int &next_index);
 extern void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style);

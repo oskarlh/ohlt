@@ -23,8 +23,9 @@ static byte*    s_vismatrix;
 //      Sets vis bits for all patches in the face
 // =====================================================================================
 static void     TestPatchToFace(const unsigned patchnum, const int facenum, const int head, const unsigned int bitpos
-								, byte *pvs
-								)
+								, byte *pvs,
+                                std::vector<vec3_array>& transparencyList
+                )
 {
     patch_t*        patch = &g_patches[patchnum];
     patch_t*        patch2 = g_face_patches[facenum];
@@ -114,7 +115,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
                     if(g_customshadow_with_bouncelight && !VectorCompare(transparency, {1.0,1.0,1.0}))
 					// zhlt3.4: if(g_customshadow_with_bouncelight && VectorCompare(transparency, {1.0,1.0,1.0})) . --vluzacn
                     {
-						AddTransparencyToRawArray(patchnum, m, transparency);
+						AddTransparencyToRawArray(patchnum, m, transparency, transparencyList);
                     }
 
 					ThreadLock (); //--vluzacn
@@ -131,10 +132,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 // BuildVisLeafs
 //      This is run by multiple threads
 // =====================================================================================
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable: 4100)                             // unreferenced formal parameter
-#endif
+
 static void     BuildVisLeafs(int threadnum)
 {
     int             i;
@@ -191,7 +189,7 @@ static void     BuildVisLeafs(int threadnum)
 				bitpos = patchnum * g_num_patches;
 #endif
 				for (facenum2 = facenum + 1; facenum2 < g_numfaces; facenum2++)
-					TestPatchToFace (patchnum, facenum2, head, bitpos, pvs);
+					TestPatchToFace (patchnum, facenum2, head, bitpos, pvs, g_transparencyList);
 			}
 		}
 
@@ -245,7 +243,8 @@ static void     FreeVisMatrix()
 // =====================================================================================
 static bool     CheckVisBitVismatrix(unsigned p1, unsigned p2
 									 , vec3_array &transparency_out
-									 , unsigned int &next_index
+									 , unsigned int &next_index,
+                                     const std::vector<vec3_array>& transparencyList
 									 )
 {
     unsigned        bitpos;
@@ -280,7 +279,7 @@ static bool     CheckVisBitVismatrix(unsigned p1, unsigned p2
     {
     	if(g_customshadow_with_bouncelight)
     	{
-    	    GetTransparency( a, b, transparency_out, next_index );
+    	    GetTransparency( a, b, transparency_out, next_index, transparencyList );
     	}
         return true;
     }
@@ -309,7 +308,7 @@ void            MakeScalesVismatrix()
         BuildVisMatrix();
         g_CheckVisBit = CheckVisBitVismatrix;
 
-        CreateFinalTransparencyArrays("custom shadow array");
+        CreateFinalTransparencyArrays("custom shadow array", g_transparencyList);
 
 	if(g_rgb_transfers)
 		{NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);}

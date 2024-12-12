@@ -2,6 +2,7 @@
 #include <numbers>
 
 funcCheckVisBit g_CheckVisBit = nullptr;
+std::vector<vec3_array> g_transparencyList{1, vec3_array{1.0, 1.0, 1.0}};
 
 size_t          g_total_transfer = 0;
 size_t          g_transfer_index_bytes = 0;
@@ -245,7 +246,8 @@ void            MakeScales(const int threadnum)
 
             if (!g_CheckVisBit(i, j
 				, transparency
-				, fastfind_index
+				, fastfind_index,
+				g_transparencyList
 				) || (i == j))
             {
 				if (patch->translucent_b)
@@ -507,7 +509,8 @@ void            MakeRGBScales(const int threadnum)
 
             if (!g_CheckVisBit(i, j
 				, transparency
-				, fastfind_index
+				, fastfind_index,
+				g_transparencyList
 				) || (i == j))
             {
 				if (patch->translucent_b)

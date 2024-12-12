@@ -37,30 +37,33 @@ std::uint_least32_t Zones::getZoneFromWinding(const Winding& winding)
 
 // BORROWED FROM HLRAD
 // TODO: Consolite into common sometime
-static Winding*      WindingFromFace(const dface_t* f)
+static Winding WindingFromFace(const dface_t* f)
 {
     int             i;
-    int             se;
     dvertex_t*      dv;
     int             v;
-    Winding*        w = new Winding(f->numedges);
 
+    std::vector<vec3_array> windingPoints;
     for (i = 0; i < f->numedges; i++)
     {
-        se = g_dsurfedges[f->firstedge + i];
+        std::int32_t se = g_dsurfedges[f->firstedge + i];
+        std::int32_t index = std::abs(se);
         if (se < 0)
         {
-            v = g_dedges[-se].v[1];
+            v = g_dedges[index].v[1];
         }
         else
         {
-            v = g_dedges[se].v[0];
+            v = g_dedges[index].v[0];
         }
 
         dv = &g_dvertexes[v];
-        VectorCopy(dv->point, w->m_Points[i]);
+        windingPoints.emplace_back(dv->point);
     }
 
+    Winding w;
+    using std::swap;
+    swap(w.m_Points, windingPoints);
     return w;
 }
 
@@ -126,14 +129,10 @@ Zones* MakeZones(void)
             
                 for (j = 0; j < mod->numfaces; j++, f++)
                 {
-                    Winding*        w = WindingFromFace(f);
-                    std::uint_least32_t          k;
-
-                    for (k = 0; k < w->size(); k++)
+                    for (const vec3_array& windingPoint : WindingFromFace(f).m_Points)
                     {
-                        add_to_bounding_box(bounds, w->m_Points[k]);
+                        add_to_bounding_box(bounds, windingPoint);
                     }
-                    delete w;
                 }
 
                 zones->set(func_vis_id, bounds);

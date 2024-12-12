@@ -1444,13 +1444,12 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 			const unsigned facenum = bestfrag->facenum;
 			ThreadLock ();
 			Log ("Malformed face (%d) normal @ \n", facenum);
-			Winding* w = new Winding (g_dfaces[facenum]);
-			for (int x = 0; x < w->size(); x++)
+			Winding w{g_dfaces[facenum]};
+			for (vec3_array& windingPoint : w.m_Points)
 			{
-				VectorAdd (w->m_Points[x], g_face_offset[facenum], w->m_Points[x]);
+				VectorAdd (windingPoint, g_face_offset[facenum], windingPoint);
 			}
-			w->Print ();
-			delete w;
+			w.Print ();
 			ThreadUnlock ();
 			hlassume (false, assume_MalformedTextureFace);
 		}
@@ -3326,20 +3325,18 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			if (l->translucent_b)
 			{
 				const dplane_t *surfaceplane = getPlaneFromFaceNumber (surface);
-				Winding *surfacewinding = new Winding (g_dfaces[surface]);
+				Winding surfacewinding{g_dfaces[surface]};
 				
 				VectorCopy (spot, spot2);
-				for (int x = 0; x < surfacewinding->size(); x++)
+				for (int x = 0; x < surfacewinding.size(); x++)
 				{
-					VectorAdd (surfacewinding->m_Points[x], g_face_offset[surface], surfacewinding->m_Points[x]);
+					VectorAdd (surfacewinding.m_Points[x], g_face_offset[surface], surfacewinding.m_Points[x]);
 				}
-				if (!point_in_winding_noedge (*surfacewinding, *surfaceplane, spot2, 0.2))
+				if (!point_in_winding_noedge (surfacewinding, *surfaceplane, spot2, 0.2))
 				{
-					snap_to_winding_noedge (*surfacewinding, *surfaceplane, spot2.data(), 0.2, 4 * 0.2);
+					snap_to_winding_noedge (surfacewinding, *surfaceplane, spot2.data(), 0.2, 4 * 0.2);
 				}
 				VectorMA (spot2, -(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET), surfaceplane->normal, spot2);
-
-				delete surfacewinding;
 			}
 			*wallflags_out = WALLFLAG_NONE;
 			if (blocked)

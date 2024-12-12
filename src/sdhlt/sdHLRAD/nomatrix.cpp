@@ -5,7 +5,8 @@
 // =====================================================================================
 static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 									   , vec3_array &transparency_out
-									   , unsigned int &
+									   , unsigned int &,
+									   const std::vector<vec3_array>& transparencyList
 									   )
 	// patchnum1=receiver, patchnum2=emitter. //HLRAD_CheckVisBitNoVismatrix_NOSWAP
 {

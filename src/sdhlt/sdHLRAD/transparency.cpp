@@ -13,9 +13,7 @@ typedef struct {
 	unsigned	data_index;
 } transList_t;
 
-static vec3_array *		s_trans_list	= nullptr;
-static unsigned int	s_trans_count	= 0;
-static unsigned int	s_max_trans_count = 0;
+
 
 static transList_t*	s_raw_list	= nullptr;
 static unsigned int	s_raw_count	= 0;
@@ -27,56 +25,32 @@ static unsigned int	s_sorted_count	= 0;
 //===============================================
 // AddTransparencyToRawArray
 //===============================================
-static unsigned AddTransparencyToDataList(const vec3_array& trans)
+static std::size_t AddTransparencyToDataList(const vec3_array& trans, std::vector<vec3_array>& transparencyList)
 {
 	//Check if this value is in list already
-	for(unsigned int i = 0; i < s_trans_count; i++)
-	{
-		if( VectorCompare( trans, s_trans_list[i] ) )
-		{
+	for(std::size_t i = 0; i < transparencyList.size(); ++i) {
+		if(VectorCompare( trans, transparencyList[i] )) {
 			return i;
 		}
 	}
-	
-	//realloc if needed
-	while( s_trans_count >= s_max_trans_count )
-	{
-		unsigned int old_max_count = s_max_trans_count;
-		s_max_trans_count = std::max(64u, (unsigned int)((double)s_max_trans_count * 1.41));
-		if (s_max_trans_count >= (unsigned int)INT_MAX)
-		{
-			Error ("AddTransparencyToDataList: array size exceeded INT_MAX");
-		}
-		
-		s_trans_list = (vec3_array *)realloc( s_trans_list, sizeof(vec3_array) * s_max_trans_count );
 
-		hlassume (s_trans_list != nullptr, assume_NoMemory);
-		
-		memset( &s_trans_list[old_max_count], 0, sizeof(vec3_array) * (s_max_trans_count - old_max_count) );
-		
-		if( old_max_count == 0 )
-		{
-			VectorFill(s_trans_list[0], 1.0);
-			s_trans_count++;
-		}
-	}
-	
-	VectorCopy(trans, s_trans_list[s_trans_count]);
-	
-	return ( s_trans_count++ );
+	std::size_t index = transparencyList.size();
+	transparencyList.emplace_back(trans);
+
+	return index;
 }
 
 //===============================================
 // AddTransparencyToRawArray
 //===============================================
-void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans)
+void AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans, std::vector<vec3_array>& transparencyList)
 {
-	//make thread safe
+	// Make thread safe
 	ThreadLock();
 	
-	unsigned data_index = AddTransparencyToDataList(trans);
+	std::size_t data_index = AddTransparencyToDataList(trans, transparencyList);
 	
-	//realloc if needed
+	// Realloc if needed
 	while( s_raw_count >= s_max_raw_count )
 	{
 		unsigned int old_max_count = s_max_raw_count;
@@ -124,7 +98,7 @@ static int SortList(const void *a, const void *b)
 //===============================================
 // CreateFinalTransparencyArrays
 //===============================================
-void	CreateFinalTransparencyArrays(const char *print_name)
+void	CreateFinalTransparencyArrays(const char *print_name, std::vector<vec3_array>& transparencyList)
 {
 	if( s_raw_count == 0 )
 	{
@@ -132,6 +106,7 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 		s_raw_count = s_max_raw_count = 0;
 		return;
 	}
+	
 
 	//double sized (faster find function for sorted list)
 	s_sorted_count = s_raw_count * 2;
@@ -157,14 +132,14 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 	//need to sorted for fast search function
 	qsort( s_sorted_list, s_sorted_count, sizeof(transList_t), SortList );
 	
-	size_t size = s_sorted_count * sizeof(transList_t) + s_max_trans_count * sizeof(vec3_array);
+	size_t size = s_sorted_count * sizeof(transList_t) + transparencyList.size() * sizeof(vec3_array);
 	if ( size > 1024 * 1024 )
         	Log("%-20s: %5.1f megs \n", print_name, (double)size / (1024.0 * 1024.0));
         else if ( size > 1024 )
         	Log("%-20s: %5.1f kilos\n", print_name, (double)size / 1024.0);
         else
         	Log("%-20s: %5.1f bytes\n", print_name, (double)size); //--vluzacn
-	Developer (DEVELOPER_LEVEL_MESSAGE, "\ts_trans_count=%d\ts_sorted_count=%d\n", s_trans_count, s_sorted_count); //--vluzacn
+	Developer (DEVELOPER_LEVEL_MESSAGE, "\ts_trans_count=%zu\ts_sorted_count=%d\n", transparencyList.size(), s_sorted_count); //--vluzacn
 
 }
 
@@ -174,18 +149,16 @@ void	CreateFinalTransparencyArrays(const char *print_name)
 void	FreeTransparencyArrays( )
 {
 	if (s_sorted_list) free(s_sorted_list);
-	if (s_trans_list)  free(s_trans_list);
 	
-	s_trans_list = nullptr;
 	s_sorted_list = nullptr;
 	
-	s_max_trans_count = s_trans_count = s_sorted_count = 0;
+	s_sorted_count = 0;
 }
 
 //===============================================
 // GetTransparency -- find transparency from list. remembers last location
 //===============================================
-void GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index)
+void GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index, const std::vector<vec3_array>& transparencyList)
 {
 	VectorFill( trans, 1.0 );
 	
@@ -203,7 +176,7 @@ void GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, un
 			}
 			else if ( s_sorted_list[i].p2 == p2 )
 			{
-				VectorCopy( s_trans_list[s_sorted_list[i].data_index], trans );
+				VectorCopy( transparencyList[s_sorted_list[i].data_index], trans );
 				next_index = i + 1;
 			
 				return;
