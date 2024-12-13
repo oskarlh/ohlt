@@ -799,23 +799,23 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		for (int i = 1; i < gridsizeA; i++)
 		{
 			vec_t dist;
-			std::optional<Winding> front;
-			std::optional<Winding> back;
+			Winding front;
+			Winding back;
 
 			dist = gridstartA + i * gridchopA;
 			winding->Clip (plA->normal, dist, front, back);
 
-			if (!front || front->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
+			if (!front || front.WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
 			{
 				break;
 			}
-			if (!back || back->WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
+			if (!back || back.WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
 			{
 				continue;
 			}
 
-			*winding = std::move(front).value();
-			windingArray[g_numwindings] = new Winding(std::move(back).value());
+			*winding = std::move(front);
+			windingArray[g_numwindings] = new Winding(std::move(back));
 			g_numwindings++;
 		}
 
@@ -835,23 +835,23 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			for (int j = 1; j < gridsizeB; j++)
 			{
 				vec_t dist;
-				std::optional<Winding> front;
-				std::optional<Winding> back;
+				Winding front;
+				Winding back;
 
 				dist = gridstartB + j * gridchopB;
 				strip->Clip (plB->normal, dist, front, back);
 				
-				if (!front || front->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
+				if (!front || front.WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
 				{
 					break;
 				}
-				if (!back || back->WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
+				if (!back || back.WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
 				{
 					continue;
 				}
 
-				*strip = std::move(front).value();
-				windingArray[g_numwindings] = new Winding(std::move(back).value());
+				*strip = std::move(front);
+				windingArray[g_numwindings] = new Winding(std::move(back));
 				g_numwindings++;
 			}
 

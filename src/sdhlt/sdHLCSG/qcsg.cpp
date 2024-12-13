@@ -781,16 +781,12 @@ static void     CSGBrush(int brushnum)
 					{
 						continue;
 					}
-					std::optional<Winding> frontw;
-					std::optional<Winding> backw;
+					Winding frontw;
+					Winding backw;
 					w->Clip (f2->plane->normal, f2->plane->dist, frontw, backw);
-					if (backw)
+                    *w = std::move(backw);
+					if (w->empty())
 					{
-						*w = std::move(backw).value();
-					}
-					else
-					{
-						w->m_Points.clear();
 						break;
 					}
 				}
@@ -815,20 +811,20 @@ static void     CSGBrush(int brushnum)
 						}
 						if (valid >= 2)
 						{ // this splitplane forms an edge
-							std::optional<Winding> frontw;
-							std::optional<Winding> backw;
+							Winding frontw;
+							Winding backw;
 							f->w->Clip (f2->plane->normal, f2->plane->dist, frontw, backw);
 							if (frontw)
 							{
 								bface_t *front = NewFaceFromFace (f);
-								front->w = new Winding(std::move(frontw).value());
+								front->w = new Winding(std::move(frontw));
 								front->bounds = front->w->getBounds ();
 								front->next = outside;
 								outside = front;
 							}
 							if (backw)
 							{
-								*f->w = std::move(backw).value();
+								*f->w = std::move(backw);
 								f->bounds = f->w->getBounds ();
 							}
 							else

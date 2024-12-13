@@ -1,38 +1,35 @@
 #include "csg.h"
 
-vec_t           g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
+vec_t g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
-static std::optional<Winding> NewWindingFromPlane(const brushhull_t* const hull, const int planenum)
-{
+static Winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
     bface_t*        face;
     plane_t*        plane;
 
     plane = &g_mapplanes[planenum];
-    std::optional<Winding> winding{Winding(plane->normal, plane->dist)};
+    Winding winding{plane->normal, plane->dist};
 
-    std::optional<Winding> front;
+    Winding front;
     for (face = hull->faces; face; face = face->next)
     {
         plane = &g_mapplanes[face->planenum];
-        std::optional<Winding> back;
-        winding.value().Clip(plane->normal, plane->dist, front, back);
+        Winding back;
+        winding.Clip(plane->normal, plane->dist, front, back);
 
-        if (back)
-        {
-	        using std::swap;
-            swap(winding, back);
-        }
-        else
+        using std::swap;
+        swap(winding, back);
+
+        if(!winding)
         {
             Developer(DEVELOPER_LEVEL_ERROR, "NewFaceFromPlane returning NULL");
-            return std::nullopt;
+            break;
         }
     }
 
     return winding;
 }
 
-static void     AddFaceToList(bface_t** head, bface_t* newface)
+static void AddFaceToList(bface_t** head, bface_t* newface)
 {
     hlassert(newface);
     hlassert(newface->w);
@@ -108,19 +105,19 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
         }
 
         split = &g_mapplanes[planenum];
-        std::optional<Winding> front;
-        std::optional<Winding> back;
+        Winding front;
+        Winding back;
         face->w->Clip(split->normal, split->dist, front, back);
 
         if (front)
         {
-            front.reset();
+            front.clear();
             need_new_face = true;
 
             if (back)
             {                                              // Intersected the face
                 delete face->w;
-                face->w = new Winding(std::move(back).value());
+                face->w = new Winding(std::move(back));
                 AddFaceToList(&new_face_list, CopyFace(face));
             }
         }
@@ -140,13 +137,13 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
 
     if (need_new_face && (NumberOfHullFaces(hull) > 2))
     {
-        std::optional<Winding> new_winding = NewWindingFromPlane(hull, planenum);
+        Winding new_winding = NewWindingFromPlane(hull, planenum);
 
         if(new_winding) {
             bface_t*        new_face = new bface_t();
 
             new_face->planenum = planenum;
-            new_face->w = new Winding(std::move(new_winding).value());
+            new_face->w = new Winding(std::move(new_winding));
 
             new_face->next = hull->faces;
             hull->faces = new_face;

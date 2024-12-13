@@ -26,8 +26,6 @@ void Winding::Print() const
 
 void Winding::getPlane(dplane_t& plane) const
 {
-    vec3_array          v1, v2;
-    vec3_array          plane_normal;
 
     if (size() < 3)
     {
@@ -36,9 +34,11 @@ void Winding::getPlane(dplane_t& plane) const
         return;
     }
 
+    vec3_array v1, v2;
     VectorSubtract(m_Points[2], m_Points[1], v1);
     VectorSubtract(m_Points[0], m_Points[1], v2);
 
+    vec3_array plane_normal;
     CrossProduct(v2, v1, plane_normal);
     VectorNormalize(plane_normal);
     VectorCopy(plane_normal, plane.normal);               // change from vec_t
@@ -108,20 +108,19 @@ void Winding::Check(vec_t epsilon) const
     unsigned int i, j;
     vec_t d, edgedist;
     vec3_array dir, edgenormal, facenormal;
-    vec_t area;
-    vec_t facedist;
 
     if (size() < 3)
     {
         Error("Winding::Check : %zu points", size());
     }
 
-    area = getArea();
+    const vec_t area = getArea();
     if (area < 1)
     {
         Error("Winding::Check : %f area", area);
     }
 
+    vec_t facedist;
     getPlane(facenormal, facedist);
 
     for (i = 0; i < size(); i++)
@@ -175,11 +174,23 @@ void Winding::Check(vec_t epsilon) const
     }
 }
 
-bool          Winding::Valid() const
+bool Winding::Valid() const
 {
     // TODO: Check to ensure there are 3 non-colinear points
     return size() >= 3;
 }
+
+bool Winding::empty() const
+{
+    return m_Points.empty();
+}
+
+void Winding::clear()
+{
+    m_Points.clear();
+    m_Points.shrink_to_fit();
+}
+
 
 //
 // Construction
@@ -278,7 +289,7 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
     VectorScale(vup, bogus_range, vup);
     VectorScale(vright, bogus_range, vright);
 
-    // project a really big     axis aligned box onto the plane
+    // Project a really big axis-aligned box onto the plane
     m_Points.resize(4);
 
     VectorSubtract(org, vright, m_Points[0]);
@@ -377,7 +388,7 @@ void			Winding::RemoveColinearPoints(
 }
 
 
-void Winding::Clip(const dplane_t& plane, std::optional<Winding>& front, std::optional<Winding>& back
+void Winding::Clip(const dplane_t& plane, Winding& front, Winding& back
 							  , vec_t epsilon
 							  ) const
 {
@@ -391,7 +402,7 @@ void Winding::Clip(const dplane_t& plane, std::optional<Winding>& front, std::op
 }
 
 
-void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Winding>& front, std::optional<Winding>& back
+void Winding::Clip(const vec3_array& normal, const vec_t dist, Winding& front, Winding& back
 							  , vec_t epsilon
 							  ) const
 {
@@ -427,14 +438,14 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
 
     if (!counts[SIDE_FRONT])
     {
-        front = std::nullopt;
         back = *this;
+        front.clear();
         return;
     }
     if (!counts[SIDE_BACK])
     {
         front = *this;
-        back = std::nullopt;
+        back.clear();
         return;
     }
 
@@ -503,39 +514,20 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, std::optional<Win
 		);
 
 
-	if (f.m_Points.empty())
-	{
-        front = std::nullopt;
-	} else {
-        front = std::move(f);
-    }
-	if (b.m_Points.empty())
-	{
-        back = std::nullopt;
-	} else {
-        back = std::move(b);
-    }
+    front = std::move(f);
+    back = std::move(b);
 }
 
 bool Winding::Chop(const vec3_array& normal, const vec_t dist
 							, vec_t epsilon
 							)
 {
-    std::optional<Winding> f;
-    std::optional<Winding> b;
+    Winding f;
+    Winding b;
 
     Clip(normal, dist, f, b, epsilon);
-
-    if (f)
-    {
-    	using std::swap;
-        swap(*this, f.value());
-        return true;
-    }
-
-    m_Points.clear();
-    m_Points.shrink_to_fit();
-    return false;
+    swap(*this, f);
+    return !empty();
 }
 
 int Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist

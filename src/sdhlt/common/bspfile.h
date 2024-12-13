@@ -133,8 +133,8 @@ dvertex_t;
 typedef struct
 {
     std::array<float, 3> normal;
-    float           dist;
-    planetypes      type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+    float dist;
+    planetypes type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 }
 dplane_t;
 

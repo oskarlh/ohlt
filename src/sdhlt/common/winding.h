@@ -38,16 +38,21 @@ class Winding final
 {
 public:
     // General Functions
-    void            Print() const;
+    void Print() const;
     void getPlane(dplane_t& plane) const;
     void getPlane(vec3_array& normal, vec_t& dist) const;
-    vec_t           getArea() const;
+    vec_t getArea() const;
     bounding_box getBounds() const;
-    vec3_array      getCenter() const;
-    void            Check(
-		vec_t epsilon = ON_EPSILON
-		) const;  // Developer check for validity
-    bool            Valid() const;  // Runtime/user/normal check for validity
+    vec3_array getCenter() const;
+    void Check(
+		  vec_t epsilon = ON_EPSILON
+		) const; // Developer check for validity
+    bool Valid() const;  // Runtime/user/normal check for validity
+    bool empty() const;
+    inline operator bool() const {
+      return !empty();
+    }
+    void clear();
 
 
     void pushPoint(const vec3_array& newpoint);
@@ -61,10 +66,10 @@ public:
     bool            Clip(const dplane_t& split, bool keepon
 		, vec_t epsilon = ON_EPSILON
 		); // For hlbsp
-    void            Clip(const dplane_t& split, std::optional<Winding>& front, std::optional<Winding>& back
+    void            Clip(const dplane_t& split, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON
 		) const;
-    void            Clip(const vec3_array& normal, const vec_t dist, std::optional<Winding>& front, std::optional<Winding>& back
+    void            Clip(const vec3_array& normal, const vec_t dist, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON
 		) const;
     bool            Chop(const vec3_array& normal, const vec_t dist
