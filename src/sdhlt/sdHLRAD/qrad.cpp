@@ -805,11 +805,11 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			dist = gridstartA + i * gridchopA;
 			winding->Clip (plA->normal, dist, front, back);
 
-			if (!front || front.WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // ended
+			if (!front || front.WindingOnPlaneSide (plA->normal, dist, epsilon) == side::on) // ended
 			{
 				break;
 			}
-			if (!back || back.WindingOnPlaneSide (plA->normal, dist, epsilon) == SIDE_ON) // didn't begin
+			if (!back || back.WindingOnPlaneSide (plA->normal, dist, epsilon) == side::on) // didn't begin
 			{
 				continue;
 			}
@@ -841,11 +841,11 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				dist = gridstartB + j * gridchopB;
 				strip->Clip (plB->normal, dist, front, back);
 				
-				if (!front || front.WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // ended
+				if (!front || front.WindingOnPlaneSide (plB->normal, dist, epsilon) == side::on) // ended
 				{
 					break;
 				}
-				if (!back || back.WindingOnPlaneSide (plB->normal, dist, epsilon) == SIDE_ON) // didn't begin
+				if (!back || back.WindingOnPlaneSide (plB->normal, dist, epsilon) == side::on) // didn't begin
 				{
 					continue;
 				}

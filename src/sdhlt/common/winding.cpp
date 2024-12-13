@@ -406,8 +406,8 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, Winding& front, W
 							  , vec_t epsilon
 							  ) const
 {
-    vec_t           dists[MAX_POINTS_ON_WINDING + 4];
-    int             sides[MAX_POINTS_ON_WINDING + 4];
+    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
     std::array<std::size_t, 3> counts{};
     vec_t           dot;
     unsigned int    i;
@@ -421,28 +421,28 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, Winding& front, W
         dists[i] = dot;
         if (dot > epsilon)
         {
-            sides[i] = SIDE_FRONT;
+            sides[i] = side::front;
         }
         else if (dot < -epsilon)
         {
-            sides[i] = SIDE_BACK;
+            sides[i] = side::back;
         }
         else
         {
-            sides[i] = SIDE_ON;
+            sides[i] = side::on;
         }
-        counts[sides[i]]++;
+        counts[(std::size_t) sides[i]]++;
     }
-    sides[i] = sides[0];
-    dists[i] = dists[0];
+    sides[size()] = sides[0];
+    dists[size()] = dists[0];
 
-    if (!counts[SIDE_FRONT])
+    if (!counts[(std::size_t) side::front])
     {
         back = *this;
         front.clear();
         return;
     }
-    if (!counts[SIDE_BACK])
+    if (!counts[(std::size_t) side::back])
     {
         front = *this;
         back.clear();
@@ -458,22 +458,22 @@ void Winding::Clip(const vec3_array& normal, const vec_t dist, Winding& front, W
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == SIDE_ON)
+        if (sides[i] == side::on)
         {
             f.m_Points.emplace_back(p1);
             b.m_Points.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == SIDE_FRONT)
+        else if (sides[i] == side::front)
         {
             f.m_Points.emplace_back(p1);
         }
-        else if (sides[i] == SIDE_BACK)
+        else if (sides[i] == side::back)
         {
             b.m_Points.emplace_back(p1);
         }
 
-        if ((sides[i + 1] == SIDE_ON) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
+        if ((sides[i + 1] == side::on) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
         {
             continue;
         }
@@ -530,7 +530,7 @@ bool Winding::Chop(const vec3_array& normal, const vec_t dist
     return !empty();
 }
 
-int Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
+side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 											, vec_t epsilon
 											)
 {
@@ -547,7 +547,7 @@ int Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
         {
             if (front)
             {
-                return SIDE_CROSS;
+                return side::cross;
             }
             back = true;
             continue;
@@ -556,7 +556,7 @@ int Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
         {
             if (back)
             {
-                return SIDE_CROSS;
+                return side::cross;
             }
             front = true;
             continue;
@@ -565,13 +565,13 @@ int Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 
     if (back)
     {
-        return SIDE_BACK;
+        return side::back;
     }
     if (front)
     {
-        return SIDE_FRONT;
+        return side::front;
     }
-    return SIDE_ON;
+    return side::on;
 }
 
 
@@ -579,8 +579,8 @@ bool Winding::Clip(const dplane_t& split, bool keepon
 				   , vec_t epsilon
 				   )
 {
-    vec_t           dists[MAX_POINTS_ON_WINDING];
-    int             sides[MAX_POINTS_ON_WINDING];
+    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
     int             counts[3];
     vec_t           dot;
     int             i, j;
@@ -596,20 +596,20 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         dists[i] = dot;
         if (dot > epsilon)
         {
-            sides[i] = SIDE_FRONT;
+            sides[i] = side::front;
         }
         else if (dot < -epsilon)
         {
-            sides[i] = SIDE_BACK;
+            sides[i] = side::back;
         }
         else
         {
-            sides[i] = SIDE_ON;
+            sides[i] = side::on;
         }
-        counts[sides[i]]++;
+        counts[(std::size_t) sides[i]]++;
     }
-    sides[i] = sides[0];
-    dists[i] = dists[0];
+    sides[size()] = sides[0];
+    dists[size()] = dists[0];
 
     if (keepon && !counts[0] && !counts[1])
     {
@@ -635,17 +635,17 @@ bool Winding::Clip(const dplane_t& split, bool keepon
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == SIDE_ON)
+        if (sides[i] == side::on)
         {
             newPoints.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == SIDE_FRONT)
+        else if (sides[i] == side::front)
         {
             newPoints.emplace_back(p1);
         }
 
-        if (sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
         {
             continue;
         }
@@ -697,101 +697,81 @@ bool Winding::Clip(const dplane_t& split, bool keepon
  * ==================
  */
 
-void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
-					 , vec_t epsilon
-					 )
+winding_division_result Winding::Divide(const dplane_t& split, vec_t epsilon) const
 {
-    vec_t           dists[MAX_POINTS_ON_WINDING];
-    int             sides[MAX_POINTS_ON_WINDING];
-    int             counts[3];
-    vec_t           dot;
-    int             i, j;
+    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
+    std::array<std::size_t, 3> counts{ 0, 0, 0};
 
-    counts[0] = counts[1] = counts[2] = 0;
+
+    vec_t dotSum = 0;
 
     // determine sides for each point
-    for (i = 0; i < size(); i++)
+    for (std::size_t i = 0; i < size(); i++)
     {
-        dot = DotProduct(m_Points[i], split.normal);
+        vec_t dot = DotProduct(m_Points[i], split.normal);
         dot -= split.dist;
+        dotSum += dot;
         dists[i] = dot;
+
+        side side = side::on;
         if (dot > epsilon)
         {
-            sides[i] = SIDE_FRONT;
+            side = side::front;
         }
         else if (dot < -epsilon)
         {
-            sides[i] = SIDE_BACK;
+            side = side::back;
         }
-        else
-        {
-            sides[i] = SIDE_ON;
-        }
-        counts[sides[i]]++;
+        sides[i] = side;
+        counts[(std::size_t) side]++;
     }
-    sides[i] = sides[0];
-    dists[i] = dists[0];
+    sides[size()] = sides[0];
+    dists[size()] = dists[0];
 
-    *front = *back = nullptr;
 
-	if (!counts[0] && !counts[1])
+	if (!counts[(std::size_t) side::back])
 	{
-		vec_t sum = 0.0;
-		for (i = 0; i < size(); i++)
+        if(counts[(std::size_t) side::front]) {
+            return one_sided_winding_division_result::all_in_the_front;
+        }
+		if (dotSum > NORMAL_EPSILON)
 		{
-			dot = DotProduct(m_Points[i], split.normal);
-			dot -= split.dist;
-			sum += dot;
-		}
-		if (sum > NORMAL_EPSILON)
-		{
-			*front = this;
-		}
-		else
-		{
-			*back = this;
-		}
-		return;
+            return one_sided_winding_division_result::all_in_the_front;
+        }	
+	    return one_sided_winding_division_result::all_in_the_back;
 	}
-    if (!counts[0])
-    {
-        *back = this;   // Makes this function non-const
-        return;
-    }
-    if (!counts[1])
-    {
-        *front = this;  // Makes this function non-const
-        return;
-    }
+	if (!counts[(std::size_t) side::front])
+	{
+	    return one_sided_winding_division_result::all_in_the_back;
+	}
 
-    Winding* f = new Winding{};
-    Winding* b = new Winding{};
-    f->m_Points.reserve(size() + 4);
-    b->m_Points.reserve(size() + 4);
+    Winding back;
+    Winding front;
+    back.m_Points.reserve(size() + 4);
+    front.m_Points.reserve(size() + 4);
 
-    *front = f;
-    *back = b;
 
-    for (i = 0; i < size(); i++)
+    for (std::size_t i = 0; i < size(); i++)
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == SIDE_ON)
+        if (sides[i] == side::on)
         {
-            f->m_Points.emplace_back(p1);
-            b->m_Points.emplace_back(p1);
+            front.m_Points.emplace_back(p1);
+            back.m_Points.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == SIDE_FRONT)
+        else if (sides[i] == side::front)
         {
-            f->m_Points.emplace_back(p1);
+            front.m_Points.emplace_back(p1);
         }
-        else if (sides[i] == SIDE_BACK)
+        else if (sides[i] == side::back)
         {
-            b->m_Points.emplace_back(p1);
+            back.m_Points.emplace_back(p1);
         }
 
-        if (sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
         {
             continue;
         }
@@ -804,8 +784,8 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
             tmp = 0;
         }
         const vec3_array& p2 = m_Points[tmp];
-        dot = dists[i] / (dists[i] - dists[i + 1]);
-        for (j = 0; j < 3; j++)
+        vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+        for (std::size_t j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
             if (split.normal[j] == 1)
                 mid[j] = split.dist;
@@ -815,30 +795,27 @@ void Winding::Divide(const dplane_t& split, Winding** front, Winding** back
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }
 
-        f->m_Points.emplace_back(mid);
-        b->m_Points.emplace_back(mid);
+        front.m_Points.emplace_back(mid);
+        back.m_Points.emplace_back(mid);
     }
 
-    f->RemoveColinearPoints(
+    front.RemoveColinearPoints(
 		epsilon
 		);
-    b->RemoveColinearPoints(
+    back.RemoveColinearPoints(
 		epsilon
 		);
-	if (f->m_Points.empty())
-	{
-		delete f;
-		delete b;
-		*front = nullptr;
-		*back = this;
-	}
-	else if (b->m_Points.empty())
-	{
-		delete f;
-		delete b;
-		*back = nullptr;
-		*front = this;
-	}
+
+    if(!front) {
+        return one_sided_winding_division_result::all_in_the_back;
+    }
+    if(!back) {
+        return one_sided_winding_division_result::all_in_the_front;
+    }
+    return split_winding_division_result{
+        std::move(back),
+        std::move(front)
+    };
 }
 
 

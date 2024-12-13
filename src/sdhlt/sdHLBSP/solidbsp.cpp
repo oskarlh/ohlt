@@ -1,6 +1,7 @@
 //#pragma warning(disable: 4018) // '<' : signed/unsigned mismatch
 
 #include "bsp5.h"
+#include "util.h"
 
 //  FaceSide
 //  ChooseMidPlaneFromList
@@ -1356,14 +1357,11 @@ static void     SplitNodePortals(node_t *node)
 {
     portal_t*       p;
     portal_t*       next_portal;
-    portal_t*       new_portal;
     node_t*         f;
     node_t*         b;
     node_t*         other_node;
     int             side = 0;
     dplane_t*       plane;
-    Winding*        frontwinding;
-    Winding*        backwinding;
 
     plane = &g_dplanes[node->planenum];
     f = node->children[0];
@@ -1389,55 +1387,43 @@ static void     SplitNodePortals(node_t *node)
         RemovePortalFromNode(p, p->nodes[0]);
         RemovePortalFromNode(p, p->nodes[1]);
 
-        // cut the portal into two portals, one on each side of the cut plane
-        p->winding->Divide(*plane, &frontwinding, &backwinding);
+        // Cut the portal into two portals, one on each side of the cut plane
+		Winding& pWinding = *p->winding;
+	
+		visit_with(
+			pWinding.Divide(*plane),
+			[&b, &f, &other_node, &p, &side](one_sided_winding_division_result backOrFront) {
+				node_t* nodeToPush = (
+					backOrFront == one_sided_winding_division_result::all_in_the_back
+					? b : f
+				);
+				if (side == 0)
+				{
+					AddPortalToNodes(p, nodeToPush, other_node);
+				}
+				else
+				{
+					AddPortalToNodes(p, other_node, nodeToPush);
+				}
+        	},
+			[&b, &f, &other_node, &p, &side](split_winding_division_result& arg) {
+				// The winding is split
+				using std::swap;
+    			portal_t* new_portal = AllocPortal();
+				*new_portal = *p;
+				new_portal->winding = new Winding{};
+				swap(*new_portal->winding, arg.back);
+				swap(*p->winding, arg.front);
 
-		if (!frontwinding && !backwinding)
-		{
-			continue;
-		}
-        if (!frontwinding)
-        {
-            if (side == 0)
-            {
-                AddPortalToNodes(p, b, other_node);
-            }
-            else
-            {
-                AddPortalToNodes(p, other_node, b);
-            }
-            continue;
-        }
-        if (!backwinding)
-        {
-            if (side == 0)
-            {
-                AddPortalToNodes(p, f, other_node);
-            }
-            else
-            {
-                AddPortalToNodes(p, other_node, f);
-            }
-            continue;
-        }
-
-        // the winding is split
-        new_portal = AllocPortal();
-        *new_portal = *p;
-        new_portal->winding = backwinding;
-        delete p->winding;
-        p->winding = frontwinding;
-
-        if (side == 0)
-        {
-            AddPortalToNodes(p, f, other_node);
-            AddPortalToNodes(new_portal, b, other_node);
-        }
-        else
-        {
-            AddPortalToNodes(p, other_node, f);
-            AddPortalToNodes(new_portal, other_node, b);
-        }
+				if (side == 0) {
+					AddPortalToNodes(p, f, other_node);
+					AddPortalToNodes(new_portal, b, other_node);
+				} else {
+					AddPortalToNodes(p, other_node, f);
+					AddPortalToNodes(new_portal, other_node, b);
+				}
+			}
+		);
     }
 
     node->portals = nullptr;

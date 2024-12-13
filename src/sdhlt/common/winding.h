@@ -8,11 +8,19 @@
 #include "mathlib.h"
 #include "bspfile.h"
 #include "bounding_box.h"
+#include <variant>
 
 #define MAX_POINTS_ON_WINDING 128
 // TODO: FIX THIS STUPID SHIT (MAX_POINTS_ON_WINDING)
 
 #define BASE_WINDING_DISTANCE 9000
+
+enum class side {
+  front = 0,
+  back = 1,
+  on = 2,
+  cross = -2 // Why is this -2?
+};
 
 #define	SIDE_FRONT		0
 #define	SIDE_ON			2
@@ -34,6 +42,22 @@ typedef struct
 } dplane_t;
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 #endif
+
+
+enum class one_sided_winding_division_result {
+  all_in_the_back,
+  all_in_the_front
+};
+template<class W> struct split_winding_division_result_template {
+  W back{};
+  W front{};
+};
+template<class W> using winding_division_result_template = std::variant<
+  one_sided_winding_division_result,
+  split_winding_division_result_template<W>
+>;
+
+
 class Winding final
 {
 public:
@@ -75,10 +99,9 @@ public:
     bool            Chop(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
-    void            Divide(const dplane_t& split, Winding** front, Winding** back
-		, vec_t epsilon = ON_EPSILON
-		);
-    int             WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
+    winding_division_result_template<Winding> Divide(const dplane_t& split, vec_t epsilon = ON_EPSILON
+		) const;
+    side             WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
 
@@ -117,3 +140,8 @@ public:
     }
 
 };
+
+
+using split_winding_division_result = split_winding_division_result_template<Winding>;
+using winding_division_result =  winding_division_result_template<Winding>;
+

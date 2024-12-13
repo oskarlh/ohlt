@@ -608,17 +608,17 @@ void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **
 	{
 		switch (s->w->WindingOnPlaneSide (split->normal, split->dist, 2 * ON_EPSILON))
 		{
-		case SIDE_CROSS:
+		case side::cross:
 			onfront = true;
 			onback = true;
 			break;
-		case SIDE_FRONT:
+		case side::front:
 			onfront = true;
 			break;
-		case SIDE_BACK:
+		case side::back:
 			onback = true;
 			break;
-		case SIDE_ON:
+		case side::on:
 			break;
 		}
 		if (onfront && onback)
