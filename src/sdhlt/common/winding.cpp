@@ -813,8 +813,8 @@ winding_division_result Winding::Divide(const dplane_t& split, vec_t epsilon) co
         return one_sided_winding_division_result::all_in_the_front;
     }
     return split_winding_division_result{
-        std::move(back),
-        std::move(front)
+        .back = std::move(back),
+        .front = std::move(front)
     };
 }
 

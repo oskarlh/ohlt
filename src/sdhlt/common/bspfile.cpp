@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <numbers>
 #include <span>
+#include <type_traits>
 
 #include "cmdlib.h"
 #include "filelib.h"
@@ -107,6 +108,12 @@ static std::uint32_t rotleftu32(std::uint32_t value, std::uint32_t amt)
 
 template<class T> static std::uint32_t fast_checksum(std::span<T> elements)
 {
+	// TODO: Find a better way to hash that gives us the same output on all platforms.
+	// This assertion fails for two possible reasons:
+	// 1) NaN floats have can have different bit representations
+	// 2) struct padding
+	// static_assert(std::has_unique_object_representations_v<T>);
+
 	struct element_as_bytes {
 		unsigned char bytes[sizeof(T)];
 	};

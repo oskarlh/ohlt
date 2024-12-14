@@ -16,27 +16,25 @@
 #include <vector>
 #include <unordered_map>
 
-#define DEFAULT_MAXDISTANCE_RANGE   0
+#define DEFAULT_MAXDISTANCE_RANGE 0
 
 
-#define DEFAULT_FULLVIS     false
-#define DEFAULT_NOFIXPRT    false
-#define DEFAULT_FASTVIS     false
+#define DEFAULT_FULLVIS false
+#define DEFAULT_NOFIXPRT false
+#define DEFAULT_FASTVIS false
 
 #define	MAX_PORTALS	32768
 
-//#define USE_CHECK_STACK
-#define RVIS_LEVEL_1
 #define RVIS_LEVEL_2
 
 #define	MAX_POINTS_ON_FIXED_WINDING	32
 
-typedef struct
+struct winding_t
 {
-    bool            original;                              // don't free, it's part of the portal
-    int             numpoints;
-    vec3_array          points[MAX_POINTS_ON_FIXED_WINDING];
-} winding_t;
+    bool original; // Don't free, it's part of the portal
+    std::size_t numpoints;
+    vec3_array points[MAX_POINTS_ON_FIXED_WINDING];
+};
 
 typedef struct
 {
@@ -64,11 +62,11 @@ typedef struct
     std::uint_least32_t          zone;                                  // Which zone is this portal a member of
 } portal_t;
 
-typedef struct seperating_plane_s
+struct sep_t
 {
-    struct seperating_plane_s* next;
-    plane_t         plane;                                 // from portal is on positive side
-} sep_t;
+    sep_t* next;
+    plane_t plane; // from portal is on positive side
+};
 
 typedef struct passage_s
 {
@@ -88,9 +86,6 @@ typedef struct leaf_s
 typedef struct pstack_s
 {
     byte            mightsee[MAX_MAP_LEAFS / 8];           // bit string
-#ifdef USE_CHECK_STACK
-    struct pstack_s* next;
-#endif
     struct pstack_s* head;
 
     leaf_t*         leaf;

@@ -1,22 +1,6 @@
 #include "vis.h"
 
 // =====================================================================================
-//  CheckStack
-// =====================================================================================
-#ifdef USE_CHECK_STACK
-static void     CheckStack(const leaf_t* const leaf, const threaddata_t* const thread)
-{
-    pstack_t*       p;
-
-    for (p = thread->pstack_head.next; p; p = p->next)
-    {
-        if (p->leaf == leaf)
-            Error("CheckStack: leaf recursion");
-    }
-}
-#endif
-
-// =====================================================================================
 //  AllocStackWinding
 // =====================================================================================
 inline static winding_t* AllocStackWinding(pstack_t* const stack)
@@ -357,9 +341,7 @@ inline static winding_t* ClipToSeperators(
         	AddPlane(stack, &plane);
 	    }
 
-#ifdef RVIS_LEVEL_1
             break; /* Antony was here */
-#endif
         }
     }
 
@@ -377,9 +359,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
     leaf_t*         leaf;
 
     leaf = &g_leafs[leafnum];
-#ifdef USE_CHECK_STACK
-    CheckStack(leaf, thread);
-#endif
 
     {
         const unsigned offset = leafnum >> 3;
@@ -393,10 +372,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         }
     }
 
-#ifdef USE_CHECK_STACK
-    prevstack->next = &stack;
-    stack.next = nullptr;
-#endif
     stack.head = prevstack->head;
     stack.leaf = leaf;
     stack.portal = nullptr;
@@ -486,9 +461,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         }
 
         stack.portal = p;
-#ifdef USE_CHECK_STACK
-        stack.next = nullptr;
-#endif
+
         stack.freewindings[0] = 1;
         stack.freewindings[1] = 1;
         stack.freewindings[2] = 1;

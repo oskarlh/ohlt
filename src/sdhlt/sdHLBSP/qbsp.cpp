@@ -227,12 +227,14 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
     }
     counts[0] = counts[1] = counts[2] = 0;
 
-
+    vec_t dotSum = 0.0;
+    // This again... We have code like this in Winding repeated several times
     // determine sides for each point
     for (i = 0; i < in->numpoints; i++)
     {
         dot = DotProduct(in->pts[i], split->normal);
         dot -= split->dist;
+        dotSum += dot;
         dists[i] = dot;
         if (dot > ON_EPSILON)
         {
@@ -271,14 +273,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 		else
 		{
 			// not func_detail. front face and back face need to pair.
-			vec_t sum = 0.0;
-			for (i = 0; i < in->numpoints; i++)
-			{
-				dot = DotProduct(in->pts[i], split->normal);
-				dot -= split->dist;
-				sum += dot;
-			}
-			if (sum > NORMAL_EPSILON)
+			if (dotSum > NORMAL_EPSILON)
 			{
 				*front = in;
 				*back = nullptr;

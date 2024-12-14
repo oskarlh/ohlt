@@ -99,11 +99,11 @@ lump_t;
 
 typedef struct
 {
-    float           mins[3], maxs[3];
-    float           origin[3];
-    std::int32_t             headnode[MAX_MAP_HULLS];
-    std::int32_t             visleafs;                              // not including the solid leaf 0
-    std::int32_t             firstface, numfaces;
+    float mins[3], maxs[3];
+    float origin[3];
+    std::int32_t headnode[MAX_MAP_HULLS];
+    std::int32_t visleafs; // not including the solid leaf 0
+    std::int32_t firstface, numfaces;
 }
 dmodel_t;
 
