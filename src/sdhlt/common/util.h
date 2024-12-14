@@ -215,13 +215,13 @@ class custom_inplace_vector final {
 			return true;
 		}
 
-		constexpr void shrink_to(std::size_t newSize) noexcept(noexcept(pop_back()))
+		constexpr void shrink_to(std::size_t newSize) noexcept
 		requires(std::is_trivially_destructible_v<T>)
 		{
 			vectorSize = 0;
 		}
 
-		constexpr void shrink_to(std::size_t newSize) noexcept(noexcept(pop_back()))
+		constexpr void shrink_to(std::size_t newSize) noexcept
 		requires(!std::is_trivially_destructible_v<T>)
 		{
 			while(size() > newSize) {
@@ -234,7 +234,7 @@ class custom_inplace_vector final {
 		}
 
 		constexpr ~custom_inplace_vector() noexcept
-		requires(std::is_trivially_default_constructible_v<T>) = default;
+		requires(std::is_trivially_destructible_v<T>) = default;
 
 
 		constexpr ~custom_inplace_vector() noexcept
@@ -242,6 +242,10 @@ class custom_inplace_vector final {
 			clear();
 		}
 };
+
+//static_assert(std::is_trivially_copy_assignable_v<custom_inplace_vector<int, 3>>);
+//static_assert(std::is_trivially_copyable_v<custom_inplace_vector<int, 3>>);
+
 
 #include <iostream>
 inline void testzzzzzz () {
