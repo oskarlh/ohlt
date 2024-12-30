@@ -58,11 +58,11 @@
 
 
 constexpr char8_t ascii_character_to_lowercase(char8_t c) noexcept {
-	const char8_t add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'0';
+	const char8_t add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'\0';
 	return c + add;
 }
 constexpr char8_t ascii_character_to_uppercase(char8_t c) noexcept {
-	const char8_t subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A') : u8'0';
+	const char8_t subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A') : u8'\0';
 	return c - subtract;
 }
 
