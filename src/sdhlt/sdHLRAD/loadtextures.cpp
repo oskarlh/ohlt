@@ -1,6 +1,8 @@
 #include "qrad.h"
 #include "wad_structs.h"
 
+#include <cstring>
+
 int g_numtextures;
 radtexture_t *g_textures;
 
@@ -302,7 +304,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 				continue;
 			}
 			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name, mt->name, mt->width, mt->height);
-			if (strcasecmp (mt->name, tex->name))
+			if (!strings_equal_with_ascii_case_insensitivity (mt->name, tex->name))
 			{
 				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name, mt->name, tex->name, wad->path);
 			}
@@ -990,8 +992,10 @@ static bool GetValidTextureName (int miptex, char name[16])
 		return false;
 	}
 	
-	if (strlen (name) >= 5 && !strncasecmp (&name[1], "_rad", 4))
-	{
+	if (
+		strlen (name) >= 5 &&
+		std::string_view(name + 1, 4) == "_rad"
+	) {
 		return false;
 	}
 
@@ -1408,7 +1412,7 @@ void EmbedLightmapInTextures ()
 		}
 		*(short *)p = 256;
 		p += 2;
-		memcpy (p, palette, 256 * 3);
+		std::memcpy (p, palette, 256 * 3);
 		p += 256 * 3;
 		*(short *)p = 0;
 		p += 2;
@@ -1421,10 +1425,6 @@ void EmbedLightmapInTextures ()
 		{
 			strcpy (miptex->name, "{_rad");
 		}
-		/*else if (texname[0] == '!')
-		{
-			strcpy (miptex->name, "!_rad");
-		}*/
 		else
 		{
 			strcpy (miptex->name, "__rad");
@@ -1438,10 +1438,10 @@ void EmbedLightmapInTextures ()
 		miptex->name[7] = '0' + (originaltexinfonum / 100) % 10;
 		miptex->name[8] = '0' + (originaltexinfonum / 10) % 10;
 		miptex->name[9] = '0' + (originaltexinfonum) % 10;
-		char table[62];
-		for (int k = 0; k < 62; k++)
+		char table[36];
+		for (int k = 0; k < 36; k++)
 		{
-			table[k] = k >= 36? 'a' + (k - 36): k >= 10? 'A' + (k - 10): '0' + k; // same order as the ASCII table
+			table[k] = k >= 10? 'a' + (k - 10): '0' + k; // same order as the ASCII table
 		}
 		miptex->name[10] = '\0';
 		miptex->name[11] = '\0';
@@ -1450,11 +1450,11 @@ void EmbedLightmapInTextures ()
 		miptex->name[14] = '\0';
 		miptex->name[15] = '\0';
 		unsigned int hash = Hash (miptexsize, miptex);
-		miptex->name[10] = table[(hash / 62 / 62) % 52 + 10];
-		miptex->name[11] = table[(hash / 62) % 62];
-		miptex->name[12] = table[(hash) % 62];
-		miptex->name[13] = table[(count / 62) % 62];
-		miptex->name[14] = table[(count) % 62];
+		miptex->name[10] = table[(hash / 36 / 36) % 26 + 10];
+		miptex->name[11] = table[(hash / 36) % 36];
+		miptex->name[12] = table[(hash) % 36];
+		miptex->name[13] = table[(count / 36) % 36];
+		miptex->name[14] = table[(count) % 36];
 		miptex->name[15] = '\0';
 		NewTextures_PushTexture (miptexsize, miptex);
 		count++;

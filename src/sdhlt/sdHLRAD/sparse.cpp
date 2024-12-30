@@ -275,7 +275,6 @@ static void     BuildVisLeafs(int threadnum)
 {
     std::array<std::byte, (MAX_MAP_LEAFS + 7) / 8> pvs;
 	std::unique_ptr<bool[]> uncompressedcolumn = std::make_unique<bool[]>(MAX_SPARSE_VISMATRIX_PATCHES);
-	hlassume (uncompressedcolumn != nullptr, assume_NoMemory);
 
     while (1)
     {

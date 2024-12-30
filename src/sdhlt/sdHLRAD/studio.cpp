@@ -107,7 +107,7 @@ void LoadStudioModels( void )
 		entity_t* e = &g_entities[i];
 		name = (const char*) ValueForKey( e, u8"classname" );
 
-		if( !strcasecmp( name, "env_static" ))
+		if( strings_equal_with_ascii_case_insensitivity( name, "env_static" ))
 		{
 			int spawnflags = IntForKey( e, u8"spawnflags" );
 			if( spawnflags & 4 ) continue; // shadow disabled

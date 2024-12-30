@@ -1,6 +1,7 @@
 #pragma warning(disable: 4267) // 'size_t' to 'unsigned int', possible loss of data
 
 #include "bsp5.h"
+#include <cstring>
 
 //  PointInLeaf
 //  PlaceOccupant
@@ -338,7 +339,7 @@ unsigned        g_nAllowableOutside = 0;
 unsigned        g_maxAllowableOutside = 0;
 char**          g_strAllowableOutsideList;
 
-bool            isClassnameAllowableOutside(const char8_t* classname)
+bool isClassnameAllowableOutside(const char8_t* classname)
 {
     if (g_strAllowableOutsideList)
     {
@@ -349,7 +350,7 @@ bool            isClassnameAllowableOutside(const char8_t* classname)
         {
             if (list)
             {
-                if (!strcasecmp((const char*) classname, *list))
+                if (classname == std::u8string_view((const char8_t*) *list))
                 {
                     return true;
                 }
@@ -388,7 +389,7 @@ void            LoadAllowableOutsideList(const char* const filename)
     }
     else
     {
-        unsigned        len = strlen(filename) + 5;
+        unsigned        len = std::strlen(filename) + 5;
 
         fname = (char*)Alloc(len);
         safe_snprintf(fname, len, "%s", filename);
@@ -405,7 +406,7 @@ void            LoadAllowableOutsideList(const char* const filename)
                 if ((pData[x] == '\n') || (pData[x] == '\r'))
                 {
                     pData[x] = 0;
-                    if (strlen(pszData))
+                    if (std::strlen(pszData))
                     {
                         if (g_nAllowableOutside == g_maxAllowableOutside)
                         {
@@ -466,7 +467,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
 
                 // nudge playerstart around if needed so clipping hulls allways
                 // have a vlaid point
-                if (!strcmp((const char*) cl, "info_player_start"))
+                if (!std::strcmp((const char*) cl, "info_player_start"))
                 {
                     int             x, y;
 

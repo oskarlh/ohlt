@@ -1,5 +1,7 @@
 #include "bsp5.h"
 
+#include <cstring>
+
 typedef struct wvert_s
 {
     vec_t           t;
@@ -51,7 +53,7 @@ static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
 	// Let's ignore the parameters and make things more predictable, so there won't be strange cases such as division by 0 or extreme scaling values.
 	VectorFill(hash_min, -8000);
 	VectorFill(size, 16000);
-    memset(wedge_hash, 0, sizeof(wedge_hash));
+    std::memset(wedge_hash, 0, sizeof(wedge_hash));
 
     volume = size[0] * size[1];
 

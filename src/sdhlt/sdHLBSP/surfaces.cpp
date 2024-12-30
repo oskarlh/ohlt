@@ -1,5 +1,7 @@
 #include "bsp5.h"
 
+#include <cstring>
+
 //  SubdivideFace
 
 //  InitHash
@@ -162,7 +164,7 @@ static void     InitHash()
     int             newsize[2];
     int             i;
 
-    memset(hashverts, 0, sizeof(hashverts));
+    std::memset(hashverts, 0, sizeof(hashverts));
 
     for (i = 0; i < 3; i++)
     {

@@ -6,6 +6,7 @@
 #include "hlassert.h"
 
 #include <algorithm>
+#include <ranges>
 #include <span>
 
 constexpr vec_t bogus_range = 80000.0;
@@ -203,8 +204,15 @@ Winding::Winding(vec3_array *points, std::size_t numpoints)
 {
 	hlassert(numpoints >= 3);
     std::size_t capacity = (numpoints + 3) & ~3;   // groups of 4
+
+// https://en.cppreference.com/w/cpp/feature_test#cpp_lib_containers_ranges
+// Fingers crossed for GCC 15
+#ifdef __cpp_lib_containers_ranges
     m_Points.reserve(capacity);
-    m_Points.assign_range(std::span(points, numpoints));
+	m_Points.assign_range(std::span(points, numpoints));
+#else
+	m_Points = std::span(points, numpoints) | std::ranges::to<std::vector>();
+#endif
 }
 
 Winding&      Winding::operator=(const Winding& other)

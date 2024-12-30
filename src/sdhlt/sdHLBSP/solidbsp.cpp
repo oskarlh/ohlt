@@ -3,6 +3,8 @@
 #include "bsp5.h"
 #include "util.h"
 
+#include <cstring>
+
 //  FaceSide
 //  ChooseMidPlaneFromList
 //  ChoosePlaneFromList
@@ -1286,7 +1288,7 @@ static void MakeLeaf (node_t *leafnode)
 		nummarkfaces++;
 
 		leafnode->markfaces = (face_t**)malloc(nummarkfaces * sizeof(*leafnode->markfaces));
-		memcpy(leafnode->markfaces, markfaces, nummarkfaces * sizeof(*leafnode->markfaces));
+		std::memcpy(leafnode->markfaces, markfaces, nummarkfaces * sizeof(*leafnode->markfaces));
 	}
 
 	FreeLeafSurfs(leafnode);
