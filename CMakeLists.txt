@@ -75,6 +75,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
     ${COMMON_DIR}/util.h
+    ${COMMON_DIR}/vector_inplace.h
     ${COMMON_DIR}/wad_structs.h
     ${COMMON_DIR}/win32fix.h
     ${COMMON_DIR}/winding.h
