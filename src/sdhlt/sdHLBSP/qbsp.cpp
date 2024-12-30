@@ -13,6 +13,7 @@
 */
 
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include "hull_size.h"
 #include <utility>
@@ -20,13 +21,8 @@
 #include "bsp5.h"
 #include "cli_option_defaults.h"
 
+using namespace std::literals;
 
-/*
-
- NOTES
-
-
-*/
 
 hull_sizes g_hull_size{standard_hull_sizes};
 
@@ -106,12 +102,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
+	if (!std::strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
     {
         g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
     }
-    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
+    else if (!std::strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
     {
         g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -861,7 +857,7 @@ bool            CheckFaceForEnv_Sky(const face_t* const f)
 //  CheckFaceForHint
 //      Returns true if the passed face is facetype hint
 // =====================================================================================
-bool            CheckFaceForHint(const face_t* const f)
+bool CheckFaceForHint(const face_t* const f)
 {
 	const char *name = GetTextureByNumber (f->texturenum);
 	if (!strncasecmp (name, "hint", 4))
@@ -884,7 +880,7 @@ bool            CheckFaceForSkip(const face_t* const f)
 bool CheckFaceForDiscardable (const face_t *f)
 {
 	const char *name = GetTextureByNumber (f->texturenum);
-    if (!strncasecmp(name, "SOLIDHINT", 9) || !strncasecmp(name, "BEVELHINT", 9))
+    if (!strncasecmp(name, "solidhint", 9) || !strncasecmp(name, "bevelhint", 9))
 		return true;
 	return false;
 }
@@ -1606,7 +1602,7 @@ int             main(const int argc, char** argv)
     // check command line args
     for (i = 1; i < argc; i++)
     {
-        if (!strcasecmp(argv[i], "-threads"))
+        if (argv[i] == "-threads"sv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1623,37 +1619,37 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-notjunc"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-notjunc"))
         {
             g_notjunc = true;
         }
-		else if (!strcasecmp (argv[i], "-nobrink"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nobrink"))
 		{
 			g_nobrink = true;
 		}
-        else if (!strcasecmp(argv[i], "-noclip"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noclip"))
         {
             g_noclip = true;
         }
-        else if (!strcasecmp(argv[i], "-nofill"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nofill"))
         {
             g_nofill = true;
         }
-        else if (!strcasecmp(argv[i], "-noinsidefill"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinsidefill"))
         {
             g_noinsidefill = true;
         }
-        else if (!strcasecmp(argv[i], "-estimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-estimate"))
         {
             g_estimate = true;
         }
-        else if (!strcasecmp(argv[i], "-noestimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noestimate"))
         {
             g_estimate = false;
         }
 
 
-        else if (!strcasecmp(argv[i], "-dev"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dev"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1664,55 +1660,55 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-verbose"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-verbose"))
         {
             g_verbose = true;
         }
-        else if (!strcasecmp(argv[i], "-noinfo"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
         {
             g_info = false;
         }
-        else if (!strcasecmp(argv[i], "-leakonly"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-leakonly"))
         {
             g_bLeakOnly = true;
         }
-        else if (!strcasecmp(argv[i], "-chart"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
         {
             g_chart = true;
         }
-        else if (!strcasecmp(argv[i], "-low"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-low"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
-        else if (!strcasecmp(argv[i], "-high"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-high"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
-        else if (!strcasecmp(argv[i], "-nolog"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolog"))
         {
             g_log = false;
         }
 
-        else if (!strcasecmp(argv[i], "-nonulltex"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nonulltex"))
         {
             g_bUseNullTex = false;
         }
 
 
-		else if (!strcasecmp (argv[i], "-nohull2"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nohull2"))
 		{
 			g_nohull2 = true;
 		}
 
-		else if (!strcasecmp(argv[i], "-noopt"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noopt"))
 		{
 			g_noopt = true;
 		}
-		else if (!strcasecmp (argv[i], "-noclipnodemerge"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noclipnodemerge"))
 		{
 			g_noclipnodemerge = true;
 		}
-        else if (!strcasecmp(argv[i], "-subdivide"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-subdivide"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1737,7 +1733,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-maxnodesize"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-maxnodesize"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1762,11 +1758,11 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp (argv[i], "-viewportal"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-viewportal"))
 		{
 			g_viewportal = true;
 		}
-        else if (!strcasecmp(argv[i], "-texdata"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1812,22 +1808,7 @@ int             main(const int argc, char** argv)
     ThreadSetDefault();
     ThreadSetPriority(g_threadpriority);
     LogStart(argcold, argvold);
-	{
-		int			 i;
-		Log("Arguments: ");
-		for (i = 1; i < argc; i++)
-		{
-			if (strchr(argv[i], ' '))
-			{
-				Log("\"%s\" ", argv[i]);
-			}
-			else
-			{
-				Log("%s ", argv[i]);
-			}
-		}
-		Log("\n");
-	}
+	log_arguments(argc, argv);
 
     CheckForErrorLog();
 

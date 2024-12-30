@@ -24,6 +24,8 @@
 #include <iostream> //FixPrt
 #include <utility>
 
+using namespace std::literals;
+
 /*
 
  NOTES
@@ -991,7 +993,7 @@ int             main(const int argc, char** argv)
 
     for (i = 1; i < argc; i++)
     {
-        if (!strcasecmp(argv[i], "-threads"))
+        if (argv[i] == "-threads"sv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1010,25 +1012,25 @@ int             main(const int argc, char** argv)
         }
 
 #ifdef SYSTEM_POSIX
-        else if (!strcasecmp(argv[i], "-noestimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noestimate"))
         {
             g_estimate = false;
         }
 #endif
-        else if (!strcasecmp(argv[i], "-fast"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-fast"))
         {
             Log("g_fastvis = true\n");
             g_fastvis = true;
         }
-        else if (!strcasecmp(argv[i], "-full"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-full"))
         {
             g_fullvis = true;
         }
-        else if (!strcasecmp(argv[i], "-nofixprt"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nofixprt"))
         {
             g_nofixprt = true;
         }
-        else if (!strcasecmp(argv[i], "-dev"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dev"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1039,32 +1041,32 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-verbose"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-verbose"))
         {
             g_verbose = true;
         }
 
-        else if (!strcasecmp(argv[i], "-noinfo"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
         {
             g_info = false;
         }
-        else if (!strcasecmp(argv[i], "-chart"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
         {
             g_chart = true;
         }
-        else if (!strcasecmp(argv[i], "-low"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-low"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
-        else if (!strcasecmp(argv[i], "-high"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-high"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
-        else if (!strcasecmp(argv[i], "-nolog"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolog"))
         {
             g_log = false;
         }
-        else if (!strcasecmp(argv[i], "-texdata"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1083,7 +1085,7 @@ int             main(const int argc, char** argv)
 
         
         // AJM: MVD
-		else if(!strcasecmp(argv[i], "-maxdistance"))
+		else if(strings_equal_with_ascii_case_insensitivity(argv[i], u8"-maxdistance"))
 		{
 			if(i + 1 < argc)	//added "1" .--vluzacn
 			{
@@ -1126,22 +1128,7 @@ int             main(const int argc, char** argv)
     ThreadSetDefault();
     ThreadSetPriority(g_threadpriority);
     LogStart(argcold, argvold);
-	{
-		int			 i;
-		Log("Arguments: ");
-		for (i = 1; i < argc; i++)
-		{
-			if (strchr(argv[i], ' '))
-			{
-				Log("\"%s\" ", argv[i]);
-			}
-			else
-			{
-				Log("%s ", argv[i]);
-			}
-		}
-		Log("\n");
-	}
+	log_arguments(argc, argv);
 
 
     CheckForErrorLog();

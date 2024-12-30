@@ -246,7 +246,7 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
 			bool ishidden = false;
 			{
 				const char *name = GetTextureByNumber (f->texturenum);
-				if (strlen (name) >= 7 && !strcasecmp (&name[strlen (name) - 7], "_HIDDEN"))
+				if (strlen (name) >= 7 && strings_equal_with_ascii_case_insensitivity(&name[strlen (name) - 7], u8"_HIDDEN"))
 				{
 					ishidden = true;
 				}
@@ -677,7 +677,7 @@ void            FinishBSPFile(const bsp_data& bspData)
 							if (l->dataofs[k] < 0)
 								continue;
 							miptex_t *m2 = (miptex_t *)((byte *)l + l->dataofs[k]);
-							if (!strcasecmp (name, m2->name))
+							if (strings_equal_with_ascii_case_insensitivity (name, m2->name))
 								Used[k] = true;
 						}
 					}
