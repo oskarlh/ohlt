@@ -42,3 +42,8 @@ https://developer.valvesoftware.com/wiki/BSPX
 
 For compiling the common/ files once (not per target):
 https://stackoverflow.com/questions/5091583/cmake-reuse-object-files-built-for-a-lib-into-another-lib-target
+
+
+
+See Version 33 in http://zhlt.info/version-history.html
+Perhaps I can auto-enable those "fake"/embedded lightmaps for any transparent "{" textures.

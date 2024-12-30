@@ -3,6 +3,11 @@
 # Exit on failure
 set -e
 
+# Use GCC 14
+# export CC=/opt/homebrew/bin/gcc-14
+# export CXX=/opt/homebrew/bin/g++-14
+# -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+
 cmake -S . --preset=release-config
 cmake --build --preset=release-build
 

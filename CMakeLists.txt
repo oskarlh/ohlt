@@ -63,6 +63,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/bounding_box.h
     ${COMMON_DIR}/bsp_file_sizes.h
     ${COMMON_DIR}/bspfile.h
+    ${COMMON_DIR}/call_finally.h
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h
     ${COMMON_DIR}/cli_option_defaults.h
