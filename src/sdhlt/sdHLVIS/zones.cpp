@@ -81,7 +81,7 @@ Zones* MakeZones(void)
     {
         entity_t*       ent = EntityForModel(x);
 
-        if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
+        if (classname_is(ent, u8"func_vis"))
         {
             std::uint_least32_t value = atoi((const char*) ValueForKey(ent, u8"node"));
             if (value)
@@ -107,7 +107,7 @@ Zones* MakeZones(void)
         dmodel_t*       mod = &g_dmodels[x];
         entity_t*       ent = EntityForModel(x);
 
-        if (!strcasecmp((const char*) ValueForKey(ent, u8"classname"), "func_vis"))
+        if (classname_is(ent, u8"func_vis"))
         {
             std::uint_least32_t func_vis_id = atoi((const char*) ValueForKey(ent, u8"node"));
 
