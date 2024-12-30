@@ -465,19 +465,16 @@ void FORMAT_PRINTF(1,2)      Log(const char* const warning, ...)
     WriteLog(message);
 }
 
-// =====================================================================================
-//  LogArgs
-// =====================================================================================
-static void     LogArgs(int argc, char** argv)
+void log_arguments(int argc, char** argv)
 {
-    int             i;
-
-    Log("Command line: ");
-    for (i = 0; i < argc; i++)
+    Log("Arguments: ");
+    // i = 1 to skip the executable path
+    for (int i = 1; i < argc; i++)
     {
-        if (strchr(argv[i], ' '))
+        std::string_view arg{argv[i]};
+        if (arg.contains(' '))
         {
-            Log("\"%s\" ", argv[i]); //Log("\"%s\"", argv[i]); //--vluzacn
+            Log("\"%s\" ", argv[i]);
         }
         else
         {
@@ -486,6 +483,25 @@ static void     LogArgs(int argc, char** argv)
     }
     Log("\n");
 }
+
+static void LogCommandLine(int argc, char** argv)
+{
+    Log("Command line: ");
+    for (int i = 0; i < argc; i++)
+    {
+        std::string_view arg{argv[i]};
+        if (arg.contains(' '))
+        {
+            Log("\"%s\" ", argv[i]);
+        }
+        else
+        {
+            Log("%s ", argv[i]);
+        }
+    }
+    Log("\n");
+}
+
 
 // =====================================================================================
 //  Banner
@@ -511,7 +527,7 @@ void            LogStart(int argc, char** argv)
 {
     Banner();
     Log("-----  BEGIN  %s -----\n", g_Program);
-    LogArgs(argc, argv);
+    LogCommandLine(argc, argv);
     DisplayDeveloperLevel();
 }
 

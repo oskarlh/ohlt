@@ -3,7 +3,12 @@
 #include "cmdlib.h"
 #include "log.h"
 #include <algorithm>
+#include <cstring>
+#include <deque>
 #include <optional>
+#include <string_view>
+
+using namespace std::literals;
 
 constexpr std::int32_t BLOCK_HEIGHT = 128;
 constexpr std::int32_t BLOCK_WIDTH = 128;
@@ -72,8 +77,9 @@ std::size_t count_blocks (const bsp_data& bspData)
 	{
 		const dface_t *f = &bspData.faces[k];
 		const char *texname =  GetTextureByNumber (ParseTexinfoForFace (f));
-		if (!strncmp (texname, "sky", 3) //sky, no lightmap allocation.
-			|| !strncmp (texname, "!", 1) || !strncasecmp (texname, "water", 5) || !strncasecmp (texname, "laser", 5) //water, no lightmap allocation.
+		// Shouldn't the == "sky" comparison be case-insensitive?
+		if (texname == "sky"sv //sky, no lightmap allocation.
+			|| !std::strncmp (texname, "!", 1) || !strncasecmp (texname, "water", 5) || !strncasecmp (texname, "laser", 5) //water, no lightmap allocation.
 			|| (g_texinfo[ParseTexinfoForFace (f)].flags & TEX_SPECIAL) //aaatrigger, I don't know.
 			)
 		{

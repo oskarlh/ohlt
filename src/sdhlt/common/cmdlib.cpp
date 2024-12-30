@@ -8,6 +8,7 @@
 #include "mathlib.h"
 
 #include <bit>
+#include <cstring>
 #ifdef SYSTEM_POSIX
 #include <sys/time.h>
 #endif
@@ -37,63 +38,12 @@ double          I_FloatTime()
 }
 
 
-static char8_t ascii_character_to_lowercase(char8_t c) {
-	const char8_t add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'0';
-	return c + add;
-}
-static char8_t ascii_character_to_uppercase(char8_t c) {
-	const char8_t subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A') : u8'0';
-	return c - subtract;
-}
 
 
-static auto ascii_characters_to_lowercase_in_utf8_string_as_view(std::u8string_view input) {
-	return std::ranges::transform_view(input, [](char8_t c) {
-		const char8_t add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'0';
-		return c + add;
-	});
-}
-static auto ascii_characters_to_uppercase_in_utf8_string_as_view(std::u8string_view input) {
-	return std::ranges::transform_view(input, [](char8_t c) {
-		const char8_t subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A') : u8'0';
-		return c - subtract;
-	});
-}
-
-std::u8string ascii_characters_to_lowercase_in_utf8_string(std::u8string_view input) {
-	auto lowercaseView = ascii_characters_to_lowercase_in_utf8_string_as_view(input);
-	return std::u8string{lowercaseView.begin(), lowercaseView.end()};
-}
-
-std::u8string ascii_characters_to_uppercase_in_utf8_string(std::u8string_view input) {
-	auto uppercaseView = ascii_characters_to_uppercase_in_utf8_string_as_view(input);
-	return std::u8string{uppercaseView.begin(), uppercaseView.end()};
-}
-
-void make_ascii_characters_lowercase_in_utf8_string(std::u8string& input) {
-	for(char8_t& c : input) {
-		c = ascii_character_to_lowercase(c);
-	}
-}
-void make_ascii_characters_uppercase_in_utf8_string(std::u8string& input) {
-	for(char8_t& c : input) {
-		c = ascii_character_to_uppercase(c);
-	}
-}
-
-bool strings_equal_with_ascii_case_insensitivity(std::u8string_view a, std::u8string_view b) {
-	return std::ranges::equal(
-		ascii_characters_to_lowercase_in_utf8_string_as_view(a),
-		ascii_characters_to_lowercase_in_utf8_string_as_view(b)
-	);
-}
-
-
-
-char*           strlwr(char* string)
+char* strlwr(char* string)
 {
-    int             i;
-    int             len = strlen(string);
+    int i;
+    int len = std::strlen(string);
 
     for (i = 0; i < len; i++)
     {
@@ -109,6 +59,16 @@ bool a_contains_b_ignoring_ascii_character_case_differences(std::u8string_view s
     std::u8string substring_lowercase = ascii_characters_to_lowercase_in_utf8_string(substring);
 	return string_lowercase.contains(substring_lowercase);
 }
+
+
+// Case-insensitive prefix testing
+bool a_starts_with_b_ignoring_ascii_character_case_differences(std::u8string_view string, std::u8string_view prefix)
+{
+    std::u8string string_lowercase = ascii_characters_to_lowercase_in_utf8_string(string);
+    std::u8string prefix_lowercase = ascii_characters_to_lowercase_in_utf8_string(prefix);
+	return string_lowercase.starts_with(prefix_lowercase);
+}
+
 
 /*--------------------------------------------------------------------
 // New implementation of FlipSlashes, DefaultExtension, StripFilename, 

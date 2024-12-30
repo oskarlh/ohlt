@@ -1012,7 +1012,7 @@ void     ReuseModel ()
 		}
 		if (j == g_numentities)
 		{
-			if (!strcasecmp (name, "null"))
+			if (strings_equal_with_ascii_case_insensitivity(name, u8"null"))
 			{
 				SetKeyValue (&g_entities[i], u8"model", u8"");
 				continue;
@@ -1088,7 +1088,7 @@ static void     SetLightStyles()
 		if (*ValueForKey (e, u8"zhlt_usestyle"))
 		{
 			t = (const char*) ValueForKey(e, u8"zhlt_usestyle");
-			if (!strcasecmp (t, "null"))
+			if (strings_equal_with_ascii_case_insensitivity(t, u8"null"))
 			{
 				t = "";
 			}
@@ -1236,7 +1236,7 @@ static void     CheckForNoClip()
 
         ent = &g_entities[i];
 
-        strcpy_s(entclassname, (const char*) ValueForKey(ent, u8"classname"));
+        std::strcpy(entclassname, (const char*) ValueForKey(ent, u8"classname"));
         spawnflags = atoi((const char*) ValueForKey(ent, u8"spawnflags"));
 		int skin = IntForKey(ent, u8"skin"); //vluzacn
 
@@ -1651,7 +1651,7 @@ int             main(const int argc, char** argv)
     // detect argv
     for (i = 1; i < argc; i++)
     {
-        if (!strcasecmp(argv[i], "-threads"))
+        if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-threads"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1669,19 +1669,19 @@ int             main(const int argc, char** argv)
             }
         }
 
-        else if (!strcasecmp(argv[i], "-worldextent"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-worldextent"))
         {
             bspData.worldExtent = atoi(argv[++i]);
         }
 
 #ifdef SYSTEM_POSIX
-        else if (!strcasecmp(argv[i], "-noestimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noestimate"))
         {
             g_estimate = false;
         }
 #endif
 
-        else if (!strcasecmp(argv[i], "-dev"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dev"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1692,71 +1692,71 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-verbose"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-verbose"))
         {
             g_verbose = true;
         }
-        else if (!strcasecmp(argv[i], "-noinfo"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
         {
             g_info = false;
         }
-        else if (!strcasecmp(argv[i], "-chart"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
         {
             g_chart = true;
         }
-        else if (!strcasecmp(argv[i], "-low"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-low"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
-        else if (!strcasecmp(argv[i], "-high"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-high"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
-        else if (!strcasecmp(argv[i], "-nolog"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolog"))
         {
             g_log = false;
         }
-        else if (!strcasecmp(argv[i], "-skyclip"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-skyclip"))
         {
             g_skyclip = true;
         }
-        else if (!strcasecmp(argv[i], "-noskyclip"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noskyclip"))
         {
             g_skyclip = false;
         }
-        else if (!strcasecmp(argv[i], "-noclip"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noclip"))
         {
             g_noclip = true;
         }
-        else if (!strcasecmp(argv[i], "-onlyents"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-onlyents"))
         {
             g_onlyents = true;
         }
 
-        else if (!strcasecmp(argv[i], "-nonulltex"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nonulltex"))
         {
             g_bUseNullTex = false;
         }
 
-        else if (!strcasecmp(argv[i], "-clipeconomy"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-clipeconomy"))
         {
             g_bClipNazi = true;
         }
 
-		else if (!strcasecmp(argv[i], "-cliptype"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-cliptype"))
 		{
 			if (i + 1 < argc)	//added "1" .--vluzacn
 			{
 				++i;
-				if(!strcasecmp(argv[i],"smallest"))
+				if(strings_equal_with_ascii_case_insensitivity(argv[i],"smallest"))
 				{ g_cliptype = clip_smallest; }
-				else if(!strcasecmp(argv[i],"normalized"))
+				else if(strings_equal_with_ascii_case_insensitivity(argv[i],"normalized"))
 				{ g_cliptype = clip_normalized; }
-				else if(!strcasecmp(argv[i],"simple"))
+				else if(strings_equal_with_ascii_case_insensitivity(argv[i],"simple"))
 				{ g_cliptype = clip_simple; }
-				else if(!strcasecmp(argv[i],"precise"))
+				else if(strings_equal_with_ascii_case_insensitivity(argv[i],"precise"))
 				{ g_cliptype = clip_precise; }
-				else if(!strcasecmp(argv[i],"legacy"))
+				else if(strings_equal_with_ascii_case_insensitivity(argv[i],"legacy"))
 				{ g_cliptype = clip_legacy; }
 			}
             else
@@ -1766,7 +1766,7 @@ int             main(const int argc, char** argv)
             }
 		}
 
-		else if (!strcasecmp(argv[i], "-nullfile"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nullfile"))
 		{
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1778,15 +1778,15 @@ int             main(const int argc, char** argv)
                 Usage();
             }
 		}
-        else if (!strcasecmp(argv[i], "-nowadautodetect"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nowadautodetect"))
         { 
             g_bWadAutoDetect = false;
         }
-        else if (!strcasecmp(argv[i], "-nowadtextures"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nowadtextures"))
         {
             g_wadtextures = false;
         }
-        else if (!strcasecmp(argv[i], "-wadinclude"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-wadinclude"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1797,7 +1797,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-texdata"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1813,7 +1813,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-brushunion"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-brushunion"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1824,7 +1824,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-tiny"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-tiny"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1835,7 +1835,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-hullfile"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-hullfile"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1846,7 +1846,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp (argv[i], "-wadcfgfile"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-wadcfgfile"))
 		{
 			if (i + 1 < argc)
 			{
@@ -1857,7 +1857,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-wadconfig"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-wadconfig"))
 		{
 			if (i + 1 < argc)
 			{
@@ -1868,7 +1868,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-        else if (!strcasecmp(argv[i], "-scale"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-scale"))
         {
             if (i + 1 < argc)
             {
@@ -1879,25 +1879,25 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp (argv[i], "-noresetlog"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noresetlog"))
 		{
 			g_resetlog = false;
 		}
-		else if (!strcasecmp (argv[i], "-nolightopt"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolightopt"))
 		{
 			g_nolightopt = true;
 		}
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-		else if (!strcasecmp (argv[i], "-notextconvert"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-notextconvert"))
 		{
 			g_noutf8 = true;
 		}
 #endif
-		else if (!strcasecmp (argv[i], "-viewsurface"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-viewsurface"))
 		{
 			g_viewsurface = true;
 		}
-		else if (!strcasecmp (argv[i], "-nonullifytrigger"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nonullifytrigger"))
 		{
 			g_nullifytrigger = false;
 		}
@@ -1941,22 +1941,7 @@ int             main(const int argc, char** argv)
     OpenLog(g_clientid);                  
     atexit(CloseLog);                       
     LogStart(argcold, argvold);
-	{
-		int			 i;
-		Log("Arguments: ");
-		for (i = 1; i < argc; i++)
-		{
-			if (strchr(argv[i], ' '))
-			{
-				Log("\"%s\" ", argv[i]);
-			}
-			else
-			{
-				Log("%s ", argv[i]);
-			}
-		}
-		Log("\n");
-	}
+	log_arguments(argc, argv);
 	hlassume (CalcFaceExtents_test (), assume_first);
     atexit(CSGCleanup); // AJM
     dtexdata_init();                        

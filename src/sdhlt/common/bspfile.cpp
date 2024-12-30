@@ -1,7 +1,9 @@
 #include <bit>
 #include <cstddef>
+#include <cstring>
 #include <filesystem>
 #include <numbers>
+#include <ranges>
 #include <span>
 #include <type_traits>
 
@@ -252,7 +254,7 @@ static int      CopyLump(int lump, void* dest, int size, const dheader_t* const 
         Error("LoadBSPFile: odd lump size");
     }
 
-    memcpy(dest, (byte*) header + ofs, length);
+    std::memcpy(dest, (byte*) header + ofs, length);
 
     return length / size;
 }
@@ -336,7 +338,15 @@ void            LoadBSPImage(dheader_t* const header)
     g_visdatasize = CopyLump(LUMP_VISIBILITY, g_dvisdata.data(), 1, header);
 
 	auto lightingData = get_lump_data<lump_id::lighting>(header);
+
+// https://en.cppreference.com/w/cpp/feature_test#cpp_lib_containers_ranges
+// Fingers crossed for GCC 15
+#ifdef __cpp_lib_containers_ranges
 	g_dlightdata.assign_range(lightingData);
+#else
+	g_dlightdata = lightingData | std::ranges::to<std::vector>();
+#endif
+
 
     g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
 
@@ -601,8 +611,11 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 	mt = (miptex_t *)&g_dtexdata[offset];
 	safe_strncpy (name, mt->name, 16);
 	
-	if (!(strlen (name) >= 6 && !strncasecmp (&name[1], "_rad", 4) && '0' <= name[5] && name[5] <= '9'))
-	{
+	if (!(
+		strlen (name) >= 6 &&
+		std::string_view(name + 1, 4) == "_rad" &&
+		'0' <= name[5] && name[5] <= '9'
+	)) {
 		return -1;
 	}
 

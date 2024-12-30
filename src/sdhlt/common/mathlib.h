@@ -2,6 +2,7 @@
 
 #include "cmdlib.h" //--vluzacn
 #include <algorithm>
+#include <cmath>
 
 extern const vec3_array vec3_origin;
 
@@ -63,7 +64,7 @@ extern const vec3_array vec3_origin;
     (dest)[1] = (a)[1] + (scale) * (b)[1]; \
     (dest)[2] = (a)[2] + (scale) * (b)[2]; \
 }
-#define VectorLength(a)  sqrt((double) ((double)((a)[0] * (a)[0]) + (double)( (a)[1] * (a)[1]) + (double)( (a)[2] * (a)[2])) )
+#define VectorLength(a) std::sqrt((double) ((double)((a)[0] * (a)[0]) + (double)( (a)[1] * (a)[1]) + (double)( (a)[2] * (a)[2])) )
 #define VectorCompareMinimum(a,b,c) { (c)[0] = std::min((a)[0], (b)[0]); (c)[1] = std::min((a)[1], (b)[1]); (c)[2] = std::min((a)[2], (b)[2]); }
 #define VectorCompareMaximum(a,b,c) { (c)[0] = std::max((a)[0], (b)[0]); (c)[1] = std::max((a)[1], (b)[1]); (c)[2] = std::max((a)[2], (b)[2]); }
 
@@ -72,7 +73,7 @@ inline vec_t   VectorNormalize(vec3_array& v)
     double          length;
 
     length = DotProduct(v, v);
-    length = sqrt(length);
+    length = std::sqrt(length);
     if (length < NORMAL_EPSILON)
     {
         VectorClear(v);
@@ -119,7 +120,7 @@ inline bool     VectorCompare(const vec3_array& v1, const vec3_t v2)
 
 inline bool    isPointFinite(const vec_t* p)
 {
-    if (isfinite(p[0]) && isfinite(p[1]) && isfinite(p[2]))
+    if (std::isfinite(p[0]) && std::isfinite(p[1]) && std::isfinite(p[2]))
     {
         return true;
     }
@@ -150,9 +151,9 @@ inline planetypes PlaneTypeForNormal(vec3_t normal)
 {
     vec_t           ax, ay, az;
 
-    ax = fabs(normal[0]);
-    ay = fabs(normal[1]);
-    az = fabs(normal[2]);
+    ax = std::fabs(normal[0]);
+    ay = std::fabs(normal[1]);
+    az = std::fabs(normal[2]);
     if (ax > 1.0 - DIR_EPSILON && ay < DIR_EPSILON && az < DIR_EPSILON)
     {
         return plane_x;

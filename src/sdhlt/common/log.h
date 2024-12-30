@@ -58,6 +58,10 @@ extern void     Banner();
 
 extern void     LogTimeElapsed(float elapsed_time);
 
+// Note: The first element in argv is skipped since that's usually
+// the executable path
+void log_arguments(int argc, char** argv);
+
 // Should be in hlassert.h, but well so what
 extern void     hlassume(bool exp, assume_msgs msgid);
 

@@ -1,3 +1,4 @@
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -210,7 +211,7 @@ FILE*           SafeOpenWrite(const char* const filename)
     f = fopen(filename, "wb");
 
     if (!f)
-        Error("Error opening %s: %s", filename, strerror(errno));
+        Error("Error opening %s: %s", filename, std::strerror(errno));
 
     return f;
 }

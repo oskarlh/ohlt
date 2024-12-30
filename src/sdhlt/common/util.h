@@ -1,5 +1,6 @@
 #pragma once
 
+#include "call_finally.h"
 #include "vector_inplace.h"
 
 #include <utility>

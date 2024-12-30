@@ -1,5 +1,7 @@
 #pragma once
 
+#include "call_finally.h"
+
 #include <concepts>
 #include <memory>
 #include <ranges>
@@ -115,11 +117,8 @@ class vector_inplace final {
 			noexcept
 			requires(!std::is_trivially_copyable_v<T>)
 		{
-			struct clears_other {
-				~clears_other() {
-					other.clear();
-				}
-			} clear;
+			auto clearsOther = call_finally{[&other]() { other.clear(); }};
+
 			std::move(other.begin(), other.begin() + std::min(size(), other.size()), begin());
 			if(other.size() > size()) {
 				std::uninitialized_move_n(other.begin() + size(), other.size() - size(), begin() + other.size());

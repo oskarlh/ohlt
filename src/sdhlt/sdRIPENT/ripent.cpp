@@ -636,7 +636,7 @@ static void		ReadTextures(const char *name)
 				miptex_t *tex = (miptex_t*)(g_dtexdata.data() + g_texdatasize);
 				int j;
 				for (j = 0; j < header.numlumps; ++j)
-					if (!strcasecmp (name, (const char*) info[j].name.data()))
+					if (strings_equal_with_ascii_case_insensitivity (name, (const char*) info[j].name.data()))
 						break;
 				if (j == header.numlumps)
 				{
@@ -860,21 +860,21 @@ int             main(int argc, char** argv)
 
     for (std::size_t i = 1; i < argc; i++)
     {
-        if (!strcasecmp(argv[i], "-import"))
+        if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-import"))
         {
             g_mode = hl_import;
         }
-        else if (!strcasecmp(argv[i], "-export"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-export"))
         {
             g_mode = hl_export;
         }
 		// g_parse: command line switch (-parse).
 		// Added by: Ryan Gregg aka Nem
-		else if(!strcasecmp(argv[i], "-parse"))
+		else if(strings_equal_with_ascii_case_insensitivity(argv[i], u8"-parse"))
 		{
 			g_parse = true;
 		}
-        else if (!strcasecmp(argv[i], "-texdata"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -890,31 +890,31 @@ int             main(int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-chart"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
         {
             g_chart = true;
         }
-        else if (!strcasecmp(argv[i], "-noinfo"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
         {
             g_info = false;
         }
-		else if (!strcasecmp(argv[i], "-textureimport"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-textureimport"))
 		{
 			g_texturemode = hl_import;
 		}
-		else if (!strcasecmp(argv[i], "-textureexport"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-textureexport"))
 		{
 			g_texturemode = hl_export;
 		}
-		else if (!strcasecmp(argv[i], "-textureparse"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-textureparse"))
 		{
 			g_textureparse = true;
 		}
-		else if (!strcasecmp(argv[i], "-writeextentfile"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-writeextentfile"))
 		{
 			g_writeextentfile = true;
 		}
-		else if (!strcasecmp(argv[i], "-deleteembeddedlightmaps"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-deleteembeddedlightmaps"))
 		{
 			g_deleteembeddedlightmaps = true;
 		}
@@ -943,22 +943,7 @@ int             main(int argc, char** argv)
     }
 
     LogStart(argcold, argvold);
-	{
-		int			 i;
-		Log("Arguments: ");
-		for (i = 1; i < argc; i++)
-		{
-			if (strchr(argv[i], ' '))
-			{
-				Log("\"%s\" ", argv[i]);
-			}
-			else
-			{
-				Log("%s ", argv[i]);
-			}
-		}
-		Log("\n");
-	}
+	log_arguments(argc, argv);
 	atexit(LogEnd);
 
 	Settings();

@@ -4,6 +4,7 @@
 #include "mathlib.h"
 #include <cstddef>
 #include <filesystem>
+#include <vector>
 
 
 // upper design bounds
