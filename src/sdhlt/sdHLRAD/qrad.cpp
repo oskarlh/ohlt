@@ -23,6 +23,7 @@
 #include "qrad.h"
 #include "rad_cli_option_defaults.h"
 
+using namespace std::literals;
 
 /*
  * NOTES
@@ -978,7 +979,7 @@ void ReadCustomChopValue()
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
+				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
 					continue;
 				if (atof ((const char*) ep->value.c_str()) <= 0)
 					continue;
@@ -1018,7 +1019,7 @@ void ReadCustomSmoothValue()
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
+				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"origin"))
 					continue;
 				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (std::numbers::pi_v<double> / 180.0));
 				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname, atof ((const char*) ep->value.c_str()));
@@ -1051,7 +1052,7 @@ void ReadTranslucentTextures()
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
+				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
 					continue;
 				double r, g, b;
 				int count;
@@ -1113,7 +1114,7 @@ void ReadLightingCone ()
 			{
 				if (strcasecmp ((const char*) ep->key.c_str(), texname))
 					continue;
-				if (!strcasecmp ((const char*) ep->key.c_str(), "origin"))
+				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
 					continue;
 				double power, scale;
 				int count;
@@ -1615,7 +1616,7 @@ static entity_t *FindTexlightEntity (int facenum)
 		entity_t *ent = &g_entities[i];
 		if (!classname_is(ent, u8"light_surface"))
 			continue;
-		if (strcasecmp ((const char*) value_for_key (ent, u8"_tex").data(), texname))
+		if (!strings_equal_with_ascii_case_insensitivity ((const char*) value_for_key (ent, u8"_tex").data(), texname))
 			continue;
 		vec3_array delta;
 		GetVectorForKey (ent, u8"origin", delta);
@@ -3132,7 +3133,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-dev"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dev"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3143,15 +3144,15 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-verbose"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-verbose"))
         {
             g_verbose = true;
         }
-        else if (!strcasecmp(argv[i], "-noinfo"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
         {
             g_info = false;
         }
-        else if (!strcasecmp(argv[i], "-threads"))
+        else if (argv[i] == "-threads"sv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3169,26 +3170,26 @@ int             main(const int argc, char** argv)
             }
         }
 #ifdef SYSTEM_WIN32
-        else if (!strcasecmp(argv[i], "-estimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-estimate"))
         {
             g_estimate = true;
         }
 #endif
 #ifdef SYSTEM_POSIX
-        else if (!strcasecmp(argv[i], "-noestimate"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noestimate"))
         {
             g_estimate = false;
         }
 #endif
-		else if (!strcasecmp (argv[i], "-fast"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-fast"))
 		{
 			g_fastmode = true;
 		}
-        else if (!strcasecmp(argv[i], "-nolerp"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolerp"))
         {
              g_lerp_enabled  = false;
         }
-        else if (!strcasecmp(argv[i], "-chop"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chop"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3208,7 +3209,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-texchop"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texchop"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3228,11 +3229,11 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-notexscale"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-notexscale"))
         {
             g_texscale = false;
         }
-        else if (!strcasecmp(argv[i], "-nosubdivide"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nosubdivide"))
         {
             if (i < argc)
             {
@@ -3243,7 +3244,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-scale"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-scale"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3261,7 +3262,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-fade"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-fade"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3277,7 +3278,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-ambient"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-ambient"))
         {
             if (i + 3 < argc)
             {
@@ -3290,7 +3291,7 @@ int             main(const int argc, char** argv)
                 Error("Expected three color values after '-ambient'\n");
             }
         }
-        else if (!strcasecmp(argv[i], "-limiter"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-limiter"))
         {
             if (i + 1 < argc)	//"1" was added to check if there is another argument afterwards (expected value) //seedee
             {
@@ -3301,11 +3302,11 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp(argv[i], "-drawoverload"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawoverload"))
 		{
 			g_drawoverload = true;
 		}
-        else if (!strcasecmp(argv[i], "-lights"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-lights"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3316,35 +3317,35 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-circus"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-circus"))
         {
             g_circus = true;
         }
-        else if (!strcasecmp(argv[i], "-noskyfix"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noskyfix"))
         {
             g_sky_lighting_fix = false;
         }
-        else if (!strcasecmp(argv[i], "-incremental"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-incremental"))
         {
             g_incremental = true;
         }
-        else if (!strcasecmp(argv[i], "-chart"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
         {
             g_chart = true;
         }
-        else if (!strcasecmp(argv[i], "-low"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-low"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
-        else if (!strcasecmp(argv[i], "-high"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-high"))
         {
             g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
-        else if (!strcasecmp(argv[i], "-nolog"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolog"))
         {
             g_log = false;
         }
-        else if (!strcasecmp(argv[i], "-gamma"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-gamma"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3362,7 +3363,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-dlight"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dlight"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3373,7 +3374,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-sky"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-sky"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3384,7 +3385,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-smooth"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-smooth"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3395,7 +3396,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-		else if (!strcasecmp(argv[i], "-smooth2"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-smooth2"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3406,7 +3407,7 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-        else if (!strcasecmp(argv[i], "-coring"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-coring"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3417,7 +3418,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (!strcasecmp(argv[i], "-texdata"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3460,16 +3461,16 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-nospread"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nospread"))
 		{
 			g_allow_spread = false;
 		}
-        else if (!strcasecmp(argv[i], "-nopaque")
-			|| !strcasecmp(argv[i], "-noopaque")) //--vluzacn
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nopaque")
+			|| strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noopaque")) //--vluzacn
         {
             g_allow_opaques = false;
         }
-        else if (!strcasecmp(argv[i], "-dscale"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dscale"))
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -3483,7 +3484,7 @@ int             main(const int argc, char** argv)
 
         // ------------------------------------------------------------------------
 	    // Changes by Adam Foster - afoster@compsoc.man.ac.uk
-        else if (!strcasecmp(argv[i], "-colourgamma"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-colourgamma"))
         {
         	if (i + 3 < argc)
 			{
@@ -3496,7 +3497,7 @@ int             main(const int argc, char** argv)
 				Error("expected three color values after '-colourgamma'\n");
 			}
         }
-        else if (!strcasecmp(argv[i], "-colourscale"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-colourscale"))
         {
         	if (i + 3 < argc)
 			{
@@ -3510,7 +3511,7 @@ int             main(const int argc, char** argv)
 			}
         }
 
-        else if (!strcasecmp(argv[i], "-colourjitter"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-colourjitter"))
         {
         	if (i + 3 < argc)
 			{
@@ -3523,7 +3524,7 @@ int             main(const int argc, char** argv)
 				Error("expected three color values after '-colourjitter'\n");
 			}
         }
-		else if (!strcasecmp(argv[i], "-jitter"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-jitter"))
         {
         	if (i + 3 < argc)
 			{
@@ -3539,17 +3540,17 @@ int             main(const int argc, char** argv)
 
         // ------------------------------------------------------------------------
 
-        else if (!strcasecmp(argv[i], "-customshadowwithbounce"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-customshadowwithbounce"))
         {
         	g_customshadow_with_bouncelight = true;
         }
-        else if (!strcasecmp(argv[i], "-rgbtransfers"))
+        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-rgbtransfers"))
         {
         	g_rgb_transfers = true;
         }
 
 
-		else if (!strcasecmp(argv[i], "-bscale"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-bscale"))
 		{
 			Error ("'-bscale' is obsolete.");
             if (i + 1 < argc)
@@ -3562,7 +3563,7 @@ int             main(const int argc, char** argv)
             }
 		}
 
-		else if (!strcasecmp(argv[i], "-minlight"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-minlight"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3576,7 +3577,7 @@ int             main(const int argc, char** argv)
 			}
 		}
 
-		else if (!strcasecmp(argv[i], "-softsky"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-softsky"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3587,15 +3588,15 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-		else if (!strcasecmp(argv[i], "-nostudioshadow"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nostudioshadow"))
 		{
 			g_studioshadow = false;
 		}
-		else if (!strcasecmp(argv[i], "-drawpatch"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawpatch"))
 		{
 			g_drawpatch = true;
 		}
-		else if (!strcasecmp(argv[i], "-drawsample"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawsample"))
 		{
 			g_drawsample = true;
 			if (i + 4 < argc)
@@ -3610,20 +3611,20 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-		else if (!strcasecmp(argv[i], "-drawedge"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawedge"))
 		{
 			g_drawedge = true;
 		}
-		else if (!strcasecmp(argv[i], "-drawlerp"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawlerp"))
 		{
 			g_drawlerp = true;
 		}
-		else if (!strcasecmp(argv[i], "-drawnudge"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-drawnudge"))
 		{
 			g_drawnudge = true;
 		}
 
-		else if (!strcasecmp(argv[i], "-compress"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-compress"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3638,7 +3639,7 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-		else if (!strcasecmp(argv[i], "-rgbcompress"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-rgbcompress"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3654,7 +3655,7 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-depth"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-depth"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3665,7 +3666,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-blockopaque"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-blockopaque"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3676,7 +3677,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-waddir"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-waddir"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3687,11 +3688,11 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-notextures"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-notextures"))
 		{
 			g_notextures = true;
 		}
-		else if (!strcasecmp (argv[i], "-texreflectgamma"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texreflectgamma"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3702,7 +3703,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-texreflectscale"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texreflectscale"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3713,7 +3714,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-blur"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-blur"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3724,15 +3725,15 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp (argv[i], "-noemitterrange"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noemitterrange"))
 		{
 			g_noemitterrange = true;
 		}
-		else if (!strcasecmp (argv[i], "-nobleedfix"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nobleedfix"))
 		{
 			g_bleedfix = false;
 		}
-		else if (!strcasecmp (argv[i], "-texlightgap"))
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texlightgap"))
 		{
 			if (i + 1 < argc)
 			{
@@ -3743,7 +3744,7 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
-		else if (!strcasecmp(argv[i], "-pre25")) //Pre25 should be after everything else to override
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-pre25")) //Pre25 should be after everything else to override
 		{
 			g_pre25update = true;
             g_limitthreshold = 188.0;
@@ -3782,21 +3783,7 @@ int             main(const int argc, char** argv)
     ThreadSetDefault();
     ThreadSetPriority(g_threadpriority);
     LogStart(argcold, argvold);
-	{
-		Log("Arguments: ");
-		for (int i = 1; i < argc; i++)
-		{
-			if (strchr(argv[i], ' '))
-			{
-				Log("\"%s\" ", argv[i]);
-			}
-			else
-			{
-				Log("%s ", argv[i]);
-			}
-		}
-		Log("\n");
-	}
+	log_arguments(argc, argv);
 
     CheckForErrorLog();
 

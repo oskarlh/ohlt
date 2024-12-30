@@ -4888,7 +4888,7 @@ void            FinalLightFace(const int facenum)
 
 	for (it = s_minlights.begin(); it != s_minlights.end(); it++)
 	{
-		if (!strcasecmp(texname, it->name.c_str()))
+		if (strings_equal_with_ascii_case_insensitivity(texname, it->name.c_str()))
 		{
 			float minlightValue = it->value * 255.0f;
 			minlight = static_cast<int>(minlightValue);

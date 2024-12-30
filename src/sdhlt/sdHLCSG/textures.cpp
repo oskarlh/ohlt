@@ -757,7 +757,7 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
     texinfo_t*      tc;
     int             i, j, k;
 
-	if (!strncasecmp(bt->name, "NULL", 4))
+	if (strings_equal_with_ascii_case_insensitivity(bt->name, "NULL"))
 	{
 		return -1;
 	}
@@ -766,17 +766,17 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
 
     // set the special flag
     if (bt->name[0] == '*'
-        || !strncasecmp(bt->name, "sky", 3)
+        || strings_equal_with_ascii_case_insensitivity(bt->name, "SKY")
 
 // =====================================================================================
 //Cpt_Andrew - Env_Sky Check
 // =====================================================================================
-        || !strncasecmp(bt->name, "env_sky", 5)
+        || strings_equal_with_ascii_case_insensitivity(bt->name, "ENV_SKY")
 // =====================================================================================
 
-        || !strncasecmp(bt->name, "origin", 6)
-        || !strncasecmp(bt->name, "null", 4)
-        || !strncasecmp(bt->name, "aaatrigger", 10)
+        || strings_equal_with_ascii_case_insensitivity(bt->name, "ORIGIN")
+        || strings_equal_with_ascii_case_insensitivity(bt->name, "NULL")
+        || strings_equal_with_ascii_case_insensitivity(bt->name, "AAATRIGGER")
        )
     {
 		// actually only 'sky' and 'aaatrigger' needs this. --vluzacn

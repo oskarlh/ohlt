@@ -889,15 +889,17 @@ bool            MakeBrushPlanes(brush_t* b)
 // =====================================================================================
 static contents_t TextureContents(const char* const name)
 {
-	if (!strncasecmp(name, "contentsolid", 12))
+	// Why is only the start compared here?
+	// L
+	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTSOLID"))
 		return CONTENTS_SOLID;
-	if (!strncasecmp(name, "contentwater", 12))
+	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTWATER"))
 		return CONTENTS_WATER;
-	if (!strncasecmp(name, "contentempty", 12))
+	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTEMPTY"))
 		return CONTENTS_TOEMPTY;
-	if (!strncasecmp(name, "contentsky", 10))
+	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTSKY"))
 		return CONTENTS_SKY;
-    if (!strncasecmp(name, "sky", 3))
+    if (strings_equal_with_ascii_case_insensitivity(name, u8"SKY"))
         return CONTENTS_SKY;
 
 // =====================================================================================
@@ -955,13 +957,15 @@ static contents_t TextureContents(const char* const name)
     if (!strncasecmp(name, "translucent", 11))
         return CONTENTS_TRANSLUCENT;
 
-    if (name[0] == '@')
-        return CONTENTS_TRANSLUCENT;
 
 	if (!strncasecmp(name, "null", 4))
         return CONTENTS_NULL;
 	if(!strncasecmp(name,"bevel",5))
 		return CONTENTS_NULL;
+
+
+    if (name[0] == '@')
+        return CONTENTS_TRANSLUCENT;
 
     return CONTENTS_SOLID;
 }
