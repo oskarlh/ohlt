@@ -973,9 +973,8 @@ int             main(const int argc, char** argv)
 {
     char            portalfile[_MAX_PATH];
     char            source[_MAX_PATH];
-    int             i;
     double          start, end;
-    const char*     mapname_from_arg = nullptr;
+    std::u8string_view mapname_from_arg;
 
     g_Program = "sdHLVIS";
 
@@ -991,9 +990,10 @@ int             main(const int argc, char** argv)
         Usage();
     }
 
-    for (i = 1; i < argc; i++)
+    for (std::size_t i = 1; i < argc; i++)
     {
-        if (argv[i] == "-threads"sv)
+        const std::u8string_view arg = (const char8_t*) argv[i];
+        if (arg == u8"-threads")
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1012,25 +1012,25 @@ int             main(const int argc, char** argv)
         }
 
 #ifdef SYSTEM_POSIX
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noestimate"))
+        else if (arg == u8"-noestimate")
         {
             g_estimate = false;
         }
 #endif
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-fast"))
+        else if (arg == u8"-fast")
         {
             Log("g_fastvis = true\n");
             g_fastvis = true;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-full"))
+        else if (arg == u8"-full")
         {
             g_fullvis = true;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nofixprt"))
+        else if (arg == u8"-nofixprt")
         {
             g_nofixprt = true;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-dev"))
+        else if (arg == u8"-dev")
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1041,32 +1041,32 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-verbose"))
+        else if (arg == u8"-verbose")
         {
             g_verbose = true;
         }
 
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-noinfo"))
+        else if (arg == u8"-noinfo")
         {
             g_info = false;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-chart"))
+        else if (arg == u8"-chart")
         {
             g_chart = true;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-low"))
+        else if (arg == u8"-low")
         {
             g_threadpriority = q_threadpriority::eThreadPriorityLow;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-high"))
+        else if (arg == u8"-high")
         {
             g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-nolog"))
+        else if (arg == u8"-nolog")
         {
             g_log = false;
         }
-        else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-texdata"))
+        else if (arg == u8"-texdata")
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
@@ -1082,10 +1082,7 @@ int             main(const int argc, char** argv)
                 Usage();
             }
         }
-
-        
-        // AJM: MVD
-		else if(strings_equal_with_ascii_case_insensitivity(argv[i], u8"-maxdistance"))
+		else if(arg == u8"-maxdistance")
 		{
 			if(i + 1 < argc)	//added "1" .--vluzacn
 			{
@@ -1096,31 +1093,26 @@ int             main(const int argc, char** argv)
 				Usage();
 			}
 		}
-        else if (argv[i][0] == '-')
+        else if (!arg.starts_with(u8'-') && mapname_from_arg.empty())
         {
-            Log("Unknown option \"%s\"", argv[i]);
-            Usage();
-        }
-        else if (!mapname_from_arg)
-        {
-            mapname_from_arg = argv[i];
+            mapname_from_arg = arg;
         }
         else
         {
-            Log("Unknown option \"%s\"\n", argv[i]);
+            Log("Unknown option \"%s\"\n", (const char*) arg.data());
             Usage();
         }
     }
 
 
-    if (!mapname_from_arg)
+    if (mapname_from_arg.empty())
     {
         Log("No mapfile specified\n");
         Usage();
     }
 
 
-    safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
+    safe_strncpy(g_Mapname, (const char*) mapname_from_arg.data(), _MAX_PATH);
     FlipSlashes(g_Mapname);
     StripExtension(g_Mapname);
     OpenLog(g_clientid);
@@ -1150,8 +1142,7 @@ int             main(const int argc, char** argv)
     LoadBSPFile(source);
     ParseEntities();
 	{
-		int i;
-		for (i = 0; i < g_numentities; i++)
+		for (std::size_t i = 0; i < g_numentities; i++)
 		{
             const char* current_entity_classname = (const char*) ValueForKey (&g_entities[i], u8"classname");
 
@@ -1209,7 +1200,7 @@ int             main(const int argc, char** argv)
 
                     if (!has_target)
                     {
-                        Warning("Entity %d (info_portal) does not have a target leaf.", i);
+                        Warning("Entity %zu (info_portal) does not have a target leaf.", i);
                     }
 
                     g_room_count++;

@@ -6,6 +6,7 @@
 #include "blockmem.h"
 #include "log.h"
 #include "mathlib.h"
+#include "utf8.h"
 
 #include <bit>
 #include <cstring>

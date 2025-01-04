@@ -48,6 +48,9 @@
         "forward_list": "cpp",
         "list": "cpp",
         "format": "cpp",
-        "text_encoding": "cpp"
+        "text_encoding": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "sstream": "cpp"
     }
 }

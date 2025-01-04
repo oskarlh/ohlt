@@ -1,4 +1,6 @@
 #include "qrad.h"
+#include "utf8.h"
+
 #include <algorithm>
 #include <numbers>
 #include <span>

@@ -491,7 +491,7 @@ static void		WriteTextures(const char* const name)
 			info[i].size = size;
 			info[i].type = (ofs >= 0 && ((miptex_t*)(g_dtexdata.data()+ofs))->offsets[0] > 0)? 67: 0; // prevent invalid texture from being processed by Wally
 			info[i].compression = 0;
-			strcpy ((char*) info[i].name.data(), ofs >= 0? ((miptex_t*)(g_dtexdata.data()+ofs))->name: "\rTEXTUREMISSING");
+			info[i].name = ofs >= 0? wad_texture_name{((miptex_t*)(g_dtexdata.data()+ofs))->name}: wad_texture_name{u8"texturemissing"};
 		}
 		SafeWrite (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
 		free (info);
@@ -542,7 +542,8 @@ static void		WriteTextures(const char* const name)
 					info[header.numlumps].size = info[header.numlumps].disksize;
 					info[header.numlumps].type = 67;
 					info[header.numlumps].compression = 0;
-					strcpy ((char*) info[header.numlumps].name.data(), tex->name);
+					info[header.numlumps].name = wad_texture_name{ tex->name};
+
 					header.numlumps++;
 				}
 				fprintf (texfile, "[%d]", (int)strlen(tex->name));
@@ -636,7 +637,7 @@ static void		ReadTextures(const char *name)
 				miptex_t *tex = (miptex_t*)(g_dtexdata.data() + g_texdatasize);
 				int j;
 				for (j = 0; j < header.numlumps; ++j)
-					if (strings_equal_with_ascii_case_insensitivity (name, (const char*) info[j].name.data()))
+				if (name == info[j].name)
 						break;
 				if (j == header.numlumps)
 				{

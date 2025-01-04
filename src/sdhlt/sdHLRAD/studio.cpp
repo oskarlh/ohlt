@@ -1,6 +1,7 @@
 #include "qrad.h"
 #include "meshtrace.h"
 #include "filelib.h"
+#include "utf8.h"
 
 #define MAX_MODELS		1024
 

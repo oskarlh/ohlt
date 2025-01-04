@@ -20,6 +20,7 @@
 
 #include "bsp5.h"
 #include "cli_option_defaults.h"
+#include "utf8.h"
 
 using namespace std::literals;
 

@@ -49,11 +49,13 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/cmdlib.cpp
     ${COMMON_DIR}/cmdlinecfg.cpp
     ${COMMON_DIR}/filelib.cpp
+    ${COMMON_DIR}/legacy_character_encodings.cpp
     ${COMMON_DIR}/log.cpp
     ${COMMON_DIR}/mathlib.cpp
     ${COMMON_DIR}/messages.cpp
     ${COMMON_DIR}/scriplib.cpp
     ${COMMON_DIR}/threads.cpp
+    ${COMMON_DIR}/utf8.cpp
     ${COMMON_DIR}/winding.cpp
 )
 
@@ -69,15 +71,18 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/cli_option_defaults.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
+    ${COMMON_DIR}/legacy_character_encodings.h
     ${COMMON_DIR}/log.h
     ${COMMON_DIR}/mathlib.h
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
+    ${COMMON_DIR}/utf8.h
     ${COMMON_DIR}/util.h
     ${COMMON_DIR}/vector_inplace.h
     ${COMMON_DIR}/wad_structs.h
+    ${COMMON_DIR}/wad_texture_name.h
     ${COMMON_DIR}/win32fix.h
     ${COMMON_DIR}/winding.h
 )
@@ -228,6 +233,7 @@ add_compile_definitions(
     PROJECT_ISSUE_TRACKER="https://github.com/oskarlh/ohlt/issues"
     PROJECT_NAME="${CMAKE_PROJECT_NAME}"
     PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
+#   ENABLE_LOWERCASE_TEXTURE_NAMES=1
 )
 
 

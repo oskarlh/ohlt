@@ -13,13 +13,14 @@
 */
 
 #include "csg.h" 
-#include "filelib.h"
 #include "bsp_file_sizes.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
 #endif
 #include "cli_option_defaults.h"
+#include "filelib.h"
+#include "utf8.h"
 
 #include <string_view>
 #include <utility>

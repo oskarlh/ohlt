@@ -1,4 +1,6 @@
 #include "csg.h"
+#include "utf8.h"
+
 #include <span>
 
 std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
@@ -889,8 +891,6 @@ bool            MakeBrushPlanes(brush_t* b)
 // =====================================================================================
 static contents_t TextureContents(const char* const name)
 {
-	// Why is only the start compared here?
-	// L
 	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTSOLID"))
 		return CONTENTS_SOLID;
 	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTWATER"))

@@ -1,4 +1,6 @@
 #include "csg.h"
+#include "utf8.h"
+
 #include <string_view>
 using namespace std::literals;
 

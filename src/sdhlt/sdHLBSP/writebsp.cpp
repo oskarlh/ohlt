@@ -660,7 +660,7 @@ void            FinishBSPFile(const bsp_data& bspData)
 					continue;
 				if (Used[i] == true)
 				{
-					miptex_t *m = (miptex_t *)((byte *)l + l->dataofs[i]);
+					miptex_t *m = (miptex_t *)((std::byte *)l + l->dataofs[i]);
 					if (m->name[0] != '+' && m->name[0] != '-')
 						continue;
 					safe_strncpy (name, m->name, MAXWADNAME);
@@ -671,7 +671,11 @@ void            FinishBSPFile(const bsp_data& bspData)
 						if (j < 10)
 							name[1] = '0' + j;
 						else
-							name[1] = 'A' + j - 10;
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+              			  name[1] = 'a' + j - 10; // Alternate animation
+#else
+             			  name[1] = 'A' + j - 10; // Alternate animation
+#endif
 						for (k = 0; k < g_nummiptex; k++)
 						{
 							if (l->dataofs[k] < 0)

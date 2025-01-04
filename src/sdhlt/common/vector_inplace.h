@@ -117,7 +117,7 @@ class vector_inplace final {
 			noexcept
 			requires(!std::is_trivially_copyable_v<T>)
 		{
-			auto clearsOther = call_finally{[&other]() { other.clear(); }};
+			[[maybe_unused]] auto clearsOther = call_finally{[&other]() { other.clear(); }};
 
 			std::move(other.begin(), other.begin() + std::min(size(), other.size()), begin());
 			if(other.size() > size()) {

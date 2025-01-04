@@ -111,19 +111,83 @@ dmodel_t;
 
 typedef struct
 {
-    std::int32_t             nummiptex;
-    std::int32_t             dataofs[4];                            // [nummiptex]
+    std::int32_t nummiptex;
+    std::int32_t dataofs[4]; // [nummiptex]
 }
 dmiptexlump_t;
 
-#define MIPLEVELS   4
-typedef struct miptex_s
+constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored
+struct miptex_t
 {
-    char            name[16];
-    std::uint32_t        width, height;
-    std::uint32_t        offsets[MIPLEVELS];                    // four mip maps stored
-}
-miptex_t;
+    char name[16];
+    std::uint32_t width, height;
+    std::uint32_t offsets[MIPLEVELS];
+};
+
+
+
+// https://developer.valvesoftware.com/wiki/Miptex
+// LOOKS LIKE I *MIGHT* BE ABLE TO OMIT ALL BUT THE FIRST MIP LEVEL?????
+// IF OPENGL HALF-LIFE ISN'T USING THEM.
+// STILL NEED THE PALETTE THOUGH
+class miptex_header_and_data final {
+	private:
+		std::unique_ptr<std::byte[]> headerAndData;
+	public:
+		miptex_header_and_data() = delete;
+		miptex_header_and_data(const miptex_header_and_data&) = delete;
+		constexpr miptex_header_and_data(miptex_header_and_data&&) noexcept = default;
+
+		constexpr miptex_header_and_data(std::size_t dataSize) {
+			std::size_t totalSize = sizeof(miptex_t) + dataSize;
+			headerAndData = std::make_unique_for_overwrite<std::byte[]>(totalSize);
+			miptex_t& header = *new(headerAndData.get()) miptex_t{};
+		}
+		constexpr ~miptex_header_and_data() {
+			header().~miptex_t();
+		}
+
+		miptex_header_and_data& operator=(const miptex_header_and_data&) = delete;
+		constexpr miptex_header_and_data& operator=(miptex_header_and_data&&) noexcept = default;
+
+		constexpr miptex_t& header() noexcept {
+			return *(miptex_t*) headerAndData.get();
+		}
+		constexpr const miptex_t& header() const noexcept {
+			return *(const miptex_t*) headerAndData.get();
+		}
+		constexpr std::byte* data() noexcept {
+			return headerAndData.get() + sizeof(miptex_t);
+		}
+		constexpr const std::byte* data() const noexcept {
+			return headerAndData.get() + sizeof(miptex_t);
+		}
+};
+
+class miptex_header_and_data_view final {
+	private:
+		std::byte* headerAndData;
+	public:
+		miptex_header_and_data_view() = delete;
+		constexpr miptex_header_and_data_view(std::byte* ptr) noexcept : headerAndData(ptr) {}
+		constexpr miptex_header_and_data_view(const miptex_header_and_data_view&) noexcept = default;
+
+		constexpr miptex_header_and_data_view& operator=(const miptex_header_and_data_view&) noexcept = default;
+
+		constexpr miptex_t& header() noexcept {
+			return *(miptex_t*) headerAndData;
+		}
+		constexpr const miptex_t& header() const noexcept {
+			return *(const miptex_t*) headerAndData;
+		}
+		constexpr std::byte* data() noexcept {
+			return headerAndData + sizeof(miptex_t);
+		}
+		constexpr const std::byte* data() const noexcept {
+			return headerAndData + sizeof(miptex_t);
+		}
+};
+
 
 typedef struct
 {
@@ -187,15 +251,14 @@ typedef struct
 }
 dclipnode_t;
 
-typedef struct texinfo_s
+struct texinfo_t
 {
-    float           vecs[2][4];                            // [s/t][xyz offset]
-    std::int32_t             miptex;
-    std::int32_t             flags;
-}
-texinfo_t;
-
-#define TEX_SPECIAL     1                                  // sky or slime or null, no lightmap or 256 subdivision
+    float vecs[2][4]; // [s/t][xyz offset]
+    std::int32_t miptex;
+    std::uint32_t flags;
+};
+// texinfo.flags only has one flag supported by the engine:
+constexpr std::uint32_t TEX_SPECIAL = 1; // Sky or slime or null, no lightmap or 256 subdivision
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
@@ -226,28 +289,28 @@ dface_t;
 #define AMBIENT_SLIME   2
 #define AMBIENT_LAVA    3
 
-#define NUM_AMBIENTS            4                  // automatic ambient sounds
 
 // leaf 0 is the generic CONTENTS_SOLID leaf, used for all solid areas
 // all other leafs need visibility info
-typedef struct
-{
-    std::int32_t             contents;
-    std::int32_t             visofs;                                // -1 = no visibility info
+struct dleaf_t {
+    std::int32_t contents;
+    std::int32_t visofs; // -1 = no visibility info
 
-    std::int16_t           mins[3];                               // for frustum culling
-    std::int16_t           maxs[3];
+    // For frustum culling
+    std::array<std::int16_t, 3> mins;
+    std::array<std::int16_t, 3> maxs;
 
-    std::uint16_t  firstmarksurface;
-    std::uint16_t  nummarksurfaces;
+    std::uint16_t firstmarksurface;
+    std::uint16_t nummarksurfaces;
 
-    std::uint8_t            ambient_level[NUM_AMBIENTS];
-}
-dleaf_t;
-
+    std::array<std::uint8_t, 4> unused_ambient_level{}; // Used by Quake, not by Half-Life
+};
 
 
-constexpr std::size_t LUMP_ENTITIES    = 0;
+// TODO: Automatically swap the ENTITIES and PLANES lump headers
+// when compiling Blue Shift maps. Swapped ENTITIES and PLANES are
+// the ONLY difference between Blue Shift BSPs and Half-Life BSPs
+constexpr std::size_t LUMP_ENTITIES     = 0;
 constexpr std::size_t LUMP_PLANES       = 1;
 constexpr std::size_t LUMP_TEXTURES     = 2;
 constexpr std::size_t LUMP_VERTEXES     = 3;
