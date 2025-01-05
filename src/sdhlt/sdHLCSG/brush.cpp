@@ -9,7 +9,9 @@ hullshape_t		g_defaulthulls[NUM_HULLS];
 int				g_numhullshapes;
 hullshape_t		g_hullshapes[MAX_HULLSHAPES];
 
-#define DIST_EPSILON   0.04
+constexpr vec_t DIST_EPSILON = 0.04;
+
+constexpr vec_t FLOOR_Z = 0.7; // Quake default
 
 
 // =====================================================================================

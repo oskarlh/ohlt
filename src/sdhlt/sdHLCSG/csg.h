@@ -28,7 +28,6 @@
 #define DEFAULT_WADTEXTURES true
 #define DEFAULT_SKYCLIP     true
 
-#define FLOOR_Z 0.7 // Quake default
 #define DEFAULT_CLIPTYPE clip_simple //clip_legacy //--vluzacn
 
 #define DEFAULT_CLIPNAZI    false
@@ -137,52 +136,47 @@ typedef struct brush_s
 	int				chopup; // allow this brush to be chopped by brushes of higher detail level
 	int				clipnodedetaillevel;
 	int				coplanarpriority;
-	char *			hullshapes[NUM_HULLS]; // might be NULL
+	char* hullshapes[NUM_HULLS]; // might be NULL
 
-    int             contents;
-    brushhull_t     hulls[NUM_HULLS];
+    std::int32_t contents;
+    brushhull_t hulls[NUM_HULLS];
 } brush_t;
 
-typedef struct
-{
+struct hullbrushface_t {
 	vec3_array normal;
 	vec3_array point;
 
-	int numvertexes;
+	std::int32_t numvertexes;
 	vec3_array *vertexes;
-} hullbrushface_t;
+};
 
-typedef struct
-{
+struct hullbrushedge_t{
 	vec3_array normals[2];
 	vec3_array point;
 
 	vec3_array vertexes[2];
 	vec3_array delta; // delta has the same direction as CrossProduct(normals[0],normals[1])
-} hullbrushedge_t;
+};
 
-typedef struct
-{
+struct hullbrushvertex_t {
 	vec3_array point;
-} hullbrushvertex_t;
+};
 
-typedef struct
-{
+struct hullbrush_t {
 	int numfaces;
 	hullbrushface_t *faces;
 	int numedges;
 	hullbrushedge_t *edges;
 	int numvertexes;
 	hullbrushvertex_t *vertexes;
-} hullbrush_t;
+};
 
-typedef struct
-{
+struct hullshape_t {
 	char *id;
 	bool disabled;
 	int numbrushes; // must be 0 or 1
 	hullbrush_t **brushes;
-} hullshape_t;
+};
 
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
 std::u8string ansiToUtf8(std::string_view ansiString);
