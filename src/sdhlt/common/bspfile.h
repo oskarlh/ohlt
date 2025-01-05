@@ -94,33 +94,26 @@ constexpr std::uint32_t BSPVERSION = 30;
 //
 
 
-typedef struct
-{
+struct lump_t {
     std::uint32_t fileofs, filelen;
-}
-lump_t;
+};
 
-typedef struct
-{
+struct dmodel_t {
     float mins[3], maxs[3];
     float origin[3];
     std::int32_t headnode[MAX_MAP_HULLS];
     std::int32_t visleafs; // not including the solid leaf 0
     std::int32_t firstface, numfaces;
-}
-dmodel_t;
+};
 
 
-typedef struct
-{
+struct dmiptexlump_t {
     std::int32_t nummiptex;
     std::int32_t dataofs[4]; // [nummiptex]
-}
-dmiptexlump_t;
+};
 
 constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored
-struct miptex_t
-{
+struct miptex_t {
     wad_texture_name name;
     std::uint32_t width, height;
     std::uint32_t offsets[MIPLEVELS];
@@ -190,23 +183,17 @@ class miptex_header_and_data_view final {
 		}
 };
 
-
-typedef struct
-{
+struct dvertex_t {
     std::array<float, 3> point;
-}
-dvertex_t;
+};
 
-typedef struct
-{
+struct dplane_t {
     std::array<float, 3> normal;
     float dist;
     planetypes type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
-}
-dplane_t;
+};
 
-typedef enum
-{
+enum contents_t {
     CONTENTS_EMPTY = -1,
     CONTENTS_SOLID = -2,
     CONTENTS_WATER = -3,
@@ -231,30 +218,23 @@ typedef enum
 	CONTENTS_BOUNDINGBOX = -19, // similar to CONTENTS_ORIGIN
 
 	CONTENTS_TOEMPTY = -32,
-}
-contents_t;
+};
 
-// !!! if this is changed, it must be changed in asm_i386.h too !!!
-typedef struct
-{
-    std::int32_t             planenum;
-    std::int16_t           children[2];                           // negative numbers are -(leafs+1), not nodes
-    std::int16_t           mins[3];                               // for sphere culling
-    std::int16_t           maxs[3];
-    std::uint16_t  firstface;
-    std::uint16_t  numfaces;                              // counting both sides
-}
-dnode_t;
+struct dnode_t {
+    std::int32_t planenum;
+    std::int16_t children[2]; // Negative numbers are -(leafs+1), not nodes
+    std::int16_t mins[3]; // For sphere culling
+    std::int16_t maxs[3];
+    std::uint16_t firstface;
+    std::uint16_t numfaces; // Counting both sides
+};
 
-typedef struct
-{
-    std::int32_t             planenum;
-    std::int16_t           children[2];                           // negative numbers are contents
-}
-dclipnode_t;
+struct dclipnode_t {
+    std::int32_t planenum;
+    std::int16_t children[2]; // Negative numbers are contents
+};
 
-struct texinfo_t
-{
+struct texinfo_t {
     float vecs[2][4]; // [s/t][xyz offset]
     std::int32_t miptex;
     std::uint32_t flags;
@@ -264,15 +244,12 @@ constexpr std::uint32_t TEX_SPECIAL = 1; // Sky or slime or null, no lightmap or
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
-typedef struct
-{
+struct dedge_t {
     std::uint16_t  v[2];                                  // vertex numbers
-}
-dedge_t;
+};
 
 #define MAXLIGHTMAPS    4
-typedef struct
-{
+struct dface_t {
     std::uint16_t	planenum;
     std::int16_t           side;
 
@@ -283,8 +260,7 @@ typedef struct
     // lighting info
     std::uint8_t            styles[MAXLIGHTMAPS];
     std::int32_t             lightofs;                              // start of [numstyles*surfsize] samples
-}
-dface_t;
+};
 
 #define AMBIENT_WATER   0
 #define AMBIENT_SKY     1
@@ -368,12 +344,10 @@ template<> struct lump_element_type_map<lump_id::models> { using type = dmodel_t
 template <lump_id Id> using lump_element_type = lump_element_type_map<Id>::type;
 
 
-typedef struct
-{
+struct dheader_t {
     std::uint32_t version;
     lump_t lumps[num_lump_types];
-}
-dheader_t;
+};
 
 //============================================================================
 
@@ -384,21 +358,18 @@ dheader_t;
 // Entity Related Stuff
 //
 
-struct epair_t
-{
+struct epair_t {
     epair_t* next = nullptr;
     std::u8string key;
     std::u8string value;
 };
 
-typedef struct
-{
+struct entity_t {
     vec3_array          origin;
     int             firstbrush;
     int             numbrushes;
     epair_t*        epairs;
-}
-entity_t;
+};
 
 extern void            ParseEntities();
 extern void            UnparseEntities();
@@ -587,4 +558,3 @@ extern void		GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2]);
 extern int		ParseImplicitTexinfoFromTexture (int miptex);
 extern int		ParseTexinfoForFace (const dface_t *f);
 extern void		DeleteEmbeddedLightmaps ();
-
