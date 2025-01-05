@@ -398,13 +398,11 @@ static void     MakeParents(const int nodenum, const int parent)
 // =====================================================================================
 
 // misc
-typedef struct
-{
-    std::string     name;
-    vec3_t          value;
-    const char*     filename; //either info_texlights or lights.rad filename
-}
-texlight_t;
+struct texlight_t {
+    wad_texture_name name;
+    vec3_t value;
+    const char* filename; //either info_texlights or lights.rad filename
+};
 
 static std::vector< texlight_t > s_texlights;
 typedef std::vector< texlight_t >::iterator texlight_i;
@@ -489,8 +487,16 @@ static void     ReadLightFile(const char* const filename)
 			s_texlights.erase(it);
 		}
 
-        texlight_t      texlight;
-        texlight.name = szTexlight;
+
+		const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name((const char8_t*) szTexlight);
+		if (!maybeTextureName)
+		{
+			Warning("Ignoring bad texlight '%s' in light file", szTexlight);
+			continue;
+		}
+
+        texlight_t texlight;
+        texlight.name = maybeTextureName.value();
         texlight.value[0] = r;
         texlight.value[1] = g;
         texlight.value[2] = b;
@@ -505,12 +511,12 @@ static void     ReadLightFile(const char* const filename)
 // =====================================================================================
 //  LightForTexture
 // =====================================================================================
-static void     LightForTexture(const char* const name, vec3_t result)
+static void     LightForTexture(wad_texture_name name, vec3_t result)
 {
     texlight_i it;
     for (it = s_texlights.begin(); it != s_texlights.end(); it++)
     {
-        if (!strcasecmp(name, it->name.c_str()))
+        if (name == it->name)
         {
             VectorCopy(it->value, result);
             return;
@@ -574,7 +580,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
     ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
     mt = (miptex_t*)((byte*) g_dtexdata.data() + ofs);
 
-    LightForTexture(mt->name, light);
+    LightForTexture(wad_texture_name(mt->name), light);
 }
 
 // =====================================================================================
@@ -975,17 +981,17 @@ void ReadCustomChopValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
+			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp ((const char*) ep->key.c_str(), texname))
+				if (ep->key != texname)
 					continue;
-				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
+				if (texname.is_origin())
 					continue;
 				if (atof ((const char*) ep->value.c_str()) <= 0)
 					continue;
 				chopscales[i] = atof ((const char*) ep->value.c_str());
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname, chopscales[i]);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname.c_str(), chopscales[i]);
 			}
 		}
 	}
@@ -1015,15 +1021,15 @@ void ReadCustomSmoothValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
+			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp ((const char*) ep->key.c_str(), texname))
+				if (ep->key != texname)
 					continue;
-				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"origin"))
+				if (texname.is_origin())
 					continue;
 				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (std::numbers::pi_v<double> / 180.0));
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname, atof ((const char*) ep->value.c_str()));
+				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname.c_str(), atof ((const char*) ep->value.c_str()));
 			}
 		}
 	}
@@ -1048,12 +1054,12 @@ void ReadTranslucentTextures()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
+			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp ((const char*) ep->key.c_str(), texname))
+				if (ep->key != texname)
 					continue;
-				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
+				if (texname.is_origin())
 					continue;
 				double r, g, b;
 				int count;
@@ -1075,7 +1081,7 @@ void ReadTranslucentTextures()
 				g_translucenttextures[i][0] = r;
 				g_translucenttextures[i][1] = g;
 				g_translucenttextures[i][2] = b;
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent: %s = %f %f %f\n", texname, r, g, b);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent: %s = %f %f %f\n", texname.c_str(), r, g, b);
 			}
 		}
 	}
@@ -1110,12 +1116,12 @@ void ReadLightingCone ()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const char *texname = ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name;
+			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
 			for (ep = mapent->epairs; ep; ep = ep->next)
 			{
-				if (strcasecmp ((const char*) ep->key.c_str(), texname))
+				if (ep->key != texname)
 					continue;
-				if (strings_equal_with_ascii_case_insensitivity((const char*) ep->key.c_str(), u8"ORIGIN"))
+				if (texname.is_origin())
 					continue;
 				double power, scale;
 				int count;
@@ -1137,7 +1143,7 @@ void ReadLightingCone ()
 				scale *= DefaultScaleForPower (power);
 				g_lightingconeinfo[i][0] = power;
 				g_lightingconeinfo[i][1] = scale;
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname, power, scale);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
 			}
 		}
 	}
@@ -1605,7 +1611,7 @@ static entity_t *FindTexlightEntity (int facenum)
 {
 	dface_t *face = &g_dfaces[facenum];
 	const dplane_t *dplane = getPlaneFromFace (face);
-	const char *texname = GetTextureByNumber (face->texinfo);
+	const wad_texture_name texname{get_texture_by_number(face->texinfo)};
 	entity_t *faceent = g_face_entity[facenum];
 	vec3_array centroid{ Winding(*face).getCenter() };
 	VectorAdd (centroid, g_face_offset[facenum], centroid);
@@ -1617,7 +1623,7 @@ static entity_t *FindTexlightEntity (int facenum)
 		entity_t *ent = &g_entities[i];
 		if (!classname_is(ent, u8"light_surface"))
 			continue;
-		if (!strings_equal_with_ascii_case_insensitivity ((const char*) value_for_key (ent, u8"_tex").data(), texname))
+		if (!key_value_is(ent, u8"_tex", texname))
 			continue;
 		vec3_array delta;
 		GetVectorForKey (ent, u8"origin", delta);
@@ -2894,7 +2900,6 @@ void            ReadInfoTexAndMinlights()
     int         k;
     int         values;
     float       r, g, b, i, min;
-    texlight_t  texlight;
 	minlight_t minlight;
 
     for (k = 0; k < g_numentities; k++)
@@ -2917,7 +2922,12 @@ void            ReadInfoTexAndMinlights()
 					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) ep->key.c_str());
 					continue;
 				}
-				minlight.name = std::string((const char*) ep->key.c_str());
+				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(ep->key);
+				if(!maybeTextureName) {
+					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) ep->key.c_str());
+					continue;
+				}
+				minlight.name = maybeTextureName.value();
 				minlight.value = min;
 				s_minlights.push_back(minlight);
 			}
@@ -2950,8 +2960,14 @@ void            ReadInfoTexAndMinlights()
 					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) ep->key.c_str());
 					continue;
 				}
-
-				texlight.name = std::string((const char*) ep->key.c_str());
+				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(ep->key);
+				if (!maybeTextureName)
+				{
+					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) ep->key.c_str());
+					continue;
+				}
+				texlight_t texlight;
+				texlight.name = maybeTextureName.value();
 				texlight.value[0] = r;
 				texlight.value[1] = g;
 				texlight.value[2] = b;

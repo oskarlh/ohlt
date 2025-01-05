@@ -381,7 +381,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 
 		int frontcontents, backcontents;
 		int texinfo = f->texinfo;
-		const char *texname = GetTextureByNumber_CSG (texinfo);
+		const wad_texture_name texname{GetTextureByNumber_CSG (texinfo)};
 		frontcontents = f->contents;
 		if (mirrorcontents == CONTENTS_TOEMPTY)
 		{
@@ -405,25 +405,22 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 		backnull = false;
 		if (mirrorcontents == CONTENTS_TOEMPTY)
 		{
-            if (strncasecmp(texname, "SKIP", 4)
-                && strncasecmp(texname, "HINT", 4)
-                && strncasecmp(texname, "SOLIDHINT", 9)
-                && strncasecmp(texname, "BEVELHINT", 9)
+            if (!texname.is_skip() &&
+                !texname.is_any_hint()
                 )
 				// SKIP and HINT are special textures for hlbsp
 			{
 				backnull = true;
 			}
 		}
-        if (!strncasecmp(texname, "SOLIDHINT", 9)
-            || !strncasecmp(texname, "BEVELHINT", 9))
+        if (texname.is_solid_hint() || texname.is_bevel_hint())
 		{
 			if (frontcontents != backcontents)
 			{
 				frontnull = backnull = true; // not discardable, so remove "SOLIDHINT" texture name and behave like NULL
 			}
 		}
-		if (b.entitynum != 0 && !strncasecmp (texname, "!", 1))
+		if (b.entitynum != 0 && texname.is_any_liquid())
 		{
 			backnull = true; // strip water face on one side
 		}
@@ -460,15 +457,13 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 		if (!hull)
 		{
 			int texinfo = f->texinfo;
-			const char *texname = GetTextureByNumber_CSG (texinfo);
+			const wad_texture_name texname{GetTextureByNumber_CSG (texinfo)};
 			texinfo_t *tex = &g_texinfo[texinfo];
 
             if (texinfo != -1 // nullified textures (nullptr, BEVEL, aaatrigger, etc.)
                 && !(tex->flags & TEX_SPECIAL) // sky
-                && strncasecmp(texname, "SKIP", 4)
-                && strncasecmp(texname, "HINT", 4) // HINT and SKIP will be nullified only after hlbsp
-                && strncasecmp(texname, "SOLIDHINT", 9)
-                && strncasecmp(texname, "BEVELHINT", 9)
+                && !texname.is_skip()
+                && !texname.is_any_hint() // HINT and SKIP will be nullified only after hlbsp
                 )
 			{
 				// check for "Malformed face (%d) normal"
@@ -479,7 +474,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
 						b.originalentitynum, b.originalbrushnum,
-						texname
+						texname.c_str()
 						);
 				}
 
@@ -505,7 +500,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Bad surface extents.",
 						b.originalentitynum, b.originalbrushnum,
-						texname
+						texname.c_str()
 						);
 				}
 			}
@@ -743,12 +738,10 @@ static void     CSGBrush(int brushnum)
 					(hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
 					)
 				{
-					const char *texname = GetTextureByNumber_CSG (f->texinfo);
+					const wad_texture_name texname{GetTextureByNumber_CSG (f->texinfo)};
                     if (f->texinfo == -1
-                        || !strncasecmp(texname, "SKIP", 4)
-                        || !strncasecmp(texname, "HINT", 4)
-                        || !strncasecmp(texname, "SOLIDHINT", 9)
-                        || !strncasecmp(texname, "BEVELHINT", 9)
+                        || texname.is_skip()
+                        || texname.is_any_hint()
                         )
 					{
 						// should not nullify the fragment inside detail brush
@@ -891,8 +884,8 @@ static void     CSGBrush(int brushnum)
 						if (onback && f->backcontents < b2.contents)
 							f->backcontents = b2.contents;
 						if (f->contents == CONTENTS_SOLID && f->backcontents == CONTENTS_SOLID
-							&& strncasecmp (GetTextureByNumber_CSG (f->texinfo), "SOLIDHINT", 9)
-                            && strncasecmp(GetTextureByNumber_CSG(f->texinfo), "BEVELHINT", 9)
+							&& !wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_solid_hint()
+                            && !wad_texture_name(GetTextureByNumber_CSG(f->texinfo)).is_bevel_hint()
 							)
 						{
 							FreeFace (f);
@@ -905,8 +898,8 @@ static void     CSGBrush(int brushnum)
 						continue;
 					}
                     if (b1.contents > b2.contents
-						|| b1.contents == b2.contents && !strncasecmp (GetTextureByNumber_CSG (f->texinfo), "SOLIDHINT", 9)
-                        || b1.contents == b2.contents && !strncasecmp(GetTextureByNumber_CSG(f->texinfo), "BEVELHINT", 9)
+						|| b1.contents == b2.contents && wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_solid_hint()
+                        || b1.contents == b2.contents && wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_bevel_hint()
 						)
                     {                                      // inside a water brush
                         f->contents = b2.contents;

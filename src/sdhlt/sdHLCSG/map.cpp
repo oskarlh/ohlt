@@ -442,37 +442,48 @@ static void ParseBrush(entity_t* mapent)
 	for (j = 0; j < b->numsides; j++)
 	{
 		side = &g_brushsides[b->firstside + j];
+		const wad_texture_name textureName{side->td.name};
 		if (nullify
-			&& strncasecmp(side->td.name, "BEVEL", 5)
-			&& strncasecmp(side->td.name, "ORIGIN", 6)
-			&& strncasecmp(side->td.name, "HINT", 4)
-			&& strncasecmp(side->td.name, "SKIP", 4)
-			&& strncasecmp(side->td.name, "SOLIDHINT", 9)
-			&& strncasecmp(side->td.name, "BEVELHINT", 9)
-			&& strncasecmp(side->td.name, "SPLITFACE", 9)
-			&& strncasecmp(side->td.name, "BOUNDINGBOX", 11)
-			&& strncasecmp(side->td.name, "CONTENT", 7)
-			&& strncasecmp(side->td.name, "SKY", 3)
+			&& !textureName.is_any_bevel()
+			&& !textureName.is_any_hint()
+			&& !textureName.is_any_content_type()
+			&& !textureName.is_origin()
+			&& !textureName.is_skip()
+			&& !textureName.is_splitface()
+			&& !textureName.is_bounding_box()
+			&& !textureName.is_ordinary_sky()
 			)
 		{
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+			safe_strncpy(side->td.name,"null",sizeof(side->td.name));
+#else
 			safe_strncpy(side->td.name,"NULL",sizeof(side->td.name));
+#endif
 		}
 	}
 	for (j = 0; j < b->numsides; j++)
 	{
 		// change to SKIP now that we have set brush content.
 		side = &g_brushsides[b->firstside + j];
-		if (!strncasecmp (side->td.name, "SPLITFACE", 9))
+		if (wad_texture_name(side->td.name).is_splitface())
 		{
-			strcpy (side->td.name, "SKIP");
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+			safe_strncpy(side->td.name,"skip",sizeof(side->td.name));
+#else
+			safe_strncpy(side->td.name,"SKIP",sizeof(side->td.name));
+#endif
 		}
 	}
 	for (j = 0; j < b->numsides; j++)
 	{
 		side = &g_brushsides[b->firstside + j];
-		if (!strncasecmp (side->td.name, "CONTENT", 7))
+		if (wad_texture_name(side->td.name).is_any_content_type())
 		{
-			strcpy (side->td.name, "NULL");
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+			safe_strncpy(side->td.name,"null",sizeof(side->td.name));
+#else
+			safe_strncpy(side->td.name,"NULL",sizeof(side->td.name));
+#endif
 		}
 	}
 	if (g_nullifytrigger)
@@ -480,9 +491,13 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < b->numsides; j++)
 		{
 			side = &g_brushsides[b->firstside + j];
-			if (!strncasecmp (side->td.name, "AAATRIGGER", 10))
+			if (wad_texture_name(side->td.name).is_aaatrigger())
 			{
-				strcpy (side->td.name, "NULL");
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+			strcpy(side->td.name,"null");
+#else
+			strcpy(side->td.name,"NULL");
+#endif
 			}
 		}
 	}
@@ -600,11 +615,15 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < b->numsides; j++)
 		{
 			side = &g_brushsides[b->firstside + j];
-			if (!strncasecmp (side->td.name, "NULL", 4))
+			if (wad_texture_name(side->td.name).is_null())
 			{ // this is not supposed to be a HINT brush, so remove all invisible faces from hull 0.
-				strcpy (side->td.name, "SKIP");
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+         		strcpy (side->td.name, "skip");
+#else
+           		strcpy (side->td.name, "SKIP");
+#endif
 			}
-			if (strncasecmp (side->td.name, "SKIP", 4))
+			if (!wad_texture_name(side->td.name).is_skip())
 				mixed = true;
 		}
 		if (mixed)
@@ -616,7 +635,11 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < b->numsides; j++)
 		{
 			side = &g_brushsides[b->firstside + j];
+#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
+			strcpy (side->td.name, "null");
+#else
 			strcpy (side->td.name, "NULL");
+#endif
 		}
 	}
 
@@ -641,7 +664,7 @@ bool            ParseMapEntity()
 
     this_entity = g_numentities;
 
-    if (g_token != u8"{"sv)
+    if (g_token != u8"{")
     {
         Error("Parsing Entity %i, expected '{' got '%s'", 
 			g_numparsedentities, 

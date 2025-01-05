@@ -232,10 +232,8 @@ extern void		CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& ma
 
 extern node_t*  AllocNode();
 
-extern bool     CheckFaceForHint(const face_t* const f);
-extern bool     CheckFaceForSkip(const face_t* const f);
-extern bool     CheckFaceForNull(const face_t* const f);
-extern bool		CheckFaceForDiscardable (const face_t *f);
+
+extern bool should_face_have_facestyle_null(wad_texture_name textureName, std::int32_t faceContents) noexcept;
 #define BRINK_FLOOR_THRESHOLD 0.7
 typedef enum
 {
@@ -249,14 +247,6 @@ typedef enum
 extern void *CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode);
 extern bool FixBrinks (const void *brinkinfo, bbrinklevel_e level, int &headnode_out, dclipnode_t *clipnodes_out, int maxsize, int size, int &size_out);
 extern void DeleteBrinkinfo (void *brinkinfo);
-
-
-// =====================================================================================
-//Cpt_Andrew - UTSky Check
-// =====================================================================================
-extern bool     CheckFaceForEnv_Sky(const face_t* const f);
-// =====================================================================================
-
 
 
 //=============================================================================
@@ -287,6 +277,8 @@ extern std::filesystem::path g_extentfilename;
 
 
 extern bool     g_bUseNullTex;
+
+
 
 extern bool		g_nohull2;
 

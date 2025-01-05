@@ -559,21 +559,8 @@ lightinfo_t;
 // =====================================================================================
 //  TextureNameFromFace
 // =====================================================================================
-static const char* TextureNameFromFace(const dface_t* const f)
-{
-    texinfo_t*      tx;
-    miptex_t*       mt;
-    int             ofs;
-
-    //
-    // check for light emited by texture
-    //
-    tx = &g_texinfo[f->texinfo];
-
-    ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
-    mt = (miptex_t*)((std::byte*) g_dtexdata.data() + ofs);
-
-	return mt->name;
+static wad_texture_name TextureNameFromFace(const dface_t* const f) {
+	return get_texture_by_number(f->texinfo);
 }
 
 // =====================================================================================
@@ -648,7 +635,7 @@ static void     CalcFaceExtents(lightinfo_t* l)
 			)
 		{
 			ThreadLock();
-			PrintOnce("\nfor Face %li (texture %s) at ", s - g_dfaces.data(), TextureNameFromFace(s));
+			PrintOnce("\nfor Face %li (texture %s) at ", s - g_dfaces.data(), TextureNameFromFace(s).c_str());
 
 			for (i = 0; i < s->numedges; i++)
 			{
@@ -1717,7 +1704,7 @@ void            CreateDirectLights()
 			VectorMultiply (dl->intensity, p->texturereflectivity, dl->intensity);
         
 			dface_t *f = &g_dfaces[p->faceNumber];
-			if (g_face_entity[p->faceNumber] != g_entities.data() && !strncasecmp (GetTextureByNumber (f->texinfo), "!", 1))
+			if (g_face_entity[p->faceNumber] != g_entities.data() && get_texture_by_number(f->texinfo).is_water())
 			{
 				directlight_t *dl2;
 				numdlights++;
@@ -4476,8 +4463,7 @@ void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float *start, const fl
 		{
 			dface_t *f = &g_dfaces[node->firstface + i];
 			texinfo_t *tex = &g_texinfo[f->texinfo];
-			const char *texname = GetTextureByNumber (f->texinfo);
-			if (!strncmp (texname, "sky", 3))
+			if (get_texture_by_number(f->texinfo).is_ordinary_sky())
 			{
 				continue;
 			}
@@ -4857,40 +4843,14 @@ void            FinalLightFace(const int facenum)
     minlight = FloatForKey(g_face_entity[facenum], u8"_minlight") * 255; //seedee
 	minlight = (minlight > 255) ? 255 : minlight;
 
-	const char* texname = GetTextureByNumber(f->texinfo);
-
-	if (!strncasecmp(texname, "%", 1)) //If texture name has % flag //seedee
-	{
-		size_t texnameLength = strlen(texname);
-
-		if (texnameLength > 1)
-		{
-			char* minlightValue = new char[texnameLength + 1];
-			int valueIndex = 0;
-			int i = 1;
-
-			if (texname[i] >= '0' && texname[i] <= '9') //Loop until non-digit is found or we run out of space
-			{
-				while (texname[i] != '\0' && texname[i] >= '0' && texname[i] <= '9' && valueIndex < texnameLength)
-				{
-					minlightValue[valueIndex++] = texname[i++];
-				}
-				minlightValue[valueIndex] = '\0';
-				minlight = atoi(minlightValue);
-				delete[] minlightValue;
-				minlight = (minlight > 255) ? 255 : minlight;
-			}
-		}
-		else
-		{
-			minlight = 255;
-		}
-	}
+	wad_texture_name texname{get_texture_by_number(f->texinfo)};
+	minlight = texname.get_minlight().value_or(minlight);
+	
 	minlight_i it;
 
 	for (it = s_minlights.begin(); it != s_minlights.end(); it++)
 	{
-		if (strings_equal_with_ascii_case_insensitivity(texname, it->name.c_str()))
+		if (texname == it->name)
 		{
 			float minlightValue = it->value * 255.0f;
 			minlight = static_cast<int>(minlightValue);

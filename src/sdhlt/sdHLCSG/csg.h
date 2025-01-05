@@ -86,7 +86,7 @@ typedef struct
 {
     char            txcommand;
     vects_union     vects;
-    char            name[32];
+    char            name[32]; // 32????????? Shouldn't it be 16 like all texture names?
 } brush_texture_t;
 
 typedef struct side_s

@@ -314,8 +314,7 @@ typedef enum
 eModelLightmodes;
 
 
-typedef struct
-{
+struct opaqueList_t {
 	int entitynum;
 	int modelnum;
 	vec3_array origin;
@@ -326,29 +325,26 @@ typedef struct
 	// style0 and same style will change to this style, other styles will be blocked.
 	bool block; // this entity can't be seen inside, so all lightmap sample should move outside.
 
-} opaqueList_t;
+};
 
 
-typedef struct
-{
+struct radtexture_t {
 	char name[16]; // not always same with the name in texdata
 	int width, height;
 	std::uint8_t *canvas; //[height][width]
 	std::array<std::array<std::uint8_t, 3>, 256> palette;
 	vec3_array reflectivity;
-} radtexture_t;
+};
 extern int g_numtextures;
 extern radtexture_t *g_textures;
 extern void AddWadFolder (const char *path);
 extern void LoadTextures ();
 extern void EmbedLightmapInTextures ();
 
-typedef struct
-{
-	std::string     name;
-	float          value;
-}
-minlight_t; //info_minlights
+struct minlight_t {
+	std::u8string name;
+	float value;
+}; // info_minlights
 
 typedef std::vector<minlight_t>::iterator minlight_i;
 

@@ -588,12 +588,10 @@ void WriteExtentFile (const std::filesystem::path& filename)
 // =====================================================================================
 int	ParseImplicitTexinfoFromTexture (int miptex)
 {
-	int texinfo;
 	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 	int offset;
 	int size;
 	miptex_t *mt;
-	char name[16];
 	
 	if (miptex < 0 || miptex >= numtextures)
 	{
@@ -609,24 +607,20 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 	}
 
 	mt = (miptex_t *)&g_dtexdata[offset];
-	safe_strncpy (name, mt->name, 16);
+	wad_texture_name name = wad_texture_name(mt->name);
 	
-	if (!(
-		strlen (name) >= 6 &&
-		std::string_view(name + 1, 4) == "_rad" &&
-		'0' <= name[5] && name[5] <= '9'
-	)) {
+	std::optional<std::uint32_t> maybeTexinfoIndex = name.original_texinfo_index_for_embedded_lightmap();
+	if (!maybeTexinfoIndex) {
 		return -1;
 	}
 
-	texinfo = atoi (&name[5]);
-	if (texinfo < 0 || texinfo >= g_numtexinfo)
+	if (maybeTexinfoIndex.value() >= g_numtexinfo)
 	{
-		Warning ("Invalid index of original texinfo: %d parsed from texture name '%s'.", texinfo, name);
+		Warning ("Invalid index of original texinfo: %d parsed from texture name '%s'.", maybeTexinfoIndex.value(), name.c_str());
 		return -1;
 	}
 
-	return texinfo;
+	return maybeTexinfoIndex.value();
 }
 
 int ParseTexinfoForFace (const dface_t *f)
@@ -1277,18 +1271,15 @@ void dtexdata_free()
 //      Touchy function, can fail with a page fault if all the data isnt kosher 
 //      (i.e. map was compiled with missing textures)
 // =====================================================================================
-static char emptystring[1] = {'\0'};
-char*           GetTextureByNumber(int texturenumber)
+
+wad_texture_name get_texture_by_number(int texturenumber)
 {
 	if (texturenumber == -1)
-		return emptystring;
-    texinfo_t*      info;
-    miptex_t*       miptex;
-    int             ofs;
+		return wad_texture_name{};
 
-    info = &g_texinfo[texturenumber];
-    ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[info->miptex];
-    miptex = (miptex_t*)(&g_dtexdata[ofs]);
+    const texinfo_t* info = &g_texinfo[texturenumber];
+    std::int32_t ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[info->miptex];
+    const miptex_t* miptex = (miptex_t*)(&g_dtexdata[ofs]);
 
     return miptex->name;
 }

@@ -3,16 +3,6 @@
 #include "hull_size.h"
 #include "wad_structs.h"
 
-//  WriteClipNodes_r
-//  WriteClipNodes
-//  WriteDrawLeaf
-//  WriteFace
-//  WriteDrawNodes_r
-//  FreeDrawNodes_r
-//  WriteDrawNodes
-//  BeginBSPFile
-//  FinishBSPFile
-
 #include <map>
 
 typedef std::map< int, int > PlaneMap;
@@ -243,16 +233,7 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
 				f = f->original;
 				continue;
 			}
-			bool ishidden = false;
-			{
-				const char *name = GetTextureByNumber (f->texturenum);
-				if (strlen (name) >= 7 && strings_equal_with_ascii_case_insensitivity(&name[strlen (name) - 7], u8"_HIDDEN"))
-				{
-					ishidden = true;
-				}
-			}
-			if (ishidden)
-			{
+			if (get_texture_by_number(f->texturenum).is_hidden()) {
 				f = f->original;
 				continue;
 			}
@@ -278,19 +259,16 @@ static void     WriteFace(face_t* f)
     int             i;
     int             e;
 
-    if (    CheckFaceForHint(f)
-        ||  CheckFaceForSkip(f)
-        ||  CheckFaceForNull(f)  // AJM
-		|| CheckFaceForDiscardable (f)
+	const wad_texture_name textureName{get_texture_by_number(f->texturenum)};
+
+    if (
+		textureName.is_ordinary_hint()
+        || textureName.is_skip()
+        || should_face_have_facestyle_null(textureName, f->contents)
+		|| textureName.marks_discardable_faces()
 		|| f->texturenum == -1
 		|| f->referenced == 0 // this face is not referenced by any nonsolid leaf because it is completely covered by func_details
-
-// =====================================================================================
-//Cpt_Andrew - Env_Sky Check
-// =====================================================================================
-       ||  CheckFaceForEnv_Sky(f)
-// =====================================================================================
-
+        || textureName.is_env_sky()
        )
     {
 		f->outputnumber = -1;
@@ -440,13 +418,16 @@ static void     FreeDrawNodes_r(node_t* node)
 // =====================================================================================
 void OutputEdges_face (face_t *f)
 {
-	if (CheckFaceForHint(f)
-		|| CheckFaceForSkip(f)
-        || CheckFaceForNull(f)  // AJM
-		|| CheckFaceForDiscardable (f)
+	const wad_texture_name textureName{get_texture_by_number(f->texturenum)};
+
+	if (
+		textureName.is_ordinary_hint()
+		|| textureName.is_skip()
+        || should_face_have_facestyle_null(textureName, f->contents)
+		|| textureName.marks_discardable_faces()
 		|| f->texturenum == -1
 		|| f->referenced == 0
-		|| CheckFaceForEnv_Sky(f)//Cpt_Andrew - Env_Sky Check
+		|| textureName.is_env_sky()
 		)
 	{
 		return;
@@ -578,7 +559,7 @@ void            BeginBSPFile()
 // =====================================================================================
 //  FinishBSPFile
 // =====================================================================================
-void            FinishBSPFile(const bsp_data& bspData)
+void FinishBSPFile(const bsp_data& bspData)
 {
     Verbose("--- FinishBSPFile ---\n");
 
@@ -654,35 +635,29 @@ void            FinishBSPFile(const bsp_data& bspData)
 			}
 			for (i = 0; i < g_nummiptex; i++)
 			{
-				char name[MAXWADNAME];
-				int j, k;
 				if (l->dataofs[i] < 0)
 					continue;
 				if (Used[i] == true)
 				{
 					miptex_t *m = (miptex_t *)((std::byte *)l + l->dataofs[i]);
-					if (m->name[0] != '+' && m->name[0] != '-')
+					wad_texture_name name{m->name};
+					if (!name.is_animation_frame() && !name.is_tile()) {
 						continue;
-					safe_strncpy (name, m->name, MAXWADNAME);
-					if (name[1] == '\0')
-						continue;
-					for (j = 0; j < 20; j++)
-					{
-						if (j < 10)
-							name[1] = '0' + j;
-						else
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-              			  name[1] = 'a' + j - 10; // Alternate animation
-#else
-             			  name[1] = 'A' + j - 10; // Alternate animation
-#endif
-						for (k = 0; k < g_nummiptex; k++)
-						{
-							if (l->dataofs[k] < 0)
-								continue;
-							miptex_t *m2 = (miptex_t *)((byte *)l + l->dataofs[k]);
-							if (strings_equal_with_ascii_case_insensitivity (name, m2->name))
-								Used[k] = true;
+					}
+
+					for(bool alternateAnimation : std::array{false, true}) {
+						for (std::size_t frameNumber = 0; frameNumber < 10; ++frameNumber) {
+							name.set_animation_frame_or_tile_number(frameNumber, alternateAnimation);
+							// TODO: IS THIS REALLY THE BEST WAY TO FIND THESE TEXTURES????
+							for (std::size_t k = 0; k < g_nummiptex; ++k) {
+								if (l->dataofs[k] < 0) {
+									continue;
+								}
+								const miptex_t *m2 = (miptex_t *)((byte *)l + l->dataofs[k]);
+								if (name == m2->name) {
+									Used[k] = true;
+								}
+							}
 						}
 					}
 				}

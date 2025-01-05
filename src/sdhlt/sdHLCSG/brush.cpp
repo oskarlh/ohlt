@@ -889,82 +889,67 @@ bool            MakeBrushPlanes(brush_t* b)
 // =====================================================================================
 //  TextureContents
 // =====================================================================================
-static contents_t TextureContents(const char* const name)
+static contents_t TextureContents(wad_texture_name name)
 {
-	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTSOLID"))
-		return CONTENTS_SOLID;
-	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTWATER"))
-		return CONTENTS_WATER;
-	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTEMPTY"))
-		return CONTENTS_TOEMPTY;
-	if (strings_equal_with_ascii_case_insensitivity(name, u8"CONTENTSKY"))
+	if(name.is_any_content_type()) {
+		if (name.is_contentsolid())
+			return CONTENTS_SOLID;
+		if (name.is_contentwater())
+			return CONTENTS_WATER;
+		if (name.is_contentempty())
+			return CONTENTS_TOEMPTY;
+		if (name.is_contentsky())
+			return CONTENTS_SKY;
+	}
+	if (name.is_ordinary_sky() || name.is_env_sky())
 		return CONTENTS_SKY;
-    if (strings_equal_with_ascii_case_insensitivity(name, u8"SKY"))
-        return CONTENTS_SKY;
 
-// =====================================================================================
-//Cpt_Andrew - Env_Sky Check
-// =====================================================================================
-    if (!strncasecmp(name, "env_sky", 7))
-        return CONTENTS_SKY;
-// =====================================================================================
+    if (name.is_any_liquid()) {
+		if (name.is_lava()) {
+			return CONTENTS_LAVA;
+		}
+		if (name.is_slime()) {
+			return CONTENTS_SLIME;
+		}
 
-    if (!strncasecmp(name + 1, "!lava", 5))
-        return CONTENTS_LAVA;
-
-    if (!strncasecmp(name + 1, "!slime", 6))
-        return CONTENTS_SLIME;
-    if (!strncasecmp(name, "!lava", 5))
-        return CONTENTS_LAVA;
-
-    if (!strncasecmp(name, "!slime", 6))
-        return CONTENTS_SLIME;
-
-    if (name[0] == '!') //optimized -- don't check for current unless it's liquid (KGP)
-	{
-		if (!strncasecmp(name, "!cur_90", 7))
-			return CONTENTS_CURRENT_90;
-		if (!strncasecmp(name, "!cur_0", 6))
+		if (name.is_water_with_current_0()) {
 			return CONTENTS_CURRENT_0;
-		if (!strncasecmp(name, "!cur_270", 8))
-			return CONTENTS_CURRENT_270;
-		if (!strncasecmp(name, "!cur_180", 8))
+		}
+		if (name.is_water_with_current_90()) {
+			return CONTENTS_CURRENT_90;
+		}
+		if (name.is_water_with_current_180()) {
 			return CONTENTS_CURRENT_180;
-		if (!strncasecmp(name, "!cur_up", 7))
-			return CONTENTS_CURRENT_UP;
-		if (!strncasecmp(name, "!cur_dwn", 8))
+		}
+		if (name.is_water_with_current_270()) {
+			return CONTENTS_CURRENT_270;
+		}
+		if (name.is_water_with_current_down()) {
 			return CONTENTS_CURRENT_DOWN;
-        return CONTENTS_WATER; //default for liquids
+		}
+		if (name.is_water_with_current_up()) {
+			return CONTENTS_CURRENT_UP;
+		}
+        return CONTENTS_WATER;
 	}
 
-    if (!strncasecmp(name, "origin", 6))
+    if (name.is_origin())
         return CONTENTS_ORIGIN;
-	if (!strncasecmp(name, "boundingbox", 11))
+	if (name.is_bounding_box())
 		return CONTENTS_BOUNDINGBOX;
 
 
-	if (!strncasecmp(name, "solidhint", 9))
+	if (name.is_solid_hint() || name.is_bevel_hint() || name.is_null() || name.is_ordinary_bevel()) {
 		return CONTENTS_NULL;
-	if (!strncasecmp(name, "bevelhint", 9))
-		return CONTENTS_NULL;
-	if (!strncasecmp(name, "splitface", 9))
+	}
+	if (name.is_splitface())
 		return CONTENTS_HINT;
-	if (!strncasecmp(name, "hint", 4))
+	if (name.is_ordinary_hint())
 		return CONTENTS_TOEMPTY;
-	if (!strncasecmp(name, "skip", 4))
+	if (name.is_skip())
 		return CONTENTS_TOEMPTY;
 
-    if (!strncasecmp(name, "translucent", 11))
-        return CONTENTS_TRANSLUCENT;
-
-
-	if (!strncasecmp(name, "null", 4))
-        return CONTENTS_NULL;
-	if(!strncasecmp(name,"bevel",5))
-		return CONTENTS_NULL;
-
-
-    if (name[0] == '@')
+    if (name.is_transculent())
         return CONTENTS_TRANSLUCENT;
 
     return CONTENTS_SOLID;
@@ -1046,18 +1031,20 @@ contents_t      CheckBrushContents(const brush_t* const b)
 			);
 	}
 	best_i = 0;
-    best_contents = TextureContents(s->td.name);
+	const wad_texture_name textureNameA{s->td.name};
+    best_contents = TextureContents(textureNameA);
 	// Difference between SKIP, ContentEmpty:
 	// SKIP doesn't split space in bsp process, ContentEmpty splits space normally.
-	if (!(strncasecmp (s->td.name, "content", 7) && strncasecmp (s->td.name, "skip", 4)))
+	if (textureNameA.is_any_content_type() || textureNameA.is_skip())
 		assigned = true;
     s++;
 	for (i = 1; i < b->numsides; i++, s++)
     {
-        contents_t contents_consider = TextureContents(s->td.name);
+		const wad_texture_name textureNameB{s->td.name};
+        contents_t contents_consider = TextureContents(textureNameB);
 		if (assigned)
 			continue;
-		if (!(strncasecmp (s->td.name, "content", 7) && strncasecmp (s->td.name, "skip", 4)))
+		if (textureNameB.is_any_content_type() || textureNameB.is_skip())
 		{
 			best_i = i;
 			best_contents = contents_consider;
@@ -1076,10 +1063,11 @@ contents_t      CheckBrushContents(const brush_t* const b)
     s = &g_brushsides[b->firstside];
 	for (i = 0; i < b->numsides; i++, s++)
     {
-        contents_t contents2 = TextureContents(s->td.name);
+		const wad_texture_name textureNameB{s->td.name};
+        const contents_t contents2 = TextureContents(textureNameB);
 		if (assigned
-			&& strncasecmp (s->td.name, "content", 7)
-			&& strncasecmp (s->td.name, "skip", 4)
+			&& !textureNameB.is_any_content_type()
+			&& !textureNameB.is_skip()
 			&& contents2 != CONTENTS_ORIGIN
 			&& contents2 != CONTENTS_HINT
 			&& contents2 != CONTENTS_BOUNDINGBOX

@@ -229,7 +229,7 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	const std::uint8_t *data = (const std::uint8_t *)mt;
 	tex->width = header->width;
 	tex->height = header->height;
-	strcpy (tex->name, header->name);
+	strcpy (tex->name, wad_texture_name(header->name).c_str());
 	tex->name[16 - 1] = '\0';
 	if (tex->width <= 0 || tex->height <= 0 ||
 		tex->width % (2 * 1 << (MIPLEVELS - 1)) != 0 || tex->height % (2 * (1 << (MIPLEVELS - 1))) != 0)
@@ -275,7 +275,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 {
 	tex->width = header->width;
 	tex->height = header->height;
-	strcpy (tex->name, header->name);
+	strcpy (tex->name, wad_texture_name(header->name).c_str());
 	tex->name[16 - 1] = '\0';
 	wadfile_t *wad;
 	for (wad = g_wadfiles; wad; wad = wad->next)
@@ -298,16 +298,16 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 			if (fseek (wad->file, found->filepos, SEEK_SET))
 				Error ("File read failure");
 			SafeRead (wad->file, mt, found->disksize);
-			if (!TerminatedString(mt->name, 16))
+			if (!mt->name.validate_and_normalize())
 			{
 				Warning("Texture '%s': invalid texture data in '%s'.", tex->name, wad->path);
 				free (mt);
 				continue;
 			}
-			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name, mt->name, mt->width, mt->height);
+			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name, wad_texture_name(mt->name).c_str(), mt->width, mt->height);
 			if (!strings_equal_with_ascii_case_insensitivity (mt->name, tex->name))
 			{
-				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name, mt->name, tex->name, wad->path);
+				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name, mt->name.c_str(), tex->name, wad->path);
 			}
 			LoadTexture (tex, mt, found->disksize);
 			free (mt);
@@ -351,8 +351,8 @@ void LoadTextures ()
 			miptex_t *mt = (miptex_t *)&g_dtexdata[offset];
 			if (mt->offsets[0])
 			{
-				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", mt->name, g_source);
-				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", mt->name, mt->name, mt->width, mt->height);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", wad_texture_name(mt->name).c_str(), g_source);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': width %d, height %d.\n", wad_texture_name(mt->name).c_str(), mt->width, mt->height);
 				LoadTexture (tex, mt, size);
 			}
 			else
@@ -443,8 +443,7 @@ template<class T, class T2> inline void CQ_VectorCopy (const T a[CQ_DIM], T2 b[C
 
 template<class T> inline void CQ_VectorClear (T a[CQ_DIM])
 {
-	for (int x = 0; x < CQ_DIM; x++)
-	{
+	for (std::size_t x = 0; x < CQ_DIM; ++x) {
 		a[x] = (T)0;
 	}
 }
@@ -452,8 +451,7 @@ template<class T> inline void CQ_VectorClear (T a[CQ_DIM])
 template<class T> inline T CQ_DotProduct (const T a[CQ_DIM], const T b[CQ_DIM])
 {
 	T dot = (T)0;
-	for (int x = 0; x < CQ_DIM; x++)
-	{
+	for (std::size_t x = 0; x < CQ_DIM; ++x) {
 		dot += a[x] * b[x];
 	}
 	return dot;
@@ -966,41 +964,31 @@ static void GetLight (dface_t *face, const int texsize[2], double x, double y, v
 	VectorMA (light, dx, light1, light);
 }
 
-static bool GetValidTextureName (int miptex, char name[16])
+static std::optional<wad_texture_name> GetValidTextureName(std::uint32_t miptex)
 {
 	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
-	int offset;
-	int size;
 	miptex_t *mt;
 	
-	if (miptex < 0 || miptex >= numtextures)
+	if (miptex >= numtextures)
 	{
-		return false;
+		return std::nullopt;
 	}
-	offset = ((dmiptexlump_t *)g_dtexdata.data())->dataofs[miptex];
-	size = g_texdatasize - offset;
+	std::int32_t offset = ((dmiptexlump_t *)g_dtexdata.data())->dataofs[miptex];
+	int size = g_texdatasize - offset;
 	if (offset < 0 || g_dtexdata.data() + offset < (std::byte *)&((dmiptexlump_t *)g_dtexdata.data())->dataofs[numtextures] ||
 		size < (int)sizeof (miptex_t))
 	{
-		return false;
+		return std::nullopt;
 	}
 
 	mt = (miptex_t *)&g_dtexdata.data()[offset];
-	safe_strncpy (name, mt->name, 16);
-
-	if (strcmp (name, mt->name))
-	{
-		return false;
-	}
+	wad_texture_name name{mt->name};
 	
-	if (
-		strlen (name) >= 5 &&
-		std::string_view(name + 1, 4) == "_rad"
-	) {
-		return false;
+	if (name.is_any_embedded_lightmap()) {
+		return std::nullopt;
 	}
 
-	return true;
+	return name;
 }
 
 void EmbedLightmapInTextures ()
@@ -1043,18 +1031,23 @@ void EmbedLightmapInTextures ()
 		entity_t *ent = g_face_entity[i];
 		int originaltexinfonum = f->texinfo;
 		texinfo_t *originaltexinfo = &g_texinfo[originaltexinfonum];
-		char texname[16];
-		if (!GetValidTextureName (originaltexinfo->miptex, texname))
+		
+
+		auto maybeTexname = GetValidTextureName (originaltexinfo->miptex);
+
+		if (!maybeTexname)
 		{
 			continue;
 		}
+		const wad_texture_name texname = maybeTexname.value();
+
 		radtexture_t *tex = &g_textures[originaltexinfo->miptex];
 
 		if (ent == &g_entities[0]) // world
 		{
 			continue;
 		}
-		if (!strncmp (texname, "sky", 3)
+		if (texname.is_ordinary_sky()
 			|| originaltexinfo->flags & TEX_SPECIAL) // skip special surfaces
 		{
 			continue;
@@ -1200,7 +1193,7 @@ void EmbedLightmapInTextures ()
 				GetLight (f, texsize, light_s, light_t, light);
 
 				(*dest)[4] += 1;
-				if (!(texname[0] == '{' && src_index == 255))
+				if (!(texname.is_transparent_or_decal() && src_index == 255))
 				{
 					for (k = 0; k < 3; k++)
 					{
@@ -1300,7 +1293,7 @@ void EmbedLightmapInTextures ()
 			int numsamplepoints;
 			unsigned char (*samplepoints)[3];
 
-			if (texname[0] == '{')
+			if (texname.is_transparent_or_decal())
 			{
 				paletteoffset = 0;
 				palettemaxcolors = 255;
@@ -1420,44 +1413,45 @@ void EmbedLightmapInTextures ()
 			Error ("EmbedLightmapInTextures: internal error");
 		}
 
-		if (texname[0] == '{') {
-			strcpy (miptex->name, "{_rad");
-		} else if (texname[0] == '!') {
-			strcpy (miptex->name, "!_rad");
+		std::array<char8_t, wad_texture_name_max_length_with_last_null> embeddedLightmapName{};
+		using namespace std::literals;
+		if (texname.is_transparent_or_decal()) {
+			std::ranges::copy(u8"{_rad"sv, embeddedLightmapName.data());
+		} else if (texname.is_water()) {
+			std::ranges::copy(u8"!_rad"sv, embeddedLightmapName.data());
 		} else {
-			strcpy (miptex->name, "__rad");
+			std::ranges::copy(u8"__rad"sv, embeddedLightmapName.data());
 		}
 		if (originaltexinfonum < 0 || originaltexinfonum > 99999)
 		{
 			Error ("EmbedLightmapInTextures: internal error: texinfo out of range");
 		}
-		miptex->name[5] = '0' + (originaltexinfonum / 10000) % 10; // store the original texinfo
-		miptex->name[6] = '0' + (originaltexinfonum / 1000) % 10;
-		miptex->name[7] = '0' + (originaltexinfonum / 100) % 10;
-		miptex->name[8] = '0' + (originaltexinfonum / 10) % 10;
-		miptex->name[9] = '0' + (originaltexinfonum) % 10;
+		static_assert(embedded_lightmap_texture_name_original_texinfo_index_starts_at == 5);
+		embeddedLightmapName[5] = '0' + (originaltexinfonum / 10000) % 10; // store the original texinfo
+		embeddedLightmapName[6] = '0' + (originaltexinfonum / 1000) % 10;
+		embeddedLightmapName[7] = '0' + (originaltexinfonum / 100) % 10;
+		embeddedLightmapName[8] = '0' + (originaltexinfonum / 10) % 10;
+		embeddedLightmapName[9] = '0' + (originaltexinfonum) % 10;
+		static_assert(embedded_lightmap_texture_name_original_texinfo_index_length == 5);
 		char table[36];
 		for (int k = 0; k < 36; k++)
 		{
 			table[k] = k >= 10? 'a' + (k - 10): '0' + k; // same order as the ASCII table
 		}
-		miptex->name[10] = '\0';
-		miptex->name[11] = '\0';
-		miptex->name[12] = '\0';
-		miptex->name[13] = '\0';
-		miptex->name[14] = '\0';
-		miptex->name[15] = '\0';
 		unsigned int hash = Hash (miptexsize, miptex);
-		miptex->name[10] = table[(hash / 36 / 36) % 26 + 10];
-		miptex->name[11] = table[(hash / 36) % 36];
-		miptex->name[12] = table[(hash) % 36];
-		miptex->name[13] = table[(count / 36) % 36];
-		miptex->name[14] = table[(count) % 36];
-		miptex->name[15] = '\0';
+		embeddedLightmapName[10] = table[(hash / 36 / 36) % 26 + 10];
+		embeddedLightmapName[11] = table[(hash / 36) % 36];
+		embeddedLightmapName[12] = table[(hash) % 36];
+		embeddedLightmapName[13] = table[(count / 36) % 36];
+		embeddedLightmapName[14] = table[(count) % 36];
+		embeddedLightmapName[15] = '\0';
+
+		miptex->name = wad_texture_name{embeddedLightmapName.begin()};
+
 		NewTextures_PushTexture (miptexsize, miptex);
 		count++;
 		count_bytes += miptexsize;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "Created texture '%s' for face (texture %s) at (%4.3f %4.3f %4.3f)\n", miptex->name, texname, g_face_centroids[i][0], g_face_centroids[i][1], g_face_centroids[i][2]);
+		Developer (DEVELOPER_LEVEL_MESSAGE, "Created texture '%s' for face (texture %s) at (%4.3f %4.3f %4.3f)\n", wad_texture_name(miptex->name).c_str(), texname.c_str(), g_face_centroids[i][0], g_face_centroids[i][1], g_face_centroids[i][2]);
 
 		free (miptex);
 

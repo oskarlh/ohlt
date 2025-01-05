@@ -373,7 +373,7 @@ lumpinfo_with_wadfileindex*     FindTexture(const lumpinfo_with_wadfileindex* co
 // =====================================================================================
 //  LoadLump
 // =====================================================================================
-static int             LoadLump(const lumpinfo_with_wadfileindex* const source, std::byte* dest, int* texsize
+static int LoadLump(const lumpinfo_with_wadfileindex* const source, std::byte* dest, int* texsize
 						, int dest_maxsize
 						, std::byte *&writewad_data, int &writewad_datasize
 						)
@@ -401,6 +401,11 @@ static int             LoadLump(const lumpinfo_with_wadfileindex* const source, 
 			hlassume ((int)sizeof (miptex_t) <= dest_maxsize, assume_MAX_MAP_MIPTEX);
             SafeRead(texfiles[source->iTexFile], dest, sizeof(miptex_t));
 
+            if(!miptex->name.validate_and_normalize()) {
+                // TODO: Better error message
+                Error("validate_and_normalize failed");
+            }
+
             for (i = 0; i < MIPLEVELS; i++)
                 miptex->offsets[i] = 0;
 			writewad_data = (std::byte *)malloc (source->lump_info.disksize);
@@ -418,6 +423,11 @@ static int             LoadLump(const lumpinfo_with_wadfileindex* const source, 
             // Load the entire texture here so the BSP contains the texture
 			hlassume (source->lump_info.disksize <= dest_maxsize, assume_MAX_MAP_MIPTEX);
             SafeRead(texfiles[source->iTexFile], dest, source->lump_info.disksize);
+
+            if(!((miptex_t*) dest)->name.validate_and_normalize()) {
+                // TODO: Better error message
+                Error("validate_and_normalize failed");
+            }
             return source->lump_info.disksize;
         }
     }
@@ -441,7 +451,7 @@ void            AddAnimatingTextures()
 
     for (i = 0; i < base; i++)
     {
-        if (!miptex[i].lump_info.name.is_animated_texture() && !miptex[i].lump_info.name.is_tiling_texture())
+        if (!miptex[i].lump_info.name.is_animation_frame() && !miptex[i].lump_info.name.is_tile())
         {
             continue;
         }
@@ -456,11 +466,7 @@ void            AddAnimatingTextures()
             }
             else
             {
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
                 name[1] = 'a' + j - 10; // Alternate animation
-#else
-                name[1] = 'A' + j - 10; // Alternate animation
-#endif
             }
 
             // see if this name exists in the wadfile
@@ -663,6 +669,7 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
 				writewad_lumpinfo->pad1 = miptex[i].lump_info.pad1;
 				writewad_lumpinfo->pad2 = miptex[i].lump_info.pad2;
                 writewad_lumpinfo->name = miptex[i].lump_info.name;
+
 				writewad_header.numlumps++;
 				SafeWrite (writewad_file, writewad_data, writewad_datasize); //Write the processed lump info temp wad file
 				free (writewad_data);
@@ -724,26 +731,23 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
     texinfo_t*      tc;
     int             i, j, k;
 
-	if (strings_equal_with_ascii_case_insensitivity(bt->name, "NULL"))
+    wad_texture_name textureName{bt->name};
+
+	if (textureName.is_null())
 	{
 		return -1;
 	}
     memset(&tx, 0, sizeof(tx));
 	FindMiptex (bt->name);
+    textureName = wad_texture_name(bt->name);
 
     // set the special flag
-    if (bt->name[0] == '*'
-        || strings_equal_with_ascii_case_insensitivity(bt->name, "SKY")
-
-// =====================================================================================
-//Cpt_Andrew - Env_Sky Check
-// =====================================================================================
-        || strings_equal_with_ascii_case_insensitivity(bt->name, "ENV_SKY")
-// =====================================================================================
-
-        || strings_equal_with_ascii_case_insensitivity(bt->name, "ORIGIN")
-        || strings_equal_with_ascii_case_insensitivity(bt->name, "NULL")
-        || strings_equal_with_ascii_case_insensitivity(bt->name, "AAATRIGGER")
+    if (bt->name[0] == '*' // ???
+        || textureName.is_ordinary_sky()
+        || textureName.is_env_sky()
+        || textureName.is_origin()
+        || textureName.is_null()
+        || textureName.is_aaatrigger()
        )
     {
 		// actually only 'sky' and 'aaatrigger' needs this. --vluzacn

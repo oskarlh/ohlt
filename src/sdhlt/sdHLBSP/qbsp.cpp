@@ -812,118 +812,45 @@ static surfchain_t* SurflistFromValidFaces()
     return sc;
 }
 
-// =====================================================================================
-//  CheckFaceForNull
-//      Returns true if the passed face is facetype null
-// =====================================================================================
-bool            CheckFaceForNull(const face_t* const f)
-{
-	if (f->contents == CONTENTS_SKY)
+// Returns true if the passed face should have fasestyle null
+bool should_face_have_facestyle_null(wad_texture_name textureName, std::int32_t faceContents) noexcept {
+	if (faceContents== CONTENTS_SKY)
     {
-		const char *name = GetTextureByNumber (f->texturenum);
-        if (strncasecmp(name, "sky", 3)) // for env_rain
+        // An old comment said this is "for env_rain"...
+        // might this be for CZDS, where
+        // "any exterior faces of skybox brushes must be textured
+        // with SKYCULL for env_rain and env_snow to work properly"??
+        if (!textureName.is_ordinary_sky()) {
 			return true;
+        }
     }
-    // null faces are only of facetype face_null if we are using null texture stripping
     if (g_bUseNullTex)
     {
-		const char *name = GetTextureByNumber (f->texturenum);
-		if (!strncasecmp(name, "null", 4))
-			return true;
-		return false;
+        // NULL faces are only of facetype face_null if we are using NULL texture stripping
+		return g_bUseNullTex && textureName.is_null();
     }
-    else // otherwise, under normal cases, null textured faces should be facetype face_normal
-    {
-        return false;
-    }
-}
-// =====================================================================================
-//Cpt_Andrew - UTSky Check
-// =====================================================================================
-bool            CheckFaceForEnv_Sky(const face_t* const f)
-{
-	const char *name = GetTextureByNumber (f->texturenum);
-	if (!strncasecmp (name, "env_sky", 7))
-		return true;
-	return false;
-}
-// =====================================================================================
-
-
-
-
-
-
-// =====================================================================================
-//  CheckFaceForHint
-//      Returns true if the passed face is facetype hint
-// =====================================================================================
-bool CheckFaceForHint(const face_t* const f)
-{
-	const char *name = GetTextureByNumber (f->texturenum);
-	if (!strncasecmp (name, "hint", 4))
-		return true;
-	return false;
+    // Otherwise, under normal cases, NULL-textured faces should have facestyle face_normal
+    return false;
 }
 
-// =====================================================================================
-//  CheckFaceForSkipt
-//      Returns true if the passed face is facetype skip
-// =====================================================================================
-bool            CheckFaceForSkip(const face_t* const f)
-{
-	const char *name = GetTextureByNumber (f->texturenum);
-	if (!strncasecmp (name, "skip", 4))
-		return true;
-	return false;
-}
 
-bool CheckFaceForDiscardable (const face_t *f)
-{
-	const char *name = GetTextureByNumber (f->texturenum);
-    if (!strncasecmp(name, "solidhint", 9) || !strncasecmp(name, "bevelhint", 9))
-		return true;
-	return false;
-}
+static facestyle_e set_face_style(face_t* f) {
+    const wad_texture_name textureName{get_texture_by_number(f->texturenum)};
 
-// =====================================================================================
-//  SetFaceType
-// =====================================================================================
-static          facestyle_e SetFaceType(face_t* f)
-{
-    if (CheckFaceForHint(f))
-    {
-        f->facestyle = face_hint;
+    facestyle_e style = face_normal;
+    if (textureName.is_ordinary_hint()) {
+        style = face_hint;
+    } else if (textureName.is_skip()) {
+        style = face_skip;
+    } else if (should_face_have_facestyle_null(textureName, f->contents)) {
+        style = face_null;
+    } else if (textureName.is_bevel_hint() || textureName.is_solid_hint()) {
+		style = face_discardable;
+	} else if (textureName.is_env_sky()) {
+        style = face_null;
     }
-    else if (CheckFaceForSkip(f))
-    {
-        f->facestyle = face_skip;
-    }
-    else if (CheckFaceForNull(f))
-    {
-        f->facestyle = face_null;
-    }
-	else if (CheckFaceForDiscardable (f))
-	{
-		f->facestyle = face_discardable;
-	}
-
-// =====================================================================================
-//Cpt_Andrew - Env_Sky Check
-// =====================================================================================
-   //else if (CheckFaceForUTSky(f))
-	else if (CheckFaceForEnv_Sky(f))
-    {
-        f->facestyle = face_null;
-    }
-// =====================================================================================
-
-
-    else
-    {
-        f->facestyle = face_normal;
-    }
-    return f->facestyle;
+    f->facestyle = style;
+    return style;
 }
 
 // =====================================================================================
@@ -977,7 +904,7 @@ static surfchain_t* ReadSurfs(FILE* file)
 			Error("ReadSurfs (line %i): detaillevel %i < 0", line, detaillevel);
 		}
 
-        if (!strcasecmp(GetTextureByNumber(g_texinfo), "skip"))
+        if ((get_texture_by_number(g_texinfo)).is_skip())
         {
             Verbose("ReadSurfs (line %i): skipping a surface", line);
 
@@ -1004,7 +931,7 @@ static surfchain_t* ReadSurfs(FILE* file)
         f->next = validfaces[planenum];
         validfaces[planenum] = f;
 
-        SetFaceType(f);
+        set_face_style(f);
 
         for (i = 0; i < f->numpoints; i++)
         {

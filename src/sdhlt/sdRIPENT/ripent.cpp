@@ -546,8 +546,8 @@ static void		WriteTextures(const char* const name)
 
 					header.numlumps++;
 				}
-				fprintf (texfile, "[%d]", (int)strlen(tex->name));
-				SafeWrite (texfile, tex->name, strlen(tex->name));
+				fprintf (texfile, "[%zu]", tex->name.length());
+				SafeWrite (texfile, tex->name.c_str(), tex->name.length());
 				fprintf (texfile, " %d %d\r\n", tex->width, tex->height);
 			}
 		}
@@ -628,11 +628,12 @@ static void		ReadTextures(const char *name)
 			}
 			else
 			{
-				char name[16];
+				std::array<char8_t, 16> rawName {};
 				if (len > 15)
 					Error ("Texture name is too long");
-				memset (name, '\0', 16);
-				SafeRead (texfile, name, len);
+				SafeRead (texfile, rawName.data(), len);
+				wad_texture_name name = wad_texture_name{rawName.data()};
+
 				((dmiptexlump_t*)g_dtexdata.data())->dataofs[itex] = g_texdatasize;
 				miptex_t *tex = (miptex_t*)(g_dtexdata.data() + g_texdatasize);
 				int j;
@@ -649,7 +650,7 @@ static void		ReadTextures(const char *name)
 					g_texdatasize += sizeof(miptex_t);
 					hlassume(g_texdatasize < g_max_map_miptex, assume_MAX_MAP_MIPTEX);
 					memset (tex, 0, sizeof(miptex_t));
-					strcpy (tex->name, name);
+					tex->name = name;
 					tex->width = w;
 					tex->height = h;
 					for (int k = 0; k < MIPLEVELS; k++)

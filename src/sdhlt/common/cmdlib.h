@@ -65,6 +65,15 @@ bool a_contains_b_ignoring_ascii_character_case_differences(std::u8string_view s
 
 extern bool FORMAT_PRINTF(3,4) safe_snprintf(char* const dest, const size_t count, const char* const args, ...);
 extern bool     safe_strncpy(char* const dest, const char* const src, const size_t count);
+inline bool safe_strncpy(char8_t* const dest, const char* const src, const size_t count) {
+	return safe_strncpy((char*) dest, (char*) src, count);
+}
+inline bool safe_strncpy(char* const dest, const char8_t* const src, const size_t count) {
+	return safe_strncpy((char*) dest, (char*) src, count);
+}
+inline bool safe_strncpy(char8_t* const dest, const char8_t* const src, const size_t count) {
+	return safe_strncpy((char*) dest, (char*) src, count);
+}
 extern bool     safe_strncat(char* const dest, const char* const src, const size_t count);
 extern bool     TerminatedString(const char* buffer, const int size);
 

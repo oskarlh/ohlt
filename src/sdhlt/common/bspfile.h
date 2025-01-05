@@ -1,7 +1,9 @@
 #pragma once
 
-#include "cmdlib.h" //--vluzacn
+#include "cmdlib.h"
 #include "mathlib.h"
+#include "wad_texture_name.h"
+
 #include <cstddef>
 #include <filesystem>
 #include <vector>
@@ -119,7 +121,7 @@ dmiptexlump_t;
 constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored
 struct miptex_t
 {
-    char name[16];
+    wad_texture_name name;
     std::uint32_t width, height;
     std::uint32_t offsets[MIPLEVELS];
 };
@@ -429,7 +431,7 @@ constexpr std::ptrdiff_t g_max_map_lightdata = std::numeric_limits<std::int32_t>
 extern void dtexdata_init();
 extern void dtexdata_free();
 
-extern char*    GetTextureByNumber(int texturenumber);
+extern wad_texture_name get_texture_by_number(int texturenumber);
 
 
 //

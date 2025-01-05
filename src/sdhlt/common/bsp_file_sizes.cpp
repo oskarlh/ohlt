@@ -2,6 +2,8 @@
 #include "bspfile.h"
 #include "cmdlib.h"
 #include "log.h"
+#include "wad_texture_name.h"
+
 #include <algorithm>
 #include <cstring>
 #include <deque>
@@ -76,23 +78,20 @@ std::size_t count_blocks (const bsp_data& bspData)
 	for (int k = 0; k < bspData.facesLength; k++)
 	{
 		const dface_t *f = &bspData.faces[k];
-		const char *texname =  GetTextureByNumber (ParseTexinfoForFace (f));
-		// Shouldn't the == "sky" comparison be case-insensitive?
-		if (texname == "sky"sv //sky, no lightmap allocation.
-			|| !std::strncmp (texname, "!", 1) || !strncasecmp (texname, "water", 5) || !strncasecmp (texname, "laser", 5) //water, no lightmap allocation.
-			|| (g_texinfo[ParseTexinfoForFace (f)].flags & TEX_SPECIAL) //aaatrigger, I don't know.
-			)
-		{
+		const wad_texture_name texname = (wad_texture_name) get_texture_by_number (ParseTexinfoForFace (f));
+		if (texname.is_ordinary_sky() // Sky, no lightmap allocation
+			|| texname.is_water() // Water, no lightmap allocation
+			|| (g_texinfo[ParseTexinfoForFace (f)].flags & TEX_SPECIAL) // AAATRIGGER, I don't know
+		) {
 			continue;
 		}
-		int extents[2];
+		std::array<int, 2> extents;
 		vec3_array point;
 		{
 			int bmins[2];
 			int bmaxs[2];
-			int i;
 			GetFaceExtents (k, bmins, bmaxs);
-			for (i = 0; i < 2; i++)
+			for (std::size_t i = 0; i < 2; ++i)
 			{
 				extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
 			}
@@ -154,20 +153,20 @@ static std::optional<std::u8string> find_wad_value (const bsp_data& bspData)
 		}
 		if (lineend == linestart + 1) {
 			if (bspData.entityData[linestart] == u8'{') {
-				if (inentity)
+				if (inentity) {
 					return std::nullopt;
+				}
 				inentity = true;
 			} else if (bspData.entityData[linestart] == u8'}') {
-				if (!inentity)
+				if (!inentity) {
 					return std::nullopt;
+				}
 				inentity = false;
 				return u8""; // only parse the first entity
 			} else {
 				return std::nullopt;
 			}
-		}
-		else
-		{
+		} else {
 			if (!inentity) {
 				return std::nullopt;
 			}
