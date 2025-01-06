@@ -95,12 +95,14 @@ constexpr std::uint32_t BSPVERSION = 30;
 
 
 struct lump_t {
-    std::uint32_t fileofs, filelen;
+    std::uint32_t fileofs;
+    std::uint32_t filelen;
 };
 
 struct dmodel_t {
-    float mins[3], maxs[3];
-    float origin[3];
+    float3_array mins;
+    float3_array maxs;
+    float3_array origin;
     std::int32_t headnode[MAX_MAP_HULLS];
     std::int32_t visleafs; // not including the solid leaf 0
     std::int32_t firstface, numfaces;
@@ -222,9 +224,9 @@ enum contents_t {
 
 struct dnode_t {
     std::int32_t planenum;
-    std::int16_t children[2]; // Negative numbers are -(leafs+1), not nodes
-    std::int16_t mins[3]; // For sphere culling
-    std::int16_t maxs[3];
+    std::array<std::int16_t, 2> children; // Negative numbers are -(leafs+1), not nodes
+    std::array<std::int16_t, 3> mins; // For sphere culling
+    std::array<std::int16_t, 3> maxs;
     std::uint16_t firstface;
     std::uint16_t numfaces; // Counting both sides
 };
@@ -245,21 +247,21 @@ constexpr std::uint32_t TEX_SPECIAL = 1; // Sky or slime or null, no lightmap or
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
 struct dedge_t {
-    std::uint16_t  v[2];                                  // vertex numbers
+    std::array<std::uint16_t, 2> v;                                  // vertex numbers
 };
 
 #define MAXLIGHTMAPS    4
 struct dface_t {
-    std::uint16_t	planenum;
-    std::int16_t           side;
+    std::uint16_t planenum;
+    std::int16_t side;
 
-    std::int32_t             firstedge;                             // we must support > 64k edges
-    std::int16_t           numedges;
-    std::int16_t           texinfo;
+    std::int32_t firstedge; // We must support > 64k edges
+    std::int16_t numedges;
+    std::int16_t texinfo;
 
     // lighting info
-    std::uint8_t            styles[MAXLIGHTMAPS];
-    std::int32_t             lightofs;                              // start of [numstyles*surfsize] samples
+    std::array<std::uint8_t, MAXLIGHTMAPS> styles;
+    std::int32_t lightofs; // Start of [numstyles*surfsize] samples
 };
 
 #define AMBIENT_WATER   0

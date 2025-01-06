@@ -1327,7 +1327,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 			VectorScale (texturereflectivity, g_texreflectscale, texturereflectivity);
 			if (VectorMaximum (texturereflectivity) > 1.0 + NORMAL_EPSILON)
 			{
-				Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", g_textures[g_texinfo[f->texinfo].miptex].name, texturereflectivity[0], texturereflectivity[1], texturereflectivity[2]);
+				Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", g_textures[g_texinfo[f->texinfo].miptex].name.c_str(), texturereflectivity[0], texturereflectivity[1], texturereflectivity[2]);
 			}
 			VectorCopy (texturereflectivity, patch->texturereflectivity);
 		}

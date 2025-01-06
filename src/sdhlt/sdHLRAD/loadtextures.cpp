@@ -278,7 +278,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 	for (wad = g_wadfiles; wad; wad = wad->next)
 	{
 		lumpinfo_t temp, *found;
-		temp.name = wad_texture_name{tex->name};
+		temp.name = tex->name;
 		found = (lumpinfo_t *)bsearch (&temp, wad->lumpinfos, wad->numlumps, sizeof (lumpinfo_t), lump_sorter_by_name);
 		if (found)
 		{
@@ -963,8 +963,7 @@ static void GetLight (dface_t *face, const int texsize[2], double x, double y, v
 
 static std::optional<wad_texture_name> GetValidTextureName(std::uint32_t miptex)
 {
-	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
-	miptex_t *mt;
+	const int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex : 0;
 	
 	if (miptex >= numtextures)
 	{
@@ -978,14 +977,13 @@ static std::optional<wad_texture_name> GetValidTextureName(std::uint32_t miptex)
 		return std::nullopt;
 	}
 
-	mt = (miptex_t *)&g_dtexdata.data()[offset];
-	wad_texture_name name{mt->name};
-	
-	if (name.is_any_embedded_lightmap()) {
+	const wad_texture_name textureName = ((const miptex_t&)g_dtexdata.data()[offset]).name;
+
+	if (textureName.is_any_embedded_lightmap()) {
 		return std::nullopt;
 	}
 
-	return name;
+	return textureName;
 }
 
 void EmbedLightmapInTextures ()

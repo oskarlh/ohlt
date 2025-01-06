@@ -1,14 +1,3 @@
-TODO: Use wad_texture_name for these:
-getvalidtexturename
-TextureNameFromFace
-GetTextureByNumber
-GetTextureByNumber_CSG
-ReadTextures name
-radtexture_t
-LoadTextureFromWad
-brush_texture_t
-ParseBrush
-
 https://developer.valvesoftware.com/wiki/Miptex
 
 
