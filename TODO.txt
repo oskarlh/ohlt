@@ -1,3 +1,17 @@
+TODO: Use wad_texture_name for these:
+getvalidtexturename
+TextureNameFromFace
+GetTextureByNumber
+GetTextureByNumber_CSG
+ReadTextures name
+radtexture_t
+LoadTextureFromWad
+brush_texture_t
+ParseBrush
+
+https://developer.valvesoftware.com/wiki/Miptex
+
+
 TEX_InitFromWad():
 I should add .wad file lookups in:
 -someNewParameterForWadFolder
@@ -34,6 +48,7 @@ This so we can compile .map files from others when they forget to include all th
 Study:
 https://developer.valvesoftware.com/wiki/BSP_(GoldSrc)
 The Source article might have additional information https://developer.valvesoftware.com/wiki/BSP_(Source)
+https://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm
 
 Looks interesting:
 https://developer.valvesoftware.com/wiki/BSPX

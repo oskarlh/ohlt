@@ -200,19 +200,19 @@ static void ParseBrush(entity_t* mapent)
 					);
 		}
 	}
-	for (int h = 0; h < NUM_HULLS; h++) //Loop through all hulls
+	for (std::size_t h = 0; h < NUM_HULLS; h++) // Loop through all hulls
 	{
-		char key[16]; //Key name for the hull shape.
-		snprintf(key, sizeof(key), "zhlt_hull%d", h); //Format key name to include the hull number, used to look up hull shape data in entity properties
-		const char8_t* value = ValueForKey(mapent, (const char8_t*) key);
+		std::array<char8_t, u8"zhlt_hull0"sv.length()> key{u8"zhlt_hull"}; //Key name for the hull shape.
+		static_assert(NUM_HULLS <= 10);
+		key.back() = u8'0' + h;
+		const std::u8string_view value = value_for_key(mapent, std::u8string_view{key.begin(), key.end()});
 
-		if (*value) //If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
-		{
-			b->hullshapes[h] = _strdup((const char*) value);
-		}
-		else //Set brush hull shape for this hull to NULL
-		{
+		if (value.empty()) {
+			// Set brush hull shape for this hull to NULL
 			b->hullshapes[h] = nullptr;
+		} else {
+			//If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
+			b->hullshapes[h] = _strdup((const char*) value.data());
 		}
 	}
     mapent->numbrushes++;
@@ -241,7 +241,7 @@ static void ParseBrush(entity_t* mapent)
             }
             if (g_token != u8"("sv) //Token must be '('
             {
-                Error("Parsing Entity %i, Brush %i, Side %i : Expecting '(' got '%s'",
+                Error("Parsing Entity %i, Brush %i, Side %i: Expecting '(' got '%s'",
 					b->originalentitynum, b->originalbrushnum, 
 					  b->numsides, (const char*) g_token.c_str());
             }
@@ -254,50 +254,53 @@ static void ParseBrush(entity_t* mapent)
 
             if (g_token != u8")"sv)
             {
-                Error("Parsing	Entity %i, Brush %i, Side %i : Expecting ')' got '%s'",
+                Error("Parsing Entity %i, Brush %i, Side %i: Expecting ')' got '%s'",
 					b->originalentitynum, b->originalbrushnum, 
 					  b->numsides, (const char*) g_token.c_str());
             }
         }
 
-        // read the     texturedef
+        // Read the texturedef
         GetToken(false);
-		std::u8string uppercaseToken = ascii_characters_to_uppercase_in_utf8_string(g_token);
+		std::optional<wad_texture_name> maybeTextureName{wad_texture_name::make_if_legal_name(g_token)};
+		if(!maybeTextureName) {
+                Error("Parsing Entity %i, Brush %i, Side %i: Bad texture name '%s'",
+					b->originalentitynum, b->originalbrushnum, 
+					b->numsides, (const char*) g_token.c_str()
+				);
+		}
+		wad_texture_name textureName = maybeTextureName.value();
+
 		{ //Check for tool textures on the brush
-			if (uppercaseToken.starts_with(u8"NOCLIP"sv) || uppercaseToken.starts_with(u8"NULLNOCLIP"sv))
+			if (textureName.is_noclip())
 			{
-				g_token = u8"NULL"sv;
+				textureName = wad_texture_name{"null"};
 				b->noclip = true;
-			} else if (uppercaseToken.starts_with(u8"BEVEL"sv)) // Including BEVEL, BEVELBRUSH, and BEVELHINT
-			{
-				g_token = u8"NULL"sv;
-				side->bevel = true;
-				if (uppercaseToken.starts_with(u8"BEVELBRUSH"sv))
-				{
-					b->bevel = true;
-				}
-			} else if (uppercaseToken.starts_with(u8"CLIP"sv)) {
+			} else if (textureName.is_any_clip()) {
 				b->cliphull |= (1 << NUM_HULLS); // arbitrary nonexistent hull
-				if (uppercaseToken.starts_with(u8"CLIPHULL"sv) && uppercaseToken.size() == u8"CLIPHULL"sv.size() + 1)
+				std::optional<std::uint8_t> hullNumber = textureName.get_clip_hull_number();
+				if (hullNumber)
 				{
-					const char8_t asciiDigit = g_token[u8"CLIPHULL"sv.size()];
-					const bool isHullDigit = asciiDigit >= u8'0' && asciiDigit < NUM_HULLS;
-					if (isHullDigit) {
-						std::size_t hullNumber = asciiDigit - u8'0';
-						b->cliphull |= (1 << hullNumber);
-					}
-				} else if (uppercaseToken.starts_with(u8"CLIPBEVEL"sv))
-				{
+					b->cliphull |= (1 << hullNumber.value());
+				} else if (textureName.is_any_clip_bevel()) {
 					side->bevel = true;
-					if (uppercaseToken.starts_with(u8"CLIPBEVELBRUSH"sv))
+					if (textureName.is_clip_bevel_brush())
 					{
 						b->bevel = true;
 					}
 				}
-				g_token = u8"SKIP"sv;
+				textureName = wad_texture_name{"skip"};
+			} else if (textureName.is_any_bevel()) // Including BEVEL, BEVELBRUSH, and BEVELHINT
+			{
+				textureName = wad_texture_name{"null"};
+				side->bevel = true;
+				if (textureName.is_bevelbrush())
+				{
+					b->bevel = true;
+				}
 			}
 		}
-        safe_strncpy(side->td.name, (const char*) g_token.c_str(), sizeof(side->td.name));
+		side->td.name = textureName;
 
         if (g_nMapFileVersion < 220)                       // Worldcraft 2.1-, Radiant
         {
@@ -397,8 +400,7 @@ static void ParseBrush(entity_t* mapent)
             if (mdet < 1E-6 && mdet > -1E-6)
             {
                 aa = bb = dd = 0;
-                Warning
-                    ("Degenerate QuArK-style brush texture : Entity %i, Brush %i @ (%f,%f,%f) (%f,%f,%f)	(%f,%f,%f)",
+                Warning("Degenerate QuArK-style brush texture: Entity %i, Brush %i @ (%f,%f,%f) (%f,%f,%f)	(%f,%f,%f)",
 					b->originalentitynum, b->originalbrushnum, 
 					 side->planepts[0][0], side->planepts[0][1], side->planepts[0][2],
                      side->planepts[1][0], side->planepts[1][1], side->planepts[1][2], side->planepts[2][0],
@@ -443,62 +445,28 @@ static void ParseBrush(entity_t* mapent)
 	{
 		side = &g_brushsides[b->firstside + j];
 		const wad_texture_name textureName{side->td.name};
-		if (nullify
-			&& !textureName.is_any_bevel()
-			&& !textureName.is_any_hint()
-			&& !textureName.is_any_content_type()
-			&& !textureName.is_origin()
-			&& !textureName.is_skip()
-			&& !textureName.is_splitface()
-			&& !textureName.is_bounding_box()
-			&& !textureName.is_ordinary_sky()
-			)
-		{
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			safe_strncpy(side->td.name,"null",sizeof(side->td.name));
-#else
-			safe_strncpy(side->td.name,"NULL",sizeof(side->td.name));
-#endif
+		if (textureName.is_any_content_type() ||
+			(nullify
+				&& !textureName.is_any_bevel()
+				&& !textureName.is_any_hint()
+				&& !textureName.is_origin()
+				&& !textureName.is_skip()
+				&& !textureName.is_splitface()
+				&& !textureName.is_bounding_box()
+				&& !textureName.is_ordinary_sky()
+			) ||
+			(side->td.name.is_aaatrigger() && g_nullifytrigger)
+		) {
+			side->td.name = wad_texture_name{u8"null"};
 		}
 	}
 	for (j = 0; j < b->numsides; j++)
 	{
 		// change to SKIP now that we have set brush content.
 		side = &g_brushsides[b->firstside + j];
-		if (wad_texture_name(side->td.name).is_splitface())
+		if (side->td.name.is_splitface())
 		{
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			safe_strncpy(side->td.name,"skip",sizeof(side->td.name));
-#else
-			safe_strncpy(side->td.name,"SKIP",sizeof(side->td.name));
-#endif
-		}
-	}
-	for (j = 0; j < b->numsides; j++)
-	{
-		side = &g_brushsides[b->firstside + j];
-		if (wad_texture_name(side->td.name).is_any_content_type())
-		{
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			safe_strncpy(side->td.name,"null",sizeof(side->td.name));
-#else
-			safe_strncpy(side->td.name,"NULL",sizeof(side->td.name));
-#endif
-		}
-	}
-	if (g_nullifytrigger)
-	{
-		for (j = 0; j < b->numsides; j++)
-		{
-			side = &g_brushsides[b->firstside + j];
-			if (wad_texture_name(side->td.name).is_aaatrigger())
-			{
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			strcpy(side->td.name,"null");
-#else
-			strcpy(side->td.name,"NULL");
-#endif
-			}
+			side->td.name = wad_texture_name{u8"skip"};
 		}
 	}
 
@@ -567,14 +535,13 @@ static void ParseBrush(entity_t* mapent)
 					);
 		}
         vec3_t          mins, maxs;
-		std::u8string origin;
-		if (*ValueForKey (mapent, u8"origin")) {
-			origin = ValueForKey (mapent, u8"origin");
-			SetKeyValue (mapent, u8"origin", u8"");
+		std::u8string origin{value_for_key(mapent, u8"origin")};
+		if (!origin.empty()) {
+			DeleteKey (mapent, u8"origin");
 		}
 
         b->contents = CONTENTS_SOLID;
-        CreateBrush(mapent->firstbrush + b->brushnum);     // to get sizes
+        CreateBrush(mapent->firstbrush + b->brushnum); // To get sizes
         b->contents = contents;
 
         for (i = 0; i < NUM_HULLS; i++)
@@ -605,7 +572,7 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < newb->numsides; j++)
 		{
 			side = &g_brushsides[newb->firstside + j];
-			strcpy (side->td.name, "NULL");
+			side->td.name = wad_texture_name{u8"null"};
 		}
 	}
 	if (b->cliphull != 0 && b->contents == CONTENTS_TOEMPTY)
@@ -615,15 +582,11 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < b->numsides; j++)
 		{
 			side = &g_brushsides[b->firstside + j];
-			if (wad_texture_name(side->td.name).is_null())
+			if (side->td.name.is_ordinary_null())
 			{ // this is not supposed to be a HINT brush, so remove all invisible faces from hull 0.
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-         		strcpy (side->td.name, "skip");
-#else
-           		strcpy (side->td.name, "SKIP");
-#endif
+				side->td.name = wad_texture_name{u8"skip"};
 			}
-			if (!wad_texture_name(side->td.name).is_skip())
+			if (!side->td.name.is_skip())
 				mixed = true;
 		}
 		if (mixed)
@@ -635,11 +598,7 @@ static void ParseBrush(entity_t* mapent)
 		for (j = 0; j < b->numsides; j++)
 		{
 			side = &g_brushsides[b->firstside + j];
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			strcpy (side->td.name, "null");
-#else
-			strcpy (side->td.name, "NULL");
-#endif
+			side->td.name = wad_texture_name{u8"null"};
 		}
 	}
 
@@ -653,7 +612,6 @@ static void ParseBrush(entity_t* mapent)
 bool            ParseMapEntity()
 {
     bool            all_clip = true;
-    int             this_entity;
     entity_t*       mapent;
 
 	g_numparsedbrushes = 0;
@@ -662,7 +620,7 @@ bool            ParseMapEntity()
         return false;
     }
 
-    this_entity = g_numentities;
+    int this_entity = g_numentities;
 
     if (g_token != u8"{")
     {
@@ -765,7 +723,7 @@ bool            ParseMapEntity()
 			}
 			DeleteKey (mapent, u8"zhlt_transform");
 		}
-		GetVectorForKey (mapent, u8"origin", ent_scale_origin);
+		ent_scale_origin = get_vector_for_key(*mapent, u8"origin");
 
 		if (ent_move_b || ent_scale_b || ent_gscale_b)
 		{
@@ -886,13 +844,13 @@ bool            ParseMapEntity()
 				}
 				if (ent_gscale_b)
 				{
-					if (*ValueForKey (mapent, u8"origin"))
+					if (key_value_is_not_empty(mapent, u8"origin"))
 					{
 						vec3_array v;
 						int origin[3];
 						char8_t string[MAXTOKEN];
 						int i;
-						GetVectorForKey (mapent, u8"origin", v);
+						v = get_vector_for_key(*mapent, u8"origin");
 						VectorScale (v, ent_gscale, v);
 						for (i=0; i<3; ++i)
 							origin[i] = (int)(v[i]>=0? v[i]+0.5: v[i]-0.5);
@@ -950,7 +908,7 @@ bool            ParseMapEntity()
 
 
 
-    GetVectorForKey(mapent, u8"origin", mapent->origin);
+    mapent->origin = get_vector_for_key(*mapent, u8"origin");
 
 	if (!strcmp("func_group", (const char*) ValueForKey(mapent, u8"classname"))
 		|| !strcmp("func_detail", (const char*) ValueForKey (mapent, u8"classname"))

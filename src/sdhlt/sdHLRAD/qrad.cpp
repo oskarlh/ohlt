@@ -556,8 +556,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 			b *= scaler / 255.0;
 			break;
 		default:
-			vec3_array origin;
-			GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
+			vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
 				origin[0], origin[1], origin[2], (const char*) ValueForKey (g_face_texlights[fn], u8"_light"));
 			r = g = b = 0;
@@ -580,7 +579,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
     ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
     mt = (miptex_t*)((byte*) g_dtexdata.data() + ofs);
 
-    LightForTexture(wad_texture_name(mt->name), light);
+    LightForTexture(mt->name, light);
 }
 
 // =====================================================================================
@@ -981,7 +980,9 @@ void ReadCustomChopValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
+			const wad_texture_name texname{
+				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
+			};
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (ep->key != texname)
@@ -1021,7 +1022,9 @@ void ReadCustomSmoothValue()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
+			const wad_texture_name texname{
+				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
+			};
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (ep->key != texname)
@@ -1054,7 +1057,9 @@ void ReadTranslucentTextures()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
+			const wad_texture_name texname{
+				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
+			};
 			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (ep->key != texname)
@@ -1116,7 +1121,7 @@ void ReadLightingCone ()
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
-			const wad_texture_name texname = wad_texture_name( ((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name );
+			const wad_texture_name texname{((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name};
 			for (ep = mapent->epairs; ep; ep = ep->next)
 			{
 				if (ep->key != texname)
@@ -1303,17 +1308,15 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
 		if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
 		{
-			vec3_array texturecolor;
 			vec3_array texturereflectivity;
-			GetVectorForKey (g_face_texlights[fn], u8"_texcolor", texturecolor);
+			vec3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
 			for (int k = 0; k < 3; k++)
 			{
 				texturecolor[k] = floor (texturecolor[k] + 0.001);
 			}
 			if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
 			{
-				vec3_array origin;
-				GetVectorForKey (g_face_texlights[fn], u8"origin", origin);
+				const vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
 				Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
 			}
 			VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
@@ -1483,35 +1486,33 @@ static void		LoadOpaqueEntities()
 	for (modelnum = 0; modelnum < g_nummodels; modelnum++) //Loop through brush models
 	{
 		dmodel_t *model = &g_dmodels[modelnum]; //Get current model
-		char stringmodel[16];
-		snprintf (stringmodel, sizeof(stringmodel), "*%i", modelnum); //Model number to string
+		std::array<char8_t, 16> stringmodel;
+		snprintf ((char*) stringmodel.data(), sizeof(stringmodel), "*%i", modelnum); //Model number to string
 
 		for (entnum = 0; entnum < g_numentities; entnum++) //Loop through map ents
 		{
-			entity_t *ent = &g_entities[entnum]; //Get the current ent
+			const entity_t& ent = g_entities[entnum]; //Get the current ent
 
-			if (strcmp ((const char*) ValueForKey (ent, u8"model"), stringmodel)) //Skip ents that don't match the current model
+			if (!key_value_is (&ent, u8"model", stringmodel.data())) // Skip ents that don't match the current model
 				continue;
 			vec3_array origin;
 			{
-				GetVectorForKey (ent, u8"origin", origin); //Get origin vector of the ent
+				origin = get_vector_for_key(ent, u8"origin"); //Get origin vector of the ent
 
-				if (*ValueForKey (ent, u8"light_origin") && *ValueForKey (ent, u8"model_center")) //If the entity has a light_origin and model_center, calculate a new origin
-				{
-					entity_t *ent2 = FindTargetEntity (value_for_key (ent, u8"light_origin"));
+				// If the entity has a light_origin and model_center, calculate a new origin
+				if (key_value_is_not_empty(&ent, u8"light_origin") && key_value_is_not_empty(&ent, u8"model_center")) {
+					auto maybeEnt2 = find_target_entity(value_for_key (&ent, u8"light_origin"));
 
-					if (ent2)
-					{
-						vec3_array light_origin, model_center;
-						GetVectorForKey (ent2, u8"origin", light_origin);
-						GetVectorForKey (ent, u8"model_center", model_center);
-						VectorSubtract (light_origin, model_center, origin); //New origin
+					if (maybeEnt2) {
+						vec3_array light_origin = get_vector_for_key(maybeEnt2.value(), u8"origin");
+						vec3_array model_center = get_vector_for_key(ent, u8"model_center");
+						VectorSubtract(light_origin, model_center, origin); // New origin
 					}
 				}
 			}
 			bool opaque = false;
 			{
-				if (g_allow_opaques && (IntForKey (ent, u8"zhlt_lightflags") & eModelLightmodeOpaque)) //If -noopaque is off, and if the entity has opaque light flag
+				if (g_allow_opaques && (IntForKey (&ent, u8"zhlt_lightflags") & eModelLightmodeOpaque)) //If -noopaque is off, and if the entity has opaque light flag
 					opaque = true;
 			}
 			vec3_t d_transparency;
@@ -1520,7 +1521,7 @@ static void		LoadOpaqueEntities()
 			{
 				const char *s;
 
-				if (*(s = (const char*) ValueForKey(ent, u8"zhlt_customshadow"))) //If the entity has a custom shadow (transparency) value
+				if (*(s = (const char*) ValueForKey(&ent, u8"zhlt_customshadow"))) //If the entity has a custom shadow (transparency) value
 				{
         			double r1 = 1.0, g1 = 1.0, b1 = 1.0, tmp = 1.0;
 
@@ -1552,7 +1553,7 @@ static void		LoadOpaqueEntities()
 
 					if (classname_is(lightent, u8"light_shadow") //If light_shadow targeting the current entity
 						&& key_value_is_not_empty (lightent, u8"target")
-						&& key_value_is (lightent, u8"target", value_for_key(ent, u8"targetname")))
+						&& key_value_is (lightent, u8"target", value_for_key(&ent, u8"targetname")))
 					{
 						opaquestyle = IntForKey (lightent, u8"style"); //Get the style number and validate it
 
@@ -1574,7 +1575,7 @@ static void		LoadOpaqueEntities()
 				{
 					block = true;
 
-					if (IntForKey (ent, u8"zhlt_lightflags") & eModelLightmodeNonsolid) //If entity non-solid or has transparency or a specific style, which would prevent it from blocking
+					if (IntForKey (&ent, u8"zhlt_lightflags") & eModelLightmodeNonsolid) //If entity non-solid or has transparency or a specific style, which would prevent it from blocking
 						block = false;
 					if (b_transparency)
 						block = false;
@@ -1620,38 +1621,37 @@ static entity_t *FindTexlightEntity (int facenum)
 	vec_t bestdist = -1;
 	for (int i = 0; i < g_numentities; i++)
 	{
-		entity_t *ent = &g_entities[i];
-		if (!classname_is(ent, u8"light_surface"))
+		entity_t& ent = g_entities[i];
+		if (!classname_is(&ent, u8"light_surface"))
 			continue;
-		if (!key_value_is(ent, u8"_tex", texname))
+		if (!key_value_is(&ent, u8"_tex", texname))
 			continue;
-		vec3_array delta;
-		GetVectorForKey (ent, u8"origin", delta);
+		vec3_array delta{get_vector_for_key(ent, u8"origin")};
 		VectorSubtract (delta, centroid, delta);
 		vec_t dist = VectorLength (delta);
-		if (key_value_is_not_empty (ent, u8"_frange"))
+		if (key_value_is_not_empty(&ent, u8"_frange"))
 		{
-			if (dist > FloatForKey (ent, u8"_frange"))
+			if (dist > FloatForKey(&ent, u8"_frange"))
 				continue;
 		}
-		if (key_value_is_not_empty (ent, u8"_fdist"))
+		if (key_value_is_not_empty(&ent, u8"_fdist"))
 		{
-			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey (ent, u8"_fdist"))
+			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey(&ent, u8"_fdist"))
 				continue;
 		}
-		if (key_value_is_not_empty (ent, u8"_fclass"))
+		if (key_value_is_not_empty(&ent, u8"_fclass"))
 		{
-			if (value_for_key (faceent, u8"classname") != value_for_key (ent, u8"_fclass"))
+			if (value_for_key (faceent, u8"classname") != value_for_key(&ent, u8"_fclass"))
 				continue;
 		}
-		if (key_value_is_not_empty (ent, u8"_fname"))
+		if (key_value_is_not_empty(&ent, u8"_fname"))
 		{
-			if (value_for_key (faceent, u8"targetname") != value_for_key (ent, u8"_fname"))
+			if (value_for_key (faceent, u8"targetname") != value_for_key(&ent, u8"_fname"))
 				continue;
 		}
 		if (bestdist >= 0 && dist > bestdist)
 			continue;
-		found = ent;
+		found = &ent;
 		bestdist = dist;
 	}
 	return found;
@@ -1717,15 +1717,11 @@ static void     MakePatches()
         // Allow models to be lit in an alternate location (pt1)
         if (!lightOriginString.empty())
         {
-            entity_t*       e = FindTargetEntity(lightOriginString);
-
-            if (e)
-            {
-				std::u8string_view targetOriginString = value_for_key(e, u8"origin");
-                if (!targetOriginString.empty())
-                {
-                    double          v1, v2, v3;
-
+            auto maybeE = find_target_entity(lightOriginString);
+            if (maybeE) {
+				std::u8string_view targetOriginString{value_for_key(&maybeE.value().get(), u8"origin")};
+                if (!targetOriginString.empty()) {
+                    double v1, v2, v3;
                     if (sscanf((const char*) targetOriginString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
                     {
                         light_origin[0] = v1;

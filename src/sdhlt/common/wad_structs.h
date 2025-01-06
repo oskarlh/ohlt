@@ -20,10 +20,6 @@ constexpr bool has_wad_identification(const wadinfo_t& wadHeader) {
     return id == u8"WAD2" || id == u8"WAD3";
 }
 
-
-constexpr std::size_t MAXWADNAME = 16;
-
-
 struct lumpinfo_t // Lump info in WAD
 {
     std::int32_t filepos;

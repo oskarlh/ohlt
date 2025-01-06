@@ -456,7 +456,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     inside = false;
     for (i = 1; i < g_numentities; i++)
     {
-        GetVectorForKey(&g_entities[i], u8"origin", origin);
+        origin = get_vector_for_key(g_entities[i], u8"origin");
         const char8_t* cl = ValueForKey(&g_entities[i], u8"classname");
         if (!isClassnameAllowableOutside(cl))
         {
@@ -542,9 +542,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
 
     if (ret)
     {
-        GetVectorForKey(&g_entities[hit_occupied], u8"origin", origin);
-
-
+        origin = get_vector_for_key(g_entities[hit_occupied], u8"origin");
         {
             Warning("=== LEAK in hull %i ===\nEntity %s @ (%4.0f,%4.0f,%4.0f)",
                  hullnum, (const char*) ValueForKey(&g_entities[hit_occupied], u8"classname"), origin[0], origin[1], origin[2]);
@@ -663,7 +661,7 @@ void			FillInside (node_t* node)
 		{
 			vec3_array origin;
 			node_t* innode;
-			GetVectorForKey(&g_entities[i], u8"origin", origin);
+			origin = get_vector_for_key(g_entities[i], u8"origin");
 			origin[2] += 1;
 			innode = PointInLeaf (node, origin.data());
 			MarkOccupied_r (innode);

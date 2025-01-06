@@ -838,7 +838,7 @@ bool            MakeBrushPlanes(brush_t* b)
     //
     // if the origin key is set (by an origin brush), offset all of the values
     //
-    GetVectorForKey(&g_entities[b->entitynum], u8"origin", origin);
+    origin = get_vector_for_key(g_entities[b->entitynum], u8"origin");
 
     //
     // convert to mapplanes
@@ -869,7 +869,7 @@ bool            MakeBrushPlanes(brush_t* b)
                 Fatal(assume_BRUSH_WITH_COPLANAR_FACES, "Entity %i, Brush %i, Side %i: has a coplanar plane at (%.0f, %.0f, %.0f), texture %s",
 					b->originalentitynum, b->originalbrushnum
 					  , i, s->planepts[0][0] + origin[0], s->planepts[0][1] + origin[1],
-                      s->planepts[0][2] + origin[2], s->td.name);
+                      s->planepts[0][2] + origin[2], s->td.name.c_str());
             }
         }
 
@@ -941,7 +941,7 @@ static contents_t TextureContents(wad_texture_name name)
 		return CONTENTS_BOUNDINGBOX;
 
 
-	if (name.is_solid_hint() || name.is_bevel_hint() || name.is_null() || name.is_ordinary_bevel()) {
+	if (name.is_solid_hint() || name.is_bevel_hint() || name.is_ordinary_null() || name.is_ordinary_bevel()) {
 		return CONTENTS_NULL;
 	}
 	if (name.is_splitface())
@@ -1089,8 +1089,8 @@ contents_t      CheckBrushContents(const brush_t* const b)
         {
             Fatal(assume_MIXED_FACE_CONTENTS, "Entity %i, Brush %i: mixed face contents\n    Texture %s and %s",
 				b->originalentitynum, b->originalbrushnum, 
-                g_brushsides[b->firstside + best_i].td.name,
-				s->td.name);
+                g_brushsides[b->firstside + best_i].td.name.c_str(),
+				s->td.name.c_str());
         }
     }
 	if (contents == CONTENTS_NULL)
@@ -1220,7 +1220,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	// planes
 
 	numplanes = 0;
-	GetVectorForKey (&g_entities[b->entitynum], u8"origin", origin);
+	origin = get_vector_for_key(g_entities[b->entitynum], u8"origin");
 
 	for (i = 0; i < b->numsides; i++)
 	{

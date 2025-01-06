@@ -285,7 +285,7 @@ struct dleaf_t {
 };
 
 
-// TODO: Automatically swap the ENTITIES and PLANES lump headers
+// TODO: Swap the ENTITIES and PLANES lump headers
 // when compiling Blue Shift maps. Swapped ENTITIES and PLANES are
 // the ONLY difference between Blue Shift BSPs and Half-Life BSPs
 constexpr std::size_t LUMP_ENTITIES     = 0;
@@ -385,11 +385,14 @@ bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8stri
 bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix);
 bool classname_is(const entity_t* const ent, std::u8string_view classname);
 
-extern int             IntForKey(const entity_t* const ent, std::u8string_view key);
-extern vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key);
-extern void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_array& vec);
+extern std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key);
+extern vec_t FloatForKey(const entity_t* const ent, std::u8string_view key);
+extern vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key);
+extern float3_array get_float_vector_for_key(const entity_t& ent, std::u8string_view key);
+extern double3_array get_double_vector_for_key(const entity_t& ent, std::u8string_view key);
 
-extern entity_t* FindTargetEntity(std::u8string_view target);
+
+extern std::optional<std::reference_wrapper<entity_t>> find_target_entity(std::u8string_view target);
 extern std::unique_ptr<epair_t> ParseEpair();
 extern entity_t* EntityForModel(int modnum);
 

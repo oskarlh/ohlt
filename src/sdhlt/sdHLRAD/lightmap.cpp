@@ -1606,7 +1606,6 @@ void            CreateDirectLights()
     dleaf_t*        leaf;
     int             leafnum;
     entity_t*       e;
-    entity_t*       e2;
     const char*     name;
     float           angle;
     vec3_array          dest;
@@ -1779,7 +1778,7 @@ void            CreateDirectLights()
 
 		hlassume (dl != nullptr, assume_NoMemory);
 
-        GetVectorForKey(e, u8"origin", dl->origin);
+        dl->origin = get_vector_for_key(*e, u8"origin");
 
         leaf = PointInLeaf(dl->origin);
         leafnum = leaf - g_dleafs.data();
@@ -1876,32 +1875,20 @@ void            CreateDirectLights()
             dl->stopdot2 = (float)cos(dl->stopdot2 / 180 * std::numbers::pi_v<double>);
             dl->stopdot = (float)cos(dl->stopdot / 180 * std::numbers::pi_v<double>);
 
-            if (!FindTargetEntity(target)) //--vluzacn
-            {
+   			auto maybeE2 = find_target_entity(target);
+            if (!target.empty() && !maybeE2) {
                 Warning("light at (%i %i %i) has missing target",
                         (int)dl->origin[0], (int)dl->origin[1], (int)dl->origin[2]);
 				target = u8"";
             }
-            if (!target.empty())
-            {                                              // point towards target
-                e2 = FindTargetEntity(target);
-                if (!e2)
-                {
-                    Warning("light at (%i %i %i) has missing target",
-                            (int)dl->origin[0], (int)dl->origin[1], (int)dl->origin[2]);
-                }
-                else
-                {
-                    GetVectorForKey(e2, u8"origin", dest);
-                    VectorSubtract(dest, dl->origin, dl->normal);
-                    VectorNormalize(dl->normal);
-                }
-            }
-            else
-            {                                              // point down angle
-                vec3_array          vAngles;
+            if (maybeE2) { // point towards target
+				dest = get_vector_for_key(maybeE2.value(), u8"origin");
+				VectorSubtract(dest, dl->origin, dl->normal);
+				VectorNormalize(dl->normal);
+            } else {                                              // point down angle
+                vec3_array vAngles;
 
-                GetVectorForKey(e, u8"angles", vAngles);
+                vAngles = get_vector_for_key(*e, u8"angles");
 
                 angle = (float)FloatForKey(e, u8"angle");
                 if (angle == ANGLE_UP)
@@ -4539,24 +4526,23 @@ static int MLH_CopyLight (const vec3_array& from, const vec3_array& to)
 void MdlLightHack ()
 {
 	int ient;
-	entity_t *ent1, *ent2;
 	vec3_array origin1, origin2;
 	int used = 0, countent = 0, countsample = 0, r;
 	for (ient = 0; ient < g_numentities; ++ient)
 	{
-		ent1 = &g_entities[ient];
-		std::u8string_view target = value_for_key (ent1, u8"zhlt_copylight");
+		const entity_t& ent1 = g_entities[ient];
+		std::u8string_view target = value_for_key(&ent1, u8"zhlt_copylight");
 		if (target.empty())
 			continue;
 		used = 1;
-		ent2 = FindTargetEntity (target);
-		if (ent2 == nullptr)
-		{
+		const auto maybeEnt2 = find_target_entity(target);
+		if (!maybeEnt2) {
 			Warning ("target entity '%s' not found", (const char*) target.data());
 			continue;
 		}
-		GetVectorForKey (ent1, u8"origin", origin1);
-		GetVectorForKey (ent2, u8"origin", origin2);
+		const entity_t& ent2{maybeEnt2.value().get()};
+		origin1 = get_vector_for_key(ent1, u8"origin");
+		origin2 = get_vector_for_key(ent2, u8"origin");
 		r = MLH_CopyLight (origin2, origin1);
 		if (r < 0)
 			Warning ("can not copy light from (%f,%f,%f)", origin2[0], origin2[1], origin2[2]);

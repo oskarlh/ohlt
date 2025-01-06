@@ -1,4 +1,5 @@
 #include <bit>
+#include <charconv>
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
@@ -17,7 +18,6 @@
 #include "scriplib.h"
 #include "blockmem.h"
 #include "cli_option_defaults.h"
-
 
 using namespace std::literals;
 
@@ -591,7 +591,6 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 	int numtextures = g_texdatasize? ((dmiptexlump_t *)g_dtexdata.data())->nummiptex: 0;
 	int offset;
 	int size;
-	miptex_t *mt;
 	
 	if (miptex < 0 || miptex >= numtextures)
 	{
@@ -606,17 +605,16 @@ int	ParseImplicitTexinfoFromTexture (int miptex)
 		return -1;
 	}
 
-	mt = (miptex_t *)&g_dtexdata[offset];
-	wad_texture_name name = wad_texture_name(mt->name);
+	const miptex_t &mt = (const miptex_t &) (g_dtexdata[offset]);
 	
-	std::optional<std::uint32_t> maybeTexinfoIndex = name.original_texinfo_index_for_embedded_lightmap();
+	std::optional<std::uint32_t> maybeTexinfoIndex = mt.name.original_texinfo_index_for_embedded_lightmap();
 	if (!maybeTexinfoIndex) {
 		return -1;
 	}
 
 	if (maybeTexinfoIndex.value() >= g_numtexinfo)
 	{
-		Warning ("Invalid index of original texinfo: %d parsed from texture name '%s'.", maybeTexinfoIndex.value(), name.c_str());
+		Warning ("Invalid index of original texinfo: %d parsed from texture name '%s'.", maybeTexinfoIndex.value(), mt.name.c_str());
 		return -1;
 	}
 
@@ -893,56 +891,33 @@ void            ParseEntities()
 //  UnparseEntities
 //      Generates the dentdata string from all the entities
 // =====================================================================================
-int anglesforvector (float angles[3], const float vector[3])
-{
-	float z = vector[2], r = sqrt (vector[0] * vector[0] + vector[1] * vector[1]);
-	float tmp;
-	if (sqrt (z*z + r*r) < NORMAL_EPSILON)
-	{
-		return -1;
-	}
-	else
-	{
-		tmp = sqrt (z*z + r*r);
-		z /= tmp, r /= tmp;
-		if (r < NORMAL_EPSILON)
-		{
-			if (z < 0)
-			{
+static float3_array angles_for_vector(const float3_array& vector) {
+	float z = vector[2], r = std::hypot(vector[0], vector[1]);
+	float hyp = std::hypot(z, r);
+	float3_array angles{};
+	if (hyp >= NORMAL_EPSILON) {
+		z /= hyp, r /= hyp;
+		if (r < NORMAL_EPSILON) {
+			if (z < 0) {
 				angles[0] = -90, angles[1] = 0;
-			}
-			else
-			{
+			} else {
 				angles[0] = 90, angles[1] = 0;
 			}
-		}
-		else
-		{
-			// std::numbers::pi_v<double> could be unnecessary precision, try using
-			// std::numbers::pi_v<float> instead. -- Oskar
-			angles[0] = atan (z / r) / std::numbers::pi_v<double> * 180;
+		} else {
+			angles[0] = std::atan(z / r) / std::numbers::pi_v<float> * 180;
 			float x = vector[0], y = vector[1];
-			tmp = sqrt (x*x + y*y);
-			x /= tmp, y /= tmp;
-			if (x < -1 + NORMAL_EPSILON)
-			{
+			hyp = std::hypot(x, y);
+			x /= hyp, y /= hyp;
+			if (x < -1 + NORMAL_EPSILON) {
 				angles[1] = -180;
-			}
-			else
-			{
-				if (y >= 0)
-				{
-					angles[1] = 2 * atan (y / (1+x)) / std::numbers::pi_v<double> * 180;
-				}
-				else
-				{
-					angles[1] = 2 * atan (y / (1+x)) / std::numbers::pi_v<double> * 180 + 360;
-				}
+			} else if (y >= 0) {
+				angles[1] = 2 * std::atan (y / (1+x)) / std::numbers::pi_v<float> * 180;
+			} else {
+				angles[1] = 2 * std::atan (y / (1+x)) / std::numbers::pi_v<float> * 180 + 360;
 			}
 		}
 	}
-	angles[2] = 0;
-	return 0;
+	return angles;
 }
 void            UnparseEntities()
 {
@@ -963,31 +938,29 @@ void            UnparseEntities()
 			classname_is(mapent, u8"info_sunlight") ||
 			classname_is(mapent, u8"light_environment"))
 		{
-			float vec[3] = {0,0,0};
+			float3_array vec{};
 			{
-				sscanf ((const char*) ValueForKey (mapent, u8"angles"), "%f %f %f", &vec[0], &vec[1], &vec[2]);
+				vec = get_float_vector_for_key(*mapent, u8"angles");
 				float pitch = FloatForKey(mapent, u8"pitch");
 				if (pitch)
 					vec[0] = pitch;
 
 				std::u8string_view target = value_for_key (mapent, u8"target");
-				if (!target.empty())
-				{
-					entity_t *targetent = FindTargetEntity (target);
-					if (targetent)
-					{
-						float origin1[3] = {0,0,0}, origin2[3] = {0,0,0}, normal[3];
-						sscanf ((const char*) ValueForKey (mapent, u8"origin"), "%f %f %f", &origin1[0], &origin1[1], &origin1[2]);
-						sscanf ((const char*) ValueForKey (targetent, u8"origin"), "%f %f %f", &origin2[0], &origin2[1], &origin2[2]);
-						VectorSubtract (origin2, origin1, normal);
-						anglesforvector (vec, normal);
+				if (!target.empty()) {
+					std::optional<std::reference_wrapper<entity_t>> maybeTargetEnt = find_target_entity(target);
+					if (maybeTargetEnt) {
+						float3_array originA = get_float_vector_for_key(*mapent, u8"origin");
+						float3_array originB = get_float_vector_for_key(maybeTargetEnt.value().get(), u8"origin");
+						float3_array normal;
+						VectorSubtract(originB, originA, normal);
+						vec = angles_for_vector(normal);
 					}
 				}
 			}
 			char stmp[1024];
-			safe_snprintf (stmp, 1024, "%g %g %g", vec[0], vec[1], vec[2]);
-			SetKeyValue (mapent, u8"angles", (const char8_t*) stmp);
-			DeleteKey (mapent, u8"pitch");
+			safe_snprintf(stmp, 1024, "%g %g %g", vec[0], vec[1], vec[2]);
+			SetKeyValue(mapent, u8"angles", (const char8_t*) stmp);
+			DeleteKey(mapent, u8"pitch");
 
 			if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_sunlight"))
 			{
@@ -1006,10 +979,9 @@ void            UnparseEntities()
     for (i = 0; i < g_numentities; i++)
 	{
 		entity_t *mapent = &g_entities[i];
-		if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_shadow")
-			|| !strcmp ((const char*) ValueForKey (mapent, u8"classname"), "light_bounce")
-			)
-		{
+		if (classname_is(mapent, u8"light_shadow")
+			|| classname_is(mapent, u8"light_bounce")
+		) {
 			SetKeyValue (mapent, u8"convertfrom", ValueForKey (mapent, u8"classname"));
 			SetKeyValue (mapent, u8"classname", (*ValueForKey (mapent, u8"convertto")? ValueForKey (mapent, u8"convertto"): u8"light"));
 			DeleteKey (mapent, u8"convertto");
@@ -1210,51 +1182,79 @@ bool classname_is(const entity_t* const ent, std::u8string_view classname)
 // =====================================================================================
 //  IntForKey
 // =====================================================================================
-int             IntForKey(const entity_t* const ent, std::u8string_view key)
-{
-    return atoi((const char*) value_for_key(ent, key).data());
+std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key) {
+	std::u8string_view valueString{value_for_key(ent, key)};
+
+	std::int32_t result{};
+	std::from_chars((const char*) valueString.begin(), (const char*) valueString.end(), result);
+	return result;
 }
 
 // =====================================================================================
 //  FloatForKey
 // =====================================================================================
-vec_t           FloatForKey(const entity_t* const ent, std::u8string_view key)
-{
+vec_t FloatForKey(const entity_t* const ent, std::u8string_view key) {
     return atof((const char*) value_for_key(ent, key).data());
 }
 
-// =====================================================================================
-//  GetVectorForKey
-//      returns value for key in vec[0-2]
-// =====================================================================================
-void            GetVectorForKey(const entity_t* const ent, std::u8string_view key, vec3_array& vec)
-{
-    double          v1, v2, v3;
-
-    // scanf into doubles, then assign, so it is vec_t size independent
-    v1 = v2 = v3 = 0;
-    sscanf((const char*) value_for_key(ent, key).data(), "%lf %lf %lf", &v1, &v2, &v3);
-    vec[0] = v1;
-    vec[1] = v2;
-    vec[2] = v3;
+double3_array get_double_vector_for_key(const entity_t& ent, std::u8string_view key) {
+	double3_array result{};
+	sscanf(
+		(const char*) value_for_key(&ent, key).data(),
+		"%lf %lf %lf",
+		&result[0],
+		&result[1],
+		&result[2]
+	);
+	return result;
 }
+float3_array get_float_vector_for_key(const entity_t& ent, std::u8string_view key) {
+
+	float3_array result{};
+	sscanf(
+		(const char*) value_for_key(&ent, key).data(),
+		"%f %f %f",
+		&result[0],
+		&result[1],
+		&result[2]
+	);
+	return result;
+}
+
+template<class X = void> static double3_array get_vector_for_key_base(const entity_t& ent, std::u8string_view key)
+requires(std::is_same_v<vec3_array, double3_array>) {
+	return get_double_vector_for_key(ent, key);
+}
+
+template<class X = void> static float3_array get_vector_for_key_base(const entity_t& ent, std::u8string_view key)
+requires(std::is_same_v<vec3_array, float3_array>) {
+	return get_float_vector_for_key(ent, key);
+}
+
+vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key) {
+	return get_vector_for_key_base(ent, key);
+}
+
 
 // =====================================================================================
 //  FindTargetEntity
 //      
 // =====================================================================================
-entity_t *FindTargetEntity(std::u8string_view target) {
+std::optional<std::reference_wrapper<entity_t>> find_target_entity(std::u8string_view target) {
+	if(target.empty()) {
+		return std::nullopt;
+	}
+
 	for(entity_t& ent : std::span(&g_entities[0], g_numentities)) {
         if (key_value_is(&ent, u8"targetname", target)) {
-            return &ent;
+            return ent;
         }
 	}
-    return nullptr;
+    return std::nullopt;
 }
 
 
-void            dtexdata_init()
-{
+void dtexdata_init() {
     g_dtexdata.resize(g_max_map_miptex, std::byte(0));
 }
 

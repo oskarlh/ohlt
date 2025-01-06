@@ -204,13 +204,12 @@ void TryCloseWadFiles ()
 	g_wadfiles = nullptr;
 }
 
-void DefaultTexture (radtexture_t *tex, const char *name)
+static void DefaultTexture (radtexture_t *tex, wad_texture_name name)
 {
 	int i;
 	tex->width = 16;
 	tex->height = 16;
-	strcpy (tex->name, name);
-	tex->name[16 - 1] = '\0';
+	tex->name = name;
 	tex->canvas = (std::uint8_t *)malloc (tex->width * tex->height);
 	hlassume (tex->canvas != nullptr, assume_NoMemory);
 	for (i = 0; i < 256; i++)
@@ -229,29 +228,28 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	const std::uint8_t *data = (const std::uint8_t *)mt;
 	tex->width = header->width;
 	tex->height = header->height;
-	strcpy (tex->name, wad_texture_name(header->name).c_str());
-	tex->name[16 - 1] = '\0';
+	tex->name = header->name;
 	if (tex->width <= 0 || tex->height <= 0 ||
 		tex->width % (2 * 1 << (MIPLEVELS - 1)) != 0 || tex->height % (2 * (1 << (MIPLEVELS - 1))) != 0)
 	{
-		Error ("Texture '%s': dimension (%dx%d) is not multiple of %d.", tex->name, tex->width, tex->height, 2 * (1 << (MIPLEVELS - 1)));
+		Error ("Texture '%s': dimension (%dx%d) is not multiple of %d.", tex->name.c_str(), tex->width, tex->height, 2 * (1 << (MIPLEVELS - 1)));
 	}
 	int mipsize, i;
 	for (mipsize = 0, i = 0; i < MIPLEVELS; i++)
 	{
 		if ((int)mt->offsets[i] != (int)sizeof (miptex_t) + mipsize)
 		{
-			Error ("Texture '%s': unexpected miptex offset.", tex->name);
+			Error ("Texture '%s': unexpected miptex offset.", tex->name.c_str());
 		}
 		mipsize += (tex->width >> i) * (tex->height >> i);
 	}
 	if (size < (int)sizeof (miptex_t) + mipsize + 2 + 256 * 3)
 	{
-		Error ("Texture '%s': no enough data.", tex->name);
+		Error ("Texture '%s': no enough data.", tex->name.c_str());
 	}
 	if (*(unsigned short *)&data[sizeof (miptex_t) + mipsize] != 256)
 	{
-		Error ("Texture '%s': palette size is not 256.", tex->name);
+		Error ("Texture '%s': palette size is not 256.", tex->name.c_str());
 	}
 	tex->canvas = (std::uint8_t*) malloc (tex->width * tex->height);
 	hlassume (tex->canvas != nullptr, assume_NoMemory);
@@ -275,8 +273,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 {
 	tex->width = header->width;
 	tex->height = header->height;
-	strcpy (tex->name, wad_texture_name(header->name).c_str());
-	tex->name[16 - 1] = '\0';
+	tex->name = header->name;
 	wadfile_t *wad;
 	for (wad = g_wadfiles; wad; wad = wad->next)
 	{
@@ -285,12 +282,12 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 		found = (lumpinfo_t *)bsearch (&temp, wad->lumpinfos, wad->numlumps, sizeof (lumpinfo_t), lump_sorter_by_name);
 		if (found)
 		{
-			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", tex->name, wad->path);
+			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", tex->name.c_str(), wad->path);
 			if (found->type != 67 || found->compression != 0)
 				continue;
 			if (found->disksize < (int)sizeof (miptex_t) || found->filepos < 0 || found->filepos + found->disksize > wad->filesize)
 			{
-				Warning ("Texture '%s': invalid texture data in '%s'.", tex->name, wad->path);
+				Warning ("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad->path);
 				continue;
 			}
 			miptex_t *mt = (miptex_t *)malloc (found->disksize);
@@ -300,14 +297,14 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 			SafeRead (wad->file, mt, found->disksize);
 			if (!mt->name.validate_and_normalize())
 			{
-				Warning("Texture '%s': invalid texture data in '%s'.", tex->name, wad->path);
+				Warning("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad->path);
 				free (mt);
 				continue;
 			}
-			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name, wad_texture_name(mt->name).c_str(), mt->width, mt->height);
+			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name.c_str(), mt->name.c_str(), mt->width, mt->height);
 			if (!strings_equal_with_ascii_case_insensitivity (mt->name, tex->name))
 			{
-				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name, mt->name.c_str(), tex->name, wad->path);
+				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name.c_str(), mt->name.c_str(), tex->name.c_str(), wad->path);
 			}
 			LoadTexture (tex, mt, found->disksize);
 			free (mt);
@@ -316,7 +313,7 @@ void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 	}
 	if (!wad)
 	{
-		Warning ("Texture '%s': texture is not found in wad files.", tex->name);
+		Warning ("Texture '%s': texture is not found in wad files.", tex->name.c_str());
 		DefaultTexture (tex, tex->name);
 		return;
 	}
@@ -339,20 +336,20 @@ void LoadTextures ()
 		radtexture_t *tex = &g_textures[i];
 		if (g_notextures)
 		{
-			DefaultTexture (tex, "DEFAULT");
+			DefaultTexture (tex, wad_texture_name{u8"default"});
 		}
 		else if (offset < 0 || size < (int)sizeof (miptex_t))
 		{
 			Warning ("Invalid texture data in '%s'.", g_source);
-			DefaultTexture (tex, "");
+			DefaultTexture (tex, wad_texture_name{u8""});
 		}
 		else
 		{
 			miptex_t *mt = (miptex_t *)&g_dtexdata[offset];
 			if (mt->offsets[0])
 			{
-				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", wad_texture_name(mt->name).c_str(), g_source);
-				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': width %d, height %d.\n", wad_texture_name(mt->name).c_str(), mt->width, mt->height);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", mt->name.c_str(), g_source);
+				Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': width %d, height %d.\n", mt->name.c_str(), mt->width, mt->height);
 				LoadTexture (tex, mt, size);
 			}
 			else
@@ -367,7 +364,7 @@ void LoadTextures ()
 			for (int j = 0; j < tex->width * tex->height; j++)
 			{
 				vec3_array reflectivity;
-				if (tex->name[0] == '{' && tex->canvas[j] == 0xFF)
+				if (tex->name.is_transparent_or_decal() && tex->canvas[j] == 0xFF)
 				{
 					VectorFill (reflectivity, 0.0);
 				}
@@ -390,10 +387,10 @@ void LoadTextures ()
 			VectorScale (total, 1.0 / (double)(tex->width * tex->height), total);
 			VectorCopy (total, tex->reflectivity);
 			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': reflectivity is (%f,%f,%f).\n",
-				tex->name, tex->reflectivity[0], tex->reflectivity[1], tex->reflectivity[2]);
+				tex->name.c_str(), tex->reflectivity[0], tex->reflectivity[1], tex->reflectivity[2]);
 			if (VectorMaximum (tex->reflectivity) > 1.0 + NORMAL_EPSILON)
 			{
-				Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", tex->name, tex->reflectivity[0], tex->reflectivity[1], tex->reflectivity[2]);
+				Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", tex->name.c_str(), tex->reflectivity[0], tex->reflectivity[1], tex->reflectivity[2]);
 			}
 		}
 	}
@@ -1146,11 +1143,11 @@ void EmbedLightmapInTextures ()
 			{
 				double s_vec, t_vec;
 				double src_s, src_t;
-				int src_is, src_it;
+				std::int32_t src_is, src_it;
 				std::uint8_t src_index;
 				std::uint8_t src_color[3];
 				double dest_s, dest_t;
-				int dest_is, dest_it;
+				std::int32_t dest_is, dest_it;
 				float (*dest)[5];
 				double light_s, light_t;
 				vec3_array light;
@@ -1170,8 +1167,8 @@ void EmbedLightmapInTextures ()
 				}
 				dest_s = dest_s - texturesize[0] * floor (dest_s / texturesize[0]);
 				dest_t = dest_t - texturesize[1] * floor (dest_t / texturesize[1]);
-				dest_is = (int)floor (dest_s); // dest_is = dest_s % texturesize[0]
-				dest_it = (int)floor (dest_t); // dest_it = dest_t % texturesize[1]
+				dest_is = (std::int32_t) floor(dest_s); // dest_is = dest_s % texturesize[0]
+				dest_it = (std::int32_t) floor(dest_t); // dest_it = dest_t % texturesize[1]
 				dest_is = std::max(0, std::min(dest_is, texturesize[0] - 1));
 				dest_it = std::max(0, std::min(dest_it, texturesize[1] - 1));
 				dest = &texture[dest_it * texturesize[0] + dest_is];
@@ -1180,8 +1177,8 @@ void EmbedLightmapInTextures ()
 				src_t = t_vec;
 				src_s = src_s - tex->width * floor (src_s / tex->width);
 				src_t = src_t - tex->height * floor (src_t / tex->height);
-				src_is = (int)floor (src_s); // src_is = src_s % tex->width
-				src_it = (int)floor (src_t); // src_it = src_t % tex->height
+				src_is = (std::int32_t) floor (src_s); // src_is = src_s % tex->width
+				src_it = (std::int32_t) floor (src_t); // src_it = src_t % tex->height
 				src_is = std::max(0, std::min(src_is, tex->width - 1));
 				src_it = std::max(0, std::min(src_it, tex->height - 1));
 				src_index = tex->canvas[src_it * tex->width + src_is];
@@ -1451,7 +1448,7 @@ void EmbedLightmapInTextures ()
 		NewTextures_PushTexture (miptexsize, miptex);
 		count++;
 		count_bytes += miptexsize;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "Created texture '%s' for face (texture %s) at (%4.3f %4.3f %4.3f)\n", wad_texture_name(miptex->name).c_str(), texname.c_str(), g_face_centroids[i][0], g_face_centroids[i][1], g_face_centroids[i][2]);
+		Developer (DEVELOPER_LEVEL_MESSAGE, "Created texture '%s' for face (texture %s) at (%4.3f %4.3f %4.3f)\n", miptex->name.c_str(), texname.c_str(), g_face_centroids[i][0], g_face_centroids[i][1], g_face_centroids[i][2]);
 
 		free (miptex);
 

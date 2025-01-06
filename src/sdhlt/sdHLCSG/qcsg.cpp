@@ -381,7 +381,9 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 
 		int frontcontents, backcontents;
 		int texinfo = f->texinfo;
-		const wad_texture_name texname{GetTextureByNumber_CSG (texinfo)};
+		const wad_texture_name texname{
+            GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
+        };
 		frontcontents = f->contents;
 		if (mirrorcontents == CONTENTS_TOEMPTY)
 		{
@@ -457,7 +459,9 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 		if (!hull)
 		{
 			int texinfo = f->texinfo;
-			const wad_texture_name texname{GetTextureByNumber_CSG (texinfo)};
+			const wad_texture_name texname{
+                GetTextureByNumber_CSG (texinfo).value_or(wad_texture_name{})
+            };
 			texinfo_t *tex = &g_texinfo[texinfo];
 
             if (texinfo != -1 // nullified textures (nullptr, BEVEL, aaatrigger, etc.)
@@ -738,7 +742,9 @@ static void     CSGBrush(int brushnum)
 					(hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
 					)
 				{
-					const wad_texture_name texname{GetTextureByNumber_CSG (f->texinfo)};
+					const wad_texture_name texname{
+                        GetTextureByNumber_CSG (f->texinfo).value_or(wad_texture_name{})
+                    };
                     if (f->texinfo == -1
                         || texname.is_skip()
                         || texname.is_any_hint()
@@ -884,8 +890,8 @@ static void     CSGBrush(int brushnum)
 						if (onback && f->backcontents < b2.contents)
 							f->backcontents = b2.contents;
 						if (f->contents == CONTENTS_SOLID && f->backcontents == CONTENTS_SOLID
-							&& !wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_solid_hint()
-                            && !wad_texture_name(GetTextureByNumber_CSG(f->texinfo)).is_bevel_hint()
+							&& !GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_solid_hint()
+                            && !GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_bevel_hint()
 							)
 						{
 							FreeFace (f);
@@ -898,8 +904,8 @@ static void     CSGBrush(int brushnum)
 						continue;
 					}
                     if (b1.contents > b2.contents
-						|| b1.contents == b2.contents && wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_solid_hint()
-                        || b1.contents == b2.contents && wad_texture_name(GetTextureByNumber_CSG (f->texinfo)).is_bevel_hint()
+						|| b1.contents == b2.contents && GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_solid_hint()
+                        || b1.contents == b2.contents && GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_bevel_hint()
 						)
                     {                                      // inside a water brush
                         f->contents = b2.contents;
@@ -1259,16 +1265,6 @@ static void     CheckForNoClip()
 			MarkEntForNoclip(ent);
 			count++;
 		}
-        /*
-        // condition 6: its a func_wall, while we noclip it, we remake the clipnodes manually 
-        else if (!strncasecmp(entclassname, "func_wall", 9)) 
-        {
-            for (int j = ent->firstbrush; j < ent->firstbrush + ent->numbrushes; j++)
-                CopyGenerictoCLIP(&g_mapbrushes[i]);
-
-            MarkEntForNoclip(ent);
-        }
-*/
     }
 
     Log("%i entities discarded from clipping hulls\n", count);

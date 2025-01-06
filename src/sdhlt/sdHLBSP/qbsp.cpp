@@ -827,7 +827,7 @@ bool should_face_have_facestyle_null(wad_texture_name textureName, std::int32_t 
     if (g_bUseNullTex)
     {
         // NULL faces are only of facetype face_null if we are using NULL texture stripping
-		return g_bUseNullTex && textureName.is_null();
+		return g_bUseNullTex && textureName.is_ordinary_null();
     }
     // Otherwise, under normal cases, NULL-textured faces should have facestyle face_normal
     return false;

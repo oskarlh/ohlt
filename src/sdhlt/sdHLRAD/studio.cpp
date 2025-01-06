@@ -133,8 +133,8 @@ void LoadStudioModels( void )
 			continue;
 		}
 
-		GetVectorForKey( e, u8"origin", origin );
-		GetVectorForKey( e, u8"angles", angles );
+		origin = get_vector_for_key(*e, u8"origin");
+		angles = get_vector_for_key(*e, u8"angles");
 
 		angles[0] = -angles[0]; // Stupid quake bug workaround
 		int trace_mode = SHADOW_NORMAL;	// default mode
@@ -149,7 +149,7 @@ void LoadStudioModels( void )
 		float scale = FloatForKey( e, u8"scale" );
 		float3_array xform;
 
-		GetVectorForKey( e, u8"xform", xform );
+		xform = get_vector_for_key(*e, u8"xform" );
 
 		if( VectorCompare( xform, vec3_origin ))
 			VectorFill( xform, scale );

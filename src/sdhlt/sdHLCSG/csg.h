@@ -85,7 +85,7 @@ typedef struct
 {
     char            txcommand;
     vects_union     vects;
-    char            name[32]; // 32????????? Shouldn't it be 16 like all texture names?
+    wad_texture_name name;
 } brush_texture_t;
 
 typedef struct side_s
@@ -210,7 +210,7 @@ extern void     WriteMiptex(const std::filesystem::path& bspPath);
 extern void     LogWadUsage(wadpath_t* currentwad, int nummiptex);
 extern int      TexinfoForBrushTexture(const plane_t* const plane, brush_texture_t* bt, const vec3_t origin
 					);
-extern const char *GetTextureByNumber_CSG(int texturenumber);
+extern std::optional<wad_texture_name> GetTextureByNumber_CSG(int texturenumber);
 
 //=============================================================================
 // brush.c

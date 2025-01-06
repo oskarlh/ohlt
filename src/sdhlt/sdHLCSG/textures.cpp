@@ -6,7 +6,6 @@
 
 using namespace std::literals;
 
-#define MAXWADNAME 16
 #define MAX_TEXFILES 128
 
 //  FindMiptex
@@ -33,11 +32,11 @@ static wadpath_t* texwadpathes[MAX_TEXFILES]; // maps index of the wad to its pa
 
 // The old buggy code in effect limit the number of brush sides to MAX_MAP_BRUSHES
 
-static char *texmap[MAX_INTERNAL_MAP_TEXINFOS];
+static wad_texture_name texmap[MAX_INTERNAL_MAP_TEXINFOS];
 
 static int numtexmap = 0;
 
-static int texmap_store (char *texname, bool shouldlock = true)
+static int texmap_store (wad_texture_name texname, bool shouldlock = true)
 	// This function should never be called unless a new entry in g_texinfo is being allocated.
 {
 	int i;
@@ -49,7 +48,7 @@ static int texmap_store (char *texname, bool shouldlock = true)
 	hlassume (numtexmap < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO); // This error should never appear.
 
 	i = numtexmap;
-	texmap[numtexmap] = strdup (texname);
+	texmap[numtexmap] = texname;
 	numtexmap++;
 	if (shouldlock)
 	{
@@ -58,20 +57,13 @@ static int texmap_store (char *texname, bool shouldlock = true)
 	return i;
 }
 
-static char *texmap_retrieve (int index)
-{
+static wad_texture_name texmap_retrieve(int index) {
 	hlassume (0 <= index && index < numtexmap, assume_first);
 	return texmap[index];
 }
 
-static void texmap_clear ()
-{
-	int i;
+static void texmap_clear() {
 	ThreadLock ();
-	for (i = 0; i < numtexmap; i++)
-	{
-		free (texmap[i]);
-	}
 	numtexmap = 0;
 	ThreadUnlock ();
 }
@@ -115,13 +107,7 @@ static int lump_sorter_by_name(const void* lump1, const void* lump2)
 //  FindMiptex
 //      Find and allocate a texture into the lump data
 // =====================================================================================
-static int      FindMiptex(const char* const name)
-{
-	if (strlen (name) >= MAXWADNAME)
-	{
-		Error ("Texture name is too long (%s)\n", name);
-	}
-
+static int      FindMiptex(wad_texture_name name) {
     ThreadLock();
     for (std::size_t i = 0; i < nummiptex; i++)
     {
@@ -134,7 +120,7 @@ static int      FindMiptex(const char* const name)
 
     hlassume(nummiptex < MAX_MAP_TEXTURES, assume_MAX_MAP_TEXTURES);
     const int new_miptex_num = nummiptex;
-    miptex[new_miptex_num].lump_info.name = wad_texture_name{(const char8_t*) name};
+    miptex[new_miptex_num].lump_info.name = name;
     ++nummiptex;
     ThreadUnlock();
     return new_miptex_num;
@@ -314,7 +300,7 @@ lumpinfo_with_wadfileindex*     FindTexture(const lumpinfo_with_wadfileindex* co
     {
         Warning("::FindTexture() texture %s not found!", source->lump_info.name.c_str());
         // TODO: Check for all special textures included in zhlt.wad/sdhlt.wad?
-        if (source->lump_info.name.is_null() || source->lump_info.name.is_skip())
+        if (source->lump_info.name.is_ordinary_null() || source->lump_info.name.is_skip())
         {
             Log("Are you sure you included sdhlt.wad in your wadpath list?\n");
         }
@@ -443,39 +429,23 @@ static int LoadLump(const lumpinfo_with_wadfileindex* const source, std::byte* d
 // =====================================================================================
 void            AddAnimatingTextures()
 {
-    int base;
-    int i, j, k;
-    char name[MAXWADNAME];
-
-    base = nummiptex;
-
-    for (i = 0; i < base; i++)
+    const int base = nummiptex;
+    for (std::size_t i = 0; i < base; i++)
     {
-        if (!miptex[i].lump_info.name.is_animation_frame() && !miptex[i].lump_info.name.is_tile())
-        {
+        wad_texture_name name{miptex[i].lump_info.name};
+        if (!name.is_animation_frame() && !name.is_tile()) {
             continue;
         }
 
-        safe_strncpy(name, miptex[i].lump_info.name.c_str(), MAXWADNAME);
-
-        for (j = 0; j < 20; j++)
-        {
-            if (j < 10)
-            {
-                name[1] = '0' + j;
-            }
-            else
-            {
-                name[1] = 'a' + j - 10; // Alternate animation
-            }
-
-            // see if this name exists in the wadfile
-            for (k = 0; k < nTexLumps; k++)
-            {
-                if (name == lumpinfo[k].lump_info.name)
-                {
-                    FindMiptex(name);                      // add to the miptex list
-                    break;
+        for (std::size_t j = 0; j < 10; ++j) {
+            for (bool alternateAnimation : std::array{false, true}) {
+                name.set_animation_frame_or_tile_number(j, alternateAnimation);
+                // See if this name exists in the wadfile
+                for (std::size_t k = 0; k < nTexLumps; ++k) {
+                    if (name == lumpinfo[k].lump_info.name) {
+                        FindMiptex(name); // Add to the miptex list
+                        break;
+                    }
                 }
             }
         }
@@ -492,23 +462,22 @@ void            AddAnimatingTextures()
 //  WriteMiptex
 //     Unified console logging updated //seedee
 // =====================================================================================
-void            WriteMiptex(const std::filesystem::path& bspPath)
+void WriteMiptex(const std::filesystem::path& bspPath)
 {
-    int             len, texsize, totaltexsize = 0;
+    int len, texsize, totaltexsize = 0;
     std::byte*           data;
     dmiptexlump_t*  l;
-    double          start, end;
 
     g_texdatasize = 0;
 
-    start = I_FloatTime();
+    double start = I_FloatTime();
     {
         if (!TEX_InitFromWad(bspPath))
             return;
 
         AddAnimatingTextures();
     }
-    end = I_FloatTime();
+    double end = I_FloatTime();
     Verbose("TEX_InitFromWad & AddAnimatingTextures elapsed time = %ldms\n", (long)(end - start));
 
     start = I_FloatTime();
@@ -609,10 +578,8 @@ void            WriteMiptex(const std::filesystem::path& bspPath)
         // Sleazy Hack 104 Pt 2 - After sorting the miptex array, reset the texinfos to point to the right miptexs
         for (i = 0; i < g_numtexinfo; i++, tx++)
         {
-            char*          miptex_name = texmap_retrieve(tx->miptex);
-
+            wad_texture_name miptex_name{texmap_retrieve(tx->miptex)};
             tx->miptex = FindMiptex(miptex_name);
-
         }
 		texmap_clear ();
     }
@@ -733,20 +700,20 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
 
     wad_texture_name textureName{bt->name};
 
-	if (textureName.is_null())
+	if (textureName.is_ordinary_null())
 	{
 		return -1;
 	}
     memset(&tx, 0, sizeof(tx));
 	FindMiptex (bt->name);
-    textureName = wad_texture_name(bt->name);
+    textureName = bt->name;
 
-    // set the special flag
-    if (bt->name[0] == '*' // ???
-        || textureName.is_ordinary_sky()
+    // Set the special flag
+    if (
+        textureName.is_ordinary_sky()
         || textureName.is_env_sky()
         || textureName.is_origin()
-        || textureName.is_null()
+        || textureName.is_ordinary_null()
         || textureName.is_aaatrigger()
        )
     {
@@ -875,8 +842,7 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
     tc = g_texinfo.data();
     for (i = 0; i < g_numtexinfo; i++, tc++)
     {
-        // Sleazy hack 104, Pt 3 - Use strcmp on names to avoid dups
-		if (strcmp (texmap_retrieve (tc->miptex), bt->name) != 0)
+		if (texmap_retrieve (tc->miptex) != bt->name)
         {
             continue;
         }
@@ -909,9 +875,10 @@ skip:;
 }
 
 // Before WriteMiptex(), for each texinfo in g_texinfo, .miptex is a string rather than texture index, so this function should be used instead of GetTextureByNumber.
-const char *GetTextureByNumber_CSG(int texturenumber)
+std::optional<wad_texture_name> GetTextureByNumber_CSG(int texturenumber)
 {
-	if (texturenumber == -1)
-		return "";
+	if (texturenumber == -1) {
+		return std::nullopt;
+    }
 	return texmap_retrieve (g_texinfo[texturenumber].miptex);
 }
