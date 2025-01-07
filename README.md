@@ -17,8 +17,8 @@ cmake --build --preset=release-build
 
 1. Open the configuration dialog of your map editor or batch compiler.
 2. Set CSG, BSP, VIS, RAD tool paths to *sdHLCSG.exe*, *sdHLBSP.exe*, *sdHLVIS.exe*, *sdHLRAD.exe*, use the *_x64.exe* editions if running on 64-bit.  
-3. Add *sdhlt.wad* into your wad list. This is required to compile maps.
-4. Add *sdhlt.fgd* into your fgd list.
+3. Add *hlt.wad* to your WAD list. This is required to compile maps.
+4. Add *hlt.fgd* to your FGD list.
 
 The main benefit of the 64-bit version is no memory allocation failures, because the 64-bit tools have access to more than 2GB of system memory.
 
@@ -31,7 +31,7 @@ The default `1` will trace for each triangle and supports transparent textures.
 Setting `2` doesn't support transparency, but it traces the planes bbox for each triangle, the slowest but usually higher quality for some models.  
 Setting `0` disables tracing and uses the mesh bbox instead.
 
-To implement these into your own fgd file for SmartEdit, use the template at the top of *sdhlt.fgd*. If the new shadow covers the origin and makes it too dark, set a custom `light_origin` on the entity or move the mesh origin point externally.
+To implement these into your own fgd file for SmartEdit, use the template at the top of *hlt.fgd*. If the new shadow covers the origin and makes it too dark, set a custom `light_origin` on the entity or move the mesh origin point externally.
 
 ### Entities
 

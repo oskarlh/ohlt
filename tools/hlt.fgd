@@ -1,7 +1,6 @@
-// Additional sdhlt.fgd file containing map editor related entities.
-// For SDHLT v1.2.0
-// For studiomodel shadows, add the following keyvalues into cycler_sprite and other entities that have a model key
+// Additional FGD file containing compiler-specific entities.
 
+// For studiomodel shadows, add the following keyvalues into cycler_sprite and other entities that have a model key
 //	zhlt_studioshadow(choices) :"Opaque (Blocks Light)" : "" =
 //	[
 //		"": "Normal"

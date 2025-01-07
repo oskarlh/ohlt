@@ -1812,9 +1812,10 @@ int             main(const int argc, char** argv)
 
     // Hard coded list of -wadinclude files, used for HINT texture brushes so lazy
     // mapmakers wont cause beta testers (or possibly end users) to get a wad 
-    // error on zhlt.wad etc
-    g_WadInclude.push_back(u8"zhlt.wad"); // Zoner's HLT
+    // error on hlt.wad etc.
+    g_WadInclude.push_back(u8"hlt.wad");
     g_WadInclude.push_back(u8"sdhlt.wad"); // seedee's HLT
+    g_WadInclude.push_back(u8"zhlt.wad"); // Zoner's HLT
 
 	InitDefaultHulls ();
 
