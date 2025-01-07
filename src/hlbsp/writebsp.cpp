@@ -3,6 +3,7 @@
 #include "hull_size.h"
 #include "wad_structs.h"
 
+#include <cstring>
 #include <map>
 
 typedef std::map< int, int > PlaneMap;
@@ -690,14 +691,14 @@ void FinishBSPFile(const bsp_data& bspData)
 					}
 					else
 					{
-						memcpy ((byte *)newdata + newdatasize, (byte *)l + l->dataofs[i], lumpsizes[i]);
+						std::memcpy ((byte *)newdata + newdatasize, (byte *)l + l->dataofs[i], lumpsizes[i]);
 						l->dataofs[Map[i]] = Size;
 						newdatasize += lumpsizes[i];
 						Size += lumpsizes[i];
 					}
 				}
 			}
-			memcpy (&l->dataofs[Num], newdata, newdatasize);
+			std::memcpy (&l->dataofs[Num], newdata, newdatasize);
 			Log ("Reduced %d texdatas to %d (%d bytes to %d)\n", g_nummiptex, Num, g_texdatasize, Size);
 			g_nummiptex = Num;
 			g_texdatasize = Size;
@@ -788,7 +789,7 @@ void FinishBSPFile(const bsp_data& bspData)
 			Developer (DEVELOPER_LEVEL_MESSAGE, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
 			Log ("Increased %d clipnodes to %d.\n", g_numclipnodes, numclipnodes);
 			g_numclipnodes = numclipnodes;
-			memcpy (g_dclipnodes.data(), clipnodes, numclipnodes * sizeof (dclipnode_t));
+			std::memcpy (g_dclipnodes.data(), clipnodes, numclipnodes * sizeof (dclipnode_t));
 			for (i = 0; i < g_nummodels; i++)
 			{
 				dmodel_t *m = &g_dmodels[i];

@@ -133,8 +133,8 @@ void PrintBrink (const bbrink_t *b)
 
 void BrinkSplitClipnode (bbrink_t *b, const dplane_t *plane, int planenum, bclipnode_t *prev, bclipnode_t *n0, bclipnode_t *n1)
 {
-	int found;
-	int numfound = 0;
+	int found{0};
+	int numfound{0};
 	for (int i = 0; i < b->numnodes; i++)
 	{
 		bbrinknode_t *node = &(*b->nodes)[i];
@@ -1812,7 +1812,7 @@ void *CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)
 		DeleteTreeCells (info);
 		SortPartitions (info);
 	}
-	catch (std::bad_alloc)
+	catch (const std::bad_alloc&)
 	{
 		hlassume (false, assume_NoMemory);
 	}

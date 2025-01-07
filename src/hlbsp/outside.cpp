@@ -1,5 +1,3 @@
-#pragma warning(disable: 4267) // 'size_t' to 'unsigned int', possible loss of data
-
 #include "bsp5.h"
 #include <cstring>
 
