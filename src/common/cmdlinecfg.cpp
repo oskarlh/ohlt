@@ -140,7 +140,7 @@ void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int 
 		if (!e.skip)
 		{
 			if (t == IFDEF && findparams (cmdline, pnext (words)) ||
-				t == IFNDEF && !findparams (cmdline, pnext (words)))
+				(t == IFNDEF && !findparams (cmdline, pnext (words))))
 				e.skip = false;
 			else
 			{

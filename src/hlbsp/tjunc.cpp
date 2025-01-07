@@ -97,15 +97,15 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 	*num_hashneighbors = 0;
 	for (x = -1; x <= 1; x++)
 	{
-		if (x == -1 && slotdiff[0] > hash_scale[0] * (2 * ON_EPSILON) ||
-			x == 1 && slotdiff[0] < 1 - hash_scale[0] * (2 * ON_EPSILON))
+		if ((x == -1 && slotdiff[0] > hash_scale[0] * (2 * ON_EPSILON)) ||
+			(x == 1 && slotdiff[0] < 1 - hash_scale[0] * (2 * ON_EPSILON)))
 		{
 			continue;
 		}
 		for (y = -1; y <= 1; y++)
 		{
-			if (y == -1 && slotdiff[1] > hash_scale[1] * (2 * ON_EPSILON) ||
-				y == 1 && slotdiff[1] < 1 - hash_scale[1] * (2 * ON_EPSILON))
+			if ((y == -1 && slotdiff[1] > hash_scale[1] * (2 * ON_EPSILON)) ||
+				(y == 1 && slotdiff[1] < 1 - hash_scale[1] * (2 * ON_EPSILON)))
 			{
 				continue;
 			}

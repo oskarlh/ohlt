@@ -972,11 +972,11 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 			RemoveFaceFromLeaf (tl, tf, side); // because we can only store 2 leafs for a face
 			
 			// fi is unusable now
-			if (tf->tmp_side == SIDE_FRONT || tf->tmp_side == SIDE_ON && tmp_side != SIDE_BACK)
+			if (tf->tmp_side == SIDE_FRONT || (tf->tmp_side == SIDE_ON && tmp_side != SIDE_BACK))
 			{
 				AttachFaceToLeaf (front, tf, side);
 			}
-			else if (tf->tmp_side == SIDE_BACK || tf->tmp_side == SIDE_ON && tmp_side == SIDE_BACK)
+			else if (tf->tmp_side == SIDE_BACK || (tf->tmp_side == SIDE_ON && tmp_side == SIDE_BACK))
 			{
 				AttachFaceToLeaf (back, tf, side);
 
@@ -1758,7 +1758,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 			for (pp = &clipnode->partitions; *pp; pp = &(*pp)->next)
 			{
 				if ((*pp)->planenum > current->planenum ||
-					(*pp)->planenum == current->planenum && (*pp)->planeside >= current->planeside) // normally the planeside should be identical
+					((*pp)->planenum == current->planenum && (*pp)->planeside >= current->planeside)) // normally the planeside should be identical
 				{
 					break;
 				}
