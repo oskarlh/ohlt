@@ -10,6 +10,7 @@
 
 // csg4.c
 
+#include <cstring>
 #include <filesystem>
 #include "bsp_file_sizes.h"
 #include "ripent.h"
@@ -168,7 +169,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 					// Extract the string.
 					int iLength = iEnd - iStart - 1;
 					char *cString = new char[iLength + 1];
-					memcpy(cString, &g_dentdata[iStart + 1], iLength);
+					std::memcpy(cString, &g_dentdata[iStart + 1], iLength);
 					cString[iLength] = '\0';
 
 					// Save it.
@@ -274,7 +275,7 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 			g_entdatasize += 1;
 
 			// New line.
-			memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
+			std::memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
 			g_entdatasize += iNewLineLength;
 
 			CEntityPairList *EntityPairList = *i;
@@ -282,13 +283,13 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 			for(CEntityPairList::iterator j = EntityPairList->begin(); j != EntityPairList->end(); ++j)
 			{
 				// Tab.
-				memcpy(&g_dentdata[g_entdatasize], cTab, iTabLength);
+				std::memcpy(&g_dentdata[g_entdatasize], cTab, iTabLength);
 				g_entdatasize += iTabLength;
 
 				// String.
 				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
-				memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
+				std::memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
 				g_entdatasize += (int)strlen(*j);
 				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
@@ -302,13 +303,13 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 				// String.
 				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
-				memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
+				std::memcpy(&g_dentdata[g_entdatasize], *j, strlen(*j));
 				g_entdatasize += (int)strlen(*j);
 				g_dentdata[g_entdatasize] = u8'\"';
 				g_entdatasize += 1;
 
 				// New line.
-				memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
+				std::memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
 				g_entdatasize += iNewLineLength;
 			}
 
@@ -317,12 +318,12 @@ void ParseEntityData(const char *cTab, int iTabLength, const char *cNewLine, int
 			g_entdatasize += 1;
 
 			// New line.
-			memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
+			std::memcpy(&g_dentdata[g_entdatasize], cNewLine, iNewLineLength);
 			g_entdatasize += iNewLineLength;
 		}
 
 		// Terminator.
-		memcpy(&g_dentdata[g_entdatasize], cTerminator, iTerminatorLength);
+		std::memcpy(&g_dentdata[g_entdatasize], cTerminator, iTerminatorLength);
 		g_entdatasize += iTerminatorLength;
 
 		//
@@ -649,7 +650,7 @@ static void		ReadTextures(const char *name)
 						Error ("File read failure");
 					g_texdatasize += sizeof(miptex_t);
 					hlassume(g_texdatasize < g_max_map_miptex, assume_MAX_MAP_MIPTEX);
-					memset (tex, 0, sizeof(miptex_t));
+					*tex = miptex_t{};
 					tex->name = name;
 					tex->width = w;
 					tex->height = h;
@@ -676,34 +677,31 @@ static void		ReadTextures(const char *name)
 static void     WriteEntities(const char* const name)
 {
 	char *bak_dentdata;
-	int bak_entdatasize;
 	std::filesystem::path filePath;
 	filePath = name;
 	filePath += u8".ent";
 
     std::filesystem::remove(filePath);
 
-    {
-		if(g_parse)
-		{
-			bak_entdatasize = g_entdatasize;
-			bak_dentdata = (char *)malloc (g_entdatasize);
-			hlassume (bak_dentdata != nullptr, assume_NoMemory);
-			memcpy (bak_dentdata, g_dentdata.data(), g_entdatasize);
-			ParseEntityData("  ", 2, "\r\n", 2, "", 0);
-		}
+	const std::uint32_t bak_entdatasize{g_entdatasize};
+	if(g_parse)
+	{
+		bak_dentdata = (char *)malloc (g_entdatasize);
+		hlassume (bak_dentdata != nullptr, assume_NoMemory);
+		std::memcpy (bak_dentdata, g_dentdata.data(), g_entdatasize);
+		ParseEntityData("  ", 2, "\r\n", 2, "", 0);
+	}
 
-        FILE *f = SafeOpenWrite(filePath.c_str());
-		Log("\nWriting %s.\n", filePath.c_str());
-        SafeWrite(f, g_dentdata.data(), g_entdatasize);
-        fclose(f);
-		if (g_parse)
-		{
-			g_entdatasize = bak_entdatasize;
-			memcpy (g_dentdata.data(), bak_dentdata, bak_entdatasize);
-			free (bak_dentdata);
-		}
-    }
+	FILE *f = SafeOpenWrite(filePath.c_str());
+	Log("\nWriting %s.\n", filePath.c_str());
+	SafeWrite(f, g_dentdata.data(), g_entdatasize);
+	fclose(f);
+	if (g_parse)
+	{
+		g_entdatasize = bak_entdatasize;
+		std::memcpy (g_dentdata.data(), bak_dentdata, bak_entdatasize);
+		free (bak_dentdata);
+	}
 }
 
 static void     ReadEntities(const char* const name)

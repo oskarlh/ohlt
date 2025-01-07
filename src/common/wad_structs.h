@@ -20,14 +20,16 @@ constexpr bool has_wad_identification(const wadinfo_t& wadHeader) {
     return id == u8"WAD2" || id == u8"WAD3";
 }
 
-struct lumpinfo_t // Lump info in WAD
-{
-    std::int32_t filepos;
-    std::int32_t disksize;
-    std::int32_t size; // Uncompressed
-    std::uint8_t type;
-    std::uint8_t compression;
-    std::uint8_t pad1, pad2;
+struct lumpinfo_t { // Lump info in WAD
+    std::int32_t filepos{};
+    std::int32_t disksize{};
+    std::int32_t size{}; // Uncompressed
+    std::uint8_t type{};
+    std::uint8_t compression{};
+
+    // Unused padding
+    std::uint8_t pad1{};
+    std::uint8_t pad2{};
 
     wad_texture_name name{};
 };
