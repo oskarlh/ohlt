@@ -1,3 +1,5 @@
+Just some notes. Please ignore...
+
 https://developer.valvesoftware.com/wiki/Miptex
 
 
@@ -33,6 +35,11 @@ We should tolerate missing WADs but produce warnings.
 This so we can compile .map files from others when they forget to include all the WADs
 
 
+
+-estimate was on by default on Windows, and off by default on Linux.
+I think it's useful to keep estimates on, but according to "just khang" on the TWHL Discord,
+the stdout spam increases compile times significantly (a 10s compile becomes a 40s compile
+in Trenchbroom in HLRAD alone).
 
 Study:
 https://developer.valvesoftware.com/wiki/BSP_(GoldSrc)

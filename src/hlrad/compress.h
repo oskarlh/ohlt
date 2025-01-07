@@ -22,8 +22,7 @@ extern const char *float_type_string[];
 
 extern const size_t float_size[];
 
-enum class vector_type
-{
+enum class vector_type {
 	vector96 = 0,
 	vector48,
 	vector32,

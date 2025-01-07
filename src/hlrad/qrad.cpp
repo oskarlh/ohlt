@@ -2862,7 +2862,7 @@ static void     Settings()
 	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::transferCompressType, float_type_string[(std::size_t) cli_option_defaults::transferCompressType]);
 	Log("size of transfer     [ %17s ] [ %17s ]\n", buf1, buf2);
 	snprintf (buf1, sizeof(buf1), "%d (%s)", g_rgbtransfer_compress_type, vector_type_string[(std::size_t) g_rgbtransfer_compress_type]);
-	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::rgbTransferCompressType, vector_type_string[(std::size_t) cli_option_defaults::rgbTransferCompressType]);
+	snprintf (buf2, sizeof(buf2), "%zu (%s)", (std::size_t) cli_option_defaults::rgbTransferCompressType, vector_type_string[(std::size_t) cli_option_defaults::rgbTransferCompressType]);
 	Log("size of rgbtransfer  [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("soft sky             [ %17s ] [ %17s ]\n", g_softsky ? "on" : "off", DEFAULT_SOFTSKY ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_translucentdepth);

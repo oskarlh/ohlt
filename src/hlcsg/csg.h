@@ -95,9 +95,8 @@ typedef struct side_s
     vec_t           planepts[3][3];
 } side_t;
 
-typedef struct bface_s
-{
-    struct bface_s* next;
+struct bface_t {
+    bface_t* next;
     int             planenum;
     plane_t*        plane;
     Winding*        w;
@@ -107,7 +106,7 @@ typedef struct bface_s
     int             backcontents;
 	bool			bevel; //used for ExpandBrush
     bounding_box     bounds;
-} bface_t;
+};
 
 // NUM_HULLS should be no larger than MAX_MAP_HULLS
 #define NUM_HULLS 4
@@ -118,8 +117,7 @@ typedef struct
     bface_t*        faces;
 } brushhull_t;
 
-typedef struct brush_s
-{
+struct brush_t {
 	int				originalentitynum;
 	int				originalbrushnum;
     int             entitynum;
@@ -140,7 +138,7 @@ typedef struct brush_s
 
     std::int32_t contents;
     brushhull_t hulls[NUM_HULLS];
-} brush_t;
+};
 
 struct hullbrushface_t {
 	vec3_array normal;

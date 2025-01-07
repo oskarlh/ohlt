@@ -210,7 +210,7 @@ bool TraceMesh :: ClipRayToFacet( const mfacet_t *facet )
 {
 	mplane_t	*p, *clipplane;
 	float	enterfrac, leavefrac, distfrac;
-	bool	getout, startout;
+	bool	startout;
 	float	d, d1, d2, f;
 
 	if( !facet->numplanes )
@@ -221,7 +221,6 @@ bool TraceMesh :: ClipRayToFacet( const mfacet_t *facet )
 	clipplane = nullptr;
 	checkcount++;
 
-	getout = false;
 	startout = false;
 
 	for( int i = 0; i < facet->numplanes; i++ )
@@ -276,7 +275,6 @@ bool TraceMesh :: ClipRayToFacet( const mfacet_t *facet )
 			}
 		}
 
-		if( d2 > 0.0f ) getout = true;	// endpoint is not in solid
 		if( d1 > 0.0f ) startout = true;
 
 		// if completely in front of face, no intersection

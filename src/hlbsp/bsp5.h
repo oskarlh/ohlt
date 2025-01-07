@@ -100,20 +100,16 @@ typedef struct
 }
 surfchain_t;
 
-typedef struct side_s
-{
-	struct side_s	*next;
-	dplane_t		plane; // facing inside (reversed when loading brush file)
-	Winding			*w; // (also reversed)
-}
-side_t;
+struct side_t {
+	side_t* next;
+	dplane_t plane; // Facing inside (reversed when loading brush file)
+	Winding* w; // (Also reversed)
+};
 
-typedef struct brush_s
-{
-	struct brush_s	*next;
-	side_t			*sides;
-}
-brush_t;
+struct brush_t {
+	brush_t* next;
+	side_t* sides;
+};
 
 //
 // there is a node_t structure for every node and leaf in the bsp tree

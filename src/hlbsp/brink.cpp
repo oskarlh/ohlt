@@ -1028,7 +1028,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 			}
 		}
 
-		btreeleaf_t *(frontback[2]) = {front, back};
+		btreeleaf_t* frontback[2]{front, back};
 		for (int side = 0; side < 2; side++)
 		{
 			for (fi = frontback[side]->faces->begin (); fi != frontback[side]->faces->end (); fi++)
