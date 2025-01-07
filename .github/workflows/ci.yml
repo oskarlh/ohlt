@@ -3,8 +3,8 @@
 name: CMake on multiple platforms
 
 on:
-  push:
   pull_request:
+  push:
 
 jobs:
   build:
@@ -21,21 +21,26 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
         build_type: [Release]
-        c_compiler: [gcc, cl]
+        c_compiler: [cl, clang, gcc]
         include:
-          - os: windows-latest
-            c_compiler: cl
-            cpp_compiler: cl
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-        exclude:
           - os: windows-latest
-            c_compiler: gcc
-          - os: ubuntu-latest
             c_compiler: cl
+            cpp_compiler: cl
+        exclude:
+          - os: macos-latest
+            c_compiler: [cl, gcc]
+          - os: ubuntu-latest
+            c_compiler: [cl, clang]
+          - os: windows-latest
+            c_compiler: [clang, gcc]
 
     steps:
     - uses: actions/checkout@v3
@@ -56,10 +61,11 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
+        --preset=release-config
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --preset=release-build
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -69,11 +75,11 @@ jobs:
 
     - name: Archiving
       # Default Build Artifact zipper does not retain file permission.
-      run: 7z a SDHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.zip tools
+      run: 7z a OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.7z tools
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: SDHLT-${{ matrix.os }}-${{ matrix.c_compiler }}
-        path: SDHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.zip
+        name: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}
+        path: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.7z
           
