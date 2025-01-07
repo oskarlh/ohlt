@@ -21,7 +21,7 @@ static const MessageTable_t assumes[assume_last] = {
 
     // generic
     {"Memory allocation failure", "The program failled to allocate a block of memory.",
-	#ifdef SDHLRAD
+	#ifdef HLRAD
 	 sizeof (intptr_t) <= 4? "The map is too complex for the compile tools to handle. Switch to the 64-bit version of hlrad if possible." :
      "Likely causes are (in order of likeliness) : the partition holding the swapfile is full; swapfile size is smaller than required; memory fragmentation; heap corruption"
 	#else

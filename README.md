@@ -1,12 +1,12 @@
-# README.md needs to be updated - This is NOT SDHLT, but a fork of it
+# Oskar's Half-Life Tools
 
-![Banner](media/banner.png)
+![Banner](media/banner.webp)
 
-<sub>Half-Life engine map compile tools, based on Vluzacn's ZHLT v34 with code contributions from various contributors. Based on Valve's version, modified with permission.</sub>
+<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various contributors. Based on Valve's compile tools, modified with permission.</sub>
 
 New features include shadows from studiomodels, new entities, additional tool textures, ability to extend world size limits, portal file optimisation for J.A.C.K. map editor and minor algorithm optimization.
 
-## Compiling the compiler
+## Compiling the compilers
 ```
 cmake -S . --preset=release-config
 cmake --build --preset=release-build
@@ -16,7 +16,7 @@ cmake --build --preset=release-build
 ## How to install
 
 1. Open the configuration dialog of your map editor or batch compiler.
-2. Set CSG, BSP, VIS, RAD tool paths to *sdHLCSG.exe*, *sdHLBSP.exe*, *sdHLVIS.exe*, *sdHLRAD.exe*, use the *_x64.exe* editions if running on 64-bit.  
+2. Set CSG, BSP, VIS, RAD tool paths to *hlcsg.exe*, *hlbsp.exe*, *hlvis.exe*, *hlrad.exe*, use the *_x64.exe* editions if running on 64-bit.  
 3. Add *hlt.wad* to your WAD list. This is required to compile maps.
 4. Add *hlt.fgd* to your FGD list.
 

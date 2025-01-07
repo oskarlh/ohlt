@@ -74,8 +74,6 @@ Temporary Items
 *.db-wal
 *db-shm
 
-/src/sdhlt/.vs/
-
 /src/sdhlt/sdHLBSP/Release/
 /src/sdhlt/sdHLBSP/Release_x64/
 
@@ -99,8 +97,4 @@ Temporary Items
 !/tools/lights.rad
 !/tools/wad.cfg
 
-*.zip
-
-/build*/
-.vs/SDHLT/v17/.wsuo
-.vs/SDHLT/v17/DocumentLayout.json
+*.7z

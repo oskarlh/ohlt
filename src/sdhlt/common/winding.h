@@ -27,7 +27,7 @@ enum class side {
 #define	SIDE_BACK		1
 #define	SIDE_CROSS		-2
 
-#ifdef SDHLBSP //seedee
+#ifdef HLBSP //seedee
 #ifndef DOUBLEVEC_T
 #error you must add -dDOUBLEVEC_T to the project!
 #endif

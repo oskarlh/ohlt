@@ -16,14 +16,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tools)
 # Configuration
 #================
 
-set(SDHLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
+set(HLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
 
 #================
 # Common
 #================
 
-set(COMMON_DIR ${SDHLT_DIR}/common)
-set(COMMON_BSP_CSG_DIR ${SDHLT_DIR}/common-bsp-and-csg)
+set(COMMON_DIR ${HLT_DIR}/common)
+set(COMMON_BSP_CSG_DIR ${HLT_DIR}/common-bsp-and-csg)
 
 set(COMMON_BSP_CSG_SOURCES
     ${COMMON_BSP_CSG_DIR}/hull_size.cpp
@@ -83,7 +83,7 @@ set(COMMON_HEADERS
 # BSP
 #================
 
-set(BSP_DIR ${SDHLT_DIR}/sdHLBSP)
+set(BSP_DIR ${HLT_DIR}/sdHLBSP)
 
 set(BSP_SOURCES
     ${COMMON_SOURCES}
@@ -109,7 +109,7 @@ set(BSP_HEADERS
 # CSG
 #================
 
-set(CSG_DIR ${SDHLT_DIR}/sdHLCSG)
+set(CSG_DIR ${HLT_DIR}/sdHLCSG)
 
 set(CSG_SOURCES
     ${COMMON_SOURCES}
@@ -137,7 +137,7 @@ set(CSG_HEADERS
 # RAD
 #================
 
-set(RAD_DIR ${SDHLT_DIR}/sdHLRAD)
+set(RAD_DIR ${HLT_DIR}/sdHLRAD)
 
 set(RAD_SOURCES
     ${COMMON_SOURCES}
@@ -176,7 +176,7 @@ set(RAD_HEADERS
 # VIS
 #================
 
-set(VIS_DIR ${SDHLT_DIR}/sdHLVIS)
+set(VIS_DIR ${HLT_DIR}/sdHLVIS)
 
 set(VIS_SOURCES
     ${COMMON_SOURCES}
@@ -195,7 +195,7 @@ set(VIS_HEADERS
 # RIPENT
 #================
 
-set(RIPENT_DIR ${SDHLT_DIR}/sdRIPENT)
+set(RIPENT_DIR ${HLT_DIR}/sdRIPENT)
 
 set(RIPENT_SOURCES
     ${COMMON_SOURCES}
@@ -259,6 +259,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_compile_definitions(
         PLATFORM_VERSION="64-bit Windows"
         SYSTEM_WIN32
+        VERSION_WINDOWS
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 else()
@@ -293,8 +294,8 @@ set_target_properties(ripent
         CXX_STANDARD 26
 )
 
-target_compile_definitions(hlbsp PRIVATE SDHLBSP DOUBLEVEC_T)
-target_compile_definitions(hlcsg PRIVATE SDHLCSG DOUBLEVEC_T)
-target_compile_definitions(hlrad PRIVATE SDHLRAD)
-target_compile_definitions(hlvis PRIVATE SDHLVIS)
-target_compile_definitions(ripent PRIVATE SDRIPENT)
+target_compile_definitions(hlbsp PRIVATE HLBSP DOUBLEVEC_T)
+target_compile_definitions(hlcsg PRIVATE HLCSG DOUBLEVEC_T)
+target_compile_definitions(hlrad PRIVATE HLRAD)
+target_compile_definitions(hlvis PRIVATE HLVIS)
+target_compile_definitions(ripent PRIVATE RIPENT)

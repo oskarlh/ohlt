@@ -299,7 +299,7 @@ lumpinfo_with_wadfileindex*     FindTexture(const lumpinfo_with_wadfileindex* co
     if (!found)
     {
         Warning("::FindTexture() texture %s not found!", source->lump_info.name.c_str());
-        // TODO: Check for all special textures included in hlt.wad/sdhlt.wad/zhlt.wad?
+        // TODO: Check for all special textures included in hlt.wad?
         if (source->lump_info.name.is_ordinary_null() || source->lump_info.name.is_skip())
         {
             Log("Are you sure you included hlt.wad in your wadpath list?\n");
