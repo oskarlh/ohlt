@@ -83,7 +83,7 @@ set(COMMON_HEADERS
 # BSP
 #================
 
-set(BSP_DIR ${HLT_DIR}/sdHLBSP)
+set(BSP_DIR ${HLT_DIR}/hlbsp)
 
 set(BSP_SOURCES
     ${COMMON_SOURCES}
@@ -109,7 +109,7 @@ set(BSP_HEADERS
 # CSG
 #================
 
-set(CSG_DIR ${HLT_DIR}/sdHLCSG)
+set(CSG_DIR ${HLT_DIR}/hlcsg)
 
 set(CSG_SOURCES
     ${COMMON_SOURCES}
@@ -137,7 +137,7 @@ set(CSG_HEADERS
 # RAD
 #================
 
-set(RAD_DIR ${HLT_DIR}/sdHLRAD)
+set(RAD_DIR ${HLT_DIR}/hlrad)
 
 set(RAD_SOURCES
     ${COMMON_SOURCES}
@@ -176,7 +176,7 @@ set(RAD_HEADERS
 # VIS
 #================
 
-set(VIS_DIR ${HLT_DIR}/sdHLVIS)
+set(VIS_DIR ${HLT_DIR}/hlvis)
 
 set(VIS_SOURCES
     ${COMMON_SOURCES}
@@ -195,7 +195,7 @@ set(VIS_HEADERS
 # RIPENT
 #================
 
-set(RIPENT_DIR ${HLT_DIR}/sdRIPENT)
+set(RIPENT_DIR ${HLT_DIR}/ripent)
 
 set(RIPENT_SOURCES
     ${COMMON_SOURCES}

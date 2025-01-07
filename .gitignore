@@ -74,20 +74,20 @@ Temporary Items
 *.db-wal
 *db-shm
 
-/src/sdHLBSP/Release/
-/src/sdHLBSP/Release_x64/
+/src/hlbsp/Release/
+/src/hlbsp/Release_x64/
 
-/src/sdHLCSG/Release/
-/src/sdHLCSG/Release_x64/
+/src/hlcsg/Release/
+/src/hlcsg/Release_x64/
 
-/src/sdHLRAD/Release/
-/src/sdHLRAD/Release_x64/
+/src/hlrad/Release/
+/src/hlrad/Release_x64/
 
-/src/sdHLVIS/Release/
-/src/sdHLVIS/Release_x64/
+/src/hlvis/Release/
+/src/hlvis/Release_x64/
 
-/src/sdRIPENT/Release/
-/src/sdRIPENT/Release_x64/
+/src/ripent/Release/
+/src/ripent/Release_x64/
 
 /build/
 /tools/*
