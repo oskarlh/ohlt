@@ -28,7 +28,7 @@ void do_alloc_block (std::deque<lightmapblock>& blocks, std::size_t w, std::size
 		Error("do_alloc_block: internal error.");
 	}
 	std::int32_t best, best2;
-	std::int32_t x;
+	std::int32_t x{0};
 	for (lightmapblock& block : blocks)
 	{
 		best = BLOCK_HEIGHT;

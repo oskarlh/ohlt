@@ -1013,7 +1013,7 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int numsty
 	}
 
 	}
-	catch (std::bad_alloc)
+	catch (const std::bad_alloc&)
 	{
 		hlassume (false, assume_NoMemory);
 	}
@@ -1830,7 +1830,7 @@ void CreateTriangulations (int facenum)
 	CollectUsedPatches (facetrian);
 
 	}
-	catch (std::bad_alloc)
+	catch (const std::bad_alloc&)
 	{
 		hlassume (false, assume_NoMemory);
 	}
@@ -1874,7 +1874,7 @@ void FreeTriangulations ()
 	}
 
 	}
-	catch (std::bad_alloc)
+	catch (const std::bad_alloc&)
 	{
 		hlassume (false, assume_NoMemory);
 	}
