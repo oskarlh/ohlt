@@ -15,21 +15,14 @@ constexpr vec_t bogus_range = 80000.0;
 // Winding Public Methods
 //
 
-void Winding::Print() const
-{
-    std::uint_least32_t x;
-
-    for (const vec3_array& point : m_Points)
-    {
+void Winding::Print() const {
+    for (const vec3_array& point : m_Points) {
         Log("(%5.2f, %5.2f, %5.2f)\n", point[0], point[1], point[2]);
     }
 }
 
-void Winding::getPlane(dplane_t& plane) const
-{
-
-    if (size() < 3)
-    {
+void Winding::getPlane(dplane_t& plane) const {
+    if (size() < 3) {
         VectorClear(plane.normal);
         plane.dist = 0.0;
         return;
