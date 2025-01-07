@@ -336,13 +336,7 @@ void            LoadBSPImage(dheader_t* const header)
 
 	auto lightingData = get_lump_data<lump_id::lighting>(header);
 
-// https://en.cppreference.com/w/cpp/feature_test#cpp_lib_containers_ranges
-// Fingers crossed for GCC 15
-#ifdef __cpp_lib_containers_ranges
-	g_dlightdata.assign_range(lightingData);
-#else
-	g_dlightdata = lightingData | std::ranges::to<std::vector>();
-#endif
+	g_dlightdata.assign(lightingData.begin(), lightingData.end());
 
 
     g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
