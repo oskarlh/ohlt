@@ -18,9 +18,9 @@ GNU General Public License for more details.
 #include "TimeCounter.h"
 
 //#define AABB_OFFSET
-#define SIMPLIFICATION_FACTOR_HIGH	0.15f
-#define SIMPLIFICATION_FACTOR_MED	0.55f
-#define SIMPLIFICATION_FACTOR_LOW	0.85f
+constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
+constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
+constexpr float SIMPLIFICATION_FACTOR_LOW{0.85f};
 
 CMeshDesc :: CMeshDesc( void )
 {
@@ -64,14 +64,9 @@ CreateAreaNode
 builds a uniformly subdivided tree for the given mesh size
 ===============
 */
-areanode_t *CMeshDesc :: CreateAreaNode( int depth, const vec3_t mins, const vec3_t maxs )
+areanode_t *CMeshDesc::CreateAreaNode(int depth, const vec3_array& mins, const vec3_array& maxs)
 {
-	areanode_t	*anode;
-	vec3_t		size;
-	vec3_t		mins1, maxs1;
-	vec3_t		mins2, maxs2;
-
-	anode = &areanodes[numareanodes++];
+	areanode_t	*anode{&areanodes[numareanodes++]};
 
 	ClearLink( &anode->facets );
 	
@@ -82,22 +77,22 @@ areanode_t *CMeshDesc :: CreateAreaNode( int depth, const vec3_t mins, const vec
 		return anode;
 	}
 
+	vec3_array size;
 	VectorSubtract( maxs, mins, size );	
 
-	if( size[0] > size[1] )
+	if(size[0] > size[1]) {
 		anode->axis = 0;
+	}
 	else anode->axis = 1;
 	
 	anode->dist = 0.5f * ( maxs[anode->axis] + mins[anode->axis] );
 
-	VectorCopy( mins, mins1 );
-	VectorCopy( mins, mins2 );
-	VectorCopy( maxs, maxs1 );
-	VectorCopy( maxs, maxs2 );
+	vec3_array mins2{mins};
+	vec3_array maxs1{maxs};
 
 	maxs1[anode->axis] = mins2[anode->axis] = anode->dist;
-	anode->children[0] = CreateAreaNode( depth+1, mins2, maxs2 );
-	anode->children[1] = CreateAreaNode( depth+1, mins1, maxs1 );
+	anode->children[0] = CreateAreaNode(depth+1, mins2, maxs);
+	anode->children[1] = CreateAreaNode(depth+1, mins, maxs1);
 
 	return anode;
 }
@@ -498,7 +493,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	TimeCounter profile;
 
 	profile.start();
-	bool simplify_model = (pModel->trace_mode == 2) ? true : false; // trying to reduce polycount and the speedup compilation
+	const bool simplifyModel{ pModel->trace_mode == trace_method::shadow_slow }; // trying to reduce polycount and the speedup compilation
 
 	// compute default pose for building mesh from
 	mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)((byte *)phdr + phdr->seqindex);
@@ -671,7 +666,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 
 	InitMeshBuild( pModel->name, numTris );
 
-	if( simplify_model )
+	if( simplifyModel )
 	{
 		// begin model simplification
 		List<vector>	vert;		// list of vertices
@@ -1040,7 +1035,7 @@ bool CMeshDesc :: FinishMeshBuild( void )
 	if( has_tree )
 	{
 		// create tree
-		CreateAreaNode( 0, m_mesh.mins.data(), m_mesh.maxs.data() );
+		CreateAreaNode(0, m_mesh.mins, m_mesh.maxs);
 
 		for( int i = 0; i < m_mesh.numfacets; i++ )
 			RelinkFacet( &m_mesh.facets[i] );

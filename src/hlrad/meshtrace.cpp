@@ -333,7 +333,7 @@ void TraceMesh :: ClipToLinks( areanode_t *node )
 		if( !BoundsIntersect( m_vecAbsMins, m_vecAbsMaxs, facet->mins, facet->maxs ))
 			continue;
 
-		if( mesh->trace_mode == SHADOW_FAST )
+		if( mesh->trace_mode == trace_method::shadow_fast )
 		{
 			// ultra-fast mode, no real tracing here
 			if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
@@ -342,7 +342,7 @@ void TraceMesh :: ClipToLinks( areanode_t *node )
 				return;
 			}
 		}
-		else if( mesh->trace_mode == SHADOW_NORMAL )
+		else if( mesh->trace_mode == trace_method::shadow_normal )
 		{
 			// does trace for each triangle
 			if( ClipRayToFace( facet ))
@@ -351,7 +351,7 @@ void TraceMesh :: ClipToLinks( areanode_t *node )
 				return;
 			}
 		}
-		else if( mesh->trace_mode == SHADOW_SLOW )
+		else if( mesh->trace_mode == trace_method::shadow_slow )
 		{
 			// does trace for planes bbox for each triangle
 			if( ClipRayToFacet( facet ))
@@ -395,19 +395,19 @@ bool TraceMesh :: DoTrace( void )
 			if( !BoundsIntersect( m_vecAbsMins, m_vecAbsMaxs, facet->mins, facet->maxs ))
 				continue;
 
-			if( mesh->trace_mode == SHADOW_FAST )
+			if( mesh->trace_mode == trace_method::shadow_fast )
 			{
 				// ultra-fast mode, no real tracing here
 				if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
 					return true;
 			}
-			else if( mesh->trace_mode == SHADOW_NORMAL )
+			else if( mesh->trace_mode == trace_method::shadow_normal )
 			{
 				// does trace for each triangle
 				if( ClipRayToFace( facet ))
 					return true;
 			}
-			else if( mesh->trace_mode == SHADOW_SLOW )
+			else if( mesh->trace_mode == trace_method::shadow_slow )
 			{
 				// does trace for planes bbox for each triangle
 				if( ClipRayToFacet( facet ))

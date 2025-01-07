@@ -256,8 +256,8 @@ static bool TranslateTexToTex (int facenum, int edgenum, int facenum2, matrix_t 
 	{
 		return false;
 	}
-	MultiplyMatrix (edgetotex2, inv, m);
-	MultiplyMatrix (edgetotex, inv2, m_inverse);
+	m = MultiplyMatrix (edgetotex2, inv);
+	m_inverse = MultiplyMatrix (edgetotex, inv2);
 
 	return true;
 }
@@ -1074,8 +1074,8 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	frag->noseam = edge->noseam;
 
 	// calculate the matrix
-	MultiplyMatrix (edge->prevtonext, parent->coordtomycoord, frag->coordtomycoord);
-	MultiplyMatrix (parent->mycoordtocoord, edge->nexttoprev, frag->mycoordtocoord);
+	frag->coordtomycoord = MultiplyMatrix(edge->prevtonext, parent->coordtomycoord);
+	frag->mycoordtocoord = MultiplyMatrix(parent->mycoordtocoord, edge->nexttoprev);
 
 	// fill in origin
 	VectorCopy (parent->origin, frag->origin);
@@ -1237,8 +1237,8 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, vec_t s, vec_t t,
 	info->head->flippedangle = 0.0;
 	info->head->noseam = true;
 
-	MatrixForScale (vec3_origin, 1.0, info->head->coordtomycoord);
-	MatrixForScale (vec3_origin, 1.0, info->head->mycoordtocoord);
+	info->head->coordtomycoord = MatrixForScale(vec3_origin, 1.0);
+	info->head->mycoordtocoord = MatrixForScale(vec3_origin, 1.0);
 
 	info->head->origin[0] = s;
 	info->head->origin[1] = t;

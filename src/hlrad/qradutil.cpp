@@ -280,18 +280,16 @@ void ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal,
 	out_dist = - (DotProduct (in_normal, m_inverse.v[3]) - in_dist);
 }
 
-void MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right, matrix_t &m)
+matrix_t MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexcept {
 	// The following two processes are equivalent:
-	//  1) ApplyMatrix (m1, v_in, v_temp), ApplyMatrix (m2, v_temp, v_out);
-	//  2) MultiplyMatrix (m2, m1, m), ApplyMatrix (m, v_in, v_out);
-{
-	int i, j;
-	const vec_t lastrow[4] = {0, 0, 0, 1};
-	
+	//  A) v_temp = ApplyMatrix(m1, v_in); v_out = ApplyMatrix(m2, v_temp, v_temp);
+	//  B) v_temp = MultiplyMatrix(m2, m1); v_out = ApplyMatrix(v_temp, v_in);
+
+	matrix_t m;
+	const std::array<vec_t, 4> lastrow = {0, 0, 0, 1};
 	hlassume (&m != &m_left && &m != &m_right, assume_first);
-	for (i = 0; i < 3; i++)
-	{
-		for (j = 0; j < 4; j++)
+	for (std::size_t i = 0; i < 3; i++){
+		for (std::size_t j = 0; j < 4; j++)
 		{
 			m.v[j][i] = m_left.v[0][i] * m_right.v[j][0]
 					  + m_left.v[1][i] * m_right.v[j][1]
@@ -299,49 +297,23 @@ void MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right, matrix_t &
 					  + m_left.v[3][i] * lastrow[j];
 		}
 	}
-}
-
-matrix_t MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right)
-{
-	matrix_t m;
-
-	MultiplyMatrix (m_left, m_right, m);
 	return m;
 }
 
-void MatrixForScale (const vec3_t center, vec_t scale, matrix_t &m)
-{
-	int i;
-
-	for (i = 0; i < 3; i++)
-	{
-		VectorClear (m.v[i]);
-		m.v[i][i] = scale;
+matrix_t MatrixForScale(const vec3_array& center, vec_t scale) noexcept {
+	matrix_t result;
+	for (std::size_t i = 0; i < 3; ++i) {
+		VectorClear(result.v[i]);
+		result.v[i][i] = scale;
 	}
-	VectorScale (center, 1 - scale, m.v[3]);
-}
-void MatrixForScale (const vec3_array& center, vec_t scale, matrix_t &m)
-{
-	MatrixForScale(center.data(), scale, m);
-}
-
-matrix_t MatrixForScale (const vec3_t center, vec_t scale)
-{
-	matrix_t m;
-
-	MatrixForScale (center, scale, m);
-	return m;
-}
-matrix_t MatrixForScale (const vec3_array& center, vec_t scale)
-{
-	return MatrixForScale(center.data(), scale);
+	VectorScale(center, 1 - scale, result.v[3]);
+	return result;
 }
 
 
 vec_t CalcMatrixSign (const matrix_t &m)
 {
-	vec3_t v;
-
+	vec3_array v;
 	CrossProduct (m.v[0], m.v[1], v);
 	return DotProduct (v, m.v[2]);
 }
@@ -622,8 +594,7 @@ void FindFacePositions (int facenum)
 	dface_t *f;
 	positionmap_t *map;
 	texinfo_t *ti;
-	vec3_t v;
-	const vec3_t v_up = {0, 0, 1};
+	const vec3_array v_up{0, 0, 1};
 	vec_t density;
 	vec_t texmins[2], texmaxs[2];
 	int imins[2], imaxs[2];
@@ -690,8 +661,9 @@ void FindFacePositions (int facenum)
 		map->valid = false;
 		return;
 	}
+	vec3_array v;
 	VectorSubtract (map->face_centroid, map->face_offset, v);
-	ApplyMatrix (map->worldtotex, v, map->texcentroid);
+	ApplyMatrix (map->worldtotex, v.data(), map->texcentroid);
 	map->texcentroid[2] = 0.0;
 
 	for (x = 0; x < map->texwinding->size(); x++)
@@ -813,20 +785,18 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 							, bool *nudged
 							)
 {
-	positionmap_t *map;
 	int x;
 	int itmin, itmax, ismin, ismax;
-	const vec3_t v_s = {1, 0, 0};
-	const vec3_t v_t = {0, 1, 0};
+	const vec3_array v_s{1, 0, 0};
+	const vec3_array v_t{0, 1, 0};
 	int is;
 	int it;
-	vec3_t v;
 	bool found;
 	int best_is;
 	int best_it;
 	vec_t best_dist;
 
-	map = &g_face_positions[facenum];
+	const positionmap_t* map = &g_face_positions[facenum];
 	if (!map->valid)
 	{
 		return false;
@@ -851,21 +821,15 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 		{
 			for (is = ismin; is <= ismax; is++)
 			{
-				position_t *p;
-				vec3_t current_st;
-				vec_t d;
-
-				p = &map->grid[is + map->w * it];
-				if (!p->valid)
-				{
+				const position_t *p = &map->grid[is + map->w * it];
+				if (!p->valid) {
 					continue;
 				}
-				current_st[0] = p->best_s;
-				current_st[1] = p->best_t;
-				current_st[2] = 0.0;
+				const vec3_array current_st{p->best_s, p->best_t, 0};
 
+				vec3_array v;
 				VectorSubtract (current_st, original_st, v);
-				d = VectorLength (v);
+				const vec_t d = VectorLength (v);
 
 				if (!found || 
 					!p->nudged && best_nudged ||
@@ -922,21 +886,14 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 	{
 		for (is = ismin; is <= ismax; is++)
 		{
-			position_t *p;
-			vec3_t current_st;
-			vec_t d;
-
-			p = &map->grid[is + map->w * it];
-			if (!p->valid)
-			{
+			const position_t *p = &map->grid[is + map->w * it];
+			if (!p->valid) {
 				continue;
 			}
-			current_st[0] = p->best_s;
-			current_st[1] = p->best_t;
-			current_st[2] = 0.0;
-
+			const vec3_array current_st{p->best_s, p->best_t, 0};
+			vec3_array v;
 			VectorSubtract (current_st, original_st, v);
-			d = VectorLength (v);
+			const vec_t d = VectorLength (v);
 
 			if (!found || d < best_dist - ON_EPSILON)
 			{
@@ -950,9 +907,7 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 
 	if (found)
 	{
-		position_t *p;
-
-		p = &map->grid[best_is + map->w * best_it];
+		const position_t *p = &map->grid[best_is + map->w * best_it];
 		VectorCopy (p->pos, pos);
 		*best_s = p->best_s;
 		*best_t = p->best_t;

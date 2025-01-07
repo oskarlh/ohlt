@@ -67,7 +67,7 @@ unsigned        g_numbounce = DEFAULT_BOUNCE;              // 3; /* Originally t
 
 static bool     g_dumppatches = DEFAULT_DUMPPATCHES;
 
-vec3_t          g_ambient = { DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
+vec3_array g_ambient{ DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
 vec_t			g_limitthreshold = DEFAULT_LIMITTHRESHOLD;
 bool			g_drawoverload = false;
 
@@ -223,7 +223,6 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // ambient(string) : "Ambient world light (0.0 to 1.0, R G B)" : "0 0 0" 
-    //vec3_t          g_ambient = { DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
     pszTmp = (const char*) ValueForKey(mapent, u8"ambient");
     if (pszTmp)
     {
@@ -399,9 +398,9 @@ static void     MakeParents(const int nodenum, const int parent)
 
 // misc
 struct texlight_t {
-    wad_texture_name name;
-    vec3_t value;
-    const char* filename; //either info_texlights or lights.rad filename
+    wad_texture_name name{};
+    vec3_array value{};
+    const char* filename{nullptr}; // Either info_texlights or lights.rad filename
 };
 
 static std::vector< texlight_t > s_texlights;
@@ -508,21 +507,16 @@ static void     ReadLightFile(const char* const filename)
 	Log("%u texlights parsed (%s)\n", file_texlights, filename); //readded //seedee
 }
 
-// =====================================================================================
-//  LightForTexture
-// =====================================================================================
-static void     LightForTexture(wad_texture_name name, vec3_t result)
-{
-    texlight_i it;
-    for (it = s_texlights.begin(); it != s_texlights.end(); it++)
-    {
+static vec3_array LightForTexture(wad_texture_name name) {
+    for (texlight_i it = s_texlights.begin(); it != s_texlights.end(); it++) {
         if (name == it->name)
         {
+			vec3_array result{};
             VectorCopy(it->value, result);
-            return;
+			return result;
         }
     }
-    VectorClear(result);
+	return vec3_array{};
 }
 
 
@@ -532,10 +526,7 @@ static void     LightForTexture(wad_texture_name name, vec3_t result)
 //
 // =====================================================================================
 
-// =====================================================================================
-//  BaseLightForFace
-// =====================================================================================
-static void     BaseLightForFace(const dface_t* const f, vec3_t light)
+static vec3_array BaseLightForFace(const dface_t* const f)
 {
 	int fn = f - g_dfaces.data();
 	if (g_face_texlights[fn])
@@ -562,10 +553,11 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
 			r = g = b = 0;
 			break;
 		}
+		vec3_array light{};
 		light[0] = r > 0? r: 0;
 		light[1] = g > 0? g: 0;
 		light[2] = b > 0? b: 0;
-		return;
+		return light;
 	}
     texinfo_t*      tx;
     miptex_t*       mt;
@@ -579,7 +571,7 @@ static void     BaseLightForFace(const dface_t* const f, vec3_t light)
     ofs = ((dmiptexlump_t*)g_dtexdata.data())->dataofs[tx->miptex];
     mt = (miptex_t*)((byte*) g_dtexdata.data() + ofs);
 
-    LightForTexture(mt->name, light);
+	return LightForTexture(mt->name);
 }
 
 // =====================================================================================
@@ -1256,192 +1248,190 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
     const dface_t*  f = &g_dfaces[fn];
 
     // No g_patches at all for the sky!
-    if (!IsSpecial(f))
+    if (IsSpecial(f))
     {
-		if (g_face_texlights[fn])
+		return;
+	}
+	if (g_face_texlights[fn])
+	{
+		style = IntForKey (g_face_texlights[fn], u8"style");
+		if (style < 0)
+			style = -style;
+		style = (unsigned char)style;
+		if (style >= ALLSTYLES)
 		{
-			style = IntForKey (g_face_texlights[fn], u8"style");
-			if (style < 0)
-				style = -style;
-			style = (unsigned char)style;
-			if (style >= ALLSTYLES)
+			Error ("invalid light style: style (%d) >= ALLSTYLES (%d)", style, ALLSTYLES);
+		}
+	}
+	patch_t*        patch;
+	int             numpoints = w->size();
+
+	if (numpoints < 3)                                 // WTF! (Actually happens in real-world maps too)
+	{
+		Developer(DEVELOPER_LEVEL_WARNING, "Face %d only has %d points on winding\n", fn, numpoints);
+		return;
+	}
+	if (numpoints > MAX_POINTS_ON_WINDING)
+	{
+		Error("numpoints %d > MAX_POINTS_ON_WINDING", numpoints);
+		return;
+	}
+
+	patch = &g_patches[g_num_patches];
+	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
+	memset(patch, 0, sizeof(patch_t));
+
+	patch->winding = w;
+
+	patch->area = patch->winding->getArea();
+	patch->origin = patch->winding->getCenter();
+	patch->faceNumber = fn;
+
+	totalarea += patch->area;
+
+
+	patch->baselight = BaseLightForFace(f);
+
+	patch->emitstyle = style;
+
+	VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
+	if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
+	{
+		vec3_array texturereflectivity;
+		vec3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
+		for (int k = 0; k < 3; k++)
+		{
+			texturecolor[k] = floor (texturecolor[k] + 0.001);
+		}
+		if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
+		{
+			const vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
+			Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
+		}
+		VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
+		for (int k = 0; k < 3; k++)
+		{
+			texturereflectivity[k] = pow (texturereflectivity[k], g_texreflectgamma);
+		}
+		VectorScale (texturereflectivity, g_texreflectscale, texturereflectivity);
+		if (VectorMaximum (texturereflectivity) > 1.0 + NORMAL_EPSILON)
+		{
+			Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", g_textures[g_texinfo[f->texinfo].miptex].name.c_str(), texturereflectivity[0], texturereflectivity[1], texturereflectivity[2]);
+		}
+		VectorCopy (texturereflectivity, patch->texturereflectivity);
+	}
+	{
+		vec_t opacity = 0.0;
+		if (g_face_entity[fn] == g_entities.data())
+		{
+			opacity = 1.0;
+		}
+		else
+		{
+			int x;
+			for (x = 0; x < g_opaque_face_list.size(); x++)
 			{
-				Error ("invalid light style: style (%d) >= ALLSTYLES (%d)", style, ALLSTYLES);
+				opaqueList_t *op = &g_opaque_face_list[x];
+				if (&g_entities[op->entitynum] == g_face_entity[fn])
+				{
+					opacity = 1.0;
+					if (op->transparency)
+					{
+						opacity = 1.0 - VectorAvg (op->transparency_scale);
+						opacity = opacity > 1.0? 1.0: opacity < 0.0? 0.0: opacity;
+					}
+					if (op->style != -1)
+					{ // toggleable opaque entity
+						if (bouncestyle == -1)
+						{ // by default
+							opacity = 0.0; // doesn't reflect light
+						}
+					}
+					break;
+				}
+			}
+			if (x == g_opaque_face_list.size())
+			{ // not opaque
+				if (bouncestyle != -1)
+				{ // with light_bounce
+					opacity = 1.0; // reflects light
+				}
 			}
 		}
-        patch_t*        patch;
-        vec3_t          light;
-        vec3_t          centroid = { 0, 0, 0 };
+		VectorScale (patch->texturereflectivity, opacity, patch->bouncereflectivity);
+	}
+	patch->bouncestyle = bouncestyle;
+	if (bouncestyle == 0)
+	{ // there is an unnamed light_bounce
+		patch->bouncestyle = -1; // reflects light normally
+	}
+	patch->emitmode = getEmitMode (patch);
+	patch->scale = getScale(patch);
+	patch->chop = getChop(patch);
+	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], patch->translucent_v);
+	patch->translucent_b = !VectorCompare (patch->translucent_v, vec3_origin);
+	PlacePatchInside(patch);
+	UpdateEmitterInfo (patch);
 
-        int             numpoints = w->size();
+	g_face_patches[fn] = patch;
+	g_num_patches++;
 
-        if (numpoints < 3)                                 // WTF! (Actually happens in real-world maps too)
-        {
-            Developer(DEVELOPER_LEVEL_WARNING, "Face %d only has %d points on winding\n", fn, numpoints);
-            return;
-        }
-        if (numpoints > MAX_POINTS_ON_WINDING)
-        {
-            Error("numpoints %d > MAX_POINTS_ON_WINDING", numpoints);
-            return;
-        }
+	vec3_array centroid{};
 
-        patch = &g_patches[g_num_patches];
-        hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
-        memset(patch, 0, sizeof(patch_t));
+	// Per-face data
+	{
+		int             j;
 
-        patch->winding = w;
-
-        patch->area = patch->winding->getArea();
-        patch->origin = patch->winding->getCenter();
-        patch->faceNumber = fn;
-
-        totalarea += patch->area;
-
-
-        BaseLightForFace(f, light);
-        //LRC        VectorCopy(light, patch->totallight);
-        VectorCopy(light, patch->baselight);
-
-		patch->emitstyle = style;
-
-		VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
-		if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
+		// Centroid of face for nudging samples in direct lighting pass
+		for (j = 0; j < f->numedges; j++)
 		{
-			vec3_array texturereflectivity;
-			vec3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
-			for (int k = 0; k < 3; k++)
+			int             edge = g_dsurfedges[f->firstedge + j];
+
+			if (edge > 0)
 			{
-				texturecolor[k] = floor (texturecolor[k] + 0.001);
-			}
-			if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
-			{
-				const vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
-				Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
-			}
-			VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
-			for (int k = 0; k < 3; k++)
-			{
-				texturereflectivity[k] = pow (texturereflectivity[k], g_texreflectgamma);
-			}
-			VectorScale (texturereflectivity, g_texreflectscale, texturereflectivity);
-			if (VectorMaximum (texturereflectivity) > 1.0 + NORMAL_EPSILON)
-			{
-				Warning ("Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.", g_textures[g_texinfo[f->texinfo].miptex].name.c_str(), texturereflectivity[0], texturereflectivity[1], texturereflectivity[2]);
-			}
-			VectorCopy (texturereflectivity, patch->texturereflectivity);
-		}
-		{
-			vec_t opacity = 0.0;
-			if (g_face_entity[fn] == g_entities.data())
-			{
-				opacity = 1.0;
+				VectorAdd(g_dvertexes[g_dedges[edge].v[0]].point, centroid, centroid);
+				VectorAdd(g_dvertexes[g_dedges[edge].v[1]].point, centroid, centroid);
 			}
 			else
 			{
-				int x;
-				for (x = 0; x < g_opaque_face_list.size(); x++)
+				VectorAdd(g_dvertexes[g_dedges[-edge].v[1]].point, centroid, centroid);
+				VectorAdd(g_dvertexes[g_dedges[-edge].v[0]].point, centroid, centroid);
+			}
+		}
+
+		// Fixup centroid for anything with an altered origin (rotating models/turrets mostly)
+		// Save them for moving direct lighting points towards the face center
+		VectorScale(centroid, 1.0 / (f->numedges * 2), centroid);
+		VectorAdd(centroid, g_face_offset[fn], g_face_centroids[fn]);
+	}
+
+	{
+		if (g_subdivide)
+		{
+			vec_t           amt;
+			vec_t           length;
+			vec3_array          delta;
+
+			bounding_box bounds = patch->winding->getBounds();
+			VectorSubtract(bounds.maxs, bounds.mins, delta);
+			length = VectorLength(delta);
+			amt = patch->chop;
+
+			if (length > amt)
+			{
+				if (patch->area < 1.0)
 				{
-					opaqueList_t *op = &g_opaque_face_list[x];
-					if (&g_entities[op->entitynum] == g_face_entity[fn])
-					{
-						opacity = 1.0;
-						if (op->transparency)
-						{
-							opacity = 1.0 - VectorAvg (op->transparency_scale);
-							opacity = opacity > 1.0? 1.0: opacity < 0.0? 0.0: opacity;
-						}
-						if (op->style != -1)
-						{ // toggleable opaque entity
-							if (bouncestyle == -1)
-							{ // by default
-								opacity = 0.0; // doesn't reflect light
-							}
-						}
-						break;
-					}
+					Developer(DEVELOPER_LEVEL_WARNING,
+								"Patch at (%4.3f %4.3f %4.3f) (face %d) tiny area (%4.3f) not subdividing \n",
+								patch->origin[0], patch->origin[1], patch->origin[2], patch->faceNumber, patch->area);
 				}
-				if (x == g_opaque_face_list.size())
-				{ // not opaque
-					if (bouncestyle != -1)
-					{ // with light_bounce
-						opacity = 1.0; // reflects light
-					}
+				else
+				{
+					SubdividePatch(patch);
 				}
 			}
-			VectorScale (patch->texturereflectivity, opacity, patch->bouncereflectivity);
 		}
-		patch->bouncestyle = bouncestyle;
-		if (bouncestyle == 0)
-		{ // there is an unnamed light_bounce
-			patch->bouncestyle = -1; // reflects light normally
-		}
-		patch->emitmode = getEmitMode (patch);
-        patch->scale = getScale(patch);
-        patch->chop = getChop(patch);
-		VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], patch->translucent_v);
-		patch->translucent_b = !VectorCompare (patch->translucent_v, vec3_origin);
-        PlacePatchInside(patch);
-		UpdateEmitterInfo (patch);
-
-        g_face_patches[fn] = patch;
-        g_num_patches++;
-
-        // Per-face data
-        {
-            int             j;
-
-            // Centroid of face for nudging samples in direct lighting pass
-            for (j = 0; j < f->numedges; j++)
-            {
-                int             edge = g_dsurfedges[f->firstedge + j];
-
-                if (edge > 0)
-                {
-                    VectorAdd(g_dvertexes[g_dedges[edge].v[0]].point, centroid, centroid);
-                    VectorAdd(g_dvertexes[g_dedges[edge].v[1]].point, centroid, centroid);
-                }
-                else
-                {
-                    VectorAdd(g_dvertexes[g_dedges[-edge].v[1]].point, centroid, centroid);
-                    VectorAdd(g_dvertexes[g_dedges[-edge].v[0]].point, centroid, centroid);
-                }
-            }
-
-            // Fixup centroid for anything with an altered origin (rotating models/turrets mostly)
-            // Save them for moving direct lighting points towards the face center
-            VectorScale(centroid, 1.0 / (f->numedges * 2), centroid);
-            VectorAdd(centroid, g_face_offset[fn], g_face_centroids[fn]);
-        }
-
-        {
-            if (g_subdivide)
-            {
-                vec_t           amt;
-                vec_t           length;
-                vec3_array          delta;
-
-  			    bounding_box bounds = patch->winding->getBounds();
-                VectorSubtract(bounds.maxs, bounds.mins, delta);
-                length = VectorLength(delta);
-				amt = patch->chop;
-
-                if (length > amt)
-                {
-                    if (patch->area < 1.0)
-                    {
-                        Developer(DEVELOPER_LEVEL_WARNING,
-                                  "Patch at (%4.3f %4.3f %4.3f) (face %d) tiny area (%4.3f) not subdividing \n",
-                                  patch->origin[0], patch->origin[1], patch->origin[2], patch->faceNumber, patch->area);
-                    }
-                    else
-                    {
-                        SubdividePatch(patch);
-                    }
-                }
-            }
-        }
-    }
+	}
 }
 
 // =====================================================================================
@@ -1665,7 +1655,6 @@ static void     MakePatches()
     int             fn;
     Winding*        w;
     dmodel_t*       mod;
-    vec3_t          origin;
     entity_t*       ent;
     vec3_t          light_origin;
     vec3_t          model_center;
@@ -1690,7 +1679,6 @@ static void     MakePatches()
 
         mod = g_dmodels.data() + i;
         ent = EntityForModel(i);
-        VectorCopy(vec3_origin, origin);
 
 		std::u8string_view zhltLightFlagsString = value_for_key(ent, u8"zhlt_lightflags");
         if (!zhltLightFlagsString.empty())
@@ -1698,11 +1686,12 @@ static void     MakePatches()
             lightmode = (eModelLightmodes)atoi((const char*) zhltLightFlagsString.data());
         }
 
+   		vec3_array origin{};
 		std::u8string_view originString = value_for_key(ent, u8"origin");
         // models with origin brushes need to be offset into their in-use position
         if (!originString.empty())
         {
-            double          v1, v2, v3;
+            double v1, v2, v3;
 
             if (sscanf((const char*) originString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
             {

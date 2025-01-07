@@ -8,7 +8,7 @@
 model_t models[MAX_MODELS];
 int num_models;
 
-static void LoadStudioModel( const char *modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, int trace_mode )
+static void LoadStudioModel( const char *modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, trace_method trace_mode )
 {
 	if( num_models >= MAX_MODELS )
 	{
@@ -137,11 +137,13 @@ void LoadStudioModels( void )
 		angles = get_vector_for_key(*e, u8"angles");
 
 		angles[0] = -angles[0]; // Stupid quake bug workaround
-		int trace_mode = SHADOW_NORMAL;	// default mode
+		trace_method trace_mode = trace_method::shadow_normal;	// default mode
 
 		// make sure what field is present
-		if( strcmp( (const char*) ValueForKey( e, u8"zhlt_shadowmode" ), "" ))
-			trace_mode = IntForKey( e, u8"zhlt_shadowmode" );
+		if( strcmp( (const char*) ValueForKey( e, u8"zhlt_shadowmode" ), "" )) {
+			// TODO: Check if it's a valid number
+			trace_mode = trace_method(IntForKey( e, u8"zhlt_shadowmode" ));
+		}
 
 		int body = IntForKey( e, u8"body" );
 		int skin = IntForKey( e, u8"skin" );

@@ -241,7 +241,6 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 {
     int             i;
     vec_t           max, v;
-    vec3_array          org, vright, vup;
 
     // find the major axis               
 
@@ -261,7 +260,7 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
         Error("Winding::initFromPlane no major axis found\n");
     }
 
-    VectorCopy(vec3_origin, vup);
+    vec3_array vup{};
     switch (x) 
     {
     case 0:
@@ -277,8 +276,10 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
     VectorMA(vup, -v, normal, vup);
     VectorNormalize(vup);
 
+    vec3_array org;
     VectorScale(normal, dist, org);
 
+    vec3_array vright;
     CrossProduct(vup, normal, vright);
 
     VectorScale(vup, bogus_range, vup);

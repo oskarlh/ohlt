@@ -147,11 +147,9 @@
 
 constexpr vec_t hlrad_bogus_range = 131072;
 
-typedef struct
-{
+struct matrix_t {
 	vec_t v[4][3];
-}
-matrix_t;
+};
 
 // a 4x4 matrix that represents the following transformation (see the ApplyMatrix function)
 //
@@ -373,7 +371,7 @@ extern void     MakeShadowSplits();
 
 extern bool		g_fastmode;
 extern bool     g_extra;
-extern vec3_t   g_ambient;
+extern vec3_array g_ambient;
 extern vec_t    g_direct_scale;
 extern vec_t	g_limitthreshold;
 extern bool		g_drawoverload;
@@ -507,12 +505,8 @@ extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* p
 extern dleaf_t* HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
 extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array &out);
 extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist);
-extern void		MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right, matrix_t &m);
-extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right);
-extern void		MatrixForScale (const vec3_t center, vec_t scale, matrix_t &m);
-extern void		MatrixForScale (const vec3_array& center, vec_t scale, matrix_t &m);
-extern matrix_t	MatrixForScale (const vec3_t center, vec_t scale);
-extern matrix_t	MatrixForScale (const vec3_array& center, vec_t scale);
+extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexcept;
+extern matrix_t	MatrixForScale (const vec3_array& center, vec_t scale) noexcept;
 extern vec_t	CalcMatrixSign (const matrix_t &m);
 extern void		TranslateWorldToTex (int facenum, matrix_t &m);
 extern bool		InvertMatrix (const matrix_t &m, matrix_t &m_inverse);

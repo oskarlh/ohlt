@@ -216,7 +216,6 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
     int             j;
     face_t*         newf;
     face_t*         new2;
-    vec3_t          mid;
 
     if (in->numpoints < 0)
     {
@@ -338,6 +337,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
         // generate a split point
         const vec3_array& p2 {in->pts[(i + 1) % in->numpoints]};
 
+        vec3_array mid;
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -355,9 +355,9 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
             }
         }
 
-        VectorCopy(mid, newf->pts[newf->numpoints]);
+        newf->pts[newf->numpoints] = mid;
         newf->numpoints++;
-        VectorCopy(mid, new2->pts[new2->numpoints]);
+        new2->pts[new2->numpoints] = mid;
         new2->numpoints++;
     }
 

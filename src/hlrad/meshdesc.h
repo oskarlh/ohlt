@@ -28,10 +28,12 @@ GNU General Public License for more details.
 #define PLANE_NORMAL_EPSILON	0.00001f
 #define PLANE_DIST_EPSILON	0.04f
 
-// compute methods
-#define SHADOW_FAST		0
-#define SHADOW_NORMAL	1
-#define SHADOW_SLOW		2
+// Compute methods
+enum class trace_method : std::uint8_t {
+	shadow_fast,
+	shadow_normal,
+	shadow_slow
+};
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
@@ -90,15 +92,15 @@ typedef struct
 	uint		*indices;		// a indexes into mesh plane pool
 } mfacet_t;
 
-typedef struct
-{
-	int		trace_mode;	// trace method
-	vec3_array		mins, maxs;
-	uint		numfacets;
-	uint		numplanes;
-	mfacet_t		*facets;
-	mplane_t		*planes;		// shared plane pool
-} mmesh_t;
+struct mmesh_t {
+	mfacet_t *facets{nullptr};
+	mplane_t *planes{nullptr}; // Shared plane pool
+	vec3_array mins{};
+	vec3_array maxs{};
+	std::uint32_t numfacets{};
+	std::uint32_t numplanes{};
+	trace_method trace_mode{}; // Trace method
+};
 
 class triset
 {
@@ -165,7 +167,7 @@ public:
 	void ClearLink( link_t *l );
 
 	// AABB tree contsruction
-	areanode_t *CreateAreaNode( int depth, const vec3_t mins, const vec3_t maxs );
+	areanode_t *CreateAreaNode(int depth, const vec3_array& mins, const vec3_array& maxs);
 	void RelinkFacet( mfacet_t *facet );
 	inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : nullptr; }
 
@@ -221,7 +223,7 @@ struct model_t
 	vec3_t		scale;		// scale X-Form
 	int		body;		// sets by level-designer
 	int		skin;		// e.g. various alpha-textures
-	int		trace_mode;	// 0 - ultra fast, 1 - med, 2 - slow
+	trace_method trace_mode;
     
 	void		*extradata;	// model
 	void		*anims;		// studio animations
