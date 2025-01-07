@@ -4294,7 +4294,8 @@ void ReduceLightmap ()
 			f->styles[numstyles] = oldstyles[k];
 			hlassume (g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
 			
-			g_dlightdata.append_range(std::span(&oldlightdata[oldofs + fl->numsamples * 3 * k], fl->numsamples * 3));
+			std::span toAppend{&oldlightdata[oldofs + fl->numsamples * 3 * k], std::size_t(fl->numsamples) * 3zu};
+			g_dlightdata.insert(g_dlightdata.end(), toAppend.begin(), toAppend.end());
 			numstyles++;
 		}
 	}
