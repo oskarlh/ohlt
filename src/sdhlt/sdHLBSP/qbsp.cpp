@@ -1514,7 +1514,7 @@ int             main(const int argc, char** argv)
     double          start, end;
     const char*     mapname_from_arg = nullptr;
 
-    g_Program = "sdHLBSP";
+    g_Program = "HLBSP";
 
 	int argcold = argc;
 	char ** argvold = argv;

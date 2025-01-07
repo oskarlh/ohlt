@@ -374,7 +374,6 @@ struct entity_t {
 };
 
 extern void            ParseEntities();
-extern void            UnparseEntities();
 
 extern void DeleteAllKeys(entity_t* ent);
 extern void            DeleteKey(entity_t* ent, std::u8string_view key);

@@ -3102,7 +3102,7 @@ int             main(const int argc, char** argv)
     const char*     user_lights = nullptr;
 	char temp[_MAX_PATH]; //seedee
 
-    g_Program = "sdHLRAD";
+    g_Program = "HLRAD";
 
 	int argcold = argc;
 	char ** argvold = argv;

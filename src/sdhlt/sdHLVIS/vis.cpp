@@ -976,7 +976,7 @@ int             main(const int argc, char** argv)
     double          start, end;
     std::u8string_view mapname_from_arg;
 
-    g_Program = "sdHLVIS";
+    g_Program = "HLVIS";
 
 	int argcold = argc;
 	char ** argvold = argv;

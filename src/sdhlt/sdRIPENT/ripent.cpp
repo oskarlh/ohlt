@@ -842,11 +842,10 @@ static void     Settings()
  * main
  * ============
  */
-int             main(int argc, char** argv)
-{
-    double          start, end;
+int main(int argc, char** argv) {
+    double start, end;
 
-    g_Program = "sdRIPENT";
+    g_Program = "RIPENT";
 
 	int argcold = argc;
 	char ** argvold = argv;

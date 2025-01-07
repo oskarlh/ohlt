@@ -83,9 +83,6 @@
 #endif
 
 #ifdef <hlcsg>                // CSG
-  #ifndef -wadautodetect
-    #define -wadautodetect
-  #endif
 #endif
 
 #ifdef <hlbsp>                // BSP
@@ -95,9 +92,6 @@
 #endif
 
 #ifdef <hlvis>                // VIS
-  #ifndef -full
-  //#define -full
-  #endif
 #endif
 
 #ifdef <hlrad>                // RAD

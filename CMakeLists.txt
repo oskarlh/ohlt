@@ -1,6 +1,3 @@
-#================================
-# SDHLT
-#================================
 
 cmake_minimum_required(VERSION 3.31)
 
@@ -18,11 +15,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tools)
 #================
 # Configuration
 #================
-
-set(SDHLT_PREFIX "sd" CACHE STRING "Executable prefix.")
-set(SDHLT_GAME_PREFIX "HL" CACHE STRING "Executable game prefix.")
-
-message("${CMAKE_PROJECT_NAME} > Tools will use prefix \"${SDHLT_PREFIX}${SDHLT_GAME_PREFIX}\"")
 
 set(SDHLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
 
@@ -286,25 +278,23 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # Targets
 #================
 
-add_executable(BSP ${BSP_SOURCES} ${BSP_HEADERS})
-add_executable(CSG ${CSG_SOURCES} ${CSG_HEADERS})
-add_executable(RAD ${RAD_SOURCES} ${RAD_HEADERS})
-add_executable(VIS ${VIS_SOURCES} ${VIS_HEADERS})
-add_executable(RIPENT ${RIPENT_SOURCES} ${RIPENT_HEADERS})
+add_executable(hlbsp ${BSP_SOURCES} ${BSP_HEADERS})
+add_executable(hlcsg ${CSG_SOURCES} ${CSG_HEADERS})
+add_executable(hlrad ${RAD_SOURCES} ${RAD_HEADERS})
+add_executable(hlvis ${VIS_SOURCES} ${VIS_HEADERS})
+add_executable(ripent ${RIPENT_SOURCES} ${RIPENT_HEADERS})
 
-set_target_properties(BSP CSG RAD VIS
+set_target_properties(hlbsp hlcsg hlrad hlvis
     PROPERTIES
-        PREFIX ${SDHLT_PREFIX}${SDHLT_GAME_PREFIX}
         CXX_STANDARD 26
 )
-set_target_properties(RIPENT
+set_target_properties(ripent
     PROPERTIES
-        PREFIX ${SDHLT_PREFIX}
         CXX_STANDARD 26
 )
 
-target_compile_definitions(BSP PRIVATE SDHLBSP DOUBLEVEC_T)
-target_compile_definitions(CSG PRIVATE SDHLCSG DOUBLEVEC_T)
-target_compile_definitions(RAD PRIVATE SDHLRAD)
-target_compile_definitions(VIS PRIVATE SDHLVIS)
-target_compile_definitions(RIPENT PRIVATE SDRIPENT)
+target_compile_definitions(hlbsp PRIVATE SDHLBSP DOUBLEVEC_T)
+target_compile_definitions(hlcsg PRIVATE SDHLCSG DOUBLEVEC_T)
+target_compile_definitions(hlrad PRIVATE SDHLRAD)
+target_compile_definitions(hlvis PRIVATE SDHLVIS)
+target_compile_definitions(ripent PRIVATE SDRIPENT)

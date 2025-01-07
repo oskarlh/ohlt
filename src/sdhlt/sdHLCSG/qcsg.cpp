@@ -20,6 +20,7 @@
 #endif
 #include "cli_option_defaults.h"
 #include "filelib.h"
+#include <numbers>
 #include "utf8.h"
 
 #include <string_view>
@@ -402,35 +403,25 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 			backcontents = CONTENTS_EMPTY;
 		}
 
-		bool frontnull, backnull;
-		frontnull = false;
-		backnull = false;
+        bool backnull = false;
+		bool frontnull = false;
 		if (mirrorcontents == CONTENTS_TOEMPTY)
 		{
-            if (!texname.is_skip() &&
-                !texname.is_any_hint()
-                )
-				// SKIP and HINT are special textures for hlbsp
-			{
-				backnull = true;
-			}
+            // SKIP and HINT are special textures for hlbsp so they should be kept
+            const bool specialTextureForHlbsp = texname.is_skip() || texname.is_any_hint();
+            backnull = !specialTextureForHlbsp;
 		}
-        if (texname.is_solid_hint() || texname.is_bevel_hint())
-		{
-			if (frontcontents != backcontents)
-			{
-				frontnull = backnull = true; // not discardable, so remove "SOLIDHINT" texture name and behave like NULL
-			}
+        if (texname.marks_discardable_faces() && frontcontents != backcontents) {
+            // NOT actually discardable, so remove BEVELHINT/SOLIDHINT texture name and behave like NULL
+            frontnull = backnull = true;
 		}
-		if (b.entitynum != 0 && texname.is_any_liquid())
-		{
+		if (b.entitynum != 0 && texname.is_any_liquid()) {
 			backnull = true; // strip water face on one side
 		}
 
 		f->contents = frontcontents;
 		f->texinfo = frontnull? -1: texinfo;
-        if (f->w->getArea() < g_tiny_threshold)
-        {
+        if (f->w->getArea() < g_tiny_threshold) {
             c_tiny++;
             Verbose("Entity %i, Brush %i: tiny fragment\n", 
 				b.originalentitynum, b.originalbrushnum
@@ -439,14 +430,10 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
         }
 
         // count unique faces
-        if (!hull)
-        {
-            for (f2 = b.hulls[hull].faces; f2; f2 = f2->next)
-            {
-                if (f2->planenum == f->planenum)
-                {
-                    if (!f2->used)
-                    {
+        if (!hull) {
+            for (f2 = b.hulls[hull].faces; f2; f2 = f2->next) {
+                if (f2->planenum == f->planenum) {
+                    if (!f2->used) {
                         f2->used = true;
                         c_outfaces++;
                     }
@@ -1118,6 +1105,199 @@ static void     SetLightStyles()
 
 }
 
+static float3_array angles_for_vector(const float3_array& vector) {
+	float z = vector[2], r = std::hypot(vector[0], vector[1]);
+	float hyp = std::hypot(z, r);
+	float3_array angles{};
+	if (hyp >= NORMAL_EPSILON) {
+		z /= hyp, r /= hyp;
+		if (r < NORMAL_EPSILON) {
+			if (z < 0) {
+				angles[0] = -90, angles[1] = 0;
+			} else {
+				angles[0] = 90, angles[1] = 0;
+			}
+		} else {
+			angles[0] = std::atan(z / r) / std::numbers::pi_v<float> * 180;
+			float x = vector[0], y = vector[1];
+			hyp = std::hypot(x, y);
+			x /= hyp, y /= hyp;
+			if (x < -1 + NORMAL_EPSILON) {
+				angles[1] = -180;
+			} else if (y >= 0) {
+				angles[1] = 2 * std::atan (y / (1+x)) / std::numbers::pi_v<float> * 180;
+			} else {
+				angles[1] = 2 * std::atan (y / (1+x)) / std::numbers::pi_v<float> * 180 + 360;
+			}
+		}
+	}
+	return angles;
+}
+
+static void UnparseEntities()
+{
+    char8_t* buf;
+    char8_t* end;
+    epair_t* ep;
+    char line[MAXTOKEN];
+    int i;
+
+    buf = g_dentdata.data();
+    end = buf;
+    *end = 0;
+
+	for (i = 0; i < g_numentities; i++)
+	{
+		entity_t *mapent = &g_entities[i];
+		if (
+			classname_is(mapent, u8"info_sunlight") ||
+			classname_is(mapent, u8"light_environment"))
+		{
+			float3_array vec{};
+			{
+				vec = get_float_vector_for_key(*mapent, u8"angles");
+				float pitch = FloatForKey(mapent, u8"pitch");
+				if (pitch) {
+					vec[0] = pitch;
+				}
+
+				std::u8string_view target = value_for_key (mapent, u8"target");
+				if (!target.empty()) {
+					std::optional<std::reference_wrapper<entity_t>> maybeTargetEnt = find_target_entity(target);
+					if (maybeTargetEnt) {
+						float3_array originA = get_float_vector_for_key(*mapent, u8"origin");
+						float3_array originB = get_float_vector_for_key(maybeTargetEnt.value().get(), u8"origin");
+						float3_array normal;
+						VectorSubtract(originB, originA, normal);
+						vec = angles_for_vector(normal);
+					}
+				}
+			}
+			char stmp[1024];
+			safe_snprintf(stmp, 1024, "%g %g %g", vec[0], vec[1], vec[2]);
+			SetKeyValue(mapent, u8"angles", (const char8_t*) stmp);
+			DeleteKey(mapent, u8"pitch");
+
+			if (!strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_sunlight"))
+			{
+				if (g_numentities == MAX_MAP_ENTITIES)
+				{
+					Error("g_numentities == MAX_MAP_ENTITIES");
+				}
+				entity_t *newent = &g_entities[g_numentities++];
+				newent->epairs = mapent->epairs;
+				SetKeyValue (newent, u8"classname",u8"light_environment");
+				SetKeyValue (newent, u8"_fake", u8"1");
+				mapent->epairs = nullptr;
+			}
+		}
+	}
+    for (i = 0; i < g_numentities; i++)
+	{
+		entity_t *mapent = &g_entities[i];
+		if (classname_is(mapent, u8"light_shadow")
+			|| classname_is(mapent, u8"light_bounce")
+		) {
+			SetKeyValue (mapent, u8"convertfrom", ValueForKey (mapent, u8"classname"));
+			SetKeyValue (mapent, u8"classname", (*ValueForKey (mapent, u8"convertto")? ValueForKey (mapent, u8"convertto"): u8"light"));
+			DeleteKey (mapent, u8"convertto");
+		}
+	}
+	// ugly code
+	for (i = 0; i < g_numentities; i++)
+	{
+		entity_t *mapent = &g_entities[i];
+		if (classname_is(mapent, u8"light_surface"))
+		{
+			if (key_value_is_empty(mapent, u8"_tex"))
+			{
+				SetKeyValue (mapent, u8"_tex", u8"                ");
+			}
+			std::u8string_view newclassname = value_for_key (mapent, u8"convertto");
+			if (newclassname.empty())
+			{
+				SetKeyValue (mapent, u8"classname", u8"light");
+			}
+			else if (!newclassname.starts_with(u8"light"))
+			{
+				Error ("New classname for 'light_surface' should begin with 'light' not '%s'.\n", (const char*) newclassname.data());
+			}
+			else
+			{
+				SetKeyValue (mapent, u8"classname", newclassname);
+			}
+			DeleteKey (mapent, u8"convertto");
+		}
+	}
+	if (!g_nolightopt)
+	{
+		int i, j;
+		int count = 0;
+		bool *lightneedcompare = (bool *)malloc (g_numentities * sizeof (bool));
+		hlassume (lightneedcompare != nullptr, assume_NoMemory);
+		memset (lightneedcompare, 0, g_numentities * sizeof(bool));
+		for (i = g_numentities - 1; i > -1; i--)
+		{
+			entity_t *ent = &g_entities[i];
+			const char8_t *classname = ValueForKey (ent, u8"classname");
+			const char8_t *targetname = ValueForKey (ent, u8"targetname");
+			int style = IntForKey (ent, u8"style");
+			if (!targetname[0] || strcmp ((const char*) classname, "light") && strcmp ((const char*) classname, "light_spot") && strcmp ((const char*) classname, "light_environment"))
+				continue;
+			for (j = i + 1; j < g_numentities; j++)
+			{
+				if (!lightneedcompare[j])
+					continue;
+				entity_t *ent2 = &g_entities[j];
+				const char8_t *targetname2 = ValueForKey (ent2, u8"targetname");
+				int style2 = IntForKey (ent2, u8"style");
+				if (style == style2 && !strcmp ((const char*) targetname, (const char*) targetname2))
+					break;
+			}
+			if (j < g_numentities)
+			{
+				DeleteKey (ent, u8"targetname");
+				count++;
+			}
+			else
+			{
+				lightneedcompare[i] = true;
+			}
+		}
+		if (count > 0)
+		{
+			Log ("%d redundant named lights optimized.\n", count);
+		}
+		free (lightneedcompare);
+	}
+    for (i = 0; i < g_numentities; i++)
+    {
+        ep = g_entities[i].epairs;
+        if (!ep) {
+            // Ent got removed
+            continue;
+        }
+
+        strcat((char*) end, (const char*) "{\n");
+        end += 2;
+
+        for (ep = g_entities[i].epairs; ep; ep = ep->next)
+        {
+            snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", (const char*) ep->key.c_str(), (const char*) ep->value.c_str());
+            strcat((char*) end, line);
+            end += strlen(line);
+        }
+        strcat((char*) end, (const char*) u8"}\n");
+        end += 2;
+
+        if (end > buf + MAX_MAP_ENTSTRING)
+        {
+            Error("Entity text too long");
+        }
+    }
+    g_entdatasize = end - buf + 1;
+}
+
 // =====================================================================================
 //  ConvertHintToEmtpy
 // =====================================================================================
@@ -1618,7 +1798,7 @@ int             main(const int argc, char** argv)
     double          start, end;                 // start/end time log
     const char*     mapname_from_arg = nullptr;    // mapname path from passed argvar
 
-    g_Program = "sdHLCSG";
+    g_Program = "HLCSG";
 
 	int argcold = argc;
 	char ** argvold = argv;
