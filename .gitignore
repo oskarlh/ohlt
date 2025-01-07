@@ -1,93 +1,23 @@
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
 # =========================
 # Operating System Files
 # =========================
 
 # OSX
-# =========================
-
 .DS_Store
 .AppleDouble
 .LSOverride
 
-# Thumbnails
-._*
+# Windows
+Thumbs.db
+Desktop.ini
 
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
+# Mac shortcuts
+* alias
 
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
+# Windows shortcuts
+*.lnk
 
-*.obj
-*.exe
-*.tlog
-*.pdb
-*.mdl
-*.sdf
-*.opendb
-*.db
-*.suo
-*.log
-*.idb
-*.ilk
-*.user
-*.bmp
-*.iobj
-*.ipdb
-*.ipch
-*.res
-*.exp
-*.lastcodeanalysissucceeded
-*.nativecodeanalysis.all.xml
-*.nativecodeanalysis.xml
-*.aps
-*.bsc
-*.sbr
-*.db-wal
-*db-shm
 
-/src/hlbsp/Release/
-/src/hlbsp/Release_x64/
-
-/src/hlcsg/Release/
-/src/hlcsg/Release_x64/
-
-/src/hlrad/Release/
-/src/hlrad/Release_x64/
-
-/src/hlvis/Release/
-/src/hlvis/Release_x64/
-
-/src/ripent/Release/
-/src/ripent/Release_x64/
 
 /build/
 /tools/*

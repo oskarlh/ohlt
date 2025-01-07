@@ -17,11 +17,9 @@ cmake --build --preset=release-build
 ## How to install
 
 1. Open the configuration dialog of your map editor or batch compiler.
-2. Set CSG, BSP, VIS, RAD tool paths to *hlcsg.exe*, *hlbsp.exe*, *hlvis.exe*, *hlrad.exe*, use the *_x64.exe* editions if running on 64-bit.  
+2. Set CSG, BSP, VIS, RAD tool paths to *hlcsg.exe*, *hlbsp.exe*, *hlvis.exe*, and *hlrad.exe*.
 3. Add *hlt.wad* to your WAD list. This is required to compile maps.
 4. Add *hlt.fgd* to your FGD list.
-
-The main benefit of the 64-bit version is no memory allocation failures, because the 64-bit tools have access to more than 2GB of system memory.
 
 ## Features
 

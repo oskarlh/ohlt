@@ -9,24 +9,17 @@ const char* const internalerror = "The compiler tool had an internal error";
 const char* const maperror      = "The map has a problem which must be fixed";
 
 // Common explanations
-#define contact contactvluzacn //"contact zoner@gearboxsoftware.com immidiately"
 const char* const selfexplanitory = "self explanitory";
 const char* const reference       = "Check the file http://www.zhlt.info/common-mapping-problems.html for a detailed explanation of this problem";
 const char* const simplify        = "The map is too complex for the game engine/compile tools to handle.  Simplify";
-const char* const contactmerl     = "contact amckern@yahoo.com concerning this issue.";
-const char* const contactvluzacn  = "contact vluzacn@163.com concerning this issue.";
+const char* const contact = "If you think this error is not caused by mapper error, you can file an issue at " PROJECT_ISSUE_TRACKER;
 
 static const MessageTable_t assumes[assume_last] = {
     {"invalid assume message", "This is a message should never be printed.", contact},
 
     // generic
     {"Memory allocation failure", "The program failled to allocate a block of memory.",
-	#ifdef HLRAD
-	 sizeof (intptr_t) <= 4? "The map is too complex for the compile tools to handle. Switch to the 64-bit version of hlrad if possible." :
-     "Likely causes are (in order of likeliness) : the partition holding the swapfile is full; swapfile size is smaller than required; memory fragmentation; heap corruption"
-	#else
-	 contact
-	#endif
+	 "Likely causes are (in order of likeliness) : the partition holding the swapfile is full; swapfile size is smaller than required; memory fragmentation; heap corruption"
 	},
     {"NULL Pointer", internalerror, contact},
     {"Bad Thread Workcount", internalerror, contact},
