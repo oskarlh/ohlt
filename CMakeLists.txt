@@ -16,7 +16,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tools)
 # Configuration
 #================
 
-set(HLT_DIR ${CMAKE_SOURCE_DIR}/src/sdhlt)
+set(HLT_DIR ${CMAKE_SOURCE_DIR}/src)
 
 #================
 # Common

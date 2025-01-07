@@ -1,8 +1,7 @@
 # Oskar's Half-Life Tools
+<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various contributors. Based on Valve's compile tools, modified with permission.</sub>
 
 ![Banner](media/banner.webp)
-
-<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various contributors. Based on Valve's compile tools, modified with permission.</sub>
 
 New features include shadows from studiomodels, new entities, additional tool textures, ability to extend world size limits, portal file optimisation for J.A.C.K. map editor and minor algorithm optimization.
 
