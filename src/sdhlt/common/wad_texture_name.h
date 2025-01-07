@@ -29,14 +29,6 @@ class wad_texture_name final {
 		constexpr bool equals_constant(const char8_t (&cString)[StringSize]) const noexcept {
 			static_assert(StringSize <= wad_texture_name_max_length_with_last_null);
 
-#ifndef ENABLE_LOWERCASE_TEXTURE_NAMES
-			return std::equal(
-				units.begin(),
-				units.begin() + StringSize,
-				ascii_characters_to_uppercase_in_utf8_string(cString).begin()
-			);
-#endif
-
 			return std::equal(
 // Not supported by Apple Clang in XCode 16.2, but should be supported by Clang 17
 #ifdef __cpp_lib_execution
@@ -49,13 +41,6 @@ class wad_texture_name final {
 		constexpr bool starts_with_constant(const char8_t (&prefixCString)[PrefixSize]) const noexcept {
 			static_assert(PrefixSize <= wad_texture_name_max_length_with_last_null);
 
-#ifndef ENABLE_LOWERCASE_TEXTURE_NAMES
-			return std::equal(
-				units.begin(),
-				units.begin() + PrefixSize - 1,
-				ascii_characters_to_uppercase_in_utf8_string(prefixCString).begin()
-			);
-#endif
 			return std::equal(
 // Not supported by Apple Clang in XCode 16.2, but should be supported by Clang 17
 #ifdef __cpp_lib_execution
@@ -65,11 +50,7 @@ class wad_texture_name final {
 		}
 
 		constexpr bool ends_with_constant(std::u8string_view suffix) const noexcept {
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 			return string_view().ends_with(suffix);
-#else
-			return string_view().ends_with(ascii_characters_to_lowercase_in_utf8_string(suffix));
-#endif
 		}
 
 
@@ -99,11 +80,7 @@ class wad_texture_name final {
 			}
 
 			std::ranges::copy(str, units.begin());
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 			make_ascii_characters_lowercase_in_utf8_string(units);
-#else
-			make_ascii_characters_uppercase_in_utf8_string(units);
-#endif
 		}
 
 		static constexpr std::optional<wad_texture_name> make_if_legal_name(std::u8string_view str) noexcept {
@@ -113,11 +90,7 @@ class wad_texture_name final {
 
 			wad_texture_name result;
 			std::ranges::copy(str, result.units.begin());
-			#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-				make_ascii_characters_lowercase_in_utf8_string(result.units);
-			#else
-				make_ascii_characters_uppercase_in_utf8_string(result.units);
-			#endif
+			make_ascii_characters_lowercase_in_utf8_string(result.units);
 			return result;
 		}
 
@@ -145,11 +118,7 @@ class wad_texture_name final {
 
 			return std::ranges::equal(
 				nameStringView.substr(nameStringView.length() - suffix.length()),
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 				ascii_characters_to_lowercase_in_utf8_string_as_view(suffix)
-#else
-				ascii_characters_to_uppercase_in_utf8_string_as_view(suffix)
-#endif
 			);
 		}
 
@@ -159,11 +128,7 @@ class wad_texture_name final {
 			}
 
 			return std::ranges::equal(
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			ascii_characters_to_lowercase_in_utf8_string_as_view(string),
-#else
-			ascii_characters_to_uppercase_in_utf8_string_as_view(string),
-#endif
+				ascii_characters_to_lowercase_in_utf8_string_as_view(string),
 				std::u8string_view(units.data(), string.length())
 			);
 		}
@@ -191,11 +156,7 @@ class wad_texture_name final {
 			}
 
 			// In case there are upper-case characters
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 			make_ascii_characters_lowercase_in_utf8_string(units);
-#else
-			make_ascii_characters_uppercase_in_utf8_string(units);
-#endif
 			return validate_utf8(units) && reachedNulls;
 		}
 
@@ -337,25 +298,16 @@ class wad_texture_name final {
 
 		// Animated textures
 		constexpr bool is_animation_frame() const noexcept {
-			return starts_with_constant(u8"+") && ((units[1] >= u8'0' && units[1] <= u8'9') || 
-
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
-			(units[1] >= u8'a' && units[1] <= u8'j')
-#else
-			(units[1] >= u8'A' && units[1] <= u8'J')
-#endif
+			return starts_with_constant(u8"+") && (
+				(units[1] >= u8'0' && units[1] <= u8'9') ||
+				(units[1] >= u8'a' && units[1] <= u8'j')
 			);
 		}
 		
 		constexpr std::optional<std::pair<std::uint8_t, bool>> get_animation_frame_or_tile_number() const noexcept {
 			if(is_animation_frame() || is_tile()) {
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 				const bool alternateAnimation = units[1] >= 'a';
 				std::uint8_t frameNumber = units[1] - (alternateAnimation ? u8'a' : u8'0');
-#else
-				const bool alternateAnimation = units[1] >= 'A';
-				std::uint8_t frameNumber = units[1] - (alternateAnimation ? u8'A' : u8'0');
-#endif
 				return std::make_pair(frameNumber, alternateAnimation);
 			}
 			return std::nullopt;
@@ -364,12 +316,7 @@ class wad_texture_name final {
 		// Note! Only meaningful if is_animation_frame() or is_tile() is true
 		constexpr void set_animation_frame_or_tile_number(std::uint8_t frameNumber, bool alternateAnimation) noexcept {
 			if((is_animation_frame() || is_tile()) && frameNumber < 10) {
-
-#ifdef ENABLE_LOWERCASE_TEXTURE_NAMES
 				units[1] = frameNumber + (alternateAnimation ? u8'a' : u8'0');
-#else
-				units[1] = frameNumber + (alternateAnimation ? u8'A' : u8'0');
-#endif
 			}
 		}
 
