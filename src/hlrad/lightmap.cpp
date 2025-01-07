@@ -1321,11 +1321,6 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, vec_t s, vec_t t,
 	return info;
 }
 
-static bool IsFragEmpty (samplefraginfo_t *fraginfo)
-{
-	return (fraginfo->size == 0);
-}
-
 static void DeleteSampleFrag (samplefraginfo_t *fraginfo)
 {
 	while (fraginfo->head)

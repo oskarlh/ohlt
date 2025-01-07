@@ -276,10 +276,8 @@ static std::span<const lump_element_type<LumpId>> get_lump_data(const dheader_t*
 		hlassume(g_max_map_lightdata > length,assume_MAX_MAP_LIGHTING);
 	}
 
-	const std::byte* start = (const std::byte*) header + ofs;
-	const std::byte* end = start + length;
-	const std::span<const lump_element> data((const lump_element*) start, length / sizeof(lump_element));
-	return data;
+	const lump_element* start = (const lump_element*) ((const std::byte*) header + ofs);
+	return std::span{start, length / sizeof(lump_element)};
 }
 
 
