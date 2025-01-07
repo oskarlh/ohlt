@@ -1499,7 +1499,7 @@ void InitDefaultHulls ()
 	for (int h = 0; h < NUM_HULLS; h++)
 	{
 		hullshape_t *hs = &g_defaulthulls[h];
-		hs->id = _strdup ("");
+		hs->id = c_strdup("");
 		hs->disabled = true;
 		hs->numbrushes = 0;
 		hs->brushes = (hullbrush_t **)malloc (0 * sizeof (hullbrush_t *));
@@ -1524,7 +1524,7 @@ void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulth
 	hs = &g_hullshapes[g_numhullshapes];
 	g_numhullshapes++;
 
-	hs->id = _strdup (id);
+	hs->id = c_strdup(id);
 	hs->disabled = disabled;
 	hs->numbrushes = 0;
 	hs->brushes = (hullbrush_t **)malloc (entity->numbrushes * sizeof (hullbrush_t *));
@@ -1557,7 +1557,7 @@ void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulth
 			}
 			free (target->brushes);
 			free (target->id);
-			target->id = _strdup (hs->id);
+			target->id = c_strdup(hs->id);
 			target->disabled = hs->disabled;
 			target->numbrushes = hs->numbrushes;
 			target->brushes = (hullbrush_t **)malloc (hs->numbrushes * sizeof (hullbrush_t *));

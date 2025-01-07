@@ -184,8 +184,8 @@ void BrinkSplitClipnode (bbrink_t *b, const dplane_t *plane, int planenum, bclip
 
 void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 {
-	int found;
-	int numfound = 0;
+	int found{0};
+	int numfound{0};
 	for (int i = 0; i < b->numnodes; i++)
 	{
 		bbrinknode_t *node = &(*b->nodes)[i];

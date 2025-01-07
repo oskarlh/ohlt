@@ -158,13 +158,13 @@ void            GetParamsFromEnt(entity_t* mapent)
 	// wadconfig(string) : "Custom Wad Configuration" : ""
     if (*ValueForKey(mapent, u8"wadconfig"))
     {
-        g_wadconfigname = _strdup ((const char*) ValueForKey(mapent, u8"wadconfig"));
+        g_wadconfigname = c_strdup((const char*) ValueForKey(mapent, u8"wadconfig"));
         Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name", g_wadconfigname);
     }
 	// wadcfgfile(string) : "Custom Wad Configuration File" : ""
     if (*ValueForKey(mapent, u8"wadcfgfile"))
     {
-        g_wadcfgfile = _strdup ((const char*) ValueForKey(mapent, u8"wadcfgfile"));
+        g_wadcfgfile = c_strdup((const char*) ValueForKey(mapent, u8"wadcfgfile"));
         Log("%30s [ %-9s ]\n", "Custom Wad Configuration File", g_wadcfgfile);
     }
 
@@ -2128,14 +2128,14 @@ int             main(const int argc, char** argv)
 		std::filesystem::path test = std::filesystem::path(g_Mapname).parent_path() / g_hullfile;
 		if (std::filesystem::exists (test))
 		{
-			g_hullfile = strdup (test.c_str());
+			g_hullfile = c_strdup(test.c_str());
 		}
 		else
 		{
             test = get_path_to_directory_with_executable(argv) / g_hullfile;
 			if (std::filesystem::exists (test))
 			{
-				g_hullfile = strdup (test.c_str());
+				g_hullfile = c_strdup(test.c_str());
 			}
 		}
 	}
@@ -2145,14 +2145,14 @@ int             main(const int argc, char** argv)
 		std::filesystem::path test = std::filesystem::path(g_Mapname).parent_path() / g_nullfile;
 		if (std::filesystem::exists (test))
 		{
-			g_nullfile = strdup (test.c_str());
+			g_nullfile = c_strdup(test.c_str());
 		}
 		else
 		{
             std::filesystem::path test = get_path_to_directory_with_executable(argv) / g_nullfile;
 			if (std::filesystem::exists (test))
 			{
-				g_nullfile = strdup (test.c_str());
+				g_nullfile = c_strdup(test.c_str());
 			}
 		}
 	}
@@ -2161,7 +2161,7 @@ int             main(const int argc, char** argv)
         std::filesystem::path wadCfgPath = std::filesystem::path(g_Mapname).parent_path() / g_wadcfgfile;
 		if (std::filesystem::exists (wadCfgPath)) // Use global wad.cfg if file exists
 		{
-			g_wadcfgfile = strdup (wadCfgPath.c_str()); 
+			g_wadcfgfile = c_strdup(wadCfgPath.c_str()); 
 		}
 		else
 		{
@@ -2169,7 +2169,7 @@ int             main(const int argc, char** argv)
             wadCfgPath = get_path_to_directory_with_executable(argv) / g_wadcfgfile;
 			if (std::filesystem::exists (wadCfgPath))
 			{
-				g_wadcfgfile = strdup (wadCfgPath.c_str());
+				g_wadcfgfile = c_strdup(wadCfgPath.c_str());
 			}
 		}
 	}

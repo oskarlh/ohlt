@@ -45,7 +45,7 @@ brush_t *CopyCurrentBrush (entity_t *entity, const brush_t *brush)
 	{
 		if (brush->hullshapes[h] != nullptr)
 		{
-			newb->hullshapes[h] = _strdup (brush->hullshapes[h]);
+			newb->hullshapes[h] = c_strdup(brush->hullshapes[h]);
 		}
 		else
 		{
@@ -212,7 +212,7 @@ static void ParseBrush(entity_t* mapent)
 			b->hullshapes[h] = nullptr;
 		} else {
 			//If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
-			b->hullshapes[h] = _strdup((const char*) value.data());
+			b->hullshapes[h] = c_strdup((const char*) value.data());
 		}
 	}
     mapent->numbrushes++;

@@ -37,7 +37,7 @@ void properties_initialize(const char* filename)
 		string str;
 		getline(file,str);
 		{ //--vluzacn
-			char *s = strdup (str.c_str ());
+			char *s = c_strdup(str.c_str ());
 			int i;
 			for (i = 0; s[i] != '\0'; i++)
 			{
