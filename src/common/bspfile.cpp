@@ -41,7 +41,7 @@ int& g_texdatasize{bspGlobals.textureDataByteSize};
 std::vector<std::byte>& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
 std::uint32_t& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
 
-int& g_entdatasize{bspGlobals.entityDataLength};
+std::uint32_t& g_entdatasize{bspGlobals.entityDataLength};
 std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata{bspGlobals.entityData};
 std::uint32_t& g_dentdata_checksum{bspGlobals.entityDataChecksum};
 
@@ -241,12 +241,10 @@ void            DecompressVis(const byte* src, byte* const dest, const unsigned 
 //  CopyLump
 //      balh
 // =====================================================================================
-static int      CopyLump(int lump, void* dest, int size, const dheader_t* const header)
+static std::uint32_t CopyLump(int lump, void* dest, int size, const dheader_t* const header)
 {
-    int             length, ofs;
-
-    length = header->lumps[lump].filelen;
-    ofs = header->lumps[lump].fileofs;
+    std::uint32_t length = header->lumps[lump].filelen;
+    std::uint32_t ofs = header->lumps[lump].fileofs;
 
     if (length % size)
     {

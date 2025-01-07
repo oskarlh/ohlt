@@ -138,7 +138,7 @@ class miptex_header_and_data final {
 		constexpr miptex_header_and_data(std::size_t dataSize) {
 			std::size_t totalSize = sizeof(miptex_t) + dataSize;
 			headerAndData = std::make_unique_for_overwrite<std::byte[]>(totalSize);
-			miptex_t& header = *new(headerAndData.get()) miptex_t{};
+			[[maybe_unused]] miptex_t& header = *new(headerAndData.get()) miptex_t{};
 		}
 		constexpr ~miptex_header_and_data() {
 			header().~miptex_t();
@@ -435,7 +435,7 @@ struct bsp_data {
 
 	std::array<char8_t, MAX_MAP_ENTSTRING> entityData{};
 	std::uint32_t entityDataChecksum{0};
-	int entityDataLength{0};
+	std::uint32_t entityDataLength{0};
 
 	std::array<dleaf_t, MAX_MAP_LEAFS> leafs{};
 	std::uint32_t leafsChecksum{0};
@@ -500,7 +500,7 @@ extern int& g_texdatasize;
 extern std::vector<std::byte>& g_dtexdata; // (dmiptexlump_t)
 extern std::uint32_t& g_dtexdata_checksum;
 
-extern int& g_entdatasize;
+extern std::uint32_t& g_entdatasize;
 extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;
 extern std::uint32_t& g_dentdata_checksum;
 

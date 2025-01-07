@@ -23,14 +23,14 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
         build_type: [Release]
-        c_compiler: [cl, clang, gcc]
+        c_compiler: [cl, clang, gcc-14]
         include:
           - os: macos-latest
             c_compiler: clang
             cpp_compiler: clang++
           - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: gcc-14
+            cpp_compiler: g++-14
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
@@ -38,7 +38,7 @@ jobs:
           - os: macos-latest
             c_compiler: cl
           - os: macos-latest
-            c_compiler: gcc
+            c_compiler: gcc-14
           - os: ubuntu-latest
             c_compiler: cl
           - os: ubuntu-latest
@@ -46,7 +46,7 @@ jobs:
           - os: windows-latest
             c_compiler: clang
           - os: windows-latest
-            c_compiler: gcc
+            c_compiler: gcc-14
 
     steps:
     - uses: actions/checkout@v3
@@ -92,4 +92,3 @@ jobs:
       with:
         name: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}
         path: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.7z
-          

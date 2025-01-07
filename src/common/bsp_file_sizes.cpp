@@ -22,10 +22,9 @@ struct lightmapblock
 };
 
 
-void do_alloc_block (std::deque<lightmapblock>& blocks, int w, int h)
+void do_alloc_block (std::deque<lightmapblock>& blocks, std::size_t w, std::size_t h)
 {
-	if (w < 1 || h < 1)
-	{
+	if (w < 1 || h < 1) {
 		Error("do_alloc_block: internal error.");
 	}
 	std::int32_t best, best2;
@@ -64,7 +63,7 @@ void do_alloc_block (std::deque<lightmapblock>& blocks, int w, int h)
 		{ // need to allocate a new block
 			if (!block.used)
 			{
-				Warning ("CountBlocks: invalid extents %dx%d", w, h);
+				Warning ("CountBlocks: invalid extents %zux%zu", w, h);
 				return;
 			}
 			blocks.emplace_back();
@@ -171,7 +170,7 @@ static std::optional<std::u8string> find_wad_value (const bsp_data& bspData)
 				return std::nullopt;
 			}
 			std::array<int, 4> quotes;
-			int i, j;
+			std::size_t  i, j;
 			for (i = 0, j = linestart; i < 4; i++, j++)
 			{
 				for (; j < lineend; j++)

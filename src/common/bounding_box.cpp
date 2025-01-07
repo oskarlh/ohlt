@@ -3,8 +3,7 @@
 #include "mathlib.h"
 
 // Tests if other box is completely outside of this box
-bool test_disjoint(const bounding_box& thisBox, const bounding_box& other)
-{
+bool test_disjoint(const bounding_box& thisBox, const bounding_box& other) noexcept {
     return ((thisBox.mins[0] > other.maxs[0] + ON_EPSILON) ||
         (thisBox.mins[1] > other.maxs[1] + ON_EPSILON) ||
         (thisBox.mins[2] > other.maxs[2] + ON_EPSILON) ||
@@ -14,8 +13,7 @@ bool test_disjoint(const bounding_box& thisBox, const bounding_box& other)
 }
 
 // Returns true if this box is completely inside the other box
-bool test_subset(const bounding_box& thisBox, const bounding_box& otherBox)
-{
+bool test_subset(const bounding_box& thisBox, const bounding_box& otherBox) noexcept {
     return (
             (thisBox.mins[0] >= otherBox.mins[0]) &&
             (thisBox.maxs[0] <= otherBox.maxs[0]) &&
@@ -26,13 +24,11 @@ bool test_subset(const bounding_box& thisBox, const bounding_box& otherBox)
     );
 }
 // Returns true if this box contains the other box completely
-bool test_superset(const bounding_box& thisBox, const bounding_box& otherBox)
-{
+bool test_superset(const bounding_box& thisBox, const bounding_box& otherBox) noexcept {
     return test_subset(otherBox, thisBox);
 }
 // Returns true if this box partially intersects the other box
-bool test_union(const bounding_box& thisBox, const bounding_box& otherBox)
-{
+bool test_union(const bounding_box& thisBox, const bounding_box& otherBox) noexcept {
     bounding_box tempBox;
     tempBox.mins[0] = std::max(thisBox.mins[0], otherBox.mins[0]);
     tempBox.mins[1] = std::max(thisBox.mins[1], otherBox.mins[1]);
@@ -46,37 +42,29 @@ bool test_union(const bounding_box& thisBox, const bounding_box& otherBox)
         (tempBox.mins[2] > tempBox.maxs[2]));
 }
 
-bounding_box_state test(const bounding_box& thisBox, const bounding_box& otherBox)
-{
-    bounding_box_state rval;
-    if (test_disjoint(thisBox, otherBox))
-    {
+bounding_box_state test_all(const bounding_box& thisBox, const bounding_box& otherBox) noexcept {
+    if (test_disjoint(thisBox, otherBox)) {
         return disjoint;
     }
-    if (test_subset(thisBox, otherBox))
-    {
+    if (test_subset(thisBox, otherBox)) {
         return subset;
     }
-    if (test_superset(thisBox, otherBox))
-    {
+    if (test_superset(thisBox, otherBox)) {
         return superset;
     }
     return in_union;
 }
 
 
-void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_array& mins)
-{
+void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_array& mins) noexcept {
     thisBox.maxs = maxs;
     thisBox.mins = mins;
 }
 
-void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox)
-{
+void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox) noexcept {
     set_bounding_box(thisBox, otherBox.maxs, otherBox.mins);
 }
-void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point)
-{
+void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point) noexcept {
     thisBox.mins[0] = std::min(thisBox.mins[0], point[0]);
     thisBox.maxs[0] = std::max(thisBox.maxs[0], point[0]);
     thisBox.mins[1] = std::min(thisBox.mins[1], point[1]);
@@ -84,8 +72,7 @@ void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point)
     thisBox.mins[2] = std::min(thisBox.mins[2], point[2]);
     thisBox.maxs[2] = std::max(thisBox.maxs[2], point[2]);
 }
-void add_to_bounding_box(bounding_box& thisBox, bounding_box& other)
-{
+void add_to_bounding_box(bounding_box& thisBox, bounding_box& other) noexcept {
     add_to_bounding_box(thisBox, other.maxs);
     add_to_bounding_box(thisBox, other.mins);
 }
