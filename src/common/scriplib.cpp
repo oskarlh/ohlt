@@ -46,10 +46,11 @@ static void     AddScriptToStack(const char* const filename)
 
     s_script++;
 
-    if (s_script == &s_scriptstack[MAX_INCLUDES])
+    if (s_script == &s_scriptstack[MAX_INCLUDES]) {
         Error("s_script file exceeded MAX_INCLUDES");
+    }
 
-	std::strcpy(s_script->filename, filename);
+    std::strcpy(s_script->filename, filename);
 
     size = LoadFile(s_script->filename, (char**)&s_script->buffer);
 
@@ -80,10 +81,11 @@ void            ParseFromMemory(char* buffer, const int size)
     s_script = s_scriptstack;
     s_script++;
 
-    if (s_script == &s_scriptstack[MAX_INCLUDES])
+    if (s_script == &s_scriptstack[MAX_INCLUDES]) {
         Error("s_script file exceeded MAX_INCLUDES");
+    }
 
-	std::strcpy(s_script->filename, "memory buffer");
+    std::strcpy(s_script->filename, "memory buffer");
 
     s_script->buffer = buffer;
     s_script->line = 1;

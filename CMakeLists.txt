@@ -244,7 +244,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         PLATFORM_VERSION="Linux"
         VERSION_LINUX
         SYSTEM_POSIX
-        HAVE_PTHREAD_H
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -252,7 +251,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         PLATFORM_VERSION="MacOS"
         VERSION_MACOS
         SYSTEM_POSIX
-        HAVE_PTHREAD_H
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")

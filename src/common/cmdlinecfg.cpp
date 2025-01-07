@@ -269,16 +269,13 @@ void unparsearg (int &argc, char **&argv, char8_t *cmdline)
 void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&argvnew)
 {
 	char8_t token[MAXTOKEN], words[MAXTOKEN], cmdline[MAXTOKEN];
-	FILE *f;
-	char *s;
-	const char8_t *c, *c0;
 
     std::filesystem::path settingsFilePath = get_path_to_directory_with_executable(argv) / paramfilename;
 
 
 	if (auto f = read_utf8_file(settingsFilePath, true))
 	{
-		c =  f.value().c_str();
+		const char8_t* c = f.value().c_str();
 		execute_t e;
 		memset (&e, 0, sizeof (e));
 		words[0] = u8'\0';
@@ -306,7 +303,7 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 			}
 			while (1)
 			{
-				c0 = c;
+				const char8_t* c0 = c;
 				c = nextword (c, token, MAXTOKEN);
 				if (token[0] == '#' || !c)
 				{
@@ -333,7 +330,6 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 			argcnew = argc;
 		}
 		argvnew[0] = argv[0];
-		free (s);
 	}
 	else
 	{

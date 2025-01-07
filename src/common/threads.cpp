@@ -13,9 +13,8 @@
 #include "blockmem.h"
 
 #ifdef SYSTEM_POSIX
-#ifdef HAVE_PTHREAD_H
 #include <pthread.h>
-#endif
+#include <sys/resource.h>
 #endif
 
 #include "hlassert.h"
