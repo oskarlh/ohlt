@@ -91,13 +91,11 @@ bool            g_circus = DEFAULT_CIRCUS;
 bool            g_allow_opaques = DEFAULT_ALLOW_OPAQUES;
 bool			g_allow_spread = DEFAULT_ALLOW_SPREAD;
 
-// --------------------------------------------------------------------------
-// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-vec3_t		g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED, DEFAULT_COLOUR_GAMMA_GREEN, DEFAULT_COLOUR_GAMMA_BLUE };
-vec3_t		g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN, DEFAULT_COLOUR_LIGHTSCALE_BLUE };
-vec3_t		g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN, DEFAULT_COLOUR_JITTER_HACK_BLUE };
-vec3_t		g_jitter_hack = { DEFAULT_JITTER_HACK_RED, DEFAULT_JITTER_HACK_GREEN, DEFAULT_JITTER_HACK_BLUE };
-// --------------------------------------------------------------------------
+vec3_array g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED, DEFAULT_COLOUR_GAMMA_GREEN, DEFAULT_COLOUR_GAMMA_BLUE };
+vec3_array g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN, DEFAULT_COLOUR_LIGHTSCALE_BLUE };
+vec3_array g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN, DEFAULT_COLOUR_JITTER_HACK_BLUE };
+vec3_array g_jitter_hack = { DEFAULT_JITTER_HACK_RED, DEFAULT_JITTER_HACK_GREEN, DEFAULT_JITTER_HACK_BLUE };
+
 
 bool		g_customshadow_with_bouncelight = DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT;
 bool		g_rgb_transfers = DEFAULT_RGB_TRANSFERS;
@@ -2502,16 +2500,32 @@ static void     RadWorld()
 		f = fopen(name, "w");
 		if (f)
 		{
-			const int pos_count = 15;
-			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
+			constexpr int pos_count = 15;
+			const std::array<vec3_array, pos_count> pos{
+				vec3_array{0,0,0},
+				vec3_array{1,0,0},
+				vec3_array{0,1,0},
+				vec3_array{-1,0,0},
+				vec3_array{0,-1,0},
+				vec3_array{1,0,0},
+				vec3_array{0,0,1},
+				vec3_array{-1,0,0},
+				vec3_array{0,0,-1},
+				vec3_array{0,-1,0},
+				vec3_array{0,0,1},
+				vec3_array{0,1,0},
+				vec3_array{0,0,-1},
+				vec3_array{1,0,0},
+				vec3_array{0,0,0}
+			};
 			int j, k;
 			edgeshare_t *es;
-			vec3_t v;
 			for (j = 0, es = g_edgeshare; j < MAX_MAP_EDGES; j++, es++)
 			{
 				if (es->smooth)
 				{
 					int v0 = g_dedges[j].v[0], v1 = g_dedges[j].v[1];
+					vec3_array v;
 					VectorAdd (g_dvertexes[v0].point, g_dvertexes[v1].point, v);
 					VectorScale (v, 0.5, v);
 					VectorAdd (v, es->interface_normal, v);

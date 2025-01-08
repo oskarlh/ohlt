@@ -398,11 +398,11 @@ extern std::vector<opaqueList_t> g_opaque_face_list;
 // ------------------------------------------------------------------------
 // Changes by Adam Foster - afoster@compsoc.man.ac.uk
 
-extern vec3_t	g_colour_qgamma;
-extern vec3_t	g_colour_lightscale;
+extern vec3_array g_colour_qgamma;
+extern vec3_array g_colour_lightscale;
 
-extern vec3_t	g_colour_jitter_hack;
-extern vec3_t	g_jitter_hack;
+extern vec3_array g_colour_jitter_hack;
+extern vec3_array g_jitter_hack;
 
 // ------------------------------------------------------------------------
 
