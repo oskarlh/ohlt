@@ -19,6 +19,13 @@ class vector_inplace final {
 		alignas(T) std::array<std::byte, sizeof(T) * N> vectorData;
 
 	public:
+		static constexpr std::size_t vector_max_size() noexcept {
+			return N;
+		}
+		constexpr std::size_t max_size() const noexcept {
+			return N;
+		}
+
 		constexpr vector_inplace() noexcept = default;
 
 		constexpr vector_inplace(const vector_inplace& copyFrom) noexcept
@@ -68,7 +75,7 @@ class vector_inplace final {
 			std::is_nothrow_constructible_v<T, Args...>&&
 			std::is_nothrow_move_assignable_v<T> 
 		) {
-			if(size() == N) {
+			if(size() == max_size()) {
 				throw std::bad_alloc();
 			}
 			if(!empty()) {
@@ -82,7 +89,7 @@ class vector_inplace final {
 		template <class Range> constexpr void insert_range(const T* position, Range&& range)
 		{
 			std::size_t rangeSize = std::size(range);
-			if(rangeSize > N - size()) {
+			if(rangeSize > max_size() - size()) {
 				throw std::bad_alloc();
 			}
 			std::move_backward(position, end(), end() + rangeSize);
@@ -128,7 +135,7 @@ class vector_inplace final {
 		};
 
 		void resize(std::size_t newSize, const T& valueForNewElements) {
-			if(newSize > N) {
+			if(newSize > max_size()) {
 				throw std::bad_alloc();
 			}
 			
@@ -186,7 +193,7 @@ class vector_inplace final {
 		}
 
 		template<class... Args> constexpr T& emplace_back(Args&&... args) {
-			if(size() == N) {
+			if(size() == max_size()) {
 				throw std::bad_alloc();
 			}
 

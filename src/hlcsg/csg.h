@@ -46,7 +46,6 @@
 // AJM: added in
 #define UNLESS(a)  if (!(a))
 
-#define MAX_HULLSHAPES 128 // arbitrary
 
 struct plane_t
 {
@@ -134,7 +133,7 @@ struct brush_t {
 	int				chopup; // allow this brush to be chopped by brushes of higher detail level
 	int				clipnodedetaillevel;
 	int				coplanarpriority;
-	char* hullshapes[NUM_HULLS]; // might be NULL
+	char8_t* hullshapes[NUM_HULLS]; // might be NULL
 
     std::int32_t contents;
     brushhull_t hulls[NUM_HULLS];
@@ -170,10 +169,10 @@ struct hullbrush_t {
 };
 
 struct hullshape_t {
-	char *id;
-	bool disabled;
-	int numbrushes; // must be 0 or 1
+	std::u8string id;
 	hullbrush_t **brushes;
+	int numbrushes; // must be 0 or 1
+	bool disabled;
 };
 
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
@@ -192,8 +191,7 @@ extern int      g_numbrushsides;
 extern side_t   g_brushsides[MAX_MAP_SIDES];
 
 extern hullshape_t g_defaulthulls[NUM_HULLS];
-extern int		g_numhullshapes;
-extern hullshape_t g_hullshapes[MAX_HULLSHAPES];
+extern std::vector<hullshape_t> g_hullshapes;
 
 extern void     TextureAxisFromPlane(const plane_t* const pln, vec3_t xv, vec3_t yv);
 extern void     LoadMapFile(const char* const filename);
@@ -217,7 +215,7 @@ extern brush_t* Brush_LoadEntity(entity_t* ent, int hullnum);
 extern contents_t CheckBrushContents(const brush_t* const b);
 
 extern void CreateBrush(int brushnum);
-extern void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulthulls);
+extern void CreateHullShape (int entitynum, bool disabled, std::u8string_view id, int defaulthulls);
 extern void InitDefaultHulls ();
 
 //=============================================================================

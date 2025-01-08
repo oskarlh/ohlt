@@ -3,11 +3,10 @@
 
 #include <span>
 
-std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
+std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes{};
 int             g_nummapplanes;
-hullshape_t		g_defaulthulls[NUM_HULLS];
-int				g_numhullshapes;
-hullshape_t		g_hullshapes[MAX_HULLSHAPES];
+hullshape_t		g_defaulthulls[NUM_HULLS]{};
+std::vector<hullshape_t> g_hullshapes{};
 
 constexpr vec_t DIST_EPSILON = 0.04;
 
@@ -390,22 +389,21 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 {
 	const hullshape_t *hs = &g_defaulthulls[hullnum];
 	{ // look up the name of its hull shape in g_hullshapes[]
-		const char *name = brush->hullshapes[hullnum];
+		const char8_t *name = brush->hullshapes[hullnum];
 		if (name && *name)
 		{
 			bool found = false;
-			for (int i = 0; i < g_numhullshapes; i++)
+			for (const hullshape_t& s : g_hullshapes)
 			{
-				const hullshape_t *s = &g_hullshapes[i];
-				if (!strcmp (name, s->id))
+				if (name == s.id)
 				{
 					if (found)
 					{
 						Warning ("Entity %i, Brush %i: Found several info_hullshape entities with the same name '%s'.",
 							brush->originalentitynum, brush->originalbrushnum,
-							name);
+							(const char*) name);
 					}
-					hs = s;
+					hs = &s;
 					found = true;
 				}
 			}
@@ -413,7 +411,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			{
 				Error ("Entity %i, Brush %i: Couldn't find info_hullshape entity '%s'.",
 					brush->originalentitynum, brush->originalbrushnum,
-					name);
+					(const char*) name);
 			}
 		}
 	}
@@ -1499,7 +1497,7 @@ void InitDefaultHulls ()
 	for (int h = 0; h < NUM_HULLS; h++)
 	{
 		hullshape_t *hs = &g_defaulthulls[h];
-		hs->id = c_strdup("");
+		hs->id.clear();
 		hs->disabled = true;
 		hs->numbrushes = 0;
 		hs->brushes = (hullbrush_t **)malloc (0 * sizeof (hullbrush_t *));
@@ -1507,8 +1505,7 @@ void InitDefaultHulls ()
 	}
 }
 
-void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulthulls)
-{
+void CreateHullShape (int entitynum, bool disabled, std::u8string_view id, int defaulthulls) {
 	entity_t *entity;
 	hullshape_t *hs;
 
@@ -1517,16 +1514,13 @@ void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulth
 	{
 		Warning ("info_hullshape with no ORIGIN brush.");
 	}
-	if (g_numhullshapes >= MAX_HULLSHAPES)
-	{
-		Error ("Too many info_hullshape entities. Can not exceed %d.", MAX_HULLSHAPES);
-	}
-	hs = &g_hullshapes[g_numhullshapes];
-	g_numhullshapes++;
+	hs = &g_hullshapes.emplace_back(hullshape_t{
+		.id = std::u8string{id},
+		.disabled = disabled,
+		.numbrushes = 0,
+		.brushes = 0
+	});
 
-	hs->id = c_strdup(id);
-	hs->disabled = disabled;
-	hs->numbrushes = 0;
 	hs->brushes = (hullbrush_t **)malloc (entity->numbrushes * sizeof (hullbrush_t *));
 	for (int i = 0; i < entity->numbrushes; i++)
 	{
@@ -1556,8 +1550,7 @@ void CreateHullShape (int entitynum, bool disabled, const char *id, int defaulth
 				DeleteHullBrush (target->brushes[i]);
 			}
 			free (target->brushes);
-			free (target->id);
-			target->id = c_strdup(hs->id);
+			target->id = hs->id;
 			target->disabled = hs->disabled;
 			target->numbrushes = hs->numbrushes;
 			target->brushes = (hullbrush_t **)malloc (hs->numbrushes * sizeof (hullbrush_t *));

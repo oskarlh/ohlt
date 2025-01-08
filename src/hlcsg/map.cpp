@@ -45,7 +45,7 @@ brush_t *CopyCurrentBrush (entity_t *entity, const brush_t *brush)
 	{
 		if (brush->hullshapes[h] != nullptr)
 		{
-			newb->hullshapes[h] = c_strdup(brush->hullshapes[h]);
+			newb->hullshapes[h] = (char8_t*) c_strdup((char*) brush->hullshapes[h]);
 		}
 		else
 		{
@@ -211,7 +211,7 @@ static void ParseBrush(entity_t* mapent)
 			b->hullshapes[h] = nullptr;
 		} else {
 			//If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
-			b->hullshapes[h] = c_strdup((const char*) value.data());
+			b->hullshapes[h] = (char8_t*) c_strdup((const char*) value.data());
 		}
 	}
     mapent->numbrushes++;
@@ -955,9 +955,9 @@ bool            ParseMapEntity()
 		bool disabled;
 		int defaulthulls;
 		disabled = IntForKey (mapent, u8"disabled");
-		const char8_t* id = ValueForKey (mapent, u8"targetname");
+		const std::u8string_view id = value_for_key (mapent, u8"targetname");
 		defaulthulls = IntForKey (mapent, u8"defaulthulls");
-		CreateHullShape (this_entity, disabled, (const char*) id, defaulthulls);
+		CreateHullShape (this_entity, disabled, id, defaulthulls);
 		DeleteCurrentEntity (mapent);
 		return true;
 	}
