@@ -112,9 +112,9 @@ Zones* MakeZones(void)
             std::uint_least32_t func_vis_id = atoi((const char*) ValueForKey(ent, u8"node"));
 
             {
-                for (const epair_t* keyvalue = ent->epairs; keyvalue; keyvalue = keyvalue->next)
+                for (const entity_key_value& kv : ent->keyValues)
                 {
-                    std::uint_least32_t other_id = atoi((const char*) keyvalue->key.c_str());
+                    std::uint_least32_t other_id = atoi((const char*) kv.key().data());
                     if (other_id)
                     {
                         zones->flag(func_vis_id, other_id);

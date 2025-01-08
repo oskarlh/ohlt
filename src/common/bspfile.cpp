@@ -24,7 +24,7 @@ using namespace std::literals;
 
 std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
 
-bsp_data bspGlobals;
+bsp_data bspGlobals{};
 
 int& g_nummodels{bspGlobals.mapModelsLength};
 std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{bspGlobals.mapModels};
@@ -760,26 +760,17 @@ void DeleteEmbeddedLightmaps ()
 }
 
 
-// =====================================================================================
-//  ParseEpair
-//      entity key/value pairs
-// =====================================================================================
-std::unique_ptr<epair_t>        ParseEpair()
-{
-	std::unique_ptr<epair_t> e = std::make_unique<epair_t>();
-
+entity_key_value parse_entity_key_value() {
     if (g_token.size() >= MAX_KEY - 1)
-        Error("ParseEpair: Key token too long (%zu > MAX_KEY)", g_token.size());
+        Error("parse_entity_key_value: Key token too long (%zu > MAX_KEY)", g_token.size());
 
-    e->key = g_token;
+	std::u8string key{g_token};
     GetToken(false);
 
     if (g_token.size() >= MAX_VAL - 1) //MAX_VALUE //vluzacn
-        Error("ParseEpar: Value token too long (%zu > MAX_VALUE)", g_token.size());
+        Error("parse_entity_key_value: Value token too long (%zu > MAX_VALUE)", g_token.size());
 
-    e->value = g_token;
-
-    return e;
+	return entity_key_value{key, g_token};
 }
 
 /*
@@ -789,7 +780,7 @@ std::unique_ptr<epair_t>        ParseEpair()
  */
 
 // AJM: each tool should have its own version of GetParamsFromEnt which parseentity calls
-extern void     GetParamsFromEnt(entity_t* mapent);
+extern void GetParamsFromEnt(entity_t* mapent);
 
 bool            ParseEntity()
 {
@@ -810,6 +801,7 @@ bool            ParseEntity()
 
     entity_t* mapent = &g_entities[g_numentities];
     g_numentities++;
+	mapent->keyValues.reserve(16);
 
     while (1)
     {
@@ -821,9 +813,7 @@ bool            ParseEntity()
         {
             break;
         }
-        std::unique_ptr<epair_t> e = ParseEpair();
-        e->next = mapent->epairs;
-        mapent->epairs = e.release();
+		SetKeyValue(mapent, parse_entity_key_value());
     }
 
     if (key_value_is(mapent, u8"classname", u8"info_compile_parameters"))
@@ -848,8 +838,7 @@ bool            ParseEntity()
 	if (classname_is(mapent, u8"light_environment") &&
 		key_value_is(mapent, u8"convertfrom", u8"info_sunlight"))
 	{
-		DeleteAllKeys(mapent);
-		memset (mapent, 0, sizeof(entity_t));
+		*mapent = entity_t{};
 		g_numentities--;
 		return true;
 	}
@@ -871,91 +860,78 @@ void            ParseEntities()
     g_numentities = 0;
     ParseFromMemory((char*) g_dentdata.data(), g_entdatasize);
 
-    while (ParseEntity())
-    {
-    }
+    while (ParseEntity());
 }
 
+static const entity_key_value* get_key_value_pointer(const entity_t& ent, std::u8string_view key) noexcept {
+	for(const entity_key_value& kv : ent.keyValues) {
+		if(!kv.is_removed() && kv.key() == key) {
+			return &kv;
+		}
+	}
+	return nullptr;
+}
 
-void DeleteAllKeys(entity_t* ent)
-{
-	epair_t **pep;
-	for (pep = &ent->epairs; *pep; pep = &(*pep)->next)
-	{
-		epair_t *ep = *pep;
-		*pep = ep->next;
-		delete ep;
+static entity_key_value* get_key_value_pointer(entity_t& ent, std::u8string_view key) noexcept {
+	return (entity_key_value*) get_key_value_pointer((const entity_t&) ent, key);
+}
+
+void DeleteKey(entity_t* ent, std::u8string_view key) {
+	entity_key_value* kv = get_key_value_pointer(*ent, key);
+	if(kv) {
+		kv->remove();
 	}
 }
-void DeleteKey(entity_t* ent, std::u8string_view key)
-{
-	epair_t **pep;
-	for (pep = &ent->epairs; *pep; pep = &(*pep)->next)
-	{
-		if ((*pep)->key == key)
-		{
-			epair_t *ep = *pep;
-			*pep = ep->next;
-			delete ep;
-			return;
+
+void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue) {
+	entity_key_value* replaceable{nullptr};
+	for(entity_key_value& kv : ent->keyValues) {
+		if(kv.is_removed()) {
+			replaceable = &kv;
+		} else if(kv.key() == newKeyValue.key()){
+			replaceable = &kv;
+			break;
 		}
+	}
+	
+	if(replaceable) {
+		*replaceable = std::move(newKeyValue);
+	} else {
+		ent->keyValues.emplace_back(std::move(newKeyValue));
 	}
 }
 void SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value) {
-	if (value.empty())
-	{
-		DeleteKey (ent, key);
-		return;
-	}
-    for (epair_t* ep = ent->epairs; ep; ep = ep->next)
-    {
-        if (ep->key == key)
-        {
-			ep->value = std::move(value);
-            return;
-        }
-    }
-    std::unique_ptr<epair_t> ep = std::make_unique<epair_t>();
-    ep->next = ent->epairs;
-    ep->key = key;
-    ep->value = std::move(value);
-    ent->epairs = ep.release();
+	SetKeyValue(ent, std::move(entity_key_value{key, value}));
 }
 
 // =====================================================================================
 //  ValueForKey
 //      returns the value for a passed entity and key
 // =====================================================================================
-const char8_t*     ValueForKey(const entity_t* const ent, std::u8string_view key)
-{
-    epair_t*        ep;
-
-    for (ep = ent->epairs; ep; ep = ep->next)
-    {
-        if (ep->key == key)
-        {
-            return ep->value.c_str();
-        }
-    }
+const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key) {
+	const entity_key_value* kv = get_key_value_pointer(*ent, key);
+	if(kv) {
+		return kv->value().data();
+	}
     return u8"";
 }
 
 
-std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key)
-{
-	// TODO: This is inefficient. When ValueForKey is no longer used, move its code in here
-	// but without the .c_str()
-    return ValueForKey(ent, key);
+std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key) {
+	const entity_key_value* kv = get_key_value_pointer(*ent, key);
+	if(kv) {
+		return kv->value();
+	}
+    return u8"";
 }
 
 
-bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key)
-{
+bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key) {
 	return !key_value_is_empty(ent, key);
 }
 bool key_value_is_empty(const entity_t* const ent, std::u8string_view key)
 {
-	return value_for_key(ent, key).empty();
+	return get_key_value_pointer(*ent, key) == nullptr;
 }
 bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value)
 {

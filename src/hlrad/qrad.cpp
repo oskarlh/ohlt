@@ -975,17 +975,16 @@ void ReadCustomChopValue()
 			const wad_texture_name texname{
 				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
 			};
-			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
-			{
-				if (ep->key != texname)
-					continue;
-				if (texname.is_origin())
-					continue;
-				if (atof ((const char*) ep->value.c_str()) <= 0)
-					continue;
-				chopscales[i] = atof ((const char*) ep->value.c_str());
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname.c_str(), chopscales[i]);
+			std::u8string_view value{value_for_key(mapent, texname)};
+			if(value.empty()) {
+				continue;
 			}
+			if (texname.is_origin())
+				continue;
+			if (atof ((const char*) value.data()) <= 0)
+				continue;
+			chopscales[i] = atof ((const char*) value.data());
+			Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname.c_str(), chopscales[i]);
 		}
 	}
 }
@@ -1017,15 +1016,14 @@ void ReadCustomSmoothValue()
 			const wad_texture_name texname{
 				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
 			};
-			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
-			{
-				if (ep->key != texname)
-					continue;
-				if (texname.is_origin())
-					continue;
-				g_smoothvalues[i] = cos(atof ((const char*) ep->value.c_str()) * (std::numbers::pi_v<double> / 180.0));
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname.c_str(), atof ((const char*) ep->value.c_str()));
+			std::u8string_view value{value_for_key(mapent, texname)};
+			if(value.empty()) {
+				continue;
 			}
+			if (texname.is_origin())
+				continue;
+			g_smoothvalues[i] = cos(atof ((const char*) value.data()) * (std::numbers::pi_v<double> / 180.0));
+			Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname.c_str(), atof ((const char*) value.data()));
 		}
 	}
 }
@@ -1052,34 +1050,33 @@ void ReadTranslucentTextures()
 			const wad_texture_name texname{
 				((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name
 			};
-			for (epair_t *ep = mapent->epairs; ep; ep = ep->next)
-			{
-				if (ep->key != texname)
-					continue;
-				if (texname.is_origin())
-					continue;
-				double r, g, b;
-				int count;
-				count = sscanf ((const char*) ep->value.c_str(), "%lf %lf %lf", &r, &g, &b);
-				if (count == 1)
-				{
-					g = b = r;
-				}
-				else if (count != 3)
-				{
-					Warning ("ignore bad translucent value '%s'", (const char*) ep->value.c_str());
-					continue;
-				}
-				if (r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0 || b > 1.0)
-				{
-					Warning ("translucent value should be 0.0-1.0");
-					continue;
-				}
-				g_translucenttextures[i][0] = r;
-				g_translucenttextures[i][1] = g;
-				g_translucenttextures[i][2] = b;
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent: %s = %f %f %f\n", texname.c_str(), r, g, b);
+			std::u8string_view value{value_for_key(mapent, texname)};
+			if(value.empty()) {
+				continue;
 			}
+			if (texname.is_origin())
+				continue;
+			double r, g, b;
+			int count;
+			count = sscanf ((const char*) value.data(), "%lf %lf %lf", &r, &g, &b);
+			if (count == 1)
+			{
+				g = b = r;
+			}
+			else if (count != 3)
+			{
+				Warning ("ignore bad translucent value '%s'", (const char*) value.data());
+				continue;
+			}
+			if (r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0 || b > 1.0)
+			{
+				Warning ("translucent value should be 0.0-1.0");
+				continue;
+			}
+			g_translucenttextures[i][0] = r;
+			g_translucenttextures[i][1] = g;
+			g_translucenttextures[i][2] = b;
+			Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent: %s = %f %f %f\n", texname.c_str(), r, g, b);
 		}
 	}
 }
@@ -1096,7 +1093,6 @@ void ReadLightingCone ()
 	int num;
 	int i, k;
 	entity_t *mapent;
-	epair_t *ep;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
 	g_lightingconeinfo = (vec3_t *)malloc (num * sizeof(vec3_t));
@@ -1114,34 +1110,34 @@ void ReadLightingCone ()
 		for (i = 0; i < num; i++)
 		{
 			const wad_texture_name texname{((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name};
-			for (ep = mapent->epairs; ep; ep = ep->next)
-			{
-				if (ep->key != texname)
-					continue;
-				if (texname.is_origin())
-					continue;
-				double power, scale;
-				int count;
-				count = sscanf ((const char*) ep->value.c_str(), "%lf %lf", &power, &scale);
-				if (count == 1)
-				{
-					scale = 1.0;
-				}
-				else if (count != 2)
-				{
-					Warning ("ignore bad angular fade value '%s'", (const char*) ep->value.c_str());
-					continue;
-				}
-				if (power < 0.0 || scale < 0.0)
-				{
-					Warning ("ignore disallowed angular fade value '%s'", (const char*) ep->value.c_str());
-					continue;
-				}
-				scale *= DefaultScaleForPower (power);
-				g_lightingconeinfo[i][0] = power;
-				g_lightingconeinfo[i][1] = scale;
-				Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
+
+			std::u8string_view value{value_for_key(mapent, texname)};
+			if(value.empty()) {
+				continue;
 			}
+			if (texname.is_origin())
+				continue;
+			double power, scale;
+			int count;
+			count = sscanf ((const char*) value.data(), "%lf %lf", &power, &scale);
+			if (count == 1)
+			{
+				scale = 1.0;
+			}
+			else if (count != 2)
+			{
+				Warning ("ignore bad angular fade value '%s'", (const char*) value.data());
+				continue;
+			}
+			if (power < 0.0 || scale < 0.0)
+			{
+				Warning ("ignore disallowed angular fade value '%s'", (const char*) value.data());
+				continue;
+			}
+			scale *= DefaultScaleForPower (power);
+			g_lightingconeinfo[i][0] = power;
+			g_lightingconeinfo[i][1] = scale;
+			Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
 		}
 	}
 }
@@ -2896,20 +2892,18 @@ void            ReadInfoTexAndMinlights()
 		if (classname_is(mapent, u8"info_minlights")) {
 			Log("Reading per-tex minlights from info_minlights map entity\n");
 
-			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
+			for (const entity_key_value& kv : mapent->keyValues)
 			{
-				if (!strcmp((const char*) ep->key.c_str(), "classname")
-					|| !strcmp((const char*) ep->key.c_str(), "origin")
-					)
+				if (kv.key() == u8"classname" || kv.key() == u8"origin")
 					continue; // we dont care about these keyvalues
-				if (sscanf((const char*) ep->value.c_str(), "%f", &min) != 1)
+				if (sscanf((const char*) kv.value().data(), "%f", &min) != 1)
 				{
-					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) ep->key.c_str());
+					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) kv.key().data());
 					continue;
 				}
-				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(ep->key);
+				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(kv.key());
 				if(!maybeTextureName) {
-					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) ep->key.c_str());
+					Warning("Ignoring bad minlight '%s' in info_minlights entity", (const char*) kv.key().data());
 					continue;
 				}
 				minlight.name = maybeTextureName.value();
@@ -2921,14 +2915,12 @@ void            ReadInfoTexAndMinlights()
 		else if (classname_is(mapent, u8"info_texlights")) {
 			Log("Reading texlights from info_texlights map entity\n");
 
-			for (const epair_t* ep = mapent->epairs; ep; ep = ep->next)
+			for (const entity_key_value& kv : mapent->keyValues)
 			{
-				if (ep->key == u8"classname"
-					|| ep->key == u8"origin"
-					)
+				if (kv.key() == u8"classname" || kv.key() == u8"origin")
 					continue; // we dont care about these keyvalues
 
-				values = sscanf((const char*) ep->value.c_str(), "%f %f %f %f", &r, &g, &b, &i);
+				values = sscanf((const char*) kv.value().data(), "%f %f %f %f", &r, &g, &b, &i);
 
 				if (values == 1)
 				{
@@ -2942,13 +2934,13 @@ void            ReadInfoTexAndMinlights()
 				}
 				else if (values != 3)
 				{
-					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) ep->key.c_str());
+					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) kv.key().data());
 					continue;
 				}
-				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(ep->key);
+				const std::optional<wad_texture_name> maybeTextureName = wad_texture_name::make_if_legal_name(kv.key());
 				if (!maybeTextureName)
 				{
-					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) ep->key.c_str());
+					Warning("Ignoring bad texlight '%s' in info_texlights entity", (const char*) kv.key().data());
 					continue;
 				}
 				texlight_t texlight;

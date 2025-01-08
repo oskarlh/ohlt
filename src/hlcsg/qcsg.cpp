@@ -1009,12 +1009,11 @@ void     ReuseModel ()
 		SetKeyValue (&g_entities[i], u8"model", ValueForKey (&g_entities[j], u8"model"));
 		if (j > i)
 		{
-			// move this entity backward
+			// move this entity forward
 			// to prevent precache error in case of .mdl/.spr and wrong result of EntityForModel in case of map model
-			entity_t tmp;
-			tmp = g_entities[i];
-			memmove (&g_entities[i], &g_entities[i + 1], ((j + 1) - (i + 1)) * sizeof (entity_t));
-			g_entities[j] = tmp;
+			entity_t tmp{std::move(g_entities[i])};
+            std::move(&g_entities[i + 1], &g_entities[i + 1] + ((j + 1) - (i + 1)), &g_entities[i]);
+			g_entities[j] = std::move(tmp);
 		}
 	}
 }
@@ -1138,7 +1137,6 @@ static void UnparseEntities()
 {
     char8_t* buf;
     char8_t* end;
-    epair_t* ep;
     char line[MAXTOKEN];
     int i;
 
@@ -1185,10 +1183,10 @@ static void UnparseEntities()
 					Error("g_numentities == MAX_MAP_ENTITIES");
 				}
 				entity_t *newent = &g_entities[g_numentities++];
-				newent->epairs = mapent->epairs;
-				SetKeyValue (newent, u8"classname",u8"light_environment");
+                using std::swap;
+                swap(newent->keyValues, mapent->keyValues);
+				SetKeyValue (newent, u8"classname", u8"light_environment");
 				SetKeyValue (newent, u8"_fake", u8"1");
-				mapent->epairs = nullptr;
 			}
 		}
 	}
@@ -1272,8 +1270,7 @@ static void UnparseEntities()
 	}
     for (i = 0; i < g_numentities; i++)
     {
-        ep = g_entities[i].epairs;
-        if (!ep) {
+        if (g_entities[i].keyValues.empty()) {
             // Ent got removed
             continue;
         }
@@ -1281,9 +1278,9 @@ static void UnparseEntities()
         strcat((char*) end, (const char*) "{\n");
         end += 2;
 
-        for (ep = g_entities[i].epairs; ep; ep = ep->next)
+        for (const entity_key_value& kv : g_entities[i].keyValues)
         {
-            snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", (const char*) ep->key.c_str(), (const char*) ep->value.c_str());
+            snprintf(line, sizeof(line), "\"%s\" \"%s\"\n", (const char*) kv.key().data(), (const char*) kv.value().data());
             strcat((char*) end, line);
             end += strlen(line);
         }
@@ -1320,9 +1317,6 @@ void LoadWadValue ()
 {
     std::u8string wadValue;
 	ParseFromMemory ((char*) g_dentdata.data(), g_entdatasize);
-	entity_t ent0;
-	entity_t *mapent = &ent0;
-	memset (mapent, 0, sizeof (entity_t));
 	if (GetToken (true)) {
 		if (g_token != u8"{"sv)
 		{
@@ -1338,13 +1332,12 @@ void LoadWadValue ()
 			{
 				break;
 			}
-			std::unique_ptr<epair_t> e = ParseEpair ();
-            if (e->key == u8"wad") {
-                wadValue = e->value;
+			entity_key_value kv{parse_entity_key_value()};
+            if (kv.key() == u8"wad") {
+			    SetKeyValue(&g_entities[0], std::move(kv));
             }
 		}
 	}
-	SetKeyValue (&g_entities[0], u8"wad", wadValue);
 }
 void WriteBSP(const char* const name)
 {

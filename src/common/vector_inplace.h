@@ -15,7 +15,7 @@ template<class T, std::size_t N>
 requires(std::is_nothrow_destructible_v<T>)
 class vector_inplace final {
 	private:
-		std::size_t vectorSize{0};
+		std::conditional_t<(N < 256 && alignof(T) < sizeof(std::size_t)), std::uint8_t, std::size_t> vectorSize{0};
 		alignas(T) std::array<std::byte, sizeof(T) * N> vectorData;
 
 	public:

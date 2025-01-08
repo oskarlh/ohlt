@@ -360,24 +360,140 @@ struct dheader_t {
 // Entity Related Stuff
 //
 
-struct epair_t {
-    epair_t* next = nullptr;
-    std::u8string key;
-    std::u8string value;
+class entity_key_value {
+    private:
+        static constexpr std::size_t inplace_storage_size = 32 - 2;
+
+        // TODO: Create a generic short vector class and use that instead (can use inplace_vector as a base)
+        struct long_data {
+            char8_t* units;
+            std::size_t keyLength;
+            std::size_t valueLength;
+        };
+        using short_data = std::array<char8_t, inplace_storage_size>;
+        union key_and_value {
+            short_data shortKeyAndValue;
+            long_data longKeyAndValue;
+        };
+        key_and_value keyAndValue;
+        std::uint8_t shortKeyLength;
+        std::uint8_t shortValueLength;
+
+        constexpr bool is_short_data() const noexcept {
+            return shortKeyLength != std::numeric_limits<decltype(shortKeyLength)>::max();
+        }
+    public:
+        constexpr entity_key_value() noexcept {
+            keyAndValue.shortKeyAndValue = short_data{};
+            shortKeyLength = 0;
+            shortValueLength = 0;
+        }
+        entity_key_value(entity_key_value& other) = delete;
+        void swap(entity_key_value& other) noexcept {
+            using std::swap;
+            std::swap(keyAndValue, other.keyAndValue);
+            std::swap(shortKeyLength, other.shortKeyLength);
+            std::swap(shortValueLength, other.shortValueLength);
+        }
+        entity_key_value& operator=(entity_key_value& other) = delete;
+        constexpr entity_key_value& operator=(entity_key_value&& other) noexcept {
+            swap(other);
+            return *this;
+        }
+        constexpr entity_key_value(entity_key_value&& other) noexcept : entity_key_value() {
+            operator=(std::move(other));
+        }
+        constexpr entity_key_value(std::u8string_view key, std::u8string_view value) {
+            if(value.empty()) {
+                keyAndValue.shortKeyAndValue = short_data{};
+                shortKeyLength = 0;
+                shortValueLength = 0;
+            } else {
+                char8_t* keyStart;
+
+                // TODO: Eventually we'll be able to get rid of the nulls
+                // when we've stopped using C string functions
+                std::size_t totalLengthWithNulls = key.length() + value.length() + 2;
+                if (totalLengthWithNulls <= inplace_storage_size) [[likely]] {
+                    keyAndValue.shortKeyAndValue = short_data();
+                    shortKeyLength = key.length();
+                    shortValueLength = value.length();
+
+                    keyStart = keyAndValue.shortKeyAndValue.begin();
+
+                } else {
+                    keyAndValue.longKeyAndValue = long_data();
+                    keyAndValue.longKeyAndValue.keyLength = key.length();
+                    keyAndValue.longKeyAndValue.valueLength = value.length();
+                    shortKeyLength = -1;
+                    shortValueLength = -1;
+                    keyStart = new char8_t[totalLengthWithNulls];
+                    keyAndValue.longKeyAndValue.units = keyStart;
+                }
+
+                std::ranges::copy(key, keyStart);
+                keyStart[key.length()] = u8'\0';
+
+                char8_t* valueStart{keyStart + key.length() + 1};
+                std::ranges::copy(value, valueStart);
+                valueStart[value.length()] = u8'\0';
+                
+            }
+        }
+        constexpr bool is_removed() const noexcept {
+            return shortValueLength == 0;
+        }
+
+        constexpr void remove() noexcept {
+            operator=(entity_key_value{});
+        }
+
+        constexpr std::u8string_view key() const noexcept {
+            if(is_short_data()) [[likely]] {
+                return std::u8string_view{
+                    keyAndValue.shortKeyAndValue.data(),
+                    shortKeyLength
+                };
+            }
+            return std::u8string_view{
+                keyAndValue.longKeyAndValue.units,
+                keyAndValue.longKeyAndValue.keyLength
+            };
+        }
+        constexpr std::u8string_view value() const noexcept {
+            if(is_short_data()) [[likely]] {
+                return std::u8string_view{
+                    keyAndValue.shortKeyAndValue.data() + shortKeyLength + 1,
+                    shortValueLength
+                };
+            }
+            return std::u8string_view{
+                keyAndValue.longKeyAndValue.units + keyAndValue.longKeyAndValue.keyLength + 1,
+                keyAndValue.longKeyAndValue.valueLength
+            };
+        }
+        constexpr ~entity_key_value() {
+            if(is_short_data()) {
+                keyAndValue.shortKeyAndValue.~short_data();
+            } else {
+                delete[] keyAndValue.longKeyAndValue.units;
+                keyAndValue.longKeyAndValue.~long_data();
+            }
+        }
 };
 
 struct entity_t {
-    vec3_array          origin;
-    int             firstbrush;
-    int             numbrushes;
-    epair_t*        epairs;
+    vec3_array origin{};
+    int firstbrush{};
+    int numbrushes{};
+    std::vector<entity_key_value> keyValues;
 };
 
 extern void            ParseEntities();
 
-extern void DeleteAllKeys(entity_t* ent);
-extern void            DeleteKey(entity_t* ent, std::u8string_view key);
-extern void            SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value);
+extern void DeleteKey(entity_t* ent, std::u8string_view key);
+extern void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue);
+extern void SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value);
 extern const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key);
 std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key);
 bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key);
@@ -394,7 +510,7 @@ extern double3_array get_double_vector_for_key(const entity_t& ent, std::u8strin
 
 
 extern std::optional<std::reference_wrapper<entity_t>> find_target_entity(std::u8string_view target);
-extern std::unique_ptr<epair_t> ParseEpair();
+extern entity_key_value parse_entity_key_value();
 extern entity_t* EntityForModel(int modnum);
 
 //

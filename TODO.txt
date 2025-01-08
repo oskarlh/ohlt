@@ -58,3 +58,12 @@ https://stackoverflow.com/questions/5091583/cmake-reuse-object-files-built-for-a
 
 See Version 33 in http://zhlt.info/version-history.html
 Perhaps I can auto-enable those "fake"/embedded lightmaps for any transparent "{" textures.
+
+Remove info_texlights entities from the output, as well as zhlt_studioshadow and zhlt_shadowmode keys
+
+Sort key values (don't worry about the output order being different from the input order - SDHLT was already
+*reversing* the order)
+
+
+See if it's possible to compress textures by omitting mipmaps and using 0 (or other short) offsets,
+since modern HL doesn't use the mipmaps in OpenGL mode
