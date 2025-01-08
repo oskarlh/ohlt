@@ -402,7 +402,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 										 , int detaillevel
 										 )
 {
-    int             j, l;
+    int             j;
     surface_t*      p;
     surface_t*      bestsurface;
     vec_t           bestvalue;
@@ -435,7 +435,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
         plane = &g_dplanes[p->planenum];
 
         // check for axis aligned surfaces
-        l = plane->type;
+        planetype l{plane->type};
         if (l > last_axial)
         {
             continue;
@@ -446,10 +446,10 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
         //
         value = 0;
 
-        dist = plane->dist * plane->normal[l];
-		if (maxs[l] - dist < ON_EPSILON || dist - mins[l] < ON_EPSILON)
+        dist = plane->dist * plane->normal[std::size_t(l)];
+		if (maxs[std::size_t(l)] - dist < ON_EPSILON || dist - mins[std::size_t(l)] < ON_EPSILON)
 			continue;
-		if (maxs[l] - dist < g_maxnode_size/2.0 - ON_EPSILON || dist - mins[l] < g_maxnode_size/2.0 - ON_EPSILON)
+		if (maxs[std::size_t(l)] - dist < g_maxnode_size/2.0 - ON_EPSILON || dist - mins[std::size_t(l)] < g_maxnode_size/2.0 - ON_EPSILON)
 			continue;
 		double crosscount = 0;
 		double frontcount = 0;
@@ -486,9 +486,9 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 		}
 
 		double frontsize = frontcount + 0.5 * coplanarcount + 0.5 * crosscount;
-		double frontfrac = (maxs[l] - dist) / (maxs[l] - mins[l]);
+		double frontfrac = (maxs[std::size_t(l)] - dist) / (maxs[std::size_t(l)] - mins[std::size_t(l)]);
 		double backsize = backcount + 0.5 * coplanarcount + 0.5 * crosscount;
-		double backfrac = (dist - mins[l]) / (maxs[l] - mins[l]);
+		double backfrac = (dist - mins[std::size_t(l)]) / (maxs[std::size_t(l)] - mins[std::size_t(l)]);
 		value = crosscount + 0.1 * (frontsize * (log (frontfrac) / log (2.0)) + backsize * (log (backfrac) / log (2.0)));
 		// the first part is how the split will increase the number of faces
 		// the second part is how the split will increase the average depth of the bsp tree

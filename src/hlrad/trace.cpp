@@ -9,7 +9,7 @@
 
 typedef struct tnode_s
 {
-    planetypes      type;
+    planetype      type;
     vec3_array          normal;
     float           dist;
     int             children[2];
@@ -39,8 +39,8 @@ static void     MakeTnode(const int nodenum)
 
     t->type = plane.type;
     VectorCopy(plane.normal, t->normal);
-	if (plane.normal[(plane.type)%3] < 0) {
-		if (plane.type < 3)
+	if (plane.normal[std::size_t(plane.type) % 3] < 0) {
+		if (plane.type <= last_axial)
 		{
 			Warning ("MakeTnode: negative plane");
 		}
@@ -122,15 +122,15 @@ static int             TestLine_r(const int node, const vec3_array& start, const
     tnode = &tnodes[node];
     switch (tnode->type)
     {
-    case plane_x:
+    case planetype::plane_x:
         front = start[0] - tnode->dist;
         back = stop[0] - tnode->dist;
         break;
-    case plane_y:
+    case planetype::plane_y:
         front = start[1] - tnode->dist;
         back = stop[1] - tnode->dist;
         break;
-    case plane_z:
+    case planetype::plane_z:
         front = start[2] - tnode->dist;
         back = stop[2] - tnode->dist;
         break;
@@ -220,7 +220,7 @@ opaqueface_t *opaquefaces;
 
 typedef struct opaquenode_s
 {
-	planetypes type;
+	planetype type;
 	vec3_array normal;
 	vec_t dist;
 	int children[2];
@@ -541,15 +541,15 @@ static int TestLineOpaque_r (int nodenum, const vec3_array& start, const vec3_ar
 	thisnode = &opaquenodes[nodenum];
 	switch (thisnode->type)
 	{
-	case plane_x:
+	case planetype::plane_x:
 		front = start[0] - thisnode->dist;
 		back = stop[0] - thisnode->dist;
 		break;
-	case plane_y:
+	case planetype::plane_y:
 		front = start[1] - thisnode->dist;
 		back = stop[1] - thisnode->dist;
 		break;
-	case plane_z:
+	case planetype::plane_z:
 		front = start[2] - thisnode->dist;
 		back = stop[2] - thisnode->dist;
 		break;
@@ -688,13 +688,13 @@ int TestPointOpaque_r (int nodenum, bool solid, const vec3_array& point)
 		thisnode = &opaquenodes[nodenum];
 		switch (thisnode->type)
 		{
-		case plane_x:
+		case planetype::plane_x:
 			dist = point[0] - thisnode->dist;
 			break;
-		case plane_y:
+		case planetype::plane_y:
 			dist = point[1] - thisnode->dist;
 			break;
-		case plane_z:
+		case planetype::plane_z:
 			dist = point[2] - thisnode->dist;
 			break;
 		default:

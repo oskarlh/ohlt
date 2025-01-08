@@ -62,9 +62,9 @@ int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 	p->type = PlaneTypeForNormal(p->normal.data());
 	if (p->type <= last_axial)
 	{
-		for (int i = 0; i < 3; i++)
+		for (std::size_t i{std::size_t(first_axial)}; i <= std::size_t(last_axial); ++i)
 		{
-			if (i == p->type)
+			if (i == std::size_t(p->type))
 				p->normal[i] = p->normal[i] > 0? 1: -1;
 			else
 				p->normal[i] = 0;
@@ -78,7 +78,7 @@ int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 	(p+1)->dist = -p->dist;
 
     // always put axial planes facing positive first
-	if (normal[(p->type)%3] < 0)
+	if (normal[std::size_t(p->type)%3] < 0)
 	{
 		temp = *p;
 		*p = *(p+1);
@@ -131,7 +131,6 @@ void AddHullPlane(brushhull_t* hull, const vec_t* const normal, const vec_t* con
 	//up cases where we know the plane hasn't been added yet, like axial case)
 	if(check_planenum)
 	{
-
 		bface_t* current_face;
 		for(current_face = hull->faces; current_face; current_face = current_face->next)
 		{
@@ -440,7 +439,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	vec3_array  edge_start, edge_end, edge, bevel_edge;
 	unsigned int counter, counter2, dir;
 	bool start_found,end_found;
-	bool axialbevel[last_axial+1][2] = { {false,false}, {false,false}, {false,false} };
+	bool axialbevel[std::size_t(last_axial) + 1][2] = { {false,false}, {false,false}, {false,false} };
 
 	bool warned = false;
 
@@ -458,7 +457,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			//flag case where bounding box shouldn't expand
 			if (current_face->bevel)
 			{
-				axialbevel[current_plane->type][(current_plane->normal[current_plane->type] > 0 ? 1 : 0)] = true;
+				axialbevel[std::size_t(current_plane->type)][(current_plane->normal[std::size_t(current_plane->type)] > 0 ? 1 : 0)] = true;
 			}
 			continue;
 		}
@@ -641,26 +640,26 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	normal[0] = -1;
 	normal[1] = 0;
 	normal[2] = 0;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_x][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_x)][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
 	normal[0] = 0;
 	normal[1] = -1;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_y][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_y)][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
 	normal[1] = 0;
 	normal[2] = -1;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_z][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_z)][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
 
 	normal[2] = 0;
 
 	//add maxes
 	VectorAdd(brush->hulls[0].bounds.maxs, g_hull_size[hullnum][1], origin);
 	normal[0] = 1;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_x][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_x)][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
 	normal[0] = 0;
 	normal[1] = 1;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_y][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_y)][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
 	normal[1] = 0;
 	normal[2] = 1;
-	AddHullPlane(hull,normal.data(),(axialbevel[plane_z][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
+	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_z)][1] ? brush->hulls[0].bounds.maxs.data() : origin.data()),false);
 /*
 	bface_t* hull_face; //sanity check
 
@@ -830,7 +829,6 @@ bool            MakeBrushPlanes(brush_t* b)
     int             j;
     int             planenum;
     side_t*         s;
-    bface_t*        f;
     vec3_array          origin;
 
     //
@@ -860,7 +858,7 @@ bool            MakeBrushPlanes(brush_t* b)
         //
         // see if the plane has been used already
         //
-        for (f = b->hulls[0].faces; f; f = f->next)
+        for (bface_t* f = b->hulls[0].faces; f; f = f->next)
         {
             if (f->planenum == planenum || f->planenum == (planenum ^ 1))
             {
@@ -871,7 +869,8 @@ bool            MakeBrushPlanes(brush_t* b)
             }
         }
 
-        f = (bface_t*)Alloc(sizeof(*f));                             // TODO: This leaks
+        
+    	bface_t* f = (bface_t*)Alloc(sizeof(*f)); // TODO: This leaks
 
         f->planenum = planenum;
         f->plane = &g_mapplanes[planenum];
@@ -1227,7 +1226,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		vec3_array v1;
 		vec3_array v2;
 		vec3_array normal;
-		planetypes axial;
+		planetype axial;
 
 		s = &g_brushsides[b->firstside + i];
 		for (j = 0; j < 3; j++)
@@ -1262,9 +1261,9 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		axial = PlaneTypeForNormal (normal.data());
 		if (axial <= last_axial)
 		{
-			int sign = normal[axial] > 0? 1: -1;
-			VectorClear (normal);
-			normal[axial] = sign;
+			vec_t sign = normal[std::size_t(axial)] > 0 ? 1: -1;
+			normal = vec3_array{};
+			normal[std::size_t(axial)] = sign;
 		}
 
 		if (numplanes >= MAXSIZE)

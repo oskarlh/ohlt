@@ -133,7 +133,7 @@ void getAdjustedPlaneFromFaceNumber(unsigned int faceNumber, dplane_t* plane)
     dface_t*        face = &g_dfaces[faceNumber];
     const vec3_array&    face_offset = g_face_offset[faceNumber];
 
-    plane->type = (planetypes)0;
+    plane->type = (planetype)0;
     
     if (face->side)
     {

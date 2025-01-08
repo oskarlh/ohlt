@@ -47,12 +47,11 @@
 #define UNLESS(a)  if (!(a))
 
 
-struct plane_t
-{
-    vec3_array normal;
-    vec3_array origin;
-    vec_t dist;
-    planetypes type;
+struct plane_t {
+    vec3_array normal{};
+    vec3_array origin{};
+    vec_t dist{};
+    planetype type{};
 };
 
 
@@ -96,25 +95,24 @@ typedef struct side_s
 
 struct bface_t {
     bface_t* next;
-    int             planenum;
-    plane_t*        plane;
-    Winding*        w;
-    int             texinfo;
-    bool            used;                                  // just for face counting
-    int             contents;
-    int             backcontents;
-	bool			bevel; //used for ExpandBrush
-    bounding_box     bounds;
+    Winding* w;
+    plane_t* plane;
+    bounding_box bounds;
+    int planenum;
+    int texinfo;
+    int contents;
+    int backcontents;
+    bool used; // just for face counting
+	bool bevel; //used for ExpandBrush
 };
 
 // NUM_HULLS should be no larger than MAX_MAP_HULLS
 #define NUM_HULLS 4
 
-typedef struct
-{
+struct brushhull_t {
     bounding_box     bounds;
     bface_t*        faces;
-} brushhull_t;
+};
 
 struct brush_t {
 	int				originalentitynum;

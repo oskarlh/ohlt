@@ -38,7 +38,7 @@ typedef struct
 	vec3_array			normal;
 	vec3_array			unused_origin;
 	vec_t			dist;
-	planetypes		type;
+	planetype		type;
 } dplane_t;
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 #endif

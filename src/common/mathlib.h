@@ -133,21 +133,20 @@ inline bool    isPointFinite(const vec_t* p)
 //
 
 
-typedef enum
-{
+enum class planetype {
     plane_x = 0,
     plane_y,
     plane_z,
     plane_anyx,
     plane_anyy,
     plane_anyz
-}
-planetypes;
+};
+constexpr planetype first_axial{planetype::plane_x};
+constexpr planetype last_axial{planetype::plane_z};
 
-#define last_axial plane_z
 #define DIR_EPSILON 0.0001
 
-inline planetypes PlaneTypeForNormal(vec3_t normal)
+inline planetype PlaneTypeForNormal(vec3_t normal)
 {
     vec_t           ax, ay, az;
 
@@ -156,28 +155,28 @@ inline planetypes PlaneTypeForNormal(vec3_t normal)
     az = std::fabs(normal[2]);
     if (ax > 1.0 - DIR_EPSILON && ay < DIR_EPSILON && az < DIR_EPSILON)
     {
-        return plane_x;
+        return planetype::plane_x;
     }
 
     if (ay > 1.0 - DIR_EPSILON && az < DIR_EPSILON && ax < DIR_EPSILON)
     {
-        return plane_y;
+        return planetype::plane_y;
     }
 
     if (az > 1.0 - DIR_EPSILON && ax < DIR_EPSILON && ay < DIR_EPSILON)
     {
-        return plane_z;
+        return planetype::plane_z;
     }
 
     if ((ax >= ay) && (ax >= az))
     {
-        return plane_anyx;
+        return planetype::plane_anyx;
     }
     if ((ay >= ax) && (ay >= az))
     {
-        return plane_anyy;
+        return planetype::plane_anyy;
     }
-    return plane_anyz;
+    return planetype::plane_anyz;
 }
 unsigned short FloatToHalf(float v);
 float HalfToFloat(unsigned short h);

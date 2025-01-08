@@ -192,7 +192,7 @@ struct dvertex_t {
 struct dplane_t {
     std::array<float, 3> normal;
     float dist;
-    planetypes type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
+    planetype type;                                  // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 };
 
 enum contents_t {
