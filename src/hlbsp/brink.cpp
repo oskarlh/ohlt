@@ -282,7 +282,7 @@ btreeleaf_t;
 btreepoint_t *AllocTreepoint (int &numobjects, bool infinite)
 {
 	numobjects++;
-	btreepoint_t *tp = (btreepoint_t *)malloc (sizeof (btreepoint_t));
+	btreepoint_t *tp = new btreepoint_t{};
 	hlassume (tp != nullptr, assume_NoMemory);
 	tp->edges = new btreeedge_l ();
 	tp->infinite = infinite;
@@ -292,7 +292,7 @@ btreepoint_t *AllocTreepoint (int &numobjects, bool infinite)
 btreeedge_t *AllocTreeedge (int &numobjects, bool infinite)
 {
 	numobjects++;
-	btreeedge_t *te = (btreeedge_t *)malloc (sizeof (btreeedge_t));
+	btreeedge_t *te = new btreeedge_t{};
 	hlassume (te != nullptr, assume_NoMemory);
 	te->points[0].p = nullptr;
 	te->points[0].side = false;
@@ -333,9 +333,9 @@ void SetEdgePoints (btreeedge_t *te, btreepoint_t *tp0, btreepoint_t *tp1)
 btreeface_t *AllocTreeface (int &numobjects, bool infinite)
 {
 	numobjects++;
-	btreeface_t *tf = (btreeface_t *)malloc (sizeof (btreeface_t));
+	btreeface_t *tf = new btreeface_t{};
 	hlassume (tf != nullptr, assume_NoMemory);
-	tf->edges = new btreeedge_l ();
+	tf->edges = new btreeedge_l{};
 	tf->leafs[0].l = nullptr;
 	tf->leafs[0].side = false;
 	tf->leafs[1].l = nullptr;
@@ -391,9 +391,9 @@ void SetFaceLeafs (btreeface_t *tf, btreeleaf_t *tl0, btreeleaf_t *tl1)
 btreeleaf_t *AllocTreeleaf (int &numobjects, bool infinite)
 {
 	numobjects++;
-	btreeleaf_t *tl = (btreeleaf_t *)malloc (sizeof (btreeleaf_t));
+	btreeleaf_t *tl = new btreeleaf_t{};
 	hlassume (tl != nullptr, assume_NoMemory);
-	tl->faces = new btreeface_l ();
+	tl->faces = new btreeface_l{};
 	tl->infinite = infinite;
 	return tl;
 }
@@ -526,7 +526,7 @@ void DeletePoint (int &numobjects, btreepoint_t *tp)
 		hlassume (false, assume_first);
 	}
 	delete tp->edges;
-	free (tp);
+	delete tp;
 	numobjects--;
 }
 
@@ -560,7 +560,7 @@ void DeleteEdge (int &numobjects, btreeedge_t *te) // warning: points in this ed
 	}
 	if (!te->infinite)
 	{
-		free(te->brink);
+		delete te->brink;
 	}
 	for (int side = 0; side < 2; side++)
 	{
@@ -573,7 +573,7 @@ void DeleteEdge (int &numobjects, btreeedge_t *te) // warning: points in this ed
 		}
 	}
 	delete te->faces;
-	free (te);
+	delete te;
 	numobjects--;
 }
 
@@ -621,7 +621,7 @@ void DeleteFace (int &numobjects, btreeface_t *tf) // warning: edges in this fac
 		}
 	}
 	delete tf->edges;
-	free (tf);
+	delete tf;
 	numobjects--;
 }
 
@@ -638,7 +638,7 @@ void DeleteLeaf (int &numobjects, btreeleaf_t *tl)
 		}
 	}
 	delete tl->faces;
-	free (tl);
+	delete tl;
 	numobjects--;
 }
 
@@ -1138,11 +1138,11 @@ bclipnode_t *ExpandClipnodes_r (bclipnode_t *bclipnodes, int &numbclipnodes, con
 
 void ExpandClipnodes (bbrinkinfo_t *info, const dclipnode_t *clipnodes, int headnode)
 {
-	bclipnode_t *bclipnodes = (bclipnode_t *)malloc (MAXCLIPNODES * sizeof (bclipnode_t)); // 262144 * 30byte = 7.5MB
+	bclipnode_t *bclipnodes = new bclipnode_t[MAXCLIPNODES]; // 262144 * 30byte = 7.5MB
 	hlassume (bclipnodes != nullptr, assume_NoMemory);
 	info->numclipnodes = 0;
 	ExpandClipnodes_r (bclipnodes, info->numclipnodes, clipnodes, headnode);
-	info->clipnodes = (bclipnode_t *)malloc (info->numclipnodes * sizeof (bclipnode_t));
+	info->clipnodes = new bclipnode_t[info->numclipnodes];
 	hlassume (info->clipnodes != nullptr, assume_NoMemory);
 	std::memcpy (info->clipnodes, bclipnodes, info->numclipnodes * sizeof (bclipnode_t));
 	for (int i = 0; i < info->numclipnodes; i++)
@@ -1152,7 +1152,7 @@ void ExpandClipnodes (bbrinkinfo_t *info, const dclipnode_t *clipnodes, int head
 			info->clipnodes[i].children[k] = info->clipnodes + (bclipnodes[i].children[k] - bclipnodes);
 		}
 	}
-	free (bclipnodes);
+	delete[] bclipnodes;
 }
 
 void BuildTreeCells (bbrinkinfo_t *info)
@@ -1258,7 +1258,7 @@ void CollectBrinks (bbrinkinfo_t *info)
 	info->numbrinks = 0;
 	ClearMarks_r (&info->clipnodes[0]);
 	CollectBrinks_r (&info->clipnodes[0], info->numbrinks, nullptr);
-	hlassume (info->brinks = (bbrink_t **)malloc (info->numbrinks * sizeof (bbrink_t *)), assume_NoMemory);
+	info->brinks = new bbrink_t*[info->numbrinks]{};
 	info->numbrinks = 0;
 	ClearMarks_r (&info->clipnodes[0]);
 	CollectBrinks_r (&info->clipnodes[0], info->numbrinks, info->brinks);
@@ -1266,7 +1266,7 @@ void CollectBrinks (bbrinkinfo_t *info)
 
 void FreeBrinks (bbrinkinfo_t *info)
 {
-	free (info->brinks);
+	delete[] info->brinks;
 }
 
 struct bwedge_s;
@@ -1459,7 +1459,7 @@ bool AddPartition (bclipnode_t *clipnode, int planenum, bool planeside, int cont
 	{
 		return false; // the whole leaf is on the plane, or the leaf doesn't consist of any vertex
 	}
-	bpartition_t *p = (bpartition_t *)malloc (sizeof (bpartition_t));
+	bpartition_t *p = new bpartition_t{};
 	hlassume (p != nullptr, assume_NoMemory);
 	p->next = clipnode->partitions;
 	p->planenum = planenum;
@@ -1704,10 +1704,10 @@ void DeleteClipnodes (bbrinkinfo_t *info)
 		while ((p = info->clipnodes[i].partitions) != nullptr)
 		{
 			info->clipnodes[i].partitions = p->next;
-			free (p);
+			delete p;
 		}
 	}
-	free (info->clipnodes);
+	delete[] info->clipnodes;
 }
 
 void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and compress clipnodes better if using HLBSP_MERGECLIPNODE
@@ -1746,7 +1746,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 			if (*pp && (*pp)->planenum == current->planenum && (*pp)->planeside == current->planeside)
 			{
 				(*pp)->type = std::min((*pp)->type, current->type); // pick the lowest (most important) level from the existing partition and the current partition
-				free (current);
+				delete current;
 				continue;
 			}
 			switch (current->type)
@@ -1783,7 +1783,7 @@ void *CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)
 	bbrinkinfo_t *info;
 	try
 	{
-		hlassume (info = (bbrinkinfo_t *)malloc (sizeof (bbrinkinfo_t)), assume_NoMemory);
+		info = new bbrinkinfo_t{};
 		ExpandClipnodes (info, clipnodes, headnode);
 		BuildTreeCells (info);
 		CollectBrinks (info);
@@ -1937,6 +1937,6 @@ void DeleteBrinkinfo (void *brinkinfo)
 {
 	bbrinkinfo_t *info = (bbrinkinfo_t *)brinkinfo;
 	DeleteClipnodes (info);
-	free (info);
+	delete info;
 }
 
