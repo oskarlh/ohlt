@@ -26,66 +26,51 @@ std::ptrdiff_t g_max_map_miptex = cli_option_defaults::max_map_miptex;
 
 bsp_data bspGlobals{};
 
-int& g_nummodels{bspGlobals.mapModelsLength};
+std::uint32_t& g_nummodels{bspGlobals.mapModelsLength};
 std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{bspGlobals.mapModels};
-std::uint32_t& g_dmodels_checksum{bspGlobals.mapModelsChecksum};
 
-int& g_visdatasize{bspGlobals.visDataByteSize};
+std::uint32_t& g_visdatasize{bspGlobals.visDataByteSize};
 std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata{bspGlobals.visData};
-std::uint32_t& g_dvisdata_checksum{bspGlobals.visDataChecksum};
 
 std::vector<std::byte>& g_dlightdata{bspGlobals.lightData};
-std::uint32_t& g_dlightdata_checksum{bspGlobals.lightDataChecksum};
 
 int& g_texdatasize{bspGlobals.textureDataByteSize};
 std::vector<std::byte>& g_dtexdata{bspGlobals.textureData};                                  // (dmiptexlump_t)
-std::uint32_t& g_dtexdata_checksum{bspGlobals.textureDataChecksum};
 
 std::uint32_t& g_entdatasize{bspGlobals.entityDataLength};
 std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata{bspGlobals.entityData};
-std::uint32_t& g_dentdata_checksum{bspGlobals.entityDataChecksum};
 
 int& g_numleafs{bspGlobals.leafsLength};
 std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs{bspGlobals.leafs};
-std::uint32_t& g_dleafs_checksum{bspGlobals.leafsChecksum};
 
 int& g_numplanes{bspGlobals.planesLength};
 std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes{bspGlobals.planes};
-std::uint32_t& g_dplanes_checksum{bspGlobals.planesChecksum};
 
 int& g_numvertexes{bspGlobals.vertexesLength};
 std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes{bspGlobals.vertexes};
-std::uint32_t& g_dvertexes_checksum{bspGlobals.vertexesChecksum};
 
 int& g_numnodes{bspGlobals.nodesLength};
 std::array<dnode_t, MAX_MAP_NODES>& g_dnodes{bspGlobals.nodes};
-std::uint32_t& g_dnodes_checksum{bspGlobals.entityDataChecksum};
 
 int& g_numtexinfo{bspGlobals.texInfosLength};
 std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo{bspGlobals.texInfos};
-std::uint32_t& g_texinfo_checksum{bspGlobals.texInfosChecksum};
 
 int& g_numfaces{bspGlobals.facesLength};
 std::array<dface_t, MAX_MAP_FACES>& g_dfaces{bspGlobals.faces};
-std::uint32_t& g_dfaces_checksum{bspGlobals.facesChecksum};
 
 int& g_iWorldExtent{bspGlobals.worldExtent}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
 int& g_numclipnodes{bspGlobals.clipNodesLength};
 std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes{bspGlobals.clipNodes};
-std::uint32_t& g_dclipnodes_checksum{bspGlobals.clipNodesChecksum};
 
 int& g_numedges{bspGlobals.edgesLength};
 std::array<dedge_t, MAX_MAP_EDGES>& g_dedges{bspGlobals.edges};
-std::uint32_t& g_dedges_checksum{bspGlobals.edgesChecksum};
 
 int& g_nummarksurfaces{bspGlobals.markSurfacesLength};
 std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces{bspGlobals.markSurfaces};
-std::uint32_t& g_dmarksurfaces_checksum{bspGlobals.markSurfacesChecksum};
 
 int& g_numsurfedges{bspGlobals.surfEdgesLength};
 std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{bspGlobals.surfEdges};
-std::uint32_t& g_dsurfedges_checksum{bspGlobals.surfEdgesChecksum};
 
 int& g_numentities{bspGlobals.entitiesLength};
 std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{bspGlobals.entities};
@@ -104,30 +89,6 @@ static std::uint32_t rotleftu32(std::uint32_t value, std::uint32_t amt)
 
     t2 = value << amt;
     return (t1 | t2);
-}
-
-
-template<class T> static std::uint32_t fast_checksum(std::span<T> elements)
-{
-	// TODO: Find a better way to hash that gives us the same output on all platforms.
-	// This assertion fails for two possible reasons:
-	// 1) NaN floats have can have different bit representations
-	// 2) struct padding
-	// static_assert(std::has_unique_object_representations_v<T>);
-
-	struct element_as_bytes {
-		unsigned char bytes[sizeof(T)];
-	};
-
-    std::uint32_t checksum = 0;
-    for (const T& element : elements)
-    {
-		for(unsigned char byteInElement : std::bit_cast<element_as_bytes>(element).bytes) {
-	        checksum = rotleftu32(checksum, 4) ^ byteInElement;
-		}
-    }
-
-    return checksum;
 }
 
 
@@ -341,23 +302,34 @@ void            LoadBSPImage(dheader_t* const header)
 
     Free(header);                                          // everything has been copied out
 
-	// WTF???? THESE ARE UNUSED!
-    g_dmodels_checksum = fast_checksum(std::span(g_dmodels.data(), g_nummodels));
-    g_dvertexes_checksum = fast_checksum(std::span(g_dvertexes.data(), g_numvertexes));
-    g_dplanes_checksum = fast_checksum(std::span(g_dplanes.data(), g_numplanes));
-    g_dleafs_checksum = fast_checksum(std::span(g_dleafs.data(), g_numleafs));
-    g_dnodes_checksum = fast_checksum(std::span(g_dnodes.data(), g_numnodes));
-    g_texinfo_checksum = fast_checksum(std::span(g_texinfo.data(), g_numtexinfo));
-    g_dclipnodes_checksum = fast_checksum(std::span(g_dclipnodes.data(), g_numclipnodes));
-    g_dfaces_checksum = fast_checksum(std::span(g_dfaces.data(), g_numfaces));
-    g_dmarksurfaces_checksum = fast_checksum(std::span(g_dmarksurfaces.data(), g_nummarksurfaces));
-    g_dsurfedges_checksum = fast_checksum(std::span(g_dsurfedges.data(), g_numsurfedges));
-    g_dedges_checksum = fast_checksum(std::span(g_dedges.data(), g_numedges));
-    g_dtexdata_checksum = fast_checksum(std::span(g_dtexdata.data(), g_texdatasize));
-    g_dvisdata_checksum = fast_checksum(std::span(g_dvisdata.data(), g_visdatasize));
-    g_dlightdata_checksum = fast_checksum(std::span(g_dlightdata));
-    g_dentdata_checksum = fast_checksum(std::span(g_dentdata.data(), g_entdatasize));
 }
+
+// For debugging purposes
+std::uint32_t hash_data() {
+
+	// TODO: WTF???? THESE GLOBALS ARE UNUSED! Remove them
+	
+
+	auto hashes = std::array{
+		  fast_checksum(std::span(g_dmodels.data(), g_nummodels)),
+      fast_checksum(std::span(g_dvertexes.data(), g_numvertexes)),
+      fast_checksum(std::span(g_dplanes.data(), g_numplanes)),
+      fast_checksum(std::span(g_dleafs.data(), g_numleafs)),
+       fast_checksum(std::span(g_dnodes.data(), g_numnodes)),
+      fast_checksum(std::span(g_texinfo.data(), g_numtexinfo)),
+      fast_checksum(std::span(g_dclipnodes.data(), g_numclipnodes)),
+       fast_checksum(std::span(g_dfaces.data(), g_numfaces)),
+       fast_checksum(std::span(g_dmarksurfaces.data(), g_nummarksurfaces)),
+       fast_checksum(std::span(g_dsurfedges.data(), g_numsurfedges)),
+        fast_checksum(std::span(g_dedges.data(), g_numedges)),
+      fast_checksum(std::span(g_dtexdata.data(), g_texdatasize)),
+       fast_checksum(std::span(g_dvisdata.data(), g_visdatasize)),
+        fast_checksum(std::span(g_dlightdata)),
+        fast_checksum(std::span(g_dentdata.data(), g_entdatasize))
+	};
+	return fast_checksum(std::span(hashes));
+}
+
 
 //
 // =====================================================================================

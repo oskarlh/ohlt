@@ -182,7 +182,7 @@ bool Winding::empty() const
 void Winding::clear()
 {
     m_Points.clear();
-    m_Points.shrink_to_fit();
+    m_Points.shrink_to_fit(); // TODO: Remove? Measure
 }
 
 

@@ -265,30 +265,17 @@ void            GetParamsFromEnt(entity_t* mapent)
 //  NewFaceFromFace
 //      Duplicates the non point information of a face, used by SplitFace
 // =====================================================================================
-bface_t*        NewFaceFromFace(const bface_t* const in)
+bface_t NewFaceFromFace(const bface_t& in)
 {
-    bface_t*        newf;
-
-    newf = new bface_t();
-
-    newf->contents = in->contents;
-    newf->texinfo = in->texinfo;
-    newf->planenum = in->planenum;
-    newf->plane = in->plane;
-	newf->backcontents = in->backcontents;
+    bface_t newf{};
+    newf.contents = in.contents;
+    newf.texinfo = in.texinfo;
+    newf.planenum = in.planenum;
+    newf.plane = in.plane;
+	newf.backcontents = in.backcontents;
 
     return newf;
 }
-
-// =====================================================================================
-//  FreeFace
-// =====================================================================================
-void            FreeFace(bface_t* f)
-{
-    delete f->w;
-    delete f;
-}
-
 
 // =====================================================================================
 //  WriteFace
@@ -304,7 +291,7 @@ void            WriteFace(const int hull, const bface_t* const f
         c_csgfaces++;
 
     // .p0 format
-    const Winding& w = *f->w;
+    const Winding& w = f->w;
 
     // plane summary
 	fprintf (out[hull], "%i %i %i %i %zu\n", detaillevel, f->planenum, f->texinfo, f->contents, w.size());
@@ -344,17 +331,17 @@ void            WriteFace(const int hull, const bface_t* const f
 
     ThreadUnlock();
 }
-void WriteDetailBrush (int hull, const bface_t *faces)
+static void WriteDetailBrush (int hull, const std::vector<bface_t>& faces)
 {
 	ThreadLock ();
 	fprintf (out_detailbrush[hull], "0\n");
-	for (const bface_t *f = faces; f; f = f->next)
+	for (const bface_t &f : faces)
 	{
-		Winding *w = f->w;
-		fprintf (out_detailbrush[hull], "%i %zu\n", f->planenum, w->size());
-		for (int i = 0; i < w->size(); i++)
+		const Winding& w{f.w};
+		fprintf (out_detailbrush[hull], "%i %zu\n", f.planenum, w.size());
+		for (int i = 0; i < w.size(); i++)
 		{
-			fprintf (out_detailbrush[hull], "%5.8f %5.8f %5.8f\n", w->m_Points[i][0], w->m_Points[i][1], w->m_Points[i][2]);
+			fprintf (out_detailbrush[hull], "%5.8f %5.8f %5.8f\n", w.m_Points[i][0], w.m_Points[i][1], w.m_Points[i][2]);
 		}
 	}
 	fprintf (out_detailbrush[hull], "-1 -1\n");
@@ -368,27 +355,20 @@ void WriteDetailBrush (int hull, const bface_t *faces)
 //      Passable contents (water, lava, etc) will generate a mirrored copy of the face 
 //      to be seen from the inside.
 // =====================================================================================
-static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, const int mirrorcontents)
+static void SaveOutside(brush_t& b, const int hull, std::vector<bface_t>& outside, const int mirrorcontents)
 {
-    bface_t*        f;
-    bface_t*        f2;
-    bface_t*        next;
-    int             i;
-    vec3_t          temp;
-
-    for (f = outside; f; f = next)
+    for (bface_t& f : outside)
     {
-        next = f->next;
 
 		int frontcontents, backcontents;
-		int texinfo = f->texinfo;
+		int texinfo = f.texinfo;
 		const wad_texture_name texname{
             GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
         };
-		frontcontents = f->contents;
+		frontcontents = f.contents;
 		if (mirrorcontents == CONTENTS_TOEMPTY)
 		{
-			backcontents = f->backcontents;
+			backcontents = f.backcontents;
 		}
 		else
 		{
@@ -419,9 +399,9 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 			backnull = true; // strip water face on one side
 		}
 
-		f->contents = frontcontents;
-		f->texinfo = frontnull? -1: texinfo;
-        if (f->w->getArea() < g_tiny_threshold) {
+		f.contents = frontcontents;
+		f.texinfo = frontnull? -1: texinfo;
+        if (f.w.getArea() < g_tiny_threshold) {
             c_tiny++;
             Verbose("Entity %i, Brush %i: tiny fragment\n", 
 				b.originalentitynum, b.originalbrushnum
@@ -431,10 +411,10 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 
         // count unique faces
         if (!hull) {
-            for (f2 = b.hulls[hull].faces; f2; f2 = f2->next) {
-                if (f2->planenum == f->planenum) {
-                    if (!f2->used) {
-                        f2->used = true;
+            for (bface_t& f2 : b.hulls[hull].faces) {
+                if (f2.planenum == f.planenum) {
+                    if (!f2.used) {
+                        f2.used = true;
                         c_outfaces++;
                     }
                     break;
@@ -445,7 +425,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 		// check the texture alignment of this face
 		if (!hull)
 		{
-			int texinfo = f->texinfo;
+			int texinfo = f.texinfo;
 			const wad_texture_name texname{
                 GetTextureByNumber_CSG (texinfo).value_or(wad_texture_name{})
             };
@@ -461,7 +441,7 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 				vec3_array texnormal;
 				CrossProduct (tex->vecs[1], tex->vecs[0], texnormal);
 				VectorNormalize (texnormal);
-				if (fabs (DotProduct (texnormal, f->plane->normal)) <= NORMAL_EPSILON)
+				if (fabs (DotProduct (texnormal, f.plane->normal)) <= NORMAL_EPSILON)
 				{
 					Warning ("Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
 						b.originalentitynum, b.originalbrushnum,
@@ -471,16 +451,14 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 
 				// check for "Bad surface extents"
 				bool bad;
-				int i;
-				int j;
 				vec_t val;
 				
 				bad = false;
-				for (i = 0; i < f->w->size(); i++)
+				for (int i = 0; i < f.w.size(); ++i)
 				{
-					for (j = 0; j < 2; j++)
+					for (int j = 0; j < 2; ++j)
 					{
-						val = DotProduct (f->w->m_Points[i], tex->vecs[j]) + tex->vecs[j][3];
+						val = DotProduct (f.w.m_Points[i], tex->vecs[j]) + tex->vecs[j][3];
 						if (val < -99999 || val > 999999)
 						{
 							bad = true;
@@ -497,91 +475,54 @@ static void SaveOutside(const brush_t& b, const int hull, bface_t* outside, cons
 			}
 		}
 
-        WriteFace(hull, f
+        WriteFace(hull, &f
 			, 
 			(hull? b.clipnodedetaillevel: b.detaillevel)
 			);
 
         //              if (mirrorcontents != CONTENTS_SOLID)
         {
-            f->planenum ^= 1;
-            f->plane = &g_mapplanes[f->planenum];
-			f->contents = backcontents;
-			f->texinfo = backnull? -1: texinfo;
+            f.planenum ^= 1;
+            f.plane = &g_mapplanes[f.planenum];
+			f.contents = backcontents;
+			f.texinfo = backnull? -1: texinfo;
 
             // swap point orders
-            for (i = 0; i < f->w->size() / 2; i++)      // add points backwards
+            for (std::size_t i = 0; i < f.w.size() / 2; ++i) // Add points backwards
             {
-                VectorCopy(f->w->m_Points[i], temp);
-                VectorCopy(f->w->m_Points[f->w->size() - 1 - i], f->w->m_Points[i]);
-                VectorCopy(temp, f->w->m_Points[f->w->size() - 1 - i]);
+                using std::swap;
+                swap(f.w.m_Points[i], f.w.m_Points[f.w.size() - 1 - i]);
             }
-            WriteFace(hull, f
+            WriteFace(hull, &f
 				, 
 				(hull? b.clipnodedetaillevel: b.detaillevel)
 				);
         }
-
-        FreeFace(f);
     }
+    outside.clear();
 }
 
 // =====================================================================================
 //  CopyFace
 // =====================================================================================
-bface_t*        CopyFace(const bface_t* const f)
+bface_t CopyFace(const bface_t& f)
 {
-    bface_t*        n;
-
-    n = NewFaceFromFace(f);
-    n->w = new Winding(*f->w);
-    n->bounds = f->bounds;
+    bface_t n{NewFaceFromFace(f)};
+    n.w = f.w;
+    n.bounds = f.bounds;
     return n;
 }
 
+#include <ranges>
 // =====================================================================================
 //  CopyFaceList
 // =====================================================================================
-bface_t*        CopyFaceList(bface_t* f)
+std::vector<bface_t> CopyFaceList(const std::vector<bface_t>& faceList)
 {
-    bface_t*        head;
-    bface_t*        n;
-
-    if (f)
-    {
-        head = CopyFace(f);
-        n = head;
-        f = f->next;
-
-        while (f)
-        {
-            n->next = CopyFace(f);
-
-            n = n->next;
-            f = f->next;
-        }
-
-        return head;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-// =====================================================================================
-//  FreeFaceList
-// =====================================================================================
-void            FreeFaceList(bface_t* f)
-{
-    if (f)
-    {
-        if (f->next)
-        {
-            FreeFaceList(f->next);
-        }
-        FreeFace(f);
-    }
+    std::vector<bface_t> out;
+    out.reserve(faceList.size());
+    std::ranges::copy(std::views::transform(faceList, CopyFace), std::back_inserter(out));
+    return out;
 }
 
 // =====================================================================================
@@ -593,18 +534,16 @@ void            FreeFaceList(bface_t* f)
 //      inside list, so they can be freed when they are determined to be completely 
 //      enclosed in solid.
 // =====================================================================================
-static bface_t* CopyFacesToOutside(const brushhull_t* bh)
+static std::vector<bface_t> CopyFacesToOutside(const brushhull_t* bh)
 {
-    bface_t* outside;
-
-    outside = nullptr;
-
-    for (const bface_t* f = bh->faces; f; f = f->next)
+    std::vector<bface_t> outside;
+    outside.reserve(bh->faces.size());
+    for (const bface_t& f : bh->faces)
     {
-        bface_t* newf = CopyFace(f);
-        newf->bounds = newf->w->getBounds();
-        newf->next = outside;
-        outside = newf;
+        bface_t newf{CopyFace(f)};
+        newf.bounds = newf.w.getBounds();
+		// TODO: Don't move everything... are we creating these in the wrong order?
+        outside.emplace(outside.begin(), std::move(newf));
     }
 
     return outside;
@@ -616,12 +555,6 @@ static bface_t* CopyFacesToOutside(const brushhull_t* bh)
 extern const char *ContentsToString (const contents_t type);
 static void     CSGBrush(int brushnum)
 {
-    int             bn;
-    bool            overwrite;
-    bface_t*        f;
-    bface_t*        f2;
-    bface_t*        next;
-    vec_t           area;
 
     // get entity and brush info from the given brushnum that we can work with
     brush_t& b1 = g_mapbrushes[brushnum];
@@ -631,7 +564,7 @@ static void     CSGBrush(int brushnum)
     for (int hull = 0; hull < NUM_HULLS; hull++)
     {
         brushhull_t* bh1 = &b1.hulls[hull];
-		if (bh1->faces && 
+		if (!bh1->faces.empty() && 
 			(hull? b1.clipnodedetaillevel: b1.detaillevel)
 			)
 		{
@@ -654,19 +587,18 @@ static void     CSGBrush(int brushnum)
 		}
 
         // set outside to a copy of the brush's faces
-        bface_t* outside = CopyFacesToOutside(bh1);
-        overwrite = false;
+        std::vector<bface_t> outside{CopyFacesToOutside(bh1)};
 		if (b1.contents == CONTENTS_TOEMPTY)
 		{
-			for (f = outside; f; f = f->next)
+			for (bface_t& f : outside)
 			{
-				f->contents = CONTENTS_TOEMPTY;
-				f->backcontents = CONTENTS_TOEMPTY;
+				f.contents = CONTENTS_TOEMPTY;
+				f.backcontents = CONTENTS_TOEMPTY;
 			}
 		}
-
+        bool overwrite{false};
         // for each brush in entity e
-        for (bn = 0; bn < e->numbrushes; bn++)
+        for (int bn = 0; bn < e->numbrushes; bn++)
         {
             // see if b2 needs to clip a chunk out of b1
 			if (e->firstbrush + bn == brushnum)
@@ -699,7 +631,7 @@ static void     CSGBrush(int brushnum)
 				overwrite = b2.coplanarpriority > b1.coplanarpriority;
 			}
 
-            if (!bh2.faces)
+            if (bh2.faces.empty())
                 continue;                                  // brush isn't in this hull
 
             // check brush bounding box first
@@ -712,17 +644,16 @@ static void     CSGBrush(int brushnum)
             // divide faces by the planes of the b2 to find which
             // fragments are inside
 
-            f = outside;
-            outside = nullptr;
-            for (; f; f = next)
-            {
-                next = f->next;
-
-                // check face bounding box first
-                if (test_disjoint(bh2.bounds, f->bounds))
-                {                                          // this face doesn't intersect brush2's bbox
-                    f->next = outside;
-                    outside = f;
+            std::vector<bface_t> fo;
+            using std::swap;
+            swap(fo, outside);
+            outside.reserve(fo.size()); // TODO: More? Less?
+            for (bface_t& f : fo) {
+                // Check face bounding box first
+                if (test_disjoint(bh2.bounds, f.bounds))
+                {
+                    // This face doesn't intersect brush2's bbox
+                    outside.emplace_back(std::move(f));
                     continue;
                 }
 				if (
@@ -730,16 +661,15 @@ static void     CSGBrush(int brushnum)
 					)
 				{
 					const wad_texture_name texname{
-                        GetTextureByNumber_CSG (f->texinfo).value_or(wad_texture_name{})
+                        GetTextureByNumber_CSG (f.texinfo).value_or(wad_texture_name{})
                     };
-                    if (f->texinfo == -1
+                    if (f.texinfo == -1
                         || texname.is_skip()
                         || texname.is_any_hint()
                         )
 					{
 						// should not nullify the fragment inside detail brush
-						f->next = outside;
-						outside = f;
+                        outside.emplace_back(std::move(f));
 						continue;
 					}
 				}
@@ -748,15 +678,15 @@ static void     CSGBrush(int brushnum)
                 // throw pieces on the front sides of the planes
                 // into the outside list, return the remains on the inside
 				// find the fragment inside brush2
-				Winding *w = new Winding (*f->w);
-				for (f2 = bh2.faces; f2; f2 = f2->next)
+				Winding w{f.w};
+				for (const bface_t& f2 : bh2.faces)
 				{
-					if (f->planenum == f2->planenum)
+					if (f.planenum == f2.planenum)
 					{
 						if (!overwrite)
 						{
 							// face plane is outside brush2
-							w->m_Points.clear();
+							w.clear();
 							break;
 						}
 						else
@@ -764,148 +694,133 @@ static void     CSGBrush(int brushnum)
 							continue;
 						}
 					}
-					if (f->planenum == (f2->planenum ^ 1))
+					if (f.planenum == (f2.planenum ^ 1))
 					{
 						continue;
 					}
 					Winding frontw;
 					Winding backw;
-					w->Clip (f2->plane->normal, f2->plane->dist, frontw, backw);
-                    *w = std::move(backw);
-					if (w->empty())
+					w.Clip (f2.plane->normal, f2.plane->dist, frontw, backw);
+                    w = std::move(backw);
+					if (w.empty())
 					{
 						break;
 					}
 				}
 				// do real split
-				if (!w->m_Points.empty())
+				if (w)
 				{
-					for (f2 = bh2.faces; f2; f2 = f2->next)
+                    bool skip{false};
+					for (const bface_t& f2 : bh2.faces)
 					{
-						if (f->planenum == f2->planenum || f->planenum == (f2->planenum ^ 1))
+						if (f.planenum == f2.planenum || f.planenum == (f2.planenum ^ 1))
 						{
 							continue;
 						}
 						int valid = 0;
-						int x;
-						for (x = 0; x < w->size(); x++)
+						for (int x = 0; x < w.size(); x++)
 						{
-							vec_t dist = DotProduct (w->m_Points[x], f2->plane->normal) - f2->plane->dist;
+							vec_t dist = DotProduct(w.m_Points[x], f2.plane->normal) - f2.plane->dist;
 							if (dist >= -ON_EPSILON*4) // only estimate
 							{
-								valid++;
+								++valid;
 							}
 						}
 						if (valid >= 2)
 						{ // this splitplane forms an edge
 							Winding frontw;
 							Winding backw;
-							f->w->Clip (f2->plane->normal, f2->plane->dist, frontw, backw);
+							f.w.Clip (f2.plane->normal, f2.plane->dist, frontw, backw);
 							if (frontw)
 							{
-								bface_t *front = NewFaceFromFace (f);
-								front->w = new Winding(std::move(frontw));
-								front->bounds = front->w->getBounds ();
-								front->next = outside;
-								outside = front;
+								bface_t front{NewFaceFromFace(f)};
+								front.w = std::move(frontw);
+								front.bounds = front.w.getBounds();
+
+                                outside.emplace_back(std::move(front));
 							}
 							if (backw)
 							{
-								*f->w = std::move(backw);
-								f->bounds = f->w->getBounds ();
-							}
-							else
-							{
-								FreeFace (f);
-								f = nullptr;
-								break;
-							}
+								f.w = std::move(backw);
+								f.bounds = f.w.getBounds();
+							} else {
+                                skip = true;
+                                break;
+                            }
 						}
 					}
+                    if(skip) {
+                        continue;
+                    }
 				}
 				else
 				{
-					f->next = outside;
-					outside = f;
-					f = nullptr;
+                    outside.emplace_back(std::move(f));
+                    continue;
 				}
-				delete w;
 
-                area = f ? f->w->getArea() : 0;
-                if (f && area < g_tiny_threshold)
+                vec_t area = f.w.getArea();
+                if (area < g_tiny_threshold)
                 {
                     Verbose("Entity %i, Brush %i: tiny penetration\n", 
 						b1.originalentitynum, b1.originalbrushnum
 						);
                     c_tiny_clip++;
-                    FreeFace(f);
-                    f = nullptr;
+                    continue;
                 }
-                if (f)
-                {
-                    // there is one convex fragment of the original
-                    // face left inside brush2
+                // there is one convex fragment of the original
+                // face left inside brush2
 
-					if (
-						(hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
-						)
-					{ // don't chop or set contents, only nullify
-						f->next = outside;
-						outside = f;
-						f->texinfo = -1;
-						continue;
-					}
-					if (
-						(hull? b2.clipnodedetaillevel < b1.clipnodedetaillevel: b2.detaillevel < b1.detaillevel)
-						&& b2.contents == CONTENTS_SOLID)
-					{ // real solid
-						FreeFace (f);
-						continue;
-					}
-					if (b1.contents == CONTENTS_TOEMPTY)
-					{
-						bool onfront = true, onback = true;
-						for (f2 = bh2.faces; f2; f2 = f2->next)
-						{
-							if (f->planenum == (f2->planenum ^ 1))
-								onback = false;
-							if (f->planenum == f2->planenum)
-								onfront = false;
-						}
-						if (onfront && f->contents < b2.contents)
-							f->contents = b2.contents;
-						if (onback && f->backcontents < b2.contents)
-							f->backcontents = b2.contents;
-						if (f->contents == CONTENTS_SOLID && f->backcontents == CONTENTS_SOLID
-							&& !GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_solid_hint()
-                            && !GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_bevel_hint()
-							)
-						{
-							FreeFace (f);
-						}
-						else
-						{
-							f->next = outside;
-							outside = f;
-						}
-						continue;
-					}
-                    if (b1.contents > b2.contents
-						|| b1.contents == b2.contents && GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_solid_hint()
-                        || b1.contents == b2.contents && GetTextureByNumber_CSG(f->texinfo).value_or(wad_texture_name{}).is_bevel_hint()
-						)
-                    {                                      // inside a water brush
-                        f->contents = b2.contents;
-                        f->next = outside;
-                        outside = f;
-                    }
-                    else                                   // inside a solid brush
+                if (
+                    (hull? (b2.clipnodedetaillevel > b1.clipnodedetaillevel): (b2.detaillevel > b1.detaillevel))
+                    )
+                { // don't chop or set contents, only nullify
+                    f.texinfo = -1;
+                    outside.emplace_back(std::move(f));
+                    continue;
+                }
+                if (
+                    (hull? b2.clipnodedetaillevel < b1.clipnodedetaillevel: b2.detaillevel < b1.detaillevel)
+                    && b2.contents == CONTENTS_SOLID)
+                {
+                    // Real solid
+                    continue;
+                }
+                if (b1.contents == CONTENTS_TOEMPTY)
+                {
+                    bool onfront = true, onback = true;
+                    for (const bface_t& f2 : bh2.faces)
                     {
-                        FreeFace(f);                       // throw it away
+                        if (f.planenum == (f2.planenum ^ 1))
+                            onback = false;
+                        if (f.planenum == f2.planenum)
+                            onfront = false;
                     }
+                    if (onfront && f.contents < b2.contents)
+                        f.contents = b2.contents;
+                    if (onback && f.backcontents < b2.contents)
+                        f.backcontents = b2.contents;
+                    if (!(f.contents == CONTENTS_SOLID && f.backcontents == CONTENTS_SOLID
+                        && !GetTextureByNumber_CSG(f.texinfo).value_or(wad_texture_name{}).is_solid_hint()
+                        && !GetTextureByNumber_CSG(f.texinfo).value_or(wad_texture_name{}).is_bevel_hint()
+                    ))
+                    {
+                        outside.emplace_back(std::move(f));
+                    }
+                    continue;
+                }
+                if (b1.contents > b2.contents
+                    || b1.contents == b2.contents && GetTextureByNumber_CSG(f.texinfo).value_or(wad_texture_name{}).is_solid_hint()
+                    || b1.contents == b2.contents && GetTextureByNumber_CSG(f.texinfo).value_or(wad_texture_name{}).is_bevel_hint()
+                    )
+                {
+                    // Inside a water brush
+                    f.contents = b2.contents;
+                    outside.emplace_back(std::move(f));
                 }
             }
-
+            // TODO: Is this necessary??????????
+            std::ranges::reverse(outside);
         }
 
         // all of the faces left in outside are real surface faces
@@ -1447,33 +1362,36 @@ static void     CheckForNoClip()
 //  ProcessModels
 // =====================================================================================
 
-
 static void     ProcessModels()
 {
-    int             i, j, type;
+    int type;
     int             placed;
-    int             first, contents;
-    brush_t         temp;
+    int contents;
+    brush_t temp;
 
-    for (i = 0; i < g_numentities; i++)
+    std::vector<brush_t> temps;
+
+    for (int i = 0; i < g_numentities; i++)
     {
-        if (!g_entities[i].numbrushes) // only models
+        if (!g_entities[i].numbrushes) { // only models
             continue;
+        }
 
         // sort the contents down so stone bites water, etc
-        first = g_entities[i].firstbrush;
-		brush_t *temps = (brush_t *)malloc (g_entities[i].numbrushes * sizeof (brush_t));
-		hlassume (temps, assume_NoMemory);
-		for (j = 0; j < g_entities[i].numbrushes; j++)
+        int first = g_entities[i].firstbrush;
+        if(temps.size() < g_entities[i].numbrushes) {
+            temps.resize(g_entities[i].numbrushes);
+        }
+		for (int j = 0; j < g_entities[i].numbrushes; j++)
 		{
-			temps[j] = g_mapbrushes[first + j];
+            temps[j] = g_mapbrushes[first + j];
 		}
 		int placedcontents;
 		bool b_placedcontents = false;
 		for (placed = 0; placed < g_entities[i].numbrushes; )
 		{
 			bool b_contents = false;
-			for (j = 0; j < g_entities[i].numbrushes; j++)
+			for (int j = 0; j < g_entities[i].numbrushes; j++)
 			{
 				brush_t *brush = &temps[j];
 				if (b_placedcontents && brush->contents <= placedcontents)
@@ -1483,7 +1401,7 @@ static void     ProcessModels()
 				b_contents = true;
 				contents = brush->contents;
 			}
-			for (j = 0; j < g_entities[i].numbrushes; j++)
+			for (int j = 0; j < g_entities[i].numbrushes; j++)
 			{
 				brush_t *brush = &temps[j];
 				if (brush->contents == contents)
@@ -1495,7 +1413,6 @@ static void     ProcessModels()
 			b_placedcontents = true;
 			placedcontents = contents;
 		}
-		free (temps);
 
         // csg them in order
         if (i == 0) // if its worldspawn....
@@ -1508,14 +1425,14 @@ static void     ProcessModels()
         }
         else
         {
-            for (j = 0; j < g_entities[i].numbrushes; j++)
+            for (int j = 0; j < g_entities[i].numbrushes; j++)
             {
                 CSGBrush(first + j);
             }
         }
 
         // write end of model marker
-        for (j = 0; j < NUM_HULLS; j++)
+        for (int j = 0; j < NUM_HULLS; j++)
         {
 			fprintf (out[j], "-1 -1 -1 -1 -1\n");
 			fprintf (out_detailbrush[j], "-1\n");
@@ -1575,7 +1492,7 @@ static void     BoundWorld()
     for (i = 0; i < g_nummapbrushes; i++)
     {
         h = &g_mapbrushes[i].hulls[0];
-        if (!h->faces)
+        if (h->faces.empty())
         {
             continue;
         }
@@ -2352,6 +2269,7 @@ int             main(const int argc, char** argv)
 	}
 
     EmitPlanes();
+
 
 
     WriteBSP(g_Mapname);

@@ -1060,11 +1060,11 @@ static bool     ProcessModel(bsp_data& bspData)
 		}
 		else
 		{
-			vec3_t mins, maxs;
-			int i;
+			vec3_array mins;
+            vec3_array maxs;
 			VectorSubtract (surfs->mins, g_hull_size[g_hullnum][0], mins);
 			VectorSubtract (surfs->maxs, g_hull_size[g_hullnum][1], maxs);
-			for (i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; ++i)
 			{
 				if (mins[i] > maxs[i])
 				{
@@ -1074,7 +1074,7 @@ static bool     ProcessModel(bsp_data& bspData)
 					maxs[i] = tmp;
 				}
 			}
-			for (i = 0; i < 3; i++)
+			for (std::size_t i = 0; i < 3; ++i)
 			{
 				model->maxs[i] = std::max (model->maxs[i], (float) maxs[i]);
 				model->mins[i] = std::min (model->mins[i], (float) mins[i]);
@@ -1174,11 +1174,11 @@ static bool     ProcessModel(bsp_data& bspData)
 			}
 			else
 			{
-				vec3_t mins, maxs;
-				int i;
+				vec3_array mins;
+                vec3_array maxs;
 				VectorSubtract (surfs->mins, g_hull_size[hullnum][0], mins);
 				VectorSubtract (surfs->maxs, g_hull_size[hullnum][1], maxs);
-				for (i = 0; i < 3; i++)
+				for (std::size_t i = 0; i < 3; ++i)
 				{
 					if (mins[i] > maxs[i])
 					{
@@ -1188,7 +1188,7 @@ static bool     ProcessModel(bsp_data& bspData)
 						maxs[i] = tmp;
 					}
 				}
-				for (i = 0; i < 3; i++)
+				for (std::size_t i = 0; i < 3; ++i)
 				{
 					model->maxs[i] = std::max(model->maxs[i], (float) maxs[i]);
 					model->mins[i] = std::min(model->mins[i], (float) mins[i]);

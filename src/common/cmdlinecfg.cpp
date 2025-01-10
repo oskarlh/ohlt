@@ -108,13 +108,11 @@ typedef enum
 	IFDEF, IFNDEF, ELSE, ENDIF, DEFINE, UNDEF
 }
 command_t;
-typedef struct
-{
+struct execute_t {
 	int stack;
 	bool skip;
 	int skipstack;
-}
-execute_t;
+};
 void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int n)
 {
 	command_t t;

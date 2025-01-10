@@ -3,17 +3,15 @@
 vec_t g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
 static Winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
-    bface_t*        face;
-    plane_t*        plane;
-
-    plane = &g_mapplanes[planenum];
+    plane_t* plane = &g_mapplanes[planenum];
     Winding winding{plane->normal, plane->dist};
 
+    Winding back;
     Winding front;
-    for (face = hull->faces; face; face = face->next)
+
+    for (const bface_t& face : hull->faces)
     {
-        plane = &g_mapplanes[face->planenum];
-        Winding back;
+        plane = &g_mapplanes[face.planenum];
         winding.Clip(plane->normal, plane->dist, front, back);
 
         using std::swap;
@@ -29,44 +27,6 @@ static Winding NewWindingFromPlane(const brushhull_t* const hull, const int plan
     return winding;
 }
 
-static void AddFaceToList(bface_t** head, bface_t* newface)
-{
-    hlassert(newface);
-    hlassert(newface->w);
-    if (!*head)
-    {
-        *head = newface;
-        return;
-    }
-    else
-    {
-        bface_t*        node = *head;
-
-        while (node->next)
-        {
-            node = node->next;
-        }
-        node->next = newface;
-        newface->next = nullptr;
-    }
-}
-
-static int      NumberOfHullFaces(const brushhull_t* const hull)
-{
-    int             x;
-    bface_t*        face;
-
-    if (!hull->faces)
-    {
-        return 0;
-    }
-
-    for (x = 0, face = hull->faces; face; face = face->next, x++)
-    {                                                  // counter
-    }
-
-    return x;
-}
 
 // Returns false if union of brushes is obviously zero
 static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
@@ -76,77 +36,64 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
     bface_t*        new_face_list;
 
     bface_t*        face;
-    bface_t*        next;
 
     plane_t*        split;
-
     new_face_list = nullptr;
-
-    next = nullptr;
-
     hlassert(hull);
 
-    if (!hull->faces)
+    if (hull->faces.empty())
     {
         return;
     }
-    hlassert(hull->faces->w);
+    hlassert(hull->faces.front().w);
 
-    for (face = hull->faces; face; face = next)
+    std::vector<bface_t> newFaceList;
+    for (bface_t& face : hull->faces)
     {
         hlassert(face->w);
-        next = face->next;
 
         // Duplicate plane, ignore
-        if (face->planenum == planenum)
+        if (face.planenum == planenum)
         {
-            AddFaceToList(&new_face_list, CopyFace(face));
+            newFaceList.emplace_back(CopyFace(face));
             continue;
         }
 
         split = &g_mapplanes[planenum];
         Winding front;
         Winding back;
-        face->w->Clip(split->normal, split->dist, front, back);
+        face.w.Clip(split->normal, split->dist, front, back);
 
-        if (front)
-        {
+        if (front) {
             front.clear();
             need_new_face = true;
 
             if (back)
             {                                              // Intersected the face
-                delete face->w;
-                face->w = new Winding(std::move(back));
-                AddFaceToList(&new_face_list, CopyFace(face));
+                face.w = std::move(back);
+                newFaceList.emplace_back(CopyFace(face));
             }
-        }
-        else
-        {
+        } else {
             // Completely missed it, back is identical to face->w so it is destroyed
-            if (back)
-            {
-                AddFaceToList(&new_face_list, CopyFace(face));
+            if (back) {
+                newFaceList.emplace_back(CopyFace(face));
             }
         }
         hlassert(face->w);
     }
+    hull->faces = std::move(newFaceList);
 
-    FreeFaceList(hull->faces);
-    hull->faces = new_face_list;
-
-    if (need_new_face && (NumberOfHullFaces(hull) > 2))
+    if (need_new_face && hull->faces.size() > 2)
     {
-        Winding new_winding = NewWindingFromPlane(hull, planenum);
+        Winding new_winding{NewWindingFromPlane(hull, planenum)};
 
         if(new_winding) {
-            bface_t*        new_face = new bface_t();
+            bface_t newFace{};
+            newFace.planenum = planenum;
+            newFace.w = std::move(new_winding);
 
-            new_face->planenum = planenum;
-            new_face->w = new Winding(std::move(new_winding));
-
-            new_face->next = hull->faces;
-            hull->faces = new_face;
+        	// TODO: Don't move everything... are we creating these in the wrong order?
+            hull->faces.emplace(hull->faces.begin(), std::move(newFace));
         }
     }
 }
@@ -160,18 +107,16 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
     // calculate volume of triangle of face to origin
     // add subidivided volume chunk to total
 
-    int             x = 0;
     vec_t           volume = 0.0;
     vec_t           inverse;
     vec3_array          midpoint = { 0.0, 0.0, 0.0 };
 
-    bface_t*        face;
-
-    for (face = hull->faces; face; face = face->next, x++)
-    {
-        vec3_array          facemid = face->w->getCenter();
+    int x = 0;
+    for (const bface_t& face : hull->faces) {
+        vec3_array facemid = face.w.getCenter();
         VectorAdd(midpoint, facemid, midpoint);
         Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for face %d is %f %f %f\n", x, facemid[0], facemid[1], facemid[2]);
+        ++x;
     }
 
     inverse = 1.0 / x;
@@ -180,11 +125,10 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
 
     Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for hull is %f %f %f\n", midpoint[0], midpoint[1], midpoint[2]);
 
-    for (face = hull->faces; face; face = face->next, x++)
-    {
-        plane_t*        plane = &g_mapplanes[face->planenum];
-        vec_t           area = face->w->getArea();
-        vec_t           dist = DotProduct(plane->normal, midpoint);
+    for (const bface_t& face : hull->faces) {
+        plane_t* plane = &g_mapplanes[face.planenum];
+        vec_t area = face.w.getArea();
+        vec_t dist = DotProduct(plane->normal, midpoint);
 
         dist -= plane->dist;
         dist = fabs(dist);
@@ -202,10 +146,9 @@ static void     DumpHullWindings(const brushhull_t* const hull)
     int             x = 0;
     bface_t*        face;
 
-    for (face = hull->faces; face; face = face->next)
-    {
+    for (const bface_t& face : hull->faces) {
         Developer(DEVELOPER_LEVEL_MEGASPAM, "Winding %d\n", x++);
-        face->w->Print();
+        face.w.Print();
         Developer(DEVELOPER_LEVEL_MEGASPAM, "\n");
     }
 }
@@ -216,12 +159,8 @@ static bool isInvalidHull(const brushhull_t* hull)
     vec3_array mins{ 99999.0, 99999.0, 99999.0 };
     vec3_array maxs{ -99999.0, -99999.0, -99999.0 };
 
-    for (bface_t* face = hull->faces; face; face = face->next)
-    {
-        const Winding& winding = *face->w;
-
-        for (const vec3_array& windingPoint : winding.m_Points)
-        {
+    for (const bface_t& face : hull->faces) {
+        for (const vec3_array& windingPoint : face.w.m_Points) {
             VectorCompareMinimum(mins, windingPoint, mins);
             VectorCompareMaximum(maxs, windingPoint, maxs);
         }
@@ -252,7 +191,7 @@ void            CalculateBrushUnions(const int brushnum)
     for (hull = 0; hull < 1 /* NUM_HULLS */ ; hull++)
     {
         bh1 = &b1->hulls[hull];
-        if (!bh1->faces)                                   // Skip it if it is not in this hull
+        if (bh1->faces.empty())                                   // Skip it if it is not in this hull
         {
             continue;
         }
@@ -262,7 +201,7 @@ void            CalculateBrushUnions(const int brushnum)
             b2 = &g_mapbrushes[e->firstbrush + bn];
             bh2 = &b2->hulls[hull];
 
-            if (!bh2->faces)                               // Skip it if it is not in this hull
+            if (bh2->faces.empty())                               // Skip it if it is not in this hull
             {
                 continue;
             }
@@ -275,19 +214,17 @@ void            CalculateBrushUnions(const int brushnum)
 
             {
                 brushhull_t     union_hull;
-                bface_t*        face;
 
                 union_hull.bounds = bh1->bounds;
 
                 union_hull.faces = CopyFaceList(bh1->faces);
 
-                for (face = bh2->faces; face; face = face->next)
-                {
-                    AddPlaneToUnion(&union_hull, face->planenum);
+                for (const bface_t& face : bh2->faces) {
+                    AddPlaneToUnion(&union_hull, face.planenum);
                 }
 
                 // union was clipped away (no intersection)
-                if (!union_hull.faces)
+                if (union_hull.faces.empty())
                 {
                     continue;
                 }
@@ -314,7 +251,7 @@ void            CalculateBrushUnions(const int brushnum)
 
                     if (isInvalidHull(&union_hull))
                     {
-                        FreeFaceList(union_hull.faces);
+                        union_hull.faces.clear();
                         continue;
                     }
 
@@ -341,7 +278,7 @@ void            CalculateBrushUnions(const int brushnum)
                     }
                 }
 
-                FreeFaceList(union_hull.faces);
+                union_hull.faces.clear();
             }
         }
     }

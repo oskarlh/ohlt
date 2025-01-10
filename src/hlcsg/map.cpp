@@ -492,7 +492,7 @@ static void ParseBrush(entity_t* mapent)
 
         for (i = 0; i < NUM_HULLS; i++)
         {
-            b->hulls[i].faces = nullptr;
+            b->hulls[i].faces.clear();
         }
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
@@ -545,7 +545,7 @@ static void ParseBrush(entity_t* mapent)
 
         for (i = 0; i < NUM_HULLS; i++)
         {
-            b->hulls[i].faces = nullptr;
+            b->hulls[i].faces.clear();
         }
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)

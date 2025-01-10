@@ -389,15 +389,15 @@ class entity_key_value {
             shortValueLength = 0;
         }
         entity_key_value(entity_key_value& other) = delete;
-        void swap(entity_key_value& other) noexcept {
+        friend inline void swap(entity_key_value& a, entity_key_value& b) noexcept {
             using std::swap;
-            std::swap(keyAndValue, other.keyAndValue);
-            std::swap(shortKeyLength, other.shortKeyLength);
-            std::swap(shortValueLength, other.shortValueLength);
+            swap(a.keyAndValue, b.keyAndValue);
+            swap(a.shortKeyLength, b.shortKeyLength);
+            swap(a.shortValueLength, b.shortValueLength);
         }
         entity_key_value& operator=(entity_key_value& other) = delete;
         constexpr entity_key_value& operator=(entity_key_value&& other) noexcept {
-            swap(other);
+            swap(*this, other);
             return *this;
         }
         constexpr entity_key_value(entity_key_value&& other) noexcept : entity_key_value() {
@@ -531,68 +531,53 @@ extern wad_texture_name get_texture_by_number(int texturenumber);
 
 struct bsp_data {
 	std::array<dmodel_t, MAX_MAP_MODELS> mapModels{};
-	std::uint32_t mapModelsChecksum{0};
-	int mapModelsLength{0};
+	std::uint32_t mapModelsLength{0};
 
 	std::array<std::byte, MAX_MAP_VISIBILITY> visData{};
-	int visDataByteSize{0};
-	std::uint32_t visDataChecksum{0};
+	std::uint32_t visDataByteSize{0};
 
     // This one can be resized and reallocated
 	std::vector<std::byte> lightData{};
-	std::uint32_t lightDataChecksum{0};
 
     // This one can perhaps not be resized and reallocated
     // Now it's always initialized with g_max_map_miptex 0s
     // TODO: See if that can be changed
 	std::vector<std::byte> textureData{}; // (dmiptexlump_t)
 	int textureDataByteSize{0};
-	std::uint32_t textureDataChecksum{0};
 
 	std::array<char8_t, MAX_MAP_ENTSTRING> entityData{};
-	std::uint32_t entityDataChecksum{0};
 	std::uint32_t entityDataLength{0};
 
 	std::array<dleaf_t, MAX_MAP_LEAFS> leafs{};
-	std::uint32_t leafsChecksum{0};
 	int leafsLength{0};
 
 	std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> planes{};
-	std::uint32_t planesChecksum{0};
 	int planesLength{0};
 
 	std::array<dvertex_t, MAX_MAP_VERTS> vertexes{};
-	std::uint32_t vertexesChecksum{0};
 	int vertexesLength{0};
 
 	std::array<dnode_t, MAX_MAP_NODES> nodes{};
-	std::uint32_t nodesChecksum{0};
 	int nodesLength{0};
 
     std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS> texInfos{};
-    std::uint32_t texInfosChecksum{0};
     int texInfosLength{0};
 
 	std::array<dface_t, MAX_MAP_FACES> faces{};
-	std::uint32_t facesChecksum{0};
 	int facesLength{0};
 
 	int worldExtent{65536}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
 
     std::array<dclipnode_t, MAX_MAP_CLIPNODES> clipNodes{};
-    std::uint32_t clipNodesChecksum{0};
     int clipNodesLength{0};
 
 	std::array<dedge_t, MAX_MAP_EDGES> edges{};
-	std::uint32_t edgesChecksum{0};
 	int edgesLength{0};
 
 	std::array<std::uint16_t, MAX_MAP_MARKSURFACES> markSurfaces{};
-	std::uint32_t markSurfacesChecksum{0};
 	int markSurfacesLength{0};
 
     std::array<std::int32_t, MAX_MAP_SURFEDGES> surfEdges{};
-    std::uint32_t surfEdgesChecksum{0};
     int surfEdgesLength{0};
 
 	std::array<entity_t, MAX_MAP_ENTITIES> entities{};
@@ -601,66 +586,51 @@ struct bsp_data {
 
 extern bsp_data bspGlobals;
 
-extern int& g_nummodels;
+extern std::uint32_t& g_nummodels;
 extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
-extern std::uint32_t& g_dmodels_checksum;
 
-extern int& g_visdatasize;
+extern std::uint32_t& g_visdatasize;
 extern std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata;
-extern std::uint32_t& g_dvisdata_checksum;
 
 extern std::vector<std::byte>& g_dlightdata;
-extern std::uint32_t& g_dlightdata_checksum;
 
 extern int& g_texdatasize;
 extern std::vector<std::byte>& g_dtexdata; // (dmiptexlump_t)
-extern std::uint32_t& g_dtexdata_checksum;
 
 extern std::uint32_t& g_entdatasize;
 extern std::array<char8_t, MAX_MAP_ENTSTRING>& g_dentdata;
-extern std::uint32_t& g_dentdata_checksum;
 
 extern int& g_numleafs;
 extern std::array<dleaf_t, MAX_MAP_LEAFS>& g_dleafs;
-extern std::uint32_t& g_dleafs_checksum;
 
 extern int& g_numplanes;
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES>& g_dplanes;
-extern std::uint32_t& g_dplanes_checksum;
 
 extern int& g_numvertexes;
 extern std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes;
-extern std::uint32_t& g_dvertexes_checksum;
 
 extern int& g_numnodes;
 extern std::array<dnode_t, MAX_MAP_NODES>& g_dnodes;
-extern std::uint32_t& g_dnodes_checksum;
 
 extern int& g_numtexinfo;
 extern std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo;
-extern std::uint32_t& g_texinfo_checksum;
 
 extern int& g_numfaces;
 extern std::array<dface_t, MAX_MAP_FACES>& g_dfaces;
-extern std::uint32_t& g_dfaces_checksum;
 
 extern int& g_iWorldExtent;
 
 extern int& g_numclipnodes;
 extern std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes;
-extern std::uint32_t& g_dclipnodes_checksum;
 
 extern int& g_numedges;
 extern std::array<dedge_t, MAX_MAP_EDGES>& g_dedges;
-extern std::uint32_t& g_dedges_checksum;
 
 extern int& g_nummarksurfaces;
 extern std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces;
-extern std::uint32_t& g_dmarksurfaces_checksum;
 
 extern int& g_numsurfedges;
 extern std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges;
-extern std::uint32_t& g_dsurfedges_checksum;
 
 
 extern int& g_numentities;
@@ -678,3 +648,27 @@ extern void		GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2]);
 extern int		ParseImplicitTexinfoFromTexture (int miptex);
 extern int		ParseTexinfoForFace (const dface_t *f);
 extern void		DeleteEmbeddedLightmaps ();
+
+
+template<class T, std::size_t Extent> inline std::uint32_t fast_checksum(std::span<T, Extent> elements) {
+	// TODO: Find a better way to hash that gives us the same output on all platforms.
+	// This assertion fails for two possible reasons:
+	// 1) NaN floats can have different bit representations
+	// 2) struct padding
+	// static_assert(std::has_unique_object_representations_v<T>);
+
+	struct element_as_bytes {
+		unsigned char bytes[sizeof(T)];
+	};
+
+    std::uint32_t checksum = 0;
+    for (const T& element : elements)
+    {
+		for(unsigned char byteInElement : std::bit_cast<element_as_bytes>(element).bytes) {
+	        checksum = std::rotl(checksum, 4) ^ byteInElement;
+		}
+    }
+    return checksum;
+}
+
+std::uint32_t hash_data();

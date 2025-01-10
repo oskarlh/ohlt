@@ -64,16 +64,14 @@ typedef struct bbrinknode_s
 }
 bbrinknode_t;
 
-typedef struct
-{
+struct bbrink_t {
 	std::vector< bbrinknode_t > *nodes;
 	struct btreeedge_s *edge; // only for use in deciding brink type
 	vec3_array start, stop;
 	vec3_array direction;
 
 	int numnodes; // including both nodes and leafs
-}
-bbrink_t;
+};
 
 bbrink_t *CopyBrink (bbrink_t *other)
 {
@@ -219,33 +217,26 @@ struct btreeedge_s; // 1d object
 struct btreeface_s; // 2d object
 struct btreeleaf_s; // 3d object
 
-typedef struct
-{
+struct btreepoint_r {
 	btreepoint_s *p;
 	bool side;
-}
-btreepoint_r;
+};
 
-typedef struct
-{
+struct btreeedge_r {
 	btreeedge_s *e;
 	bool side;
-}
-btreeedge_r;
+};
 
-typedef struct
-{
+struct btreeface_r {
 	btreeface_s *f;
 	bool side;
-}
-btreeface_r;
+};
 
-typedef struct
+struct btreeleaf_r
 {
 	btreeleaf_s *l;
 	bool side;
-}
-btreeleaf_r;
+};
 
 typedef std::list< btreepoint_r > btreepoint_l;
 typedef std::list< btreeedge_r > btreeedge_l;

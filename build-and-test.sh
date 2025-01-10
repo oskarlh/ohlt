@@ -8,6 +8,8 @@ set -e
 # export CXX=/opt/homebrew/bin/g++-14
 # -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
 
+#cmake -S . --preset=debug-config
+#cmake --build --preset=debug-build
 cmake -S . --preset=release-config
 cmake --build --preset=release-build
 

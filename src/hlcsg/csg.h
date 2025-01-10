@@ -94,16 +94,15 @@ typedef struct side_s
 } side_t;
 
 struct bface_t {
-    bface_t* next;
-    Winding* w;
-    plane_t* plane;
-    bounding_box bounds;
-    int planenum;
-    int texinfo;
-    int contents;
-    int backcontents;
-    bool used; // just for face counting
-	bool bevel; //used for ExpandBrush
+    Winding w{};
+    plane_t* plane{};
+    bounding_box bounds{};
+    int planenum{};
+    int texinfo{};
+    int contents{};
+    int backcontents{};
+    bool used{}; // just for face counting
+	bool bevel{}; //used for ExpandBrush
 };
 
 // NUM_HULLS should be no larger than MAX_MAP_HULLS
@@ -111,7 +110,7 @@ struct bface_t {
 
 struct brushhull_t {
     bounding_box     bounds;
-    bface_t*        faces;
+    std::vector<bface_t> faces;
 };
 
 struct brush_t {
@@ -251,13 +250,10 @@ extern vec_t g_BrushUnionThreshold;
 extern std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 extern int g_nummapplanes;
 
-extern bface_t* NewFaceFromFace(const bface_t* const in);
-extern bface_t* CopyFace(const bface_t* const f);
+extern bface_t NewFaceFromFace(const bface_t& in);
+extern bface_t CopyFace(const bface_t& f);
 
-extern void FreeFace(bface_t* f);
-
-extern bface_t* CopyFaceList(bface_t* f);
-extern void FreeFaceList(bface_t* f);
+extern std::vector<bface_t> CopyFaceList(const std::vector<bface_t>& faceList);
 
 extern void GetParamsFromEnt(entity_t* mapent);
 

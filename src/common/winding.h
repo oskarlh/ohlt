@@ -33,13 +33,12 @@ enum class side {
 #endif
 #define dplane_t plane_t
 #define g_dplanes g_mapplanes
-typedef struct
-{
+struct dplane_t {
 	vec3_array			normal;
 	vec3_array			unused_origin;
 	vec_t			dist;
 	planetype		type;
-} dplane_t;
+};
 extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
 #endif
 
@@ -138,7 +137,6 @@ public:
 	    using std::swap;
       swap(a.m_Points, b.m_Points);
     }
-
 };
 
 
