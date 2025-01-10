@@ -322,13 +322,7 @@ void CMeshDesc :: CategorizePlane( mplane_t *plane )
 	}
 }
 
-/*
-====================
-AngleQuaternion
-====================
-*/
-void CMeshDesc :: AngleQuaternion( const vec3_t angles, vec4_t quat )
-{
+void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t quat) {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
 
@@ -444,19 +438,19 @@ void CMeshDesc :: VectorTransform( const vec3_t in1, float in2[3][4], vec3_t out
 void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t q )
 {
 	mstudioanimvalue_t *panimvalue;
-	vec3_t angle;
+	vec3_array angle;
 
-	for( int j = 0; j < 3; j++ )
+	for(std::size_t i = 0; i < 3; ++i)
 	{
-		if( panim->offset[j+3] == 0 )
+		if( panim->offset[i+3] == 0 )
 		{
-			angle[j] = pbone->value[j+3]; // default;
+			angle[i] = pbone->value[i+3]; // default;
 		}
 		else
 		{
-			panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[j+3]);
-			angle[j] = panimvalue[1].value;
-			angle[j] = pbone->value[j+3] + angle[j] * pbone->scale[j+3];
+			panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[i+3]);
+			angle[i] = panimvalue[1].value;
+			angle[i] = pbone->value[i+3] + angle[i] * pbone->scale[i+3];
 		}
 	}
 

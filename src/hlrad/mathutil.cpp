@@ -509,11 +509,11 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 		else
 		{
 			bool found;
-			vec3_t bestpoint;
+			vec3_array bestpoint;
 			vec_t bestdist = -1.0;
-			vec3_t point;
+			vec3_array point;
 			vec_t dist;
-			vec3_t v;
+			vec3_array v;
 
 			vec3_array center = w.getCenter ();
 			found = false;

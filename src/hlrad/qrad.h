@@ -502,7 +502,7 @@ extern void     MakeBackplanes();
 extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
 extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
-extern dleaf_t* HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
+extern dleaf_t* HuntForWorld(vec3_array& point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
 extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array &out);
 extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist);
 extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexcept;

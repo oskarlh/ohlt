@@ -596,7 +596,7 @@ static bool     PlacePatchInside(patch_t* patch)
 	bool found;
 	vec3_t bestpoint;
 	vec_t bestdist = -1.0;
-	vec3_t point;
+	vec3_array point;
 	vec_t dist;
 	vec3_t v;
 

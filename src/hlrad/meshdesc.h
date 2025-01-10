@@ -154,7 +154,7 @@ public:
 	void ConcatTransforms( float in1[3][4], float in2[3][4], float out[3][4] );
 	void QuaternionMatrix( vec4_t quat, const vec3_t origin, float (*matrix)[4] );
 	void VectorTransform( const vec3_t in1, float in2[3][4], vec3_t out );
-	void AngleQuaternion( const vec3_t angles, vec4_t quat );
+	void AngleQuaternion(const vec3_array& angles, vec4_t quat);
 
 	// studio models processing
 	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t q );

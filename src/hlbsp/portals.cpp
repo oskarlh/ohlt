@@ -90,15 +90,14 @@ void            RemovePortalFromNode(portal_t* portal, node_t* l)
  */
 void            MakeHeadnodePortals(node_t* node, const vec3_t mins, const vec3_t maxs)
 {
-    vec3_t          bounds[2];
-    int             i, j, n;
+    std::array<vec3_array, 2> bounds;
     portal_t*       p;
     portal_t*       portals[6];
     dplane_t        bplanes[6];
     dplane_t*       pl;
 
     // pad with some space so there will never be null volume leafs
-    for (i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < 3; ++i)
     {
         bounds[0][i] = mins[i] - SIDESPACE;
         bounds[1][i] = maxs[i] + SIDESPACE;
@@ -107,11 +106,11 @@ void            MakeHeadnodePortals(node_t* node, const vec3_t mins, const vec3_
     g_outside_node.contents = CONTENTS_SOLID;
     g_outside_node.portals = nullptr;
 
-    for (i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < 3; ++i)
     {
-        for (j = 0; j < 2; j++)
+        for (std::size_t j = 0; j < 2; ++j)
         {
-            n = j * 3 + i;
+            int n = j * 3 + i;
 
             p = AllocPortal();
             portals[n] = p;
@@ -135,9 +134,9 @@ void            MakeHeadnodePortals(node_t* node, const vec3_t mins, const vec3_
     }
 
     // clip the basewindings by all the other planes
-    for (i = 0; i < 6; i++)
+    for (std::size_t i = 0; i < 6; ++i)
     {
-        for (j = 0; j < 6; j++)
+        for (std::size_t j = 0; j < 6; ++j)
         {
             if (j == i)
             {

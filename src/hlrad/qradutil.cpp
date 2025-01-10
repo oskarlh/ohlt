@@ -160,30 +160,24 @@ void            TranslatePlane(dplane_t* plane, const vec_t* delta)
 }
 
 // HuntForWorld will never return CONTENTS_SKY or CONTENTS_SOLID leafs
-dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset)
+dleaf_t*        HuntForWorld(vec3_array& point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset)
 {
     dleaf_t*        leaf;
     int             x, y, z;
     int             a;
 
     vec3_array          current_point;
-    vec3_array          original_point;
+    vec3_array original_point{point};
 
-    vec3_array          best_point;
+    vec3_array best_point{point};
     dleaf_t*        best_leaf = nullptr;
     vec_t           best_dist = 99999999.0;
 
-    vec3_array          scales;
 
     dplane_t        new_plane = *plane;
 
 
-    scales[0] = 0.0;
-    scales[1] = -hunt_scale;
-    scales[2] = hunt_scale;
-
-    VectorCopy(point, best_point);
-    VectorCopy(point, original_point);
+    vec3_array scales{0.0, -hunt_scale, hunt_scale};
 
     TranslatePlane(&new_plane, plane_offset.data());
 
@@ -249,7 +243,7 @@ dleaf_t*        HuntForWorld(vec_t* point, const vec3_array& plane_offset, const
         }
     }
 
-    VectorCopy(best_point, point);
+	point = best_point;
     return best_leaf;
 }
 
@@ -452,7 +446,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 	hunt_offset = DotProduct (pos, map->faceplanewithoffset.normal) - map->faceplanewithoffset.dist; // might be smaller than DEFAULT_HUNT_OFFSET
 
 	// push the point 0.2 units around to avoid walls
-	if (!HuntForWorld (pos.data(), vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+	if (!HuntForWorld (pos, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 	{
 		return false;
 	}
@@ -467,7 +461,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 		VectorCopy (pos, test);
 		snap_to_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, test.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
 
-		if (!HuntForWorld (test.data(), vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+		if (!HuntForWorld (test, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 		{
 			return false;
 		}
