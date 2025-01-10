@@ -374,7 +374,7 @@ void			Winding::RemoveColinearPoints(
 		{
 			for (; i < size() - 1; i++)
 			{
-				VectorCopy (m_Points[i+1], m_Points[i]);
+				m_Points[i] = m_Points[i+1];
 			}
             m_Points.pop_back();
 			i = -1;

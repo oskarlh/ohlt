@@ -91,13 +91,13 @@ void DeleteBrink (bbrink_t *b)
 	free (b);
 }
 
-static bbrink_t *CreateBrink (vec3_array& start, vec3_array& stop)
+static bbrink_t *CreateBrink (const vec3_array& start,const vec3_array& stop)
 {
 	bbrink_t *b;
 	hlassume (b = (bbrink_t *)malloc (sizeof (bbrink_t)), assume_NoMemory);
 
-	VectorCopy (start, b->start);
-	VectorCopy (stop, b->stop);
+	b->start = start;
+	b->stop = stop;
 	VectorSubtract (stop, start, b->direction);
 
 	b->numnodes = 1;

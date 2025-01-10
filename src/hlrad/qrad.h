@@ -355,7 +355,7 @@ extern patch_t* g_face_patches[MAX_MAP_FACES];
 extern entity_t* g_face_entity[MAX_MAP_FACES];
 extern vec3_array   g_face_offset[MAX_MAP_FACES];              // for models with origins
 extern eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
-extern vec3_t   g_face_centroids[MAX_MAP_EDGES];
+extern std::array<vec3_array, MAX_MAP_EDGES> g_face_centroids;
 extern entity_t* g_face_texlights[MAX_MAP_FACES];
 extern patch_t* g_patches; // shrinked to its real size, because 1048576 patches * 256 bytes = 256MB will be too big
 extern unsigned g_num_patches;
@@ -426,7 +426,7 @@ extern vec3_array g_jitter_hack;
 	extern float g_corings[ALLSTYLES];
 	extern int stylewarningcount; // not thread safe
 	extern int stylewarningnext; // not thread safe
-	extern vec3_t *g_translucenttextures;
+	extern std::unique_ptr<vec3_array[]> g_translucenttextures;
 	extern vec_t g_translucentdepth;
 	extern vec3_t *g_lightingconeinfo; //[nummiptex]; X component = power, Y component = scale, Z component = nothing
 	extern bool g_notextures;
@@ -436,7 +436,7 @@ extern vec3_array g_jitter_hack;
 	extern bool g_noemitterrange;
 	extern bool g_bleedfix;
 	extern vec_t g_maxdiscardedlight;
-	extern vec3_t g_maxdiscardedpos;
+	extern vec3_array g_maxdiscardedpos;
 	extern vec_t g_texlightgap;
 
 extern void     MakeTnodes(dmodel_t* bm);

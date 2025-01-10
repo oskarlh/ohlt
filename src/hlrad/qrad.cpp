@@ -134,7 +134,7 @@ vec_t           g_texchop = DEFAULT_TEXCHOP;
 std::vector<opaqueList_t>   g_opaque_face_list;
 
 vec_t			g_corings[ALLSTYLES];
-vec3_t*			g_translucenttextures = nullptr;
+std::unique_ptr<vec3_array[]> g_translucenttextures{};
 vec_t			g_translucentdepth = DEFAULT_TRANSLUCENTDEPTH;
 vec_t			g_blur = DEFAULT_BLUR;
 bool			g_noemitterrange = DEFAULT_NOEMITTERRANGE;
@@ -146,7 +146,7 @@ int             nodeparents[MAX_MAP_NODES];
 int				stylewarningcount = 0;
 int				stylewarningnext = 1;
 vec_t g_maxdiscardedlight = 0;
-vec3_t g_maxdiscardedpos = {0, 0, 0};
+vec3_array g_maxdiscardedpos{0, 0, 0};
 
 // =====================================================================================
 //  GetParamsFromEnt
@@ -1032,11 +1032,7 @@ void ReadTranslucentTextures()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
-	g_translucenttextures = (vec3_t *)malloc (num * sizeof(vec3_t));
-	for (i = 0; i < num; i++)
-	{
-		VectorClear (g_translucenttextures[i]);
-	}
+	g_translucenttextures = std::make_unique<vec3_array[]>(num);
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
@@ -2121,7 +2117,7 @@ static void     GatherLight(int threadnum)
 				if (maxlights[style] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[style];
-					VectorCopy (patch->origin, g_maxdiscardedpos);
+					g_maxdiscardedpos = patch->origin;
 				}
 				ThreadUnlock ();
 			}
@@ -2282,7 +2278,7 @@ static void     GatherRGBLight(int threadnum)
 				if (maxlights[style] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[style];
-					VectorCopy (patch->origin, g_maxdiscardedpos);
+					g_maxdiscardedpos = patch->origin;
 				}
 				ThreadUnlock ();
 			}

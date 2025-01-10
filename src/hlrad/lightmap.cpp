@@ -6,7 +6,7 @@
 #include <span>
 
 edgeshare_t     g_edgeshare[MAX_MAP_EDGES];
-vec3_t          g_face_centroids[MAX_MAP_EDGES]; // BUG: should this be [MAX_MAP_FACES]?
+std::array<vec3_array, MAX_MAP_EDGES> g_face_centroids; // BUG: should this be MAX_MAP_FACES instead of MAX_MAP_EDGES???
 bool            g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
 
 //#define TEXTURE_STEP   16.0
@@ -2900,7 +2900,7 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 				if (VectorMaximum (adds[style]) > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = VectorMaximum (adds[style]);
-					VectorCopy (pos, g_maxdiscardedpos);
+					g_maxdiscardedpos = pos;
 				}
 				ThreadUnlock ();
 			}
@@ -3902,7 +3902,7 @@ void            BuildFacelights(const int facenum)
 					if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 					{
 						g_maxdiscardedlight = maxlights[j];
-						VectorCopy (g_face_centroids[facenum], g_maxdiscardedpos);
+						g_maxdiscardedpos = g_face_centroids[facenum];
 					}
 					ThreadUnlock ();
 				}
@@ -3950,7 +3950,7 @@ void            BuildFacelights(const int facenum)
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[j];
-					VectorCopy (g_face_centroids[facenum], g_maxdiscardedpos);
+					g_maxdiscardedpos = g_face_centroids[facenum];
 				}
 				ThreadUnlock ();
 			}
@@ -4006,7 +4006,7 @@ void            BuildFacelights(const int facenum)
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[j];
-					VectorCopy (patch->origin, g_maxdiscardedpos);
+					g_maxdiscardedpos = patch->origin;
 				}
 				ThreadUnlock ();
 			}
@@ -4053,7 +4053,7 @@ void            BuildFacelights(const int facenum)
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[j];
-					VectorCopy (patch->origin, g_maxdiscardedpos);
+					g_maxdiscardedpos = patch->origin;
 				}
 				ThreadUnlock ();
 			}
@@ -4140,7 +4140,7 @@ void            PrecompLightmapOffsets()
 						if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 						{
 							g_maxdiscardedlight = maxlights[j];
-							VectorCopy (g_face_centroids[facenum], g_maxdiscardedpos);
+							g_maxdiscardedpos = g_face_centroids[facenum];
 						}
 						maxlights[j] = 0;
 					}
@@ -4209,7 +4209,7 @@ void            PrecompLightmapOffsets()
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 				{
 					g_maxdiscardedlight = maxlights[j];
-					VectorCopy (g_face_centroids[facenum], g_maxdiscardedpos);
+					g_maxdiscardedpos = g_face_centroids[facenum];
 				}
 			}
 			for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++)
@@ -4728,7 +4728,7 @@ void AddPatchLights (int facenum)
 							if (VectorMaximum (v) > g_maxdiscardedlight + NORMAL_EPSILON)
 							{
 								g_maxdiscardedlight = VectorMaximum (v);
-								VectorCopy (samp->pos, g_maxdiscardedpos);
+								g_maxdiscardedpos = samp->pos;
 							}
 							ThreadUnlock ();
 						}
