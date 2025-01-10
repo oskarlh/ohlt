@@ -142,8 +142,7 @@ static void AddHullPlane(brushhull_t* hull, const vec_t* const normal, const vec
 	new_face.plane = &g_mapplanes[planenum];
 	new_face.contents = CONTENTS_EMPTY;
 	new_face.texinfo = -1;
-	// TODO: Don't move everything... are we creating these in the wrong order?
-	hull->faces.emplace(hull->faces.begin(), std::move(new_face));
+	hull->faces.emplace_back(std::move(new_face));
 }
 
 // =====================================================================================
@@ -683,8 +682,9 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 // =====================================================================================
 //  MakeHullFaces
 // =====================================================================================
-void SortSides (brushhull_t *h)
-{
+void SortSides (brushhull_t *h) {
+	// The only reason it's a stable sort is so we get identical .bsp files
+	// no matter which implementation of the C++ standard library is used
 	std::stable_sort(h->faces.begin(), h->faces.end(), [](const bface_t& a, const bface_t& b) {
 		const vec3_array normalsA = g_mapplanes[a.planenum].normal;
 		int axialA = (fabs (normalsA[0]) < NORMAL_EPSILON) + (fabs (normalsA[1]) < NORMAL_EPSILON) + (fabs (normalsA[2]) < NORMAL_EPSILON);
@@ -693,9 +693,8 @@ void SortSides (brushhull_t *h)
 		return axialA > axialB;
 	});
 }
-void            MakeHullFaces(const brush_t* const b, brushhull_t *h)
+void MakeHullFaces(const brush_t* const b, brushhull_t *h)
 {
-	// this will decrease AllocBlock amount
 	SortSides (h);
 
 restart:
@@ -805,8 +804,7 @@ bool            MakeBrushPlanes(brush_t* b)
 		new_face.plane = &g_mapplanes[planenum];
         new_face.texinfo = g_onlyents ? 0 : TexinfoForBrushTexture(new_face.plane, &s->td, origin.data());
 		new_face.bevel = b->bevel || s->bevel;
-		// TODO: Don't move everything... are we creating these in the wrong order?
-		b->hulls[0].faces.emplace(b->hulls[0].faces.begin(), std::move(new_face));
+		b->hulls[0].faces.emplace_back(std::move(new_face));
     }
 
     return true;

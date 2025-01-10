@@ -542,8 +542,7 @@ static std::vector<bface_t> CopyFacesToOutside(const brushhull_t* bh)
     {
         bface_t newf{CopyFace(f)};
         newf.bounds = newf.w.getBounds();
-		// TODO: Don't move everything... are we creating these in the wrong order?
-        outside.emplace(outside.begin(), std::move(newf));
+        outside.emplace_back(std::move(newf));
     }
 
     return outside;
@@ -819,8 +818,6 @@ static void     CSGBrush(int brushnum)
                     outside.emplace_back(std::move(f));
                 }
             }
-            // TODO: Is this necessary??????????
-            std::ranges::reverse(outside);
         }
 
         // all of the faces left in outside are real surface faces

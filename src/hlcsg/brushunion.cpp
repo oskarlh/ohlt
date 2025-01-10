@@ -45,12 +45,10 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
     {
         return;
     }
-    hlassert(hull->faces.front().w);
 
     std::vector<bface_t> newFaceList;
     for (bface_t& face : hull->faces)
     {
-        hlassert(face->w);
 
         // Duplicate plane, ignore
         if (face.planenum == planenum)
@@ -79,7 +77,6 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
                 newFaceList.emplace_back(CopyFace(face));
             }
         }
-        hlassert(face->w);
     }
     hull->faces = std::move(newFaceList);
 
@@ -91,9 +88,7 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
             bface_t newFace{};
             newFace.planenum = planenum;
             newFace.w = std::move(new_winding);
-
-        	// TODO: Don't move everything... are we creating these in the wrong order?
-            hull->faces.emplace(hull->faces.begin(), std::move(newFace));
+            hull->faces.emplace_back(std::move(newFace));
         }
     }
 }
