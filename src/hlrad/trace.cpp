@@ -7,14 +7,13 @@
 
 // #define      ON_EPSILON      0.001
 
-typedef struct tnode_s
-{
+struct tnode_t {
     planetype      type;
     vec3_array          normal;
     float           dist;
     int             children[2];
     int             pad;
-} tnode_t;
+};
 
 static tnode_t* tnodes;
 static tnode_t* tnode_p;
@@ -414,13 +413,11 @@ void BuildFaceEdges (opaqueface_t *f)
 	}
 }
 
-void CreateOpaqueNodes ()
-{
-	int i, j;
+void CreateOpaqueNodes () {
 	opaquemodels = (opaquemodel_t *)calloc (g_nummodels, sizeof (opaquemodel_t));
 	opaquenodes = (opaquenode_t *)calloc (g_numnodes, sizeof (opaquenode_t));
 	opaquefaces = (opaqueface_t *)calloc (g_numfaces, sizeof (opaqueface_t));
-	for (i = 0; i < g_numfaces; i++)
+	for (std::size_t i = 0; i < g_numfaces; ++i)
 	{
 		opaqueface_t *of = &opaquefaces[i];
 		dface_t *df = &g_dfaces[i];
@@ -438,9 +435,9 @@ void CreateOpaqueNodes ()
 		}
 		of->texinfo = df->texinfo;
 		texinfo_t *info = &g_texinfo[of->texinfo];
-		for (j = 0; j < 2; j++)
+		for (std::size_t j = 0; j < 2; ++j)
 		{
-			for (int k = 0; k < 4; k++)
+			for (std::size_t  k = 0; k < 4; ++k)
 			{
 				of->tex_vecs[j][k] = info->vecs[j][k];
 			}
@@ -451,8 +448,7 @@ void CreateOpaqueNodes ()
 		of->tex_height = tex->height;
 		of->tex_canvas = tex->canvas;
 	}
-	for (i = 0; i < g_numnodes; i++)
-	{
+	for (std::size_t i = 0; i < g_numnodes; ++i) {
 		opaquenode_t *on = &opaquenodes[i];
 		dnode_t *dn = &g_dnodes[i];
 		on->type = g_dplanes[dn->planenum].type;
@@ -464,16 +460,16 @@ void CreateOpaqueNodes ()
 		on->numfaces = dn->numfaces;
 		on->numfaces = MergeOpaqueFaces (on->firstface, on->numfaces);
 	}
-	for (i = 0; i < g_numfaces; i++)
+	for (std::size_t i = 0; i < g_numfaces; ++i)
 	{
 		BuildFaceEdges (&opaquefaces[i]);
 	}
-	for (i = 0; i < g_nummodels; i++)
+	for (std::size_t i = 0; i < g_nummodels; ++i)
 	{
 		opaquemodel_t *om = &opaquemodels[i];
 		dmodel_t *dm = &g_dmodels[i];
 		om->headnode = dm->headnode[0];
-		for (j = 0; j < 3; j++)
+		for (std::size_t j = 0; j < 3; ++j)
 		{
 			om->mins[j] = dm->mins[j] - 1;
 			om->maxs[j] = dm->maxs[j] + 1;

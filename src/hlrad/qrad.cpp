@@ -594,7 +594,7 @@ static bool     PlacePatchInside(patch_t* patch)
 	vec_t pointstested;
 	pointsfound = pointstested = 0;
 	bool found;
-	vec3_t bestpoint;
+	vec3_array bestpoint{};
 	vec_t bestdist = -1.0;
 	vec3_array point;
 	vec_t dist;
@@ -614,7 +614,7 @@ static bool     PlacePatchInside(patch_t* patch)
 		if (!found || dist < bestdist)
 		{
 			found = true;
-			VectorCopy (point, bestpoint);
+			bestpoint = point;
 			bestdist = dist;
 		}
 	}
@@ -639,7 +639,7 @@ static bool     PlacePatchInside(patch_t* patch)
 				if (!found || dist < bestdist)
 				{
 					found = true;
-					VectorCopy (point, bestpoint);
+					bestpoint = point;
 					bestdist = dist;
 				}
 			}
@@ -649,7 +649,7 @@ static bool     PlacePatchInside(patch_t* patch)
 
 	if (found)
 	{
-		VectorCopy (bestpoint, patch->origin);
+		patch->origin = bestpoint;
 		patch->flags = ePatchFlagNull;
 		return true;
 	}
