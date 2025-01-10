@@ -105,7 +105,7 @@ std::uint8_t g_minlight = cli_option_defaults::minLight;
 float_type g_transfer_compress_type = cli_option_defaults::transferCompressType;
 vector_type g_rgbtransfer_compress_type = cli_option_defaults::rgbTransferCompressType;
 bool g_softsky = DEFAULT_SOFTSKY;
-int g_blockopaque = DEFAULT_BLOCKOPAQUE;
+bool g_blockopaque = cli_option_defaults::blockOpaque;
 bool g_notextures = DEFAULT_NOTEXTURES;
 vec_t g_texreflectgamma = DEFAULT_TEXREFLECTGAMMA;
 vec_t g_texreflectscale = DEFAULT_TEXREFLECTSCALE;
@@ -2855,7 +2855,7 @@ static void     Settings()
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_translucentdepth);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TRANSLUCENTDEPTH);
 	Log("translucent depth    [ %17s ] [ %17s ]\n", buf1, buf2);
-	Log("block opaque         [ %17s ] [ %17s ]\n", g_blockopaque ? "on" : "off", DEFAULT_BLOCKOPAQUE ? "on" : "off");
+	Log("block opaque         [ %17s ] [ %17s ]\n", g_blockopaque ? "on" : "off", cli_option_defaults::blockOpaque ? "on" : "off");
 	Log("ignore textures      [ %17s ] [ %17s ]\n", g_notextures ? "on" : "off", DEFAULT_NOTEXTURES ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_texreflectgamma);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TEXREFLECTGAMMA);

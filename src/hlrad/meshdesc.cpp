@@ -22,8 +22,7 @@ constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
 constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
 constexpr float SIMPLIFICATION_FACTOR_LOW{0.85f};
 
-CMeshDesc :: CMeshDesc( void )
-{
+CMeshDesc :: CMeshDesc() {
 	memset( &m_mesh, 0, sizeof( m_mesh ));
 
 	m_debugName = nullptr;
@@ -33,7 +32,7 @@ CMeshDesc :: CMeshDesc( void )
 	m_iNumTris = 0;
 }
 
-CMeshDesc :: ~CMeshDesc( void )
+CMeshDesc :: ~CMeshDesc()
 {
 	FreeMesh ();
 }
@@ -343,12 +342,7 @@ void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t quat) {
 	quat[3] = cr*cp*cy+sr*sp*sy; // W
 }
 
-/*
-====================
-AngleMatrix
-====================
-*/
-void CMeshDesc :: AngleMatrix( const vec3_t angles, const vec3_t origin, const vec3_t scale, float (*matrix)[4] )
+void CMeshDesc::AngleMatrix(const vec3_array& angles, const vec3_array& origin, const vec3_array& scale, matrix3x4& matrix)
 {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
@@ -378,12 +372,7 @@ void CMeshDesc :: AngleMatrix( const vec3_t angles, const vec3_t origin, const v
 	matrix[2][3] = origin[2];
 }
 
-/*
-================
-QuaternionMatrix
-================
-*/
-void CMeshDesc :: QuaternionMatrix( vec4_t quat, const vec3_t origin, float (*matrix)[4] )
+void CMeshDesc :: QuaternionMatrix( vec4_t quat, const vec3_t origin, matrix3x4& matrix)
 {
 	matrix[0][0] = 1.0 - 2.0 * quat[1] * quat[1] - 2.0 * quat[2] * quat[2];
 	matrix[1][0] = 2.0 * quat[0] * quat[1] + 2.0 * quat[3] * quat[2];
@@ -402,13 +391,7 @@ void CMeshDesc :: QuaternionMatrix( vec4_t quat, const vec3_t origin, float (*ma
 	matrix[2][3] = origin[2];
 }
 
-/*
-================
-ConcatTransforms
-================
-*/
-void CMeshDesc :: ConcatTransforms( float in1[3][4], float in2[3][4], float out[3][4] )
-{
+void CMeshDesc::ConcatTransforms(const matrix3x4& in1, const matrix3x4& in2, matrix3x4& out) {
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
 	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] + in1[0][2] * in2[2][1];
 	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] + in1[0][2] * in2[2][2];
@@ -423,13 +406,7 @@ void CMeshDesc :: ConcatTransforms( float in1[3][4], float in2[3][4], float out[
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 }
 
-/*
-====================
-VectorTransform
-====================
-*/
-void CMeshDesc :: VectorTransform( const vec3_t in1, float in2[3][4], vec3_t out )
-{
+void CMeshDesc::VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec3_array& out) {
 	out[0] = DotProduct( in1, in2[0] ) + in2[0][3];
 	out[1] = DotProduct( in1, in2[1] ) + in2[1][3];
 	out[2] = DotProduct( in1, in2[2] ) + in2[2][3];
@@ -507,7 +484,6 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
 	static vec3_t pos[MAXSTUDIOBONES];
 	static vec4_t q[MAXSTUDIOBONES];
-	int totalVertSize = 0;
 
 	for( int i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
 	{
@@ -516,20 +492,23 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	}
 
 	pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
-	matrix3x4	transform, bonematrix, bonetransform[MAXSTUDIOBONES];
-	AngleMatrix( pModel->angles, pModel->origin, pModel->scale, transform );
-
-	// compute bones for default anim
+	matrix3x4 transform;
+	matrix3x4 boneMatrix;
+	std::array<matrix3x4, MAXSTUDIOBONES> boneTransform;
+	AngleMatrix(pModel->angles, pModel->origin, pModel->scale, transform);
+	// Compute bones for default anim
 	for( i = 0; i < phdr->numbones; i++ ) 
 	{
-		// initialize bonematrix
-		QuaternionMatrix( q[i], pos[i], bonematrix );
+		// Initialize bonematrix
+		QuaternionMatrix( q[i], pos[i], boneMatrix );
 
 		if( pbone[i].parent == -1 ) 
-			ConcatTransforms( transform, bonematrix, bonetransform[i] );
-		else ConcatTransforms( bonetransform[pbone[i].parent], bonematrix, bonetransform[i] );
+			ConcatTransforms( transform, boneMatrix, boneTransform[i] );
+		else ConcatTransforms( boneTransform[pbone[i].parent], boneMatrix, boneTransform[i] );
 	}
 
+	std::int32_t totalVertSize = 0;
+	std::int32_t maxVertSize = 0;
 	// through all bodies to determine max vertices count
 	for( i = 0; i < phdr->numbodyparts; i++ )
 	{
@@ -540,15 +519,18 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 
 		mstudiomodel_t *psubmodel = (mstudiomodel_t *)((byte *)phdr + pbodypart->modelindex) + index;
 		totalVertSize += psubmodel->numverts;
+		maxVertSize = std::max(maxVertSize, psubmodel->numverts);
 	}
 
-	vec3_t *verts = (vec3_t *)malloc( sizeof( vec3_t ) * totalVertSize * 8 ); // allocate temporary vertices array
-	float *coords = (float *)malloc( sizeof( float ) * totalVertSize * 16 ); // allocate temporary texcoords array
+	std::unique_ptr<vec3_array[]> verts{std::make_unique_for_overwrite<vec3_array[]>(totalVertSize * 8)}; // Temporary vertices
+	std::unique_ptr<float[]> coords{std::make_unique_for_overwrite<float[]>(totalVertSize * 16)}; // Temporary vertices
 	mstudiotexture_t **textures = (mstudiotexture_t **)malloc( sizeof( mstudiotexture_t* ) * totalVertSize * 8 ); // lame way...
 	unsigned int *indices = (unsigned int *)malloc( sizeof( int ) * totalVertSize * 24 );
 	int numVerts = 0, numElems = 0, numTris = 0;
 	mvert_t triangle[3];
 
+	std::unique_ptr<vec3_array[]> m_verts = std::make_unique_for_overwrite<vec3_array[]>(maxVertSize);
+	std::vector<vec3_array> gr;
 	for( int k = 0; k < phdr->numbodyparts; k++ )
 	{
 		mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)((byte *)phdr + phdr->bodypartindex) + k;
@@ -558,13 +540,12 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		int m_skinnum = std::min( std::max( 0, pModel->skin ), MAXSTUDIOSKINS );
 
 		mstudiomodel_t *psubmodel = (mstudiomodel_t *)((byte *)phdr + pbodypart->modelindex) + index;
-		vec3_t *pstudioverts = (vec3_t *)((byte *)phdr + psubmodel->vertindex);
-		vec3_t *m_verts = (vec3_t *)malloc( sizeof( vec3_t ) * psubmodel->numverts );
+		vec3_array *pstudioverts = (vec3_array *)((byte *)phdr + psubmodel->vertindex);
 		byte *pvertbone = ((byte *)phdr + psubmodel->vertinfoindex);
 
 		// setup all the vertices
 		for( i = 0; i < psubmodel->numverts; i++ )
-			VectorTransform( pstudioverts[i], bonetransform[pvertbone[i]], m_verts[i] );
+			VectorTransform( pstudioverts[i], boneTransform[pvertbone[i]], m_verts[i] );
 
 		mstudiotexture_t *ptexture = (mstudiotexture_t *)((byte *)phdr + phdr->textureindex);
 		short *pskinref = (short *)((byte *)phdr + phdr->skinindex);
@@ -648,8 +629,6 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 				}
 			}
 		}
-
-		free( m_verts ); // don't keep this because different submodels may have difference count of vertices
 	}
 
 	if( numTris != ( numElems / 3 ))
@@ -754,8 +733,6 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		}
 	}
 
-	free( verts );
-	free( coords );
 	free( indices );
 	free( textures );
 

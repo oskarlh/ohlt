@@ -108,7 +108,6 @@
 
 	#define DEFAULT_TRANSTOTAL_HACK 0.2 //0.5 //vluzacn
 	#define DEFAULT_SOFTSKY true
-	#define DEFAULT_BLOCKOPAQUE 1
 	#define DEFAULT_TRANSLUCENTDEPTH 2.0f
 	#define DEFAULT_NOTEXTURES false
 	#define DEFAULT_TEXREFLECTGAMMA 1.76f // 2.0(texgamma cvar) / 2.5 (gamma cvar) * 2.2 (screen gamma) = 1.76
@@ -414,7 +413,7 @@ extern unsigned char g_minlight;
 extern float_type g_transfer_compress_type;
 extern vector_type g_rgbtransfer_compress_type;
 extern bool g_softsky;
-extern int g_blockopaque;
+extern bool g_blockopaque;
 extern bool g_drawpatch;
 extern bool g_drawsample;
 extern vec3_array g_drawsample_origin;

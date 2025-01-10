@@ -41,8 +41,8 @@ enum class trace_method : std::uint8_t {
 
 typedef unsigned short	word;
 typedef unsigned int	uint;
-typedef vec_t		vec4_t[4];	// x,y,z,w
-typedef vec_t		matrix3x4[3][4];
+typedef vec_t vec4_t[4];	// x,y,z,w
+typedef std::array<std::array<vec_t, 4>, 3> matrix3x4;
 
 #define Q_rint( x )		((x) < 0 ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
 
@@ -114,6 +114,7 @@ public:
 	inline vector( float X = 0.0f, float Y = 0.0f, float Z = 0.0f ){ x = X; y = Y; z = Z; };
 	inline vector( const float *rgfl ) { x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
 	inline vector( float rgfl[3])	{ x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
+	inline vector( const float3_array& rgfl)	{ x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
 	inline vector( const vector& v ) { x = v.x; y = v.y; z = v.z; }
 	operator const float *() const { return &x; }
 	operator float *() { return &x; }
@@ -145,15 +146,15 @@ public:
 	// mesh construction
 	bool InitMeshBuild( const char *debug_name, int numTrinagles ); 
 	bool AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *tex = nullptr );
-	bool FinishMeshBuild( void );
-	void FreeMeshBuild( void );
-	void FreeMesh( void );
+	bool FinishMeshBuild();
+	void FreeMeshBuild();
+	void FreeMesh( );
 
 	// local mathlib
-	void AngleMatrix( const vec3_t angles, const vec3_t origin, const vec3_t scale, float (*matrix)[4] );
-	void ConcatTransforms( float in1[3][4], float in2[3][4], float out[3][4] );
-	void QuaternionMatrix( vec4_t quat, const vec3_t origin, float (*matrix)[4] );
-	void VectorTransform( const vec3_t in1, float in2[3][4], vec3_t out );
+	void AngleMatrix(const vec3_array& angles, const vec3_array& origin, const vec3_array& scale, matrix3x4& matrix);
+	void ConcatTransforms(const matrix3x4& in1, const matrix3x4& in2, matrix3x4& out);
+	void QuaternionMatrix(vec4_t quat, const vec3_t origin, matrix3x4& matrix);
+	void VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec3_array& out);
 	void AngleQuaternion(const vec3_array& angles, vec4_t quat);
 
 	// studio models processing
@@ -215,18 +216,17 @@ void PermuteVertices( List<int> &permutation, List<vector> &vert, List<triset> &
 int MapVertex( int a, int mx, List<int> &map );
 
 // collision description
-struct model_t
-{
-	char		name[64];		// model name
-	vec3_t		origin;
-	vec3_t		angles;
-	vec3_t		scale;		// scale X-Form
-	int		body;		// sets by level-designer
-	int		skin;		// e.g. various alpha-textures
+struct model_t {
+	char name[64];		// model name
+	vec3_array origin;
+	vec3_array angles;
+	vec3_array scale;		// scale X-Form
+	int body;		// sets by level-designer
+	int skin;		// e.g. various alpha-textures
 	trace_method trace_mode;
     
-	void		*extradata;	// model
-	void		*anims;		// studio animations
+	void *extradata;	// model
+	void *anims;		// studio animations
 
-	CMeshDesc		mesh;		// cform
+	CMeshDesc mesh;		// cform
 };
