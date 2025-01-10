@@ -348,8 +348,8 @@ void            PairEdges()
 					int miptex0, miptex1;
 					miptex0 = g_texinfo[e->faces[0]->texinfo].miptex;
 					miptex1 = g_texinfo[e->faces[1]->texinfo].miptex;
-					if (fabs (g_lightingconeinfo[miptex0][0] - g_lightingconeinfo[miptex1][0]) > NORMAL_EPSILON ||
-						fabs (g_lightingconeinfo[miptex0][1] - g_lightingconeinfo[miptex1][1]) > NORMAL_EPSILON )
+					if (fabs (g_lightingconeinfo[miptex0].power - g_lightingconeinfo[miptex1].power) > NORMAL_EPSILON ||
+						fabs (g_lightingconeinfo[miptex0].scale - g_lightingconeinfo[miptex1].scale) > NORMAL_EPSILON )
 					{
 						e->coplanar = false;
 						VectorClear (e->interface_normal);
@@ -2438,8 +2438,8 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 	bool			lighting_diversify;
 	vec_t			lighting_power;
 	vec_t			lighting_scale;
-	lighting_power = g_lightingconeinfo[miptex][0];
-	lighting_scale = g_lightingconeinfo[miptex][1];
+	lighting_power = g_lightingconeinfo[miptex].power;
+	lighting_scale = g_lightingconeinfo[miptex].scale;
 	lighting_diversify = (lighting_power != 1.0 || lighting_scale != 1.0);
 	vec3_array			texlightgap_textoworld[2];
 	// calculates textoworld

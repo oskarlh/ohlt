@@ -1074,7 +1074,7 @@ void ReadTranslucentTextures()
 		}
 	}
 }
-vec3_t *g_lightingconeinfo;//[nummiptex]
+std::unique_ptr<lighting_cone_power_and_scale[]> g_lightingconeinfo; // size == nummiptex
 static vec_t DefaultScaleForPower (vec_t power)
 {
 	vec_t scale;
@@ -1089,12 +1089,7 @@ void ReadLightingCone ()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
-	g_lightingconeinfo = (vec3_t *)malloc (num * sizeof(vec3_t));
-	for (i = 0; i < num; i++)
-	{
-		g_lightingconeinfo[i][0] = 1.0; // default power
-		g_lightingconeinfo[i][1] = 1.0; // default scale
-	}
+	g_lightingconeinfo = std::make_unique<lighting_cone_power_and_scale[]>(num);
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
@@ -1111,7 +1106,8 @@ void ReadLightingCone ()
 			}
 			if (texname.is_origin())
 				continue;
-			double power, scale;
+			double power{};
+			double scale{};
 			int count;
 			count = sscanf ((const char*) value.data(), "%lf %lf", &power, &scale);
 			if (count == 1)
@@ -1129,8 +1125,8 @@ void ReadLightingCone ()
 				continue;
 			}
 			scale *= DefaultScaleForPower (power);
-			g_lightingconeinfo[i][0] = power;
-			g_lightingconeinfo[i][1] = scale;
+			g_lightingconeinfo[i].power = power;
+			g_lightingconeinfo[i].scale = scale;
 			Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
 		}
 	}

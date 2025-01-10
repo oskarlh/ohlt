@@ -394,50 +394,49 @@ extern vec_t    g_chop;    // Chop value for normal textures
 extern vec_t    g_texchop; // Chop value for texture lights
 extern std::vector<opaqueList_t> g_opaque_face_list;
 
-
-// ------------------------------------------------------------------------
-// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-
 extern vec3_array g_colour_qgamma;
 extern vec3_array g_colour_lightscale;
 
 extern vec3_array g_colour_jitter_hack;
 extern vec3_array g_jitter_hack;
 
-// ------------------------------------------------------------------------
+struct lighting_cone_power_and_scale {
+	float power{1.0};
+	float scale{1.0};
+};
 
 
-	extern bool	g_customshadow_with_bouncelight;
-	extern bool	g_rgb_transfers;
+extern bool	g_customshadow_with_bouncelight;
+extern bool	g_rgb_transfers;
 
-	extern float g_transtotal_hack;
-	extern unsigned char g_minlight;
-	extern float_type g_transfer_compress_type;
-	extern vector_type g_rgbtransfer_compress_type;
-	extern bool g_softsky;
-	extern int g_blockopaque;
-	extern bool g_drawpatch;
-	extern bool g_drawsample;
-	extern vec3_array g_drawsample_origin;
-	extern vec_t g_drawsample_radius;
-	extern bool g_drawedge;
-	extern bool g_drawlerp;
-	extern bool g_drawnudge;
-	extern float g_corings[ALLSTYLES];
-	extern int stylewarningcount; // not thread safe
-	extern int stylewarningnext; // not thread safe
-	extern std::unique_ptr<vec3_array[]> g_translucenttextures;
-	extern vec_t g_translucentdepth;
-	extern vec3_t *g_lightingconeinfo; //[nummiptex]; X component = power, Y component = scale, Z component = nothing
-	extern bool g_notextures;
-	extern vec_t g_texreflectgamma;
-	extern vec_t g_texreflectscale;
-	extern vec_t g_blur;
-	extern bool g_noemitterrange;
-	extern bool g_bleedfix;
-	extern vec_t g_maxdiscardedlight;
-	extern vec3_array g_maxdiscardedpos;
-	extern vec_t g_texlightgap;
+extern float g_transtotal_hack;
+extern unsigned char g_minlight;
+extern float_type g_transfer_compress_type;
+extern vector_type g_rgbtransfer_compress_type;
+extern bool g_softsky;
+extern int g_blockopaque;
+extern bool g_drawpatch;
+extern bool g_drawsample;
+extern vec3_array g_drawsample_origin;
+extern vec_t g_drawsample_radius;
+extern bool g_drawedge;
+extern bool g_drawlerp;
+extern bool g_drawnudge;
+extern float g_corings[ALLSTYLES];
+extern int stylewarningcount; // not thread safe
+extern int stylewarningnext; // not thread safe
+extern std::unique_ptr<vec3_array[]> g_translucenttextures;
+extern vec_t g_translucentdepth;
+extern std::unique_ptr<lighting_cone_power_and_scale[]> g_lightingconeinfo; // size == nummiptex
+extern bool g_notextures;
+extern vec_t g_texreflectgamma;
+extern vec_t g_texreflectscale;
+extern vec_t g_blur;
+extern bool g_noemitterrange;
+extern bool g_bleedfix;
+extern vec_t g_maxdiscardedlight;
+extern vec3_array g_maxdiscardedpos;
+extern vec_t g_texlightgap;
 
 extern void     MakeTnodes(dmodel_t* bm);
 extern void     PairEdges();

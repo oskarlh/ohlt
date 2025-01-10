@@ -227,8 +227,8 @@ void            MakeScales(const int threadnum)
 		vec_t lighting_power;
 		vec_t lighting_scale;
 		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
-		lighting_power = g_lightingconeinfo[miptex][0];
-		lighting_scale = g_lightingconeinfo[miptex][1];
+		lighting_power = g_lightingconeinfo[miptex].power;
+		lighting_scale = g_lightingconeinfo[miptex].scale;
 		lighting_diversify = (lighting_power != 1.0 || lighting_scale != 1.0);
 
         // find out which patch2's will collect light
@@ -492,8 +492,8 @@ void            MakeRGBScales(const int threadnum)
 		vec_t lighting_power;
 		vec_t lighting_scale;
 		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
-		lighting_power = g_lightingconeinfo[miptex][0];
-		lighting_scale = g_lightingconeinfo[miptex][1];
+		lighting_power = g_lightingconeinfo[miptex].power;
+		lighting_scale = g_lightingconeinfo[miptex].scale;
 		lighting_diversify = (lighting_power != 1.0 || lighting_scale != 1.0);
 
         // find out which patch2's will collect light
