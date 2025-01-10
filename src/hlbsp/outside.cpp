@@ -374,9 +374,7 @@ void            FreeAllowableOutsideList()
 // =====================================================================================
 //  LoadAllowableOutsideList
 // =====================================================================================
-void            LoadAllowableOutsideList(const char* const filename)
-{
-    char*           fname;
+void LoadAllowableOutsideList(const char* const filename) {
     int             i, x, y;
     char*           pData;
     char*           pszData;
@@ -385,19 +383,12 @@ void            LoadAllowableOutsideList(const char* const filename)
     {
         return;
     }
-    else
-    {
-        unsigned        len = std::strlen(filename) + 5;
 
-        fname = (char*)Alloc(len);
-        safe_snprintf(fname, len, "%s", filename);
-    }
-
-    if (std::filesystem::exists(fname))
+    if (std::filesystem::exists(filename))
     {
-        if ((i = LoadFile(fname, &pData)))
+        if ((i = LoadFile(filename, &pData)))
         {
-            Log("Reading allowable void entities from file '%s'\n", fname);
+            Log("Reading allowable void entities from file '%s'\n", filename);
             g_nAllowableOutside = 0;
             for (pszData = pData, y = 0, x = 0; x < i; x++)
             {
