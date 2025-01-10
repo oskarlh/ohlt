@@ -2443,11 +2443,7 @@ static void ExtendLightmapBuffer ()
 // =====================================================================================
 //  RadWorld
 // =====================================================================================
-static void     RadWorld()
-{
-    unsigned        i;
-    unsigned        j;
-
+static void     RadWorld() {
     MakeBackplanes();
     MakeParents(0, -1);
     MakeTnodes(&g_dmodels[0]);
@@ -2672,7 +2668,7 @@ static void     Usage()
 		int i;
 	Log("   -compress #    : compress tranfer (");
 		for (i=0; i<float_type_count; i++)
-			Log (" %d=%s", i, float_type_string[i]);
+			Log (" %d=%s", i, (const char*) float_type_string[i].data());
 		Log(" )\n");
 	Log("   -rgbcompress # : compress rgbtranfer (");
 		for (i=0; i<vector_type_count; i++)
@@ -2853,8 +2849,8 @@ static void     Settings()
     Log("rgb transfers        [ %17s ] [ %17s ]\n", g_rgb_transfers ? "on" : "off", DEFAULT_RGB_TRANSFERS ? "on" : "off"); 
 
 	Log("minimum final light  [ %17d ] [ %17d ]\n", (int)g_minlight, (int)cli_option_defaults::minLight);
-	snprintf (buf1, sizeof(buf1), "%d (%s)", g_transfer_compress_type, float_type_string[(std::size_t) g_transfer_compress_type]);
-	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::transferCompressType, float_type_string[(std::size_t) cli_option_defaults::transferCompressType]);
+	snprintf (buf1, sizeof(buf1), "%d (%s)", g_transfer_compress_type, (const char*) float_type_string[(std::size_t) g_transfer_compress_type].data());
+	snprintf (buf2, sizeof(buf2), "%d (%s)", cli_option_defaults::transferCompressType, (const char*) float_type_string[(std::size_t) cli_option_defaults::transferCompressType].data());
 	Log("size of transfer     [ %17s ] [ %17s ]\n", buf1, buf2);
 	snprintf (buf1, sizeof(buf1), "%d (%s)", g_rgbtransfer_compress_type, vector_type_string[(std::size_t) g_rgbtransfer_compress_type]);
 	snprintf (buf2, sizeof(buf2), "%zu (%s)", (std::size_t) cli_option_defaults::rgbTransferCompressType, vector_type_string[(std::size_t) cli_option_defaults::rgbTransferCompressType]);

@@ -7,11 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *(float_type_string[float_type_count]) =
-{
-	"32bit",
-	"16bit",
-	"8bit"
+using namespace std::literals;
+
+const std::array<std::u8string_view, float_type_count> float_type_string = {
+	u8"32bit"sv,
+	u8"16bit"sv,
+	u8"8bit"sv
 };
 
 const size_t float_size[float_type_count] =

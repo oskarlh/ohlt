@@ -7,8 +7,7 @@ void compress_compatability_test (void);
 
 constexpr std::size_t unused_size = 3; // located at the end of a block
 
-enum class float_type
-{
+enum class float_type {
 	float32 = 0,
 	float16,
 	float8
@@ -18,7 +17,7 @@ template<class Num> constexpr bool is_valid_float_type(Num num) {
 	return num >= Num(float_type::float32) && num <= Num(float_type::float8);
 }
 
-extern const char *float_type_string[];
+extern const std::array<std::u8string_view, float_type_count> float_type_string;
 
 extern const size_t float_size[];
 
