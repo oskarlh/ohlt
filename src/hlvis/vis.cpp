@@ -16,6 +16,7 @@
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
 #include "vis.h"
+#include "winding.h"
 
 #include <algorithm>
 #include <string>

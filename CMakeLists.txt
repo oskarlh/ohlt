@@ -182,13 +182,11 @@ set(VIS_SOURCES
     ${COMMON_SOURCES}
     ${VIS_DIR}/flow.cpp
     ${VIS_DIR}/vis.cpp
-    ${VIS_DIR}/zones.cpp
 )
 
 set(VIS_HEADERS
     ${COMMON_HEADERS}
     ${VIS_DIR}/vis.h
-    ${VIS_DIR}/zones.h
 )
 
 #================

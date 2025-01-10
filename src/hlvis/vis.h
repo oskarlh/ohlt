@@ -9,8 +9,6 @@
 #include "bspfile.h"
 #include "threads.h"
 #include "filelib.h"
-
-#include "zones.h"
 #include "cmdlinecfg.h"
 
 #include <vector>
@@ -170,8 +168,6 @@ extern unsigned g_bitbytes;
 extern unsigned g_bitlongs;
 
 extern volatile int g_vislocalpercent;
-
-extern Zones*          g_Zones;
 
 extern void     BasePortalVis(int threadnum);
 
