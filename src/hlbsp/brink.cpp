@@ -65,59 +65,50 @@ typedef struct bbrinknode_s
 bbrinknode_t;
 
 struct bbrink_t {
-	std::vector< bbrinknode_t > *nodes;
-	struct btreeedge_s *edge; // only for use in deciding brink type
-	vec3_array start, stop;
-	vec3_array direction;
+	std::vector<bbrinknode_t> nodes{};
+	struct btreeedge_t *edge{}; // Only for use in deciding brink type
+	vec3_array start{};
+	vec3_array stop{};
+	vec3_array direction{};
 
-	int numnodes; // including both nodes and leafs
+	int numnodes{0}; // Including both nodes and leafs
 };
 
-bbrink_t *CopyBrink (bbrink_t *other)
-{
-	bbrink_t *b;
-	hlassume (b = (bbrink_t *)malloc (sizeof (bbrink_t)), assume_NoMemory);
-	VectorCopy (other->direction, b->direction);
-	VectorCopy (other->start, b->start);
-	VectorCopy (other->stop, b->stop);
-	b->numnodes = other->numnodes;
-	b->nodes = new std::vector< bbrinknode_t >(*other->nodes);
+static bbrink_t CopyBrink(const bbrink_t& other) {
+	bbrink_t b{};
+	b.direction = other.direction;
+	b.start = other.start;
+	b.stop = other.stop;
+	b.numnodes = other.numnodes;
+	b.nodes = other.nodes;
+	// For some reason we're not copying the whole object including the edge pointer???
 	return b;
 }
 
-void DeleteBrink (bbrink_t *b)
+static bbrink_t CreateBrink (const vec3_array& start,const vec3_array& stop)
 {
-	delete b->nodes;
-	free (b);
-}
+	bbrink_t b{};
+	b.start = start;
+	b.stop = stop;
+	VectorSubtract (stop, start, b.direction);
 
-static bbrink_t *CreateBrink (const vec3_array& start,const vec3_array& stop)
-{
-	bbrink_t *b;
-	hlassume (b = (bbrink_t *)malloc (sizeof (bbrink_t)), assume_NoMemory);
-
-	b->start = start;
-	b->stop = stop;
-	VectorSubtract (stop, start, b->direction);
-
-	b->numnodes = 1;
-	b->nodes = new std::vector< bbrinknode_t >;
+	b.numnodes = 1;
 	bbrinknode_t newnode;
 	newnode.isleaf = true;
 	newnode.clipnode = nullptr;
-	b->nodes->push_back (newnode);
+	b.nodes.push_back (newnode);
 	
 	// CreateBrink must be followed by BrinkSplitClipnode
 	return b;
 }
 
-void PrintBrink (const bbrink_t *b)
+void PrintBrink (const bbrink_t& b)
 {
-	Log ("direction %f %f %f start %f %f %f stop %f %f %f\n", b->direction[0], b->direction[1], b->direction[2], b->start[0], b->start[1], b->start[2], b->stop[0], b->stop[1], b->stop[2]);
-	Log ("numnodes %d\n", b->numnodes);
-	for (int i = 0; i < b->numnodes; i++)
+	Log ("direction %f %f %f start %f %f %f stop %f %f %f\n", b.direction[0], b.direction[1], b.direction[2], b.start[0], b.start[1], b.start[2], b.stop[0], b.stop[1], b.stop[2]);
+	Log ("numnodes %d\n", b.numnodes);
+	for (int i = 0; i < b.numnodes; i++)
 	{
-		bbrinknode_t *n = &(*b->nodes)[i];
+		const bbrinknode_t *n = &b.nodes[i];
 		if (n->isleaf)
 		{
 			Log ("leaf[%d] content %d\n", i, n->content);
@@ -135,7 +126,7 @@ void BrinkSplitClipnode (bbrink_t *b, const dplane_t *plane, int planenum, bclip
 	int numfound{0};
 	for (int i = 0; i < b->numnodes; i++)
 	{
-		bbrinknode_t *node = &(*b->nodes)[i];
+		bbrinknode_t *node = &b->nodes[i];
 		if (node->isleaf && node->clipnode == prev)
 		{
 			found = i;
@@ -157,10 +148,10 @@ void BrinkSplitClipnode (bbrink_t *b, const dplane_t *plane, int planenum, bclip
 		PrintOnce ("BrinkSplitClipnode: internal error: n0 == n1");
 		hlassume (false, assume_first);
 	}
-	b->nodes->resize (b->numnodes + 2);
-	bbrinknode_t *node = &(*b->nodes)[found];
-	bbrinknode_t *front = &(*b->nodes)[b->numnodes];
-	bbrinknode_t *back = &(*b->nodes)[b->numnodes + 1];
+	b->nodes.resize (b->numnodes + 2);
+	bbrinknode_t *node = &b->nodes[found];
+	bbrinknode_t *front = &b->nodes[b->numnodes];
+	bbrinknode_t *back = &b->nodes[b->numnodes + 1];
 	
 	node->clipnode = nullptr;
 	node->isleaf = false;
@@ -186,7 +177,7 @@ void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 	int numfound{0};
 	for (int i = 0; i < b->numnodes; i++)
 	{
-		bbrinknode_t *node = &(*b->nodes)[i];
+		bbrinknode_t *node = &b->nodes[i];
 		if (node->isleaf && node->clipnode == prev)
 		{
 			found = i;
@@ -203,7 +194,7 @@ void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 		PrintOnce ("BrinkSplitClipnode: internal error: found more than one clipnode");
 		hlassume (false, assume_first);
 	}
-	bbrinknode_t *node = &(*b->nodes)[found];
+	bbrinknode_t *node = &b->nodes[found];
 	node->clipnode = n;
 	node->content = n->content;
 }
@@ -213,7 +204,7 @@ void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 // compute the structure of the whole bsp tree
 
 struct btreepoint_s; // 0d object
-struct btreeedge_s; // 1d object
+struct btreeedge_t; // 1d object
 struct btreeface_s; // 2d object
 struct btreeleaf_s; // 3d object
 
@@ -223,7 +214,7 @@ struct btreepoint_r {
 };
 
 struct btreeedge_r {
-	btreeedge_s *e;
+	btreeedge_t *e;
 	bool side;
 };
 
@@ -254,8 +245,7 @@ typedef struct btreepoint_s
 }
 btreepoint_t;
 
-typedef struct btreeedge_s
-{
+struct btreeedge_t {
 	btreeface_l *faces; // this is a reversed reference
 	bbrink_t *brink; // not defined for infinite edges
 	btreepoint_r points[2]; // pointing from points[1] to points[0]
@@ -263,8 +253,7 @@ typedef struct btreeedge_s
 	bool infinite; // both points are infinite (i.e. this edge lies on the bounding box)
 	bool tmp_tested;
 	bool tmp_onleaf[2];
-}
-btreeedge_t;
+};
 
 typedef struct btreeface_s
 {
@@ -571,7 +560,7 @@ void DeleteEdge (int &numobjects, btreeedge_t *te) // warning: points in this ed
 	}
 	if (!te->infinite)
 	{
-		DeleteBrink (te->brink);
+		free(te->brink);
 	}
 	for (int side = 0; side < 2; side++)
 	{
@@ -760,7 +749,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 				te0->tmp_side = tp0->tmp_side;
 				if (!te0->infinite)
 				{
-					te0->brink = CopyBrink (te->brink);
+					te0->brink = new bbrink_t{CopyBrink(*te->brink)};
 					VectorCopy (tpmid->v, te0->brink->start);
 					VectorCopy (tp0->v, te0->brink->stop);
 				}
@@ -770,7 +759,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 				te1->tmp_side = tp1->tmp_side;
 				if (!te1->infinite)
 				{
-					te1->brink = CopyBrink (te->brink);
+					te1->brink = new bbrink_t(CopyBrink (*te->brink));
 					VectorCopy (tp1->v, te1->brink->start);
 					VectorCopy (tpmid->v, te1->brink->stop);
 				}
@@ -902,7 +891,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 				SetEdgePoints (te, vertex->first, vertex2->first);
 				if (!te->infinite)
 				{
-					te->brink = CreateBrink (vertex2->first->v, vertex->first->v);
+					te->brink = new bbrink_t{CreateBrink (vertex2->first->v, vertex->first->v)};
 					if (GetLeafFromFace (tf, tf->planeside)->infinite || GetLeafFromFace (tf, !tf->planeside)->infinite)
 					{
 						PrintOnce ("SplitTreeLeaf: internal error: an infinite object contains a finite object");
@@ -1244,7 +1233,7 @@ void CollectBrinks_r (bclipnode_t *node, int &numbrinks, bbrink_t **brinks)
 						brinks[numbrinks]->edge = ei->e;
 						for (int i = 0; i < brinks[numbrinks]->numnodes; i++)
 						{
-							bbrinknode_t *node = &(*brinks[numbrinks]->nodes)[i];
+							bbrinknode_t *node = &brinks[numbrinks]->nodes[i];
 							if (node->isleaf && !node->clipnode->isleaf)
 							{
 								PrintOnce ("CollectBrinks_r: internal error: not leaf");
@@ -1321,7 +1310,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 	{
 		return false;
 	}
-	VectorCopy ((*b->nodes)[0].plane->normal, c->basenormal);
+	VectorCopy (b->nodes[0].plane->normal, c->basenormal);
 
 	int side, i;
 	for (side = 0; side < 2; side++)
@@ -1336,7 +1325,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 
 		// sort the wedges
 		c->numwedges[side] = 1;
-		c->wedges[side][0].nodenum = (*b->nodes)[0].children[side];
+		c->wedges[side][0].nodenum = b->nodes[0].children[side];
 		c->surfaces[side][0].nodenum = 0;
 		c->surfaces[side][0].nodeside = !side;
 		while (1)
@@ -1344,7 +1333,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 			for (i = 0; i < c->numwedges[side]; i++)
 			{
 				int nodenum = c->wedges[side][i].nodenum;
-				bbrinknode_t *node = &(*b->nodes)[nodenum];
+				bbrinknode_t *node = &b->nodes[nodenum];
 				if (!node->isleaf)
 				{
 					std::memmove (&c->wedges[side][i + 1], &c->wedges[side][i], (c->numwedges[side] - i) * sizeof (bwedge_t));
@@ -1376,7 +1365,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 		for (i = 0; i < c->numwedges[side]; i++)
 		{
 			bwedge_t *w = &c->wedges[side][i];
-			bbrinknode_t *node = &(*b->nodes)[w->nodenum];
+			bbrinknode_t *node = &b->nodes[w->nodenum];
 			if (!node->clipnode->isleaf)
 			{
 				PrintOnce ("CalculateCircle: internal error: not leaf");
@@ -1391,7 +1380,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 		for (i = 0; i < c->numwedges[side]; i++)
 		{
 			bsurface_t *s = &c->surfaces[side][i];
-			bbrinknode_t *node = &(*b->nodes)[s->nodenum];
+			bbrinknode_t *node = &b->nodes[s->nodenum];
 			VectorScale (node->plane->normal, s->nodeside? -1: 1, s->normal);
 		}
 	}
@@ -1490,16 +1479,16 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 	int i, j, side;
 	for (i = 0; i < info->numbrinks; i++)
 	{
-		bbrink_t *b = info->brinks[i];
-		if (b->numnodes <= 5) // quickly reject the most trivial brinks
+		bbrink_t& b = *info->brinks[i];
+		if (b.numnodes <= 5) // quickly reject the most trivial brinks
 		{
-			if (b->numnodes != 3 && b->numnodes != 5)
+			if (b.numnodes != 3 && b.numnodes != 5)
 			{
 				PrintOnce ("AnalyzeBrinks: internal error 1");
 				hlassume (false, assume_first);
 			}
 			// because a brink won't necessarily be split twice after its creation
-			if (b->numnodes == 3)
+			if (b.numnodes == 3)
 			{
 				if (g_developer >= DEVELOPER_LEVEL_FLUFF)
 				{
@@ -1515,7 +1504,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			continue;
 		}
 		
-		if (b->numnodes > 2 * MAXBRINKWEDGES - 1)
+		if (b.numnodes > 2 * MAXBRINKWEDGES - 1)
 		{
 			if (g_developer >= DEVELOPER_LEVEL_MEGASPAM)
 			{
@@ -1527,7 +1516,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		}
 		bcircle_t c;
 		// build the circle to find out the planes a player may move along
-		if (!CalculateCircle (b, &c))
+		if (!CalculateCircle (&b, &c))
 		{
 			if (g_developer >= DEVELOPER_LEVEL_FLUFF)
 			{
@@ -1605,7 +1594,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			onfloor = false;
 			for (int side2 = 0; side2 < 2; side2++)
 			{
-				btreepoint_t *tp = GetPointFromEdge (b->edge, side2);
+				btreepoint_t *tp = GetPointFromEdge (b.edge, side2);
 				if (tp->infinite)
 				{
 					continue;
@@ -1671,8 +1660,8 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 						blocking = true;
 					}
 				}
-				bclipnode_t *clipnode = (*b->nodes)[w->nodenum].clipnode;
-				int planenum = (*b->nodes)[smovement->nodenum].planenum;
+				bclipnode_t *clipnode = b.nodes[w->nodenum].clipnode;
+				int planenum = b.nodes[smovement->nodenum].planenum;
 				bool planeside = transitionside[!side]? smovement->nodeside: !smovement->nodeside;
 				bbrinklevel_e brinktype;
 				brinktype = isfloor? (blocking? BrinkFloorBlocking: BrinkFloor): onfloor? (blocking? BrinkWallBlocking: BrinkWall): BrinkAny;
