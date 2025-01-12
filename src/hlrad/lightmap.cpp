@@ -4305,17 +4305,15 @@ void ReduceLightmap ()
 // Change the sample light right under a mdl file entity's origin.
 // Use this when "mdl" in shadow has incorrect brightness.
 
-const int MLH_MAXFACECOUNT = 16;
-const int MLH_MAXSAMPLECOUNT = 4;
-const vec_t MLH_LEFT = 0;
-const vec_t MLH_RIGHT = 1;
+constexpr std::int32_t MLH_MAXFACECOUNT = 16;
+constexpr std::int32_t MLH_MAXSAMPLECOUNT = 4;
+constexpr vec_t MLH_LEFT = 0;
+constexpr vec_t MLH_RIGHT = 1;
 
-typedef struct
-{
-	vec3_t origin;
-	vec3_t floor;
-	struct
-	{
+struct mdllight_t {
+	vec3_array origin;
+	vec3_array floor;
+	struct {
 		int num;
 		struct
 		{
@@ -4331,10 +4329,9 @@ typedef struct
 		}
 		sample[MLH_MAXSAMPLECOUNT];
 		int samplecount;
-	}
-	face[MLH_MAXFACECOUNT];
+	} face[MLH_MAXFACECOUNT];
 	int facecount;
-} mdllight_t;
+};
 
 int MLH_AddFace (mdllight_t *ml, int facenum)
 {

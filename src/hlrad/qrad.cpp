@@ -36,15 +36,7 @@ bool            g_pre25update = DEFAULT_PRE25UPDATE;
 bool			g_fastmode = DEFAULT_FASTMODE;
 bool g_studioshadow = DEFAULT_STUDIOSHADOW;
 
-typedef enum
-{
-    eMethodVismatrix,
-    eMethodSparseVismatrix,
-    eMethodNoVismatrix
-}
-eVisMethods;
-
-eVisMethods		g_method = DEFAULT_METHOD;
+static vis_method g_method = cli_option_defaults::visMethod;
 
 vec_t           g_fade = DEFAULT_FADE;
 
@@ -325,18 +317,18 @@ void            GetParamsFromEnt(entity_t* mapent)
     iTmp = IntForKey(mapent, u8"sparse");
     if (iTmp == 1)
     {
-        g_method = eMethodSparseVismatrix;
+        g_method = vis_method::sparse_vismatrix;
     }
     else if (iTmp == 0)
     {
-        g_method = eMethodNoVismatrix;
+        g_method = vis_method::no_vismatrix;
     }
     else if (iTmp == 2)
     {
-        g_method = eMethodVismatrix;
+        g_method = vis_method::vismatrix;
     }
-    Log("%30s [ %-9s ]\n", "Sparse Vismatrix",  g_method == eMethodSparseVismatrix ? "on" : "off");
-    Log("%30s [ %-9s ]\n", "NoVismatrix",  g_method == eMethodNoVismatrix ? "on" : "off");
+    Log("%30s [ %-9s ]\n", "Sparse Vismatrix",  g_method == vis_method::sparse_vismatrix ? "on" : "off");
+    Log("%30s [ %-9s ]\n", "NoVismatrix",  g_method == vis_method::no_vismatrix ? "on" : "off");
 
     /*
     circus(choices) : "Circus RAD lighting" : 0 =
@@ -1419,26 +1411,23 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		}
 	}
 }
-
-// =====================================================================================
-//  AddFaceToOpaqueList
-// =====================================================================================
 static void     AddFaceToOpaqueList(
 									int entitynum, int modelnum, const vec3_t origin
-									, const vec3_t &transparency_scale, const bool transparency
+									, const std::optional<vec3_array>& transparency_scale
 									, int style
 									, bool block
 									)
 {
         opaqueList_t   opaque{};
 
-		if (transparency && style != -1)
-		{
-			Warning ("Dynamic shadow is not allowed in entity with custom shadow.\n");
-			style = -1;
+		if(transparency_scale) {
+			if (style != -1) {
+				Warning ("Dynamic shadow is not allowed in entity with custom shadow.\n");
+				style = -1;
+			}
+			opaque.transparency_scale = transparency_scale.value();
+			opaque.transparency = true;
 		}
-        VectorCopy(transparency_scale, opaque.transparency_scale);
-        opaque.transparency = transparency;
 		opaque.entitynum = entitynum;
 		opaque.modelnum = modelnum;
 		VectorCopy (origin, opaque.origin);
@@ -1491,33 +1480,31 @@ static void		LoadOpaqueEntities()
 				if (g_allow_opaques && (IntForKey (&ent, u8"zhlt_lightflags") & eModelLightmodeOpaque)) //If -noopaque is off, and if the entity has opaque light flag
 					opaque = true;
 			}
-			vec3_t d_transparency;
-			VectorFill (d_transparency, 0.0); //Initialize transparency value to 0
-			bool b_transparency = false;
+
+	   		std::optional<vec3_array> transparency;
 			{
-				const char *s;
-
-				if (*(s = (const char*) ValueForKey(&ent, u8"zhlt_customshadow"))) //If the entity has a custom shadow (transparency) value
+				// If the entity has a custom shadow (transparency) value
+				std::u8string_view transparencyString = value_for_key(&ent, u8"zhlt_customshadow");
+				if (!transparencyString.empty())
 				{
-        			double r1 = 1.0, g1 = 1.0, b1 = 1.0, tmp = 1.0;
-
-					if (sscanf(s, "%lf %lf %lf", &r1, &g1, &b1) == 3) //Try to read RGB values
-					{
-						if(r1<0.0) r1 = 0.0; //Clamp values to min 0
-						if(g1<0.0) g1 = 0.0;
-						if(b1<0.0) b1 = 0.0;
-						d_transparency[0] = r1;
-						d_transparency[1] = g1;
-						d_transparency[2] = b1;
-					}
-					else if (sscanf(s, "%lf", &tmp) == 1) //Greyscale version
-					{
-						if(tmp<0.0) tmp = 0.0;
-						VectorFill(d_transparency, tmp); //Set transparency values to the same greyscale value
+        			float r, g, b;
+					// Try to read RGB values
+					if (sscanf((const char*) transparencyString.data(), "%f %f %f", &r, &g, &b) == 3) {
+						r = std::max(0.0f, r);
+						g = std::max(0.0f, g);
+						b = std::max(0.0f, b);
+						transparency = { r, g, b };
+					} else if (sscanf((const char*) transparencyString.data(), "%f", &r) == 1) {
+						// Greyscale version
+						// Set transparency values to the same greyscale value
+						r = std::max(0.0f, r);
+						transparency = { r, r, r };
 					}
 				}
-				if (!VectorCompare (d_transparency, vec3_origin)) //If transparency values are not the default, set the transparency flag
-					b_transparency = true;
+				if (transparency == vec3_array{ 0.0f, 0.0f, 0.0f }) {
+					// 0 transparency is no transparency
+					transparency = std::nullopt;
+				}
 			}
 			int opaquestyle = -1;
 			{
@@ -1553,7 +1540,7 @@ static void		LoadOpaqueEntities()
 
 					if (IntForKey (&ent, u8"zhlt_lightflags") & eModelLightmodeNonsolid) //If entity non-solid or has transparency or a specific style, which would prevent it from blocking
 						block = false;
-					if (b_transparency)
+					if (transparency)
 						block = false;
 					if (opaquestyle != -1)
 						block = false;
@@ -1562,7 +1549,7 @@ static void		LoadOpaqueEntities()
 			if (opaque) //If opaque add it to the opaque list with its properties
 			{
 				AddFaceToOpaqueList (entnum, modelnum, origin.data()
-					, d_transparency, b_transparency
+					, transparency
 					, opaquestyle
 					, block
 					);
@@ -1642,10 +1629,6 @@ static void     MakePatches()
     Winding*        w;
     dmodel_t*       mod;
     entity_t*       ent;
-    vec3_t          light_origin;
-    vec3_t          model_center;
-    bool            b_light_origin;
-    bool            b_model_center;
     eModelLightmodes lightmode;
 
     int				style; //LRC
@@ -1658,8 +1641,6 @@ static void     MakePatches()
 
     for (i = 0; i < g_nummodels; i++)
     {
-        b_light_origin = false;
-        b_model_center = false;
         lightmode = eModelLightmodeNull;
 
 
@@ -1688,6 +1669,7 @@ static void     MakePatches()
 
         }
 
+	    std::optional<vec3_array> lightOrigin;
 		std::u8string_view lightOriginString = value_for_key(ent, u8"light_origin");
         // Allow models to be lit in an alternate location (pt1)
         if (!lightOriginString.empty())
@@ -1696,39 +1678,30 @@ static void     MakePatches()
             if (maybeE) {
 				std::u8string_view targetOriginString{value_for_key(&maybeE.value().get(), u8"origin")};
                 if (!targetOriginString.empty()) {
-                    double v1, v2, v3;
-                    if (sscanf((const char*) targetOriginString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
+		            float v1, v2, v3;
+                    if (sscanf((const char*) targetOriginString.data(), "%f %f %f", &v1, &v2, &v3) == 3)
                     {
-                        light_origin[0] = v1;
-                        light_origin[1] = v2;
-                        light_origin[2] = v3;
-
-                        b_light_origin = true;
+						lightOrigin = {v1, v2, v3};
                     }
                 }
             }
         }
 
+	    std::optional<vec3_array> modelCenter;
 		std::u8string_view modelCenterString = value_for_key(ent, u8"model_center");
         // Allow models to be lit in an alternate location (pt2)
         if (!modelCenterString.empty())
         {
-            double          v1, v2, v3;
-
-            if (sscanf((const char*) modelCenterString.data(), "%lf %lf %lf", &v1, &v2, &v3) == 3)
+            float v1, v2, v3;
+            if (sscanf((const char*) modelCenterString.data(), "%f %f %f", &v1, &v2, &v3) == 3)
             {
-                model_center[0] = v1;
-                model_center[1] = v2;
-                model_center[2] = v3;
-
-                b_model_center = true;
+				modelCenter = {v1, v2, v3};
             }
         }
 
         // Allow models to be lit in an alternate location (pt3)
-        if (b_light_origin && b_model_center)
-        {
-            VectorSubtract(light_origin, model_center, origin);
+        if (lightOrigin && modelCenter) {
+            VectorSubtract(lightOrigin.value(), modelCenter.value(), origin);
         }
 
 		//LRC:
@@ -1967,13 +1940,12 @@ static void     GatherLight(int threadnum)
     int             j;
     patch_t*        patch;
 
-    unsigned        k,m; //LRC
-//LRC    vec3_t          sum;
+    unsigned        k,m;
 
     unsigned        iIndex;
     transfer_data_t* tData;
     transfer_index_t* tIndex;
-	vec3_t			adds[ALLSTYLES];
+	std::array<vec3_array, ALLSTYLES> adds;
 	unsigned int	fastfind_index = 0;
 
     while (1)
@@ -1983,7 +1955,7 @@ static void     GatherLight(int threadnum)
         {
             break;
         }
-		memset (adds, 0, ALLSTYLES * sizeof(vec3_t));
+		adds = {};
 
         patch = &g_patches[j];
 
@@ -2004,7 +1976,6 @@ static void     GatherLight(int threadnum)
 
             for (l = 0; l < size; l++, tData+=float_size[(std::size_t) g_transfer_compress_type], patchnum++)
             {
-                vec3_t          v;
                  //LRC:
 				patch_t*		emitpatch = &g_patches[patchnum];
 				unsigned		emitstyle;
@@ -2015,10 +1986,10 @@ static void     GatherLight(int threadnum)
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->directstyle[emitstyle] != 255; emitstyle++)
 				{
+               		vec3_array v;
 					VectorScale(emitpatch->directlight[emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
-					if (isPointFinite (v))
-					{
+					if (is_point_finite (v)) [[likely]] {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1)
 						{
@@ -2039,10 +2010,10 @@ static void     GatherLight(int threadnum)
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->totalstyle[emitstyle] != 255; emitstyle++)
 				{
+                	vec3_array v;
 					VectorScale(emitlight[patchnum][emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
-					if (isPointFinite(v))
-					{
+					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1)
 						{
@@ -2134,7 +2105,7 @@ static void     GatherRGBLight(int threadnum)
     rgb_transfer_data_t* tRGBData;
     transfer_index_t* tIndex;
 	float f[3];
-	vec3_t			adds[ALLSTYLES];
+	std::array<vec3_array, ALLSTYLES> adds;
 	int				style;
 	unsigned int	fastfind_index = 0;
 
@@ -2145,7 +2116,7 @@ static void     GatherRGBLight(int threadnum)
         {
             break;
         }
-		memset (adds, 0, ALLSTYLES * sizeof(vec3_t));
+		adds = {};
 
         patch = &g_patches[j];
 
@@ -2165,7 +2136,6 @@ static void     GatherRGBLight(int threadnum)
             unsigned        patchnum = tIndex->index;
             for (l = 0; l < size; l++, tRGBData+=vector_size[(std::size_t) g_rgbtransfer_compress_type], patchnum++)
             {
-                vec3_t          v;
                  //LRC:
 				patch_t*		emitpatch = &g_patches[patchnum];
 				unsigned		emitstyle;
@@ -2176,10 +2146,10 @@ static void     GatherRGBLight(int threadnum)
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->directstyle[emitstyle] != 255; emitstyle++)
 				{
+              		vec3_array v;
 					VectorMultiply(emitpatch->directlight[emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
-					if (isPointFinite (v))
-					{
+					if (is_point_finite (v)) [[likely]] {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1)
 						{
@@ -2200,10 +2170,10 @@ static void     GatherRGBLight(int threadnum)
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->totalstyle[emitstyle] != 255; emitstyle++)
 				{
+                	vec3_array v;
 					VectorMultiply(emitlight[patchnum][emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
-					if (isPointFinite(v))
-					{
+					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1)
 						{
@@ -2344,16 +2314,15 @@ static void     BounceLight()
 // =====================================================================================
 static void     CheckMaxPatches()
 {
-    switch (g_method)
-    {
-    case eMethodVismatrix:
-        hlassume(g_num_patches < MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES); // should use "<=" instead. --vluzacn
+    switch (g_method) {
+    case vis_method::vismatrix:
+        hlassume(g_num_patches <= MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES);
         break;
-    case eMethodSparseVismatrix:
-        hlassume(g_num_patches < MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES);
+    case vis_method::sparse_vismatrix:
+        hlassume(g_num_patches <= MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES);
         break;
-    case eMethodNoVismatrix:
-        hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
+    case vis_method::no_vismatrix:
+        hlassume(g_num_patches <= MAX_PATCHES, assume_MAX_PATCHES);
         break;
     }
 }
@@ -2365,13 +2334,13 @@ static void     MakeScalesStub()
 {
     switch (g_method)
     {
-    case eMethodVismatrix:
+    case vis_method::vismatrix:
         MakeScalesVismatrix();
         break;
-    case eMethodSparseVismatrix:
+    case vis_method::sparse_vismatrix:
         MakeScalesSparseVismatrix();
         break;
-    case eMethodNoVismatrix:
+    case vis_method::no_vismatrix:
         MakeScalesNoVismatrix();
         break;
     }
@@ -2461,12 +2430,12 @@ static void     RadWorld() {
 			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
 			int j, k;
 			patch_t *patch;
-			vec3_t v;
 			for (j = 0, patch = g_patches; j < g_num_patches; j++, patch++)
 			{
 				if (patch->flags == ePatchFlagOutside)
 					continue;
-				VectorCopy (patch->origin, v);
+
+				const vec3_array v{patch->origin};
 				for (k = 0; k < pos_count; ++k)
 					fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
 			}
@@ -2737,9 +2706,9 @@ static void     Settings()
 
 	Log("fast rad             [ %17s ] [ %17s ]\n", g_fastmode? "on": "off", DEFAULT_FASTMODE? "on": "off");
 	Log("vismatrix algorithm  [ %17s ] [ %17s ]\n",
-		g_method == eMethodVismatrix? "Original": g_method == eMethodSparseVismatrix? "Sparse": g_method == eMethodNoVismatrix? "NoMatrix": "Unknown",
-		DEFAULT_METHOD == eMethodVismatrix? "Original": DEFAULT_METHOD == eMethodSparseVismatrix? "Sparse": DEFAULT_METHOD == eMethodNoVismatrix? "NoMatrix": "Unknown"
-		);
+		g_method == vis_method::vismatrix ? "Original" : g_method == vis_method::sparse_vismatrix ? "Sparse" : g_method == vis_method::no_vismatrix ? "NoMatrix" : "Unknown",
+		cli_option_defaults::visMethod == vis_method::vismatrix ? "Original" : cli_option_defaults::visMethod == vis_method::sparse_vismatrix ? "Sparse" : cli_option_defaults::visMethod == vis_method::no_vismatrix ? "NoMatrix" : "Unknown"
+	);
 	Log("pre-25th anniversary [ %17s ] [ %17s ]\n", g_pre25update ? "on" : "off", DEFAULT_PRE25UPDATE ? "on" : "off");
     Log("oversampling (-extra)[ %17s ] [ %17s ]\n", g_extra ? "on" : "off", DEFAULT_EXTRA ? "on" : "off");
     Log("bounces              [ %17d ] [ %17d ]\n", g_numbounce, DEFAULT_BOUNCE);
@@ -3437,15 +3406,15 @@ int             main(const int argc, char** argv)
 				const char *value = argv[++i];
 				if (!strcasecmp (value, "normal"))
 				{
-					g_method = eMethodVismatrix;
+					g_method = vis_method::vismatrix;
 				}
 				else if (!strcasecmp (value, "sparse"))
 				{
-					g_method = eMethodSparseVismatrix;
+					g_method = vis_method::sparse_vismatrix;
 				}
 				else if (!strcasecmp (value, "off"))
 				{
-					g_method = eMethodNoVismatrix;
+					g_method = vis_method::no_vismatrix;
 				}
 				else
 				{

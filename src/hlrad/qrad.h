@@ -32,7 +32,6 @@
 
 #define DEFAULT_PRE25UPDATE         false
 #define DEFAULT_FASTMODE			false
-#define DEFAULT_METHOD eMethodSparseVismatrix
 #define DEFAULT_LERP_ENABLED        true
 #define DEFAULT_STUDIOSHADOW        true //seedee
 #define DEFAULT_FADE                1.0
@@ -464,6 +463,12 @@ inline int TestLine(const vec3_array& start, const vec3_array& stop) {
 	return TestLine(start, stop, skyhitout);
 }
 
+
+enum class vis_method {
+    vismatrix,
+    sparse_vismatrix,
+    no_vismatrix
+};
 
 typedef struct
 {

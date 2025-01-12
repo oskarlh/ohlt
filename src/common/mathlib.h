@@ -118,13 +118,8 @@ inline bool     VectorCompare(const vec3_array& v1, const vec3_t v2)
 //
 
 
-inline bool    isPointFinite(const vec_t* p)
-{
-    if (std::isfinite(p[0]) && std::isfinite(p[1]) && std::isfinite(p[2]))
-    {
-        return true;
-    }
-    return false;
+constexpr bool is_point_finite(const vec3_array& p) noexcept {
+    return std::isfinite(p[0]) && std::isfinite(p[1]) && std::isfinite(p[2]);
 }
 
 
