@@ -240,9 +240,6 @@ typedef enum
 	BrinkWall,
 	BrinkAny,
 } bbrinklevel_e;
-extern void *CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode);
-extern bool FixBrinks (const void *brinkinfo, bbrinklevel_e level, int &headnode_out, dclipnode_t *clipnodes_out, int maxsize, int size, int &size_out);
-extern void DeleteBrinkinfo (void *brinkinfo);
 
 
 //=============================================================================

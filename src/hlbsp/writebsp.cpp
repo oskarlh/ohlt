@@ -1,3 +1,4 @@
+#include "brink.h"
 #include "bsp5.h"
 #include "bsp_file_sizes.h"
 #include "hull_size.h"
@@ -729,9 +730,10 @@ void FinishBSPFile(const bsp_data& bspData)
 		int numclipnodes;
 		clipnodes = (dclipnode_t *)malloc (MAX_MAP_CLIPNODES * sizeof (dclipnode_t));
 		hlassume (clipnodes != nullptr, assume_NoMemory);
-		void *(*brinkinfo)[NUM_HULLS]; //[MAX_MAP_MODELS]
+		std::array<bbrinkinfo_t*, NUM_HULLS>* brinkinfo; //[MAX_MAP_MODELS]
 		int (*headnode)[NUM_HULLS]; //[MAX_MAP_MODELS]
-		brinkinfo = (void *(*)[NUM_HULLS])malloc (MAX_MAP_MODELS * sizeof (void *[NUM_HULLS]));
+		brinkinfo = (std::array<bbrinkinfo_t*, NUM_HULLS>*) malloc (MAX_MAP_MODELS * sizeof (std::array<bbrinkinfo_t*, NUM_HULLS>));
+
 		hlassume (brinkinfo != nullptr, assume_NoMemory);
 		headnode = (int (*)[NUM_HULLS])malloc (MAX_MAP_MODELS * sizeof (int [NUM_HULLS]));
 		hlassume (headnode != nullptr, assume_NoMemory);

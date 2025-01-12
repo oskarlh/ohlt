@@ -1,3 +1,4 @@
+#include "brink.h"
 #include "bsp5.h"
 
 #include <cstring>
@@ -27,52 +28,6 @@
 //
 
 
-typedef struct bpartition_s
-{
-	bbrinklevel_e type;
-	bpartition_s *next;
-	int planenum;
-	int content;
-	bool planeside;
-}
-bpartition_t;
-
-typedef struct bclipnode_s
-{
-
-	const dplane_t *plane;
-	bclipnode_s *children[2]; // children[0] is the front side of the plane (SIDE_FRONT = 0)
-	bpartition_t *partitions;
-	struct btreeleaf_s *treeleaf;
-
-	int planenum;
-	int content;
-	bool isleaf;
-}
-bclipnode_t;
-
-typedef struct bbrinknode_s
-{ // we will only focus on the bsp shape which encircles a brink, so we extract the clipnodes that meets with the brink and store them here
-	bool isleaf;
-
-	int planenum;
-	const dplane_t *plane;
-	int children[2];
-
-	int content;
-	bclipnode_t *clipnode;
-}
-bbrinknode_t;
-
-struct bbrink_t {
-	std::vector<bbrinknode_t> nodes{};
-	struct btreeedge_t *edge{}; // Only for use in deciding brink type
-	vec3_array start{};
-	vec3_array stop{};
-	vec3_array direction{};
-
-	int numnodes{0}; // Including both nodes and leafs
-};
 
 static bbrink_t CopyBrink(const bbrink_t& other) {
 	bbrink_t b{};
@@ -81,6 +36,7 @@ static bbrink_t CopyBrink(const bbrink_t& other) {
 	b.stop = other.stop;
 	b.numnodes = other.numnodes;
 	b.nodes = other.nodes;
+
 	// For some reason we're not copying the whole object including the edge pointer???
 	return b;
 }
@@ -203,47 +159,14 @@ void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 
 // compute the structure of the whole bsp tree
 
-struct btreepoint_s; // 0d object
-struct btreeedge_t; // 1d object
-struct btreeface_s; // 2d object
-struct btreeleaf_s; // 3d object
-
-struct btreepoint_r {
-	btreepoint_s *p;
-	bool side;
-};
-
-struct btreeedge_r {
-	btreeedge_t *e;
-	bool side;
-};
-
-struct btreeface_r {
-	btreeface_s *f;
-	bool side;
-};
-
-struct btreeleaf_r
-{
-	btreeleaf_s *l;
-	bool side;
-};
-
-typedef std::list< btreepoint_r > btreepoint_l;
-typedef std::list< btreeedge_r > btreeedge_l;
-typedef std::list< btreeface_r > btreeface_l;
-typedef std::list< btreeleaf_r > btreeleaf_l;
-
-typedef struct btreepoint_s
-{
+struct btreepoint_t {
 	btreeedge_l *edges; // this is a reversed reference
 	vec3_array v;
 	vec_t tmp_dist;
 	int tmp_side;
 	bool infinite;
 	bool tmp_tested;
-}
-btreepoint_t;
+};
 
 struct btreeedge_t {
 	btreeface_l *faces; // this is a reversed reference
@@ -255,8 +178,7 @@ struct btreeedge_t {
 	bool tmp_onleaf[2];
 };
 
-typedef struct btreeface_s
-{
+struct btreeface_t {
 	const dplane_t *plane; // not defined for infinite face
 	btreeedge_l *edges; // empty faces are allowed (in order to preserve topological correctness)
 	btreeleaf_r leafs[2]; // pointing from leafs[0] to leafs[1] // this is a reversed reference
@@ -266,18 +188,8 @@ typedef struct btreeface_s
 	bool infinite; // when the face is infinite, all its edges must also be infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
-}
-btreeface_t;
+};
 
-typedef struct btreeleaf_s
-{
-	btreeface_l *faces;
-
-	bclipnode_t *clipnode; // not defined for infinite leaf
-
-	bool infinite; // note: the infinite leaf is not convex
-}
-btreeleaf_t;
 
 btreepoint_t *AllocTreepoint (int &numobjects, bool infinite)
 {
@@ -1096,17 +1008,6 @@ void BuildTreeCells_r (int &numobjects, bclipnode_t *c)
 
 
 
-typedef struct bbrinkinfo_s
-{
-	int numclipnodes;
-	bclipnode_t *clipnodes;
-	int numobjects;
-	btreeleaf_t *leaf_outside;
-	int numbrinks;
-	bbrink_t **brinks;
-}
-bbrinkinfo_t;
-
 #define MAXCLIPNODES (MAX_MAP_CLIPNODES*8)
 
 bclipnode_t *ExpandClipnodes_r (bclipnode_t *bclipnodes, int &numbclipnodes, const dclipnode_t *clipnodes, int headnode)
@@ -1444,11 +1345,11 @@ bool AddPartition (bclipnode_t *clipnode, int planenum, bool planeside, int cont
 				btreepoint_t *tp = GetPointFromEdge (ei->e, side);
 				const dplane_t *plane = &g_dplanes[planenum];
 				vec_t dist = DotProduct (tp->v, plane->normal) - plane->dist;
-				if (planeside? dist < -ON_EPSILON: dist > ON_EPSILON)
+				if (planeside ? dist < -ON_EPSILON: dist > ON_EPSILON)
 				{
 					return false;
 				}
-				if (planeside? dist > ON_EPSILON: dist < -ON_EPSILON)
+				if (planeside ? dist > ON_EPSILON: dist < -ON_EPSILON)
 				{
 					onback = true;
 				}
@@ -1692,7 +1593,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 	Developer (DEVELOPER_LEVEL_MESSAGE, "brinks: good = %d skipped = %d fixed = %d invalid = %d\n", countgood, countskipped, countfixed, countinvalid);
 }
 
-void DeleteClipnodes (bbrinkinfo_t *info)
+void DeleteClipnodes(bbrinkinfo_t *info)
 {
 	for (int i = 0; i < info->numclipnodes; i++)
 	{
@@ -1778,7 +1679,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 	Developer (DEVELOPER_LEVEL_MESSAGE, "partitions: floorblocking = %d floor = %d wallblocking = %d wall = %d any = %d\n", countfloorblocking, countfloor, countwallblocking, countwall, countany);
 }
 
-void *CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)
+bbrinkinfo_t* CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)
 {
 	bbrinkinfo_t *info;
 	try
@@ -1914,7 +1815,7 @@ bool FixBrinks_r (const bclipnode_t *clipnode, bbrinklevel_e level, int &headnod
 	}
 }
 
-bool FixBrinks (const void *brinkinfo, bbrinklevel_e level, int &headnode_out, dclipnode_t *clipnodes_out, int maxsize, int size, int &size_out)
+bool FixBrinks (const bbrinkinfo_t *brinkinfo, bbrinklevel_e level, int &headnode_out, dclipnode_t *clipnodes_out, int maxsize, int size, int &size_out)
 {
 	const bbrinkinfo_t *info = (const bbrinkinfo_t *)brinkinfo;
 	dclipnode_t *begin = clipnodes_out;
@@ -1933,10 +1834,8 @@ bool FixBrinks (const void *brinkinfo, bbrinklevel_e level, int &headnode_out, d
 	return true;
 }
 
-void DeleteBrinkinfo (void *brinkinfo)
-{
-	bbrinkinfo_t *info = (bbrinkinfo_t *)brinkinfo;
-	DeleteClipnodes (info);
-	delete info;
+void DeleteBrinkinfo(bbrinkinfo_t* brinkinfo) {
+	DeleteClipnodes(brinkinfo);
+	delete brinkinfo;
 }
 

@@ -15,13 +15,7 @@
 #endif
 #include <ranges>
 
-/*
- * ================
- * I_FloatTime
- * ================
- */
-
-double          I_FloatTime()
+double I_FloatTime()
 {
     struct timeval  tp;
     struct timezone tzp;

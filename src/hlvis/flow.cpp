@@ -180,7 +180,6 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
 // =====================================================================================
 //  AddPlane
 // =====================================================================================
-#ifdef RVIS_LEVEL_2
 inline static void AddPlane(pstack_t* const stack, const plane_t* const split)
 {
     int     j;
@@ -199,7 +198,6 @@ inline static void AddPlane(pstack_t* const stack, const plane_t* const split)
     stack->clipPlane[stack->clipPlaneCount] = *split;
     stack->clipPlaneCount++;
 }
-#endif
 
 // =====================================================================================
 //  ClipToSeperators
@@ -376,10 +374,8 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
     stack.head = prevstack->head;
     stack.leaf = leaf;
     stack.portal = nullptr;
-#ifdef RVIS_LEVEL_2
     stack.clipPlaneCount = -1;
     stack.clipPlane = nullptr;
-#endif
 
     // check all portals for flowing into other leafs       
     unsigned i;
@@ -491,7 +487,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
             continue;
         }
 
-#ifdef RVIS_LEVEL_2
         if (stack.clipPlaneCount == -1)
         {
             stack.clipPlaneCount = 0;
@@ -512,20 +507,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
             if (stack.pass == nullptr)
             continue;
         }
-#else
-
-        stack.pass = ClipToSeperators(stack.source, prevstack->pass, stack.pass, false, &stack);
-        if (!stack.pass)
-        {
-            continue;
-        }
-
-        stack.pass = ClipToSeperators(prevstack->pass, stack.source, stack.pass, true, &stack);
-        if (!stack.pass)
-        {
-            continue;
-        }
-#endif
 
         if (g_fullvis)
         {
@@ -545,15 +526,6 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         // flow through it for real
         RecursiveLeafFlow(p->leaf, thread, &stack);
     }
-
-#ifdef RVIS_LEVEL_2
-#if 0
-    if (stack.clipPlane != nullptr)
-    {
-        free(stack.clipPlane);
-    }
-#endif
-#endif
 }
 
 // =====================================================================================

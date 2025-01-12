@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 #include "qrad.h"
 #include "meshdesc.h"
-#include "TimeCounter.h"
-
+#include "time_counter.h"
+#include "context.h"
 //#define AABB_OFFSET
 constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
 constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
@@ -461,9 +461,8 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		return false;
 	}
 
-	TimeCounter profile;
+	time_counter profile;
 
-	profile.start();
 	const bool simplifyModel{ pModel->trace_mode == trace_method::shadow_slow }; // trying to reduce polycount and the speedup compilation
 
 	// compute default pose for building mesh from
@@ -741,11 +740,10 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		Developer( DEVELOPER_LEVEL_ERROR, "StudioConstructMesh: failed to build mesh from %s\n", pModel->name );
 		return false;
 	}
-	profile.stop();
-#if 1
+	
 	// g-cont. i'm leave this for debug
 	Verbose( "%s: build time %g secs, size %zuB\n", m_debugName, profile.getTotal(), mesh_size);
-#endif
+
 	// done
 	return true;
 }

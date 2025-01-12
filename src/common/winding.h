@@ -28,9 +28,6 @@ enum class side {
 #define	SIDE_CROSS		-2
 
 #ifdef HLBSP //seedee
-#ifndef DOUBLEVEC_T
-#error you must add -dDOUBLEVEC_T to the project!
-#endif
 #define dplane_t plane_t
 #define g_dplanes g_mapplanes
 struct dplane_t {

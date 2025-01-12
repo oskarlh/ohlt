@@ -131,7 +131,7 @@ void            CheckForErrorLog()
 
 ///////
 
-void            LogError(const char* const message)
+void LogError(const char* const message)
 {
     if (g_log && CompileLog)
     {
@@ -156,29 +156,21 @@ void            LogError(const char* const message)
     }
 }
 
-void       OpenLog(const int clientid)
-{
-    if (g_log)
-    {
-        char            logfilename[_MAX_PATH];
-
-        {
-            safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);
-        }
+void OpenLog(const int clientid) {
+    if (g_log) {
+        char logfilename[_MAX_PATH];
+        safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);
         CompileLog = fopen(logfilename, "a");
 
-        if (!CompileLog)
-        {
+        if (!CompileLog) {
             fprintf(stderr, "ERROR: Could not open logfile %s", logfilename);
             fflush(stderr);
         }
     }
 }
 
-void     CloseLog()
-{
-    if (g_log && CompileLog)
-    {
+void CloseLog() {
+    if (g_log && CompileLog) {
         LogEnd();
         fflush(CompileLog);
         fclose(CompileLog);
@@ -190,48 +182,15 @@ void     CloseLog()
 //  Every function up to this point should check g_log, the functions below should not
 //
 
-#ifdef SYSTEM_WIN32
-// AJM: fprintf/flush wasnt printing newline chars correctly (prefixed with \r) under win32
-//      due to the fact that those streams are in byte mode, so this function prefixes 
-//      all \n with \r automatically.
-//      NOTE: system load may be more with this method, but there isnt that much logging going
-//      on compared to the time taken to compile the map, so its negligable.
-void            Safe_WriteLog(const char* const message)
-{
-    const char* c;
-    
-    if (!CompileLog)
-        return;
 
-    c = &message[0];
-
-    while (1)
-    {
-        if (!*c)
-            return; // end of string
-
-        if (*c == '\n')
-            fputc('\r', CompileLog);
-
-        fputc(*c, CompileLog);
-
-        c++;
-    }
-}
-#endif
 
 void            WriteLog(const char* const message)
 {
-
-#ifndef SYSTEM_WIN32
     if (CompileLog)
     {
         fprintf(CompileLog, "%s", message); //fprintf(CompileLog, message); //--vluzacn
         fflush(CompileLog);
     }
-#else
-    Safe_WriteLog(message);
-#endif
 
     fprintf(stdout, "%s", message); //fprintf(stdout, message); //--vluzacn
     fflush(stdout);

@@ -6,9 +6,6 @@
 #define PROJECT_NAME_AND_VERSION PROJECT_NAME " v" PROJECT_VERSION
 
 
-#if !defined (HLCSG) && !defined (HLBSP) && !defined (HLVIS) && !defined (HLRAD) && !defined (RIPENT) //seedee
-#error "You must define one of these in the settings of each project: HLCSG, HLBSP, HLVIS, HLRAD, RIPENT. The most likely cause is that you didn't use CMake correctly."
-#endif
 #if !defined (VERSION_LINUX) && !defined (VERSION_MACOS) && !defined (VERSION_OTHER) && !defined (VERSION_WINDOWS)
 #error "You must define one of these in the settings of each project: VERSION_LINUX, VERSION_MACOS, VERSION_OTHER, VERSION_WINDOWS. The most likely cause is that you didn't use CMake correctly."
 #endif

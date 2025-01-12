@@ -23,8 +23,6 @@
 
 #define	MAX_PORTALS	32768
 
-#define RVIS_LEVEL_2
-
 #define	MAX_POINTS_ON_FIXED_WINDING	32
 
 struct winding_t
@@ -96,10 +94,8 @@ typedef struct pstack_s
 
     const plane_t*  portalplane;
 
-#ifdef RVIS_LEVEL_2
     int             clipPlaneCount;
     plane_t*        clipPlane;
-#endif
 } pstack_t;
 
 typedef struct

@@ -58,6 +58,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/bsp_file_sizes.h
     ${COMMON_DIR}/bspfile.h
     ${COMMON_DIR}/call_finally.h
+    ${COMMON_DIR}/context.h
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h
     ${COMMON_DIR}/cli_option_defaults.h
@@ -70,6 +71,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/messages.h
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
+    ${COMMON_DIR}/time_counter.h
     ${COMMON_DIR}/utf8.h
     ${COMMON_DIR}/util.h
     ${COMMON_DIR}/vector_for_overwriting.h
@@ -103,6 +105,7 @@ set(BSP_SOURCES
 set(BSP_HEADERS
     ${COMMON_HEADERS}
     ${COMMON_BSP_CSG_HEADERS}
+    ${BSP_DIR}/brink.h
     ${BSP_DIR}/bsp5.h
 )
 
@@ -276,23 +279,19 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # Targets
 #================
 
-add_executable(hlbsp ${BSP_SOURCES} ${BSP_HEADERS})
-add_executable(hlcsg ${CSG_SOURCES} ${CSG_HEADERS})
-add_executable(hlrad ${RAD_SOURCES} ${RAD_HEADERS})
-add_executable(hlvis ${VIS_SOURCES} ${VIS_HEADERS})
-add_executable(ripent ${RIPENT_SOURCES} ${RIPENT_HEADERS})
+add_executable(hlbsp ${BSP_SOURCES} ${BSP_HEADERS} windows.manifest)
+add_executable(hlcsg ${CSG_SOURCES} ${CSG_HEADERS} windows.manifest)
+add_executable(hlrad ${RAD_SOURCES} ${RAD_HEADERS} windows.manifest)
+add_executable(hlvis ${VIS_SOURCES} ${VIS_HEADERS} windows.manifest)
+add_executable(ripent ${RIPENT_SOURCES} ${RIPENT_HEADERS} windows.manifest)
 
-set_target_properties(hlbsp hlcsg hlrad hlvis
-    PROPERTIES
-        CXX_STANDARD 26
-)
-set_target_properties(ripent
+set_target_properties(hlbsp hlcsg hlrad hlvis ripent
     PROPERTIES
         CXX_STANDARD 26
 )
 
 target_compile_definitions(hlbsp PRIVATE HLBSP DOUBLEVEC_T)
-target_compile_definitions(hlcsg PRIVATE HLCSG DOUBLEVEC_T)
-target_compile_definitions(hlrad PRIVATE HLRAD)
-target_compile_definitions(hlvis PRIVATE HLVIS)
+target_compile_definitions(hlcsg PRIVATE DOUBLEVEC_T)
+target_compile_definitions(hlrad PRIVATE)
+target_compile_definitions(hlvis PRIVATE)
 target_compile_definitions(ripent PRIVATE RIPENT)
