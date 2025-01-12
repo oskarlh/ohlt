@@ -1472,7 +1472,7 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	w1->shape = localtriangulation_t::Wedge::eSquareLeft;
 	VectorSubtract (vec3_origin, dir1, w1->wedgenormal);
 	w2->shape = localtriangulation_t::Wedge::eSquareRight;
-	VectorCopy (dir2, w2->wedgenormal);
+	w2->wedgenormal = dir2;
 	return true;
 }
 

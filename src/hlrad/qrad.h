@@ -463,6 +463,7 @@ inline int TestLine(const vec3_array& start, const vec3_array& stop) {
 	return TestLine(start, stop, skyhitout);
 }
 
+extern const std::array<vec3_array, 15> pos;
 
 enum class vis_method {
     vismatrix,
@@ -470,11 +471,10 @@ enum class vis_method {
     no_vismatrix
 };
 
-typedef struct
-{
-	vec3_t mins, maxs;
+struct opaquemodel_t {
+	vec3_array mins, maxs;
 	int headnode;
-} opaquemodel_t;
+};
 extern opaquemodel_t *opaquemodels;
 extern void		CreateOpaqueNodes();
 extern int		TestLineOpaque(int modelnum, const vec3_array& modelorigin, const vec3_array& start, const vec3_array& stop);
@@ -506,7 +506,7 @@ extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
 extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
 extern dleaf_t* HuntForWorld(vec3_array& point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
-extern void		ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array &out);
+extern void		ApplyMatrix (const matrix_t &m, const vec3_array& in, vec3_array& out);
 extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist);
 extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexcept;
 extern matrix_t	MatrixForScale (const vec3_array& center, vec_t scale) noexcept;
@@ -515,7 +515,7 @@ extern void		TranslateWorldToTex (int facenum, matrix_t &m);
 extern bool		InvertMatrix (const matrix_t &m, matrix_t &m_inverse);
 extern void		FindFacePositions (int facenum);
 extern void		FreePositionMaps ();
-extern bool		FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_t &pos, vec_t *best_s, vec_t *best_t, vec_t *best_dist
+extern bool		FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_array& pos, vec_t *best_s, vec_t *best_t, vec_t *best_dist
 									, bool *nudged
 									);
 

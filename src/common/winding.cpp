@@ -35,7 +35,7 @@ void Winding::getPlane(dplane_t& plane) const {
     vec3_array plane_normal;
     CrossProduct(v2, v1, plane_normal);
     VectorNormalize(plane_normal);
-    VectorCopy(plane_normal, plane.normal);               // change from vec_t
+    VectorCopy(plane_normal, plane.normal);
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
 

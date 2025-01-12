@@ -662,8 +662,8 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 				if (!te0->infinite)
 				{
 					te0->brink = new bbrink_t{CopyBrink(*te->brink)};
-					VectorCopy (tpmid->v, te0->brink->start);
-					VectorCopy (tp0->v, te0->brink->stop);
+					te0->brink->start = tpmid->v;
+					te0->brink->stop = tp0->v;
 				}
 				btreeedge_t *te1 = AllocTreeedge (numobjects, te->infinite);
 				SetEdgePoints (te1, tpmid, tp1);
@@ -672,8 +672,8 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int
 				if (!te1->infinite)
 				{
 					te1->brink = new bbrink_t(CopyBrink (*te->brink));
-					VectorCopy (tp1->v, te1->brink->start);
-					VectorCopy (tpmid->v, te1->brink->stop);
+					te1->brink->start = tp1->v;
+					te1->brink->stop = tpmid->v;
 				}
 				btreeface_l::iterator fj;
 				while ((fj = te->faces->begin ()) != te->faces->end ())

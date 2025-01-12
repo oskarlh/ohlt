@@ -590,7 +590,6 @@ static bool     PlacePatchInside(patch_t* patch)
 	vec_t bestdist = -1.0;
 	vec3_array point;
 	vec_t dist;
-	vec3_t v;
 
 	vec3_array center = patch->winding->getCenter ();
 	found = false;
@@ -601,6 +600,7 @@ static bool     PlacePatchInside(patch_t* patch)
 		HuntForWorld (point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET))
 	{
 		pointsfound++;
+		vec3_array v;
 		VectorSubtract (point, center, v);
 		dist = VectorLength (v);
 		if (!found || dist < bestdist)
@@ -626,6 +626,7 @@ static bool     PlacePatchInside(patch_t* patch)
 				HuntForWorld (point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET))
 			{
 				pointsfound++;
+				vec3_array v;
 				VectorSubtract (point, center, v);
 				dist = VectorLength (v);
 				if (!found || dist < bestdist)
@@ -664,7 +665,7 @@ static void		UpdateEmitterInfo (patch_t *patch)
 	vec_t radius = ON_EPSILON;
 	for (int x = 0; x < winding->size(); x++)
 	{
-		vec3_t delta;
+		vec3_array delta;
 		vec_t dist;
 		VectorSubtract (winding->m_Points[x], origin, delta);
 		dist = VectorLength (delta);
@@ -1132,13 +1133,12 @@ static vec_t    getScale(const patch_t* const patch)
     if (g_texscale)
     {
 		const dplane_t*	faceplane = getPlaneFromFace (f);
-		vec3_t			vecs_perpendicular[2];
-		vec_t			scale[2];
-		vec_t			dot;
+		std::array<vec3_array, 2> vecs_perpendicular;
+		std::array<vec_t, 2> scale;
+		vec_t dot;
 		
 		// snap texture "vecs" to faceplane without affecting texture alignment
-		for (int x = 0; x < 2; x++)
-		{
+		for (std::size_t x = 0; x < 2; ++x) {
 			dot = DotProduct (faceplane->normal, tx->vecs[x]);
 			VectorMA (tx->vecs[x], -dot, faceplane->normal, vecs_perpendicular[x]);
 		}
@@ -2098,8 +2098,7 @@ static void     GatherRGBLight(int threadnum)
     int             j;
     patch_t*        patch;
 
-    unsigned        k,m; //LRC
-//LRC    vec3_t          sum;
+    unsigned        k,m;
 
     unsigned        iIndex;
     rgb_transfer_data_t* tRGBData;
@@ -2405,6 +2404,25 @@ static void ExtendLightmapBuffer ()
 	}
 }
 
+
+const std::array<vec3_array, 15> pos{
+	vec3_array{0,	0,	0},
+	vec3_array{1,	0,	0},
+	vec3_array{0,	1,	0},
+	vec3_array{-1,	0,	0},
+	vec3_array{0,	-1,	0},
+	vec3_array{1,	0,	0},
+	vec3_array{0,	0,	1},
+	vec3_array{-1,	0,	0},
+	vec3_array{0,	0,	-1},
+	vec3_array{0,	-1,	0},
+	vec3_array{0,	0,	1},
+	vec3_array{0,	1,	0},
+	vec3_array{0,	0,	-1},
+	vec3_array{1,	0,	0},
+	vec3_array{0,	0,	0}
+};
+
 // =====================================================================================
 //  RadWorld
 // =====================================================================================
@@ -2414,6 +2432,7 @@ static void     RadWorld() {
     MakeTnodes(&g_dmodels[0]);
 	CreateOpaqueNodes();
 	LoadOpaqueEntities();
+
 
     // turn each face into a single patch
     MakePatches();
@@ -2426,18 +2445,16 @@ static void     RadWorld() {
 		f = fopen(name, "w");
 		if (f)
 		{
-			const int pos_count = 15;
-			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
-			int j, k;
-			patch_t *patch;
-			for (j = 0, patch = g_patches; j < g_num_patches; j++, patch++)
+			const patch_t *patch = g_patches;
+			for (std::size_t j = 0; j < g_num_patches; j++, patch++)
 			{
 				if (patch->flags == ePatchFlagOutside)
 					continue;
 
 				const vec3_array v{patch->origin};
-				for (k = 0; k < pos_count; ++k)
-					fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
+				for (const vec3_array& p : pos) {
+					fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
+				}
 			}
 			fclose(f);
 			Log ("OK.\n");
@@ -2457,27 +2474,8 @@ static void     RadWorld() {
 		f = fopen(name, "w");
 		if (f)
 		{
-			constexpr int pos_count = 15;
-			const std::array<vec3_array, pos_count> pos{
-				vec3_array{0,0,0},
-				vec3_array{1,0,0},
-				vec3_array{0,1,0},
-				vec3_array{-1,0,0},
-				vec3_array{0,-1,0},
-				vec3_array{1,0,0},
-				vec3_array{0,0,1},
-				vec3_array{-1,0,0},
-				vec3_array{0,0,-1},
-				vec3_array{0,-1,0},
-				vec3_array{0,0,1},
-				vec3_array{0,1,0},
-				vec3_array{0,0,-1},
-				vec3_array{1,0,0},
-				vec3_array{0,0,0}
-			};
-			int j, k;
-			edgeshare_t *es;
-			for (j = 0, es = g_edgeshare; j < MAX_MAP_EDGES; j++, es++)
+			const edgeshare_t *es{g_edgeshare};
+			for (std::size_t j = 0; j < MAX_MAP_EDGES; j++, es++)
 			{
 				if (es->smooth)
 				{
@@ -2487,8 +2485,9 @@ static void     RadWorld() {
 					VectorScale (v, 0.5, v);
 					VectorAdd (v, es->interface_normal, v);
 					VectorAdd (v, g_face_offset[es->faces[0] - g_dfaces.data()], v);
-					for (k = 0; k < pos_count; ++k)
-						fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
+					for (const vec3_array& p : pos) {
+						fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
+					}
 				}
 			}
 			fclose(f);

@@ -220,9 +220,9 @@ static bool TranslateTexToTex (int facenum, int edgenum, int facenum2, matrix_t 
 	for (i = 0; i < 2; i++)
 	{
 		vert[i] = &g_dvertexes[e->v[i]];
-		ApplyMatrix (worldtotex, vert[i]->point.data(), face_vert[i]);
+		ApplyMatrix (worldtotex, vert[i]->point, face_vert[i]);
 		face_vert[i][2] = 0; // this value is naturally close to 0 assuming that the edge is on the face plane, but let's make this more explicit.
-		ApplyMatrix (worldtotex2, vert[i]->point.data(), face2_vert[i]);
+		ApplyMatrix (worldtotex2, vert[i]->point, face2_vert[i]);
 		face2_vert[i][2] = 0;
 	}
 
@@ -895,7 +895,7 @@ void ChopFrag (samplefrag_t *frag)
 	frag->mywinding = new Winding (facewinding->size());
 	for (int x = 0; x < facewinding->size(); x++)
 	{
-		ApplyMatrix (worldtotex, facewinding->m_Points[x].data(), frag->mywinding->m_Points[x]);
+		ApplyMatrix (worldtotex, facewinding->m_Points[x], frag->mywinding->m_Points[x]);
 		frag->mywinding->m_Points[x][2] = 0.0;
 	}
 	frag->mywinding->RemoveColinearPoints ();
@@ -914,7 +914,7 @@ void ChopFrag (samplefrag_t *frag)
 	frag->winding = new Winding (frag->mywinding->size());
 	for (int x = 0; x < frag->mywinding->size(); x++)
 	{
-		ApplyMatrix (frag->mycoordtocoord, frag->mywinding->m_Points[x].data(), frag->winding->m_Points[x]);
+		ApplyMatrix (frag->mycoordtocoord, frag->mywinding->m_Points[x], frag->winding->m_Points[x]);
 	}
 	frag->winding->RemoveColinearPoints ();
 	VectorCopy (frag->mywindingplane.normal, frag->windingplane.normal);
@@ -972,11 +972,11 @@ void ChopFrag (samplefrag_t *frag)
 		de = &g_dedges[e->edgenum];
 		dv1 = &g_dvertexes[de->v[e->edgeside]];
 		dv2 = &g_dvertexes[de->v[1-e->edgeside]];
-		ApplyMatrix (worldtotex, dv1->point.data(), tmp);
-		ApplyMatrix (frag->mycoordtocoord, tmp.data(), e->point1);
+		ApplyMatrix (worldtotex, dv1->point, tmp);
+		ApplyMatrix (frag->mycoordtocoord, tmp, e->point1);
 		e->point1[2] = 0.0;
-		ApplyMatrix (worldtotex, dv2->point.data(), tmp);
-		ApplyMatrix (frag->mycoordtocoord, tmp.data(), e->point2);
+		ApplyMatrix (worldtotex, dv2->point, tmp);
+		ApplyMatrix (frag->mycoordtocoord, tmp, e->point2);
 		e->point2[2] = 0.0;
 		VectorSubtract (e->point2, e->point1, e->direction);
 		edgelen = VectorNormalize (e->direction);
@@ -1079,7 +1079,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 
 	// fill in origin
 	VectorCopy (parent->origin, frag->origin);
-	ApplyMatrix (frag->coordtomycoord, frag->origin.data(), frag->myorigin);
+	ApplyMatrix (frag->coordtomycoord, frag->origin, frag->myorigin);
 
 	// fill in boundaries
 	frag->rect = parent->rect;
@@ -1362,7 +1362,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 	
 	bool found;
 	samplefrag_t *bestfrag;
-	vec3_t bestpos;
+	vec3_array bestpos;
 	vec_t bests, bestt;
 	vec_t best_dist;
 	bool best_nudged;
@@ -1370,7 +1370,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 	found = false;
 	for (f = fraginfo->head; f; f = f->next)
 	{
-		vec3_t pos;
+		vec3_array pos;
 		vec_t s, t;
 		vec_t dist;
 
@@ -1409,7 +1409,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 		{
 			found = true;
 			bestfrag = f;
-			VectorCopy (pos, bestpos);
+			bestpos = pos;
 			bests = s;
 			bestt = t;
 			best_dist = dist;
@@ -1420,7 +1420,7 @@ static light_flag_t SetSampleFromST(vec_t* const point,
 	if (found)
 	{
 		matrix_t worldtotex, textoworld;
-		vec3_t tex;
+		vec3_array tex;
 
 		TranslateWorldToTex (bestfrag->facenum, worldtotex);
 		if (!InvertMatrix (worldtotex, textoworld))
@@ -4752,9 +4752,7 @@ void            FinalLightFace(const int facenum)
 		f = fopen(name, "w");
 		if (f)
 		{
-			const int pos_count = 15;
-			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
-			int i, j, k;
+			int i, j;
 			vec3_array v, dist;
 			for (i = 0; i < g_numfaces; ++i)
 			{
@@ -4765,8 +4763,9 @@ void            FinalLightFace(const int facenum)
 					VectorSubtract (v, g_drawsample_origin, dist);
 					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
 					{
-						for (k = 0; k < pos_count; ++k)
-							fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
+						for(const vec3_array& p : pos) {
+							fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
+						}
 					}
 				}
 			}

@@ -248,13 +248,10 @@ dleaf_t*        HuntForWorld(vec3_array& point, const vec3_array& plane_offset, 
 }
 
 // ApplyMatrix: (x y z 1)T -> matrix * (x y z 1)T
-void ApplyMatrix (const matrix_t &m, const vec3_t in, vec3_array& out)
-{
-	int i;
-
+void ApplyMatrix (const matrix_t &m, const vec3_array& in, vec3_array& out) {
 	hlassume (&in[0] != &out[0], assume_first);
 	VectorCopy (m.v[3], out);
-	for (i = 0; i < 3; i++)
+	for (std::size_t i = 0; i < 3; ++i)
 	{
 		VectorMA (out, in[i], m.v[i], out);
 	}
@@ -431,7 +428,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 	vec3_array pos_normal;
 	vec_t hunt_offset;
 
-	ApplyMatrix (map->textoworld, pos_st.data(), pos);
+	ApplyMatrix (map->textoworld, pos_st, pos);
 	VectorAdd (pos, map->face_offset, pos);
 	if (usephongnormal)
 	{
@@ -482,7 +479,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 		}
 	}
 
-	VectorCopy (pos, pos_out);
+	pos_out = pos;
 	return true;
 }
 
@@ -634,7 +631,7 @@ void FindFacePositions (int facenum)
 	map->texwinding = new Winding (map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++)
 	{
-		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x].data(), map->texwinding->m_Points[x]);
+		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x], map->texwinding->m_Points[x]);
 		map->texwinding->m_Points[x][2] = 0.0;
 	}
 	map->texwinding->RemoveColinearPoints ();
@@ -657,7 +654,7 @@ void FindFacePositions (int facenum)
 	}
 	vec3_array v;
 	VectorSubtract (map->face_centroid, map->face_offset, v);
-	ApplyMatrix (map->worldtotex, v.data(), map->texcentroid);
+	ApplyMatrix (map->worldtotex, v, map->texcentroid);
 	map->texcentroid[2] = 0.0;
 
 	for (x = 0; x < map->texwinding->size(); x++)
@@ -725,18 +722,15 @@ void FreePositionMaps ()
 		f = fopen(name, "w");
 		if (f)
 		{
-			const int pos_count = 15;
-			const vec3_t pos[pos_count] = {{0,0,0},{1,0,0},{0,1,0},{-1,0,0},{0,-1,0},{1,0,0},{0,0,1},{-1,0,0},{0,0,-1},{0,-1,0},{0,0,1},{0,1,0},{0,0,-1},{1,0,0},{0,0,0}};
-			int i, j, k;
 			vec3_array v, dist;
-			for (i = 0; i < g_numfaces; ++i)
+			for (std::size_t i = 0; i < g_numfaces; ++i)
 			{
 				positionmap_t *map = &g_face_positions[i];
 				if (!map->valid)
 				{
 					continue;
 				}
-				for (j = 0; j < map->h * map->w; ++j)
+				for (std::int32_t j = 0; j < map->h * map->w; ++j)
 				{
 					if (!map->grid[j].valid)
 					{
@@ -746,8 +740,9 @@ void FreePositionMaps ()
 					VectorSubtract (v, g_drawsample_origin, dist);
 					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
 					{
-						for (k = 0; k < pos_count; ++k)
-							fprintf (f, "%g %g %g\n", v[0]+pos[k][0], v[1]+pos[k][1], v[2]+pos[k][2]);
+						for(const vec3_array& p : pos) {
+							fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
+						}
 					}
 				}
 			}
@@ -775,7 +770,7 @@ void FreePositionMaps ()
 	}
 }
 
-bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_t &pos, vec_t *best_s, vec_t *best_t, vec_t *dist
+bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_array& pos, vec_t *best_s, vec_t *best_t, vec_t *dist
 							, bool *nudged
 							)
 {
