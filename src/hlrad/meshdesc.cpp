@@ -17,7 +17,9 @@ GNU General Public License for more details.
 #include "meshdesc.h"
 #include "time_counter.h"
 #include "context.h"
-//#define AABB_OFFSET
+
+constexpr bool AABB_OFFSET = false;
+
 constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
 constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
 constexpr float SIMPLIFICATION_FACTOR_LOW{0.85f};
@@ -139,9 +141,9 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 	m_iTotalPlanes = 0;
 
 	// create pools for construct mesh
-	facets = (mfacet_t *)calloc( sizeof( mfacet_t ), numTriangles );
-	planehash = (hashplane_t **)calloc( sizeof( hashplane_t* ), PLANE_HASHES );
-	planepool = (hashplane_t *)calloc( sizeof( hashplane_t ), MAX_PLANES );
+	facets = std::make_unique<mfacet_t[]>(numTriangles);
+	planehash = std::make_unique<hashplane_t_pointer[]>(PLANE_HASHES);
+	planepool = std::make_unique<hashplane_t[]>(MAX_PLANES);
 
 	mplane_t	badplane;
 
@@ -181,7 +183,7 @@ uint CMeshDesc :: AddPlaneToPool( const mplane_t *pl )
 		for( p = planehash[h]; p; p = p->hash )
 		{
 			if( PlaneEqual( &p->pl, pl ))
-				return (uint)(p - planepool);	// already exist
+				return (uint)(p - planepool.get());	// already exist
 		}
 	}
 
@@ -452,7 +454,6 @@ void CMeshDesc :: StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *p
 
 bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 {
-	int i;
 	studiohdr_t *phdr = (studiohdr_t *)pModel->extradata;
 
 	if( !phdr || phdr->numbones < 1 )
@@ -484,7 +485,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	static vec3_t pos[MAXSTUDIOBONES];
 	static vec4_t q[MAXSTUDIOBONES];
 
-	for( int i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
+	for(std::size_t i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
 	{
 		StudioCalcBoneQuaterion( pbone, panim, q[i] );
 		StudioCalcBonePosition( pbone, panim, pos[i] );
@@ -496,7 +497,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	std::array<matrix3x4, MAXSTUDIOBONES> boneTransform;
 	AngleMatrix(pModel->angles, pModel->origin, pModel->scale, transform);
 	// Compute bones for default anim
-	for( i = 0; i < phdr->numbones; i++ ) 
+	for(std::int32_t i = 0; i < phdr->numbones; ++i) 
 	{
 		// Initialize bonematrix
 		QuaternionMatrix( q[i], pos[i], boneMatrix );
@@ -509,7 +510,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	std::int32_t totalVertSize = 0;
 	std::int32_t maxVertSize = 0;
 	// through all bodies to determine max vertices count
-	for( i = 0; i < phdr->numbodyparts; i++ )
+	for(std::int32_t i = 0; i < phdr->numbodyparts; ++i)
 	{
 		mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)((byte *)phdr + phdr->bodypartindex) + i;
 
@@ -525,7 +526,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	std::unique_ptr<float[]> coords{std::make_unique_for_overwrite<float[]>(totalVertSize * 16)}; // Temporary vertices
 	mstudiotexture_t **textures = (mstudiotexture_t **)malloc( sizeof( mstudiotexture_t* ) * totalVertSize * 8 ); // lame way...
 	unsigned int *indices = (unsigned int *)malloc( sizeof( int ) * totalVertSize * 24 );
-	int numVerts = 0, numElems = 0, numTris = 0;
+	std::uint32_t numVerts = 0, numElems = 0, numTris = 0;
 	mvert_t triangle[3];
 
 	std::unique_ptr<vec3_array[]> m_verts = std::make_unique_for_overwrite<vec3_array[]>(maxVertSize);
@@ -543,7 +544,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		byte *pvertbone = ((byte *)phdr + psubmodel->vertinfoindex);
 
 		// setup all the vertices
-		for( i = 0; i < psubmodel->numverts; i++ )
+		for(std::int32_t i = 0; i < psubmodel->numverts; ++i)
 			VectorTransform( pstudioverts[i], boneTransform[pvertbone[i]], m_verts[i] );
 
 		mstudiotexture_t *ptexture = (mstudiotexture_t *)((byte *)phdr + phdr->textureindex);
@@ -551,14 +552,15 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		if( m_skinnum != 0 && m_skinnum < phdr->numskinfamilies )
 			pskinref += (m_skinnum * phdr->numskinref);
 
-		for( int j = 0; j < psubmodel->nummesh; j++ ) 
+		for(std::int32_t j = 0; j < psubmodel->nummesh; ++j) 
 		{
 			mstudiomesh_t *pmesh = (mstudiomesh_t *)((byte *)phdr + psubmodel->meshindex) + j;
-			short *ptricmds = (short *)((byte *)phdr + pmesh->triindex);
+			std::int16_t *ptricmds = (std::int16_t *)((byte *)phdr + pmesh->triindex);
 			int flags = ptexture[pskinref[pmesh->skinref]].flags;
 			float s = 1.0f / (float)ptexture[pskinref[pmesh->skinref]].width;
 			float t = 1.0f / (float)ptexture[pskinref[pmesh->skinref]].height;
-
+		
+			std::int16_t i;
 			while(( i = *( ptricmds++ )))
 			{
 				int	vertexState = 0;
@@ -647,11 +649,11 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		List<int>		permutation;	// permutation list
 
 		// build the list of vertices
-		for( i = 0; i < numVerts; i++ )
+		for(std::uint32_t i = 0; i < numVerts; i++ )
 			vert.Add( verts[i] );
 
 		// build the list of indices
-		for( i = 0; i < numElems; i += 3 )
+		for(std::uint32_t i = 0; i < numElems; i += 3 )
 		{
 			triset td;
 
@@ -678,7 +680,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 			verts_reduced = int( numVerts * SIMPLIFICATION_FACTOR_MED );
 		else verts_reduced = int( numVerts * SIMPLIFICATION_FACTOR_HIGH );
 
-		for( i = 0; i < tris.num; i++ )
+		for(std::int32_t i = 0; i < tris.num; i++ )
 		{
 			int p0 = MapVertex( tris[i].v[0], verts_reduced, collapse_map );
 			int p1 = MapVertex( tris[i].v[1], verts_reduced, collapse_map );
@@ -713,7 +715,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	}
 	else
 	{
-		for( i = 0; i < numElems; i += 3 )
+		for(std::uint32_t i = 0; i < numElems; i += 3 )
 		{
 			// fill the triangle
 			VectorCopy( verts[indices[i+0]], triangle[0].point );
@@ -905,14 +907,14 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 		facet->indices[i] = AddPlaneToPool( &planes[i] );
 	}
 
-#ifdef AABB_OFFSET
-	for( i = 0; i < 3; i++ )
-	{
-		// spread the mins / maxs by a pixel
-		facet->mins[i] -= 1.0f;
-		facet->maxs[i] += 1.0f;
+	if constexpr(AABB_OFFSET) {
+		for( i = 0; i < 3; i++ )
+		{
+			// spread the mins / maxs by a pixel
+			facet->mins[i] -= 1.0f;
+			facet->maxs[i] += 1.0f;
+		}
 	}
-#endif
 	// added
 	m_mesh.numfacets++;
 	m_iTotalPlanes += numplanes;
@@ -947,16 +949,15 @@ bool CMeshDesc :: FinishMeshBuild( void )
 		Developer( DEVELOPER_LEVEL_ERROR, "FinishMeshBuild: failed to build triangle mesh (no sides)\n" );
 		return false;
 	}
-	int i;
 
-#ifdef AABB_OFFSET
-	for( i = 0; i < 3; i++ )
-	{
-		// spread the mins / maxs by a pixel
-		m_mesh.mins[i] -= 1.0f;
-		m_mesh.maxs[i] += 1.0f;
+	if constexpr(AABB_OFFSET) {
+		for(std::size_t i = 0; i < 3; ++i)
+		{
+			// spread the mins / maxs by a pixel
+			m_mesh.mins[i] -= 1.0f;
+			m_mesh.maxs[i] += 1.0f;
+		}
 	}
-#endif
 	size_t memsize = ( sizeof( mfacet_t ) * m_mesh.numfacets) + (sizeof( mplane_t ) * m_mesh.numplanes) + (sizeof( uint ) * m_iTotalPlanes );
 
 	// create non-fragmented memory piece and move mesh
@@ -970,7 +971,7 @@ bool CMeshDesc :: FinishMeshBuild( void )
 	buffer += (sizeof( mfacet_t ) * m_mesh.numfacets);
 
 	// setup mesh pointers
-	for( i = 0; i < m_mesh.numfacets; i++ )
+	for(std::size_t i = 0; i < m_mesh.numfacets; ++i)
 	{
 		m_mesh.facets[i].indices = (uint *)buffer;
 		buffer += (sizeof( uint ) * facets[i].numplanes);
@@ -980,11 +981,11 @@ bool CMeshDesc :: FinishMeshBuild( void )
 		Developer( DEVELOPER_LEVEL_ERROR, "FinishMeshBuild: memory representation error! %p != %p\n", buffer, bufend );
 
 	// copy planes into mesh array (probably aligned block)
-	for( i = 0; i < m_mesh.numplanes; i++ )
+	for(std::size_t i = 0; i < m_mesh.numplanes; ++i)
 		m_mesh.planes[i] = planepool[i].pl;
 
 	// copy planes into mesh array (probably aligned block)
-	for( i = 0; i < m_mesh.numfacets; i++ )
+	for(std::size_t i = 0; i < m_mesh.numfacets; ++i)
 	{
 		VectorCopy( facets[i].mins, m_mesh.facets[i].mins );
 		VectorCopy( facets[i].maxs, m_mesh.facets[i].maxs );
@@ -1013,11 +1014,11 @@ bool CMeshDesc :: FinishMeshBuild( void )
 	FreeMeshBuild();
 
 	mesh_size = sizeof( m_mesh ) + memsize;
-#if 0
-	Developer( DEVELOPER_LEVEL_ALWAYS, "FinishMesh: %s %i k", m_debugName, ( mesh_size / 1024 ));
-	Developer( DEVELOPER_LEVEL_ALWAYS, " (planes reduced from %i to %i)", m_iTotalPlanes, m_mesh.numplanes );
-	Developer( DEVELOPER_LEVEL_ALWAYS, "\n" );
-#endif
+
+	// Developer( DEVELOPER_LEVEL_ALWAYS, "FinishMesh: %s %i k", m_debugName, ( mesh_size / 1024 ));
+	// Developer( DEVELOPER_LEVEL_ALWAYS, " (planes reduced from %i to %i)", m_iTotalPlanes, m_mesh.numplanes );
+	// Developer( DEVELOPER_LEVEL_ALWAYS, "\n" );
+
 	return true;
 }
 
@@ -1027,11 +1028,7 @@ void CMeshDesc :: FreeMeshBuild( void )
 	for( int i = 0; facets && i < m_mesh.numfacets; i++ )
 		free( facets[i].indices );
 
-	free( planehash );
-	free( planepool );
-	free( facets );
-
-	planehash = nullptr;
-	planepool = nullptr;
-	facets = nullptr;
+	facets.reset();
+	planehash.reset();
+	planepool.reset();
 }

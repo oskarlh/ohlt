@@ -126,6 +126,8 @@ struct model_t; // Forward declaration
 class CMeshDesc
 {
 private:
+	using hashplane_t_pointer = hashplane_t*;
+
 	mmesh_t		m_mesh;
 	const char	*m_debugName;		// just for debug purpoces
 	areanode_t	areanodes[AREA_NODES];	// AABB tree for speedup trace test
@@ -136,9 +138,9 @@ private:
 	size_t		mesh_size;		// mesh total size
 
 	// used only while mesh is contsructed
-	mfacet_t		*facets;
-	hashplane_t	**planehash;
-	hashplane_t	*planepool;
+	std::unique_ptr<mfacet_t[]> facets;
+	std::unique_ptr<hashplane_t_pointer[]> planehash;
+	std::unique_ptr<hashplane_t[]>	planepool;
 public:
 	CMeshDesc();
 	~CMeshDesc();
