@@ -274,7 +274,7 @@ static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, 
 	return !istoofar;
 }
 
-static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const vec3_t spot, interpolation_t *interp)
+static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const vec3_t spot, interpolation_t& interp)
 {
 	const localtriangulation_t::Wedge *w1;
 	const localtriangulation_t::Wedge *w2;
@@ -477,20 +477,20 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	weights[3] += 0.5 * ratio * (1 - frac_far);
 	weights[2] += 0.5 * ratio * frac_far;
 
-	interp->isbiased = false;
-	interp->totalweight = 1.0;
-	interp->points.resize (4);
-	interp->points[0].patchnum = lt->patchnum;
-	interp->points[0].weight = weights[0];
-	interp->points[1].patchnum = w1->leftpatchnum;
-	interp->points[1].weight = weights[1];
-	interp->points[2].patchnum = w2->leftpatchnum;
-	interp->points[2].weight = weights[2];
-	interp->points[3].patchnum = w3->leftpatchnum;
-	interp->points[3].weight = weights[3];
+	interp.isbiased = false;
+	interp.totalweight = 1.0;
+	interp.points.resize (4);
+	interp.points[0].patchnum = lt->patchnum;
+	interp.points[0].weight = weights[0];
+	interp.points[1].patchnum = w1->leftpatchnum;
+	interp.points[1].weight = weights[1];
+	interp.points[2].patchnum = w2->leftpatchnum;
+	interp.points[2].weight = weights[2];
+	interp.points[3].patchnum = w3->leftpatchnum;
+	interp.points[3].weight = weights[3];
 }
 
-static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array& spot, interpolation_t *interp)
+static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array& spot, interpolation_t& interp)
 	// The interpolation function is defined over the entire plane, so CalcInterpolation never fails.
 {
 	vec3_array direction;
@@ -505,21 +505,21 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	if (GetDirection (spot, lt->normal, direction) <= 2 * ON_EPSILON)
 	{
 		// spot happens to be at the center
-		interp->isbiased = false;
-		interp->totalweight = 1.0;
-		interp->points.resize (1);
-		interp->points[0].patchnum = lt->patchnum;
-		interp->points[0].weight = 1.0;
+		interp.isbiased = false;
+		interp.totalweight = 1.0;
+		interp.points.resize (1);
+		interp.points[0].patchnum = lt->patchnum;
+		interp.points[0].weight = 1.0;
 		return;
 	}
 
 	if ((int)lt->sortedwedges.size () == 0) // this local triangulation only has center patch
 	{
-		interp->isbiased = true;
-		interp->totalweight = 1.0;
-		interp->points.resize (1);
-		interp->points[0].patchnum = lt->patchnum;
-		interp->points[0].weight = 1.0;
+		interp.isbiased = true;
+		interp.totalweight = 1.0;
+		interp.points.resize (1);
+		interp.points[0].patchnum = lt->patchnum;
+		interp.points[0].weight = 1.0;
 		return;
 	}
 	
@@ -578,13 +578,13 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 
 			if (istoofar)
 			{
-				interp->isbiased = true;
-				interp->totalweight = 1.0;
-				interp->points.resize (2);
-				interp->points[0].patchnum = w->leftpatchnum;
-				interp->points[0].weight = 1 - frac;
-				interp->points[1].patchnum = wnext->leftpatchnum;
-				interp->points[1].weight = frac;
+				interp.isbiased = true;
+				interp.totalweight = 1.0;
+				interp.points.resize (2);
+				interp.points[0].patchnum = w->leftpatchnum;
+				interp.points[0].weight = 1 - frac;
+				interp.points[1].patchnum = wnext->leftpatchnum;
+				interp.points[1].weight = frac;
 			}
 			else if (w->shape == localtriangulation_t::Wedge::eSquareLeft)
 			{
@@ -599,15 +599,15 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			}
 			else
 			{
-				interp->isbiased = false;
-				interp->totalweight = 1.0;
-				interp->points.resize (3);
-				interp->points[0].patchnum = lt->patchnum;
-				interp->points[0].weight = 1 - ratio;
-				interp->points[1].patchnum = w->leftpatchnum;
-				interp->points[1].weight = ratio * (1 - frac);
-				interp->points[2].patchnum = wnext->leftpatchnum;
-				interp->points[2].weight = ratio * frac;
+				interp.isbiased = false;
+				interp.totalweight = 1.0;
+				interp.points.resize (3);
+				interp.points[0].patchnum = lt->patchnum;
+				interp.points[0].weight = 1 - ratio;
+				interp.points[1].patchnum = w->leftpatchnum;
+				interp.points[1].weight = ratio * (1 - frac);
+				interp.points[2].patchnum = wnext->leftpatchnum;
+				interp.points[2].weight = ratio * frac;
 			}
 		}
 		break;
@@ -630,45 +630,45 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			}
 			if (dot1 >= -NORMAL_EPSILON) // 0 <= dot1 < dot < dot2
 			{
-				interp->isbiased = true;
-				interp->totalweight = 1.0;
-				interp->points.resize (1);
-				interp->points[0].patchnum = w->leftpatchnum;
-				interp->points[0].weight = 1.0;
+				interp.isbiased = true;
+				interp.totalweight = 1.0;
+				interp.points.resize (1);
+				interp.points[0].patchnum = w->leftpatchnum;
+				interp.points[0].weight = 1.0;
 			}
 			else if (dot2 <= NORMAL_EPSILON) // dot1 < dot < dot2 <= 0
 			{
-				interp->isbiased = true;
-				interp->totalweight = 1.0;
-				interp->points.resize (1);
-				interp->points[0].patchnum = wnext->leftpatchnum;
-				interp->points[0].weight = 1.0;
+				interp.isbiased = true;
+				interp.totalweight = 1.0;
+				interp.points.resize (1);
+				interp.points[0].patchnum = wnext->leftpatchnum;
+				interp.points[0].weight = 1.0;
 			}
 			else if (dot > 0) // dot1 < 0 < dot < dot2
 			{
 				frac = dot1 / (dot1 - dot);
 				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 
-				interp->isbiased = true;
-				interp->totalweight = 1.0;
-				interp->points.resize (2);
-				interp->points[0].patchnum = w->leftpatchnum;
-				interp->points[0].weight = 1 - frac;
-				interp->points[1].patchnum = lt->patchnum;
-				interp->points[1].weight = frac;
+				interp.isbiased = true;
+				interp.totalweight = 1.0;
+				interp.points.resize (2);
+				interp.points[0].patchnum = w->leftpatchnum;
+				interp.points[0].weight = 1 - frac;
+				interp.points[1].patchnum = lt->patchnum;
+				interp.points[1].weight = frac;
 			}
 			else // dot1 < dot <= 0 < dot2
 			{
 				frac = dot / (dot - dot2);
 				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
 			
-				interp->isbiased = true;
-				interp->totalweight = 1.0;
-				interp->points.resize (2);
-				interp->points[0].patchnum = lt->patchnum;
-				interp->points[0].weight = 1 - frac;
-				interp->points[1].patchnum = wnext->leftpatchnum;
-				interp->points[1].weight = frac;
+				interp.isbiased = true;
+				interp.totalweight = 1.0;
+				interp.points.resize (2);
+				interp.points[0].patchnum = lt->patchnum;
+				interp.points[0].weight = 1 - frac;
+				interp.points[1].patchnum = wnext->leftpatchnum;
+				interp.points[1].weight = frac;
 			}
 		}
 		break;
@@ -688,32 +688,32 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 				}
 				if (dist <= NORMAL_EPSILON)
 				{
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (1);
-					interp->points[0].patchnum = lt->patchnum;
-					interp->points[0].weight = 1.0;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (1);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1.0;
 				}
 				else if (dist >= len)
 				{
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (1);
-					interp->points[0].patchnum = w->leftpatchnum;
-					interp->points[0].weight = 1.0;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (1);
+					interp.points[0].patchnum = w->leftpatchnum;
+					interp.points[0].weight = 1.0;
 				}
 				else
 				{
 					ratio = dist / len;
 					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (2);
-					interp->points[0].patchnum = lt->patchnum;
-					interp->points[0].weight = 1 - ratio;
-					interp->points[1].patchnum = w->leftpatchnum;
-					interp->points[1].weight = ratio;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (2);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1 - ratio;
+					interp.points[1].patchnum = w->leftpatchnum;
+					interp.points[1].weight = ratio;
 				}
 			}
 			else // the spot is closer to the right edge than the left edge
@@ -726,32 +726,32 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 				}
 				if (dist <= NORMAL_EPSILON)
 				{
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (1);
-					interp->points[0].patchnum = lt->patchnum;
-					interp->points[0].weight = 1.0;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (1);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1.0;
 				}
 				else if (dist >= len)
 				{
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (1);
-					interp->points[0].patchnum = wnext->leftpatchnum;
-					interp->points[0].weight = 1.0;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (1);
+					interp.points[0].patchnum = wnext->leftpatchnum;
+					interp.points[0].weight = 1.0;
 				}
 				else
 				{
 					ratio = dist / len;
 					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
 
-					interp->isbiased = true;
-					interp->totalweight = 1.0;
-					interp->points.resize (2);
-					interp->points[0].patchnum = lt->patchnum;
-					interp->points[0].weight = 1 - ratio;
-					interp->points[1].patchnum = wnext->leftpatchnum;
-					interp->points[1].weight = ratio;
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize (2);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1 - ratio;
+					interp.points[1].patchnum = wnext->leftpatchnum;
+					interp.points[1].weight = ratio;
 				}
 			}
 		}
@@ -762,16 +762,16 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	}
 }
 
-static void ApplyInterpolation (const interpolation_t *interp, int style, vec3_array& out)
+static void ApplyInterpolation (const interpolation_t& interp, int style, vec3_array& out)
 {
 	out = {};
-	if (interp->totalweight <= 0)
+	if (interp.totalweight <= 0)
 	{
 		return;
 	}
-	for (const auto& point : interp->points) {
+	for (const auto& point : interp.points) {
 		const vec3_array *b = GetTotalLight(&g_patches[point.patchnum], style);
-		VectorMA (out, point.weight / interp->totalweight, *b, out);
+		VectorMA (out, point.weight / interp.totalweight, *b, out);
 	}
 }
 
@@ -784,7 +784,6 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 	{
 	
 	const facetriangulation_t *ft;
-	interpolation_t *maininterp;
 	std::vector< vec_t > localweights;
 	std::vector< interpolation_t * > localinterps;
 
@@ -807,8 +806,8 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 		Error ("InterpolateSampleLight: internal error: surface number out of range.");
 	}
 	ft = g_facetriangulations[surface];
-	maininterp = new interpolation_t;
-	maininterp->points.reserve (64);
+	interpolation_t maininterp{};
+	maininterp.points.reserve (64);
 
 	// Calculate local interpolations and their weights
 	localweights.resize (0);
@@ -835,7 +834,7 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 				}
 				interp = new interpolation_t;
 				interp->points.reserve (4);
-				CalcInterpolation (lt, spot, interp);
+				CalcInterpolation (lt, spot, *interp);
 
 				localweights.push_back (weight);
 				localinterps.push_back (interp);
@@ -844,14 +843,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 	}
 	
 	// Combine into one interpolation
-	maininterp->isbiased = false;
-	maininterp->totalweight = 0;
-	maininterp->points.resize (0);
+	maininterp.isbiased = false;
+	maininterp.totalweight = 0;
+	maininterp.points.resize (0);
 	for (i = 0; i < (int)localinterps.size (); i++)
 	{
 		if (localinterps[i]->isbiased)
 		{
-			maininterp->isbiased = true;
+			maininterp.isbiased = true;
 		}
 		for (j = 0; j < (int)localinterps[i]->points.size (); j++)
 		{
@@ -860,14 +859,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 			{
 				weight *= 0.01;
 			}
-			n = (int)maininterp->points.size ();
-			maininterp->points.resize (n + 1);
-			maininterp->points[n].patchnum = localinterps[i]->points[j].patchnum;
-			maininterp->points[n].weight = weight;
-			maininterp->totalweight += weight;
+			n = (int)maininterp.points.size ();
+			maininterp.points.resize (n + 1);
+			maininterp.points[n].patchnum = localinterps[i]->points[j].patchnum;
+			maininterp.points[n].weight = weight;
+			maininterp.totalweight += weight;
 		}
 	}
-	if (maininterp->totalweight > 0)
+	if (maininterp.totalweight > 0)
 	{
 		ApplyInterpolation(maininterp, style, out);
 		if (g_drawlerp)
@@ -875,20 +874,20 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 			// white or yellow
 			out[0] = 100;
 			out[1] = 100;
-			out[2] = (maininterp->isbiased? 0: 100);
+			out[2] = (maininterp.isbiased? 0: 100);
 		}
 	}
 	else
 	{
 		// try again, don't multiply localweights[i] (which equals to 0)
-		maininterp->isbiased = false;
-		maininterp->totalweight = 0;
-		maininterp->points.resize (0);
+		maininterp.isbiased = false;
+		maininterp.totalweight = 0;
+		maininterp.points.resize (0);
 		for (i = 0; i < (int)localinterps.size (); i++)
 		{
 			if (localinterps[i]->isbiased)
 			{
-				maininterp->isbiased = true;
+				maininterp.isbiased = true;
 			}
 			for (j = 0; j < (int)localinterps[i]->points.size (); j++)
 			{
@@ -897,14 +896,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 				{
 					weight *= 0.01;
 				}
-				n = (int)maininterp->points.size ();
-				maininterp->points.resize (n + 1);
-				maininterp->points[n].patchnum = localinterps[i]->points[j].patchnum;
-				maininterp->points[n].weight = weight;
-				maininterp->totalweight += weight;
+				n = (int)maininterp.points.size ();
+				maininterp.points.resize (n + 1);
+				maininterp.points[n].patchnum = localinterps[i]->points[j].patchnum;
+				maininterp.points[n].weight = weight;
+				maininterp.totalweight += weight;
 			}
 		}
-		if (maininterp->totalweight > 0)
+		if (maininterp.totalweight > 0)
 		{
 			ApplyInterpolation(maininterp, style, out);
 			if (g_drawlerp)
@@ -912,7 +911,7 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 				// red
 				out[0] = 100;
 				out[1] = 0;
-				out[2] = (maininterp->isbiased? 0: 100);
+				out[2] = (maininterp.isbiased? 0: 100);
 			}
 		}
 		else
@@ -942,14 +941,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 				VectorMA (spot, -dot, lt->normal, spot);
 				CalcInterpolation (lt, spot, maininterp);
 
-				maininterp->totalweight = 0;
-				for (j = 0; j < (int)maininterp->points.size (); j++)
+				maininterp.totalweight = 0;
+				for (j = 0; j < (int)maininterp.points.size (); j++)
 				{
-					if (g_patches[maininterp->points[j].patchnum].flags == ePatchFlagOutside)
+					if (g_patches[maininterp.points[j].patchnum].flags == ePatchFlagOutside)
 					{
-						maininterp->points[j].weight *= 0.01;
+						maininterp.points[j].weight *= 0.01;
 					}
-					maininterp->totalweight += maininterp->points[j].weight;
+					maininterp.totalweight += maininterp.points[j].weight;
 				}
 				ApplyInterpolation(maininterp, style, out);
 				if (g_drawlerp)
@@ -957,14 +956,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 					// green
 					out[0] = 0;
 					out[1] = 100;
-					out[2] = (maininterp->isbiased? 0: 100);
+					out[2] = (maininterp.isbiased? 0: 100);
 				}
 			}
 			else
 			{
-				maininterp->isbiased = true;
-				maininterp->totalweight = 0;
-				maininterp->points.resize(0);
+				maininterp.isbiased = true;
+				maininterp.totalweight = 0;
+				maininterp.points.resize(0);
 				ApplyInterpolation(maininterp, style, out);
 				if (g_drawlerp)
 				{
@@ -976,7 +975,6 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 			}
 		}
 	}
-	delete maininterp;
 
 	for (i = 0; i < (int)localinterps.size (); i++)
 	{
