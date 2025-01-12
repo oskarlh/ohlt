@@ -547,8 +547,7 @@ extern void	FreeStyleArrays();
 // lerp.c
 extern void CreateTriangulations (int facenum);
 extern void GetTriangulationPatches (int facenum, int *numpatches, const int **patches);
-extern void InterpolateSampleLight (const vec3_array& position, int surface, int numstyles, const int *styles, vec3_t *outs
-				);
+extern void InterpolateSampleLight (const vec3_array& position, int surface, int style, vec3_array& out);
 extern void FreeTriangulations ();
 
 // mathutil.c

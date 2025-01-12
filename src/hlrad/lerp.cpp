@@ -762,36 +762,23 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	}
 }
 
-static void ApplyInterpolation (const interpolation_t *interp, int numstyles, const int *styles, vec3_t *outs
-								)
+static void ApplyInterpolation (const interpolation_t *interp, int style, vec3_array& out)
 {
-	int i;
-	int j;
-
-	for (j = 0; j < numstyles; j++)
-	{
-		VectorClear (outs[j]);
-	}
+	out = {};
 	if (interp->totalweight <= 0)
 	{
 		return;
 	}
-	for (i = 0; i < (int)interp->points.size (); i++)
-	{
-		for (j = 0; j < numstyles; j++)
-		{
-			const vec3_array *b = GetTotalLight (&g_patches[interp->points[i].patchnum], styles[j]
-											);
-			VectorMA (outs[j], interp->points[i].weight / interp->totalweight, *b, outs[j]);
-		}
+	for (const auto& point : interp->points) {
+		const vec3_array *b = GetTotalLight(&g_patches[point.patchnum], style);
+		VectorMA (out, point.weight / interp->totalweight, *b, out);
 	}
 }
 
 // =====================================================================================
 //  InterpolateSampleLight
 // =====================================================================================
-void InterpolateSampleLight (const vec3_array& position, int surface, int numstyles, const int *styles, vec3_t *outs
-							)
+void InterpolateSampleLight (const vec3_array& position, int surface, int style, vec3_array &out)
 {
 	try
 	{
@@ -882,17 +869,13 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int numsty
 	}
 	if (maininterp->totalweight > 0)
 	{
-		ApplyInterpolation (maininterp, numstyles, styles, outs
-							);
+		ApplyInterpolation(maininterp, style, out);
 		if (g_drawlerp)
 		{
-			for (j = 0; j < numstyles; j++)
-			{
-				// white or yellow
-				outs[j][0] = 100;
-				outs[j][1] = 100;
-				outs[j][2] = (maininterp->isbiased? 0: 100);
-			}
+			// white or yellow
+			out[0] = 100;
+			out[1] = 100;
+			out[2] = (maininterp->isbiased? 0: 100);
 		}
 	}
 	else
@@ -923,17 +906,13 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int numsty
 		}
 		if (maininterp->totalweight > 0)
 		{
-			ApplyInterpolation (maininterp, numstyles, styles, outs
-								);
+			ApplyInterpolation(maininterp, style, out);
 			if (g_drawlerp)
 			{
-				for (j = 0; j < numstyles; j++)
-				{
-					// red
-					outs[j][0] = 100;
-					outs[j][1] = 0;
-					outs[j][2] = (maininterp->isbiased? 0: 100);
-				}
+				// red
+				out[0] = 100;
+				out[1] = 0;
+				out[2] = (maininterp->isbiased? 0: 100);
 			}
 		}
 		else
@@ -972,35 +951,27 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int numsty
 					}
 					maininterp->totalweight += maininterp->points[j].weight;
 				}
-				ApplyInterpolation (maininterp, numstyles, styles, outs
-									);
+				ApplyInterpolation(maininterp, style, out);
 				if (g_drawlerp)
 				{
-					for (j = 0; j < numstyles; j++)
-					{
-						// green
-						outs[j][0] = 0;
-						outs[j][1] = 100;
-						outs[j][2] = (maininterp->isbiased? 0: 100);
-					}
+					// green
+					out[0] = 0;
+					out[1] = 100;
+					out[2] = (maininterp->isbiased? 0: 100);
 				}
 			}
 			else
 			{
 				maininterp->isbiased = true;
 				maininterp->totalweight = 0;
-				maininterp->points.resize (0);
-				ApplyInterpolation (maininterp, numstyles, styles, outs
-									);
+				maininterp->points.resize(0);
+				ApplyInterpolation(maininterp, style, out);
 				if (g_drawlerp)
 				{
-					for (j = 0; j < numstyles; j++)
-					{
-						// black
-						outs[j][0] = 0;
-						outs[j][1] = 0;
-						outs[j][2] = 0;
-					}
+					// black
+					out[0] = 0;
+					out[1] = 0;
+					out[2] = 0;
 				}
 			}
 		}
@@ -1070,7 +1041,6 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const Winding &p2winding)
 {
 	int i;
-	vec3_t v;
 	vec_t dist;
 	vec_t size1;
 	vec_t size2;
@@ -1078,6 +1048,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	size1 = 0;
 	for (i = 0; i < lt->winding.size(); i++)
 	{
+		vec3_array v;
 		VectorSubtract (lt->winding.m_Points[i], lt->center, v);
 		dist = VectorLength (v);
 		if (dist > size1)
@@ -1089,6 +1060,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	size2 = 0;
 	for (i = 0; i < p2winding.size(); i++)
 	{
+		vec3_array v;
 		VectorSubtract (p2winding.m_Points[i], p2, v);
 		dist = VectorLength (v);
 		if (dist > size2)
@@ -1097,6 +1069,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 		}
 	}
 
+	vec3_array v;
 	VectorSubtract (p2, lt->center, v);
 	dist = VectorLength (v);
 
@@ -1285,7 +1258,6 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 	int i;
 	int j;
 	int n;
-	vec3_t v;
 	vec_t dot;
 	vec_t angle;
 	localtriangulation_t::HullPoint hp;
@@ -1305,6 +1277,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 	spots.resize (0);
 	for (i = 0; i < (int)lt->winding.size(); i++)
 	{
+		vec3_array v;
 		VectorSubtract (lt->winding.m_Points[i], lt->center, v);
 		dot = DotProduct (v, lt->normal);
 		VectorMA (v, -dot, lt->normal, hp.spot);

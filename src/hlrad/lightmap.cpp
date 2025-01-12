@@ -306,7 +306,7 @@ void            PairEdges()
 						e->cos_normals_angle = 1.0;
 				} else {
                     // see if they fall into a "smoothing group" based on angle of the normals
-                    vec3_t          normals[2];
+                    std::array<vec3_array, 2> normals;
 
                     VectorCopy(getPlaneFromFace(e->faces[0])->normal, normals[0]);
                     VectorCopy(getPlaneFromFace(e->faces[1])->normal, normals[1]);
@@ -392,7 +392,7 @@ void            PairEdges()
 			VectorCopy(e->interface_normal, edgenormal);
 			if (g_dedges[edgeabs].v[0] == g_dedges[edgeabs].v[1])
 			{
-				vec3_t errorpos;
+				vec3_array errorpos;
 				VectorCopy (g_dvertexes[g_dedges[edgeabs].v[0]].point, errorpos);
 				VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
 				Developer (DEVELOPER_LEVEL_WARNING, "PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
@@ -407,7 +407,7 @@ void            PairEdges()
 				intersecttest_t *test1 = CreateIntersectTest (p1, e->faces[1] - g_dfaces.data());
 				for (edgeend = 0; edgeend < 2; edgeend++)
 				{
-					vec3_t errorpos;
+					vec3_array errorpos;
 					VectorCopy (g_dvertexes[g_dedges[edgeabs].v[edgeend]].point, errorpos);
 					VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
 					angles = 0;
@@ -4132,7 +4132,7 @@ void            PrecompLightmapOffsets()
 				}
 				for (j = 0; j < ALLSTYLES; j++)
 				{
-					vec3_t v;
+					vec3_array v;
 					VectorAdd (maxlights1[j], maxlights2[j], v);
 					maxlights[j] = VectorMaximum (v);
 					if (maxlights[j] <= g_corings[j] * 0.01)
@@ -4706,11 +4706,10 @@ void AddPatchLights (int facenum)
 				}
 
 				{
-					vec3_t v;
+					vec3_array v;
 
 					int style = f_other->styles[k];
-					InterpolateSampleLight (samp->pos, samp->surface, 1, &style, &v
-											);
+					InterpolateSampleLight(samp->pos, samp->surface, style, v);
 
 					VectorAdd (samp->light, v, v);
 					if (VectorMaximum (v) >= g_corings[f_other->styles[k]])
