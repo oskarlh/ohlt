@@ -4,6 +4,7 @@
 #include "mathtypes.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 
 extern const vec3_array vec3_origin;
 
