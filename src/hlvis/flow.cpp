@@ -282,7 +282,7 @@ inline static winding_t* ClipToSeperators(
             // flip the normal if the source portal is backwards
             if (fliptest)
             {
-                VectorSubtract(vec3_origin, plane.normal, plane.normal);
+                plane.normal = negate_vector(plane.normal);
                 plane.dist = -plane.dist;
             }
 
@@ -322,7 +322,7 @@ inline static winding_t* ClipToSeperators(
             // flip the normal if we want the back side
             if (flipclip)
             {
-                VectorSubtract(vec3_origin, plane.normal, plane.normal);
+                plane.normal = negate_vector(plane.normal);
                 plane.dist = -plane.dist;
             }
 
@@ -449,7 +449,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         // get plane of portal, point normal into the neighbor leaf
         stack.portalplane = &p->plane;
         plane_t             backplane;
-        VectorSubtract(vec3_origin, p->plane.normal, backplane.normal);
+        backplane.normal = negate_vector(p->plane.normal);
         backplane.dist = -p->plane.dist;
 
         if (vectors_almost_same(prevstack->portalplane->normal, backplane.normal))

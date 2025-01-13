@@ -482,7 +482,7 @@ void            MakeRGBScales(const int threadnum)
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
-			VectorSubtract(vec3_origin, normal1, backnormal);
+			backnormal = negate_vector(normal1);
 		}
 		bool lighting_diversify;
 		vec_t lighting_power;

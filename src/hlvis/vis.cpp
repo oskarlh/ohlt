@@ -723,7 +723,7 @@ static void     LoadPortals(char* portal_image)
         l->numportals++;
 
         p->winding = w;
-        VectorSubtract(vec3_origin, plane.normal, p->plane.normal);
+        p->plane.normal = negate_vector(plane.normal);
         p->plane.dist = -plane.dist;
         p->leaf = leafnums[1];
         p++;
