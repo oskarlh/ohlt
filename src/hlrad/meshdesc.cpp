@@ -25,7 +25,7 @@ constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
 constexpr float SIMPLIFICATION_FACTOR_LOW{0.85f};
 
 CMeshDesc :: CMeshDesc() {
-	memset( &m_mesh, 0, sizeof( m_mesh ));
+	m_mesh = {};
 
 	m_debugName = nullptr;
 	planehash = nullptr;
@@ -107,8 +107,7 @@ void CMeshDesc :: FreeMesh( void )
 	free( m_mesh.planes );
 
 	FreeMeshBuild();
-
-	memset( &m_mesh, 0, sizeof( m_mesh ));
+    m_mesh = {};
 }
 
 bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
@@ -135,7 +134,7 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 
 	ClearBounds( m_mesh.mins, m_mesh.maxs );
 
-	memset( areanodes, 0, sizeof( areanodes ));
+	areanodes.fill({});
 	numareanodes = 0;
 	m_iNumTris = numTriangles;
 	m_iTotalPlanes = 0;
@@ -925,7 +924,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 void CMeshDesc :: RelinkFacet( mfacet_t *facet )
 {
 	// find the first node that the facet box crosses
-	areanode_t *node = areanodes;
+	areanode_t *node = &areanodes[0];
 
 	while( 1 )
 	{

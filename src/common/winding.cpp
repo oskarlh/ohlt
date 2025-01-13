@@ -9,7 +9,7 @@
 #include <ranges>
 #include <span>
 
-constexpr vec_t bogus_range = 80000.0;
+constexpr float bogus_range = 80000.0;
 
 //
 // Winding Public Methods
@@ -192,15 +192,13 @@ bool Winding::Valid() const
     return size() >= 3;
 }
 
-bool Winding::empty() const
-{
+bool Winding::empty() const {
     return m_Points.empty();
 }
 
-void Winding::clear()
-{
+void Winding::clear(bool shrinkToFit) {
     m_Points.clear();
-    m_Points.shrink_to_fit(); // TODO: Remove? Measure
+    m_Points.shrink_to_fit();
 }
 
 
@@ -425,14 +423,11 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     std::array<std::size_t, 3> counts{};
-    vec_t           dot;
-    unsigned int    i;
-    unsigned int    maxpts;
 
     // determine sides for each point
-    for (i = 0; i < size(); i++)
+    for (std::size_t i = 0; i < size(); i++)
     {
-        dot = DotProduct(m_Points[i], normal);
+        vec_t dot = DotProduct(m_Points[i], normal);
         dot -= dist;
         dists[i] = dot;
         if (dot > epsilon)
@@ -452,41 +447,39 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
     sides[size()] = sides[0];
     dists[size()] = dists[0];
 
+    front.clear();
+    back.clear();
     if (!counts[(std::size_t) face_side::front])
     {
         back = *this;
-        front.clear();
         return;
     }
     if (!counts[(std::size_t) face_side::back])
     {
         front = *this;
-        back.clear();
         return;
     }
 
-    Winding f{};
-    Winding b{};
-    f.m_Points.reserve(size() + 4); // Optimization only - can safely be removed
-    b.m_Points.reserve(size() + 4); // Optimization only - can safely be removed
+    front.m_Points.reserve(size() + 4); // Optimization only - can safely be removed
+    back.m_Points.reserve(size() + 4); // Optimization only - can safely be removed
 
-    for (i = 0; i < size(); i++)
+    for (std::size_t i = 0; i < size(); ++i)
     {
         const vec3_array& p1 = m_Points[i];
 
         if (sides[i] == face_side::on)
         {
-            f.m_Points.emplace_back(p1);
-            b.m_Points.emplace_back(p1);
+            front.m_Points.emplace_back(p1);
+            back.m_Points.emplace_back(p1);
             continue;
         }
         else if (sides[i] == face_side::front)
         {
-            f.m_Points.emplace_back(p1);
+            front.m_Points.emplace_back(p1);
         }
         else if (sides[i] == face_side::back)
         {
-            b.m_Points.emplace_back(p1);
+            back.m_Points.emplace_back(p1);
         }
 
         if ((sides[i + 1] == face_side::on) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
@@ -502,7 +495,7 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
             tmp = 0;
         }
         const vec3_array& p2 = m_Points[tmp];
-        dot = dists[i] / (dists[i] - dists[i + 1]);
+        vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
 
         for (std::size_t j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -514,24 +507,16 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }
 
-        f.m_Points.emplace_back(mid);
-        b.m_Points.emplace_back(mid);
+        front.m_Points.emplace_back(mid);
+        back.m_Points.emplace_back(mid);
     }
 
-    if ((f.size() > MAX_POINTS_ON_WINDING) | (b.size() > MAX_POINTS_ON_WINDING)) // | instead of || for branch optimization
+    if ((front.size() > MAX_POINTS_ON_WINDING) | (back.size() > MAX_POINTS_ON_WINDING)) // | instead of || for branch optimization
     {
         Error("Winding::Clip : MAX_POINTS_ON_WINDING");
     }
-    f.RemoveColinearPoints(
-		epsilon
-		);
-    b.RemoveColinearPoints(
-		epsilon
-		);
-
-
-    front = std::move(f);
-    back = std::move(b);
+    front.RemoveColinearPoints(epsilon);
+    back.RemoveColinearPoints(epsilon);
 }
 
 bool Winding::Chop(const vec3_array& normal, const vec_t dist
@@ -550,15 +535,11 @@ face_side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 											, vec_t epsilon
 											)
 {
-    bool            front, back;
-    unsigned int    i;
-    vec_t           d;
-
-    front = false;
-    back = false;
-    for (i = 0; i < size(); i++)
+    bool front = false;
+    bool back = false;
+    for (std::size_t i = 0; i < size(); i++)
     {
-        d = DotProduct(m_Points[i], normal) - dist;
+        vec_t d = DotProduct(m_Points[i], normal) - dist;
         if (d < -epsilon)
         {
             if (front)
@@ -591,7 +572,7 @@ face_side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 }
 
 
-bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon) {
+bool Winding::mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool keepon, vec_t epsilon) {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     int             counts[3];
@@ -604,8 +585,8 @@ bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, v
     // do this exactly, with no epsilon so tiny portals still work
     for (i = 0; i < size(); i++)
     {
-        dot = DotProduct(m_Points[i], normal);
-        dot -= dist;
+        dot = DotProduct(m_Points[i], planeNormal);
+        dot -= planeDist;
         dists[i] = dot;
         if (dot > epsilon)
         {
@@ -674,10 +655,10 @@ bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, v
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
-            if (normal[j] == 1)
-                mid[j] = dist;
-            else if (normal[j] == -1)
-                mid[j] = -dist;
+            if (planeNormal[j] == 1)
+                mid[j] = planeDist;
+            else if (planeNormal[j] == -1)
+                mid[j] = -planeDist;
             else
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }

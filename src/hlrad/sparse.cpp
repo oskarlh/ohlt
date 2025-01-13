@@ -291,7 +291,11 @@ static void     BuildVisLeafs(int threadnum)
         const dleaf_t& srcleaf = g_dleafs[i];
         if (!g_visdatasize)
 		{
-			memset (pvs.data(), 255, (g_dmodels[0].visleafs + 7) / 8);
+			std::fill(
+				pvs.begin(),
+				pvs.begin() + (g_dmodels[0].visleafs + 7) / 8,
+				std::byte(0xFF)
+			);
 		}
 		else
 		{
@@ -349,16 +353,12 @@ static void     FreeVisMatrix()
     s_vismatrix.shrink_to_fit();
 }
 
-static void     DumpVismatrixInfo()
-{
-    unsigned totals[8];
+static void DumpVismatrixInfo() {
     std::size_t total_vismatrix_memory;
 	total_vismatrix_memory = sizeof(sparse_column_t) * g_num_patches;
 
     sparse_column_t* column_end = &s_vismatrix[g_num_patches];
     sparse_column_t* column = &s_vismatrix[0];
-
-    memset(totals, 0, sizeof(totals));
 
     while (column < column_end)
     {

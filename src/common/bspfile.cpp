@@ -375,7 +375,7 @@ void            WriteBSPFile(const std::filesystem::path& filename)
     FILE*           bspfile;
 
     header = &outheader;
-    memset(header, 0, sizeof(dheader_t));
+	*header = {};
 
     header->version = (BSPVERSION);
 

@@ -515,7 +515,7 @@ static void ParseBrush(entity_t* mapent)
 				free (b->hullshapes[h]);
 			}
 		}
-		memset (b, 0, sizeof (brush_t));
+		*b = {};
 		g_nummapbrushes--;
 		mapent->numbrushes--;
 		return;

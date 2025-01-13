@@ -93,13 +93,13 @@ typedef struct
 } mfacet_t;
 
 struct mmesh_t {
-	mfacet_t *facets{nullptr};
-	mplane_t *planes{nullptr}; // Shared plane pool
-	vec3_array mins{};
-	vec3_array maxs{};
-	std::uint32_t numfacets{};
-	std::uint32_t numplanes{};
-	trace_method trace_mode{}; // Trace method
+	mfacet_t *facets;
+	mplane_t *planes; // Shared plane pool
+	vec3_array mins;
+	vec3_array maxs;
+	std::uint32_t numfacets;
+	std::uint32_t numplanes;
+	trace_method trace_mode; // Trace method
 };
 
 class triset
@@ -117,7 +117,7 @@ private:
 
 	mmesh_t		m_mesh;
 	const char	*m_debugName;		// just for debug purpoces
-	areanode_t	areanodes[AREA_NODES];	// AABB tree for speedup trace test
+	std::array<areanode_t, AREA_NODES> areanodes;	// AABB tree for speedup trace test
 	int		numareanodes;
 	bool		has_tree;			// build AABB tree
 	int		m_iTotalPlanes;		// just for stats

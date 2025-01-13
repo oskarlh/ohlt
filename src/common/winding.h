@@ -1,14 +1,13 @@
 #pragma once
 
-#include "cmdlib.h" //--vluzacn
-
-
-#include "mathtypes.h"
-#include "win32fix.h"
-#include "mathlib.h"
-#include "bspfile.h"
 #include "bounding_box.h"
+#include "bspfile.h"
+#include "cmdlib.h"
+#include "mathlib.h"
+#include "mathtypes.h"
 #include "planes.h"
+#include "win32fix.h"
+
 #include <variant>
 
 
@@ -57,7 +56,7 @@ public:
     inline operator bool() const {
       return !empty();
     }
-    void clear();
+    void clear(bool shrinkToFit = false);
 
 
     void pushPoint(const vec3_array& newpoint);
@@ -66,7 +65,7 @@ public:
 
     // Specialized Functions
     void            RemoveColinearPoints(vec_t epsilon = ON_EPSILON);
-    bool mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon = ON_EPSILON);
+    bool mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool keepon, vec_t epsilon = ON_EPSILON);
     void Clip(const dplane_t& split, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON
 		) const;

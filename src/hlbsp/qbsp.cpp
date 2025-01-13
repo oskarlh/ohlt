@@ -422,7 +422,7 @@ face_t*         AllocFace()
     face_t*         f;
 
     f = (face_t*)malloc(sizeof(face_t));
-    memset(f, 0, sizeof(face_t));
+    *f = {};
 
     f->planenum = -1;
 
@@ -445,7 +445,7 @@ surface_t*      AllocSurface()
     surface_t*      s;
 
     s = (surface_t*)malloc(sizeof(surface_t));
-    memset(s, 0, sizeof(surface_t));
+    *s = {};
 
     return s;
 }
@@ -466,7 +466,7 @@ portal_t*       AllocPortal()
     portal_t*       p;
 
     p = (portal_t*)malloc(sizeof(portal_t));
-    memset(p, 0, sizeof(portal_t));
+    *p = {};
 
     return p;
 }
@@ -484,7 +484,7 @@ side_t *AllocSide ()
 {
 	side_t *s;
 	s = (side_t *)malloc (sizeof (side_t));
-	memset (s, 0, sizeof (side_t));
+    *s = {};
 	return s;
 }
 
@@ -511,7 +511,7 @@ brush_t *AllocBrush ()
 {
 	brush_t *b;
 	b = (brush_t *)malloc (sizeof (brush_t));
-	memset (b, 0, sizeof (brush_t));
+    *b = {};
 	return b;
 }
 
@@ -695,7 +695,7 @@ node_t*         AllocNode()
     node_t*         n;
 
     n = (node_t*)malloc(sizeof(node_t));
-    memset(n, 0, sizeof(node_t));
+    *n = {};
 
     return n;
 }

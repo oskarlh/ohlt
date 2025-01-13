@@ -274,8 +274,7 @@ void ParseParamFile (const int argc, char ** const argv, int &argcnew, char **&a
 	if (auto f = read_utf8_file(settingsFilePath, true))
 	{
 		const char8_t* c = f.value().c_str();
-		execute_t e;
-		memset (&e, 0, sizeof (e));
+		execute_t e{};
 		words[0] = u8'\0';
 		token[0] = u8'\0';
 		parsearg (argc, argv, cmdline, MAXTOKEN);
