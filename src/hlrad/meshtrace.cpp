@@ -50,15 +50,14 @@ void TraceMesh :: SetupTrace( const vec3_t start, const vec3_array& mins, const 
 
 bool TraceMesh :: ClipRayToBox( const vec3_t mins, const vec3_t maxs )
 {
-	vec3_array	ray_inv, t0, t1;
+	vec3_array	t0, t1;
 	vec3_array	n, f;
 	float	d, t;
-
-	VectorDivideVec( m_vecTraceDirection, 1.0f, ray_inv );
 
 	VectorSubtract( mins, m_vecStart, t0 );
 	VectorSubtract( maxs, m_vecStart, t1 );
 
+	vec3_array ray_inv = m_vecTraceDirection;
 	CrossProduct( t0, ray_inv, t0 );
 	CrossProduct( t1, ray_inv, t1 );
 
