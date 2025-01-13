@@ -423,7 +423,7 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
 							  ) const
 {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
-    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     std::array<std::size_t, 3> counts{};
     vec_t           dot;
     unsigned int    i;
@@ -437,28 +437,28 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
         dists[i] = dot;
         if (dot > epsilon)
         {
-            sides[i] = side::front;
+            sides[i] = face_side::front;
         }
         else if (dot < -epsilon)
         {
-            sides[i] = side::back;
+            sides[i] = face_side::back;
         }
         else
         {
-            sides[i] = side::on;
+            sides[i] = face_side::on;
         }
         counts[(std::size_t) sides[i]]++;
     }
     sides[size()] = sides[0];
     dists[size()] = dists[0];
 
-    if (!counts[(std::size_t) side::front])
+    if (!counts[(std::size_t) face_side::front])
     {
         back = *this;
         front.clear();
         return;
     }
-    if (!counts[(std::size_t) side::back])
+    if (!counts[(std::size_t) face_side::back])
     {
         front = *this;
         back.clear();
@@ -474,22 +474,22 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == side::on)
+        if (sides[i] == face_side::on)
         {
             f.m_Points.emplace_back(p1);
             b.m_Points.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == side::front)
+        else if (sides[i] == face_side::front)
         {
             f.m_Points.emplace_back(p1);
         }
-        else if (sides[i] == side::back)
+        else if (sides[i] == face_side::back)
         {
             b.m_Points.emplace_back(p1);
         }
 
-        if ((sides[i + 1] == side::on) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
+        if ((sides[i + 1] == face_side::on) | (sides[i + 1] == sides[i]))  // | instead of || for branch optimization
         {
             continue;
         }
@@ -546,7 +546,7 @@ bool Winding::Chop(const vec3_array& normal, const vec_t dist
     return !empty();
 }
 
-side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
+face_side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 											, vec_t epsilon
 											)
 {
@@ -563,7 +563,7 @@ side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
         {
             if (front)
             {
-                return side::cross;
+                return face_side::cross;
             }
             back = true;
             continue;
@@ -572,7 +572,7 @@ side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
         {
             if (back)
             {
-                return side::cross;
+                return face_side::cross;
             }
             front = true;
             continue;
@@ -581,19 +581,19 @@ side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 
     if (back)
     {
-        return side::back;
+        return face_side::back;
     }
     if (front)
     {
-        return side::front;
+        return face_side::front;
     }
-    return side::on;
+    return face_side::on;
 }
 
 
 bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon) {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
-    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     int             counts[3];
     vec_t           dot;
     int             i, j;
@@ -609,15 +609,15 @@ bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, v
         dists[i] = dot;
         if (dot > epsilon)
         {
-            sides[i] = side::front;
+            sides[i] = face_side::front;
         }
         else if (dot < -epsilon)
         {
-            sides[i] = side::back;
+            sides[i] = face_side::back;
         }
         else
         {
-            sides[i] = side::on;
+            sides[i] = face_side::on;
         }
         counts[(std::size_t) sides[i]]++;
     }
@@ -648,17 +648,17 @@ bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, v
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == side::on)
+        if (sides[i] == face_side::on)
         {
             newPoints.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == side::front)
+        else if (sides[i] == face_side::front)
         {
             newPoints.emplace_back(p1);
         }
 
-        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
+        if (sides[i + 1] == face_side::on || sides[i + 1] == sides[i])
         {
             continue;
         }
@@ -712,7 +712,7 @@ bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, v
 
 winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) const {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
-    auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
+    auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     std::array<std::size_t, 3> counts{ 0, 0, 0};
 
 
@@ -726,14 +726,14 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
         dotSum += dot;
         dists[i] = dot;
 
-        side side = side::on;
+        face_side side = face_side::on;
         if (dot > epsilon)
         {
-            side = side::front;
+            side = face_side::front;
         }
         else if (dot < -epsilon)
         {
-            side = side::back;
+            side = face_side::back;
         }
         sides[i] = side;
         counts[(std::size_t) side]++;
@@ -742,9 +742,9 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
     dists[size()] = dists[0];
 
 
-	if (!counts[(std::size_t) side::back])
+	if (!counts[(std::size_t) face_side::back])
 	{
-        if(counts[(std::size_t) side::front]) {
+        if(counts[(std::size_t) face_side::front]) {
             return one_sided_winding_division_result::all_in_the_front;
         }
 		if (dotSum > NORMAL_EPSILON)
@@ -753,7 +753,7 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
         }	
 	    return one_sided_winding_division_result::all_in_the_back;
 	}
-	if (!counts[(std::size_t) side::front])
+	if (!counts[(std::size_t) face_side::front])
 	{
 	    return one_sided_winding_division_result::all_in_the_back;
 	}
@@ -768,22 +768,22 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
     {
         const vec3_array& p1 = m_Points[i];
 
-        if (sides[i] == side::on)
+        if (sides[i] == face_side::on)
         {
             front.m_Points.emplace_back(p1);
             back.m_Points.emplace_back(p1);
             continue;
         }
-        else if (sides[i] == side::front)
+        else if (sides[i] == face_side::front)
         {
             front.m_Points.emplace_back(p1);
         }
-        else if (sides[i] == side::back)
+        else if (sides[i] == face_side::back)
         {
             back.m_Points.emplace_back(p1);
         }
 
-        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
+        if (sides[i + 1] == face_side::on || sides[i + 1] == sides[i])
         {
             continue;
         }

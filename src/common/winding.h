@@ -17,7 +17,7 @@
 
 #define BASE_WINDING_DISTANCE 9000
 
-enum class side {
+enum class face_side {
   front = 0,
   back = 1,
   on = 2,
@@ -77,9 +77,11 @@ public:
 		, vec_t epsilon = ON_EPSILON
 		);
     winding_division_result_template<Winding> Divide(const mapplane_t& split, vec_t epsilon = ON_EPSILON) const;
-    side             WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
-		, vec_t epsilon = ON_EPSILON
-		);
+    face_side WindingOnPlaneSide(
+      const vec3_array& normal,
+      const vec_t dist,
+      vec_t epsilon = ON_EPSILON
+    );
 
 
 private:

@@ -209,7 +209,7 @@ face_t*         NewFaceFromFace(const face_t* const in)
 static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t** front, face_t** back)
 {
     vec_t           dists[MAXEDGES + 1];
-    side sides[MAXEDGES + 1];
+    face_side sides[MAXEDGES + 1];
     int             counts[3];
     vec_t           dot;
     int             i;
@@ -234,15 +234,15 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
         dists[i] = dot;
         if (dot > ON_EPSILON)
         {
-            sides[i] = side::front;
+            sides[i] = face_side::front;
         }
         else if (dot < -ON_EPSILON)
         {
-            sides[i] = side::back;
+            sides[i] = face_side::back;
         }
         else
         {
-            sides[i] = side::on;
+            sides[i] = face_side::on;
         }
         counts[std::size_t(sides[i])]++;
     }
@@ -309,7 +309,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
 
         const vec3_array& p1 {in->pts[i]};
 
-        if (sides[i] == side::on)
+        if (sides[i] == face_side::on)
         {
             VectorCopy(p1, newf->pts[newf->numpoints]);
             newf->numpoints++;
@@ -318,7 +318,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
             continue;
         }
 
-        if (sides[i] == side::front)
+        if (sides[i] == face_side::front)
         {
             VectorCopy(p1, new2->pts[new2->numpoints]);
             new2->numpoints++;
@@ -329,7 +329,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
             newf->numpoints++;
         }
 
-        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
+        if (sides[i + 1] == face_side::on || sides[i + 1] == sides[i])
         {
             continue;
         }
@@ -600,17 +600,17 @@ void SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t 
 	{
 		switch (s->w->WindingOnPlaneSide (split->normal, split->dist, 2 * ON_EPSILON))
 		{
-		case side::cross:
+		case face_side::cross:
 			onfront = true;
 			onback = true;
 			break;
-		case side::front:
+		case face_side::front:
 			onfront = true;
 			break;
-		case side::back:
+		case face_side::back:
 			onback = true;
 			break;
-		case side::on:
+		case face_side::on:
 			break;
 		}
 		if (onfront && onback)

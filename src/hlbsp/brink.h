@@ -19,7 +19,7 @@ struct bpartition_t {
 
 struct bclipnode_t {
 	const mapplane_t *plane;
-	bclipnode_t *children[2]; // children[0] is the front side of the plane (side::front = 0)
+	bclipnode_t *children[2]; // children[0] is the front side of the plane (face_side::front = 0)
 	bpartition_t *partitions;
 	btreeleaf_t *treeleaf;
 
