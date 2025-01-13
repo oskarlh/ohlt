@@ -6,13 +6,11 @@
 // =====================================================================================
 inline static winding_t* AllocStackWinding(pstack_t* const stack)
 {
-    int             i;
-
-    for (i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < 3; ++i)
     {
-        if (stack->freewindings[i])
+        if (stack->freeWindings[i])
         {
-            stack->freewindings[i] = 0;
+            stack->freeWindings[i] = false;
             return &stack->windings[i];
         }
     }
@@ -25,18 +23,15 @@ inline static winding_t* AllocStackWinding(pstack_t* const stack)
 // =====================================================================================
 //  FreeStackWinding
 // =====================================================================================
-inline static void     FreeStackWinding(const winding_t* const w, pstack_t* const stack)
-{
-    int             i;
-
-    i = w - stack->windings;
-
-    if (i < 0 || i > 2)
+static void FreeStackWinding(const winding_t* const w, pstack_t* const stack) {
+    if (w < stack->windings.begin() || w >= stack->windings.end())
         return;                                            // not from local
 
-    if (stack->freewindings[i])
+    std::size_t i = w - stack->windings.data();
+
+    if (stack->freeWindings[i])
         Error("FreeStackWinding: allready free");
-    stack->freewindings[i] = 1;
+    stack->freeWindings[i] = true;
 }
 
 // =====================================================================================
@@ -459,9 +454,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
 
         stack.portal = p;
 
-        stack.freewindings[0] = 1;
-        stack.freewindings[1] = 1;
-        stack.freewindings[2] = 1;
+        stack.freeWindings.fill(true);
 
         stack.pass = ChopWinding(p->winding, &stack, thread->pstack_head.portalplane);
         if (!stack.pass)

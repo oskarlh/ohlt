@@ -88,8 +88,8 @@ typedef struct pstack_s
     winding_t*      source;
     winding_t*      pass;
 
-    winding_t       windings[3];                           // source, pass, temp in any order
-    char            freewindings[3];
+    std::array<winding_t, 3> windings;                           // source, pass, temp in any order
+    std::array<bool, 3> freeWindings;
 
     const hlvis_plane_t*  portalplane;
 
