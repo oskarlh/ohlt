@@ -10,7 +10,7 @@
 typedef std::map< int, int > PlaneMap;
 static PlaneMap gPlaneMap;
 static int gNumMappedPlanes;
-static dplane_t gMappedPlanes[MAX_MAP_PLANES];
+static mapplane_t gMappedPlanes[MAX_MAP_PLANES];
 extern bool g_noopt;
 
 typedef std::map< int, int > texinfomap_t;
@@ -45,7 +45,7 @@ static int WritePlane(int planenum)
 	}
 	//add plane to BSP
 	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
-	gMappedPlanes[gNumMappedPlanes] = g_dplanes[planenum];
+	gMappedPlanes[gNumMappedPlanes] = g_mapplanes[planenum];
 	gPlaneMap.insert(PlaneMap::value_type(planenum,gNumMappedPlanes));
 
 	return gNumMappedPlanes++;
@@ -713,7 +713,7 @@ void FinishBSPFile(const bsp_data& bspData)
 
 		for(int counter = 0; counter < gNumMappedPlanes; counter++)
 		{
-			g_dplanes[counter] = gMappedPlanes[counter];
+			g_mapplanes[counter] = gMappedPlanes[counter];
 		}
 		g_numplanes = gNumMappedPlanes;
 	}
@@ -813,17 +813,13 @@ void FinishBSPFile(const bsp_data& bspData)
         print_bsp_file_sizes(bspData);
     }
 
-#undef dplane_t // this allow us to temporarily access the raw data directly without the layer of indirection
-#undef g_dplanes
 	for (int i = 0; i < g_numplanes; i++)
 	{
-		plane_t& mp = g_mapplanes[i];
+		mapplane_t& mp = g_mapplanes[i];
 		dplane_t& dp = g_dplanes[i];
 		VectorCopy (mp.normal, dp.normal);
 		dp.dist = mp.dist;
 		dp.type = mp.type;
 	}
-#define dplane_t plane_t
-#define g_dplanes g_mapplanes
     WriteBSPFile(g_bspfilename);
 }

@@ -39,6 +39,24 @@ void Winding::getPlane(dplane_t& plane) const {
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
 
+void Winding::getPlane(mapplane_t& plane) const {
+    if (size() < 3) {
+        plane.normal = {};
+        plane.dist = 0.0;
+        return;
+    }
+
+    vec3_array v1, v2;
+    VectorSubtract(m_Points[2], m_Points[1], v1);
+    VectorSubtract(m_Points[0], m_Points[1], v2);
+
+    vec3_array plane_normal;
+    CrossProduct(v2, v1, plane_normal);
+    normalize_vector(plane_normal);
+    VectorCopy(plane_normal, plane.normal);
+    plane.dist = DotProduct(m_Points[0], plane.normal);
+}
+
 void Winding::getPlane(vec3_array& normal, vec_t& dist) const {
     vec3_array v1, v2;
 
@@ -341,11 +359,15 @@ Winding::Winding(const dface_t& face
 Winding::Winding(const dplane_t& plane)
 {
     vec3_array normal;
-    vec_t dist;
-
     VectorCopy(plane.normal, normal);
-    dist = plane.dist;
-    initFromPlane(normal, dist);
+    initFromPlane(normal, plane.dist);
+}
+
+Winding::Winding(const mapplane_t& plane)
+{
+    vec3_array normal;
+    VectorCopy(plane.normal, normal);
+    initFromPlane(normal, plane.dist);
 }
 
 //
@@ -392,13 +414,11 @@ void Winding::Clip(const dplane_t& plane, Winding& front, Winding& back
     vec_t dist;
     VectorCopy(plane.normal, normal);
     dist = plane.dist;
-    Clip(normal, dist, front, back
-		, epsilon
-		);
+    Clip(normal, dist, front, back, epsilon);
 }
 
 
-void Winding::Clip(const vec3_array& normal, const vec_t dist, Winding& front, Winding& back
+void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding& back
 							  , vec_t epsilon
 							  ) const
 {
@@ -571,10 +591,7 @@ side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 }
 
 
-bool Winding::Clip(const dplane_t& split, bool keepon
-				   , vec_t epsilon
-				   )
-{
+bool Winding::mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon) {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
     int             counts[3];
@@ -587,8 +604,8 @@ bool Winding::Clip(const dplane_t& split, bool keepon
     // do this exactly, with no epsilon so tiny portals still work
     for (i = 0; i < size(); i++)
     {
-        dot = DotProduct(m_Points[i], split.normal);
-        dot -= split.dist;
+        dot = DotProduct(m_Points[i], normal);
+        dot -= dist;
         dists[i] = dot;
         if (dot > epsilon)
         {
@@ -657,10 +674,10 @@ bool Winding::Clip(const dplane_t& split, bool keepon
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
-            if (split.normal[j] == 1)
-                mid[j] = split.dist;
-            else if (split.normal[j] == -1)
-                mid[j] = -split.dist;
+            if (normal[j] == 1)
+                mid[j] = dist;
+            else if (normal[j] == -1)
+                mid[j] = -dist;
             else
                 mid[j] = p1[j] + dot * (p2[j] - p1[j]);
         }
@@ -693,8 +710,7 @@ bool Winding::Clip(const dplane_t& split, bool keepon
  * ==================
  */
 
-winding_division_result Winding::Divide(const dplane_t& split, vec_t epsilon) const
-{
+winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) const {
     auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<side[]>(size() + 1);
     std::array<std::size_t, 3> counts{ 0, 0, 0};

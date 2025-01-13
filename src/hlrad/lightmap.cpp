@@ -31,7 +31,7 @@ bool TestFaceIntersect (intersecttest_t *t, int facenum)
 	}
 	for (k = 0; k < t->numclipplanes; k++)
 	{
-		if (!w->Clip (t->clipplanes[k], false
+		if (!w->mutating_clip(t->clipplanes[k].normal, t->clipplanes[k].dist, false
 			, ON_EPSILON*4
 			))
 		{
@@ -908,7 +908,7 @@ void ChopFrag (samplefrag_t *frag)
 
 	for (int x = 0; x < 4 && frag->mywinding->size() > 0; x++)
 	{
-		frag->mywinding->Clip (frag->myrect.planes[x], false);
+		frag->mywinding->mutating_clip(frag->myrect.planes[x].normal, frag->myrect.planes[x].dist, false);
 	}
 
 	frag->winding = new Winding (frag->mywinding->size());
@@ -1134,7 +1134,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 		Winding *w = new Winding (*f2->winding);
 		for (int x = 0; x < numclipplanes && w->size() > 0; x++)
 		{
-			w->Clip (clipplanes[x], false
+			w->mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false
 					, 4 * ON_EPSILON
 					);
 		}
@@ -2972,7 +2972,7 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 			{
 				if (w.size())
 				{
-					w.Clip (clipplanes[k], false);
+					w.mutating_clip(clipplanes[k].normal, clipplanes[k].dist, false);
 				}
 			}
 			if (w.size())

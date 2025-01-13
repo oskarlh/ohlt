@@ -62,13 +62,16 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h
     ${COMMON_DIR}/cli_option_defaults.h
+    ${COMMON_DIR}/entity_key_value.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/legacy_character_encodings.h
     ${COMMON_DIR}/log.h
+    ${COMMON_DIR}/map_token_parser.h
     ${COMMON_DIR}/mathlib.h
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h
+    ${COMMON_DIR}/planes.h
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
     ${COMMON_DIR}/time_counter.h
@@ -290,8 +293,8 @@ set_target_properties(hlbsp hlcsg hlrad hlvis ripent
         CXX_STANDARD 26
 )
 
-target_compile_definitions(hlbsp PRIVATE HLBSP DOUBLEVEC_T)
+target_compile_definitions(hlbsp PRIVATE DOUBLEVEC_T)
 target_compile_definitions(hlcsg PRIVATE DOUBLEVEC_T)
 target_compile_definitions(hlrad PRIVATE)
 target_compile_definitions(hlvis PRIVATE)
-target_compile_definitions(ripent PRIVATE RIPENT)
+target_compile_definitions(ripent PRIVATE)

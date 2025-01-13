@@ -8,7 +8,9 @@
 #include "mathlib.h"
 #include "bspfile.h"
 #include "bounding_box.h"
+#include "planes.h"
 #include <variant>
+
 
 #define MAX_POINTS_ON_WINDING 128
 // TODO: FIX THIS STUPID SHIT (MAX_POINTS_ON_WINDING)
@@ -26,18 +28,6 @@ enum class side {
 #define	SIDE_ON			2
 #define	SIDE_BACK		1
 #define	SIDE_CROSS		-2
-
-#ifdef HLBSP //seedee
-#define dplane_t plane_t
-#define g_dplanes g_mapplanes
-struct dplane_t {
-	vec3_array			normal;
-	vec3_array			unused_origin;
-	vec_t			dist;
-	planetype		type;
-};
-extern std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
-#endif
 
 
 enum class one_sided_winding_division_result {
@@ -60,6 +50,7 @@ public:
     // General Functions
     void Print() const;
     void getPlane(dplane_t& plane) const;
+    void getPlane(mapplane_t& plane) const;
     void getPlane(vec3_array& normal, vec_t& dist) const;
     vec_t getArea() const;
     bounding_box getBounds() const;
@@ -83,20 +74,17 @@ public:
     void            RemoveColinearPoints(
 		vec_t epsilon = ON_EPSILON
 		);
-    bool            Clip(const dplane_t& split, bool keepon
-		, vec_t epsilon = ON_EPSILON
-		); // For hlbsp
-    void            Clip(const dplane_t& split, Winding& front, Winding& back
+    bool mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon = ON_EPSILON);
+    void Clip(const dplane_t& split, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON
 		) const;
-    void            Clip(const vec3_array& normal, const vec_t dist, Winding& front, Winding& back
+    void Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON
 		) const;
     bool            Chop(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
-    winding_division_result_template<Winding> Divide(const dplane_t& split, vec_t epsilon = ON_EPSILON
-		) const;
+    winding_division_result_template<Winding> Divide(const mapplane_t& split, vec_t epsilon = ON_EPSILON) const;
     side             WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 		, vec_t epsilon = ON_EPSILON
 		);
@@ -113,6 +101,7 @@ public:
 		, vec_t epsilon = ON_EPSILON
 		);
     Winding(const dplane_t& face);
+    Winding(const mapplane_t& face);
     Winding(const vec3_array& normal, const vec_t dist);
     Winding(std::uint_least32_t points);
     Winding(const Winding& other);

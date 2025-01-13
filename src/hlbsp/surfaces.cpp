@@ -27,7 +27,7 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
     vec_t           v;
     int             axis;
     int             i;
-    dplane_t        plane;
+    mapplane_t        plane;
     face_t*         front;
     face_t*         back;
     face_t*         next;

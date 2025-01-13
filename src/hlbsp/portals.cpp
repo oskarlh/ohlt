@@ -93,8 +93,8 @@ void            MakeHeadnodePortals(node_t* node, const vec3_array& mins, const 
     std::array<vec3_array, 2> bounds;
     portal_t*       p;
     portal_t*       portals[6];
-    dplane_t        bplanes[6];
-    dplane_t*       pl;
+    mapplane_t        bplanes[6];
+    mapplane_t*       pl;
 
     // pad with some space so there will never be null volume leafs
     for (std::size_t i = 0; i < 3; ++i)
@@ -142,7 +142,7 @@ void            MakeHeadnodePortals(node_t* node, const vec3_array& mins, const 
             {
                 continue;
             }
-            portals[i]->winding->Clip(bplanes[j], true);
+            portals[i]->winding->mutating_clip(bplanes[j].normal, bplanes[j].dist, true);
         }
     }
 }
@@ -166,7 +166,7 @@ static void     WritePortalFile_r(const node_t* const node)
     int             i;
     portal_t*       p;
     Winding*        w;
-    dplane_t        plane2;
+    mapplane_t        plane2;
 
 	if (!node->isportalleaf)
     {

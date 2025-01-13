@@ -58,7 +58,7 @@ static void UpdateStatus(void)
 //  FaceSide
 //      For BSP hueristic
 // =====================================================================================
-static int      FaceSide(face_t* in, const dplane_t* const split
+static int      FaceSide(face_t* in, const mapplane_t* const split
 						 , double *epsilonsplit = nullptr
 						 )
 {
@@ -302,7 +302,7 @@ surfacetree_t *BuildSurfaceTree (surface_t *surfaces, vec_t epsilon)
 	return tree;
 }
 
-void TestSurfaceTree_r (surfacetree_t *tree, const surfacetreenode_t *node, const dplane_t *split)
+void TestSurfaceTree_r (surfacetree_t *tree, const surfacetreenode_t *node, const mapplane_t *split)
 {
 	if (node->size == 0)
 	{
@@ -353,7 +353,7 @@ void TestSurfaceTree_r (surfacetree_t *tree, const surfacetreenode_t *node, cons
 	}
 }
 
-void TestSurfaceTree (surfacetree_t *tree, const dplane_t *split)
+void TestSurfaceTree (surfacetree_t *tree, const mapplane_t *split)
 {
 	if (tree->dontbuild)
 	{
@@ -404,7 +404,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
     vec_t           bestvalue;
     vec_t           value;
     vec_t           dist;
-    dplane_t*       plane;
+    mapplane_t*       plane;
 	surfacetree_t*	surfacetree;
 	std::vector< face_t * >::iterator it;
 	face_t*			f;
@@ -428,7 +428,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 			continue;
 		}
 
-        plane = &g_dplanes[p->planenum];
+        plane = &g_mapplanes[p->planenum];
 
         // check for axis aligned surfaces
         planetype l{plane->type};
@@ -524,7 +524,7 @@ static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& min
 	surface_t*      bestsurface;
 	vec_t           bestvalue;
 	vec_t           value;
-	dplane_t*       plane;
+	mapplane_t*       plane;
 	face_t*         f;
 	double			planecount;
 	double			totalsplit;
@@ -562,7 +562,7 @@ static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& min
 		double coplanarcount = 0;
 		double epsilonsplit = 0;
 
-		plane = &g_dplanes[p->planenum];
+		plane = &g_mapplanes[p->planenum];
 
 		for (f = p->faces; f; f = f->next)
 		{
@@ -792,7 +792,7 @@ void FixDetaillevelForDiscardable (node_t *node, int detaillevel)
 // =====================================================================================
 //  DivideSurface
 // =====================================================================================
-static void     DivideSurface(surface_t* in, const dplane_t* const split, surface_t** front, surface_t** back)
+static void     DivideSurface(surface_t* in, const mapplane_t* const split, surface_t** front, surface_t** back)
 {
     face_t*         facet;
     face_t*         next;
@@ -801,9 +801,9 @@ static void     DivideSurface(surface_t* in, const dplane_t* const split, surfac
     face_t*         frontfrag;
     face_t*         backfrag;
     surface_t*      news;
-    dplane_t*       inplane;
+    mapplane_t*       inplane;
 
-    inplane = &g_dplanes[in->planenum];
+    inplane = &g_mapplanes[in->planenum];
 
     // parallel case is easy
 
@@ -914,9 +914,9 @@ static void     SplitNodeSurfaces(surface_t* surfaces, const node_t* const node)
     surface_t*      backlist;
     surface_t*      frontfrag;
     surface_t*      backfrag;
-    dplane_t*       splitplane;
+    mapplane_t*       splitplane;
 
-    splitplane = &g_dplanes[node->planenum];
+    splitplane = &g_mapplanes[node->planenum];
 
     frontlist = nullptr;
     backlist = nullptr;
@@ -954,10 +954,10 @@ static void SplitNodeBrushes (brush_t *brushes, const node_t *node)
 	brush_t *frontlist, *frontfrag;
 	brush_t *backlist, *backfrag;
 	brush_t *b, *next;
-	const dplane_t *splitplane;
+	const mapplane_t *splitplane;
 	frontlist = nullptr;
 	backlist = nullptr;
-	splitplane = &g_dplanes[node->planenum];
+	splitplane = &g_mapplanes[node->planenum];
 	for (b = brushes; b; b = next)
 	{
 		next = b->next;
@@ -1222,7 +1222,7 @@ static void     LinkLeafFaces(surface_t* planelist, node_t* leafnode)
 			for (face_t *f2 = surf2->faces; f2; f2 = f2->next)
 			{
 				Developer (DEVELOPER_LEVEL_SPAM, "content = %d plane = %d normal = (%g,%g,%g)\n", f2->contents, f2->planenum, 
-					g_dplanes[f2->planenum].normal[0], g_dplanes[f2->planenum].normal[1], g_dplanes[f2->planenum].normal[2]);
+					g_mapplanes[f2->planenum].normal[0], g_mapplanes[f2->planenum].normal[1], g_mapplanes[f2->planenum].normal[2]);
 				for (int i = 0; i < f2->numpoints; i++)
 				{
 					Developer (DEVELOPER_LEVEL_SPAM, "(%g,%g,%g)\n", f2->pts[i][0], f2->pts[i][1], f2->pts[i][2]);
@@ -1302,12 +1302,12 @@ static void     MakeNodePortal(node_t* node)
 {
     portal_t*       new_portal;
     portal_t*       p;
-    dplane_t*       plane;
-    dplane_t        clipplane;
+    mapplane_t*       plane;
+    mapplane_t        clipplane;
     Winding *       w;
     int             side = 0;
 
-    plane = &g_dplanes[node->planenum];
+    plane = &g_mapplanes[node->planenum];
     w = new Winding(*plane);
 
     new_portal = AllocPortal();
@@ -1332,7 +1332,7 @@ static void     MakeNodePortal(node_t* node)
             Error("MakeNodePortal: mislinked portal");
         }
 
-        w->Clip(clipplane, true);
+        w->mutating_clip(clipplane.normal, clipplane.dist, true);
 		if (w->size() == 0)
         {
 			Developer (DEVELOPER_LEVEL_WARNING, 
@@ -1359,9 +1359,9 @@ static void     SplitNodePortals(node_t *node)
     node_t*         b;
     node_t*         other_node;
     int             side = 0;
-    dplane_t*       plane;
+    mapplane_t*       plane;
 
-    plane = &g_dplanes[node->planenum];
+    plane = &g_mapplanes[node->planenum];
     f = node->children[0];
     b = node->children[1];
 
@@ -1626,17 +1626,17 @@ static void     BuildBspTree_r(node_t* node)
 	{
 		for (int k = 0; k < 2; k++)
 		{
-			dplane_t p;
+			mapplane_t p;
 			brush_t *copy, *front, *back;
 			if (k == 0)
 			{ // front child
-				VectorCopy (g_dplanes[split->planenum].normal, p.normal);
-				p.dist = g_dplanes[split->planenum].dist - BOUNDS_EXPANSION;
+				VectorCopy (g_mapplanes[split->planenum].normal, p.normal);
+				p.dist = g_mapplanes[split->planenum].dist - BOUNDS_EXPANSION;
 			}
 			else
 			{ // back child
-				VecSubtractVector (0, g_dplanes[split->planenum].normal, p.normal);
-				p.dist = -g_dplanes[split->planenum].dist - BOUNDS_EXPANSION;
+				VecSubtractVector (0, g_mapplanes[split->planenum].normal, p.normal);
+				p.dist = -g_mapplanes[split->planenum].dist - BOUNDS_EXPANSION;
 			}
 			copy = NewBrushFromBrush (node->boundsbrush);
 			SplitBrush (copy, &p, &front, &back);

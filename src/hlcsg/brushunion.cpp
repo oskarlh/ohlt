@@ -3,7 +3,7 @@
 vec_t g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
 static Winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
-    plane_t* plane = &g_mapplanes[planenum];
+    mapplane_t* plane = &g_mapplanes[planenum];
     Winding winding{plane->normal, plane->dist};
 
     Winding back;
@@ -37,7 +37,7 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
 
     bface_t*        face;
 
-    plane_t*        split;
+    mapplane_t*        split;
     new_face_list = nullptr;
     hlassert(hull);
 
@@ -121,7 +121,7 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
     Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for hull is %f %f %f\n", midpoint[0], midpoint[1], midpoint[2]);
 
     for (const bface_t& face : hull->faces) {
-        plane_t* plane = &g_mapplanes[face.planenum];
+        mapplane_t* plane = &g_mapplanes[face.planenum];
         vec_t area = face.w.getArea();
         vec_t dist = DotProduct(plane->normal, midpoint);
 

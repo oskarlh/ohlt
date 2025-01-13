@@ -20,6 +20,7 @@
 #include "hull_size.h"
 #include "wadpath.h"
 #include "cmdlinecfg.h"
+#include "planes.h"
 
 #define DEFAULT_BRUSH_UNION_THRESHOLD 0.0f
 #define DEFAULT_TINY_THRESHOLD        0.0
@@ -45,15 +46,6 @@
 
 // AJM: added in
 #define UNLESS(a)  if (!(a))
-
-
-struct plane_t {
-    vec3_array normal{};
-    vec3_array origin{};
-    vec_t dist{};
-    planetype type{};
-};
-
 
 
 struct valve_vects
@@ -94,7 +86,7 @@ typedef struct side_s
 
 struct bface_t {
     Winding w{};
-    plane_t* plane{};
+    mapplane_t* plane{};
     bounding_box bounds{};
     int planenum{};
     int texinfo{};
@@ -189,7 +181,7 @@ extern side_t   g_brushsides[MAX_MAP_SIDES];
 extern hullshape_t g_defaulthulls[NUM_HULLS];
 extern std::vector<hullshape_t> g_hullshapes;
 
-extern void     TextureAxisFromPlane(const plane_t* const pln, vec3_t xv, vec3_t yv);
+extern void     TextureAxisFromPlane(const mapplane_t* const pln, vec3_t xv, vec3_t yv);
 extern void     LoadMapFile(const char* const filename);
 
 //=============================================================================
@@ -200,7 +192,7 @@ extern std::deque<std::u8string> g_WadInclude;  // List of substrings to wadincl
 
 extern void     WriteMiptex(const std::filesystem::path& bspPath);
 extern void     LogWadUsage(wadpath_t* currentwad, int nummiptex);
-extern int      TexinfoForBrushTexture(const plane_t* const plane, brush_texture_t* bt, const vec3_t origin
+extern int      TexinfoForBrushTexture(const mapplane_t* const plane, brush_texture_t* bt, const vec3_t origin
 					);
 extern std::optional<wad_texture_name> GetTextureByNumber_CSG(int texturenumber);
 
@@ -246,7 +238,7 @@ extern bool g_nullifytrigger;
 extern vec_t g_tiny_threshold;
 extern vec_t g_BrushUnionThreshold;
 
-extern std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
+extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 extern int g_nummapplanes;
 
 extern bface_t NewFaceFromFace(const bface_t& in);

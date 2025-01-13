@@ -835,7 +835,7 @@ static void     CSGBrush(int brushnum)
 static void     EmitPlanes()
 {
     int             i;
-    plane_t*        mp;
+    mapplane_t* mp;
 
     g_numplanes = g_nummapplanes;
     mp = g_mapplanes.data();
@@ -846,7 +846,7 @@ static void     EmitPlanes()
 		FILE *planeout = fopen (name, "wb");
 		if (!planeout)
 			Error("Couldn't open %s", name);
-		SafeWrite (planeout, g_mapplanes.data(), g_nummapplanes * sizeof (plane_t));
+		SafeWrite (planeout, g_mapplanes.data(), g_nummapplanes * sizeof (mapplane_t));
 		fclose (planeout);
 	}
     for (i = 0; i < g_nummapplanes; i++, mp++, dp++)
@@ -2271,28 +2271,28 @@ int             main(const int argc, char** argv)
 
     WriteBSP(g_Mapname);
 
-    // AJM: debug
-#if 0
-    Log("\n---------------------------------------\n"
-        "Map Plane Usage:\n"
-        "  #  normal             origin             dist   type\n"
-        "    (   x,    y,    z) (   x,    y,    z) (     )\n"
-        );
-    for (i = 0; i < g_nummapplanes; i++)
-    {
-        plane_t* p = &g_mapplanes[i];
+    // Debug
+    if constexpr(false) {
+        Log("\n---------------------------------------\n"
+            "Map Plane Usage:\n"
+            "  #  normal             origin             dist   type\n"
+            "    (   x,    y,    z) (   x,    y,    z) (     )\n"
+            );
+        for (i = 0; i < g_nummapplanes; i++)
+        {
+            mapplane_t* p = &g_mapplanes[i];
 
-        Log(
-        "%3i (%4.0f, %4.0f, %4.0f) (%4.0f, %4.0f, %4.0f) (%5.0f) %i\n",
-        i,     
-        p->normal[1], p->normal[2], p->normal[3],
-        p->origin[1], p->origin[2], p->origin[3],
-        p->dist,
-        p->type
-        );
+            Log(
+            "%3i (%4.0f, %4.0f, %4.0f) (%4.0f, %4.0f, %4.0f) (%5.0f) %i\n",
+            i,     
+            p->normal[1], p->normal[2], p->normal[3],
+            p->origin[1], p->origin[2], p->origin[3],
+            p->dist,
+            p->type
+            );
+        }
+        Log("---------------------------------------\n\n");
     }
-    Log("---------------------------------------\n\n");
-#endif
 
     // elapsed time
     end = I_FloatTime();

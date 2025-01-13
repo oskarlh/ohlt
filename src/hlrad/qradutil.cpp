@@ -504,7 +504,7 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 	Winding zone{*map->texwinding};
 	for (int x = 0; x < 4 && zone.size() > 0; x++)
 	{
-		zone.Clip (clipplanes[x], false);
+		zone.mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false);
 	}
 	if (zone.size() == 0)
 	{

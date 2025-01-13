@@ -15,6 +15,8 @@
 #include "winding.h"
 #include "cmdlinecfg.h"
 
+extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
+
 #define ENTITIES_VOID "entities.void"
 #define ENTITIES_VOID_EXT ".void"
 
@@ -102,7 +104,7 @@ surfchain_t;
 
 struct side_t {
 	side_t* next;
-	dplane_t plane; // Facing inside (reversed when loading brush file)
+	mapplane_t plane; // Facing inside (reversed when loading brush file)
 	Winding* w; // (Also reversed)
 };
 
@@ -167,7 +169,7 @@ extern int      GetEdge(const vec3_t p1, const vec3_t p2, face_t* f);
 // portals.c
 typedef struct portal_s
 {
-    dplane_t        plane;
+    mapplane_t        plane;
     node_t*         onnode;                                // NULL = outside box
     node_t*         nodes[2];                              // [0] = front side of plane
     struct portal_s* next[2];
@@ -222,7 +224,7 @@ extern side_t *	NewSideFromSide (const side_t *s);
 extern brush_t *AllocBrush ();
 extern void		FreeBrush (brush_t *b);
 extern brush_t *NewBrushFromBrush (const brush_t *b);
-extern void		SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **back);
+extern void		SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t **back);
 extern brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs);
 extern void		CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs);
 
@@ -276,4 +278,4 @@ extern bool     g_bUseNullTex;
 extern bool		g_nohull2;
 
 extern face_t*  NewFaceFromFace(const face_t* const in);
-extern void     SplitFace(face_t* in, const dplane_t* const split, face_t** front, face_t** back);
+extern void     SplitFace(face_t* in, const mapplane_t* const split, face_t** front, face_t** back);

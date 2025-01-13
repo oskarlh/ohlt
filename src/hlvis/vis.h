@@ -32,11 +32,10 @@ struct winding_t
     vec3_array points[MAX_POINTS_ON_FIXED_WINDING];
 };
 
-typedef struct
-{
-    vec3_array          normal;
-    float           dist;
-} plane_t;
+struct hlvis_plane_t {
+    vec3_array normal;
+    float dist;
+};
 
 typedef enum
 { 
@@ -47,7 +46,7 @@ typedef enum
 
 typedef struct
 {
-    plane_t         plane;                                 // normal pointing into neighbor
+    hlvis_plane_t plane;                                 // normal pointing into neighbor
     int             leaf;                                  // neighbor
     winding_t*      winding;
     vstatus_t       status;
@@ -61,7 +60,7 @@ typedef struct
 struct sep_t
 {
     sep_t* next;
-    plane_t plane; // from portal is on positive side
+    hlvis_plane_t plane; // from portal is on positive side
 };
 
 typedef struct passage_s
@@ -92,10 +91,10 @@ typedef struct pstack_s
     winding_t       windings[3];                           // source, pass, temp in any order
     char            freewindings[3];
 
-    const plane_t*  portalplane;
+    const hlvis_plane_t*  portalplane;
 
     int             clipPlaneCount;
-    plane_t*        clipPlane;
+    hlvis_plane_t*        clipPlane;
 } pstack_t;
 
 typedef struct

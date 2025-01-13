@@ -187,7 +187,7 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 		{
 			dplane_t clipplane = planes[x];
 			clipplane.dist += newwidth;
-			newwinding->Clip (clipplane, false);
+			newwinding->mutating_clip(clipplane.normal, clipplane.dist, false);
 		}
 
 		if (newwinding->size() > 0)
@@ -495,7 +495,7 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 	}
 	else
 	{
-		w.Clip (clipplane, false);
+		w.mutating_clip(clipplane.normal, clipplane.dist, false);
 		if (w.size() == 0)
 		{
 			VectorCopy (patch->origin, origin);

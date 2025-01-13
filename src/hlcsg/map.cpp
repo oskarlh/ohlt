@@ -91,7 +91,7 @@ void DeleteCurrentEntity (entity_t *entity)
 // =====================================================================================
 //  TextureAxisFromPlane
 // =====================================================================================
-void            TextureAxisFromPlane(const plane_t* const pln, vec3_t xv, vec3_t yv)
+void            TextureAxisFromPlane(const mapplane_t* const pln, vec3_t xv, vec3_t yv)
 {
     vec_t best = 0;
     std::size_t bestaxis = 0;

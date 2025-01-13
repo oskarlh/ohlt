@@ -63,7 +63,7 @@ bool g_nohull2 = false;
 
 bool g_viewportal = false;
 
-std::array<dplane_t, MAX_INTERNAL_MAP_PLANES> g_dplanes;
+std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 
 
 // =====================================================================================
@@ -206,7 +206,7 @@ face_t*         NewFaceFromFace(const face_t* const in)
 //  SplitFaceTmp
 //      blah
 // =====================================================================================
-static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** front, face_t** back)
+static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t** front, face_t** back)
 {
     vec_t           dists[MAXEDGES + 1];
     int             sides[MAXEDGES + 1];
@@ -254,7 +254,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 		if (in->detaillevel)
 		{
 			// put front face in front node, and back face in back node.
-			const dplane_t *faceplane = &g_dplanes[in->planenum];
+			const mapplane_t *faceplane = &g_mapplanes[in->planenum];
 			if (DotProduct (faceplane->normal, split->normal) > NORMAL_EPSILON) // usually near 1.0 or -1.0
 			{
 				*front = in;
@@ -403,7 +403,7 @@ static void     SplitFaceTmp(face_t* in, const dplane_t* const split, face_t** f
 //  SplitFace
 //      blah
 // =====================================================================================
-void            SplitFace(face_t* in, const dplane_t* const split, face_t** front, face_t** back)
+void            SplitFace(face_t* in, const mapplane_t* const split, face_t** front, face_t** back)
 {
     SplitFaceTmp(in, split, front, back);
 
@@ -542,13 +542,13 @@ brush_t *NewBrushFromBrush (const brush_t *b)
 	return newb;
 }
 
-void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
+void ClipBrush (brush_t **b, const mapplane_t *split, vec_t epsilon)
 {
 	side_t *s, **pnext;
 	Winding *w;
 	for (pnext = &(*b)->sides, s = *pnext; s; s = *pnext)
 	{
-		if (s->w->Clip (*split, false, epsilon))
+		if (s->w->mutating_clip(split->normal, split->dist, false, epsilon))
 		{
 			pnext = &s->next;
 		}
@@ -567,7 +567,7 @@ void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
 	w = new Winding (*split);
 	for (s = (*b)->sides; s; s = s->next)
 	{
-		if (!w->Clip (s->plane, false, epsilon))
+		if (!w->mutating_clip(s->plane.normal, s->plane.dist, false, epsilon))
 		{
 			break;
 		}
@@ -587,7 +587,7 @@ void ClipBrush (brush_t **b, const dplane_t *split, vec_t epsilon)
 	return;
 }
 
-void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **back)
+void SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t **back)
 	// 'in' will be freed
 {
 	in->next = nullptr;
@@ -637,8 +637,8 @@ void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **
 	}
 	*front = in;
 	*back = NewBrushFromBrush (in);
-	dplane_t frontclip = *split;
-	dplane_t backclip = *split;
+	mapplane_t frontclip = *split;
+	mapplane_t backclip = *split;
     backclip.normal = negate_vector(backclip.normal);
 	backclip.dist = -backclip.dist;
 	ClipBrush (front, &frontclip, NORMAL_EPSILON);
@@ -649,7 +649,7 @@ void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **
 brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
 {
 	brush_t *b = AllocBrush ();
-	dplane_t planes[6];
+	mapplane_t planes[6];
 	for (int k = 0; k < 3; k++)
 	{
 		VectorFill (planes[k].normal, 0.0);
@@ -944,7 +944,7 @@ static surfchain_t* ReadSurfs(FILE* file)
             VectorCopy(v, f->pts[i]);
 			 if (DEVELOPER_LEVEL_MEGASPAM <= g_developer)
 			 {
-				const dplane_t *plane = &g_dplanes[f->planenum];
+				const mapplane_t *plane = &g_mapplanes[f->planenum];
 				inaccuracy = fabs (DotProduct (f->pts[i], plane->normal) - plane->dist);
 				inaccuracy_count++;
 				inaccuracy_total += inaccuracy;
@@ -1002,7 +1002,7 @@ static brush_t *ReadBrushes (FILE *file)
 			}
 			side_t *s;
 			s = AllocSide ();
-			s->plane = g_dplanes[planenum ^ 1];
+			s->plane = g_mapplanes[planenum ^ 1];
 			s->w = new Winding (numpoints);
 			int x;
 			for (x = 0; x < numpoints; x++)
@@ -1455,26 +1455,22 @@ static void     ProcessFile(const char* const filename, bsp_data& bspData)
 		if (!planefile)
 		{
 			Warning("Couldn't open %s", name);
-#undef dplane_t
-#undef g_dplanes
 			for (i = 0; i < g_numplanes; i++)
 			{
-				plane_t *mp = &g_mapplanes[i];
+				mapplane_t *mp = &g_mapplanes[i];
 				dplane_t *dp = &g_dplanes[i];
 				VectorCopy (dp->normal, mp->normal);
 				mp->dist = dp->dist;
 				mp->type = dp->type;
 			}
-#define dplane_t plane_t
-#define g_dplanes g_mapplanes
 		}
 		else
 		{
-			if (q_filelength (planefile) != g_numplanes * sizeof (dplane_t))
+			if (q_filelength (planefile) != g_numplanes * sizeof (mapplane_t))
 			{
 				Error ("Invalid plane data");
 			}
-			SafeRead (planefile, g_dplanes.data(), g_numplanes * sizeof (dplane_t));
+			SafeRead (planefile, g_mapplanes.data(), g_numplanes * sizeof (mapplane_t));
 			fclose (planefile);
 		}
 	}

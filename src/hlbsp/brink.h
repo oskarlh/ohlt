@@ -18,7 +18,7 @@ struct bpartition_t {
 };
 
 struct bclipnode_t {
-	const dplane_t *plane;
+	const mapplane_t *plane;
 	bclipnode_t *children[2]; // children[0] is the front side of the plane (SIDE_FRONT = 0)
 	bpartition_t *partitions;
 	btreeleaf_t *treeleaf;
@@ -67,7 +67,7 @@ struct bbrinknode_t {
 	bool isleaf;
 
 	int planenum;
-	const dplane_t *plane;
+	const mapplane_t *plane;
 	int children[2];
 
 	int content;

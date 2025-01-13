@@ -3,7 +3,7 @@
 
 #include <span>
 
-std::array<plane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes{};
+std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes{};
 int             g_nummapplanes;
 hullshape_t		g_defaulthulls[NUM_HULLS]{};
 std::vector<hullshape_t> g_hullshapes{};
@@ -23,8 +23,8 @@ constexpr vec_t FLOOR_Z = 0.7; // Quake default
 static int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 {
     int             returnval;
-    plane_t*        p;
-    plane_t         temp;
+    mapplane_t*        p;
+    mapplane_t         temp;
     vec_t           t;
 
 	returnval = 0;
@@ -432,7 +432,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	// step 1: for collision between player vertex and brush face. --vluzacn
 	for(bface_t& current_face : brush->hulls[0].faces)
 	{
-		plane_t* current_plane = current_face.plane;
+		mapplane_t* current_plane = current_face.plane;
 
 		//don't bother adding axial planes,
 		//they're defined by adding the bounding box anyway
@@ -504,7 +504,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 		
 		for(bface_t& current_face : brush->hulls[0].faces)
 		{
-			plane_t* current_plane = current_face.plane;
+			mapplane_t* current_plane = current_face.plane;
 
 			//test to see if the plane is completely non-axial (if it is, need to add bevels to any
 			//existing "inflection edges" where there's a sign change with a neighboring plane's normal for
@@ -516,7 +516,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			//must be added for each sign change in the edge.
 
 			// For non-axial bevel testing
-			plane_t* other_plane;
+			mapplane_t* other_plane;
 			unsigned int counter, counter2, dir;
 			bool warned = false;
 			
@@ -684,7 +684,7 @@ restart:
             {
                 continue;
             }
-            const plane_t* p = &g_mapplanes[f2.planenum ^ 1];
+            const mapplane_t* p = &g_mapplanes[f2.planenum ^ 1];
             if (!w.Chop(p->normal, p->dist
 				, NORMAL_EPSILON  // fix "invalid brush" in ExpandBrush
 				))   // Nothing left to chop (getArea will return 0 for us in this case for below)
@@ -1102,7 +1102,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 
 	hullbrush_t *hb;
 	int numplanes;
-	plane_t planes[MAXSIZE];
+	mapplane_t planes[MAXSIZE];
 	Winding *w[MAXSIZE];
 	int numedges;
 	hullbrushedge_t edges[MAXSIZE];

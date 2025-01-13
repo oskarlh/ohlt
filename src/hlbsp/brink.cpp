@@ -76,7 +76,7 @@ void PrintBrink (const bbrink_t& b)
 	}
 }
 
-void BrinkSplitClipnode (bbrink_t *b, const dplane_t *plane, int planenum, bclipnode_t *prev, bclipnode_t *n0, bclipnode_t *n1)
+void BrinkSplitClipnode (bbrink_t *b, const mapplane_t *plane, int planenum, bclipnode_t *prev, bclipnode_t *n0, bclipnode_t *n1)
 {
 	int found{0};
 	int numfound{0};
@@ -179,7 +179,7 @@ struct btreeedge_t {
 };
 
 struct btreeface_t {
-	const dplane_t *plane; // not defined for infinite face
+	const mapplane_t *plane; // not defined for infinite face
 	btreeedge_l *edges; // empty faces are allowed (in order to preserve topological correctness)
 	btreeleaf_r leafs[2]; // pointing from leafs[0] to leafs[1] // this is a reversed reference
 
@@ -554,7 +554,7 @@ void DeleteLeaf (int &numobjects, btreeleaf_t *tl)
 	numobjects--;
 }
 
-void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const dplane_t *plane, int planenum, vec_t epsilon, btreeleaf_t *&front, btreeleaf_t *&back, bclipnode_t *c0, bclipnode_t *c1)
+void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, int planenum, vec_t epsilon, btreeleaf_t *&front, btreeleaf_t *&back, bclipnode_t *c0, bclipnode_t *c1)
 {
 	btreeface_l::iterator fi;
 	btreeedge_l::iterator ei;
@@ -1028,7 +1028,7 @@ bclipnode_t *ExpandClipnodes_r (bclipnode_t *bclipnodes, int &numbclipnodes, con
 	{
 		c->isleaf = false;
 		c->planenum = clipnodes[headnode].planenum;
-		c->plane = &g_dplanes[c->planenum];
+		c->plane = &g_mapplanes[c->planenum];
 		for (int k = 0; k < 2; k++)
 		{
 			c->children[k] = ExpandClipnodes_r (bclipnodes, numbclipnodes, clipnodes, clipnodes[headnode].children[k]);
@@ -1343,7 +1343,7 @@ bool AddPartition (bclipnode_t *clipnode, int planenum, bool planeside, int cont
 			for (side = 0; side < 2; side++)
 			{
 				btreepoint_t *tp = GetPointFromEdge (ei->e, side);
-				const dplane_t *plane = &g_dplanes[planenum];
+				const mapplane_t *plane = &g_mapplanes[planenum];
 				vec_t dist = DotProduct (tp->v, plane->normal) - plane->dist;
 				if (planeside ? dist < -ON_EPSILON: dist > ON_EPSILON)
 				{
