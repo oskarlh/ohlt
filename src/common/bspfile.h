@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <filesystem>
 #include <vector>
-#undef WW
 
 // upper design bounds
 

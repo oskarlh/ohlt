@@ -21,7 +21,7 @@ enum class face_side {
   front = 0,
   back = 1,
   on = 2,
-  cross = -2 // Why is this -2?
+  cross = 3
 };
 
 enum class one_sided_winding_division_result {
