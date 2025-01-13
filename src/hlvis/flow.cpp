@@ -45,7 +45,7 @@ inline static void     FreeStackWinding(const winding_t* const w, pstack_t* cons
 inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, const hlvis_plane_t* const split)
 {
     vec_t           dists[128];
-    int             sides[128];
+    side sides[128];
     int             counts[3];
     vec_t           dot;
     int             i;
@@ -67,17 +67,17 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
         dists[i] = dot;
         if (dot > ON_EPSILON)
         {
-            sides[i] = SIDE_FRONT;
+            sides[i] = side::front;
         }
         else if (dot < -ON_EPSILON)
         {
-            sides[i] = SIDE_BACK;
+            sides[i] = side::back;
         }
         else
         {
-            sides[i] = SIDE_ON;
+            sides[i] = side::on;
         }
-        counts[sides[i]]++;
+        counts[std::size_t(sides[i])]++;
     }
 
     if (!counts[1])
@@ -109,19 +109,19 @@ inline winding_t*      ChopWinding(winding_t* const in, pstack_t* const stack, c
             return in;                                     // can't chop -- fall back to original
         }
 
-        if (sides[i] == SIDE_ON)
+        if (sides[i] == side::on)
         {
             VectorCopy(p1, neww->points[neww->numpoints]);
             neww->numpoints++;
             continue;
         }
-        else if (sides[i] == SIDE_FRONT)
+        else if (sides[i] == side::front)
         {
             VectorCopy(p1, neww->points[neww->numpoints]);
             neww->numpoints++;
         }
 
-        if ((sides[i + 1] == SIDE_ON) | (sides[i + 1] == sides[i])) // | instead of || for branch optimization
+        if ((sides[i + 1] == side::on) | (sides[i + 1] == sides[i])) // | instead of || for branch optimization
         {
             continue;
         }

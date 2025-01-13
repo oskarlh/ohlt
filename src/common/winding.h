@@ -24,12 +24,6 @@ enum class side {
   cross = -2 // Why is this -2?
 };
 
-#define	SIDE_FRONT		0
-#define	SIDE_ON			2
-#define	SIDE_BACK		1
-#define	SIDE_CROSS		-2
-
-
 enum class one_sided_winding_division_result {
   all_in_the_back,
   all_in_the_front
@@ -71,9 +65,7 @@ public:
     std::size_t size() const;
 
     // Specialized Functions
-    void            RemoveColinearPoints(
-		vec_t epsilon = ON_EPSILON
-		);
+    void            RemoveColinearPoints(vec_t epsilon = ON_EPSILON);
     bool mutating_clip(const vec3_array& normal, vec_t dist, bool keepon, vec_t epsilon = ON_EPSILON);
     void Clip(const dplane_t& split, Winding& front, Winding& back
 		, vec_t epsilon = ON_EPSILON

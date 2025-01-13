@@ -58,7 +58,7 @@ static void UpdateStatus(void)
 //  FaceSide
 //      For BSP hueristic
 // =====================================================================================
-static int      FaceSide(face_t* in, const mapplane_t* const split
+static side FaceSide(face_t* in, const mapplane_t* const split
 						 , double *epsilonsplit = nullptr
 						 )
 {
@@ -108,7 +108,7 @@ static int      FaceSide(face_t* in, const mapplane_t* const split
 			if (epsilonsplit)
 				(*epsilonsplit)++;
 		}
-		return SIDE_BACK;
+		return side::back;
 	}
 	if (d_back >= -ON_EPSILON)
 	{
@@ -117,14 +117,14 @@ static int      FaceSide(face_t* in, const mapplane_t* const split
 			if (epsilonsplit)
 				(*epsilonsplit)++;
 		}
-		return SIDE_FRONT;
+		return side::front;
 	}
 	if (d_front < epsilonmax || d_back > -epsilonmax)
 	{
 		if (epsilonsplit)
 			(*epsilonsplit)++;
 	}
-	return SIDE_ON;
+	return side::on;
 }
 
 // organize all surfaces into a tree structure to accelerate intersection test
@@ -469,15 +469,16 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 			}
 			switch (FaceSide (f, plane))
 			{
-			case SIDE_FRONT:
+			case side::front:
 				frontcount++;
 				break;
-			case SIDE_BACK:
+			case side::back:
 				backcount++;
 				break;
-			case SIDE_ON:
+			case side::on:
 				crosscount++;
 				break;
+			case side::cross:
 			}
 		}
 
@@ -592,16 +593,17 @@ static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& min
 					, &epsilonsplit
 					))
 				{
-				case SIDE_FRONT:
+				case side::front:
 					frontcount++;
 					break;
-				case SIDE_BACK:
+				case side::back:
 					backcount++;
 					break;
-				case SIDE_ON:
+				case side::on:
 					totalsplit++;
 					crosscount++;
 					break;
+				case side::cross:
 				}
 			}
 		}

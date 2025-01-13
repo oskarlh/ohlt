@@ -163,7 +163,7 @@ struct btreepoint_t {
 	btreeedge_l *edges; // this is a reversed reference
 	vec3_array v;
 	vec_t tmp_dist;
-	int tmp_side;
+	side tmp_side;
 	bool infinite;
 	bool tmp_tested;
 };
@@ -172,7 +172,7 @@ struct btreeedge_t {
 	btreeface_l *faces; // this is a reversed reference
 	bbrink_t *brink; // not defined for infinite edges
 	btreepoint_r points[2]; // pointing from points[1] to points[0]
-	int tmp_side;
+	side tmp_side;
 	bool infinite; // both points are infinite (i.e. this edge lies on the bounding box)
 	bool tmp_tested;
 	bool tmp_onleaf[2];
@@ -184,7 +184,7 @@ struct btreeface_t {
 	btreeleaf_r leafs[2]; // pointing from leafs[0] to leafs[1] // this is a reversed reference
 
 	int planenum;
-	int tmp_side;
+	side tmp_side;
 	bool infinite; // when the face is infinite, all its edges must also be infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
@@ -596,21 +596,16 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				tp->tmp_dist = dist;
 				if (dist > epsilon)
 				{
-					tp->tmp_side = SIDE_FRONT;
+					tp->tmp_side = side::front;
 				}
 				else if (dist < -epsilon)
 				{
-					tp->tmp_side = SIDE_BACK;
+					tp->tmp_side = side::back;
 				}
 				else
 				{
-					tp->tmp_side = SIDE_ON;
+					tp->tmp_side = side::on;
 				}
-#if 0
-				// let's mess up something and see whether the code is fragile or robust
-				static int randcounter = 0;
-				if (randcounter++ % 8 == 0) tp->tmp_side = randcounter % 3;
-#endif
 			}
 		}
 	}
@@ -627,29 +622,29 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				continue;
 			}
 			te->tmp_tested = true;
-			te->tmp_side = SIDE_ON;
+			te->tmp_side = side::on;
 			for (int side = 0; side < 2; side++)
 			{
 				btreepoint_t *tp = GetPointFromEdge (te, side);
-				if (te->tmp_side == SIDE_ON)
+				if (te->tmp_side == side::on)
 				{
 					te->tmp_side = tp->tmp_side;
 				}
-				else if (tp->tmp_side != SIDE_ON && tp->tmp_side != te->tmp_side)
+				else if (tp->tmp_side != side::on && tp->tmp_side != te->tmp_side)
 				{
-					te->tmp_side = SIDE_CROSS;
+					te->tmp_side = side::cross;
 				}
 			}
 			// The plane does not necessarily split the leaf into two, because of epsilon problem etc., and this will cause "Error: CollectBrinks_r: not leaf" on some maps.
 			// In addition, by the time of this step (split edges), the plane has not splitted the leaf yet, so splitting the brink leafs now will break the integrety of the entire geometry. (We want the four steps to be as independent on each other as possible, that is, the entire geometry remains valid after each step.)
-			if (te->tmp_side == SIDE_CROSS)
+			if (te->tmp_side == side::cross)
 			{
 				btreepoint_t *tp0 = GetPointFromEdge (te, false);
 				btreepoint_t *tp1 = GetPointFromEdge (te, true);
 				btreepoint_t *tpmid = AllocTreepoint (numobjects, te->infinite);
 				tpmid->tmp_tested = true;
 				tpmid->tmp_dist = 0;
-				tpmid->tmp_side = SIDE_ON;
+				tpmid->tmp_side = side::on;
 				vec_t frac = tp0->tmp_dist / (tp0->tmp_dist - tp1->tmp_dist);
 				for (int k = 0; k < 3; k++)
 				{
@@ -697,19 +692,19 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			continue;
 		}
 		tf->tmp_tested = true;
-		tf->tmp_side = SIDE_ON;
+		tf->tmp_side = side::on;
 		for (ei = tf->edges->begin (); ei != tf->edges->end (); ei++)
 		{
-			if (tf->tmp_side == SIDE_ON)
+			if (tf->tmp_side == side::on)
 			{
 				tf->tmp_side = ei->e->tmp_side;
 			}
-			else if (ei->e->tmp_side != SIDE_ON && ei->e->tmp_side != tf->tmp_side)
+			else if (ei->e->tmp_side != side::on && ei->e->tmp_side != tf->tmp_side)
 			{
-				tf->tmp_side = SIDE_CROSS;
+				tf->tmp_side = side::cross;
 			}
 		}
-		if (tf->tmp_side == SIDE_CROSS)
+		if (tf->tmp_side == side::cross)
 		{
 			btreeface_t *frontface, *backface;
 			frontface = AllocTreeface (numobjects, tf->infinite);
@@ -721,7 +716,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			}
 			SetFaceLeafs (frontface, GetLeafFromFace (tf, false), GetLeafFromFace (tf, true));
 			frontface->tmp_tested = true;
-			frontface->tmp_side = SIDE_FRONT;
+			frontface->tmp_side = side::front;
 			backface = AllocTreeface (numobjects, tf->infinite);
 			if (!tf->infinite)
 			{
@@ -731,13 +726,13 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			}
 			SetFaceLeafs (backface, GetLeafFromFace (tf, false), GetLeafFromFace (tf, true));
 			backface->tmp_tested = true;
-			backface->tmp_side = SIDE_BACK;
+			backface->tmp_side = side::back;
 
 			std::map< btreepoint_t *, int > vertexes;
 			std::map< btreepoint_t *, int >::iterator vertex, vertex2;
 			for (ei = tf->edges->begin (); ei != tf->edges->end (); ei++)
 			{
-				if (ei->e->tmp_side != SIDE_BACK)
+				if (ei->e->tmp_side != side::back)
 				{
 					AttachEdgeToFace (frontface, ei->e, ei->side);
 				}
@@ -792,9 +787,9 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				{
 					Developer (DEVELOPER_LEVEL_WARNING, "SplitTreeLeaf: got deformed edge from split\n");
 				}
-				if (vertex->first->tmp_side != SIDE_ON || vertex2->first->tmp_side != SIDE_ON)
+				if (vertex->first->tmp_side != side::on || vertex2->first->tmp_side != side::on)
 				{
-					PrintOnce ("SplitTreeLeaf: internal error: tmp_side != SIDE_ON");
+					PrintOnce ("SplitTreeLeaf: internal error: tmp_side != side::on");
 					hlassume (false, assume_first);
 				}
 
@@ -812,7 +807,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 					BrinkSplitClipnode (te->brink, tf->plane, tf->planenum, nullptr, GetLeafFromFace (tf, tf->planeside)->clipnode, GetLeafFromFace (tf, !tf->planeside)->clipnode);
 				}
 				te->tmp_tested = true;
-				te->tmp_side = SIDE_ON;
+				te->tmp_side = side::on;
 				AttachEdgeToFace (frontface, te, false);
 				AttachEdgeToFace (backface, te, true);
 
@@ -841,16 +836,16 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 		front->clipnode = c0;
 		back->clipnode = c1;
 
-		int tmp_side = SIDE_ON;
+		side tmp_side = side::on;
 		for (fi = tl->faces->begin (); fi != tl->faces->end (); fi++)
 		{
-			if (tmp_side == SIDE_ON)
+			if (tmp_side == side::on)
 			{
 				tmp_side = fi->f->tmp_side;
 			}
-			else if (fi->f->tmp_side != SIDE_ON && fi->f->tmp_side != tmp_side)
+			else if (fi->f->tmp_side != side::on && fi->f->tmp_side != tmp_side)
 			{
-				tmp_side = SIDE_CROSS;
+				tmp_side = side::cross;
 			}
 		}
 		
@@ -864,15 +859,15 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			RemoveFaceFromLeaf (tl, tf, side); // because we can only store 2 leafs for a face
 			
 			// fi is unusable now
-			if (tf->tmp_side == SIDE_FRONT || (tf->tmp_side == SIDE_ON && tmp_side != SIDE_BACK))
+			if (tf->tmp_side == side::front || (tf->tmp_side == side::on && tmp_side != side::back))
 			{
 				AttachFaceToLeaf (front, tf, side);
 			}
-			else if (tf->tmp_side == SIDE_BACK || (tf->tmp_side == SIDE_ON && tmp_side == SIDE_BACK))
+			else if (tf->tmp_side == side::back || (tf->tmp_side == side::on && tmp_side == side::back))
 			{
 				AttachFaceToLeaf (back, tf, side);
 
-				if (tmp_side == SIDE_CROSS)
+				if (tmp_side == side::cross)
 				{
 					for (ei = tf->edges->begin (); ei != tf->edges->end (); ei++)
 					{
@@ -887,7 +882,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			}
 		}
 
-		if (tmp_side == SIDE_CROSS)
+		if (tmp_side == side::cross)
 		{
 			btreeface_t *tf;
 			tf = AllocTreeface (numobjects, tl->infinite);
@@ -898,11 +893,11 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				tf->planeside = false;
 			}
 			tf->tmp_tested = true;
-			tf->tmp_side = SIDE_ON;
+			tf->tmp_side = side::on;
 			SetFaceLeafs (tf, front, back);
 			for (edge = edges.begin (); edge != edges.end (); edge++)
 			{
-				if (edge->first->tmp_side != SIDE_ON)
+				if (edge->first->tmp_side != side::on)
 				{
 					PrintOnce ("SplitTreeLeaf: internal error");
 					hlassume (false, assume_first);
@@ -957,7 +952,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 					{
 						if (ei->e->tmp_onleaf[0] && ei->e->tmp_onleaf[1])
 						{
-							if (ei->e->tmp_side != SIDE_ON)
+							if (ei->e->tmp_side != side::on)
 							{
 								PrintOnce ("SplitTreeLeaf: internal error");
 								hlassume (false, assume_first);
@@ -966,7 +961,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 						}
 						else if (ei->e->tmp_onleaf[0])
 						{
-							if (ei->e->tmp_side == SIDE_BACK)
+							if (ei->e->tmp_side == side::back)
 							{
 								PrintOnce ("SplitTreeLeaf: internal error");
 								hlassume (false, assume_first);
@@ -975,7 +970,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 						}
 						else if (ei->e->tmp_onleaf[1])
 						{
-							if (ei->e->tmp_side == SIDE_FRONT)
+							if (ei->e->tmp_side == side::front)
 							{
 								PrintOnce ("SplitTreeLeaf: internal error");
 								hlassume (false, assume_first);

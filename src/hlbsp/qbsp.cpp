@@ -209,7 +209,7 @@ face_t*         NewFaceFromFace(const face_t* const in)
 static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t** front, face_t** back)
 {
     vec_t           dists[MAXEDGES + 1];
-    int             sides[MAXEDGES + 1];
+    side sides[MAXEDGES + 1];
     int             counts[3];
     vec_t           dot;
     int             i;
@@ -234,17 +234,17 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
         dists[i] = dot;
         if (dot > ON_EPSILON)
         {
-            sides[i] = SIDE_FRONT;
+            sides[i] = side::front;
         }
         else if (dot < -ON_EPSILON)
         {
-            sides[i] = SIDE_BACK;
+            sides[i] = side::back;
         }
         else
         {
-            sides[i] = SIDE_ON;
+            sides[i] = side::on;
         }
-        counts[sides[i]]++;
+        counts[std::size_t(sides[i])]++;
     }
     sides[i] = sides[0];
     dists[i] = dists[0];
@@ -309,7 +309,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
 
         const vec3_array& p1 {in->pts[i]};
 
-        if (sides[i] == SIDE_ON)
+        if (sides[i] == side::on)
         {
             VectorCopy(p1, newf->pts[newf->numpoints]);
             newf->numpoints++;
@@ -318,7 +318,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
             continue;
         }
 
-        if (sides[i] == SIDE_FRONT)
+        if (sides[i] == side::front)
         {
             VectorCopy(p1, new2->pts[new2->numpoints]);
             new2->numpoints++;
@@ -329,7 +329,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
             newf->numpoints++;
         }
 
-        if (sides[i + 1] == SIDE_ON || sides[i + 1] == sides[i])
+        if (sides[i + 1] == side::on || sides[i + 1] == sides[i])
         {
             continue;
         }
