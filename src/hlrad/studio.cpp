@@ -3,19 +3,18 @@
 #include "filelib.h"
 #include "utf8.h"
 
-#define MAX_MODELS		1024
+constexpr std::size_t MAX_MODELS = 10'000;
 
-model_t models[MAX_MODELS];
-int num_models;
+static std::vector<model_t> models;
 
 static void LoadStudioModel( const char *modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, trace_method trace_mode )
 {
-	if( num_models >= MAX_MODELS )
+	if( models.size() >= MAX_MODELS )
 	{
 		Developer( DEVELOPER_LEVEL_ERROR, "LoadStudioModel: MAX_MODELS exceeded\n" );
 		return;
 	}
-	model_t *m = &models[num_models];
+	model_t *m = &models.emplace_back();
 	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, modelname);
 	FlipSlashes(m->name);
 
@@ -86,17 +85,13 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 	m->skin = skin;
 
 	m->mesh.StudioConstructMesh( m );
-
-	num_models++;
 }
 
 // =====================================================================================
 //  LoadStudioModels
 // =====================================================================================
-void LoadStudioModels( void )
-{
-	memset( models, 0, sizeof( models ));
-	num_models = 0;
+void LoadStudioModels() {
+	models.clear();
 
 	if( !g_studioshadow ) return;
 
@@ -167,24 +162,24 @@ void LoadStudioModels( void )
 		LoadStudioModel( model, origin, angles, xform, body, skin, trace_mode );
 	}
 
-	Log( "%i opaque studio models\n", num_models );
+	Log( "%zu opaque studio models\n", models.size() );
 }
 
-void FreeStudioModels( void )
+void FreeStudioModels()
 {
-	for( int i = 0; i < num_models; i++ )
+	for( int i = 0; i < models.size(); i++ )
 	{
-		model_t *m = &models[i];
+		model_t& m = models[i];
 
 		// first, delete the mesh
-		m->mesh.FreeMesh();
+		m.mesh.FreeMesh();
 
 		// unload the model
-		Free( m->extradata );
+		Free( m.extradata );
 	}
 
-	memset( models, 0, sizeof( models ));
-	num_models = 0;
+
+	models.clear();
 }
 
 static void MoveBounds( const float3_array& start, const float3_array& mins, const float3_array& maxs, const float3_array& end, float3_array& outmins, float3_array& outmaxs )
@@ -206,13 +201,15 @@ static void MoveBounds( const float3_array& start, const float3_array& mins, con
 
 bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p2 )
 {
-	if( !num_models ) return false; // easy out
+	if(models.empty()) {
+		return false; // Easy out
+	}
 
-	float3_array	trace_mins, trace_maxs;
+	float3_array trace_mins, trace_maxs;
 
 	MoveBounds( p1, vec3_origin, vec3_origin, p2, trace_mins, trace_maxs );
 
-	for( int i = 0; i < num_models; i++ )
+	for( std::size_t i = 0; i < models.size(); ++i )
 	{
 		model_t *m = &models[i];
 

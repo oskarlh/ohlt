@@ -24,19 +24,10 @@ constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
 constexpr float SIMPLIFICATION_FACTOR_MED{0.55f};
 constexpr float SIMPLIFICATION_FACTOR_LOW{0.85f};
 
-CMeshDesc :: CMeshDesc() {
-	m_mesh = {};
+CMeshDesc :: CMeshDesc() {}
 
-	m_debugName = nullptr;
-	planehash = nullptr;
-	planepool = nullptr;
-	facets = nullptr;
-	m_iNumTris = 0;
-}
-
-CMeshDesc :: ~CMeshDesc()
-{
-	FreeMesh ();
+CMeshDesc :: ~CMeshDesc() {
+	FreeMesh();
 }
 
 void CMeshDesc :: InsertLinkBefore( link_t *l, link_t *before )
@@ -98,7 +89,13 @@ areanode_t *CMeshDesc::CreateAreaNode(int depth, const vec3_array& mins, const v
 	return anode;
 }
 
-void CMeshDesc :: FreeMesh( void )
+void CMeshDesc::clear() {
+	FreeMesh();
+	m_debugName = nullptr;
+
+}
+
+void CMeshDesc::FreeMesh()
 {
 	if( m_mesh.numfacets <= 0 )
 		return;
@@ -128,9 +125,8 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 	else if( numTriangles >= 16384 )
 		Developer( DEVELOPER_LEVEL_WARNING, "%s have too many triangles (%i)\n", m_debugName, numTriangles );
 
-	if( numTriangles >= 256 )
-		has_tree = true;	// too many triangles invoke to build AABB tree
-	else has_tree = false;
+	// Too many triangles invoke AABB tree construction
+	has_tree = numTriangles >= 256;
 
 	ClearBounds( m_mesh.mins, m_mesh.maxs );
 
@@ -141,7 +137,7 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 
 	// create pools for construct mesh
 	facets = std::make_unique<mfacet_t[]>(numTriangles);
-	planehash = std::make_unique<hashplane_t_pointer[]>(PLANE_HASHES);
+	planehash = std::make_unique<std::uint32_t[]>(PLANE_HASHES);
 	planepool = std::make_unique<hashplane_t[]>(MAX_PLANES);
 
 	mplane_t	badplane;
@@ -166,9 +162,8 @@ bool CMeshDesc :: PlaneEqual( const mplane_t *p0, const mplane_t *p1 )
 	return false;
 }
 
-uint CMeshDesc :: AddPlaneToPool( const mplane_t *pl )
+std::uint32_t CMeshDesc :: AddPlaneToPool( const mplane_t *pl )
 {
-	hashplane_t *p;
 	int hash;
 
 	// trying to find equal plane
@@ -179,10 +174,10 @@ uint CMeshDesc :: AddPlaneToPool( const mplane_t *pl )
 	for( int i = -1; i <= 1; i++ )
 	{
 		int h = (hash + i) & (PLANE_HASHES - 1);
-		for( p = planehash[h]; p; p = p->hash )
+		for(std::uint32_t p = planehash[h]; p; p = planepool[p].planePoolIndex )
 		{
-			if( PlaneEqual( &p->pl, pl ))
-				return (uint)(p - planepool.get());	// already exist
+			if( PlaneEqual( &planepool[p].pl, pl ))
+				return p;	// already exist
 		}
 	}
 
@@ -192,10 +187,11 @@ uint CMeshDesc :: AddPlaneToPool( const mplane_t *pl )
 		return 0;	// index of our bad plane
           }
 
-	// create a new one
-	p = &planepool[m_mesh.numplanes++];
-	p->hash = planehash[hash];
-	planehash[hash] = p;
+	// Create a new one
+	std::uint32_t planePoolIndex = m_mesh.numplanes++;
+	hashplane_t* p = &planepool[planePoolIndex];
+	p->planePoolIndex = planehash[hash];
+	planehash[hash] = planePoolIndex;
 
 	// record the new plane
 	p->pl = *pl;
@@ -1030,4 +1026,6 @@ void CMeshDesc :: FreeMeshBuild( void )
 	facets.reset();
 	planehash.reset();
 	planepool.reset();
+	m_iNumTris = 0;
+	m_iTotalPlanes = 0;
 }

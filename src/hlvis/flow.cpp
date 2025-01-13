@@ -533,15 +533,13 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
 // =====================================================================================
 void            PortalFlow(portal_t* p)
 {
-    threaddata_t    data;
-    unsigned        i;
 
     if (p->status != stat_working)
         Error("PortalFlow: reflowed");
 
     p->visbits = (byte*)calloc(1, g_bitbytes);
 
-    memset(&data, 0, sizeof(data));
+    threaddata_t data{};
     data.leafvis = p->visbits;
     data.base = p;
 
@@ -549,8 +547,7 @@ void            PortalFlow(portal_t* p)
     data.pstack_head.portal = p;
     data.pstack_head.source = p->winding;
     data.pstack_head.portalplane = &p->plane;
-    for (i = 0; i < g_bitlongs; i++)
-    {
+    for (std::size_t i = 0; i < g_bitlongs; ++i) {
         ((long*)data.pstack_head.mightsee)[i] = ((long*)p->mightsee)[i];
     }
     RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);

@@ -58,14 +58,14 @@ typedef struct mplane_s
 
 typedef struct hashplane_s
 {
-	mplane_t		pl;
-	struct hashplane_s	*hash;
+	mplane_t pl;
+	std::uint32_t planePoolIndex;
 } hashplane_t;
 
-typedef struct link_s
-{
-	struct link_s	*prev, *next;
-} link_t;
+struct link_t {
+	link_t* prev;
+	link_t* next;
+};
 
 typedef struct areanode_s
 {
@@ -110,27 +110,27 @@ public:
 
 struct model_t; // Forward declaration
 
-class CMeshDesc
-{
+class CMeshDesc {
 private:
-	using hashplane_t_pointer = hashplane_t*;
-
-	mmesh_t		m_mesh;
-	const char	*m_debugName;		// just for debug purpoces
+	mmesh_t		m_mesh{};
+	const char	*m_debugName{nullptr};		// just for debug purpoces
 	std::array<areanode_t, AREA_NODES> areanodes;	// AABB tree for speedup trace test
 	int		numareanodes;
 	bool		has_tree;			// build AABB tree
 	int		m_iTotalPlanes;		// just for stats
-	int		m_iNumTris;		// if > 0 we are in build mode
+	int		m_iNumTris{0};		// if > 0 we are in build mode
 	size_t		mesh_size;		// mesh total size
 
-	// used only while mesh is contsructed
+	// used only while mesh is constructed
 	std::unique_ptr<mfacet_t[]> facets;
-	std::unique_ptr<hashplane_t_pointer[]> planehash;
+	std::unique_ptr<std::uint32_t[]> planehash;
 	std::unique_ptr<hashplane_t[]>	planepool;
 public:
 	CMeshDesc();
+	CMeshDesc(CMeshDesc&&) = default;
 	~CMeshDesc();
+
+	void clear();
 
 	// mesh construction
 	bool InitMeshBuild( const char *debug_name, int numTrinagles ); 

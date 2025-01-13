@@ -573,7 +573,7 @@ extern vec_t	CalcSightArea_SpotLight (const vec3_array& receiver_origin, const v
 extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin);
 
 // studio.cpp
-extern void LoadStudioModels(void);
-extern void FreeStudioModels(void);
+extern void LoadStudioModels();
+extern void FreeStudioModels();
 extern bool TestSegmentAgainstStudioList(const vec3_array& p1, const vec3_array& p2);
 extern bool g_studioshadow;
