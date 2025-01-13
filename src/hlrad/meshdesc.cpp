@@ -133,7 +133,7 @@ bool CMeshDesc :: InitMeshBuild( const char *debug_name, int numTriangles )
 		has_tree = true;	// too many triangles invoke to build AABB tree
 	else has_tree = false;
 
-	ClearBounds( m_mesh.mins.data(), m_mesh.maxs.data() );
+	ClearBounds( m_mesh.mins, m_mesh.maxs );
 
 	memset( areanodes, 0, sizeof( areanodes ));
 	numareanodes = 0;
@@ -792,7 +792,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	numplanes++;
 
 	// calculate mins & maxs
-	ClearBounds( facet->mins.data(), facet->maxs.data() );
+	ClearBounds( facet->mins, facet->maxs );
 
 	for( i = 0; i < 3; i++ )
 	{

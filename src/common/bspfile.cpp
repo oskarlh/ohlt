@@ -880,7 +880,7 @@ void SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value
 //  ValueForKey
 //      returns the value for a passed entity and key
 // =====================================================================================
-const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key) {
+const char8_t* ValueForKey(const entity_t* ent, std::u8string_view key) {
 	const entity_key_value* kv = get_key_value_pointer(*ent, key);
 	if(kv) {
 		return kv->value().data();
@@ -889,7 +889,7 @@ const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key) {
 }
 
 
-std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key) {
+std::u8string_view value_for_key(const entity_t* ent, std::u8string_view key) {
 	const entity_key_value* kv = get_key_value_pointer(*ent, key);
 	if(kv) {
 		return kv->value();
@@ -898,24 +898,28 @@ std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view k
 }
 
 
-bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key) {
+bool key_value_is_not_empty(const entity_t* ent, std::u8string_view key) {
 	return !key_value_is_empty(ent, key);
 }
-bool key_value_is_empty(const entity_t* const ent, std::u8string_view key)
+bool key_value_is_empty(const entity_t* ent, std::u8string_view key)
 {
 	return get_key_value_pointer(*ent, key) == nullptr;
 }
-bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value)
+bool key_value_is(const entity_t* ent, std::u8string_view key, std::u8string_view value)
 {
 	return value_for_key(ent, key) == value;
 }
-bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix)
+bool key_value_starts_with(const entity_t* ent, std::u8string_view key, std::u8string_view prefix)
 {
 	return value_for_key(ent, key).starts_with(prefix);
 }
-bool classname_is(const entity_t* const ent, std::u8string_view classname)
+bool classname_is(const entity_t* ent, std::u8string_view classname)
 {
 	return key_value_is(ent, u8"classname", classname);
+}
+std::u8string_view get_classname(const entity_t* ent)
+{
+	return value_for_key(ent, u8"classname");
 }
 
 

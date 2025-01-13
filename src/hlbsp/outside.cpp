@@ -337,7 +337,7 @@ unsigned        g_nAllowableOutside = 0;
 unsigned        g_maxAllowableOutside = 0;
 char**          g_strAllowableOutsideList;
 
-bool isClassnameAllowableOutside(const char8_t* classname)
+bool isClassnameAllowableOutside(std::u8string_view classname)
 {
     if (g_strAllowableOutsideList)
     {
@@ -446,17 +446,16 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     for (i = 1; i < g_numentities; i++)
     {
         origin = get_vector_for_key(g_entities[i], u8"origin");
-        const char8_t* cl = ValueForKey(&g_entities[i], u8"classname");
+        const std::u8string_view cl = get_classname(&g_entities[i]);
         if (!isClassnameAllowableOutside(cl))
         {
-            /*if (!vectors_almost_sameorigin, vec3_origin))
-			*/ if (*ValueForKey(&g_entities[i], u8"origin")) //--vluzacn
+            if (key_value_is_not_empty(&g_entities[i], u8"origin"))
             {
                 origin[2] += 1;                            // so objects on floor are ok
 
                 // nudge playerstart around if needed so clipping hulls allways
                 // have a vlaid point
-                if (!std::strcmp((const char*) cl, "info_player_start"))
+                if (cl == u8"info_player_start")
                 {
                     int             x, y;
 

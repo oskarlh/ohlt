@@ -173,8 +173,7 @@ public:
 	// check for cache
 	inline mmesh_t *GetMesh() { return &m_mesh; } 
 
-	void ClearBounds( vec3_t mins, vec3_t maxs )
-	{
+	void ClearBounds(vec3_array& mins, vec3_array& maxs ) {
 		// make bogus range
 		mins[0] = mins[1] = mins[2] =  999999.0f;
 		maxs[0] = maxs[1] = maxs[2] = -999999.0f;
