@@ -493,7 +493,7 @@ void GetFaceExtents (int facenum, int mins_out[2], int maxs_out[2])
 			// The essential reason for having this ugly code is to get exactly the same value as the counterpart of game engine.
 			// The counterpart of game engine is the function CalcFaceExtents in HLSDK.
 			// So we must also know how Valve compiles HLSDK. I think Valve compiles HLSDK with VC6.0 in the past.
-			val = CalculatePointVecsProduct (v->point.data(), tex->vecs[j]);
+			val = CalculatePointVecsProduct (v->point.data(), tex->vecs[j].data());
 			if (val < mins[j])
 			{
 				mins[j] = val;

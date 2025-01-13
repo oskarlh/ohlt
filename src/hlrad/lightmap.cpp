@@ -3136,8 +3136,8 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
             if (a1 >= -0.01 && a2 >= -0.01)
             {
                 // calculate distance from edge to pos
-                vec3_t          n1, n2;
-                vec3_t          temp;
+                vec3_array n1;
+				vec3_array n2;
 
 				if (es->smooth)
 					if (s == 0)
@@ -3158,6 +3158,7 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
 
                 // Interpolate between the center and edge normals based on sample position
                 VectorScale(facenormal, 1.0 - a1 - a2, phongnormal);
+				vec3_array temp;
                 VectorScale(n1, a1, temp);
                 VectorAdd(phongnormal, temp, phongnormal);
                 VectorScale(n2, a2, temp);

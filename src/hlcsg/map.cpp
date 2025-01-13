@@ -484,7 +484,7 @@ static void ParseBrush(entity_t* mapent)
 					);
 		}
         char            string[MAXTOKEN];
-        vec3_t          origin;
+        vec3_array origin;
 
         b->contents = CONTENTS_SOLID;
         CreateBrush(mapent->firstbrush + b->brushnum);     // to get sizes

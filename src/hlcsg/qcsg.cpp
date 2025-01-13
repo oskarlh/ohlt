@@ -1447,7 +1447,6 @@ static void     SetModelCenters(int entitynum)
     char            string[MAXTOKEN];
     entity_t*       e = &g_entities[entitynum];
     bounding_box     bounds;
-    vec3_t          center;
 
     if ((entitynum == 0) || (e->numbrushes == 0)) // skip worldspawn and point entities
         return;
@@ -1465,6 +1464,7 @@ static void     SetModelCenters(int entitynum)
         }
     }
 
+    vec3_array center;
     VectorAdd(bounds.mins, bounds.maxs, center);
     VectorScale(center, 0.5, center);
 

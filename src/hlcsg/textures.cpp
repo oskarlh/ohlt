@@ -690,7 +690,7 @@ void LogWadUsage(wadpath_t *currentwad, int nummiptex)
 int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture_t* bt, const vec3_t origin
 					)
 {
-    vec3_t          vecs[2];
+    std::array<vec3_t, 2> vecs;
     int             sv, tv;
     vec_t           ang, sinv, cosv;
     vec_t           ns, nt;
@@ -723,7 +723,7 @@ int             TexinfoForBrushTexture(const plane_t* const plane, brush_texture
 
     if (bt->txcommand)
     {
-        memcpy(tx.vecs, bt->vects.quark.vects, sizeof(tx.vecs));
+        tx.vecs = bt->vects.quark.vects;
         if (origin[0] || origin[1] || origin[2])
         {
             tx.vecs[0][3] += DotProduct(origin, tx.vecs[0]);

@@ -237,7 +237,7 @@ struct dclipnode_t {
 };
 
 struct texinfo_t {
-    float vecs[2][4]; // [s/t][xyz offset]
+    std::array<std::array<float, 4>, 2> vecs; // [s/t][xyz offset]
     std::int32_t miptex;
     std::uint32_t flags;
 };

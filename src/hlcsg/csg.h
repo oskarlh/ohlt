@@ -65,10 +65,9 @@ struct valve_vects
     vec_t scale[2];
 };
 
-typedef struct
-{
-    float           vects[2][4];
-} quark_vects;
+struct quark_vects {
+    std::array<std::array<float, 4>, 2> vects;
+};
 
 typedef union
 {
