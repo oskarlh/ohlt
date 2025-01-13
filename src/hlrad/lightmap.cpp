@@ -71,9 +71,9 @@ intersecttest_t *CreateIntersectTest (const dplane_t *p, int facenum)
 			}
 			VectorAdd (v0, g_face_offset[facenum], v0);
 			VectorAdd (v1, g_face_offset[facenum], v1);
-			VectorSubtract (v1, v0, dir);
+			VectorSubtract(v1, v0, dir);
 			CrossProduct (dir, p->normal, normal); // facing inward
-			if (!VectorNormalize (normal))
+			if (!normalize_vector(normal))
 			{
 				continue;
 			}
@@ -174,8 +174,8 @@ int AddFaceForVertexNormal (const int edgeabs, int &edgeabsnext, const int edgee
 		AddFaceForVertexNormal_printerror (edgeabs, edgeend, f);
 		return -1;
 	}
-	VectorNormalize(vec1);
-	VectorNormalize(vec2);
+	normalize_vector(vec1);
+	normalize_vector(vec2);
 	dot = DotProduct(vec1,vec2);
 	dot = dot>1? 1: dot<-1? -1: dot;
 	angle = acos(dot);
@@ -226,16 +226,16 @@ static bool TranslateTexToTex (int facenum, int edgenum, int facenum2, matrix_t 
 		face2_vert[i][2] = 0;
 	}
 
-	VectorSubtract (face_vert[1], face_vert[0], face_axis[0]);
-	len = VectorLength (face_axis[0]);
+	VectorSubtract(face_vert[1], face_vert[0], face_axis[0]);
+	len = vector_length(face_axis[0]);
 	CrossProduct (v_up, face_axis[0], face_axis[1]);
 	if (CalcMatrixSign (worldtotex) < 0.0) // the three vectors s, t, facenormal are in reverse order
 	{
 		VectorInverse (face_axis[1]);
 	}
 
-	VectorSubtract (face2_vert[1], face2_vert[0], face2_axis[0]);
-	len2 = VectorLength (face2_axis[0]);
+	VectorSubtract(face2_vert[1], face2_vert[0], face2_axis[0]);
+	len2 = vector_length(face2_axis[0]);
 	CrossProduct (v_up, face2_axis[0], face2_axis[1]);
 	if (CalcMatrixSign (worldtotex2) < 0.0)
 	{
@@ -335,11 +335,11 @@ void            PairEdges()
 					{
                         {
                             VectorAdd(normals[0], normals[1], e->interface_normal);
-                            VectorNormalize(e->interface_normal);
+                            normalize_vector(e->interface_normal);
                         }
                     }
                 }
-				if (!VectorCompare (g_translucenttextures[g_texinfo[e->faces[0]->texinfo].miptex], g_translucenttextures[g_texinfo[e->faces[1]->texinfo].miptex]))
+				if (!vectors_almost_same(g_translucenttextures[g_texinfo[e->faces[0]->texinfo].miptex], g_translucenttextures[g_texinfo[e->faces[1]->texinfo].miptex]))
 				{
 					e->coplanar = false;
 					VectorClear (e->interface_normal);
@@ -355,7 +355,7 @@ void            PairEdges()
 						VectorClear (e->interface_normal);
 					}
 				}
-				if (!VectorCompare(e->interface_normal, vec3_origin))
+				if (!vectors_almost_same(e->interface_normal, vec3_array{0, 0, 0}))
 				{
 					e->smooth = true;
 				}
@@ -490,7 +490,7 @@ void            PairEdges()
 					}
 					else
 					{
-						VectorNormalize(normals);
+						normalize_vector(normals);
 						VectorCopy(normals, e->vertex_normal[edgeend]);
 					}
 				}
@@ -499,7 +499,7 @@ void            PairEdges()
 			}
 			if (e->coplanar)
 			{
-				if (!VectorCompare (e->vertex_normal[0], e->interface_normal) || !VectorCompare (e->vertex_normal[1], e->interface_normal))
+				if (!vectors_almost_same(e->vertex_normal[0], e->interface_normal) || !vectors_almost_same(e->vertex_normal[1], e->interface_normal))
 				{
 					e->coplanar = false;
 				}
@@ -711,7 +711,7 @@ static void     CalcFaceVectors(lightinfo_t* l)
     // calculate a normal to the texture axis.  points can be moved along this
     // without changing their S/T
     CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
-    VectorNormalize(texnormal);
+    normalize_vector(texnormal);
 
     // flip it towards plane normal
     distscale = DotProduct(texnormal, l->facenormal);
@@ -740,7 +740,7 @@ static void     CalcFaceVectors(lightinfo_t* l)
     if (distscale < 0)
     {
         distscale = -distscale;
-        VectorSubtract(vec3_origin, texnormal, texnormal);
+		texnormal = negate_vector(texnormal);
     }
 
     // distscale is the ratio of the distance along the texture normal to
@@ -978,8 +978,8 @@ void ChopFrag (samplefrag_t *frag)
 		ApplyMatrix (worldtotex, dv2->point, tmp);
 		ApplyMatrix (frag->mycoordtocoord, tmp, e->point2);
 		e->point2[2] = 0.0;
-		VectorSubtract (e->point2, e->point1, e->direction);
-		edgelen = VectorNormalize (e->direction);
+		VectorSubtract(e->point2, e->point1, e->direction);
+		edgelen = normalize_vector(e->direction);
 		if (edgelen <= ON_EPSILON)
 		{
 			continue;
@@ -1023,10 +1023,10 @@ void ChopFrag (samplefrag_t *frag)
 		dot2 = DotProduct (e->point2, e->direction);
 		dot = std::max(dot1, std::min(dot, dot2));
 		VectorMA (e->point1, dot - dot1, e->direction, v);
-		VectorSubtract (v, frag->origin, v);
-		e->distance = VectorLength (v);
+		VectorSubtract(v, frag->origin, v);
+		e->distance = vector_length(v);
 		CrossProduct (e->direction, frag->windingplane.normal, normal);
-		VectorNormalize (normal); // points inward
+		normalize_vector(normal); // points inward
 		e->distancereduction = DotProduct (v, normal);
 		e->flippedangle = frag->flippedangle + acos (std::min (es->cos_normals_angle, (vec_t) 1.0));
 
@@ -1087,7 +1087,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	{
 		// since a plane's parameters are in the dual coordinate space, we translate the original absolute plane into this relative plane by multiplying the inverse matrix
 		ApplyMatrixOnPlane (frag->mycoordtocoord, frag->rect.planes[x].normal, frag->rect.planes[x].dist, frag->myrect.planes[x].normal, frag->myrect.planes[x].dist);
-		double len = VectorLength (frag->myrect.planes[x].normal);
+		double len = vector_length(frag->myrect.planes[x].normal);
 		if (!len)
 		{
 			Developer (DEVELOPER_LEVEL_MEGASPAM, "couldn't translate sample boundaries on face %d", frag->facenum);
@@ -1120,9 +1120,9 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	for (int x = 0; x < frag->winding->size(); x++)
 	{
 		vec3_t v;
-		VectorSubtract (frag->winding->m_Points[(x + 1) % frag->winding->size()], frag->winding->m_Points[x], v);
+		VectorSubtract(frag->winding->m_Points[(x + 1) % frag->winding->size()], frag->winding->m_Points[x], v);
 		CrossProduct (v, frag->windingplane.normal, clipplanes[numclipplanes].normal);
-		if (!VectorNormalize (clipplanes[numclipplanes].normal))
+		if (!normalize_vector(clipplanes[numclipplanes].normal))
 		{
 			continue;
 		}
@@ -1706,7 +1706,7 @@ void            CreateDirectLights()
 				hlassume (dl2 != nullptr, assume_NoMemory);
 				*dl2 = *dl;
 				VectorMA (dl->origin, -2, dl->normal, dl2->origin);
-				VectorSubtract (vec3_origin, dl->normal, dl2->normal);
+				dl2->normal = negate_vector(dl->normal);
 				leaf = PointInLeaf (dl2->origin);
 				leafnum = leaf - g_dleafs.data();
 				dl2->next = directlights[leafnum];
@@ -1879,7 +1879,7 @@ void            CreateDirectLights()
             if (maybeE2) { // point towards target
 				dest = get_vector_for_key(maybeE2.value(), u8"origin");
 				VectorSubtract(dest, dl->origin, dl->normal);
-				VectorNormalize(dl->normal);
+				normalize_vector(dl->normal);
             } else {                                              // point down angle
                 vec3_array vAngles;
 
@@ -2062,9 +2062,9 @@ void            CreateDirectLights()
 						{
 							vec3_t tmp;
 							VectorScale (dl->sunnormals[i], 1 / DotProduct (dl->sunnormals[i], dl->normal), tmp);
-							VectorSubtract (tmp, dl->normal, tmp);
+							VectorSubtract(tmp, dl->normal, tmp);
 							VectorMA (dl->normal, dl->sunspreadangle / SUNSPREAD_THRESHOLD, tmp, dl->sunnormals[i]);
-							VectorNormalize (dl->sunnormals[i]);
+							normalize_vector(dl->sunnormals[i]);
 						}
 					}
 				}
@@ -2112,7 +2112,7 @@ void            CreateDirectLights()
 				case emit_surface:
 				case emit_point:
 				case emit_spotlight:
-					if (!VectorCompare (dl->intensity, vec3_origin))
+					if (!vectors_almost_same(dl->intensity, vec3_origin))
 					{
 						if (dl->topatch)
 						{
@@ -2125,7 +2125,7 @@ void            CreateDirectLights()
 					}
 					break;
 				case emit_skylight:
-					if (!VectorCompare (dl->intensity, vec3_origin))
+					if (!vectors_almost_same(dl->intensity, vec3_origin))
 					{
 						if (dl->topatch)
 						{
@@ -2146,7 +2146,7 @@ void            CreateDirectLights()
 							}
 						}
 					}
-					if (g_indirect_sun > 0 && !VectorCompare (dl->diffuse_intensity, vec3_origin))
+					if (g_indirect_sun > 0 && !vectors_almost_same(dl->diffuse_intensity, vec3_origin))
 					{
 						if (g_softsky)
 						{
@@ -2559,10 +2559,10 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 								continue;
 							// check intensity
 							if (g_indirect_sun <= 0.0 ||
-								VectorCompare (
+								vectors_almost_same (
 									l->diffuse_intensity,
 									vec3_origin)
-								&& VectorCompare (l->diffuse_intensity2, vec3_origin)
+								&& vectors_almost_same (l->diffuse_intensity2, vec3_origin)
 								)
 								continue;
 
@@ -2646,7 +2646,7 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 							// move emitter back to its plane
 							VectorMA (delta, -PATCH_HUNT_OFFSET, l->normal, delta);
 						}
-                        dist = VectorNormalize(delta);
+                        dist = normalize_vector(delta);
                         dot = DotProduct(delta, normal);
                         //                        if (dot <= 0.0)
                         //                            continue;
@@ -2758,18 +2758,18 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 								int skylevel = l->patch->emitter_skylevel;
 								if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
 								{
-									const vec_t *emitnormal = getPlaneFromFaceNumber (l->patch->faceNumber)->normal.data();
+									const vec3_array& emitnormal = getPlaneFromFaceNumber (l->patch->faceNumber)->normal;
 									if (l->stopdot2 >= 0.8) // about 37deg
 									{
 										skylevel += 1; // because the range is larger
 									}
-									sightarea = CalcSightArea_SpotLight (pos.data(), normal.data(), l->patch->winding, emitnormal, l->stopdot, l->stopdot2, skylevel
+									sightarea = CalcSightArea_SpotLight (pos, normal, l->patch->winding, emitnormal, l->stopdot, l->stopdot2, skylevel
 										, lighting_power, lighting_scale
 										); // because we have doubled the range
 								}
 								else
 								{
-									sightarea = CalcSightArea (pos.data(), normal.data(), l->patch->winding, skylevel
+									sightarea = CalcSightArea (pos, normal, l->patch->winding, skylevel
 										, lighting_power, lighting_scale
 										);
 								}
@@ -3163,7 +3163,7 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
                 VectorAdd(phongnormal, temp, phongnormal);
                 VectorScale(n2, a2, temp);
                 VectorAdd(phongnormal, temp, phongnormal);
-                VectorNormalize(phongnormal);
+                normalize_vector(phongnormal);
                 break;
             }
 		} // s=0,1
@@ -3324,7 +3324,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			GetPhongNormal (surface, surfpt, pointnormal);
 			if (l->translucent_b)
 			{
-				VectorSubtract (vec3_origin, pointnormal, pointnormal2);
+				pointnormal2 = negate_vector(pointnormal);
 			}
 			VectorCopy (pointnormal, *normal_out);
 		}
@@ -3494,7 +3494,7 @@ void            BuildFacelights(const int facenum)
     l.face = f;
 
 	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], l.translucent_v);
-	l.translucent_b = !VectorCompare (l.translucent_v, vec3_origin);
+	l.translucent_b = !vectors_almost_same (l.translucent_v, vec3_origin);
 	l.miptex = g_texinfo[f->texinfo].miptex;
 
     //
@@ -3759,7 +3759,7 @@ void            BuildFacelights(const int facenum)
 				VectorClear (frontsampled[j]);
 				VectorClear (backsampled[j]);
 			}
-			VectorSubtract (vec3_origin, l.facenormal, normal2);
+			normal2 = negate_vector(l.facenormal);
 			GatherSampleLight (patch->origin, pvs, l.facenormal, frontsampled, 
 				patch->totalstyle_all
 				, 1
@@ -4759,7 +4759,7 @@ void            FinalLightFace(const int facenum)
 				for (j = 0; j < fl->numsamples; ++j)
 				{
 					VectorCopy (fl->samples[0][j].pos, v);
-					VectorSubtract (v, g_drawsample_origin, dist);
+					VectorSubtract(v, g_drawsample_origin, dist);
 					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
 					{
 						for(const vec3_array& p : pos) {
@@ -4933,7 +4933,7 @@ void            FinalLightFace(const int facenum)
 			}
 			else
 			{
-				VectorSubtract (lbi, final_basiclight[j], lbi);
+				VectorSubtract(lbi, final_basiclight[j], lbi);
 			}
 			if (k == 0)
 			{

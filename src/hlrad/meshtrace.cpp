@@ -23,7 +23,7 @@ void TraceMesh :: SetupTrace( const vec3_t start, const vec3_array& mins, const 
 	VectorCopy( start, m_vecStart );
 	VectorCopy( end, m_vecEnd );
 	VectorSubtract( end, start, m_vecTraceDirection );
-	m_flTraceDistance = VectorNormalize( m_vecTraceDirection );
+	m_flTraceDistance = normalize_vector( m_vecTraceDirection );
 
 	// build a bounding box of the entire move
 	ClearBounds( m_vecAbsMins, m_vecAbsMaxs );
@@ -77,12 +77,12 @@ bool TraceMesh :: ClipRayToBox( const vec3_t mins, const vec3_t maxs )
 
 bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 {
-	vec3_t w, n, p;
+	vec3_array w, n, p;
 
 	// we have two edge directions, we can calculate the normal
 	CrossProduct( facet->edge2, facet->edge1, n );
 
-	if( VectorCompare( n, vec3_origin ))
+	if( vectors_almost_same( n, vec3_origin ))
 		return false; // degenerate triangle
 
 	VectorSubtract( m_vecEnd, m_vecStart, p );
@@ -128,7 +128,7 @@ bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 
 bool TraceMesh :: ClipRayToFace( const mfacet_t *facet )
 {
-	vec3_t tvec, pvec, qvec;
+	vec3_array tvec, pvec, qvec;
 
 	// begin calculating determinant - also used to calculate u parameter
 	CrossProduct( m_vecTraceDirection, facet->edge2, pvec );

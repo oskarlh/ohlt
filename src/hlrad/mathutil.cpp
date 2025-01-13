@@ -15,7 +15,7 @@ bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array&
 	{
 
 		vec3_array delta;
-		VectorSubtract (w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
+		VectorSubtract(w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
 		vec3_array normal;
 		CrossProduct (delta, plane.normal, normal);
 		const vec_t dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
@@ -48,7 +48,7 @@ bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3
 
 	for (x = 0; x < numpoints; x++)
 	{
-		VectorSubtract (w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
+		VectorSubtract(w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
 		CrossProduct (delta, plane.normal, normal);
 		dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
 
@@ -87,7 +87,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 	{
 		p1 = w.m_Points[x].data();
 		p2 = w.m_Points[(x + 1) % numpoints].data();
-		VectorSubtract (p2, p1, delta);
+		VectorSubtract(p2, p1, delta);
 		CrossProduct (delta, plane.normal, normal);
 		dist = DotProduct (point, normal) - DotProduct (p1, normal);
 
@@ -115,7 +115,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 	for (x = 0; x < numpoints; x++)
 	{
 		p1 = w.m_Points[x].data();
-		VectorSubtract (p1, point, delta);
+		VectorSubtract(p1, point, delta);
 		dist = DotProduct (delta, plane.normal) / DotProduct (plane.normal, plane.normal);
 		VectorMA (delta, -dist, plane.normal, delta);
 		dot = DotProduct (delta, delta);
@@ -160,9 +160,9 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 	numplanes = 0;
 	for (x = 0; x < w.size(); x++)
 	{
-		VectorSubtract (w.m_Points[(x + 1) % w.size()], w.m_Points[x], v);
+		VectorSubtract(w.m_Points[(x + 1) % w.size()], w.m_Points[x], v);
 		CrossProduct (v, plane.normal, planes[numplanes].normal);
-		if (!VectorNormalize (planes[numplanes].normal))
+		if (!normalize_vector(planes[numplanes].normal))
 		{
 			continue;
 		}
@@ -195,8 +195,8 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 			VectorCopy (point, newpoint);
 			snap_to_winding (*newwinding, plane, newpoint.data());
 
-			VectorSubtract (newpoint, point, v);
-			if (VectorLength (v) <= maxmove + ON_EPSILON)
+			VectorSubtract(newpoint, point, v);
+			if (vector_length(v) <= maxmove + ON_EPSILON)
 			{
 				failed = false;
 			}
@@ -227,35 +227,29 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 }
 
 
-bool			intersect_linesegment_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2, vec3_t point)
-{
-	vec_t			part1;
-	vec_t			part2;
-	int				i;
-	part1 = DotProduct (p1, plane->normal) - plane->dist;
-	part2 = DotProduct (p2, plane->normal) - plane->dist;
-	if (part1 * part2 > 0 || part1 == part2)
+bool intersect_linesegment_plane(const dplane_t& plane, const vec3_array& p1, const vec3_array& p2, vec3_array& point) {
+	const vec_t part1 = DotProduct (p1, plane.normal) - plane.dist;
+	const vec_t part2 = DotProduct (p2, plane.normal) - plane.dist;
+	if (part1 * part2 > 0 || part1 == part2) {
 		return false;
-	for (i=0; i<3; ++i)
+	}
+	for (std::size_t i = 0; i < 3; ++i) {
 		point[i] = (part1 * p2[i] - part2 * p1[i]) / (part1 - part2);
+	}
 	return true;
 }
 
-// =====================================================================================
-//  plane_from_points
-// =====================================================================================
-void            plane_from_points(const vec3_t p1, const vec3_t p2, const vec3_t p3, dplane_t* plane)
-{
-    vec3_array          delta1;
-    vec3_array          delta2;
-    vec3_array          normal;
+void plane_from_points(const vec3_array& p1, const vec3_array& p2, const vec3_array& p3, dplane_t& plane) {
+    vec3_array delta1;
+    vec3_array delta2;
+    vec3_array normal;
 
     VectorSubtract(p3, p2, delta1);
     VectorSubtract(p1, p2, delta2);
     CrossProduct(delta1, delta2, normal);
-    VectorNormalize(normal);
-    plane->dist = DotProduct(normal, p1);
-    VectorCopy(normal, plane->normal);
+    normalize_vector(normal);
+    plane.dist = DotProduct(normal, p1);
+	plane.normal = normal;
 }
 
 //LineSegmentIntersectsBounds --vluzacn
@@ -345,7 +339,7 @@ void            SnapToPlane(const dplane_t* const plane, vec_t* const point, vec
 // =====================================================================================
 //  CalcSightArea
 // =====================================================================================
-vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, int skylevel
+vec_t CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					)
 {
@@ -359,10 +353,10 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 	for (int x = 0; x < numedges; x++)
 	{
 		vec3_array v1, v2, normal;
-		VectorSubtract (emitter_winding->m_Points[x], receiver_origin, v1);
-		VectorSubtract (emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
+		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
+		VectorSubtract(emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
-		if (!VectorNormalize (normal))
+		if (!normalize_vector(normal))
 		{
 			error = true;
 		}
@@ -404,7 +398,7 @@ vec_t CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal,
 	return area;
 }
 
-vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, const vec3_t emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
+vec_t CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, const vec3_array& emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					)
 {
@@ -423,10 +417,10 @@ vec_t CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiv
 	for (int x = 0; x < numedges; x++)
 	{
 		vec3_array v1, v2, normal;
-		VectorSubtract (emitter_winding->m_Points[x], receiver_origin, v1);
-		VectorSubtract (emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
+		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
+		VectorSubtract(emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
-		if (!VectorNormalize (normal))
+		if (!normalize_vector(normal))
 		{
 			error = true;
 		}
@@ -521,8 +515,8 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 			VectorMA (center, PATCH_HUNT_OFFSET, facenormal, point);
 			if (HuntForWorld (point, faceplaneoffset, faceplane, 2, 1.0, PATCH_HUNT_OFFSET))
 			{
-				VectorSubtract (point, center, v);
-				dist = VectorLength (v);
+				VectorSubtract(point, center, v);
+				dist = vector_length(v);
 				if (!found || dist < bestdist)
 				{
 					found = true;
@@ -544,8 +538,8 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 					VectorMA (point, PATCH_HUNT_OFFSET, facenormal, point);
 					if (HuntForWorld (point, faceplaneoffset, faceplane, 1, 0.0, PATCH_HUNT_OFFSET))
 					{
-						VectorSubtract (point, center, v);
-						dist = VectorLength (v);
+						VectorSubtract(point, center, v);
+						dist = vector_length(v);
 						if (!found || dist < bestdist)
 						{
 							found = true;

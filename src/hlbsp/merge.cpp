@@ -111,7 +111,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints].data();
     VectorSubtract(p1, back, delta);
     CrossProduct(planenormal, delta, normal);
-    VectorNormalize(normal);
+    normalize_vector(normal);
 
     back = f2->pts[(j + 2) % f2->numpoints].data();
     VectorSubtract(back, p1, delta);
@@ -125,7 +125,7 @@ static face_t*  TryMerge(face_t* f1, face_t* f2)
     back = f1->pts[(i + 2) % f1->numpoints].data();
     VectorSubtract(back, p2, delta);
     CrossProduct(planenormal, delta, normal);
-    VectorNormalize(normal);
+    normalize_vector(normal);
 
     back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints].data();
     VectorSubtract(back, p2, delta);

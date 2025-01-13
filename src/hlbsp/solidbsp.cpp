@@ -1324,7 +1324,7 @@ static void     MakeNodePortal(node_t* node)
         else if (p->nodes[1] == node)
         {
             clipplane.dist = -clipplane.dist;
-            VectorSubtract(vec3_origin, clipplane.normal, clipplane.normal);
+			clipplane.normal = negate_vector(clipplane.normal);
             side = 1;
         }
         else

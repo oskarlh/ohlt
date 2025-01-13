@@ -1,15 +1,16 @@
 #pragma once
 
 #include "cmdlib.h" //--vluzacn
+#include "mathtypes.h"
 #include <algorithm>
 #include <cmath>
 
 extern const vec3_array vec3_origin;
 
 // HLCSG_HLBSP_DOUBLEPLANE: We could use smaller epsilon for hlcsg and hlbsp (hlcsg and hlbsp use double as vec_t), which will totally eliminate all epsilon errors. But we choose this big epsilon to tolerate the imprecision caused by Hammer. Basically, this is a balance between precision and flexibility.
-#define NORMAL_EPSILON   0.00001
-#define ON_EPSILON       0.04 // we should ensure that (float)BOGUS_RANGE < (float)(BOGUS_RANGE + 0.2 * ON_EPSILON)
-#define EQUAL_EPSILON    0.004
+constexpr float NORMAL_EPSILON{0.00001f}; 
+constexpr float ON_EPSILON{0.04f}; // We should ensure that (float)BOGUS_RANGE < (float)(BOGUS_RANGE + 0.2 * ON_EPSILON)
+constexpr float EQUAL_EPSILON{0.004f};
 
 
 //
@@ -64,61 +65,46 @@ extern const vec3_array vec3_origin;
     (dest)[1] = (a)[1] + (scale) * (b)[1]; \
     (dest)[2] = (a)[2] + (scale) * (b)[2]; \
 }
-#define VectorLength(a) std::sqrt((double) ((double)((a)[0] * (a)[0]) + (double)( (a)[1] * (a)[1]) + (double)( (a)[2] * (a)[2])) )
+
+template<any_vec_t T>
+constexpr T vector_length(const std::array<T, 3>& v) noexcept {
+    return std::hypot(v[0], v[1], v[2]);
+}
+
+
 #define VectorCompareMinimum(a,b,c) { (c)[0] = std::min((a)[0], (b)[0]); (c)[1] = std::min((a)[1], (b)[1]); (c)[2] = std::min((a)[2], (b)[2]); }
 #define VectorCompareMaximum(a,b,c) { (c)[0] = std::max((a)[0], (b)[0]); (c)[1] = std::max((a)[1], (b)[1]); (c)[2] = std::max((a)[2], (b)[2]); }
 
-inline vec_t   VectorNormalize(vec3_array& v)
-{
-    double          length;
-
-    length = DotProduct(v, v);
-    length = std::sqrt(length);
-    if (length < NORMAL_EPSILON)
-    {
-        VectorClear(v);
+template<any_vec_t T>
+constexpr T normalize_vector(std::array<T, 3>& v) {
+    T length = vector_length(v);
+    if (length < NORMAL_EPSILON) {
+        v = {};
         return 0.0;
     }
 
     v[0] /= length;
     v[1] /= length;
     v[2] /= length;
-
     return length;
 }
 
-inline bool     VectorCompare(const vec3_t v1, const vec3_t v2)
-{
-    int             i;
-
-    for (i = 0; i < 3; i++)
-    {
-        if (fabs(v1[i] - v2[i]) > EQUAL_EPSILON)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-inline bool     VectorCompare(const vec3_t v1, const vec3_array& v2)
-{
-   return VectorCompare(v1, v2.data());
-}
-inline bool     VectorCompare(const vec3_array& v1, const vec3_array& v2)
-{
-   return VectorCompare(v1.data(), v2.data());
-}
-inline bool     VectorCompare(const vec3_array& v1, const vec3_t v2)
-{
-   return VectorCompare(v1.data(), v2);
+template<any_vec_t T>
+[[nodiscard]] constexpr std::array<T, 3> negate_vector(const std::array<T, 3>& v) noexcept {
+    // We do 0 - x instead of just -x, so we don't unnecessarily
+    // introduce signed zeroes (-0.0)
+    return {T(0.0) - v[0], T(0.0) - v[1], T(0.0) - v[2]};
 }
 
-//
-// Misc
-//
 
+[[nodiscard]] constexpr bool vectors_almost_same(const any_vec3 auto& v1, const any_vec3 auto& v2) {
+    const bool significantDifference0 = std::fabs(v1[0] - v2[0]) > EQUAL_EPSILON;
+    const bool significantDifference1 = std::fabs(v1[1] - v2[1]) > EQUAL_EPSILON;
+    const bool significantDifference2 = std::fabs(v1[2] - v2[2]) > EQUAL_EPSILON;
+    return !significantDifference0 && !significantDifference1 && !significantDifference2;
+}
 
-constexpr bool is_point_finite(const vec3_array& p) noexcept {
+[[nodiscard]] constexpr bool is_point_finite(const any_vec3 auto& p) noexcept {
     return std::isfinite(p[0]) && std::isfinite(p[1]) && std::isfinite(p[2]);
 }
 
@@ -139,39 +125,34 @@ enum class planetype {
 constexpr planetype first_axial{planetype::plane_x};
 constexpr planetype last_axial{planetype::plane_z};
 
-#define DIR_EPSILON 0.0001
+constexpr float DIR_EPSILON = 0.0001;
 
-inline planetype PlaneTypeForNormal(vec3_t normal)
-{
-    vec_t           ax, ay, az;
+template<any_vec_t T>
+[[nodiscard]] constexpr planetype plane_type_for_normal(const std::array<T, 3>& normal) noexcept {
 
-    ax = std::fabs(normal[0]);
-    ay = std::fabs(normal[1]);
-    az = std::fabs(normal[2]);
-    if (ax > 1.0 - DIR_EPSILON && ay < DIR_EPSILON && az < DIR_EPSILON)
-    {
+    const T ax = std::fabs(normal[0]);
+    const T ay = std::fabs(normal[1]);
+    const T az = std::fabs(normal[2]);
+    if (ax > 1.0 - DIR_EPSILON && ay < DIR_EPSILON && az < DIR_EPSILON) {
         return planetype::plane_x;
     }
 
-    if (ay > 1.0 - DIR_EPSILON && az < DIR_EPSILON && ax < DIR_EPSILON)
-    {
+    if (ay > 1.0 - DIR_EPSILON && az < DIR_EPSILON && ax < DIR_EPSILON) {
         return planetype::plane_y;
     }
 
-    if (az > 1.0 - DIR_EPSILON && ax < DIR_EPSILON && ay < DIR_EPSILON)
-    {
+    if (az > 1.0 - DIR_EPSILON && ax < DIR_EPSILON && ay < DIR_EPSILON) {
         return planetype::plane_z;
     }
 
-    if ((ax >= ay) && (ax >= az))
-    {
+    if ((ax >= ay) && (ax >= az)) {
         return planetype::plane_anyx;
     }
-    if ((ay >= ax) && (ay >= az))
-    {
+    if ((ay >= ax) && (ay >= az)) {
         return planetype::plane_anyy;
     }
     return planetype::plane_anyz;
 }
-unsigned short FloatToHalf(float v);
-float HalfToFloat(unsigned short h);
+
+std::uint16_t float_to_half(float v);
+float half_to_float(std::uint16_t h);

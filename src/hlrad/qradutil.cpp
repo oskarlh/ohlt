@@ -92,7 +92,7 @@ void            MakeBackplanes()
     for (i = 0; i < g_numplanes; i++)
     {
         backplanes[i].dist = -g_dplanes[i].dist;
-        VectorSubtract(vec3_origin, g_dplanes[i].normal, backplanes[i].normal);
+		backplanes[i].normal = negate_vector(g_dplanes[i].normal);
     }
 }
 
@@ -653,7 +653,7 @@ void FindFacePositions (int facenum)
 		return;
 	}
 	vec3_array v;
-	VectorSubtract (map->face_centroid, map->face_offset, v);
+	VectorSubtract(map->face_centroid, map->face_offset, v);
 	ApplyMatrix (map->worldtotex, v, map->texcentroid);
 	map->texcentroid[2] = 0.0;
 
@@ -737,7 +737,7 @@ void FreePositionMaps ()
 						continue;
 					}
 					VectorCopy (map->grid[j].pos, v);
-					VectorSubtract (v, g_drawsample_origin, dist);
+					VectorSubtract(v, g_drawsample_origin, dist);
 					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
 					{
 						for(const vec3_array& p : pos) {
@@ -817,8 +817,8 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 				const vec3_array current_st{p->best_s, p->best_t, 0};
 
 				vec3_array v;
-				VectorSubtract (current_st, original_st, v);
-				const vec_t d = VectorLength (v);
+				VectorSubtract(current_st, original_st, v);
+				const vec_t d = vector_length(v);
 
 				if (!found || 
 					!p->nudged && best_nudged ||
@@ -881,8 +881,8 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 			}
 			const vec3_array current_st{p->best_s, p->best_t, 0};
 			vec3_array v;
-			VectorSubtract (current_st, original_st, v);
-			const vec_t d = VectorLength (v);
+			VectorSubtract(current_st, original_st, v);
+			const vec_t d = vector_length(v);
 
 			if (!found || d < best_dist - ON_EPSILON)
 			{

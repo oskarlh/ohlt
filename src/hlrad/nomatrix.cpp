@@ -46,8 +46,8 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 			vec3_array origin1, origin2;
 			vec3_array delta;
 			vec_t dist;
-			VectorSubtract (patch->origin, patch2->origin, delta);
-			dist = VectorLength (delta);
+			VectorSubtract(patch->origin, patch2->origin, delta);
+			dist = vector_length(delta);
 			if (dist < patch2->emitter_range - ON_EPSILON)
 			{
 				GetAlternateOrigin (patch->origin, plane->normal, patch2, origin2);
@@ -125,8 +125,8 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 			vec3_array emitorigin;
 			vec3_array delta;
 			vec_t dist;
-			VectorSubtract (backorigin, emitpatch->origin, delta);
-			dist = VectorLength (delta);
+			VectorSubtract(backorigin, emitpatch->origin, delta);
+			dist = vector_length(delta);
 			if (dist < emitpatch->emitter_range - ON_EPSILON)
 			{
 				GetAlternateOrigin (backorigin, backnormal, emitpatch, emitorigin);

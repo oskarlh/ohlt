@@ -406,7 +406,7 @@ void LoadTextures ()
 
 #define CQ_DIM 3
 
-template<class T, class T2, class T3> inline void CQ_VectorSubtract (const T a[CQ_DIM], const T2 b[CQ_DIM], T3 c[CQ_DIM])
+template<class T, class T2, class T3> inline void CQ_VectorSubtract(const T a[CQ_DIM], const T2 b[CQ_DIM], T3 c[CQ_DIM])
 {
 	for (int x = 0; x < CQ_DIM; x++)
 	{
@@ -555,7 +555,7 @@ static void CQ_SelectPartition (cq_node_t *node)
 			priority -= CQ_DotProduct (sum, sum) / count;
 			priority += CQ_DotProduct (sums[j], sums[j]) / counts[j];
 			double remain[CQ_DIM];
-			CQ_VectorSubtract (sum, sums[j], remain); // sums and counts are precise (have no round-off error)
+			CQ_VectorSubtract(sum, sums[j], remain); // sums and counts are precise (have no round-off error)
 			priority += CQ_DotProduct (remain, remain) / (count - counts[j]);
 			if (node->needsplit == false ||
 				priority > node->splitpriority + 0.1 ||

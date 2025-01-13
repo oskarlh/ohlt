@@ -29,7 +29,7 @@ static std::size_t AddTransparencyToDataList(const vec3_array& trans, std::vecto
 {
 	//Check if this value is in list already
 	for(std::size_t i = 0; i < transparencyList.size(); ++i) {
-		if(VectorCompare( trans, transparencyList[i] )) {
+		if(vectors_almost_same( trans, transparencyList[i] )) {
 			return i;
 		}
 	}

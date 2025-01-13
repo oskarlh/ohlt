@@ -555,9 +555,8 @@ extern bool     TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_ar
 					, vec3_array& scaleout
 					, int &opaquestyleout
 					);
-extern bool     intersect_line_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2, vec3_t point);
-extern bool     intersect_linesegment_plane(const dplane_t* const plane, const vec_t* const p1, const vec_t* const p2,vec3_t point);
-extern void     plane_from_points(const vec3_t p1, const vec3_t p2, const vec3_t p3, dplane_t* plane);
+extern bool intersect_linesegment_plane(const dplane_t& plane, const vec3_array& p1, const vec3_array& p2, vec3_array& point);
+extern void plane_from_points(const vec3_array& p1, const vec3_array& p2, const vec3_array& p3, dplane_t& plane);
 extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point
 					, vec_t epsilon = 0.0
 					);
@@ -565,10 +564,10 @@ extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane,
 extern void     snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* point);
 extern vec_t	snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* point, vec_t width, vec_t maxmove);
 extern void     SnapToPlane(const dplane_t* const plane, vec_t* const point, vec_t offset);
-extern vec_t	CalcSightArea (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, int skylevel
+extern vec_t	CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					);
-extern vec_t	CalcSightArea_SpotLight (const vec3_t receiver_origin, const vec3_t receiver_normal, const Winding *emitter_winding, const vec3_t emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
+extern vec_t	CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, const vec3_array& emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
 					, vec_t lighting_power, vec_t lighting_scale
 					);
 extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin);

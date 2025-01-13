@@ -744,7 +744,7 @@ bool            ParseMapEntity()
 							point = side->planepts[ipoint];
 							if (ent_scale_b)
 							{
-								VectorSubtract (point, ent_scale_origin, point);
+								VectorSubtract(point, ent_scale_origin, point);
 								VectorScale (point, ent_scale, point);
 								VectorAdd (point, ent_scale_origin, point);
 							}
@@ -865,7 +865,7 @@ bool            ParseMapEntity()
 							vec3_array& point = b[i];
 							if (ent_scale_b)
 							{
-								VectorSubtract (point, ent_scale_origin, point);
+								VectorSubtract(point, ent_scale_origin, point);
 								VectorScale (point, ent_scale, point);
 								VectorAdd (point, ent_scale_origin, point);
 							}

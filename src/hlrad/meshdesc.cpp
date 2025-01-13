@@ -220,13 +220,13 @@ bool CMeshDesc :: PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane )
 	VectorSubtract( triangle[2].point, triangle[0].point, v2 );
 	CrossProduct( v2, v1, plane->normal );
 
-	if( VectorLength( plane->normal ) == 0.0f )
+	if( vector_length( plane->normal ) == 0.0f )
 	{
 		VectorClear( plane->normal );
 		return false;
 	}
 
-	VectorNormalize( plane->normal );
+	normalize_vector( plane->normal );
 	plane->dist = DotProduct( triangle[0].point, plane->normal );
 
 	return true;
@@ -289,7 +289,7 @@ void CMeshDesc :: SnapPlaneToGrid( mplane_t *plane )
 =================
 CategorizePlane
 
-A slightly more complex version of SignbitsForPlane and PlaneTypeForNormal,
+A slightly more complex version of SignbitsForPlane and plane_type_for_normal,
 which also tries to fix possible floating point glitches (like -0.00000 cases)
 =================
 */
@@ -618,8 +618,8 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 					}
 					else if( flags & STUDIO_NF_UV_COORDS )
 					{
-						coords[numVerts*2+0] = HalfToFloat( ptricmds[2] );
-						coords[numVerts*2+1] = HalfToFloat( ptricmds[3] );
+						coords[numVerts*2+0] = half_to_float( ptricmds[2] );
+						coords[numVerts*2+1] = half_to_float( ptricmds[3] );
 					}
 					else
 					{
@@ -643,7 +643,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	if( simplifyModel )
 	{
 		// begin model simplification
-		List<vector>	vert;		// list of vertices
+		List<float3_array>	vert;		// list of vertices
 		List<triset>	tris;		// list of triangles
 		List<int>		collapse_map;	// to which neighbor each vertex collapses
 		List<int>		permutation;	// permutation list
@@ -836,9 +836,9 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 		vec3_array vec;
 
 		VectorSubtract( triangle[i].point, triangle[j].point, vec );
-		if( VectorLength( vec ) < 0.5f ) continue;
+		if( vector_length( vec ) < 0.5f ) continue;
 
-		VectorNormalize( vec );
+		normalize_vector( vec );
 		SnapVectorToGrid( vec.data() );
 
 		for( j = 0; j < 3; j++ )
@@ -859,10 +859,10 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 				vec2[axis] = dir;
 				CrossProduct( vec, vec2, normal );
 
-				if( VectorLength( normal ) < 0.5f )
+				if( vector_length( normal ) < 0.5f )
 					continue;
 
-				VectorNormalize( normal );
+				normalize_vector( normal );
 				dist = DotProduct( triangle[i].point, normal );
 
 				for( j = 0; j < numplanes; j++ )

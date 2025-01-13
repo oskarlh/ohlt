@@ -108,19 +108,6 @@ public:
 	int v[3];		// indices to vertex list
 };
 
-class vector
-{
-public:
-	inline vector( float X = 0.0f, float Y = 0.0f, float Z = 0.0f ){ x = X; y = Y; z = Z; };
-	inline vector( const float *rgfl ) { x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
-	inline vector( float rgfl[3])	{ x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
-	inline vector( const float3_array& rgfl)	{ x = rgfl[0]; y = rgfl[1]; z = rgfl[2]; }
-	inline vector( const vector& v ) { x = v.x; y = v.y; z = v.z; }
-	operator const float *() const { return &x; }
-	operator float *() { return &x; }
-	float x, y, z;
-};
-
 struct model_t; // Forward declaration
 
 class CMeshDesc
@@ -213,8 +200,8 @@ public:
 };
 
 // simplification
-void ProgressiveMesh( List<vector> &vert, List<triset> &tri, List<int> &map, List<int> &permutation );
-void PermuteVertices( List<int> &permutation, List<vector> &vert, List<triset> &tris );
+void ProgressiveMesh( List<float3_array> &vert, List<triset> &tri, List<int> &map, List<int> &permutation );
+void PermuteVertices( List<int> &permutation, List<float3_array> &vert, List<triset> &tris );
 int MapVertex( int a, int mx, List<int> &map );
 
 // collision description

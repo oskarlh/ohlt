@@ -189,7 +189,7 @@ inline static void AddPlane(pstack_t* const stack, const plane_t* const split)
         for (j = 0; j < stack->clipPlaneCount; j++)
         {
             if (fabs((stack->clipPlane[j]).dist - split->dist) <= EQUAL_EPSILON &&
-                VectorCompare((stack->clipPlane[j]).normal, split->normal))
+                vectors_almost_same((stack->clipPlane[j]).normal, split->normal))
             {
                 return;
             }
@@ -245,7 +245,7 @@ inline static winding_t* ClipToSeperators(
         {
             VectorSubtract(pass->points[j], source->points[i], v2);
             CrossProduct(v1, v2, plane.normal);
-            if (VectorNormalize(plane.normal) < ON_EPSILON)
+            if (normalize_vector(plane.normal) < ON_EPSILON)
             {
                 continue;
             }
@@ -452,7 +452,7 @@ inline static void     RecursiveLeafFlow(const int leafnum, const threaddata_t* 
         VectorSubtract(vec3_origin, p->plane.normal, backplane.normal);
         backplane.dist = -p->plane.dist;
 
-        if (VectorCompare(prevstack->portalplane->normal, backplane.normal))
+        if (vectors_almost_same(prevstack->portalplane->normal, backplane.normal))
         {
             continue;                                      // can't go out a coplanar face
         }
@@ -691,7 +691,7 @@ static bool BestNormalFromWinding (const vec3_array* points, int numpoints, vec3
 		{
 			continue;
 		}
-		VectorSubtract (points[k], *pt1, edge);
+		VectorSubtract(points[k], *pt1, edge);
 		dist = DotProduct (edge, edge);
 		if (dist > maxdist)
 		{
@@ -704,15 +704,15 @@ static bool BestNormalFromWinding (const vec3_array* points, int numpoints, vec3
 		return false;
 	}
 	maxdist = -1;
-	VectorSubtract (*pt2, *pt1, edge);
-	VectorNormalize (edge);
+	VectorSubtract(*pt2, *pt1, edge);
+	normalize_vector(edge);
 	for (k = 0; k < numpoints; k++)
 	{
 		if (&points[k] == pt1 || &points[k] == pt2)
 		{
 			continue;
 		}
-		VectorSubtract (points[k], *pt1, d);
+		VectorSubtract(points[k], *pt1, d);
 		CrossProduct (edge, d, normal);
 		dist = DotProduct (normal, normal);
 		if (dist > maxdist)
@@ -725,9 +725,9 @@ static bool BestNormalFromWinding (const vec3_array* points, int numpoints, vec3
 	{
 		return false;
 	}
-	VectorSubtract (*pt3, *pt1, d);
+	VectorSubtract(*pt3, *pt1, d);
 	CrossProduct (edge, d, normal);
-	VectorNormalize (normal);
+	normalize_vector(normal);
 	if (pt3 < pt2)
 	{
 		VectorScale (normal, -1, normal);
@@ -747,7 +747,7 @@ vec_t WindingDist (const winding_t *w[2])
 		for (b = 0; b < w[1]->numpoints; b++)
 		{
 			vec3_array v;
-			VectorSubtract (w[0]->points[a], w[1]->points[b], v);
+			VectorSubtract(w[0]->points[a], w[1]->points[b], v);
 			sqrdist = DotProduct (v, v);
 			if (sqrdist < minsqrdist)
 			{
@@ -768,8 +768,8 @@ vec_t WindingDist (const winding_t *w[2])
 				vec3_array delta;
 				vec_t frac;
 				vec3_array v;
-				VectorSubtract (p2, p1, delta);
-				if (VectorNormalize (delta) <= ON_EPSILON)
+				VectorSubtract(p2, p1, delta);
+				if (normalize_vector(delta) <= ON_EPSILON)
 				{
 					continue;
 				}
@@ -780,7 +780,7 @@ vec_t WindingDist (const winding_t *w[2])
 					continue;
 				}
 				VectorMA (p1, frac, delta, v);
-				VectorSubtract (p, v, v);
+				VectorSubtract(p, v, v);
 				sqrdist = DotProduct (v, v);
 				if (sqrdist < minsqrdist)
 				{
@@ -803,16 +803,16 @@ vec_t WindingDist (const winding_t *w[2])
 			vec3_array normal;
 			vec3_array normal1;
 			vec3_array normal2;
-			VectorSubtract (p2, p1, delta1);
-			VectorSubtract (p4, p3, delta2);
+			VectorSubtract(p2, p1, delta1);
+			VectorSubtract(p4, p3, delta2);
 			CrossProduct (delta1, delta2, normal);
-			if (!VectorNormalize (normal))
+			if (!normalize_vector(normal))
 			{
 				continue;
 			}
 			CrossProduct (normal, delta1, normal1); // same direction as delta2
 			CrossProduct (delta2, normal, normal2); // same direction as delta1
-			if (VectorNormalize (normal1) <= ON_EPSILON || VectorNormalize (normal2) <= ON_EPSILON)
+			if (normalize_vector(normal1) <= ON_EPSILON || normalize_vector(normal2) <= ON_EPSILON)
 			{
 				continue;
 			}
@@ -852,9 +852,9 @@ vec_t WindingDist (const winding_t *w[2])
 			vec3_array v;
 			const vec3_array &p1 = w[!side]->points[b];
 			const vec3_array &p2 = w[!side]->points[(b + 1) % w[!side]->numpoints];
-			VectorSubtract (p2, p1, v);
+			VectorSubtract(p2, p1, v);
 			CrossProduct (v, planenormal, boundnormals[b]);
-			if (!VectorNormalize (boundnormals[b]))
+			if (!normalize_vector(boundnormals[b]))
 			{
 				bounddists[b] = 1.0;
 			}
@@ -896,7 +896,7 @@ vec_t WindingDist (const winding_t *w[2])
 			if (dist1 > ON_EPSILON && dist2 < -ON_EPSILON || dist1 < -ON_EPSILON && dist2 > ON_EPSILON)
 			{
 				frac = dist1 / (dist1 - dist2);
-				VectorSubtract (p2, p1, delta);
+				VectorSubtract(p2, p1, delta);
 				VectorMA (p1, frac, delta, v);
 				for (b = 0; b < w[!side]->numpoints; b++)
 				{
@@ -1013,15 +1013,15 @@ void	MaxDistVis(int unused)
 						w = leaf[side]->portals[a]->winding;
 						for (b = 0; b < w->numpoints; b++)
 						{
-							VectorSubtract (w->points[b], center[side], v);
+							VectorSubtract(w->points[b], center[side], v);
 							dist = DotProduct (v, v);
 							radius[side] = std::max(radius[side], dist);
 						}
 					}
 					radius[side] = sqrt (radius[side]);
 				}
-				VectorSubtract (center[0], center[1], v);
-				dist = VectorLength (v);
+				VectorSubtract(center[0], center[1], v);
+				dist = vector_length(v);
 				if (std::max (dist - radius[0] - radius[1], (vec_t) 0) >= g_maxdistance - ON_EPSILON)
 				{
 					goto Work;

@@ -88,8 +88,8 @@ static void     MarkLeakTrail(portal_t* n2)
 
     vec3_array          dir;
     VectorSubtract(p2, p1, dir);
-    len = VectorLength(dir);
-    VectorNormalize(dir);
+    len = vector_length(dir);
+    normalize_vector(dir);
 
     while (len > 2)
     {
@@ -449,7 +449,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
         const char8_t* cl = ValueForKey(&g_entities[i], u8"classname");
         if (!isClassnameAllowableOutside(cl))
         {
-            /*if (!VectorCompare(origin, vec3_origin))
+            /*if (!vectors_almost_sameorigin, vec3_origin))
 			*/ if (*ValueForKey(&g_entities[i], u8"origin")) //--vluzacn
             {
                 origin[2] += 1;                            // so objects on floor are ok

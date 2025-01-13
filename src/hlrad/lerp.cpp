@@ -105,7 +105,7 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 		return false;
 	}
 
-	VectorSubtract (position, lt->center, surfacespot);
+	VectorSubtract(position, lt->center, surfacespot);
 	dot = DotProduct (surfacespot, lt->normal);
 	VectorMA (surfacespot, -dot, lt->normal, spot);
 
@@ -123,9 +123,9 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 	}
 	VectorScale (spot, frac, middle);
 
-	dist = VectorLength (spot);
-	VectorSubtract (surfacespot, middle, v);
-	dist2 = VectorLength (middle) + VectorLength (v);
+	dist = vector_length(spot);
+	VectorSubtract(surfacespot, middle, v);
+	dist2 = vector_length(middle) + vector_length(v);
 
 	if (dist > ON_EPSILON && fabs (dist2 - dist) > ON_EPSILON)
 	{
@@ -200,7 +200,7 @@ static vec_t GetDirection (const vec3_array& spot, const vec3_array& normal, vec
 
 	dot = DotProduct (spot, normal);
 	VectorMA (spot, -dot, normal, direction_out);
-	return VectorNormalize (direction_out);
+	return normalize_vector(direction_out);
 }
 
 static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, vec_t *weight_out)
@@ -309,9 +309,9 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 
 	// find mid_near on (o,p3), mid_far on (p1,p2), spot on (mid_near,mid_far)
 	CrossProduct (w1->leftdirection, lt->normal, normal1);
-	VectorNormalize (normal1);
+	normalize_vector(normal1);
 	CrossProduct (w2->wedgenormal, lt->normal, normal2);
-	VectorNormalize (normal2);
+	normalize_vector(normal2);
 	dot1 = DotProduct (spot, normal1) - 0;
 	dot2 = DotProduct (spot, normal2) - DotProduct (w3->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON)
@@ -362,7 +362,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	VectorMA (mid_far, frac_far, w2->leftspot, mid_far);
 
 	CrossProduct (lt->normal, w3->leftdirection, normal);
-	VectorNormalize (normal);
+	normalize_vector(normal);
 	dot = DotProduct (spot, normal) - 0;
 	dot1 = (1 - frac_far) * DotProduct (w1->leftspot, normal) + frac_far * DotProduct (w2->leftspot, normal) - 0;
 	if (dot <= NORMAL_EPSILON)
@@ -381,8 +381,8 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 
 	VectorScale (mid_near, 1 - ratio, test);
 	VectorMA (test, ratio, mid_far, test);
-	VectorSubtract (test, spot, test);
-	if (g_drawlerp && VectorLength (test) > 4 * ON_EPSILON)
+	VectorSubtract(test, spot, test);
+	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
 	{
 		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 12.\n");
 	}
@@ -394,9 +394,9 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	
 	// find mid_near on (o,p1), mid_far on (p2,p3), spot on (mid_near,mid_far)
 	CrossProduct (lt->normal, w3->leftdirection, normal1);
-	VectorNormalize (normal1);
+	normalize_vector(normal1);
 	CrossProduct (w1->wedgenormal, lt->normal, normal2);
-	VectorNormalize (normal2);
+	normalize_vector(normal2);
 	dot1 = DotProduct (spot, normal1) - 0;
 	dot2 = DotProduct (spot, normal2) - DotProduct (w1->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON)
@@ -447,7 +447,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	VectorMA (mid_far, frac_far, w2->leftspot, mid_far);
 
 	CrossProduct (w1->leftdirection, lt->normal, normal);
-	VectorNormalize (normal);
+	normalize_vector(normal);
 	dot = DotProduct (spot, normal) - 0;
 	dot1 = (1 - frac_far) * DotProduct (w3->leftspot, normal) + frac_far * DotProduct (w2->leftspot, normal) - 0;
 	if (dot <= NORMAL_EPSILON)
@@ -466,8 +466,8 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 
 	VectorScale (mid_near, 1 - ratio, test);
 	VectorMA (test, ratio, mid_far, test);
-	VectorSubtract (test, spot, test);
-	if (g_drawlerp && VectorLength (test) > 4 * ON_EPSILON)
+	VectorSubtract(test, spot, test);
+	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
 	{
 		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 13.\n");
 	}
@@ -924,8 +924,8 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 				lt = ft->localtriangulations[i];
 				VectorCopy (position, v);
 				snap_to_winding (lt->winding, lt->plane, v.data());
-				VectorSubtract (v, position, v);
-				dist = VectorLength (v);
+				VectorSubtract(v, position, v);
+				dist = vector_length(v);
 				if (best == nullptr || dist < bestdist - ON_EPSILON)
 				{
 					best = lt;
@@ -936,7 +936,7 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 			if (best)
 			{
 				lt = best;
-				VectorSubtract (position, lt->center, spot);
+				VectorSubtract(position, lt->center, spot);
 				dot = DotProduct (spot, lt->normal);
 				VectorMA (spot, -dot, lt->normal, spot);
 				CalcInterpolation (lt, spot, maininterp);
@@ -1047,8 +1047,8 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	for (i = 0; i < lt->winding.size(); i++)
 	{
 		vec3_array v;
-		VectorSubtract (lt->winding.m_Points[i], lt->center, v);
-		dist = VectorLength (v);
+		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
+		dist = vector_length(v);
 		if (dist > size1)
 		{
 			size1 = dist;
@@ -1059,8 +1059,8 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	for (i = 0; i < p2winding.size(); i++)
 	{
 		vec3_array v;
-		VectorSubtract (p2winding.m_Points[i], p2, v);
-		dist = VectorLength (v);
+		VectorSubtract(p2winding.m_Points[i], p2, v);
+		dist = vector_length(v);
 		if (dist > size2)
 		{
 			size2 = dist;
@@ -1068,8 +1068,8 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const
 	}
 
 	vec3_array v;
-	VectorSubtract (p2, lt->center, v);
-	dist = VectorLength (v);
+	VectorSubtract(p2, lt->center, v);
+	dist = vector_length(v);
 
 	return dist > 1.4 * (size1 + size2);
 }
@@ -1200,7 +1200,7 @@ static void PurgePatches (localtriangulation_t *lt)
 		valid[cur] = 2; // mark current patch as final
 		
 		CrossProduct (points[cur].leftdirection, lt->normal, normal);
-		VectorNormalize (normal);
+		normalize_vector(normal);
 		VectorScale (normal, cos (TRIANGLE_SHAPE_THRESHOLD), v);
 		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
 		while (next[cur] != cur && valid[next[cur]] != 2)
@@ -1221,7 +1221,7 @@ static void PurgePatches (localtriangulation_t *lt)
 		}
 		
 		CrossProduct (lt->normal, points[cur].leftdirection, normal);
-		VectorNormalize (normal);
+		normalize_vector(normal);
 		VectorScale (normal, cos (TRIANGLE_SHAPE_THRESHOLD), v);
 		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
 		while (prev[cur] != cur && valid[prev[cur]] != 2)
@@ -1276,7 +1276,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 	for (i = 0; i < (int)lt->winding.size(); i++)
 	{
 		vec3_array v;
-		VectorSubtract (lt->winding.m_Points[i], lt->center, v);
+		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
 		dot = DotProduct (v, lt->normal);
 		VectorMA (v, -dot, lt->normal, hp.spot);
 		if (!GetDirection (hp.spot, lt->normal, hp.direction))
@@ -1423,12 +1423,12 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	}
 
 	// (p2, p1, p3) must be a triangle
-	VectorSubtract (w1->leftspot, w2->leftspot, v);
+	VectorSubtract(w1->leftspot, w2->leftspot, v);
 	if (!GetDirection (v, lt->normal, dir1))
 	{
 		return false;
 	}
-	VectorSubtract (w3->leftspot, w2->leftspot, v);
+	VectorSubtract(w3->leftspot, w2->leftspot, v);
 	if (!GetDirection (v, lt->normal, dir2))
 	{
 		return false;
@@ -1441,7 +1441,7 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	}
 
 	w1->shape = localtriangulation_t::Wedge::eSquareLeft;
-	VectorSubtract (vec3_origin, dir1, w1->wedgenormal);
+	w1->wedgenormal = negate_vector(dir1);
 	w2->shape = localtriangulation_t::Wedge::eSquareRight;
 	w2->wedgenormal = dir2;
 	return true;
@@ -1542,7 +1542,7 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 			else
 			{
 				w->shape = localtriangulation_t::Wedge::eConvex;
-				VectorSubtract (wnext->leftspot, w->leftspot, v);
+				VectorSubtract(wnext->leftspot, w->leftspot, v);
 				GetDirection (v, lt->normal, w->wedgenormal);
 			}
 		}
@@ -1551,10 +1551,10 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 			w->shape = localtriangulation_t::Wedge::eConcave;
 			VectorAdd (wnext->leftdirection, w->leftdirection, v);
 			CrossProduct (lt->normal, v, normal);
-			VectorSubtract (wnext->leftdirection, w->leftdirection, v);
+			VectorSubtract(wnext->leftdirection, w->leftdirection, v);
 			VectorAdd (normal, v, normal);
 			GetDirection (normal, lt->normal, w->wedgenormal);
-			if (g_drawlerp && VectorLength (w->wedgenormal) == 0)
+			if (g_drawlerp && vector_length(w->wedgenormal) == 0)
 			{
 				Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 10.\n");
 			}
@@ -1702,13 +1702,13 @@ static void BuildWalls (facetriangulation_t *facetrian)
 
 				VectorAdd (g_dvertexes[g_dedges[abs(e)].v[0]].point, g_face_offset[facenum], wall.points[0]);
 				VectorAdd (g_dvertexes[g_dedges[abs(e)].v[1]].point, g_face_offset[facenum], wall.points[1]);
-				VectorSubtract (wall.points[1], wall.points[0], wall.direction);
+				VectorSubtract(wall.points[1], wall.points[0], wall.direction);
 				dot = DotProduct (wall.direction, dp->normal);
 				VectorMA (wall.direction, -dot, dp->normal, wall.direction);
-				if (VectorNormalize (wall.direction))
+				if (normalize_vector(wall.direction))
 				{
 					CrossProduct (wall.direction, dp->normal, wall.normal);
-					VectorNormalize (wall.normal);
+					normalize_vector(wall.normal);
 					facetrian->walls.push_back (wall);
 				}
 			}

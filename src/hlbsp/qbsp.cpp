@@ -639,7 +639,7 @@ void SplitBrush (brush_t *in, const dplane_t *split, brush_t **front, brush_t **
 	*back = NewBrushFromBrush (in);
 	dplane_t frontclip = *split;
 	dplane_t backclip = *split;
-	VectorSubtract (vec3_origin, backclip.normal, backclip.normal);
+    backclip.normal = negate_vector(backclip.normal);
 	backclip.dist = -backclip.dist;
 	ClipBrush (front, &frontclip, NORMAL_EPSILON);
 	ClipBrush (back, &backclip, NORMAL_EPSILON);
@@ -1062,8 +1062,8 @@ static bool     ProcessModel(bsp_data& bspData)
 		{
 			vec3_array mins;
             vec3_array maxs;
-			VectorSubtract (surfs->mins, g_hull_size[g_hullnum][0], mins);
-			VectorSubtract (surfs->maxs, g_hull_size[g_hullnum][1], maxs);
+			VectorSubtract(surfs->mins, g_hull_size[g_hullnum][0], mins);
+			VectorSubtract(surfs->maxs, g_hull_size[g_hullnum][1], maxs);
 			for (std::size_t i = 0; i < 3; ++i)
 			{
 				if (mins[i] > maxs[i])
@@ -1176,8 +1176,8 @@ static bool     ProcessModel(bsp_data& bspData)
 			{
 				vec3_array mins;
                 vec3_array maxs;
-				VectorSubtract (surfs->mins, g_hull_size[hullnum][0], mins);
-				VectorSubtract (surfs->maxs, g_hull_size[hullnum][1], maxs);
+				VectorSubtract(surfs->mins, g_hull_size[hullnum][0], mins);
+				VectorSubtract(surfs->maxs, g_hull_size[hullnum][1], maxs);
 				for (std::size_t i = 0; i < 3; ++i)
 				{
 					if (mins[i] > maxs[i])
@@ -1231,8 +1231,8 @@ static bool     ProcessModel(bsp_data& bspData)
 			sscanf ((const char*) ValueForKey (ent, u8"origin"), "%lf %lf %lf", &origin[0], &origin[1], &origin[2]);
 			if (sscanf ((const char*) ValueForKey (ent, u8"zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &mins[0], &mins[1], &mins[2], &maxs[0], &maxs[1], &maxs[2]) == 6)
 			{
-				VectorSubtract (mins, origin, model->mins);
-				VectorSubtract (maxs, origin, model->maxs);
+				VectorSubtract(mins, origin, model->mins);
+				VectorSubtract(maxs, origin, model->maxs);
 			}
 		}
 	}

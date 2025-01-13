@@ -9,41 +9,40 @@
 const vec3_array vec3_origin = { 0, 0, 0 };
 
 
-unsigned short FloatToHalf( float v )
-{
-	unsigned int	i = *((unsigned int *)&v);
-	unsigned int	e = (i >> 23) & 0x00ff;
-	unsigned int	m = i & 0x007fffff;
-	unsigned short	h;
+std::uint16_t float_to_half(float v) {
+	static_assert(std::numeric_limits<float>::is_iec559);
 
-	if( e <= 127 - 15 )
-		h = ((m | 0x00800000) >> (127 - 14 - e)) >> 13;
-	else h = (i >> 13) & 0x3fff;
+	std::uint32_t i = *((std::uint32_t *) &v);
+	std::uint32_t e = (i >> 23) & 0x00ff;
+	std::uint32_t m = i & 0x007fffff;
+	std::uint16_t half;
 
-	h |= (i >> 16) & 0xc000;
+	if(e <= 127 - 15) {
+		half = ((m | 0x00800000) >> (127 - 14 - e)) >> 13;
+	} else {
+		half = (i >> 13) & 0x3fff;
+	}
 
-	return h;
+	half |= (i >> 16) & 0xc000;
+
+	return half;
 }
 
-float HalfToFloat( unsigned short h )
-{
-	unsigned int	f = (h << 16) & 0x80000000;
-	unsigned int	em = h & 0x7fff;
+float half_to_float(std::uint16_t half) {
+	static_assert(std::numeric_limits<float>::is_iec559);
 
-	if( em > 0x03ff )
-	{
+	std::uint32_t f = (half << 16) & 0x80000000;
+	std::uint32_t em = half & 0x7fff;
+
+	if(em > 0x03ff) {
 		f |= (em << 13) + ((127 - 15) << 23);
-	}
-	else
-	{
-		unsigned int m = em & 0x03ff;
+	} else {
+		std::uint32_t m = em & 0x03ff;
 
-		if( m != 0 )
-		{
-			unsigned int e = (em >> 10) & 0x1f;
+		if(m != 0) {
+			std::uint32_t e = (em >> 10) & 0x1f;
 
-			while(( m & 0x0400 ) == 0 )
-			{
+			while((m & 0x0400) == 0) {
 				m <<= 1;
 				e--;
 			}

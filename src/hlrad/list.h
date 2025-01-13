@@ -54,7 +54,7 @@ void List<Type> :: allocate( int s )
 	assert( s >= num );
 	Type *old = element;
 	array_size = s;
-	element = new Type[array_size];
+	element = new Type[array_size]{};
 	assert( element );
 
 	for( int i = 0; i < num; i++ )

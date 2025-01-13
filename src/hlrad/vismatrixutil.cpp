@@ -183,7 +183,6 @@ void            MakeScales(const int threadnum)
     float           send;
     vec3_array          origin;
     vec_t           area;
-    const vec_t*    normal1;
     const vec_t*    normal2;
 
     unsigned int    fastfind_index = 0;
@@ -213,7 +212,7 @@ void            MakeScales(const int threadnum)
         tData = tData_All;
 
         VectorCopy(patch->origin, origin);
-        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal.data();
+        const vec3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
 
         area = patch->area;
 		vec3_array backorigin;
@@ -221,7 +220,7 @@ void            MakeScales(const int threadnum)
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
-			VectorSubtract (vec3_origin, normal1, backnormal);
+			backnormal = negate_vector(normal1);
 		}
 		bool lighting_diversify;
 		vec_t lighting_power;
@@ -273,12 +272,12 @@ void            MakeScales(const int threadnum)
             VectorSubtract(patch2->origin, origin, delta);
 			if (useback)
 			{
-				VectorSubtract (patch2->origin, backorigin, delta);
+				VectorSubtract(patch2->origin, backorigin, delta);
 			}
 			// move emitter back to its plane
 			VectorMA (delta, -PATCH_HUNT_OFFSET, normal2, delta);
 
-            dist = VectorNormalize(delta);
+            dist = normalize_vector(delta);
             dot1 = DotProduct(delta, normal1);
 			if (useback)
 			{
@@ -311,15 +310,13 @@ void            MakeScales(const int threadnum)
 					trans = 0.0;
 				}
 				vec_t sightarea;
-				const vec_t *receiver_origin;
-				const vec_t *receiver_normal;
+				vec3_array receiver_origin{origin};
+				vec3_array receiver_normal{normal1};
 				const Winding *emitter_winding;
-				receiver_origin = origin.data();
-				receiver_normal = normal1;
 				if (useback)
 				{
-					receiver_origin = backorigin.data();
-					receiver_normal = backnormal.data();
+					receiver_origin = backorigin;
+					receiver_normal = backnormal;
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea (receiver_origin, receiver_normal, emitter_winding, patch2->emitter_skylevel
@@ -448,7 +445,6 @@ void            MakeRGBScales(const int threadnum)
     float           send;
     vec3_array          origin;
     vec_t           area;
-    const vec_t*    normal1;
     const vec_t*    normal2;
 
     unsigned int    fastfind_index = 0;
@@ -478,7 +474,7 @@ void            MakeRGBScales(const int threadnum)
         tRGBData = tRGBData_All;
 
         VectorCopy(patch->origin, origin);
-        normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal.data();
+        const vec3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
 
         area = patch->area;
 		vec3_array backorigin;
@@ -486,7 +482,7 @@ void            MakeRGBScales(const int threadnum)
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
-			VectorSubtract (vec3_origin, normal1, backnormal);
+			VectorSubtract(vec3_origin, normal1, backnormal);
 		}
 		bool lighting_diversify;
 		vec_t lighting_power;
@@ -535,12 +531,12 @@ void            MakeRGBScales(const int threadnum)
             VectorSubtract(patch2->origin, origin, delta);
 			if (useback)
 			{
-				VectorSubtract (patch2->origin, backorigin, delta);
+				VectorSubtract(patch2->origin, backorigin, delta);
 			}
 			// move emitter back to its plane
 			VectorMA (delta, -PATCH_HUNT_OFFSET, normal2, delta);
 
-            dist = VectorNormalize(delta);
+            dist = normalize_vector(delta);
             dot1 = DotProduct(delta, normal1);
 			if (useback)
 			{
@@ -576,15 +572,13 @@ void            MakeRGBScales(const int threadnum)
 					trans_one = 0.0;
 				}
 				vec_t sightarea;
-				const vec_t *receiver_origin;
-				const vec_t *receiver_normal;
+				vec3_array receiver_origin{origin};
+				vec3_array receiver_normal{normal1};
 				const Winding *emitter_winding;
-				receiver_origin = origin.data();
-				receiver_normal = normal1;
 				if (useback)
 				{
-					receiver_origin = backorigin.data();
-					receiver_normal = backnormal.data();
+					receiver_origin = backorigin;
+					receiver_normal = backnormal;
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea (receiver_origin, receiver_normal, emitter_winding, patch2->emitter_skylevel

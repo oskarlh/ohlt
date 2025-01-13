@@ -23,7 +23,7 @@ void Winding::Print() const {
 
 void Winding::getPlane(dplane_t& plane) const {
     if (size() < 3) {
-        VectorClear(plane.normal);
+        plane.normal = {};
         plane.dist = 0.0;
         return;
     }
@@ -34,7 +34,7 @@ void Winding::getPlane(dplane_t& plane) const {
 
     vec3_array plane_normal;
     CrossProduct(v2, v1, plane_normal);
-    VectorNormalize(plane_normal);
+    normalize_vector(plane_normal);
     VectorCopy(plane_normal, plane.normal);
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
@@ -52,7 +52,7 @@ void Winding::getPlane(vec3_array& normal, vec_t& dist) const {
     VectorSubtract(m_Points[1], m_Points[0], v1);
     VectorSubtract(m_Points[2], m_Points[0], v2);
     CrossProduct(v2, v1, normal);
-    VectorNormalize(normal);
+    normalize_vector(normal);
     dist = DotProduct(m_Points[0], normal);
 }
 
@@ -69,7 +69,7 @@ vec_t Winding::getArea() const {
         VectorSubtract(m_Points[i - 1], m_Points[0], d1);
         VectorSubtract(m_Points[i], m_Points[0], d2);
         CrossProduct(d1, d2, cross);
-        total += 0.5 * VectorLength(cross);
+        total += 0.5 * vector_length(cross);
     }
     return total;
 }
@@ -142,13 +142,13 @@ void Winding::Check(vec_t epsilon) const
         const vec3_array& p2 = m_Points[j];
         VectorSubtract(p2, p1, dir);
 
-        if (VectorLength(dir) < epsilon)
+        if (vector_length(dir) < epsilon)
         {
             Error("Winding::Check : degenerate edge");
         }
 
         CrossProduct(facenormal, dir, edgenormal);
-        VectorNormalize(edgenormal);
+        normalize_vector(edgenormal);
         edgedist = DotProduct(p1, edgenormal);
         edgedist += epsilon;
 
@@ -274,7 +274,7 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
 
     v = DotProduct(vup, normal);
     VectorMA(vup, -v, normal, vup);
-    VectorNormalize(vup);
+    normalize_vector(vup);
 
     vec3_array org;
     VectorScale(normal, dist, org);
@@ -365,8 +365,8 @@ void			Winding::RemoveColinearPoints(
 		p1 = m_Points[(i+size()-1)%size()].data();
 		p2 = m_Points[i].data();
 		p3 = m_Points[(i+1)%size()].data();
-		VectorSubtract (p2, p1, v1);
-		VectorSubtract (p3, p2, v2);
+		VectorSubtract(p2, p1, v1);
+		VectorSubtract(p3, p2, v2);
 		// v1 or v2 might be close to 0
 		if (DotProduct (v1, v2) * DotProduct (v1, v2) >= DotProduct (v1, v1) * DotProduct (v2, v2) 
 			- epsilon * epsilon * (DotProduct (v1, v1) + DotProduct (v2, v2) + epsilon * epsilon))

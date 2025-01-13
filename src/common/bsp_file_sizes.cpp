@@ -95,7 +95,7 @@ std::size_t count_blocks (const bsp_data& bspData)
 				extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
 			}
 
-			VectorClear (point);
+			point = {};
 			if (f->numedges > 0)
 			{
 				int e = g_dsurfedges[f->firstedge];

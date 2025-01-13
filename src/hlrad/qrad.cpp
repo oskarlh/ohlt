@@ -601,8 +601,8 @@ static bool     PlacePatchInside(patch_t* patch)
 	{
 		pointsfound++;
 		vec3_array v;
-		VectorSubtract (point, center, v);
-		dist = VectorLength (v);
+		VectorSubtract(point, center, v);
+		dist = vector_length(v);
 		if (!found || dist < bestdist)
 		{
 			found = true;
@@ -627,8 +627,8 @@ static bool     PlacePatchInside(patch_t* patch)
 			{
 				pointsfound++;
 				vec3_array v;
-				VectorSubtract (point, center, v);
-				dist = VectorLength (v);
+				VectorSubtract(point, center, v);
+				dist = vector_length(v);
 				if (!found || dist < bestdist)
 				{
 					found = true;
@@ -667,8 +667,8 @@ static void		UpdateEmitterInfo (patch_t *patch)
 	{
 		vec3_array delta;
 		vec_t dist;
-		VectorSubtract (winding->m_Points[x], origin, delta);
-		dist = VectorLength (delta);
+		VectorSubtract(winding->m_Points[x], origin, delta);
+		dist = vector_length(delta);
 		if (dist > radius)
 		{
 			radius = dist;
@@ -876,7 +876,7 @@ static void     getGridPlanes(const patch_t* const p, dplane_t* const pl)
 		vec_t			val;
 		val = DotProduct (faceplane->normal, tx->vecs[!x]);
 		VectorMA (tx->vecs[!x], -val, faceplane->normal, plane->normal);
-        VectorNormalize(plane->normal);
+        normalize_vector(plane->normal);
         plane->dist = DotProduct(plane->normal, patch->origin);
     }
 }
@@ -1143,8 +1143,8 @@ static vec_t    getScale(const patch_t* const patch)
 			VectorMA (tx->vecs[x], -dot, faceplane->normal, vecs_perpendicular[x]);
 		}
 		
-		scale[0] = 1 / std::max(NORMAL_EPSILON, VectorLength (vecs_perpendicular[0]));
-		scale[1] = 1 / std::max(NORMAL_EPSILON, VectorLength (vecs_perpendicular[1]));
+		scale[0] = 1 / std::max(NORMAL_EPSILON, vector_length(vecs_perpendicular[0]));
+		scale[1] = 1 / std::max(NORMAL_EPSILON, vector_length(vecs_perpendicular[1]));
 
 		// don't care about the angle between vecs[0] and vecs[1] (given the length of "vecs", smaller angle = larger texel area), because gridplanes will have the same angle (also smaller angle = larger patch area)
 
@@ -1347,7 +1347,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	patch->scale = getScale(patch);
 	patch->chop = getChop(patch);
 	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], patch->translucent_v);
-	patch->translucent_b = !VectorCompare (patch->translucent_v, vec3_origin);
+	patch->translucent_b = !vectors_almost_same (patch->translucent_v, vec3_origin);
 	PlacePatchInside(patch);
 	UpdateEmitterInfo (patch);
 
@@ -1392,7 +1392,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 
 			bounding_box bounds = patch->winding->getBounds();
 			VectorSubtract(bounds.maxs, bounds.mins, delta);
-			length = VectorLength(delta);
+			length = vector_length(delta);
 			amt = patch->chop;
 
 			if (length > amt)
@@ -1590,8 +1590,8 @@ static entity_t *FindTexlightEntity (int facenum)
 		if (!key_value_is(&ent, u8"_tex", texname))
 			continue;
 		vec3_array delta{get_vector_for_key(ent, u8"origin")};
-		VectorSubtract (delta, centroid, delta);
-		vec_t dist = VectorLength (delta);
+		VectorSubtract(delta, centroid, delta);
+		vec_t dist = vector_length(delta);
 		if (key_value_is_not_empty(&ent, u8"_frange"))
 		{
 			if (dist > FloatForKey(&ent, u8"_frange"))

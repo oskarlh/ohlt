@@ -46,7 +46,7 @@ static bbrink_t CreateBrink (const vec3_array& start,const vec3_array& stop)
 	bbrink_t b{};
 	b.start = start;
 	b.stop = stop;
-	VectorSubtract (stop, start, b.direction);
+	VectorSubtract(stop, start, b.direction);
 
 	b.numnodes = 1;
 	bbrinknode_t newnode;
@@ -1207,7 +1207,7 @@ bcircle_t;
 bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 {
 	VectorCopy (b->direction, c->axis);
-	if (!VectorNormalize (c->axis))
+	if (!normalize_vector(c->axis))
 	{
 		return false;
 	}
@@ -1219,7 +1219,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 		vec3_array facing;
 		CrossProduct (c->basenormal, c->axis, facing);
 		VectorScale (facing, side? -1: 1, facing);
-		if (VectorNormalize (facing) < 1 - 0.01)
+		if (normalize_vector(facing) < 1 - 0.01)
 		{
 			return false;
 		}
@@ -1298,7 +1298,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 			}
 			vec3_array v;
 			CrossProduct (w->prev->normal, w->next->normal, v);
-			if (!VectorNormalize (v) ||
+			if (!normalize_vector(v) ||
 				DotProduct (v, c->axis) < 1 - 0.01)
 			{
 				return false;

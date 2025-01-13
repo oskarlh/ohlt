@@ -203,8 +203,8 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					vec3_array origin1, origin2;
 					vec3_array delta;
 					vec_t dist;
-					VectorSubtract (patch->origin, patch2->origin, delta);
-					dist = VectorLength (delta);
+					VectorSubtract(patch->origin, patch2->origin, delta);
+					dist = vector_length(delta);
 					if (dist < patch2->emitter_range - ON_EPSILON)
 					{
 						GetAlternateOrigin (patch->origin, plane->normal, patch2, origin2);
@@ -251,7 +251,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					}
                                         
 
-                    if(g_customshadow_with_bouncelight && !VectorCompare(transparency, {1.0,1.0,1.0}) )
+                    if(g_customshadow_with_bouncelight && !vectors_almost_same(transparency, vec3_array{1.0,1.0,1.0}) )
                     {
                     	AddTransparencyToRawArray(patchnum, m, transparency, transparencyList);
                     }

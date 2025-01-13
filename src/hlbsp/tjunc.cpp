@@ -127,7 +127,7 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 
 static bool     CanonicalVector(vec3_array& vec)
 {
-    if (VectorNormalize(vec))
+    if (normalize_vector(vec))
     {
         if (vec[0] > NORMAL_EPSILON )
         {
@@ -135,7 +135,7 @@ static bool     CanonicalVector(vec3_array& vec)
         }
         else if (vec[0] < -NORMAL_EPSILON )
         {
-            VectorSubtract(vec3_origin, vec, vec);
+            vec = negate_vector(vec);
             return true;
         }
         else
@@ -149,7 +149,7 @@ static bool     CanonicalVector(vec3_array& vec)
         }
         else if (vec[1] < -NORMAL_EPSILON )
         {
-            VectorSubtract(vec3_origin, vec, vec);
+            vec = negate_vector(vec);
             return true;
         }
         else
@@ -163,7 +163,7 @@ static bool     CanonicalVector(vec3_array& vec)
         }
         else if (vec[2] < -NORMAL_EPSILON )
         {
-            VectorSubtract(vec3_origin, vec, vec);
+            vec = negate_vector(vec);
             return true;
         }
         else
@@ -358,11 +358,11 @@ static void     SplitFaceForTjunc(face_t* f, face_t* original)
 restart:
         // find the last corner 
         VectorSubtract(f->pts[f->numpoints - 1], f->pts[0], dir);
-        VectorNormalize(dir);
+        normalize_vector(dir);
         for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--)
         {
             VectorSubtract(f->pts[lastcorner - 1], f->pts[lastcorner], test);
-            VectorNormalize(test);
+            normalize_vector(test);
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
@@ -372,11 +372,11 @@ restart:
 
         // find the first corner        
         VectorSubtract(f->pts[1], f->pts[0], dir);
-        VectorNormalize(dir);
+        normalize_vector(dir);
         for (firstcorner = 1; firstcorner < f->numpoints - 1; firstcorner++)
         {
             VectorSubtract(f->pts[firstcorner + 1], f->pts[firstcorner], test);
-            VectorNormalize(test);
+            normalize_vector(test);
             v = DotProduct(test, dir);
             if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON)
             {
@@ -571,7 +571,7 @@ void            tjunc(node_t* headnode)
             maxs[i] = fabs(headnode->mins[i]);
         }
     }
-    VectorSubtract(vec3_origin, maxs, mins);
+    mins = negate_vector(maxs);
 
     InitHash(mins, maxs);
 

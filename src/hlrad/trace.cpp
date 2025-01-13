@@ -251,22 +251,22 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 
 	Winding *w = f->winding;
 	const Winding *w2 = f2->winding;
-	const vec_t *pA, *pB, *pC, *pD, *p2A, *p2B, *p2C, *p2D;
+	const vec3_array *pA, *pB, *pC, *pD, *p2A, *p2B, *p2C, *p2D;
 	int i, i2;
 
 	for (i = 0; i < w->size(); i++)
 	{
 		for (i2 = 0; i2 < w2->size(); i2++)
 		{
-			pA = w->m_Points[(i+w->size()-1)%w->size()].data();
-			pB = w->m_Points[i].data();
-			pC = w->m_Points[(i+1)%w->size()].data();
-			pD = w->m_Points[(i+2)%w->size()].data();
-			p2A = w2->m_Points[(i2+w2->size()-1)%w2->size()].data();
-			p2B = w2->m_Points[i2].data();
-			p2C = w2->m_Points[(i2+1)%w2->size()].data();
-			p2D = w2->m_Points[(i2+2)%w2->size()].data();
-			if (!VectorCompare (pB, p2C) || !VectorCompare (pC, p2B))
+			pA = &w->m_Points[(i+w->size()-1)%w->size()];
+			pB = &w->m_Points[i];
+			pC = &w->m_Points[(i+1)%w->size()];
+			pD = &w->m_Points[(i+2)%w->size()];
+			p2A = &w2->m_Points[(i2+w2->size()-1)%w2->size()];
+			p2B = &w2->m_Points[i2];
+			p2C = &w2->m_Points[(i2+1)%w2->size()];
+			p2D = &w2->m_Points[(i2+2)%w2->size()];
+			if (!vectors_almost_same (*pB, *p2C) || !vectors_almost_same (*pC, *p2B))
 			{
 				continue;
 			}
@@ -288,33 +288,33 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	dplane_t pl1, pl2;
 	int side1, side2;
 
-	VectorSubtract (p2D, pA, e1);
+	VectorSubtract(*p2D, *pA, e1);
 	CrossProduct (normal, e1, pl1.normal); // pointing outward
-	if (VectorNormalize (pl1.normal) == 0.0)
+	if (normalize_vector(pl1.normal) == 0.0)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty edge.\n");
 		return false;
 	}
-	pl1.dist = DotProduct (pA, pl1.normal);
-	if (DotProduct (pB, pl1.normal) - pl1.dist < -ON_EPSILON)
+	pl1.dist = DotProduct (*pA, pl1.normal);
+	if (DotProduct (*pB, pl1.normal) - pl1.dist < -ON_EPSILON)
 	{
 		return false;
 	}
-	side1 = (DotProduct (pB, pl1.normal) - pl1.dist > ON_EPSILON)? 1: 0;
+	side1 = (DotProduct (*pB, pl1.normal) - pl1.dist > ON_EPSILON)? 1: 0;
 
-	VectorSubtract (pD, p2A, e2);
+	VectorSubtract(*pD, *p2A, e2);
 	CrossProduct (normal, e2, pl2.normal); // pointing outward
-	if (VectorNormalize (pl2.normal) == 0.0)
+	if (normalize_vector(pl2.normal) == 0.0)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty edge.\n");
 		return false;
 	}
-	pl2.dist = DotProduct (p2A, pl2.normal);
-	if (DotProduct (p2B, pl2.normal) - pl2.dist < -ON_EPSILON)
+	pl2.dist = DotProduct (*p2A, pl2.normal);
+	if (DotProduct (*p2B, pl2.normal) - pl2.dist < -ON_EPSILON)
 	{
 		return false;
 	}
-	side2 = (DotProduct (p2B, pl2.normal) - pl2.dist > ON_EPSILON)? 1: 0;
+	side2 = (DotProduct (*p2B, pl2.normal) - pl2.dist > ON_EPSILON)? 1: 0;
 
 	Winding *neww = new Winding (w->size() + w2->size() - 4 + side1 + side2);
 	int j, k;
@@ -400,9 +400,9 @@ void BuildFaceEdges (opaqueface_t *f)
 		p1 = f->winding->m_Points[x].data();
 		p2 = f->winding->m_Points[(x+1)%f->winding->size()].data();
 		pl = &f->edges[x];
-		VectorSubtract (p2, p1, e);
+		VectorSubtract(p2, p1, e);
 		CrossProduct (n, e, pl->normal);
-		if (VectorNormalize (pl->normal) == 0.0)
+		if (normalize_vector(pl->normal) == 0.0)
 		{
 			Developer (DEVELOPER_LEVEL_WARNING, "Warning: BuildFaceEdges: Empty edge.\n");
 			VectorClear (pl->normal);
@@ -595,8 +595,8 @@ int TestLineOpaque (int modelnum, const vec3_array& modelorigin, const vec3_arra
 	opaquemodel_t *thismodel = &opaquemodels[modelnum];
 	vec_t front, back, frac;
 	vec3_array p1, p2;
-	VectorSubtract (start, modelorigin, p1);
-	VectorSubtract (stop, modelorigin, p2);
+	VectorSubtract(start, modelorigin, p1);
+	VectorSubtract(stop, modelorigin, p2);
 	int axial;
 	for (axial = 0; axial < 3; axial++)
 	{
@@ -727,7 +727,7 @@ int TestPointOpaque (int modelnum, const vec3_array& modelorigin, bool solid, co
 {
 	opaquemodel_t *thismodel = &opaquemodels[modelnum];
 	vec3_array newpoint;
-	VectorSubtract (point, modelorigin, newpoint);
+	VectorSubtract(point, modelorigin, newpoint);
 	int axial;
 	for (axial = 0; axial < 3; axial++)
 	{

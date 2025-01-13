@@ -25,7 +25,7 @@ class CTriangle
 {
 public:
 	CVertex*	vertex[3]; // the 3 points that make this tri
-	vector	normal;    // unit vector othogonal to this face
+	float3_array normal{};    // unit vector othogonal to this face
 
 	CTriangle( CVertex *v0, CVertex *v1, CVertex *v2 );
 	~CTriangle();
@@ -38,14 +38,14 @@ public:
 class CVertex
 {
 public:
-	vector		position; // location of point in euclidean space
+	float3_array		position{}; // location of point in euclidean space
 	int		id;       // place of vertex in original list
 	List<CVertex *>	neighbor; // adjacent vertices
 	List<CTriangle *>	face;     // adjacent triangles
 	float		objdist;  // cached cost of collapsing edge
 	CVertex*		collapse; // candidate vertex for collapse
 
-	CVertex( const vector &v, int _id );
+	CVertex( const float3_array &v, int _id );
 	~CVertex();
 	void RemoveIfNonNeighbor( CVertex *n );
 };
@@ -109,21 +109,21 @@ int CTriangle :: HasVertex( CVertex *v )
 
 void CTriangle :: ComputeNormal( void )
 {
-	vector	a, b;
+	float3_array	a{}, b{};
 
-	vector v0 = vertex[0]->position;
-	vector v1 = vertex[1]->position;
-	vector v2 = vertex[2]->position;
+	float3_array v0 = vertex[0]->position;
+	float3_array v1 = vertex[1]->position;
+	float3_array v2 = vertex[2]->position;
 
 	VectorSubtract( v1, v0, a );
 	VectorSubtract( v2, v1, b );
 	CrossProduct( a, b, normal );
 
-	if( VectorLength( normal ) == 0.0f )
+	if( vector_length( normal ) == 0.0f )
 		return;
 
 	vec3_array n{normal[0], normal[1], normal[2]};
-	VectorNormalize( n );
+	normalize_vector( n );
 	normal[0] = n[0];
 	normal[1] = n[1];
 	normal[2] = n[2];
@@ -174,7 +174,7 @@ void CTriangle :: ReplaceVertex( CVertex *vold, CVertex *vnew )
 	ComputeNormal();
 }
 
-CVertex :: CVertex( const vector &v, int _id )
+CVertex :: CVertex( const float3_array &v, int _id )
 {
 	position = v;
 	id = _id;
@@ -223,11 +223,11 @@ static float ComputeEdgeCollapseCost( CVertex *u, CVertex *v )
 	// would be generated.  i.e. normal of a remaining face gets
 	// flipped.  I never seemed to run into this problem and
 	// therefore never added code to detect this case.
-	vector edgedir;
+	float3_array edgedir{};
 
 	VectorSubtract( v->position, u->position, edgedir );
 
-	float edgelength = VectorLength( edgedir );
+	float edgelength = vector_length( edgedir );
 	float curvature = 0.0f;
 
 	int i;
@@ -352,7 +352,7 @@ static void Collapse( CVertex *u, CVertex *v )
 	}
 }
 
-static void AddVertex( List<vector> &vert )
+static void AddVertex( List<float3_array> &vert )
 {
 	for( int i = 0; i < vert.num; i++ )
 	{
@@ -389,7 +389,7 @@ static CVertex *MinimumCostEdge( void )
 	return mn;
 }
 
-void ProgressiveMesh( List<vector> &vert, List<triset> &tri, List<int> &map, List<int> &permutation )
+void ProgressiveMesh( List<float3_array> &vert, List<triset> &tri, List<int> &map, List<int> &permutation )
 {
 	AddVertex( vert );  // put input data into our data structures
 	AddFaces( tri );
@@ -421,12 +421,12 @@ void ProgressiveMesh( List<vector> &vert, List<triset> &tri, List<int> &map, Lis
 	// according to the returned "permutation".
 }
 
-void PermuteVertices( List<int> &permutation, List<vector> &vert, List<triset> &tris )
+void PermuteVertices( List<int> &permutation, List<float3_array> &vert, List<triset> &tris )
 {
 	assert( permutation.num == vert.num );
 
 	// rearrange the vertex list 
-	List<vector> temp_list;
+	List<float3_array> temp_list;
 
 	int i;
 

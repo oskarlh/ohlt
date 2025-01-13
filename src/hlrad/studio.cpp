@@ -153,7 +153,7 @@ void LoadStudioModels( void )
 
 		xform = get_vector_for_key(*e, u8"xform" );
 
-		if( VectorCompare( xform, vec3_origin ))
+		if( vectors_almost_same( xform, vec3_origin ))
 			VectorFill( xform, scale );
 
 		// check xform values
