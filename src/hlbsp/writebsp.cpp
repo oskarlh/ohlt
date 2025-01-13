@@ -200,8 +200,8 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
 	if (node->isdetail)
 	{
 		// intersect its loose bounds with the strict bounds of its parent portalleaf
-		VectorCompareMaximum (portalleaf->mins, node->loosemins, mins);
-		VectorCompareMinimum (portalleaf->maxs, node->loosemaxs, maxs);
+		mins = vector_maximums(portalleaf->mins, node->loosemins);
+		maxs = vector_minimums(portalleaf->maxs, node->loosemaxs);
 	}
 	else
 	{
@@ -346,8 +346,8 @@ static int WriteDrawNodes_r (node_t *node, const node_t *portalleaf)
 	if (node->isdetail)
 	{
 		// intersect its loose bounds with the strict bounds of its parent portalleaf
-		VectorCompareMaximum (portalleaf->mins, node->loosemins, mins);
-		VectorCompareMinimum (portalleaf->maxs, node->loosemaxs, maxs);
+		mins = vector_maximums(portalleaf->mins, node->loosemins);
+		maxs = vector_minimums (portalleaf->maxs, node->loosemaxs);
 	}
 	else
 	{

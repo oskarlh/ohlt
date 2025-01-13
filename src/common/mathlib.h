@@ -71,9 +71,16 @@ constexpr T vector_length(const std::array<T, 3>& v) noexcept {
     return std::hypot(v[0], v[1], v[2]);
 }
 
+template<any_vec3 T>
+constexpr T vector_minimums(const T& a, const T& b) noexcept {
+    return { std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]) };
+}
 
-#define VectorCompareMinimum(a,b,c) { (c)[0] = std::min((a)[0], (b)[0]); (c)[1] = std::min((a)[1], (b)[1]); (c)[2] = std::min((a)[2], (b)[2]); }
-#define VectorCompareMaximum(a,b,c) { (c)[0] = std::max((a)[0], (b)[0]); (c)[1] = std::max((a)[1], (b)[1]); (c)[2] = std::max((a)[2], (b)[2]); }
+
+template<any_vec3 T>
+constexpr T vector_maximums(const T& a, const T& b) noexcept {
+    return { std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]) };
+}
 
 template<any_vec_t T>
 constexpr T normalize_vector(std::array<T, 3>& v) {
@@ -97,14 +104,14 @@ template<any_vec_t T>
 }
 
 
-[[nodiscard]] constexpr bool vectors_almost_same(const any_vec3 auto& v1, const any_vec3 auto& v2) {
+constexpr bool vectors_almost_same(const any_vec3 auto& v1, const any_vec3 auto& v2) {
     const bool significantDifference0 = std::fabs(v1[0] - v2[0]) > EQUAL_EPSILON;
     const bool significantDifference1 = std::fabs(v1[1] - v2[1]) > EQUAL_EPSILON;
     const bool significantDifference2 = std::fabs(v1[2] - v2[2]) > EQUAL_EPSILON;
     return !significantDifference0 && !significantDifference1 && !significantDifference2;
 }
 
-[[nodiscard]] constexpr bool is_point_finite(const any_vec3 auto& p) noexcept {
+constexpr bool is_point_finite(const any_vec3 auto& p) noexcept {
     return std::isfinite(p[0]) && std::isfinite(p[1]) && std::isfinite(p[2]);
 }
 
@@ -128,7 +135,7 @@ constexpr planetype last_axial{planetype::plane_z};
 constexpr float DIR_EPSILON = 0.0001;
 
 template<any_vec_t T>
-[[nodiscard]] constexpr planetype plane_type_for_normal(const std::array<T, 3>& normal) noexcept {
+constexpr planetype plane_type_for_normal(const std::array<T, 3>& normal) noexcept {
 
     const T ax = std::fabs(normal[0]);
     const T ay = std::fabs(normal[1]);

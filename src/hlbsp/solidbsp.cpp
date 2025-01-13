@@ -174,8 +174,8 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 		face_t *f = *i;
 		for (int x = 0; x < f->numpoints; x++)
 		{
-			VectorCompareMinimum (node->mins, f->pts[x], node->mins);
-			VectorCompareMaximum (node->maxs, f->pts[x], node->maxs);
+			node->mins = vector_minimums(node->mins, f->pts[x]);
+			node->maxs = vector_maximums(node->maxs, f->pts[x]);
 		}
 		if (f->facestyle == face_discardable)
 		{

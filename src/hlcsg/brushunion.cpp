@@ -156,8 +156,8 @@ static bool isInvalidHull(const brushhull_t* hull)
 
     for (const bface_t& face : hull->faces) {
         for (const vec3_array& windingPoint : face.w.m_Points) {
-            VectorCompareMinimum(mins, windingPoint, mins);
-            VectorCompareMaximum(maxs, windingPoint, maxs);
+            mins = vector_minimums(mins, windingPoint);
+            maxs = vector_maximums(maxs, windingPoint);
         }
     }
 

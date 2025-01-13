@@ -680,9 +680,9 @@ void CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs)
 	for (side_t *s = b->sides; s; s = s->next)
 	{
         
-		const bounding_box bounds = s->w->getBounds ();
-		VectorCompareMinimum (mins, bounds.mins, mins);
-		VectorCompareMaximum (maxs, bounds.maxs, maxs);
+		const bounding_box bounds = s->w->getBounds();
+		mins = vector_minimums(mins, bounds.mins);
+		maxs = vector_maximums(maxs, bounds.maxs);
 	}
 }
 

@@ -2967,18 +2967,18 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 		// clip each patch
 		for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
 		{
-			Winding *w = new Winding (*texwindings[j]);
+			Winding w{*texwindings[j]};
 			for (k = 0; k < 4; k++)
 			{
-				if (w->size())
+				if (w.size())
 				{
-					w->Clip (clipplanes[k], false);
+					w.Clip (clipplanes[k], false);
 				}
 			}
-			if (w->size())
+			if (w.size())
 			{
 				// add sample to patch
-				vec_t area = w->getArea () / (TEXTURE_STEP * TEXTURE_STEP);
+				vec_t area = w.getArea () / (TEXTURE_STEP * TEXTURE_STEP);
 				patch->samples += area;
 				for (m = 0; m < ALLSTYLES && styles[m] != 255; m++)
 				{
@@ -3010,7 +3010,6 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 					}
 				}
 			}
-			delete w;
 		}
 	}
 
@@ -4104,8 +4103,8 @@ void            PrecompLightmapOffsets()
 			int i, j, k;
 			vec_t maxlights[ALLSTYLES];
 			{
-				vec3_t maxlights1[ALLSTYLES];
-				vec3_t maxlights2[ALLSTYLES];
+				std::array<vec3_array, ALLSTYLES> maxlights1;
+				std::array<vec3_array, ALLSTYLES> maxlights2;
 				for (j = 0; j < ALLSTYLES; j++)
 				{
 					VectorClear (maxlights1[j]);
@@ -4115,7 +4114,7 @@ void            PrecompLightmapOffsets()
 				{
 					for (i = 0; i < fl->numsamples; i++)
 					{
-						VectorCompareMaximum (maxlights1[f->styles[k]], fl->samples[k][i].light, maxlights1[f->styles[k]]);
+						maxlights1[f->styles[k]] = vector_maximums(maxlights1[f->styles[k]], fl->samples[k][i].light);
 					}
 				}
 				int numpatches;
@@ -4127,7 +4126,7 @@ void            PrecompLightmapOffsets()
 					patch = &g_patches[patches[i]];
 					for (k = 0; k < MAXLIGHTMAPS && patch->totalstyle[k] != 255; k++)
 					{
-						VectorCompareMaximum (maxlights2[patch->totalstyle[k]], patch->totallight[k], maxlights2[patch->totalstyle[k]]);
+						maxlights2[patch->totalstyle[k]] = vector_maximums(maxlights2[patch->totalstyle[k]], patch->totallight[k]);
 					}
 				}
 				for (j = 0; j < ALLSTYLES; j++)
@@ -4775,7 +4774,6 @@ void            FinalLightFace(const int facenum)
 			Log ("Error.\n");
 	}
     int             i, j, k;
-    vec3_t          lb, v;
     facelight_t*    fl;
     sample_t*       samp;
     float           minlight;
@@ -4843,12 +4841,11 @@ void            FinalLightFace(const int facenum)
         samp = fl->samples[k];
         for (j = 0; j < fl->numsamples; j++, samp++)
         {
-			VectorCopy (samp->light, lb);
 			if (f->styles[0] != 0)
 			{
 				Warning ("wrong f->styles[0]");
 			}
-			VectorCompareMaximum (lb, vec3_origin, lb);
+			vec3_array lb = vector_maximums(samp->light, vec3_origin);
 			if (k == 0)
 			{
 				VectorCopy (lb, original_basiclight[j]);
