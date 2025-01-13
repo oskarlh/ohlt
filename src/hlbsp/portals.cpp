@@ -88,7 +88,7 @@ void            RemovePortalFromNode(portal_t* portal, node_t* l)
  * The created portals will face the global g_outside_node
  * ================
  */
-void            MakeHeadnodePortals(node_t* node, const vec3_t mins, const vec3_t maxs)
+void            MakeHeadnodePortals(node_t* node, const vec3_array& mins, const vec3_array& maxs)
 {
     std::array<vec3_array, 2> bounds;
     portal_t*       p;

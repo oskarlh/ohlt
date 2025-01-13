@@ -41,7 +41,7 @@ enum class trace_method : std::uint8_t {
 
 typedef unsigned short	word;
 typedef unsigned int	uint;
-typedef vec_t vec4_t[4];	// x,y,z,w
+using vec4_t = std::array<vec_t, 4>;	// x,y,z,w
 typedef std::array<std::array<vec_t, 4>, 3> matrix3x4;
 
 #define Q_rint( x )		((x) < 0 ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
@@ -142,12 +142,12 @@ public:
 	// local mathlib
 	void AngleMatrix(const vec3_array& angles, const vec3_array& origin, const vec3_array& scale, matrix3x4& matrix);
 	void ConcatTransforms(const matrix3x4& in1, const matrix3x4& in2, matrix3x4& out);
-	void QuaternionMatrix(vec4_t quat, const vec3_t origin, matrix3x4& matrix);
+	void QuaternionMatrix(const vec4_t& quat, const vec3_array& origin, matrix3x4& matrix);
 	void VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec3_array& out);
-	void AngleQuaternion(const vec3_array& angles, vec4_t quat);
+	void AngleQuaternion(const vec3_array& angles, vec4_t& quat);
 
 	// studio models processing
-	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t q );
+	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t& q );
 	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t pos );
 	bool StudioConstructMesh( model_t *pModel );
 

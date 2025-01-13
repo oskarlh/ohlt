@@ -134,10 +134,10 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 	return true;
 }
 
-static vec_t GetAngle (const vec3_t leftdirection, const vec3_t rightdirection, const vec3_t normal)
+static vec_t GetAngle (const vec3_array& leftdirection, const vec3_array& rightdirection, const vec3_array& normal)
 {
 	vec_t angle;
-	vec3_t v;
+	vec3_array v;
 	
 	CrossProduct (rightdirection, leftdirection, v);
 	angle = atan2 (DotProduct (v, normal), DotProduct (rightdirection, leftdirection));
@@ -235,7 +235,7 @@ static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, 
 	angles.resize ((int)lt->sortedhullpoints.size ());
 	for (i = 0; i < (int)lt->sortedhullpoints.size (); i++)
 	{
-		angle = GetAngle (lt->sortedhullpoints[i].direction.data(), direction.data(), lt->normal.data());
+		angle = GetAngle (lt->sortedhullpoints[i].direction, direction, lt->normal);
 		angles[i] = GetAngleDiff (angle, 0);
 	}
 	j = 0;
@@ -527,7 +527,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	angles.resize ((int)lt->sortedwedges.size ());
 	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
 	{
-		angle = GetAngle (lt->sortedwedges[i].leftdirection.data(), direction.data(), lt->normal.data());
+		angle = GetAngle (lt->sortedwedges[i].leftdirection, direction, lt->normal);
 		angles[i] = GetAngleDiff (angle, 0);
 	}
 	j = 0;
@@ -1139,7 +1139,7 @@ static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *
 	angles.resize ((int)points.size ());
 	for (i = 0; i < (int)points.size (); i++)
 	{
-		angle = GetAngle (points[0].leftdirection.data(), points[i].leftdirection.data(), lt->normal.data());
+		angle = GetAngle (points[0].leftdirection, points[i].leftdirection, lt->normal);
 		if (i == 0)
 		{
 			if (g_drawlerp && fabs (angle) > NORMAL_EPSILON)
@@ -1205,7 +1205,7 @@ static void PurgePatches (localtriangulation_t *lt)
 		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
 		while (next[cur] != cur && valid[next[cur]] != 2)
 		{
-			angle = GetAngle (points[cur].leftdirection.data(), points[next[cur]].leftdirection.data(), lt->normal.data());
+			angle = GetAngle (points[cur].leftdirection, points[next[cur]].leftdirection, lt->normal);
 			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
 				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
 				&& DotProduct (points[next[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
@@ -1226,7 +1226,7 @@ static void PurgePatches (localtriangulation_t *lt)
 		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
 		while (prev[cur] != cur && valid[prev[cur]] != 2)
 		{
-			angle = GetAngle (points[prev[cur]].leftdirection.data(), points[cur].leftdirection.data(), lt->normal.data());
+			angle = GetAngle (points[prev[cur]].leftdirection, points[cur].leftdirection, lt->normal);
 			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
 				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
 				&& DotProduct (points[prev[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
@@ -1291,7 +1291,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 		angles.resize ((int)spots.size ());
 		for (i = 0; i < (int)spots.size (); i++)
 		{
-			angle = GetAngle (spots[0].direction.data(), spots[i].direction.data(), lt->normal.data());
+			angle = GetAngle (spots[0].direction, spots[i].direction, lt->normal);
 			if (i == 0)
 			{
 				angle = 0.0;
@@ -1321,12 +1321,12 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 		angles.resize ((int)spots.size ());
 		for (j = 0; j < (int)spots.size (); j++)
 		{
-			angle = GetAngle (w->leftdirection.data(), spots[j].direction.data(), lt->normal.data());
+			angle = GetAngle (w->leftdirection, spots[j].direction, lt->normal);
 			angles[j].first = GetAngleDiff (angle, 0);
 			angles[j].second = j;
 		}
 		std::sort (angles.begin (), angles.end ());
-		angle = GetAngle (w->leftdirection.data(), wnext->leftdirection.data(), lt->normal.data());
+		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
 		if ((int)lt->sortedwedges.size () == 1)
 		{
 			angle = 2 * std::numbers::pi_v<double>;
@@ -1415,7 +1415,7 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	}
 	
 	// (o, p1, p3) must be a triangle
-	angle = GetAngle (w1->leftdirection.data(), w3->leftdirection.data(), lt->normal.data());
+	angle = GetAngle (w1->leftdirection, w3->leftdirection, lt->normal);
 	angle = GetAngleDiff (angle, 0);
 	if (angle >= TRIANGLE_SHAPE_THRESHOLD)
 	{
@@ -1433,7 +1433,7 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	{
 		return false;
 	}
-	angle = GetAngle (dir2.data(), dir1.data(), lt->normal.data());
+	angle = GetAngle (dir2, dir1, lt->normal);
 	angle = GetAngleDiff (angle, 0);
 	if (angle >= TRIANGLE_SHAPE_THRESHOLD)
 	{
@@ -1520,7 +1520,7 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 		w = &lt->sortedwedges[i];
 		wnext = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
 
-		angle = GetAngle (w->leftdirection.data(), wnext->leftdirection.data(), lt->normal.data());
+		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
 		if (g_drawlerp && ((int)lt->sortedwedges.size () >= 2 && fabs (angle) <= (0.9*std::numbers::pi_v<double>/180)))
 		{
 			Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 9.\n");

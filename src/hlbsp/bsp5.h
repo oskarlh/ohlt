@@ -179,7 +179,7 @@ extern node_t   g_outside_node;                            // portals outside th
 
 extern void     AddPortalToNodes(portal_t* p, node_t* front, node_t* back);
 extern void     RemovePortalFromNode(portal_t* portal, node_t* l);
-extern void     MakeHeadnodePortals(node_t* node, const vec3_t mins, const vec3_t maxs);
+extern void     MakeHeadnodePortals(node_t* node, const vec3_array& mins, const vec3_array& maxs);
 
 extern void     FreePortals(node_t* node);
 extern void     WritePortalfile(node_t* headnode);

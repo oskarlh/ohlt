@@ -1700,7 +1700,7 @@ node_t*         SolidBSP(const surfchain_t* const surfhead,
 
 
     // generate six portals that enclose the entire world
-    MakeHeadnodePortals(headnode, surfhead->mins.data(), surfhead->maxs.data());
+    MakeHeadnodePortals(headnode, surfhead->mins, surfhead->maxs);
 
     // recursively partition everything
     BuildBspTree_r(headnode);

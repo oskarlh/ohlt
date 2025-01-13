@@ -3692,7 +3692,7 @@ void            BuildFacelights(const int facenum)
 			{
 				for (istyle = 0; istyle < ALLSTYLES && patch->totalstyle_all[istyle] != 255; istyle++)
 				{
-					vec3_t v;
+					vec3_array v;
 					VectorScale (patch->samplelight_all[istyle], 1.0f / patch->samples, v);
 					VectorAdd (patch->directlight_all[istyle], v, patch->directlight_all[istyle]);
 				}

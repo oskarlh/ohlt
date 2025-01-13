@@ -323,7 +323,7 @@ void CMeshDesc :: CategorizePlane( mplane_t *plane )
 	}
 }
 
-void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t quat) {
+void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t& quat) {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
 
@@ -374,7 +374,7 @@ void CMeshDesc::AngleMatrix(const vec3_array& angles, const vec3_array& origin, 
 	matrix[2][3] = origin[2];
 }
 
-void CMeshDesc :: QuaternionMatrix( vec4_t quat, const vec3_t origin, matrix3x4& matrix)
+void CMeshDesc :: QuaternionMatrix(const vec4_t& quat, const vec3_array& origin, matrix3x4& matrix)
 {
 	matrix[0][0] = 1.0 - 2.0 * quat[1] * quat[1] - 2.0 * quat[2] * quat[2];
 	matrix[1][0] = 2.0 * quat[0] * quat[1] + 2.0 * quat[3] * quat[2];
@@ -414,7 +414,7 @@ void CMeshDesc::VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec
 	out[2] = DotProduct( in1, in2[2] ) + in2[2][3];
 }
 
-void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t q )
+void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t& q )
 {
 	mstudioanimvalue_t *panimvalue;
 	vec3_array angle;
@@ -482,13 +482,13 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
 
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
-	vec3_t pos[MAXSTUDIOBONES];
-	vec4_t q[MAXSTUDIOBONES];
+	std::array<vec3_array, MAXSTUDIOBONES> pos;
+	std::array<vec4_t, MAXSTUDIOBONES> q;
 
 	for(std::size_t i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
 	{
 		StudioCalcBoneQuaterion( pbone, panim, q[i] );
-		StudioCalcBonePosition( pbone, panim, pos[i] );
+		StudioCalcBonePosition( pbone, panim, pos[i].data() );
 	}
 
 	pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
