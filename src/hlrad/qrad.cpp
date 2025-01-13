@@ -1411,8 +1411,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		}
 	}
 }
-static void     AddFaceToOpaqueList(
-									int entitynum, int modelnum, const vec3_t origin
+static void AddFaceToOpaqueList(int entitynum, int modelnum, const vec3_array& origin
 									, const std::optional<vec3_array>& transparency_scale
 									, int style
 									, bool block
@@ -1548,7 +1547,7 @@ static void		LoadOpaqueEntities()
 			}
 			if (opaque) //If opaque add it to the opaque list with its properties
 			{
-				AddFaceToOpaqueList (entnum, modelnum, origin.data()
+				AddFaceToOpaqueList (entnum, modelnum, origin
 					, transparency
 					, opaquestyle
 					, block
@@ -1899,7 +1898,7 @@ static void     CollectLight()
 
     for (i = 0, patch = g_patches; i < g_num_patches; i++, patch++)
     {
-		vec3_t newtotallight[MAXLIGHTMAPS];
+		std::array<vec3_array, MAXLIGHTMAPS> newtotallight;
 		for (j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255; j++)
 		{
 			VectorClear (newtotallight[j]);

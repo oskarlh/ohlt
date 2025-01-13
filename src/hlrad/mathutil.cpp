@@ -257,7 +257,6 @@ bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_
 {
 	vec_t lmin, lmax;
 	const vec_t* tmp;
-	vec3_t x1, x2;
 	int i;
 	d--;
 	if (p2[d]<p1[d])
@@ -268,12 +267,13 @@ bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_
 		return true;
 	lmin = p1[d]>=mins[d]? 0 : (mins[d]-p1[d])/(p2[d]-p1[d]);
 	lmax = p2[d]<=maxs[d]? 1 : (p2[d]-maxs[d])/(p2[d]-p1[d]);
+	vec3_array x1, x2;
 	for (i=0; i<d; ++i)
 	{
 		x1[i]=(1-lmin)*p1[i]+lmin*p2[i];
 		x2[i]=(1-lmax)*p2[i]+lmax*p2[i];
 	}
-	return LineSegmentIntersectsBounds_r (x1, x2, mins, maxs, d);
+	return LineSegmentIntersectsBounds_r (x1.data(), x2.data(), mins, maxs, d);
 }
 inline bool LineSegmentIntersectsBounds (const vec3_t p1, const vec3_t p2, const vec3_t mins, const vec3_t maxs)
 {

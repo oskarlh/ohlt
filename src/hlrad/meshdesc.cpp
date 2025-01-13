@@ -214,8 +214,8 @@ The normal will point out of the clock for clockwise ordered points
 */
 bool CMeshDesc :: PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane )
 {
-	vec3_t	v1, v2;
-
+	vec3_array v1;
+	vec3_array v2;
 	VectorSubtract( triangle[1].point, triangle[0].point, v1 );
 	VectorSubtract( triangle[2].point, triangle[0].point, v2 );
 	CrossProduct( v2, v1, plane->normal );
@@ -482,8 +482,8 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
 
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
-	static vec3_t pos[MAXSTUDIOBONES];
-	static vec4_t q[MAXSTUDIOBONES];
+	vec3_t pos[MAXSTUDIOBONES];
+	vec4_t q[MAXSTUDIOBONES];
 
 	for(std::size_t i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
 	{
