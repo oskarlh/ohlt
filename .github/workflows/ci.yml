@@ -24,7 +24,7 @@ jobs:
         os: [
           # No Windows support yet...
           # windows-latest,
-          macos-latest,
+          macos-15,
           ubuntu-latest
         ]
         build_type: [Release]
@@ -34,7 +34,7 @@ jobs:
           clang,
           gcc-14]
         include:
-          - os: macos-latest
+          - os: macos-15
             c_compiler: clang
             cpp_compiler: clang++
           - os: ubuntu-latest
@@ -46,9 +46,9 @@ jobs:
           #   cpp_compiler: cl
         exclude:
           # No Windows support yet...
-          # - os: macos-latest
+          # - os: macos-15
           #   c_compiler: cl
-          - os: macos-latest
+          - os: macos-15
             c_compiler: gcc-14
           # No Windows support yet...
           # - os: ubuntu-latest
