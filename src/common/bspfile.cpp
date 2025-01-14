@@ -74,22 +74,6 @@ std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{bspGlobals.surfEdges};
 int& g_numentities{bspGlobals.entitiesLength};
 std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{bspGlobals.entities};
 
-/*
- * ===============
- * fast_checksum
- * ===============
- */
-
-static std::uint32_t rotleftu32(std::uint32_t value, std::uint32_t amt)
-{
-    std::uint32_t t1, t2;
-
-    t1 = value >> (std::numeric_limits<std::uint32_t>::digits - amt);
-
-    t2 = value << amt;
-    return (t1 | t2);
-}
-
 
 /*
  * ===============
