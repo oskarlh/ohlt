@@ -2288,7 +2288,7 @@ int             main(const int argc, char** argv)
             p->normal[1], p->normal[2], p->normal[3],
             p->origin[1], p->origin[2], p->origin[3],
             p->dist,
-            p->type
+            (int) p->type
             );
         }
         Log("---------------------------------------\n\n");
