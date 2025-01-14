@@ -35,10 +35,6 @@ enum class trace_method : std::uint8_t {
 	shadow_slow
 };
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
-#endif
-
 typedef unsigned short	word;
 typedef unsigned int	uint;
 using vec4_t = std::array<vec_t, 4>;	// x,y,z,w

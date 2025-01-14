@@ -18,6 +18,8 @@ GNU General Public License for more details.
 #include "time_counter.h"
 #include "context.h"
 
+#include <numbers>
+
 constexpr bool AABB_OFFSET = false;
 
 constexpr float SIMPLIFICATION_FACTOR_HIGH{0.15f};
@@ -344,13 +346,13 @@ void CMeshDesc::AngleMatrix(const vec3_array& angles, const vec3_array& origin, 
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
 	
-	angle = angles[1] * (M_PI * 2.0f / 360.0f);
+	angle = angles[1] * (std::numbers::pi_v<float> * 2.0f / 360.0f);
 	sy = sin( angle );
 	cy = cos( angle );
-	angle = angles[0] * (M_PI * 2.0f / 360.0f);
+	angle = angles[0] * (std::numbers::pi_v<float> * 2.0f / 360.0f);
 	sp = sin( angle );
 	cp = cos( angle );
-	angle = angles[2] * (M_PI * 2.0f / 360.0f);
+	angle = angles[2] * (std::numbers::pi_v<float> * 2.0f / 360.0f);
 	sr = sin( angle );
 	cr = cos( angle );
 
