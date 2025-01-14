@@ -2658,7 +2658,7 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 
 						denominator = dist * dist * l->fade;
 
-						vec3_t add;
+						vec3_array add;
                         switch (l->type)
                         {
                         case emit_point:
@@ -3043,11 +3043,11 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
 
         for (j = 0; j < f->numedges; j++)
         {
-            vec3_t          p1;
-            vec3_t          p2;
-            vec3_t          v1;
-            vec3_t          v2;
-            vec3_t          vspot;
+            vec3_array          p1;
+            vec3_array          p2;
+            vec3_array          v1;
+            vec3_array          v2;
+            vec3_array          vspot;
             unsigned        prev_edge;
             unsigned        next_edge;
             int             e;
@@ -4324,7 +4324,7 @@ struct mdllight_t {
 		struct
 		{
 			int num;
-			vec3_t pos;
+			vec3_array pos;
 			std::byte* (style[ALLSTYLES]);
 		}
 		sample[MLH_MAXSAMPLECOUNT];

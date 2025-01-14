@@ -119,16 +119,14 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
 
 //===========================================================================
 
-typedef struct hashvert_s
-{
-    struct hashvert_s* next;
-    vec3_t          point;
+struct hashvert_t {
+    hashvert_t* next;
+    vec3_array point;
     int             num;
     int             numplanes;                             // for corner determination
     int             planenums[2];
     int             numedges;
-}
-hashvert_t;
+};
 
 // #define      POINT_EPSILON   0.01
 #define POINT_EPSILON	(ON_EPSILON / 2) //#define POINT_EPSILON	ON_EPSILON //--vluzacn
@@ -144,9 +142,9 @@ static int      firstmodelface;
 
 #define	NUM_HASH	4096
 
-static hashvert_t* hashverts[NUM_HASH];
+static std::array<hashvert_t*, NUM_HASH> hashverts;
 
-static vec3_t   hash_min;
+static const vec3_array hash_min{-8000.0, -8000.0, -8000.0};
 static vec3_t   hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed in a cyclic way (modulus by hash_numslots)
 // So please don't change the hardcoded hash_min and scale
@@ -158,26 +156,16 @@ static int		hash_numslots[3];
 // =====================================================================================
 static void     InitHash()
 {
-    vec3_t          size;
-    vec_t           volume;
-    vec_t           scale;
-    int             newsize[2];
-    int             i;
+    constexpr vec_t size{16000.0};
 
-    std::memset(hashverts, 0, sizeof(hashverts));
+    hashverts = {};
 
-    for (i = 0; i < 3; i++)
-    {
-        hash_min[i] = -8000;
-        size[i] = 16000;
-    }
+    const vec_t volume = size * size;
 
-    volume = size[0] * size[1];
+    const vec_t scale = sqrt(volume / NUM_HASH);
 
-    scale = sqrt(volume / NUM_HASH);
-
-	hash_numslots[0] = (int)floor (size[0] / scale);
-	hash_numslots[1] = (int)floor (size[1] / scale);
+	hash_numslots[0] = (int)floor (size / scale);
+	hash_numslots[1] = (int)floor (size / scale);
 	while (hash_numslots[0] * hash_numslots[1] > NUM_HASH)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "hash_numslots[0] * hash_numslots[1] > NUM_HASH");
@@ -185,8 +173,8 @@ static void     InitHash()
 		hash_numslots[1]--;
 	}
 
-	hash_scale[0] = hash_numslots[0] / size[0];
-	hash_scale[1] = hash_numslots[1] / size[1];
+	hash_scale[0] = hash_numslots[0] / size;
+	hash_scale[1] = hash_numslots[1] / size;
 
     hvert_p = hvertex;
 }

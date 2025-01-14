@@ -220,7 +220,7 @@ bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p
 
 		trm.SetTraceModExtradata( m->extradata );
 		trm.SetTraceMesh( pMesh, pHeadNode );
-		trm.SetupTrace( p1.data(), vec3_origin, vec3_origin, p2.data() );
+		trm.SetupTrace( p1, vec3_origin, vec3_origin, p2 );
 
 		if( trm.DoTrace())
 			return true; // we hit studio model

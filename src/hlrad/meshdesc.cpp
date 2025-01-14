@@ -234,7 +234,7 @@ bool CMeshDesc :: PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane )
 ComparePlanes
 =================
 */
-bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const vec3_t normal, float dist )
+bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const vec3_array& normal, float dist )
 {
 	if( fabs( plane->normal[0] - normal[0] ) < PLANE_NORMAL_EPSILON
 	 && fabs( plane->normal[1] - normal[1] ) < PLANE_NORMAL_EPSILON
@@ -770,11 +770,11 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	// calculate plane for this triangle
 	PlaneFromPoints( triangle, &mainplane );
 
-	if( ComparePlanes( &mainplane, vec3_origin.data(), 0.0f ))
+	if( ComparePlanes( &mainplane, float3_array{0,0,0}, 0.0f ))
 		return false; // bad plane
 
 	mplane_t planes[MAX_FACET_PLANES];
-	vec3_array normal;
+	float3_array normal;
 	int numplanes;
 	float dist;
 
@@ -865,7 +865,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 				for( j = 0; j < numplanes; j++ )
 				{
 					// if this plane has already been used, skip it
-					if( ComparePlanes( &planes[j], normal.data(), dist ))
+					if( ComparePlanes( &planes[j], normal, dist ))
 						break;
 				}
 

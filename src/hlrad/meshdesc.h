@@ -160,7 +160,7 @@ public:
 	// plane cache
 	uint AddPlaneToPool( const mplane_t *pl );
 	bool PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane );
-	bool ComparePlanes( const mplane_t *plane, const vec3_t normal, float dist );
+	bool ComparePlanes( const mplane_t *plane, const vec3_array& normal, float dist );
 	bool PlaneEqual( const mplane_t *p0, const mplane_t *p1 );
 	void CategorizePlane( mplane_t *plane );
 	void SnapPlaneToGrid( mplane_t *plane );

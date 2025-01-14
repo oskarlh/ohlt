@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "qrad.h"
 #include "meshtrace.h"
 
-void TraceMesh :: SetupTrace( const vec3_t start, const vec3_array& mins, const vec3_array& maxs, const vec3_t end )
+void TraceMesh :: SetupTrace( const vec3_array& start, const vec3_array& mins, const vec3_array& maxs, const vec3_array& end )
 {
 	m_bHitTriangle = false;
 
@@ -48,7 +48,7 @@ void TraceMesh :: SetupTrace( const vec3_t start, const vec3_array& mins, const 
 	}
 }
 
-bool TraceMesh :: ClipRayToBox( const vec3_t mins, const vec3_t maxs )
+bool TraceMesh :: ClipRayToBox( const vec3_array& mins, const vec3_array& maxs )
 {
 	vec3_array	t0, t1;
 	vec3_array	n, f;
@@ -335,7 +335,7 @@ void TraceMesh :: ClipToLinks( areanode_t *node )
 		if( mesh->trace_mode == trace_method::shadow_fast )
 		{
 			// ultra-fast mode, no real tracing here
-			if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
+			if( ClipRayToBox( facet->mins, facet->maxs ))
 			{
 				m_bHitTriangle = true;
 				return;
@@ -397,7 +397,7 @@ bool TraceMesh :: DoTrace( void )
 			if( mesh->trace_mode == trace_method::shadow_fast )
 			{
 				// ultra-fast mode, no real tracing here
-				if( ClipRayToBox( facet->mins.data(), facet->maxs.data() ))
+				if( ClipRayToBox( facet->mins, facet->maxs ))
 					return true;
 			}
 			else if( mesh->trace_mode == trace_method::shadow_normal )
