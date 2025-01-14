@@ -31,16 +31,13 @@ jobs:
         include:
           - os_and_compiler: macos-clang
             os: macos-15
-            c_compiler: $(brew --prefix llvm@18)/bin/clang
             cpp_compiler: $(brew --prefix llvm@18)/bin/clang++
           - os_and_compiler: ubuntu-gcc
             os: ubuntu-latest
-            c_compiler: gcc-14
             cpp_compiler: g++-14
           # No Windows support yet...
           # - os_and_compiler: windows-msvc
           #   os: windows-latest
-          #   c_compiler: cl
           #   cpp_compiler: cl
 
     steps:
@@ -63,7 +60,6 @@ jobs:
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
         --preset=release-config
@@ -80,10 +76,10 @@ jobs:
 
     - name: Archiving
       # Default Build Artifact zipper does not retain file permission.
-      run: 7z a OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.7z tools
+      run: 7z a OHLT-${{ matrix.os_and_compiler }}.7z tools
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}
-        path: OHLT-${{ matrix.os }}-${{ matrix.c_compiler }}.7z
+        name: OHLT-${{ matrix.os_and_compiler }}
+        path: OHLT-${{ matrix.os_and_compiler }}.7z
