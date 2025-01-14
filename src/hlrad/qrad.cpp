@@ -180,12 +180,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
+    const std::int32_t priorityFromEnt = IntForKey(mapent, u8"priority");
+	if (priorityFromEnt == 1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
-    }
-    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
+    } else if (priorityFromEnt == -1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -249,7 +249,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // smooth(integer) : "Smoothing threshold (in degrees)" : 0 
-    flTmp = FloatForKey(mapent, u8"smooth");
+    flTmp = float_for_key(*mapent, u8"smooth");
     if (flTmp)
     {
         /*g_smoothing_threshold = flTmp;*/
@@ -258,7 +258,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // dscale(integer) : "Direct Lighting Scale" : 1 
-    flTmp = FloatForKey(mapent, u8"dscale");
+    flTmp = float_for_key(*mapent, u8"dscale");
     if (flTmp)
     {
         g_direct_scale = flTmp;
@@ -274,7 +274,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     }
 
     // texchop(integer) : "Texture Light Chop Size" : 32 
-    flTmp = FloatForKey(mapent, u8"texchop");
+    flTmp = float_for_key(*mapent, u8"texchop");
     if (flTmp)
     {
         g_texchop = flTmp;
@@ -1086,7 +1086,7 @@ void ReadLightingCone ()
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
-		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_angularfade"))
+		if (!classname_is(mapent, u8"info_angularfade"))
 			continue;
 		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
@@ -1166,9 +1166,9 @@ static bool		getEmitMode (const patch_t *patch)
 		;
 	if (g_face_texlights[patch->faceNumber])
 	{
-		if (*ValueForKey (g_face_texlights[patch->faceNumber], u8"_scale"))
+		if (has_key_value(g_face_texlights[patch->faceNumber], u8"_scale"))
 		{
-			value *= FloatForKey (g_face_texlights[patch->faceNumber], u8"_scale");
+			value *= float_for_key(*g_face_texlights[patch->faceNumber], u8"_scale");
 		}
 	}
 	bool emitmode = value > 0.0 && value >= g_dlight_threshold;
@@ -1192,9 +1192,9 @@ static vec_t    getChop(const patch_t* const patch)
 
 	if (g_face_texlights[patch->faceNumber])
 	{
-		if (*ValueForKey (g_face_texlights[patch->faceNumber], u8"_chop"))
+		if (has_key_value(g_face_texlights[patch->faceNumber], u8"_chop"))
 		{
-			rval = FloatForKey (g_face_texlights[patch->faceNumber], u8"_chop");
+			rval = float_for_key(*g_face_texlights[patch->faceNumber], u8"_chop");
 			if (rval < 1.0)
 			{
 				rval = 1.0;
@@ -1273,7 +1273,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	patch->emitstyle = style;
 
 	VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
-	if (g_face_texlights[fn] && *ValueForKey (g_face_texlights[fn], u8"_texcolor"))
+	if (g_face_texlights[fn] && has_key_value(g_face_texlights[fn], u8"_texcolor"))
 	{
 		vec3_array texturereflectivity;
 		vec3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
@@ -1593,12 +1593,12 @@ static entity_t *FindTexlightEntity (int facenum)
 		vec_t dist = vector_length(delta);
 		if (has_key_value(&ent, u8"_frange"))
 		{
-			if (dist > FloatForKey(&ent, u8"_frange"))
+			if (dist > float_for_key(ent, u8"_frange"))
 				continue;
 		}
 		if (has_key_value(&ent, u8"_fdist"))
 		{
-			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey(&ent, u8"_fdist"))
+			if (fabs (DotProduct (delta, dplane->normal)) > float_for_key(ent, u8"_fdist"))
 				continue;
 		}
 		if (has_key_value(&ent, u8"_fclass"))

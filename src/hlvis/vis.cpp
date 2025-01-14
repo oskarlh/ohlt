@@ -1140,7 +1140,7 @@ int             main(const int argc, char** argv)
 	{
 		for (std::size_t i = 0; i < g_numentities; i++)
 		{
-            std::u8string_view current_entity_classname = value_for_key(&g_entities[i], u8"classname");
+            std::u8string_view current_entity_classname = get_classname(g_entities[i]);
 
 			if (current_entity_classname == u8"info_overview_point") {
 				if (g_overview_count < g_overview_max) {

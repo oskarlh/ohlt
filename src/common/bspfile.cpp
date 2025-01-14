@@ -770,7 +770,7 @@ bool            ParseEntity()
 	// ugly code
 	if (key_value_starts_with(mapent, u8"classname", u8"light") && has_key_value(mapent, u8"_tex"))
 	{
-		SetKeyValue (mapent, u8"convertto", value_for_key(mapent, u8"classname"));
+		SetKeyValue (mapent, u8"convertto", get_classname(*mapent));
 		SetKeyValue (mapent, u8"classname", u8"light_surface");
 	}
 	if (key_value_is(mapent, u8"convertfrom", u8"light_shadow")
@@ -890,9 +890,8 @@ bool classname_is(const entity_t* ent, std::u8string_view classname)
 {
 	return key_value_is(ent, u8"classname", classname);
 }
-std::u8string_view get_classname(const entity_t* ent)
-{
-	return value_for_key(ent, u8"classname");
+std::u8string_view get_classname(const entity_t& ent) {
+	return value_for_key(&ent, u8"classname");
 }
 
 
@@ -907,11 +906,8 @@ std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key) {
 	return result;
 }
 
-// =====================================================================================
-//  FloatForKey
-// =====================================================================================
-vec_t FloatForKey(const entity_t* const ent, std::u8string_view key) {
-    return atof((const char*) value_for_key(ent, key).data());
+float float_for_key(const entity_t& ent, std::u8string_view key) {
+    return atof((const char*) value_for_key(&ent, key).data());
 }
 
 double3_array get_double_vector_for_key(const entity_t& ent, std::u8string_view key) {

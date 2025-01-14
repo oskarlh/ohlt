@@ -103,12 +103,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!std::strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
+    const std::int32_t priorityFromEnt = IntForKey(mapent, u8"priority");
+	if (priorityFromEnt == 1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
-    }
-    else if (!std::strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
+    } else if (priorityFromEnt == -1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -1247,9 +1247,9 @@ static bool     ProcessModel(bsp_data& bspData)
 		}
 		Warning ("Empty solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\")", 
 			g_nummodels - 1, 
-			(ent? (const char*) ValueForKey (ent, u8"classname"): "unknown"), 
-			(ent? (const char*) ValueForKey (ent, u8"origin"): "unknown"), 
-			(ent? (const char*) ValueForKey (ent, u8"targetname"): "unknown"));
+			(ent? (const char*) get_classname(*ent).data(): "unknown"), 
+			(ent? (const char*) value_for_key(ent, u8"origin").data(): "unknown"), 
+			(ent? (const char*) value_for_key(ent, u8"targetname").data(): "unknown"));
 		VectorClear (model->mins); // fix "backward minsmaxs" in HL
 		VectorClear (model->maxs);
 	}
@@ -1262,9 +1262,9 @@ static bool     ProcessModel(bsp_data& bspData)
 		}
 		Warning ("No visible brushes in solid entity: model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\", range (%.0f,%.0f,%.0f) - (%.0f,%.0f,%.0f))", 
 			g_nummodels - 1, 
-			(ent?(const char*) ValueForKey (ent, u8"classname"): "unknown"), 
-			(ent?(const char*)  ValueForKey (ent, u8"origin"): "unknown"), 
-			(ent?(const char*)  ValueForKey (ent, u8"targetname"): "unknown"), 
+			(ent ? (const char*) get_classname(*ent).data() : "unknown"), 
+			(ent ? (const char*) value_for_key(ent, u8"origin").data() : "unknown"), 
+			(ent ? (const char*) value_for_key(ent, u8"targetname").data() : "unknown"), 
 			model->mins[0], model->mins[1], model->mins[2], model->maxs[0], model->maxs[1], model->maxs[2]);
 	}
     return true;

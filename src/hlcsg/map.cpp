@@ -117,23 +117,11 @@ void            TextureAxisFromPlane(const mapplane_t* const pln, vec3_t xv, vec
 //  CheckForInvisible
 //      see if a brush is part of an invisible entity (KGP)
 // =====================================================================================
-static bool CheckForInvisible(entity_t* mapent)
-{
-	using namespace std;
-
-	string keyval((const char*) ValueForKey(mapent, u8"classname"));
-	if(g_invisible_items.count(keyval))
-	{ return true; }
-
-	keyval.assign((const char*) ValueForKey(mapent, u8"targetname"));
-	if(g_invisible_items.count(keyval))
-	{ return true; }
-
-	keyval.assign((const char*) ValueForKey(mapent, u8"zhlt_invisible"));
-	if(!keyval.empty() && strcmp(keyval.c_str(),"0"))
-	{ return true; }
-
-	return false;
+static bool CheckForInvisible(entity_t* mapent) {
+	return std::ranges::contains(g_invisible_items, get_classname(*mapent))
+		|| std::ranges::contains(g_invisible_items, value_for_key(mapent, u8"targetname"))
+		|| std::ranges::contains(g_invisible_items, value_for_key(mapent, u8"zhlt_invisible"))
+	;
 }
 // =====================================================================================
 //  ParseBrush
@@ -477,7 +465,7 @@ static void ParseBrush(entity_t* mapent)
 
     if (contents == CONTENTS_ORIGIN)
     {
-		if (*ValueForKey (mapent, u8"origin"))
+		if (has_key_value(mapent, u8"origin"))
 		{
 			Error ("Entity %i, Brush %i: Only one ORIGIN brush allowed.",
 					b->originalentitynum, b->originalbrushnum

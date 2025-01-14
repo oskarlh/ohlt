@@ -994,7 +994,7 @@ contents_t      CheckBrushContents(const brush_t* const b)
 		contents = CONTENTS_SOLID;
 
     // check to make sure we dont have an origin brush as part of worldspawn
-    if ((b->entitynum == 0) || (strcmp("func_group", (const char*) ValueForKey(&g_entities[b->entitynum], u8"classname"))==0))
+    if ((b->entitynum == 0) || classname_is(&g_entities[b->entitynum], u8"func_group"))
     {
         if (contents == CONTENTS_ORIGIN
 				&& b->entitynum == 0
@@ -1410,7 +1410,7 @@ void CreateHullShape (int entitynum, bool disabled, std::u8string_view id, int d
 	hullshape_t *hs;
 
 	entity = &g_entities[entitynum];
-	if (!*ValueForKey (entity, u8"origin"))
+	if (!has_key_value(entity, u8"origin"))
 	{
 		Warning ("info_hullshape with no ORIGIN brush.");
 	}

@@ -1629,8 +1629,8 @@ void            CreateDirectLights()
 			DotProduct (p->baselight, p->texturereflectivity) / 3
 			> 0.0
 			&& !(g_face_texlights[p->faceNumber]
-				&& *ValueForKey (g_face_texlights[p->faceNumber], u8"_scale")
-				&& FloatForKey (g_face_texlights[p->faceNumber], u8"_scale") <= 0)
+				&& has_key_value(g_face_texlights[p->faceNumber], u8"_scale")
+				&& float_for_key(*g_face_texlights[p->faceNumber], u8"_scale") <= 0)
 			) //LRC
         {
             numdlights++;
@@ -1661,7 +1661,7 @@ void            CreateDirectLights()
 			dl->texlightgap = g_texlightgap;
 			if (g_face_texlights[p->faceNumber] && *ValueForKey (g_face_texlights[p->faceNumber], u8"_texlightgap"))
 			{
-				dl->texlightgap = FloatForKey (g_face_texlights[p->faceNumber], u8"_texlightgap");
+				dl->texlightgap = float_for_key(*g_face_texlights[p->faceNumber], u8"_texlightgap");
 			}
 			dl->stopdot = 0.0;
 			dl->stopdot2 = 0.0;
@@ -1669,12 +1669,12 @@ void            CreateDirectLights()
 			{
 				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone"))
 				{
-					dl->stopdot = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone");
+					dl->stopdot = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone");
 					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * std::numbers::pi_v<double>);
 				}
 				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone2"))
 				{
-					dl->stopdot2 = FloatForKey (g_face_texlights[p->faceNumber], u8"_cone2");
+					dl->stopdot2 = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone2");
 					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * std::numbers::pi_v<double>);
 				}
 				if (dl->stopdot2 > dl->stopdot)
@@ -1688,7 +1688,7 @@ void            CreateDirectLights()
 			{
 				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_scale"))
 				{
-					vec_t scale = FloatForKey (g_face_texlights[p->faceNumber], u8"_scale");
+					float scale = float_for_key(*g_face_texlights[p->faceNumber], u8"_scale");
 					VectorScale (dl->intensity, scale, dl->intensity);
 				}
 			}
@@ -1740,7 +1740,7 @@ void            CreateDirectLights()
 			style = (unsigned char)style;
 			if (style > 0 && style < ALLSTYLES && *ValueForKey (e, u8"zhlt_stylecoring"))
 			{
-				g_corings[style] = FloatForKey (e, u8"zhlt_stylecoring");
+				g_corings[style] = float_for_key(*e, u8"zhlt_stylecoring");
 			}
 		}
 		if (!strcmp (name, "light_shadow")
@@ -1838,7 +1838,7 @@ void            CreateDirectLights()
             continue;
         }
 
-        dl->fade = FloatForKey(e, u8"_fade");
+        dl->fade = float_for_key(*e, u8"_fade");
         if (dl->fade == 0.0)
         {
             dl->fade = g_fade;
@@ -1853,12 +1853,12 @@ void            CreateDirectLights()
             {
             }
             dl->type = emit_spotlight;
-            dl->stopdot = FloatForKey(e, u8"_cone");
+            dl->stopdot = float_for_key(*e, u8"_cone");
             if (!dl->stopdot)
             {
                 dl->stopdot = 10;
             }
-            dl->stopdot2 = FloatForKey(e, u8"_cone2");
+            dl->stopdot2 = float_for_key(*e, u8"_cone2");
             if (!dl->stopdot2)
             {
                 dl->stopdot2 = dl->stopdot;
@@ -1885,7 +1885,7 @@ void            CreateDirectLights()
 
                 vAngles = get_vector_for_key(*e, u8"angles");
 
-                angle = (float)FloatForKey(e, u8"angle");
+                angle = float_for_key(*e, u8"angle");
                 if (angle == ANGLE_UP)
                 {
                     dl->normal[0] = dl->normal[1] = 0;
@@ -1909,7 +1909,7 @@ void            CreateDirectLights()
                     dl->normal[1] = (float)sin(angle / 180 * std::numbers::pi_v<double>);
                 }
 
-                angle = FloatForKey(e, u8"pitch");
+                angle = float_for_key(*e, u8"pitch");
                 if (!angle)
                 {
                     // if we don't have a specific "pitch" use the "angles" PITCH
@@ -1921,7 +1921,7 @@ void            CreateDirectLights()
                 dl->normal[1] *= (float)cos(angle / 180 * std::numbers::pi_v<double>);
             }
 
-            if (FloatForKey(e, u8"_sky") || !strcmp(name, "light_environment"))
+            if (float_for_key(*e, u8"_sky") || !strcmp(name, "light_environment"))
             {
 				// -----------------------------------------------------------------------------------
 				// Changes by Adam Foster - afoster@compsoc.man.ac.uk
@@ -1995,8 +1995,8 @@ void            CreateDirectLights()
         		}
 
                 dl->type = emit_skylight;
-                dl->stopdot2 = FloatForKey(e, u8"_sky");     // hack stopdot2 to a sky key number
-				dl->sunspreadangle = FloatForKey (e, u8"_spread");
+                dl->stopdot2 = float_for_key(*e, u8"_sky");     // hack stopdot2 to a sky key number
+				dl->sunspreadangle = float_for_key(*e, u8"_spread");
 				if (!g_allow_spread)
 				{
 					dl->sunspreadangle = 0;
@@ -4816,7 +4816,7 @@ void            FinalLightFace(const int facenum)
     //
     // sample the triangulation
     //
-    minlight = FloatForKey(g_face_entity[facenum], u8"_minlight") * 255; //seedee
+    minlight = float_for_key(*g_face_entity[facenum], u8"_minlight") * 255; //seedee
 	minlight = (minlight > 255) ? 255 : minlight;
 
 	wad_texture_name texname{get_texture_by_number(f->texinfo)};

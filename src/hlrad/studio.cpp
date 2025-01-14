@@ -140,7 +140,7 @@ void LoadStudioModels() {
 		int body = IntForKey(e, u8"body");
 		int skin = IntForKey(e, u8"skin");
 
-		float scale = FloatForKey( e, u8"scale" );
+		float scale = float_for_key(*e, u8"scale" );
 		float3_array xform;
 
 		xform = get_vector_for_key(*e, u8"xform" );

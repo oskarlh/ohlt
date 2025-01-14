@@ -4,12 +4,10 @@
 
 #include <fstream>
 #include <istream>
-using namespace std;
 
-set< string > g_invisible_items;
+std::set<std::u8string> g_invisible_items;
 
-void properties_initialize(const char* filename)
-{
+void properties_initialize(const char* filename) {
     if (filename == nullptr)
     { return; }
 
@@ -21,7 +19,7 @@ void properties_initialize(const char* filename)
         return;
     }
 
-	ifstream file(filename,ios::in);
+	std::ifstream file(filename,std::ios::in);
 	if(!file)
 	{ 
 		file.close();
@@ -31,11 +29,11 @@ void properties_initialize(const char* filename)
 
 	//begin reading list of items
 	char line[MAX_VAL]; //MAX_VALUE //vluzacn
-	memset(line,0,sizeof(char)*4096);
+	std::memset(line,0,sizeof(char)*4096);
 	while(!file.eof())
 	{
-		string str;
-		getline(file,str);
+		std::string str;
+		std::getline(file,str);
 		{ //--vluzacn
 			char *s = c_strdup(str.c_str ());
 			int i;
@@ -51,7 +49,7 @@ void properties_initialize(const char* filename)
 		}
 		if(str.size() < 1)
 		{ continue; }
-		g_invisible_items.insert(str);
+		g_invisible_items.insert(std::u8string((const char8_t*) str.data(), (const char8_t*) str.data() + str.length()));
 	}
 	file.close();
 }

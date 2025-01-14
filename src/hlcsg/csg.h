@@ -274,4 +274,4 @@ extern bool g_bWadAutoDetect;
 #include <string>
 #include <set>
 extern void properties_initialize(const char* filename);
-extern std::set< std::string > g_invisible_items;
+extern std::set<std::u8string> g_invisible_items;

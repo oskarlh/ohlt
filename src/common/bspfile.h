@@ -379,10 +379,10 @@ bool key_value_is_empty(const entity_t* const ent, std::u8string_view key);
 bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value);
 bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix);
 bool classname_is(const entity_t* const ent, std::u8string_view classname);
-std::u8string_view get_classname(const entity_t* ent);
+std::u8string_view get_classname(const entity_t& ent);
 
 std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key);
-vec_t FloatForKey(const entity_t* const ent, std::u8string_view key);
+float float_for_key(const entity_t& ent, std::u8string_view key);
 vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key);
 float3_array get_float_vector_for_key(const entity_t& ent, std::u8string_view key);
 double3_array get_double_vector_for_key(const entity_t& ent, std::u8string_view key);

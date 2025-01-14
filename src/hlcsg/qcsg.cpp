@@ -115,12 +115,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
+    const std::int32_t priorityFromEnt = IntForKey(mapent, u8"priority");
+	if (priorityFromEnt == 1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
-    }
-    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
+    } else if (priorityFromEnt == -1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -1066,7 +1066,7 @@ static void UnparseEntities()
 			float3_array vec{};
 			{
 				vec = get_float_vector_for_key(*mapent, u8"angles");
-				float pitch = FloatForKey(mapent, u8"pitch");
+				float pitch = float_for_key(*mapent, u8"pitch");
 				if (pitch) {
 					vec[0] = pitch;
 				}

@@ -400,7 +400,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     for (i = 1; i < g_numentities; i++)
     {
         origin = get_vector_for_key(g_entities[i], u8"origin");
-        const std::u8string_view cl = get_classname(&g_entities[i]);
+        const std::u8string_view cl = get_classname(g_entities[i]);
         if (!isClassnameAllowableOutside(cl))
         {
             if (has_key_value(&g_entities[i], u8"origin"))
@@ -487,7 +487,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
         origin = get_vector_for_key(g_entities[hit_occupied], u8"origin");
         {
             Warning("=== LEAK in hull %i ===\nEntity %s @ (%4.0f,%4.0f,%4.0f)",
-                 hullnum, (const char*) value_for_key(&g_entities[hit_occupied], u8"classname").data(), origin[0], origin[1], origin[2]);
+                 hullnum, (const char*) get_classname(g_entities[hit_occupied]).data(), origin[0], origin[1], origin[2]);
             PrintOnce(
                 "\n  A LEAK is a hole in the map, where the inside of it is exposed to the\n"
                 "(unwanted) outside region.  The entity listed in the error is just a helpful\n"
