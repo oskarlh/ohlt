@@ -457,7 +457,7 @@ static void     ReadLightFile(const char* const filename)
         }
 
 		auto it = std::ranges::find_if(s_texlights, [&szTexlight](const texlight_t& tl) {
-			return tl.name == szTexlight;
+			return tl.name == (const char8_t*) szTexlight;
 		});
 		if(it != s_texlights.end()) {
 

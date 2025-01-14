@@ -429,11 +429,3 @@ class wad_texture_name final {
 constexpr bool operator==(std::u8string_view string, wad_texture_name name) noexcept {
 	return name == string;
 }
-
-// TODO: Delete these when we're using UTF-8
-constexpr bool operator==(std::string_view string, wad_texture_name name) noexcept {
-	return name == std::u8string_view((const char8_t*) string.data(), string.length());
-}
-constexpr bool operator==(wad_texture_name name, std::string_view string) noexcept {
-	return name == std::u8string_view((const char8_t*) string.data(), string.length());
-}
