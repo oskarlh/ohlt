@@ -753,15 +753,12 @@ static void     LoadPortals(char* portal_image)
 // =====================================================================================
 static void     LoadPortalsByFilename(const char* const filename)
 {
-    char* file_image;
-
-    if (!std::filesystem::exists(filename))
-    {
-        Error("Portal file '%s' does not exist, cannot vis the map\n", filename);
+    std::optional<std::u8string> maybeContents = read_utf8_file(filename, true);
+    if(!maybeContents) {
+        Error("Portal file '%s' could not be read, cannot VIS the map\n", filename);
     }
-    LoadFile(filename, &file_image);
-    LoadPortals(file_image);
-    delete[] file_image;
+
+    LoadPortals((char*) maybeContents.value().data());
 }
 
 

@@ -9,7 +9,6 @@
 #include "hlassert.h"
 #include "mathlib.h"
 #include "bspfile.h"
-#include "blockmem.h"
 #include "filelib.h"
 #include "threads.h"
 #include "winding.h"

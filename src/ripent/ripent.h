@@ -8,7 +8,6 @@
 #include "winding.h"
 #include "threads.h"
 #include "bspfile.h"
-#include "blockmem.h"
 #include "filelib.h"
 #include "cmdlinecfg.h"
 

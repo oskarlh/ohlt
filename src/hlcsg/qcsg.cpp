@@ -1228,7 +1228,7 @@ static void     ConvertHintToEmpty()
 void LoadWadValue ()
 {
     std::u8string wadValue;
-	ParseFromMemory ((char*) g_dentdata.data(), g_entdatasize);
+	ParseFromMemory(std::u8string_view{g_dentdata.data(), g_entdatasize});
 	if (GetToken (true)) {
 		if (g_token != u8"{"sv)
 		{

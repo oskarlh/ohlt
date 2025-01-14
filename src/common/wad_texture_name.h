@@ -23,7 +23,7 @@ constexpr std::size_t wad_texture_name_max_length_with_last_null = 1 + wad_textu
 // Unused bytes are also NULL.
 class wad_texture_name final {
 	private:
-		std::array<char8_t, wad_texture_name_max_length_with_last_null> units = {};
+		std::array<char8_t, wad_texture_name_max_length_with_last_null> units;
 
 		template<std::size_t StringSize>
 		constexpr bool equals_constant(const char8_t (&cString)[StringSize]) const noexcept {
@@ -78,7 +78,7 @@ class wad_texture_name final {
 			if(str.contains(u8'\0')) {
 				throw std::runtime_error("Texture name contains a NULL character");
 			}
-
+			units = {};
 			std::ranges::copy(str, units.begin());
 			make_ascii_characters_lowercase_in_utf8_string(units);
 		}
@@ -88,7 +88,7 @@ class wad_texture_name final {
 				return std::nullopt;
 			}
 
-			wad_texture_name result;
+			wad_texture_name result{};
 			std::ranges::copy(str, result.units.begin());
 			make_ascii_characters_lowercase_in_utf8_string(result.units);
 			return result;

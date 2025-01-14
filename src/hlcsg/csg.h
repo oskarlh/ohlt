@@ -14,7 +14,6 @@
 #include "winding.h"
 #include "threads.h"
 #include "bspfile.h"
-#include "blockmem.h"
 #include "filelib.h"
 #include "bounding_box.h"
 #include "hull_size.h"

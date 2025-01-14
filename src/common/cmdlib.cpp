@@ -3,7 +3,6 @@
 #include "cmdlib.h"
 #include "messages.h"
 #include "hlassert.h"
-#include "blockmem.h"
 #include "log.h"
 #include "mathlib.h"
 #include "utf8.h"

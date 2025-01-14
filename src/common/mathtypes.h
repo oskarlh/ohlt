@@ -22,5 +22,3 @@ template<class T> concept any_vec3 = std::same_as<T, float3_array>
 template<class T> concept any_vec_t = std::same_as<T, float>
 	|| std::same_as<T, double>
 ;
-
-#include "transition.h"

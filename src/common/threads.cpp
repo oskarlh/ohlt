@@ -10,7 +10,6 @@
 #include "messages.h"
 #include "log.h"
 #include "threads.h"
-#include "blockmem.h"
 
 #ifdef SYSTEM_POSIX
 #include <pthread.h>
@@ -187,222 +186,6 @@ void ThreadSetDefault()
 
 
 /*====================
-| Begin SYSTEM_WIN32
-=*/
-#ifdef SYSTEM_WIN32
-
-#define	USED
-#include <windows.h>
-
-static CRITICAL_SECTION crit;
-static int      enter;
-
-void            ThreadSetPriority(q_threadpriority type)
-{
-    int             val;
-
-    g_threadpriority = type;
-
-    switch (g_threadpriority)
-    {
-    case q_threadpriority::eThreadPriorityLow:
-        val = IDLE_PRIORITY_CLASS;
-        break;
-
-    case q_threadpriority::eThreadPriorityHigh:
-        val = HIGH_PRIORITY_CLASS;
-        break;
-
-    case q_threadpriority::eThreadPriorityNormal:
-    default:
-        val = NORMAL_PRIORITY_CLASS;
-        break;
-    }
-
-    SetPriorityClass(GetCurrentProcess(), val);
-}
-
-#if 0
-static void     AdjustPriority(HANDLE hThread)
-{
-    int             val;
-
-    switch (g_threadpriority)
-    {
-    case q_threadpriority::eThreadPriorityLow:
-        val = THREAD_PRIORITY_HIGHEST;
-        break;
-
-    case q_threadpriority::eThreadPriorityHigh:
-        val = THREAD_PRIORITY_LOWEST;
-        break;
-
-    case q_threadpriority::eThreadPriorityNormal:
-    default:
-        val = THREAD_PRIORITY_NORMAL;
-        break;
-    }
-    SetThreadPriority(hThread, val);
-}
-#endif
-
-void            ThreadLock()
-{
-    if (!threaded)
-    {
-        return;
-    }
-    EnterCriticalSection(&crit);
-    if (enter)
-    {
-        Warning("Recursive ThreadLock\n");
-    }
-    enter++;
-}
-
-void            ThreadUnlock()
-{
-    if (!threaded)
-    {
-        return;
-    }
-    if (!enter)
-    {
-        Error("ThreadUnlock without lock\n");
-    }
-    enter--;
-    LeaveCriticalSection(&crit);
-}
-
-q_threadfunction q_entry;
-
-static DWORD WINAPI ThreadEntryStub(LPVOID pParam)
-{
-    q_entry((int)pParam);
-    return 0;
-}
-
-void            threads_InitCrit()
-{
-    InitializeCriticalSection(&crit);
-    threaded = true;
-}
-
-void            threads_UninitCrit()
-{
-    DeleteCriticalSection(&crit);
-}
-
-void            RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction func)
-{
-    DWORD           threadid[MAX_THREADS];
-    HANDLE          threadhandle[MAX_THREADS];
-    int             i;
-    double          start, end;
-
-    threadstart = I_FloatTime();
-    start = threadstart;
-    for (i = 0; i < THREADTIMES_SIZE; i++)
-    {
-        threadtimes[i] = 0;
-    }
-    dispatch = 0;
-    workcount = workcnt;
-    oldf = -1;
-    pacifier = showpacifier;
-    threaded = true;
-    q_entry = func;
-
-    if (workcount < dispatch)
-    {
-        Developer(DEVELOPER_LEVEL_ERROR, "RunThreadsOn: Workcount(%i) < dispatch(%i)\n", workcount, dispatch);
-    }
-    hlassume(workcount >= dispatch, assume_BadWorkcount);
-
-    //
-    // Create all the threads (suspended)
-    //
-    threads_InitCrit();
-    for (i = 0; i < g_numthreads; i++)
-    {
-        HANDLE          hThread = CreateThread(nullptr,
-                                               0,
-                                               (LPTHREAD_START_ROUTINE) ThreadEntryStub,
-                                               (LPVOID) i,
-                                               CREATE_SUSPENDED,
-                                               &threadid[i]);
-
-        if (hThread != nullptr)
-        {
-            threadhandle[i] = hThread;
-        }
-        else
-        {
-            LPVOID          lpMsgBuf;
-
-            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                          FORMAT_MESSAGE_FROM_SYSTEM |
-                          FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
-                          (LPTSTR) & lpMsgBuf, 0, nullptr);
-            // Process any inserts in lpMsgBuf.
-            // ...
-            // Display the string.
-            Developer(DEVELOPER_LEVEL_ERROR, "CreateThread #%d [%08X] failed : %s\n", i, threadhandle[i], lpMsgBuf);
-            Fatal(assume_THREAD_ERROR, "Unable to create thread #%d", i);
-            // Free the buffer.
-            LocalFree(lpMsgBuf);
-        }
-    }
-    CheckFatal();
-
-    // Start all the threads
-    for (i = 0; i < g_numthreads; i++)
-    {
-        if (ResumeThread(threadhandle[i]) == 0xFFFFFFFF)
-        {
-            LPVOID          lpMsgBuf;
-
-            FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                          FORMAT_MESSAGE_FROM_SYSTEM |
-                          FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),       // Default language
-                          (LPTSTR) & lpMsgBuf, 0, nullptr);
-            // Process any inserts in lpMsgBuf.
-            // ...
-            // Display the string.
-            Developer(DEVELOPER_LEVEL_ERROR, "ResumeThread #%d [%08X] failed : %s\n", i, threadhandle[i], lpMsgBuf);
-            Fatal(assume_THREAD_ERROR, "Unable to start thread #%d", i);
-            // Free the buffer.
-            LocalFree(lpMsgBuf);
-        }
-    }
-    CheckFatal();
-
-    // Wait for threads to complete
-    for (i = 0; i < g_numthreads; i++)
-    {
-        Developer(DEVELOPER_LEVEL_MESSAGE, "WaitForSingleObject on thread #%d [%08X]\n", i, threadhandle[i]);
-        WaitForSingleObject(threadhandle[i], INFINITE);
-    }
-    threads_UninitCrit();
-
-    q_entry = nullptr;
-    threaded = false;
-    end = I_FloatTime();
-    if (pacifier)
-    {
-		PrintConsole
-			("\r%60s\r", "");
-    }
-    Log(" (%.2f seconds)\n", end - start);
-}
-
-#endif
-
-/*=
-| End SYSTEM_WIN32
-=====================*/
-
-/*====================
 | Begin SYSTEM_POSIX
 =*/
 #ifdef SYSTEM_POSIX
@@ -462,27 +245,22 @@ static void*   ThreadEntryStub(void* pParam)
     return nullptr;
 }
 
-void            threads_InitCrit()
-{
+void threads_InitCrit() {
     pthread_mutexattr_t mattrib;
 
-    if (!my_mutex)
-    {
-        my_mutex = (pthread_mutex_t*)Alloc(sizeof(*my_mutex));
-        if (pthread_mutexattr_init(&mattrib) == -1)
-        {
+    if (!my_mutex) {
+        my_mutex = new pthread_mutex_t{};
+        if (pthread_mutexattr_init(&mattrib) == -1) {
             Error("pthread_mutex_attr_init failed");
         }
-        if (pthread_mutex_init(my_mutex, &mattrib) == -1)
-        {
+        if (pthread_mutex_init(my_mutex, &mattrib) == -1) {
             Error("pthread_mutex_init failed");
         }
     }
 }
 
-void            threads_UninitCrit()
-{
-    Free(my_mutex);
+void threads_UninitCrit() {
+    delete my_mutex;
     my_mutex = nullptr;
 }
 

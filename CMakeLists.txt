@@ -34,7 +34,6 @@ set(COMMON_BSP_CSG_HEADERS
 )
 
 set(COMMON_SOURCES
-    ${COMMON_DIR}/blockmem.cpp
     ${COMMON_DIR}/bounding_box.cpp
     ${COMMON_DIR}/bsp_file_sizes.cpp
     ${COMMON_DIR}/bspfile.cpp
@@ -52,8 +51,6 @@ set(COMMON_SOURCES
 )
 
 set(COMMON_HEADERS
-    ${COMMON_DIR}/transition.h
-    ${COMMON_DIR}/blockmem.h
     ${COMMON_DIR}/bounding_box.h
     ${COMMON_DIR}/bsp_file_sizes.h
     ${COMMON_DIR}/bspfile.h

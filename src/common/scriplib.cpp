@@ -6,15 +6,16 @@
 #include <cstring>
 
 std::u8string g_token;
-char            g_TXcommand;
+char g_TXcommand;
 
 typedef struct
 {
-    char            filename[_MAX_PATH];
-    char*           buffer;
-    char*           script_p;
-    char*           end_p;
-    int             line;
+    std::filesystem::path filename;
+    bool fromMemory;
+    std::u8string buffer;
+    const char8_t* script_p;
+    const char8_t* end_p;
+    int line;
 }
 script_t;
 
@@ -23,10 +24,10 @@ script_t;
 
 
 static script_t s_scriptstack[MAX_INCLUDES];
-script_t*       s_script;
-int             s_scriptline;
-bool            s_endofscript;
-bool            s_tokenready;                                // only true if UnGetToken was just called
+script_t* s_script;
+int s_scriptline;
+bool s_endofscript;
+bool s_tokenready;                                // only true if UnGetToken was just called
 
 
 //  AddScriptToStack
@@ -40,25 +41,28 @@ bool            s_tokenready;                                // only true if UnG
 // =====================================================================================
 //  AddScriptToStack
 // =====================================================================================
-static void     AddScriptToStack(const char* const filename)
-{
-    int             size;
-
+static void AddScriptToStack(const char* const filename) {
     s_script++;
 
     if (s_script == &s_scriptstack[MAX_INCLUDES]) {
         Error("s_script file exceeded MAX_INCLUDES");
     }
 
-    std::strcpy(s_script->filename, filename);
+    s_script->filename = filename;
+    s_script->fromMemory = false;
 
-    size = LoadFile(s_script->filename, (char**)&s_script->buffer);
+    std::optional<std::u8string> maybeContents = read_utf8_file(filename, true);
+    if(!maybeContents) {
+        Error("Failed to load %s", filename);
+    }
 
-    Log("Entering %s\n", s_script->filename);
+    s_script->buffer = std::move(maybeContents.value());
+
+    Log("Entering %s\n", filename);
 
     s_script->line = 1;
-    s_script->script_p = s_script->buffer;
-    s_script->end_p = s_script->buffer + size;
+    s_script->script_p = s_script->buffer.data();
+    s_script->end_p = s_script->buffer.data() + s_script->buffer.size();
 }
 
 // =====================================================================================
@@ -76,7 +80,7 @@ void            LoadScriptFile(const char* const filename)
 // =====================================================================================
 //  ParseFromMemory
 // =====================================================================================
-void            ParseFromMemory(char* buffer, const int size)
+void ParseFromMemory(std::u8string_view buffer)
 {
     s_script = s_scriptstack;
     s_script++;
@@ -85,12 +89,13 @@ void            ParseFromMemory(char* buffer, const int size)
         Error("s_script file exceeded MAX_INCLUDES");
     }
 
-    std::strcpy(s_script->filename, "memory buffer");
+    s_script->filename = std::filesystem::path{};
+    s_script->fromMemory = true;
 
-    s_script->buffer = buffer;
+    s_script->buffer.clear();
     s_script->line = 1;
-    s_script->script_p = s_script->buffer;
-    s_script->end_p = s_script->buffer + size;
+    s_script->script_p = buffer.data();
+    s_script->end_p = buffer.data() + buffer.size();
 
     s_endofscript = false;
     s_tokenready = false;
@@ -122,13 +127,14 @@ bool            EndOfScript(const bool crossline)
     if (!crossline)
         Error("Line %i is incomplete (did you place a \" inside an entity string?) \n", s_scriptline);
 
-    if (!strcmp(s_script->filename, "memory buffer"))
+    if (s_script->fromMemory)
     {
         s_endofscript = true;
         return false;
     }
 
-    free(s_script->buffer);
+    s_script->buffer.clear();
+    s_script->buffer.shrink_to_fit();
 
     if (s_script == s_scriptstack + 1)
     {
@@ -139,7 +145,7 @@ bool            EndOfScript(const bool crossline)
     s_script--;
     s_scriptline = s_script->line;
 
-    Log("returning to %s\n", s_script->filename);
+    Log("Returning to %s\n", s_script->fromMemory ? "Memory buffer" : s_script->filename.c_str());
 
     return GetToken(crossline);
 }
@@ -147,8 +153,7 @@ bool            EndOfScript(const bool crossline)
 // =====================================================================================
 //  GetToken
 // =====================================================================================
-bool            GetToken(const bool crossline)
-{
+bool GetToken(const bool crossline) {
     if (s_tokenready)                                        // is a g_token allready waiting?
     {
         s_tokenready = false;
@@ -232,14 +237,6 @@ skipspace:
                 Error("Token too large on line %i\n", s_scriptline);
         }
     }
-
-    if (g_token == u8"$include")
-    {
-        GetToken(false);
-        AddScriptToStack((const char*) g_token.c_str());
-        return GetToken(crossline);
-    }
-
     return true;
 }
 
@@ -250,16 +247,14 @@ skipspace:
 // =====================================================================================
 bool            TokenAvailable()
 {
-    char           *search_p;
-
-    search_p = s_script->script_p;
+    const char8_t* search_p = s_script->script_p;
 
     if (search_p >= s_script->end_p)
         return false;
 
     while (*search_p <= 32)
     {
-        if (*search_p == '\n')
+        if (*search_p == u8'\n')
             return false;
 
         search_p++;
@@ -268,7 +263,7 @@ bool            TokenAvailable()
             return false;
     }
 
-    if (*search_p == ';')
+    if (*search_p == u8';')
         return false;
 
     return true;

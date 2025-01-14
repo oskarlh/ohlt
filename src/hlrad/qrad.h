@@ -11,7 +11,6 @@
 #include "winding.h"
 #include "scriplib.h"
 #include "threads.h"
-#include "blockmem.h"
 #include "filelib.h"
 #include "winding.h"
 #include "compress.h"

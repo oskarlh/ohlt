@@ -914,39 +914,47 @@ bool            ParseMapEntity()
     {
         // this is pretty gross, because the brushes are expected to be
         // in linear order for each entity
-        brush_t*        temp;
         int             newbrushes;
         int             worldbrushes;
-        int             i;
 
         newbrushes = mapent->numbrushes;
         worldbrushes = g_entities[0].numbrushes;
 
-        temp = (brush_t*)Alloc(newbrushes * sizeof(brush_t));
-        memcpy(temp, g_mapbrushes + mapent->firstbrush, newbrushes * sizeof(brush_t));
+        auto temp = std::make_unique_for_overwrite<brush_t[]>(newbrushes);
+		std::copy(
+			g_mapbrushes + mapent->firstbrush,
+			g_mapbrushes + mapent->firstbrush + newbrushes,
+			temp.get()
+		);
 
-        for (i = 0; i < newbrushes; i++)
+        for (int i = 0; i < newbrushes; i++)
         {
             temp[i].entitynum = 0;
 			temp[i].brushnum += worldbrushes;
         }
 
         // make space to move the brushes (overlapped copy)
-        memmove(g_mapbrushes + worldbrushes + newbrushes,
-                g_mapbrushes + worldbrushes, sizeof(brush_t) * (g_nummapbrushes - worldbrushes - newbrushes));
+		std::size_t numToMove = g_nummapbrushes - worldbrushes - newbrushes;
+		std::copy_backward(
+			g_mapbrushes + worldbrushes,
+			g_mapbrushes + worldbrushes + numToMove,
+			g_mapbrushes + worldbrushes + numToMove + newbrushes
+		);
 
         // copy the new brushes down
-        memcpy(g_mapbrushes + worldbrushes, temp, sizeof(brush_t) * newbrushes);
+		std::copy(
+			temp.get(),
+			temp.get() + newbrushes,
+			g_mapbrushes + worldbrushes
+		);
 
         // fix up indexes
         g_numentities--;
         g_entities[0].numbrushes += newbrushes;
-        for (i = 1; i < g_numentities; i++)
-        {
+        for (std::size_t i = 1; i < g_numentities; i++) {
             g_entities[i].firstbrush += newbrushes;
         }
 		*mapent = entity_t{};
-        Free(temp);
 		return true;
     }
 

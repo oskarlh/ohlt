@@ -23,10 +23,11 @@ void LoadWadconfig (const char *filename, const char *configname)
 	Log("--------------------------------------\n");
 	int wadconfigsFound = 0;
 	int wadPathsFound = 0;
-	int filesize;
-	char *file;
-	filesize = LoadFile(filename, &file); //Load file and store it's size
-	ParseFromMemory (file, filesize); //Parse contents from memory
+	std::optional<std::u8string> maybeContent = read_utf8_file(filename, true);
+	if(!maybeContent) {
+		Error("Failed to read the WAD config");
+	}
+	ParseFromMemory (maybeContent.value());
 
 	while (GetToken (true)) //Loop through file
 	{
@@ -82,7 +83,6 @@ void LoadWadconfig (const char *filename, const char *configname)
 	{
 		Error("Found more than one wad config %s in '%s'\n", configname, filenameOnly);
 	}
-	free (file); // should not be freed because it is still being used as script buffer
 	//Log ("Using custom wadfile configuration: '%s' (with %i wad%s)\n", configname, wadPathsFound, wadPathsFound > 1 ? "s" : "");
 }
 void LoadWadcfgfile (const char *filename)
@@ -90,10 +90,11 @@ void LoadWadcfgfile (const char *filename)
 	Log ("Loading %s\n", filename);
 	Log ("------------\n");
 	int wadPathsCount = 0;
-	int wadFileSize;
-	char *wadFile;
-	wadFileSize = LoadFile (filename, &wadFile);
-	ParseFromMemory (wadFile, wadFileSize);
+	std::optional<std::u8string> maybeContent = read_utf8_file(filename, true);
+	if(!maybeContent) {
+		Error("Failed to read the WAD config");
+	}
+	ParseFromMemory (maybeContent.value());
 	while (GetToken (true)) //Loop through file
 	{
 		bool include = false;
@@ -110,6 +111,5 @@ void LoadWadcfgfile (const char *filename)
 		wadPathsCount++;
 		PushWadPath (g_token, !include);
 	}
-	free (wadFile); // should not be freed because it is still being used as script buffer
 	//Log ("Using custom wadfile configuration: '%s' (with %i wad%s)\n", filename, count, count > 1 ? "s" : "");
 }

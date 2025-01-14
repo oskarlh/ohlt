@@ -18,12 +18,13 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, modelname);
 	FlipSlashes(m->name);
 
-	if (!std::filesystem::exists(m->name))
-	{
+	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(m->name);
+	if(!readSuccessfully) {
 		Warning("LoadStudioModel: couldn't load %s\n", m->name);
 		return;
 	}
-	LoadFile(m->name, (char**)&m->extradata);
+	m->extradata = fileContents.release();
+
 
 	studiohdr_t *phdr = (studiohdr_t *)m->extradata;
 
@@ -31,7 +32,7 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 	if( phdr->numtextures == 0 )
 	{
 		char texname[128], texpath[128];
-		byte *texdata, *moddata;
+		byte *moddata;
 		studiohdr_t *thdr, *newhdr;
 		safe_strncpy(texname, modelname, 128);
 		StripExtension(texname);
@@ -39,16 +40,20 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 		snprintf(texpath, sizeof(texpath), "%s%sT.mdl", g_Wadpath, texname);
 		FlipSlashes(texpath);
 
-		LoadFile(texpath, (char**)&texdata);
+		auto [readTFileSuccessfully, tFileSize, texdata] = read_binary_file(texpath);
+		if(!readTFileSuccessfully) {
+			Error("LoadStudioModel: couldn't load T.mdl file %s\n", texpath);
+			return;
+		}
 		moddata = (byte *)m->extradata;
 		phdr = (studiohdr_t *)moddata;
 
-		thdr = (studiohdr_t *)texdata;
+		thdr = (studiohdr_t *)texdata.get();
 
 		// merge textures with main model buffer
 		m->extradata = malloc( phdr->length + thdr->length - sizeof( studiohdr_t ));	// we don't need two headers
 		memcpy(m->extradata, moddata, phdr->length);
-		memcpy((byte *) m->extradata + phdr->length, texdata + sizeof( studiohdr_t ), thdr->length - sizeof( studiohdr_t ));
+		memcpy((byte *) m->extradata + phdr->length, texdata.get() + sizeof( studiohdr_t ), thdr->length - sizeof( studiohdr_t ));
 
 		// merge header
 		newhdr = (studiohdr_t *)m->extradata;
@@ -72,7 +77,6 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 		}
 
 		free( moddata );
-		free( texdata );
 	}
 
 	VectorCopy( origin, m->origin );
@@ -175,7 +179,7 @@ void FreeStudioModels()
 		m.mesh.FreeMesh();
 
 		// unload the model
-		Free( m.extradata );
+		free( m.extradata );
 	}
 
 

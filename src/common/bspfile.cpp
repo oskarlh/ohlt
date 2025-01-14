@@ -15,7 +15,6 @@
 #include "mathlib.h"
 #include "bspfile.h"
 #include "scriplib.h"
-#include "blockmem.h"
 #include "cli_option_defaults.h"
 
 using namespace std::literals;
@@ -248,9 +247,11 @@ static std::span<const lump_element_type<LumpId>> get_lump_data(const dheader_t*
 // =====================================================================================
 void            LoadBSPFile(const std::filesystem::path& filename)
 {
-    dheader_t* header;
-    LoadFile(filename, (char**)&header);
-    LoadBSPImage(header);
+	auto [ readBspSuccessfully, bspSize, bsp ] = read_binary_file(filename);
+	if(!readBspSuccessfully || bspSize < sizeof(dheader_t)) {
+		Error("Failed to load BSP file %s", filename.c_str());
+	}
+    LoadBSPImage((dheader_t*) bsp.get());
 }
 
 // =====================================================================================
@@ -259,14 +260,6 @@ void            LoadBSPFile(const std::filesystem::path& filename)
 // =====================================================================================
 void            LoadBSPImage(dheader_t* const header)
 {
-    unsigned int     i;
-
-    // swap the header
-    for (i = 0; i < sizeof(dheader_t) / 4; i++)
-    {
-        ((int*)header)[i] = (((int*)header)[i]);
-    }
-
     if (header->version != BSPVERSION)
     {
         Error("BSP is version %i, not %i", header->version, BSPVERSION);
@@ -299,9 +292,6 @@ void            LoadBSPImage(dheader_t* const header)
 
 
     g_entdatasize = CopyLump(LUMP_ENTITIES, g_dentdata.data(), 1, header);
-
-    Free(header);                                          // everything has been copied out
-
 }
 
 // For debugging purposes
@@ -830,7 +820,7 @@ bool            ParseEntity()
 void            ParseEntities()
 {
     g_numentities = 0;
-    ParseFromMemory((char*) g_dentdata.data(), g_entdatasize);
+    ParseFromMemory(std::u8string_view{g_dentdata.data(), g_entdatasize});
 
     while (ParseEntity());
 }

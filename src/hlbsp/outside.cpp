@@ -1,5 +1,8 @@
 #include "bsp5.h"
+
+#include <algorithm>
 #include <cstring>
+#include <vector>
 
 //  PointInLeaf
 //  PlaceOccupant
@@ -328,91 +331,42 @@ static node_t*  ClearOutFaces_r(node_t* node)
     return node;
 }
 
-// =====================================================================================
-//  isClassnameAllowableOutside
-// =====================================================================================
-#define  MAX_ALLOWABLE_OUTSIDE_GROWTH_SIZE 64
-
-unsigned        g_nAllowableOutside = 0;
-unsigned        g_maxAllowableOutside = 0;
-char**          g_strAllowableOutsideList;
-
-bool isClassnameAllowableOutside(std::u8string_view classname)
-{
-    if (g_strAllowableOutsideList)
-    {
-        unsigned        x;
-        char**          list = g_strAllowableOutsideList;
-
-        for (x = 0; x < g_nAllowableOutside; x++, list++)
-        {
-            if (list)
-            {
-                if (classname == std::u8string_view((const char8_t*) *list))
-                {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
+static std::vector<std::u8string> g_strAllowableOutsideList;
+bool isClassnameAllowableOutside(std::u8string_view classname) {
+    return std::ranges::contains(g_strAllowableOutsideList, classname);
 }
 
-// =====================================================================================
-//  FreeAllowableOutsideList
-// =====================================================================================
-void            FreeAllowableOutsideList()
-{
-    if (g_strAllowableOutsideList)
-    {
-        free(g_strAllowableOutsideList);
-        g_strAllowableOutsideList = nullptr;
-    }
+void FreeAllowableOutsideList() {
+    g_strAllowableOutsideList.clear();
 }
 
-// =====================================================================================
-//  LoadAllowableOutsideList
-// =====================================================================================
 void LoadAllowableOutsideList(const char* const filename) {
-    int             i, x, y;
-    char*           pData;
-    char*           pszData;
-
-    if (!filename)
-    {
+    if (!filename) {
         return;
     }
 
-    if (std::filesystem::exists(filename))
-    {
-        if ((i = LoadFile(filename, &pData)))
-        {
-            Log("Reading allowable void entities from file '%s'\n", filename);
-            g_nAllowableOutside = 0;
-            for (pszData = pData, y = 0, x = 0; x < i; x++)
-            {
-                if ((pData[x] == '\n') || (pData[x] == '\r'))
-                {
-                    pData[x] = 0;
-                    if (std::strlen(pszData))
-                    {
-                        if (g_nAllowableOutside == g_maxAllowableOutside)
-                        {
-                            g_maxAllowableOutside += MAX_ALLOWABLE_OUTSIDE_GROWTH_SIZE;
-                            g_strAllowableOutsideList =
+    const std::u8string text = read_utf8_file(filename, true).value_or(u8"");
+    
+    if (text.empty()) {
+        return;
+    }
 
-                                (char**)realloc(g_strAllowableOutsideList, sizeof(char*) * g_maxAllowableOutside);
-                        }
+    Log("Reading allowable void entities from file '%s'\n", filename);
 
-                        g_strAllowableOutsideList[y++] = pszData;
-                        g_nAllowableOutside++;
+    std::u8string_view remainingText{text};
+    while(!remainingText.empty()) {
+        const char8_t* nextEol = std::ranges::find(remainingText, u8'\n');
+        std::u8string_view line{remainingText.data(), nextEol};
 
-                        Verbose("Adding entity '%s' to the allowable void list\n", pszData);
-                    }
-                    pszData = pData + x + 1;
-                }
-            }
+        if(!line.empty()) {
+            Log("Adding entity '%s' to the allowable void list\n", (const char*) std::u8string(line).c_str());
+            g_strAllowableOutsideList.emplace_back(line);
+        }
+
+        if(line.length() == remainingText.length()) {
+            remainingText = {};
+        } else {
+            remainingText = remainingText.substr(line.length() + 1);
         }
     }
 }
