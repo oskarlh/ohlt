@@ -42,7 +42,7 @@ List<Type> :: List( int s )
 }
 
 template <class Type>
-List<Type> :: ~List<Type>()
+List<Type>::~List()
 {
 	delete element;
 }
