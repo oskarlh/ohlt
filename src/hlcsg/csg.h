@@ -47,41 +47,25 @@
 #define UNLESS(a)  if (!(a))
 
 
-struct valve_vects
-{
-    vec3_array UAxis;
-    vec3_array VAxis;
-    vec_t shift[2];
-    vec_t rotate;
-    vec_t scale[2];
+struct valve220_vects {
+    double3_array UAxis;
+    double3_array VAxis;
+    std::array<double, 2> shift;
+    double rotate;
+    std::array<double, 2> scale;
 };
 
-struct quark_vects {
-    std::array<std::array<float, 4>, 2> vects;
-};
 
-typedef union
-{
-    valve_vects     valve;
-    quark_vects     quark;
-}
-vects_union;
-
-extern int      g_nMapFileVersion;                         // map file version * 100 (ie 201), zero for pre-Worldcraft 2.0.1 maps
-
-typedef struct
-{
-    char            txcommand;
-    vects_union     vects;
+struct brush_texture_t {
+    valve220_vects vects;
     wad_texture_name name;
-} brush_texture_t;
+};
 
-typedef struct side_s
-{
+struct side_t {
     brush_texture_t td;
 	bool			bevel;
     vec_t           planepts[3][3];
-} side_t;
+};
 
 struct bface_t {
     Winding w{};
@@ -180,7 +164,6 @@ extern side_t   g_brushsides[MAX_MAP_SIDES];
 extern hullshape_t g_defaulthulls[NUM_HULLS];
 extern std::vector<hullshape_t> g_hullshapes;
 
-extern void     TextureAxisFromPlane(const mapplane_t* const pln, vec3_t xv, vec3_t yv);
 extern void     LoadMapFile(const char* const filename);
 
 //=============================================================================

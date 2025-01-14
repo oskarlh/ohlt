@@ -6,7 +6,6 @@
 #include <cstring>
 
 std::u8string g_token;
-char g_TXcommand;
 
 typedef struct
 {
@@ -191,8 +190,6 @@ skipspace:
         //ets+++
         if (*s_script->script_p == '/')
             s_script->script_p++;
-        if (s_script->script_p[1] == 'T' && s_script->script_p[2] == 'X')
-            g_TXcommand = s_script->script_p[3];             // AR: "//TX#"-style comment
 
         //ets---
         while (*s_script->script_p++ != '\n')

@@ -721,119 +721,23 @@ int             TexinfoForBrushTexture(const mapplane_t* const plane, brush_text
         tx.flags |= TEX_SPECIAL;
     }
 
-    if (bt->txcommand)
+    if (!bt->vects.scale[0])
     {
-        tx.vecs = bt->vects.quark.vects;
-        if (origin[0] || origin[1] || origin[2])
-        {
-            tx.vecs[0][3] += DotProduct(origin, tx.vecs[0]);
-            tx.vecs[1][3] += DotProduct(origin, tx.vecs[1]);
-        }
+        bt->vects.scale[0] = 1;
     }
-    else
+    if (!bt->vects.scale[1])
     {
-        if (g_nMapFileVersion < 220)
-        {
-            TextureAxisFromPlane(plane, vecs[0], vecs[1]);
-        }
-
-        if (!bt->vects.valve.scale[0])
-        {
-            bt->vects.valve.scale[0] = 1;
-        }
-        if (!bt->vects.valve.scale[1])
-        {
-            bt->vects.valve.scale[1] = 1;
-        }
-
-        if (g_nMapFileVersion < 220)
-        {
-            // rotate axis
-            if (bt->vects.valve.rotate == 0)
-            {
-                sinv = 0;
-                cosv = 1;
-            }
-            else if (bt->vects.valve.rotate == 90)
-            {
-                sinv = 1;
-                cosv = 0;
-            }
-            else if (bt->vects.valve.rotate == 180)
-            {
-                sinv = 0;
-                cosv = -1;
-            }
-            else if (bt->vects.valve.rotate == 270)
-            {
-                sinv = -1;
-                cosv = 0;
-            }
-            else
-            {
-                // std::numbers::pi_v<double> could be unnecessary precision, try using
-                // std::numbers::pi_v<float> instead. -- Oskar
-                ang = bt->vects.valve.rotate / 180 * std::numbers::pi_v<double>;
-                sinv = sin(ang);
-                cosv = cos(ang);
-            }
-
-            if (vecs[0][0])
-            {
-                sv = 0;
-            }
-            else if (vecs[0][1])
-            {
-                sv = 1;
-            }
-            else
-            {
-                sv = 2;
-            }
-
-            if (vecs[1][0])
-            {
-                tv = 0;
-            }
-            else if (vecs[1][1])
-            {
-                tv = 1;
-            }
-            else
-            {
-                tv = 2;
-            }
-
-            for (i = 0; i < 2; i++)
-            {
-                ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
-                nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
-                vecs[i][sv] = ns;
-                vecs[i][tv] = nt;
-            }
-
-            for (i = 0; i < 2; i++)
-            {
-                for (j = 0; j < 3; j++)
-                {
-                    tx.vecs[i][j] = vecs[i][j] / bt->vects.valve.scale[i];
-                }
-            }
-        }
-        else
-        {
-            vec_t           scale;
-
-            scale = 1 / bt->vects.valve.scale[0];
-            VectorScale(bt->vects.valve.UAxis, scale, tx.vecs[0]);
-
-            scale = 1 / bt->vects.valve.scale[1];
-            VectorScale(bt->vects.valve.VAxis, scale, tx.vecs[1]);
-        }
-
-        tx.vecs[0][3] = bt->vects.valve.shift[0] + DotProduct(origin, tx.vecs[0]);
-        tx.vecs[1][3] = bt->vects.valve.shift[1] + DotProduct(origin, tx.vecs[1]);
+        bt->vects.scale[1] = 1;
     }
+
+    double scale = 1 / bt->vects.scale[0];
+    VectorScale(bt->vects.UAxis, scale, tx.vecs[0]);
+
+    scale = 1 / bt->vects.scale[1];
+    VectorScale(bt->vects.VAxis, scale, tx.vecs[1]);
+
+    tx.vecs[0][3] = bt->vects.shift[0] + DotProduct(origin, tx.vecs[0]);
+    tx.vecs[1][3] = bt->vects.shift[1] + DotProduct(origin, tx.vecs[1]);
 
     //
     // find the g_texinfo
