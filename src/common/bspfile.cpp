@@ -707,15 +707,8 @@ void DeleteEmbeddedLightmaps ()
 
 
 entity_key_value parse_entity_key_value() {
-    if (g_token.size() >= MAX_KEY - 1)
-        Error("parse_entity_key_value: Key token too long (%zu > MAX_KEY)", g_token.size());
-
 	std::u8string key{g_token};
     GetToken(false);
-
-    if (g_token.size() >= MAX_VAL - 1) //MAX_VALUE //vluzacn
-        Error("parse_entity_key_value: Value token too long (%zu > MAX_VALUE)", g_token.size());
-
 	return entity_key_value{key, g_token};
 }
 
