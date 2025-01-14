@@ -3,6 +3,7 @@
 #include "cmdlib.h"
 #include "log.h"
 #include "wad_texture_name.h"
+#include "worldspawn_wad_value_parser.h"
 
 #include <algorithm>
 #include <cstring>
@@ -273,8 +274,8 @@ void print_bsp_file_sizes(const bsp_data& bspData)
 		Log ("No wad files required to run the map\n");
 	}
 	else {
-		std::optional<std::u8string> wadvalue = find_wad_value(bspData);
-		if (!wadvalue.has_value())
+		std::optional<std::u8string> wadValue = find_wad_value(bspData);
+		if (!wadValue)
 		{
 			Log ("Wad files required to run the map: (Couldn't parse wad keyvalue from entity data)\n");
 		}
@@ -282,12 +283,9 @@ void print_bsp_file_sizes(const bsp_data& bspData)
 		{
 			Log("Wad files required to run the map\n");
 			Log("---------------------------------\n");
-			for (size_t i = 0; i < wadvalue.value().length(); ++i) {
-				if (wadvalue.value()[i] == u8';') {
-					wadvalue.value()[i] = u8'\n';
-				}
+			for(std::u8string_view wadFilename : worldspawn_wad_value_parser(wadValue.value())) {
+				Log("%s\n", (const char*) std::u8string(wadFilename).c_str());
 			}
-			Log("%s", (const char*) wadvalue.value().c_str());
 			Log("---------------------------------\n\n");
 		}
 	}

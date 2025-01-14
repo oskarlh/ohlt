@@ -374,7 +374,7 @@ extern void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue);
 extern void SetKeyValue(entity_t* ent, std::u8string_view key, std::u8string_view value);
 extern const char8_t* ValueForKey(const entity_t* const ent, std::u8string_view key);
 std::u8string_view value_for_key(const entity_t* const ent, std::u8string_view key);
-bool key_value_is_not_empty(const entity_t* const ent, std::u8string_view key);
+bool has_key_value(const entity_t* const ent, std::u8string_view key);
 bool key_value_is_empty(const entity_t* const ent, std::u8string_view key);
 bool key_value_is(const entity_t* const ent, std::u8string_view key, std::u8string_view value);
 bool key_value_starts_with(const entity_t* const ent, std::u8string_view key, std::u8string_view prefix);

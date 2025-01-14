@@ -1464,7 +1464,7 @@ static void		LoadOpaqueEntities()
 				origin = get_vector_for_key(ent, u8"origin"); //Get origin vector of the ent
 
 				// If the entity has a light_origin and model_center, calculate a new origin
-				if (key_value_is_not_empty(&ent, u8"light_origin") && key_value_is_not_empty(&ent, u8"model_center")) {
+				if (has_key_value(&ent, u8"light_origin") && has_key_value(&ent, u8"model_center")) {
 					auto maybeEnt2 = find_target_entity(value_for_key (&ent, u8"light_origin"));
 
 					if (maybeEnt2) {
@@ -1514,7 +1514,7 @@ static void		LoadOpaqueEntities()
 					entity_t *lightent = &g_entities[j];
 
 					if (classname_is(lightent, u8"light_shadow") //If light_shadow targeting the current entity
-						&& key_value_is_not_empty (lightent, u8"target")
+						&& has_key_value (lightent, u8"target")
 						&& key_value_is (lightent, u8"target", value_for_key(&ent, u8"targetname")))
 					{
 						opaquestyle = IntForKey (lightent, u8"style"); //Get the style number and validate it
@@ -1591,22 +1591,22 @@ static entity_t *FindTexlightEntity (int facenum)
 		vec3_array delta{get_vector_for_key(ent, u8"origin")};
 		VectorSubtract(delta, centroid, delta);
 		vec_t dist = vector_length(delta);
-		if (key_value_is_not_empty(&ent, u8"_frange"))
+		if (has_key_value(&ent, u8"_frange"))
 		{
 			if (dist > FloatForKey(&ent, u8"_frange"))
 				continue;
 		}
-		if (key_value_is_not_empty(&ent, u8"_fdist"))
+		if (has_key_value(&ent, u8"_fdist"))
 		{
 			if (fabs (DotProduct (delta, dplane->normal)) > FloatForKey(&ent, u8"_fdist"))
 				continue;
 		}
-		if (key_value_is_not_empty(&ent, u8"_fclass"))
+		if (has_key_value(&ent, u8"_fclass"))
 		{
 			if (value_for_key (faceent, u8"classname") != value_for_key(&ent, u8"_fclass"))
 				continue;
 		}
-		if (key_value_is_not_empty(&ent, u8"_fname"))
+		if (has_key_value(&ent, u8"_fname"))
 		{
 			if (value_for_key (faceent, u8"targetname") != value_for_key(&ent, u8"_fname"))
 				continue;
@@ -1728,7 +1728,7 @@ static void     MakePatches()
 			{
 				entity_t *lightent = &g_entities[j];
 				if (classname_is (lightent, u8"light_bounce")
-					&& key_value_is_not_empty (lightent, u8"target")
+					&& has_key_value (lightent, u8"target")
 					&& key_value_is(lightent, u8"target", value_for_key(ent, u8"targetname")))
 				{
 					bouncestyle = IntForKey (lightent, u8"style");

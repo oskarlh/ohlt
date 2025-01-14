@@ -64,6 +64,15 @@ bool a_starts_with_b_ignoring_ascii_character_case_differences(std::u8string_vie
 }
 
 
+std::u8string_view filename_in_file_path_string(std::u8string_view filePathString) {
+	return filePathString.substr(
+		std::max(
+			filePathString.find_last_of(u8'\\') + 1,
+			filePathString.find_last_of(u8'/') + 1
+		)
+	);
+}
+
 /*--------------------------------------------------------------------
 // New implementation of FlipSlashes, DefaultExtension, StripFilename, 
 // StripExtension, ExtractFilePath, ExtractFile, ExtractFileBase, etc.

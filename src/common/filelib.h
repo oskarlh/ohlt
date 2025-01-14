@@ -14,6 +14,8 @@ read_binary_file(const std::filesystem::path& filePath);
 std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePath, bool windowsLineEndingsToUnix);
 std::filesystem::path get_path_to_directory_with_executable(char** argv0Fallback);
 
+std::filesystem::path filename_from_file_path_string(std::u8string_view filePathString);
+
 int      q_filelength(FILE* f);
 FILE*    SafeOpenWrite(const char* const filename);
 FILE*    SafeOpenRead(const std::filesystem::path& filename);

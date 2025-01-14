@@ -768,7 +768,7 @@ bool            ParseEntity()
         GetParamsFromEnt(mapent);
     }
 	// ugly code
-	if (key_value_starts_with(mapent, u8"classname", u8"light") && key_value_is_not_empty(mapent, u8"_tex"))
+	if (key_value_starts_with(mapent, u8"classname", u8"light") && has_key_value(mapent, u8"_tex"))
 	{
 		SetKeyValue (mapent, u8"convertto", value_for_key(mapent, u8"classname"));
 		SetKeyValue (mapent, u8"classname", u8"light_surface");
@@ -871,8 +871,7 @@ std::u8string_view value_for_key(const entity_t* ent, std::u8string_view key) {
     return u8"";
 }
 
-
-bool key_value_is_not_empty(const entity_t* ent, std::u8string_view key) {
+bool has_key_value(const entity_t* ent, std::u8string_view key) {
 	return !key_value_is_empty(ent, key);
 }
 bool key_value_is_empty(const entity_t* ent, std::u8string_view key)

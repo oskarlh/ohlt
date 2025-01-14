@@ -1,5 +1,6 @@
 #include "qrad.h"
 #include "wad_structs.h"
+#include "worldspawn_wad_value_parser.h"
 
 #include <cstring>
 
@@ -159,27 +160,22 @@ void TryOpenWadFiles ()
 				Log ("  %s\n", dir->path);
 			}
 		}
-		const char *value = (const char*) ValueForKey (&g_entities[0], u8"wad");
-		char path[MAX_VAL];
-		int i, j;
-		for (i = 0, j = 0; i < strlen(value) + 1; i++)
-		{
-			if (value[i] == ';' || value[i] == '\0')
-			{
-				path[j] = '\0';
-				if (path[0])
-				{
-					char name[MAX_VAL];
-					ExtractFile (path, name);
-					DefaultExtension (name, ".wad");
-					OpenWadFile (name);
-				}
-				j = 0;
+		std::u8string_view wadValue = value_for_key(&g_entities[0], u8"wad");
+		for(std::u8string_view wadFilename : worldspawn_wad_value_parser(wadValue)) {
+			OpenWadFile((const char*) std::u8string(wadFilename).c_str());
+		}
+		while(!wadValue.empty()) {
+			const char8_t* nextSeparator = std::ranges::find(wadValue, u8';');
+			std::u8string_view pathString{wadValue.data(), nextSeparator};
+
+			if(!pathString.empty()) {
+				OpenWadFile(filename_from_file_path_string(pathString).c_str());
 			}
-			else
-			{
-				path[j] = value[i];
-				j++;
+
+			if(pathString.length() == wadValue.length()) {
+				wadValue = {};
+			} else {
+				wadValue = wadValue.substr(pathString.length() + 1);
 			}
 		}
 	}

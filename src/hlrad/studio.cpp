@@ -7,7 +7,7 @@ constexpr std::size_t MAX_MODELS = 10'000;
 
 static std::vector<model_t> models;
 
-static void LoadStudioModel( const char *modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, trace_method trace_mode )
+static void LoadStudioModel(std::u8string_view modelname, const float3_array& origin, const float3_array& angles, const float3_array& scale, int body, int skin, trace_method trace_mode )
 {
 	if( models.size() >= MAX_MODELS )
 	{
@@ -15,7 +15,7 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 		return;
 	}
 	model_t *m = &models.emplace_back();
-	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, modelname);
+	snprintf(m->name, sizeof(m->name), "%s%s", g_Wadpath, (const char*) modelname.data());
 	FlipSlashes(m->name);
 
 	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(m->name);
@@ -34,7 +34,7 @@ static void LoadStudioModel( const char *modelname, const float3_array& origin, 
 		char texname[128], texpath[128];
 		byte *moddata;
 		studiohdr_t *thdr, *newhdr;
-		safe_strncpy(texname, modelname, 128);
+		safe_strncpy(texname, (const char*) modelname.data(), 128);
 		StripExtension(texname);
 
 		snprintf(texpath, sizeof(texpath), "%s%sT.mdl", g_Wadpath, texname);
@@ -101,34 +101,27 @@ void LoadStudioModels() {
 
 	for( int i = 0; i < g_numentities; i++ )
 	{
-		const char *name, *model;
+		std::u8string_view model;
 		float3_array origin, angles;
 
 		entity_t* e = &g_entities[i];
-		name = (const char*) ValueForKey( e, u8"classname" );
 
-		if( strings_equal_with_ascii_case_insensitivity( name, "env_static" ))
-		{
+		if(key_value_is(e, u8"classname", u8"env_static")) {
 			int spawnflags = IntForKey( e, u8"spawnflags" );
 			if( spawnflags & 4 ) continue; // shadow disabled
 		
-			model = (const char*) ValueForKey( e, u8"model" );
+			model = value_for_key( e, u8"model" );
 
-			if( !model || !*model )
-			{
+			if(model.empty()) {
 				Developer( DEVELOPER_LEVEL_WARNING, "env_static has empty model field\n" );
 				continue;
 			}
-		}
-		else if( IntForKey( e, u8"zhlt_studioshadow" ))
-		{
-			model = (const char*) ValueForKey( e, u8"model" );
+		} else if( IntForKey( e, u8"zhlt_studioshadow" )) {
+			model = value_for_key(e, u8"model");
 
-			if( !model || !*model )
+			if(model.empty())
 				continue;
-		}
-		else
-		{
+		} else {
 			continue;
 		}
 
@@ -139,13 +132,13 @@ void LoadStudioModels() {
 		trace_method trace_mode = trace_method::shadow_normal;	// default mode
 
 		// make sure what field is present
-		if( strcmp( (const char*) ValueForKey( e, u8"zhlt_shadowmode" ), "" )) {
+		if(has_key_value(e, u8"zhlt_shadowmode")) {
 			// TODO: Check if it's a valid number
-			trace_mode = trace_method(IntForKey( e, u8"zhlt_shadowmode" ));
+			trace_mode = trace_method(IntForKey(e, u8"zhlt_shadowmode"));
 		}
 
-		int body = IntForKey( e, u8"body" );
-		int skin = IntForKey( e, u8"skin" );
+		int body = IntForKey(e, u8"body");
+		int skin = IntForKey(e, u8"skin");
 
 		float scale = FloatForKey( e, u8"scale" );
 		float3_array xform;
@@ -163,7 +156,7 @@ void LoadStudioModels() {
 		if( xform[1] > 16.0f ) xform[1] = 16.0f;
 		if( xform[2] > 16.0f ) xform[2] = 16.0f;
 
-		LoadStudioModel( model, origin, angles, xform, body, skin, trace_mode );
+		LoadStudioModel(model, origin, angles, xform, body, skin, trace_mode);
 	}
 
 	Log( "%zu opaque studio models\n", models.size() );

@@ -1,6 +1,7 @@
 // AJM: added this file in
 
 #include "csg.h"
+#include "worldspawn_wad_value_parser.h"
 
 std::vector<wadpath_t*> g_pWadPaths;
 
@@ -41,31 +42,10 @@ void        FreeWadPaths()
 //  GetUsedWads
 //      parse the "wad" keyvalue into wadpath_t structs
 // =====================================================================================
-void        GetUsedWads()
-{
-    const char* pszWadPaths;
-    int i, j;
-    pszWadPaths = (const char*) ValueForKey(&g_entities[0], u8"wad");
+void        GetUsedWads() {
+    std::u8string_view wadValue = value_for_key(&g_entities[0], u8"wad");
 
-	for (i = 0; ; ) //Loop through wadpaths
-	{
-		for (j = i; pszWadPaths[j] != '\0'; j++) //Find end of wadpath (semicolon)
-		{
-			if (pszWadPaths[j] == ';')
-			{
-				break;
-			}
-		}
-		if (j - i > 0) //If wadpath is not empty
-		{
-			int length = std::min(j - i, _MAX_PATH - 1); //Get length of wadpath
-			std::u8string_view wp{&((const char8_t*) pszWadPaths)[i], &((const char8_t*) pszWadPaths)[i + length]};
-			PushWadPath (wp, true); //Add wadpath to list
-		}
-		if (pszWadPaths[j] == '\0') //Break if end of wadpaths
-		{
-			break;
-		}
-		i = j + 1;
+	for(std::u8string_view wadFilename : worldspawn_wad_value_parser(wadValue)) {
+		PushWadPath(wadFilename, true);
 	}
 }

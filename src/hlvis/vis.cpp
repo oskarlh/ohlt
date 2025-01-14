@@ -86,12 +86,10 @@ static int      totalvis = 0;
 // =====================================================================================
 void            GetParamsFromEnt(entity_t* mapent)
 {
-    int iTmp;
-
     Log("\nCompile Settings detected from info_compile_parameters entity\n");
 
     // verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 : "On" ]
-    iTmp = IntForKey(mapent, u8"verbose");
+    std::int32_t iTmp = IntForKey(mapent, u8"verbose");
     if (iTmp == 1)
     {
         g_verbose = true;
@@ -115,12 +113,12 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Estimate Compile Times", g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"	-1 : "Low" ]
-	if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "1"))
+    const std::int32_t priorityFromEnt = IntForKey(mapent, u8"priority");
+	if (priorityFromEnt == 1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityHigh;
         Log("%30s [ %-9s ]\n", "Thread Priority", "high");
-    }
-    else if (!strcmp((const char*) ValueForKey(mapent, u8"priority"), "-1"))
+    } else if (priorityFromEnt == -1)
     {
         g_threadpriority = q_threadpriority::eThreadPriorityLow;
         Log("%30s [ %-9s ]\n", "Thread Priority", "low");
@@ -1142,23 +1140,17 @@ int             main(const int argc, char** argv)
 	{
 		for (std::size_t i = 0; i < g_numentities; i++)
 		{
-            const char* current_entity_classname = (const char*) ValueForKey (&g_entities[i], u8"classname");
+            std::u8string_view current_entity_classname = value_for_key(&g_entities[i], u8"classname");
 
-			if (!strcmp (current_entity_classname, "info_overview_point")
-                )
-			{
-				if (g_overview_count < g_overview_max)
-				{
+			if (current_entity_classname == u8"info_overview_point") {
+				if (g_overview_count < g_overview_max) {
 					vec3_array p{get_vector_for_key(g_entities[i], u8"origin")};
 					VectorCopy (p, g_overview[g_overview_count].origin);
 					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p);
 					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], u8"reverse");
 					g_overview_count++;
 				}
-			}
-
-            else if (!strcmp (current_entity_classname, "info_portal"))
-            {
+			} else if (current_entity_classname == u8"info_portal") {
                 if (g_room_count < g_room_max)
                 {
                     vec3_array room_origin{
@@ -1167,10 +1159,9 @@ int             main(const int argc, char** argv)
                     g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
                     g_room[g_room_count].neighbor = std::clamp(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
 
-                    const char* target = (const char*) ValueForKey (&g_entities[i], u8"target");
+                    std::u8string_view target = value_for_key(&g_entities[i], u8"target");
 
-                    if (strlen(target) == 0)
-                    {
+                    if (target.empty()) {
                         continue;
                     }
 
@@ -1180,11 +1171,9 @@ int             main(const int argc, char** argv)
                     // Rewalk yes, very sad.
                     for (int j = 0; j < g_numentities; j++)
                     {
-                        const char* current_entity_classname_nested = (const char*) ValueForKey (&g_entities[j], u8"classname");
-
                         // Find a `info_leaf` and check if its targetname matches our target
-                        if (!strcmp (current_entity_classname_nested, "info_leaf")
-                            && !strcmp((const char*) ValueForKey (&g_entities[j], u8"targetname"), target))
+                        if (key_value_is(&g_entities[j], u8"classname", u8"info_leaf")
+                            && key_value_is(&g_entities[j], u8"targetname", target))
                         {
                             const vec3_array room_target_origin{
                                 get_vector_for_key(g_entities[j], u8"origin")

@@ -80,6 +80,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/wad_texture_name.h
     ${COMMON_DIR}/win32fix.h
     ${COMMON_DIR}/winding.h
+    ${COMMON_DIR}/worldspawn_wad_value_parser.h
 )
 
 #================

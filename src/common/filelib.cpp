@@ -225,6 +225,13 @@ std::filesystem::path get_path_to_directory_with_executable(char** argvForFallba
     ).value();
 }
 
+
+
+std::filesystem::path filename_from_file_path_string(std::u8string_view filePathString) {
+    std::u8string_view withoutWindowsDirectorySepartors{filePathString.substr(filePathString.find_last_of(u8'\\') + 1zu)};
+    return std::filesystem::path(withoutWindowsDirectorySepartors, std::filesystem::path::generic_format).filename();
+}
+
 /*
  * ================
  * filelength

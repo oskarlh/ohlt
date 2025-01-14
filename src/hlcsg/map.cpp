@@ -842,7 +842,7 @@ bool            ParseMapEntity()
 				}
 				if (ent_gscale_b)
 				{
-					if (key_value_is_not_empty(mapent, u8"origin"))
+					if (has_key_value(mapent, u8"origin"))
 					{
 						vec3_array v;
 						int origin[3];
