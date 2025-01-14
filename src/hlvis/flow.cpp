@@ -1024,7 +1024,7 @@ void	MaxDistVis(int unused)
 
 			// exact check
 			{
-				vec_t mindist = 9999999999;
+				vec_t mindist = INFINITY;
 				vec_t dist;
 				for (k = 0; k < l->numportals; k++)
 				{

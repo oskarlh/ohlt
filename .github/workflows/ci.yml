@@ -27,18 +27,20 @@ jobs:
           macos-clang,
           ubuntu-gcc
         ]
-        build_type: [Release]
         include:
           - os_and_compiler: macos-clang
             os: macos-15
-            cpp_compiler: $(brew --prefix llvm@18)/bin/clang++
+            debug_or_release: release
+            compiler: macos-clang18-homebrew
           - os_and_compiler: ubuntu-gcc
             os: ubuntu-latest
-            cpp_compiler: g++-14
+            debug_or_release: release
+            compiler: linux-gcc14
           # No Windows support yet...
           # - os_and_compiler: windows-msvc
           #   os: windows-latest
-          #   cpp_compiler: cl
+          #   debug_or_release: release
+          #   compiler: windows-msvc
 
     steps:
     - uses: actions/checkout@v3
@@ -48,38 +50,36 @@ jobs:
       id: strings
       shell: bash
       run: |
-        echo "build-output-dir=${{ github.workspace }}/build/release" >> "$GITHUB_OUTPUT"
+        echo "build_output_dir=${{ github.workspace }}/build/release" >> "$GITHUB_OUTPUT"
 
     - name: Create output directory
       run: |
-        mkdir -p ${{ steps.strings.outputs.build-output-dir }}
+        mkdir -p ${{ steps.strings.outputs.build_output_dir }}
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake -B ${{ steps.strings.outputs.build_output_dir }}
         -S ${{ github.workspace }}
-        --preset=release-config
+        --preset=${{ matrix.debug_or_release }}-${{ matrix.compiler }}
 
     - name: Build
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --preset=release-build
+      # Build your program with the given configuration
+      run: cmake --build ${{ steps.strings.outputs.build_output_dir }} --preset=${{ matrix.debug_or_release }}-${{ matrix.compiler }}
 
     - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+      working-directory: ${{ steps.strings.outputs.build_output_dir }}
+      # Execute tests defined by the CMake configuration
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+      run: ctest --build-config ${{ matrix.debug_or_release }}-${{ matrix.compiler }}
 
     - name: Archiving
       # Default Build Artifact zipper does not retain file permission.
-      run: 7z a OHLT-${{ matrix.os_and_compiler }}.7z tools
+      run: 7z a OHLT-${{ matrix.os_and_compiler }}-${{ matrix.debug_or_release }}.7z tools
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: OHLT-${{ matrix.os_and_compiler }}
-        path: OHLT-${{ matrix.os_and_compiler }}.7z
+        name: OHLT-${{ matrix.os_and_compiler }}-${{ matrix.debug_or_release }}
+        path: OHLT-${{ matrix.os_and_compiler }}-${{ matrix.debug_or_release }}.7z

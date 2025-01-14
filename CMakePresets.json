@@ -2,36 +2,140 @@
 	"version": 10,
 	"configurePresets": [
 		{
-			"displayName": "Release config",
-			"name": "release-config",
+			"hidden": true,
+			"name": "base-debug",
 
-			"binaryDir": "${sourceDir}/build/release",
+			"binaryDir": "${sourceDir}/build/${presetName}",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"hidden": true,
+			"name": "base-release",
+
+			"binaryDir": "${sourceDir}/build/${presetName}",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Release"
 			}
 		},
-		{
-			"displayName": "Debug config",
-			"name": "debug-config",
 
-			"binaryDir": "${sourceDir}/build/debug",
+		{
+			"hidden": true,
+			"name": "base-linux-gcc14",
+
 			"cacheVariables": {
-				"CMAKE_BUILD_TYPE": "Debug"
+				"CMAKE_CXX_COMPILER": "g++-14"
 			}
+		},
+		{
+			"hidden": true,
+			"name": "base-macos-clang18-homebrew",
+
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang++"
+			}
+		},
+		{
+			"hidden": true,
+			"name": "base-macos-gcc14-homebrew",
+
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "/opt/homebrew/bin/g++-14"
+			}
+		},
+		{
+			"hidden": true,
+			"name": "base-windows-msvc",
+
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "cl"
+			}
+		},
+
+		{
+			"name": "debug-default",
+			"inherits": ["base-debug"]
+		},
+		{
+			"name": "debug-linux-gcc14",
+			"inherits": ["base-debug", "base-linux-gcc14"]
+		},
+		{
+			"name": "debug-macos-clang18-homebrew",
+			"inherits": ["base-debug", "base-macos-clang18-homebrew"]
+		},
+		{
+			"name": "debug-macos-gcc14-homebrew",
+			"inherits": ["base-debug", "base-macos-gcc14-homebrew"]
+		},
+		{
+			"name": "debug-windows-msvc",
+			"inherits": ["base-debug", "base-windows-msvc"]
+		},
+
+		{
+			"name": "release-default",
+			"inherits": ["base-release"]
+		},
+		{
+			"name": "release-linux-gcc14",
+			"inherits": ["base-release", "base-linux-gcc14"]
+		},
+		{
+			"name": "release-macos-clang18-homebrew",
+			"inherits": ["base-release", "base-macos-clang18-homebrew"]
+		},
+		{
+			"name": "release-macos-gcc14-homebrew",
+			"inherits": ["base-release", "base-macos-gcc14-homebrew"]
+		},
+		{
+			"name": "release-windows-msvc",
+			"inherits": ["base-release", "base-windows-msvc"]
 		}
 	],
     "buildPresets": [
         {
-			"displayName": "Release build",
-            "name": "release-build",
-
-            "configurePreset": "release-config"
+            "name":				"debug-default",
+			"configurePreset":	"debug-default"
         },
         {
-			"displayName": "Debug build",
-            "name": "debug-build",
+            "name":				"debug-linux-gcc14",
+			"configurePreset": 	"debug-linux-gcc14"
+        },
+        {
+            "name":				"debug-macos-clang18-homebrew",
+			"configurePreset":	"debug-macos-clang18-homebrew"
+        },
+        {
+            "name":				"debug-macos-gcc14-homebrew",
+			"configurePreset":	"debug-macos-gcc14-homebrew"
+        },
+        {
+            "name":				"debug-windows-msvc",
+            "configurePreset":	"debug-windows-msvc"
+        },
 
-            "configurePreset": "debug-config"
+        {
+            "name":				"release-default",
+			"configurePreset":	"release-default"
+        },
+        {
+            "name":				"release-linux-gcc14",
+			"configurePreset": 	"release-linux-gcc14"
+        },
+        {
+            "name":				"release-macos-clang18-homebrew",
+			"configurePreset":	"release-macos-clang18-homebrew"
+        },
+        {
+            "name":				"release-macos-gcc14-homebrew",
+			"configurePreset":	"release-macos-gcc14-homebrew"
+        },
+        {
+            "name":				"release-windows-msvc",
+            "configurePreset":	"release-windows-msvc"
         }
     ]
 }

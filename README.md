@@ -9,8 +9,8 @@ New features *in SDHLT* include shadows from studiomodels, new entities, additio
 
 ## Compiling the compilers
 ```
-cmake -S . --preset=release-config
-cmake --build --preset=release-build
+cmake -S . --preset=release-default
+cmake --build --preset=release-default
 ```
 
 

@@ -3,20 +3,17 @@
 # Exit on failure
 set -e
 
-export PARAMETERS_FOR_CMAKE_CONFIGURE=
+export DEBUG_OR_RELEASE=debug
+export DEBUG_OR_RELEASE=release
 
-# Use GCC 14
-export CXX=/opt/homebrew/bin/g++-14
-export PARAMETERS_FOR_CMAKE_CONFIGURE="-DCMAKE_CXX_COMPILER=$CXX"
+export COMPILER=default
+#export COMPILER=linux-gcc14
+export COMPILER=macos-clang18-homebrew
+#export COMPILER=macos-gcc14-homebrew
+#export COMPILER=windows-msvc
 
-# Use Clang 18
-export CXX=$(brew --prefix llvm@18)/bin/clang++
-export PARAMETERS_FOR_CMAKE_CONFIGURE="-DCMAKE_CXX_COMPILER=$CXX"
-
-#cmake -S . --preset=debug-config
-#cmake --build --preset=debug-build
-cmake -S . --preset=release-config ${PARAMETERS_FOR_CMAKE_CONFIGURE}
-cmake --build --preset=release-build
+cmake -S . --preset=${DEBUG_OR_RELEASE}-${COMPILER}
+cmake --build --preset=${DEBUG_OR_RELEASE}-${COMPILER}
 
 export MAP_NAME=pool
 export MAP_NAME=xmastree_tjb
