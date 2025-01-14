@@ -316,7 +316,7 @@ static int      GetVertex(const vec3_t in, const int planenum)
 //  GetEdge
 //      Don't allow four way edges
 // =====================================================================================
-int             GetEdge(const vec3_t p1, const vec3_t p2, face_t* f)
+int             GetEdge(const vec3_array& p1, const vec3_array& p2, face_t* f)
 {
     int             v1;
     int             v2;
@@ -325,8 +325,8 @@ int             GetEdge(const vec3_t p1, const vec3_t p2, face_t* f)
 
     hlassert(f->contents);
 
-    v1 = GetVertex(p1, f->planenum);
-    v2 = GetVertex(p2, f->planenum);
+    v1 = GetVertex(p1.data(), f->planenum);
+    v2 = GetVertex(p2.data(), f->planenum);
     for (i = firstmodeledge; i < g_numedges; i++)
     {
         edge = &g_dedges[i];

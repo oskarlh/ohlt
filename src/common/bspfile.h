@@ -283,7 +283,7 @@ struct dleaf_t {
     std::uint16_t firstmarksurface;
     std::uint16_t nummarksurfaces;
 
-    std::array<std::uint8_t, 4> unused_ambient_level{}; // Used by Quake, not by Half-Life
+    std::array<std::uint8_t, 4> unused_ambient_level; // Used by Quake, not by Half-Life
 };
 
 
@@ -361,9 +361,9 @@ struct dheader_t {
 //
 
 struct entity_t {
-    vec3_array origin{};
-    int firstbrush{};
-    int numbrushes{};
+    vec3_array origin;
+    int firstbrush;
+    int numbrushes;
     std::vector<entity_key_value> keyValues;
 };
 

@@ -428,7 +428,6 @@ static void ParseBrush(entity_t* mapent)
 					b->originalentitynum, b->originalbrushnum
 					);
 		}
-        vec3_t          mins, maxs;
 		std::u8string origin{value_for_key(mapent, u8"origin")};
 		if (!origin.empty()) {
 			DeleteKey (mapent, u8"origin");
@@ -445,8 +444,12 @@ static void ParseBrush(entity_t* mapent)
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
         {
-            VectorCopy(b->hulls[0].bounds.mins, mins);
-            VectorCopy(b->hulls[0].bounds.maxs, maxs);
+       		const vec3_array mins{
+				b->hulls[0].bounds.mins
+			};
+       		const vec3_array maxs{
+				b->hulls[0].bounds.maxs
+			};
     
        		char string[MAXTOKEN];
             safe_snprintf(string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f", mins[0], mins[1], mins[2], maxs[0], maxs[1], maxs[2]);

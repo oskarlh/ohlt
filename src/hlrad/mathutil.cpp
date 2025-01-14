@@ -275,9 +275,9 @@ bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_
 	}
 	return LineSegmentIntersectsBounds_r (x1.data(), x2.data(), mins, maxs, d);
 }
-inline bool LineSegmentIntersectsBounds (const vec3_t p1, const vec3_t p2, const vec3_t mins, const vec3_t maxs)
+inline bool LineSegmentIntersectsBounds (const vec3_array& p1, const vec3_array& p2, const vec3_array& mins, const vec3_array& maxs)
 {
-	return LineSegmentIntersectsBounds_r (p1, p2, mins, maxs, 3);
+	return LineSegmentIntersectsBounds_r (p1.data(), p2.data(), mins.data(), maxs.data(), 3);
 }
 
 // =====================================================================================

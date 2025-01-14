@@ -648,7 +648,7 @@ static void     CalcFaceExtents(lightinfo_t* l)
                 {
 					v = g_dvertexes.data() + g_dedges[-e].v[1];
                 }
-				vec3_t pos;
+				vec3_array pos;
 				VectorAdd (v->point, g_face_offset[facenum], pos);
 				Log ("(%4.3f %4.3f %4.3f) ", pos[0], pos[1], pos[2]);
 			}
@@ -886,7 +886,7 @@ void ChopFrag (samplefrag_t *frag)
 	dface_t *f;
 	Winding *facewinding;
 	matrix_t worldtotex;
-	const vec3_t v_up = {0, 0, 1};
+	const vec3_array v_up = {0, 0, 1};
 
 	f = &g_dfaces[frag->facenum];
 	facewinding = new Winding (*f);
@@ -1119,7 +1119,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	numclipplanes = 0;
 	for (int x = 0; x < frag->winding->size(); x++)
 	{
-		vec3_t v;
+		vec3_array v;
 		VectorSubtract(frag->winding->m_Points[(x + 1) % frag->winding->size()], frag->winding->m_Points[x], v);
 		CrossProduct (v, frag->windingplane.normal, clipplanes[numclipplanes].normal);
 		if (!normalize_vector(clipplanes[numclipplanes].normal))
@@ -1219,8 +1219,8 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, vec_t s, vec_t t,
 	int maxsize)
 {
 	samplefraginfo_t *info;
-	const vec3_t v_s = {1, 0, 0};
-	const vec3_t v_t = {0, 1, 0};
+	const vec3_array v_s{1, 0, 0};
+	const vec3_array v_t{0, 1, 0};
 
 	info = (samplefraginfo_t *)malloc (sizeof (samplefraginfo_t));
 	hlassume (info != nullptr, assume_NoMemory);
@@ -2060,7 +2060,7 @@ void            CreateDirectLights()
 					{
 						for (i = 0; i < dl->numsunnormals; i++)
 						{
-							vec3_t tmp;
+							vec3_array tmp;
 							VectorScale (dl->sunnormals[i], 1 / DotProduct (dl->sunnormals[i], dl->normal), tmp);
 							VectorSubtract(tmp, dl->normal, tmp);
 							VectorMA (dl->normal, dl->sunspreadangle / SUNSPREAD_THRESHOLD, tmp, dl->sunnormals[i]);
@@ -2382,7 +2382,7 @@ void BuildDiffuseNormals ()
 		int oldnumtriangles = numtriangles;
 		for (j = 0; j < oldnumtriangles; j++)
 		{
-			int mid[3];
+			std::array<std::int32_t, 3> mid;
 			for (k = 0; k < 3; k++)
 			{
 				hlassume (numtriangles < (1 << (2 * SKYLEVELMAX)) * 2, assume_first);
@@ -3109,16 +3109,8 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
             VectorAdd(p2, g_face_offset[facenum], p2);
 		for (s = 0; s < 2; s++)
 		{
-			vec3_t s1, s2;
-			if (s == 0)
-			{
-				VectorCopy(p1, s1);
-			}
-			else
-			{
-				VectorCopy(p2, s1);
-			}
-
+			vec3_array s1 = s == 0 ? p1 : p2;
+			vec3_array s2;
 			VectorAdd(p1,p2,s2); // edge center
 			VectorScale(s2,0.5,s2);
 
@@ -3555,7 +3547,7 @@ void            BuildFacelights(const int facenum)
 		int s_center, t_center;
 		vec_t sizehalf;
 		vec_t weighting, subsamples;
-		vec3_t centernormal;
+		vec3_array centernormal;
 		vec_t weighting_correction;
 		int pass;
 		s_center = (i % lightmapwidth) * l.lmcache_density + l.lmcache_offset;
@@ -4363,7 +4355,7 @@ int MLH_AddFace (mdllight_t *ml, int facenum)
 	}
 	return i;
 }
-void MLH_AddSample (mdllight_t *ml, int facenum, int w, int h, int s, int t, const vec3_t pos)
+void MLH_AddSample (mdllight_t *ml, int facenum, int w, int h, int s, int t, const vec3_array& pos)
 {
 	dface_t *f = &g_dfaces[facenum];
 	int i, j;
@@ -4410,14 +4402,13 @@ void MLH_CalcExtents (const dface_t *f, int *texturemins, int *extents)
 		extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
 	}
 }
-void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float *start, const float *end)
+void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float3_array& start, const float3_array& end)
 {
 	if (nodenum < 0)
 		return;
 	dnode_t *node = &g_dnodes[nodenum];
 	dplane_t *plane;
 	float front, back, frac;
-	float mid[3];
 	int side;
 	plane = &g_dplanes[node->planenum];
 	front = DotProduct (start, plane->normal) - plane->dist;
@@ -4429,9 +4420,11 @@ void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float *start, const fl
 		return;
 	}
 	frac = front / (front - back);
-	mid[0] = start[0] + (end[0] - start[0]) * frac;
-	mid[1] = start[1] + (end[1] - start[1]) * frac;
-	mid[2] = start[2] + (end[2] - start[2]) * frac;
+	const float3_array mid {
+		start[0] + (end[0] - start[0]) * frac,
+		start[1] + (end[1] - start[1]) * frac,
+		start[2] + (end[2] - start[2]) * frac
+	};
 	MLH_GetSamples_r (ml, node->children[side], start, mid);
 	if (ml->facecount > 0)
 	{
@@ -4481,12 +4474,10 @@ void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float *start, const fl
 void MLH_mdllightCreate (mdllight_t *ml)
 {
 	// code from Quake
-	float p[3];
-	float end[3];
 	ml->facecount = 0;
-	VectorCopy (ml->origin, ml->floor);
-	VectorCopy (ml->origin, p);
-	VectorCopy (ml->origin, end);
+	ml->floor = ml->origin;
+	const float3_array p = ml->origin;
+	float3_array end = ml->origin;
 	end[2] -= 2048;
 	MLH_GetSamples_r (ml, 0, p, end);
 }
@@ -4780,7 +4771,7 @@ void            FinalLightFace(const int facenum)
     float           minlight;
     int             lightstyles;
     dface_t*        f;
-	vec3_t			*original_basiclight;
+	vec3_array* original_basiclight;
 	int				(*final_basiclight)[3];
 	int				lbi[3];
 
@@ -4833,7 +4824,7 @@ void            FinalLightFace(const int facenum)
 			minlight = (minlight > 255) ? 255 : minlight;
 		}
 	}
-	original_basiclight = (vec3_t *)calloc (fl->numsamples, sizeof(vec3_t));
+	original_basiclight = (vec3_array*) calloc (fl->numsamples, sizeof(vec3_array));
 	final_basiclight = (int (*)[3])calloc (fl->numsamples, sizeof(int [3]));
 	hlassume (original_basiclight != nullptr, assume_NoMemory);
 	hlassume (final_basiclight != nullptr, assume_NoMemory);

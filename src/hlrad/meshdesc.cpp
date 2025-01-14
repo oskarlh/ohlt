@@ -249,7 +249,7 @@ bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const vec3_array& normal
 SnapVectorToGrid
 ==================
 */
-void CMeshDesc :: SnapVectorToGrid( vec3_t normal )
+void CMeshDesc :: SnapVectorToGrid( vec3_array& normal )
 {
 	for( int i = 0; i < 3; i++ )
 	{
@@ -276,7 +276,7 @@ SnapPlaneToGrid
 */
 void CMeshDesc :: SnapPlaneToGrid( mplane_t *plane )
 {
-	SnapVectorToGrid( plane->normal.data() );
+	SnapVectorToGrid( plane->normal );
 
 	if( fabs( plane->dist - Q_rint( plane->dist )) < PLANE_DIST_EPSILON )
 		plane->dist = Q_rint( plane->dist );
@@ -433,7 +433,7 @@ void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *
 	AngleQuaternion( angle, q );
 }
 
-void CMeshDesc :: StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t pos )
+void CMeshDesc :: StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_array& pos )
 {
 	mstudioanimvalue_t *panimvalue;
 
@@ -485,7 +485,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	for(std::size_t i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
 	{
 		StudioCalcBoneQuaterion( pbone, panim, q[i] );
-		StudioCalcBonePosition( pbone, panim, pos[i].data() );
+		StudioCalcBonePosition( pbone, panim, pos[i] );
 	}
 
 	pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
@@ -836,7 +836,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 		if( vector_length( vec ) < 0.5f ) continue;
 
 		normalize_vector( vec );
-		SnapVectorToGrid( vec.data() );
+		SnapVectorToGrid( vec );
 
 		for( j = 0; j < 3; j++ )
 		{

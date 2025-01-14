@@ -213,7 +213,7 @@ bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p
 		mmesh_t *pMesh = m->mesh.GetMesh();
 		areanode_t *pHeadNode = m->mesh.GetHeadNode();
 
-		if( !pMesh || !m->mesh.Intersect( trace_mins.data(), trace_maxs.data() ))
+		if( !pMesh || !m->mesh.Intersect( trace_mins, trace_maxs ))
 			continue; // bad model or not intersect with trace
 
 		TraceMesh	trm;	// a name like Doom3 :-)

@@ -144,7 +144,7 @@ public:
 
 	// studio models processing
 	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t& q );
-	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_t pos );
+	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_array& pos );
 	bool StudioConstructMesh( model_t *pModel );
 
 	// linked list operations
@@ -164,7 +164,7 @@ public:
 	bool PlaneEqual( const mplane_t *p0, const mplane_t *p1 );
 	void CategorizePlane( mplane_t *plane );
 	void SnapPlaneToGrid( mplane_t *plane );
-	void SnapVectorToGrid( vec3_t normal );
+	void SnapVectorToGrid( vec3_array& normal );
 
 	// check for cache
 	inline mmesh_t *GetMesh() { return &m_mesh; } 
@@ -184,7 +184,7 @@ public:
 		}
 	}
 
-	bool Intersect( const vec3_t trace_mins, const vec3_t trace_maxs )
+	bool Intersect( const vec3_array& trace_mins, const vec3_array& trace_maxs )
 	{
 		if( m_mesh.mins[0] > trace_maxs[0] || m_mesh.mins[1] > trace_maxs[1] || m_mesh.mins[2] > trace_maxs[2] )
 			return false;

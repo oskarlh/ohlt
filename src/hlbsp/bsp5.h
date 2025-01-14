@@ -162,7 +162,7 @@ extern void     MergeAll(surface_t* surfhead);
 //=============================================================================
 // surfaces.c
 extern void     MakeFaceEdges();
-extern int      GetEdge(const vec3_t p1, const vec3_t p2, face_t* f);
+extern int      GetEdge(const vec3_array& p1, const vec3_array& p2, face_t* f);
 
 //=============================================================================
 // portals.c
