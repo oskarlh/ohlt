@@ -399,7 +399,7 @@ static void ParseBrush(entity_t* mapent)
             SetKeyValue(&g_entities[b->entitynum], u8"origin", (const char8_t*) string);
         }
     }
-	if (*ValueForKey (&g_entities[b->entitynum], u8"zhlt_usemodel"))
+	if (has_key_value(&g_entities[b->entitynum], u8"zhlt_usemodel"))
 	{
 		memset (&g_brushsides[b->firstside], 0, b->numsides * sizeof (side_t));
 		g_numbrushsides -= b->numsides;
@@ -422,7 +422,7 @@ static void ParseBrush(entity_t* mapent)
 	}
     if (contents == CONTENTS_BOUNDINGBOX)
     {
-		if (*ValueForKey (mapent, u8"zhlt_minsmaxs"))
+		if (has_key_value(mapent, u8"zhlt_minsmaxs"))
 		{
 			Error ("Entity %i, Brush %i: Only one BoundingBox brush allowed.",
 					b->originalentitynum, b->originalbrushnum
@@ -570,9 +570,9 @@ bool            ParseMapEntity()
 			}
 		}
 	}
-	if (*ValueForKey (mapent, u8"zhlt_usemodel"))
+	if (has_key_value(mapent, u8"zhlt_usemodel"))
 	{
-		if (!*ValueForKey (mapent, u8"origin"))
+		if (!has_key_value(mapent, u8"origin"))
 			Warning ("Entity %i: 'zhlt_usemodel' requires the entity to have an origin brush.", 
 				g_numparsedentities
 				);

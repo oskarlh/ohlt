@@ -1667,12 +1667,12 @@ void            CreateDirectLights()
 			dl->stopdot2 = 0.0;
 			if (g_face_texlights[p->faceNumber])
 			{
-				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone"))
+				if (has_key_value(g_face_texlights[p->faceNumber], u8"_cone"))
 				{
 					dl->stopdot = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone");
 					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * std::numbers::pi_v<double>);
 				}
-				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_cone2"))
+				if (has_key_value(g_face_texlights[p->faceNumber], u8"_cone2"))
 				{
 					dl->stopdot2 = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone2");
 					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * std::numbers::pi_v<double>);
@@ -1686,7 +1686,7 @@ void            CreateDirectLights()
             VectorCopy(p->baselight, dl->intensity); //LRC
 			if (g_face_texlights[p->faceNumber])
 			{
-				if (*ValueForKey (g_face_texlights[p->faceNumber], u8"_scale"))
+				if (has_key_value(g_face_texlights[p->faceNumber], u8"_scale"))
 				{
 					float scale = float_for_key(*g_face_texlights[p->faceNumber], u8"_scale");
 					VectorScale (dl->intensity, scale, dl->intensity);

@@ -22,6 +22,7 @@ cmake --build --preset=release-default
 4. Add *hlt.fgd* to your FGD list.
 
 ## Features
+These are from SDHLT. A new feature list will be written for OHLT.
 
 ### Studiomodel shadows
 

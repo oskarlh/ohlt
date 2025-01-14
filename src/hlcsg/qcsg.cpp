@@ -136,7 +136,7 @@ void            GetParamsFromEnt(entity_t* mapent)
     Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
 
     // hullfile(string) : "Custom Hullfile"
-    if (*ValueForKey(mapent, u8"hullfile"))
+    if (has_key_value(mapent, u8"hullfile"))
     {
         g_hullfile = (const char*) ValueForKey(mapent, u8"hullfile");
         Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile);
@@ -1451,7 +1451,7 @@ static void     SetModelCenters(int entitynum)
     if ((entitynum == 0) || (e->numbrushes == 0)) // skip worldspawn and point entities
         return;
 
-    if (!*ValueForKey(e, u8"light_origin")) // skip if its not a zhlt_flags light_origin
+    if (!has_key_value(e, u8"light_origin")) // skip if its not a zhlt_flags light_origin
         return;
 
     for (i = e->firstbrush, last = e->firstbrush + e->numbrushes; i < last; i++)

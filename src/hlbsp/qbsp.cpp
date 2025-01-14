@@ -1224,7 +1224,7 @@ static bool     ProcessModel(bsp_data& bspData)
 	{
 		entity_t *ent;
 		ent = EntityForModel (modnum);
-		if (ent != &g_entities[0] && *ValueForKey (ent, u8"zhlt_minsmaxs"))
+		if (ent != &g_entities[0] && has_key_value(ent, u8"zhlt_minsmaxs"))
 		{
 			double origin[3], mins[3], maxs[3];
 			VectorClear (origin);
