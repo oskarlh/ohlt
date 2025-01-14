@@ -479,6 +479,8 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins,
 				crosscount++;
 				break;
 			case face_side::cross:
+				// Shouldn't happen
+				break;
 			}
 		}
 
@@ -604,6 +606,8 @@ static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& min
 					crosscount++;
 					break;
 				case face_side::cross:
+					// Shouldn't happen
+					break;
 				}
 			}
 		}
