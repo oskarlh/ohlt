@@ -1676,7 +1676,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 
 bbrinkinfo_t* CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)
 {
-	bbrinkinfo_t *info;
+	bbrinkinfo_t *info{};
 	try
 	{
 		info = new bbrinkinfo_t{};

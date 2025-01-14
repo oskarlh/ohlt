@@ -2658,176 +2658,176 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 
 						denominator = dist * dist * l->fade;
 
-						vec3_array add;
+						vec3_array add{};
                         switch (l->type)
                         {
-                        case emit_point:
-                        {
-							if (dot <= NORMAL_EPSILON)
+							case emit_point:
 							{
-								continue;
-							}
-							vec_t denominator = dist * dist * l->fade;
-							if (lighting_diversify)
-							{
-								dot = lighting_scale * pow (dot, lighting_power);
-							}
-                            ratio = dot / denominator;
-                            VectorScale(l->intensity, ratio, add);
-                            break;
-                        }
-
-                        case emit_surface:
-                        {
-							bool light_behind_surface = false;
-							if (dot <= NORMAL_EPSILON)
-							{
-								light_behind_surface = true;
-							}
-							if (lighting_diversify
-								&& !light_behind_surface
-								)
-							{
-								dot = lighting_scale * pow (dot, lighting_power);
-							}
-                            dot2 = -DotProduct(delta, l->normal);
-							// discard the texlight if the spot is too close to the texlight plane
-							if (l->texlightgap > 0)
-							{
-								vec_t test;
-
-								test = dot2 * dist; // distance from spot to texlight plane;
-								test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[0])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along s axis
-								test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[1])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along t axis
-								if (test < -ON_EPSILON)
+								if (dot <= NORMAL_EPSILON)
 								{
 									continue;
 								}
-							}
-							if (dot2 * dist <= MINIMUM_PATCH_DISTANCE)
-							{
-								continue;
-							}
-							vec_t range = l->patch_emitter_range;
-							if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
-							{
-								vec_t range_scale;
-								range_scale = 1 - l->stopdot2 * l->stopdot2;
-								range_scale = 1 / sqrt (std::max ((vec_t) NORMAL_EPSILON, range_scale));
-								// range_scale = 1 / sin (cone2)
-								range_scale = std::min(range_scale, (vec_t) 2); // restrict this to 2, because skylevel has limit.
-								range *= range_scale; // because smaller cones are more likely to create the ugly grid effect.
-
-								if (dot2 <= l->stopdot2 + NORMAL_EPSILON)
+								vec_t denominator = dist * dist * l->fade;
+								if (lighting_diversify)
 								{
-									if (dist >= range) // use the old method, which will merely give 0 in this case
+									dot = lighting_scale * pow (dot, lighting_power);
+								}
+								ratio = dot / denominator;
+								VectorScale(l->intensity, ratio, add);
+								break;
+							}
+
+							case emit_surface:
+							{
+								bool light_behind_surface = false;
+								if (dot <= NORMAL_EPSILON)
+								{
+									light_behind_surface = true;
+								}
+								if (lighting_diversify
+									&& !light_behind_surface
+									)
+								{
+									dot = lighting_scale * pow (dot, lighting_power);
+								}
+								dot2 = -DotProduct(delta, l->normal);
+								// discard the texlight if the spot is too close to the texlight plane
+								if (l->texlightgap > 0)
+								{
+									vec_t test;
+
+									test = dot2 * dist; // distance from spot to texlight plane;
+									test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[0])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along s axis
+									test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[1])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along t axis
+									if (test < -ON_EPSILON)
 									{
 										continue;
 									}
-									ratio = 0.0;
 								}
-								else if (dot2 <= l->stopdot)
+								if (dot2 * dist <= MINIMUM_PATCH_DISTANCE)
 								{
-									ratio = dot * dot2 * (dot2 - l->stopdot2) / (dist * dist * (l->stopdot - l->stopdot2));
+									continue;
+								}
+								vec_t range = l->patch_emitter_range;
+								if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
+								{
+									vec_t range_scale;
+									range_scale = 1 - l->stopdot2 * l->stopdot2;
+									range_scale = 1 / sqrt (std::max ((vec_t) NORMAL_EPSILON, range_scale));
+									// range_scale = 1 / sin (cone2)
+									range_scale = std::min(range_scale, (vec_t) 2); // restrict this to 2, because skylevel has limit.
+									range *= range_scale; // because smaller cones are more likely to create the ugly grid effect.
+
+									if (dot2 <= l->stopdot2 + NORMAL_EPSILON)
+									{
+										if (dist >= range) // use the old method, which will merely give 0 in this case
+										{
+											continue;
+										}
+										ratio = 0.0;
+									}
+									else if (dot2 <= l->stopdot)
+									{
+										ratio = dot * dot2 * (dot2 - l->stopdot2) / (dist * dist * (l->stopdot - l->stopdot2));
+									}
+									else
+									{
+										ratio = dot * dot2 / (dist * dist);
+									}
 								}
 								else
 								{
 									ratio = dot * dot2 / (dist * dist);
 								}
-							}
-							else
-							{
-								ratio = dot * dot2 / (dist * dist);
-							}
-							
-							// analogous to the one in MakeScales
-							// 0.4f is tested to be able to fully eliminate bright spots
-							if (ratio * l->patch_area > 0.4f)
-							{
-								ratio = 0.4f / l->patch_area;
-							}
-							if (dist < range - ON_EPSILON)
-							{ // do things slow
-								if (light_behind_surface)
+								
+								// analogous to the one in MakeScales
+								// 0.4f is tested to be able to fully eliminate bright spots
+								if (ratio * l->patch_area > 0.4f)
 								{
-									dot = 0.0;
-									ratio = 0.0;
+									ratio = 0.4f / l->patch_area;
 								}
-								GetAlternateOrigin (pos, normal, l->patch, testline_origin);
-								vec_t sightarea;
-								int skylevel = l->patch->emitter_skylevel;
-								if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
-								{
-									const vec3_array& emitnormal = getPlaneFromFaceNumber (l->patch->faceNumber)->normal;
-									if (l->stopdot2 >= 0.8) // about 37deg
+								if (dist < range - ON_EPSILON)
+								{ // do things slow
+									if (light_behind_surface)
 									{
-										skylevel += 1; // because the range is larger
+										dot = 0.0;
+										ratio = 0.0;
 									}
-									sightarea = CalcSightArea_SpotLight (pos, normal, l->patch->winding, emitnormal, l->stopdot, l->stopdot2, skylevel
-										, lighting_power, lighting_scale
-										); // because we have doubled the range
+									GetAlternateOrigin (pos, normal, l->patch, testline_origin);
+									vec_t sightarea;
+									int skylevel = l->patch->emitter_skylevel;
+									if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
+									{
+										const vec3_array& emitnormal = getPlaneFromFaceNumber (l->patch->faceNumber)->normal;
+										if (l->stopdot2 >= 0.8) // about 37deg
+										{
+											skylevel += 1; // because the range is larger
+										}
+										sightarea = CalcSightArea_SpotLight (pos, normal, l->patch->winding, emitnormal, l->stopdot, l->stopdot2, skylevel
+											, lighting_power, lighting_scale
+											); // because we have doubled the range
+									}
+									else
+									{
+										sightarea = CalcSightArea (pos, normal, l->patch->winding, skylevel
+											, lighting_power, lighting_scale
+											);
+									}
+
+									vec_t frac = dist / range;
+									frac = (frac - 0.5) * 2; // make a smooth transition between the two methods
+									frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+
+									vec_t ratio2 = (sightarea / l->patch_area); // because l->patch->area has been multiplied into l->intensity
+									ratio = frac * ratio + (1 - frac) * ratio2;
 								}
 								else
 								{
-									sightarea = CalcSightArea (pos, normal, l->patch->winding, skylevel
-										, lighting_power, lighting_scale
-										);
+									if (light_behind_surface)
+									{
+										continue;
+									}
 								}
-
-								vec_t frac = dist / range;
-								frac = (frac - 0.5) * 2; // make a smooth transition between the two methods
-								frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
-
-								vec_t ratio2 = (sightarea / l->patch_area); // because l->patch->area has been multiplied into l->intensity
-								ratio = frac * ratio + (1 - frac) * ratio2;
+								VectorScale(l->intensity, ratio, add);
+								break;
 							}
-							else
+
+							case emit_spotlight:
 							{
-								if (light_behind_surface)
+								if (dot <= NORMAL_EPSILON)
 								{
 									continue;
 								}
-							}
-                            VectorScale(l->intensity, ratio, add);
-                            break;
-                        }
+								dot2 = -DotProduct(delta, l->normal);
+								if (dot2 <= l->stopdot2)
+								{
+									continue;                  // outside light cone
+								}
 
-                        case emit_spotlight:
-                        {
-							if (dot <= NORMAL_EPSILON)
+								// Variable power falloff (1 = inverse linear, 2 = inverse square
+								vec_t           denominator = dist * l->fade;
+								{
+									denominator *= dist;
+								}
+								if (lighting_diversify)
+								{
+									dot = lighting_scale * pow (dot, lighting_power);
+								}
+								ratio = dot * dot2 / denominator;
+
+								if (dot2 <= l->stopdot)
+								{
+									ratio *= (dot2 - l->stopdot2) / (l->stopdot - l->stopdot2);
+								}
+								VectorScale(l->intensity, ratio, add);
+								break;
+							}
+
+							default:
 							{
-								continue;
+								hlassume(false, assume_BadLightType);
+								break;
 							}
-                            dot2 = -DotProduct(delta, l->normal);
-                            if (dot2 <= l->stopdot2)
-                            {
-                                continue;                  // outside light cone
-                            }
-
-                            // Variable power falloff (1 = inverse linear, 2 = inverse square
-                            vec_t           denominator = dist * l->fade;
-                            {
-                                denominator *= dist;
-                            }
-							if (lighting_diversify)
-							{
-								dot = lighting_scale * pow (dot, lighting_power);
-							}
-                            ratio = dot * dot2 / denominator;
-
-                            if (dot2 <= l->stopdot)
-                            {
-                                ratio *= (dot2 - l->stopdot2) / (l->stopdot - l->stopdot2);
-                            }
-                            VectorScale(l->intensity, ratio, add);
-                            break;
-                        }
-
-                        default:
-                        {
-                            hlassume(false, assume_BadLightType);
-                            break;
-                        }
                         }
 						if (TestLine (pos, 
 							testline_origin

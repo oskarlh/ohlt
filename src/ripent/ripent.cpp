@@ -676,7 +676,7 @@ static void		ReadTextures(const char *name)
 
 static void     WriteEntities(const char* const name)
 {
-	char *bak_dentdata;
+	char *bak_dentdata{};
 	std::filesystem::path filePath;
 	filePath = name;
 	filePath += u8".ent";
