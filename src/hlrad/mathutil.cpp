@@ -6,7 +6,7 @@
 //      returns whether the point is in the winding (including its edges)
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding(const Winding& w, const dplane_t& plane, const float3_array& point, float epsilon/* = 0.0*/)
+bool point_in_winding(const fast_winding& w, const dplane_t& plane, const float3_array& point, float epsilon/* = 0.0*/)
 {
 
 	const int numpoints = w.size();
@@ -36,7 +36,7 @@ bool point_in_winding(const Winding& w, const dplane_t& plane, const float3_arra
 //      parameter 'width' : the radius of the ball
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const float3_array& point, float width)
+bool point_in_winding_noedge(const fast_winding& w, const dplane_t& plane, const float3_array& point, float width)
 {
 	int				numpoints;
 	int				x;
@@ -67,7 +67,7 @@ bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const floa
 //      if the point is not on the plane, the distance between the point and the plane is preserved
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-void			snap_to_winding(const Winding& w, const dplane_t& plane, float* const point)
+void			snap_to_winding(const fast_winding& w, const dplane_t& plane, float* const point)
 {
 	int				numpoints;
 	int				x;
@@ -142,7 +142,7 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, float* const poi
 //      returns the maximal distance that the point can be kept away from all the edges
 //      in most of the cases, the maximal distance = width; in other cases, the maximal distance < width
 // =====================================================================================
-float snap_to_winding_noedge(const Winding& w, const dplane_t& plane, float* const point, float width, float maxmove)
+float snap_to_winding_noedge(const fast_winding& w, const dplane_t& plane, float* const point, float width, float maxmove)
 {
 	int pass;
 	int numplanes;
@@ -178,11 +178,11 @@ float snap_to_winding_noedge(const Winding& w, const dplane_t& plane, float* con
 	{
 		bool failed;
 		float3_array newpoint;
-		Winding *newwinding;
+		fast_winding *newwinding;
 
 		failed = true;
 
-		newwinding = new Winding (w);
+		newwinding = new fast_winding (w);
 		for (x = 0; x < numplanes && newwinding->size() > 0; x++)
 		{
 			dplane_t clipplane = planes[x];
@@ -339,7 +339,7 @@ void            SnapToPlane(const dplane_t* const plane, float* const point, flo
 // =====================================================================================
 //  CalcSightArea
 // =====================================================================================
-float CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, int skylevel
+float CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const fast_winding *emitter_winding, int skylevel
 					, float lighting_power, float lighting_scale
 					)
 {
@@ -398,7 +398,7 @@ float CalcSightArea (const float3_array& receiver_origin, const float3_array& re
 	return area;
 }
 
-float CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
+float CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const fast_winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
 					, float lighting_power, float lighting_scale
 					)
 {
@@ -480,7 +480,7 @@ void GetAlternateOrigin (const float3_array& pos, const float3_array& normal, co
 	const dplane_t *faceplane;
 	const float *facenormal;
 	dplane_t clipplane;
-	Winding w;
+	fast_winding w;
 
 	faceplane = getPlaneFromFaceNumber (patch->faceNumber);
 	const float3_array& faceplaneoffset = g_face_offset[patch->faceNumber];

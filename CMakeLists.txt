@@ -290,9 +290,3 @@ set_target_properties(hlbsp hlcsg hlrad hlvis ripent
     PROPERTIES
         CXX_STANDARD 26
 )
-
-target_compile_definitions(hlbsp PRIVATE DOUBLEVEC_T)
-target_compile_definitions(hlcsg PRIVATE DOUBLEVEC_T)
-target_compile_definitions(hlrad PRIVATE)
-target_compile_definitions(hlvis PRIVATE)
-target_compile_definitions(ripent PRIVATE)

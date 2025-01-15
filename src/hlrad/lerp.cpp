@@ -46,15 +46,15 @@ struct localtriangulation_t
 	};
 	
 	dplane_t plane;
-	Winding winding;
+	fast_winding winding;
 	float3_array center; // center is on the plane
 
 	float3_array normal;
 	int patchnum;
 	std::vector< int > neighborfaces; // including the face itself
 
-	std::vector< Wedge > sortedwedges; // in clockwise order (same as Winding)
-	std::vector< HullPoint > sortedhullpoints; // in clockwise order (same as Winding)
+	std::vector< Wedge > sortedwedges; // in clockwise order (same as fast_winding)
+	std::vector< HullPoint > sortedhullpoints; // in clockwise order (same as fast_winding)
 };
 
 struct facetriangulation_t
@@ -1036,7 +1036,7 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 	return false;
 }
 
-static bool TestFarPatch (const localtriangulation_t *lt, const float3_array& p2, const Winding &p2winding)
+static bool TestFarPatch (const localtriangulation_t *lt, const float3_array& p2, const fast_winding &p2winding)
 {
 	int i;
 	float dist;

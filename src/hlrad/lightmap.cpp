@@ -23,7 +23,7 @@ intersecttest_t;
 bool TestFaceIntersect (intersecttest_t *t, int facenum)
 {
 	dface_t *f2 = &g_dfaces[facenum];
-	Winding *w = new Winding (*f2);
+	fast_winding *w = new fast_winding (*f2);
 	int k;
 	for (k = 0; k < w->size(); k++)
 	{
@@ -721,7 +721,7 @@ static void     CalcFaceVectors(lightinfo_t* l)
     
         ThreadLock();
         Log("Malformed face (%d) normal @ \n", facenum);
-        Winding* w = new Winding(*l->face);
+        fast_winding* w = new fast_winding(*l->face);
         {
             const unsigned numpoints = w->size();
             unsigned x;
@@ -861,9 +861,9 @@ typedef struct samplefrag_s
 	samplefragrect_t rect; // original rectangle that forms the boundary
 	samplefragrect_t myrect; // relative to the texture coordinate on that face
 
-	Winding *winding; // a fragment of the original rectangle in the texture coordinate plane; windings of different frags should not overlap
+	fast_winding *winding; // a fragment of the original rectangle in the texture coordinate plane; windings of different frags should not overlap
 	dplane_t windingplane; // normal = (0,0,1) or (0,0,-1); if this normal is wrong, point_in_winding() will never return true
-	Winding *mywinding; // relative to the texture coordinate on that face
+	fast_winding *mywinding; // relative to the texture coordinate on that face
 	dplane_t mywindingplane;
 
 	int numedges; // # of candicates for the next growth
@@ -884,15 +884,15 @@ void ChopFrag (samplefrag_t *frag)
 {
 	// get the shape of the fragment by clipping the face using the boundaries
 	dface_t *f;
-	Winding *facewinding;
+	fast_winding *facewinding;
 	matrix_t worldtotex;
 	const float3_array v_up = {0, 0, 1};
 
 	f = &g_dfaces[frag->facenum];
-	facewinding = new Winding (*f);
+	facewinding = new fast_winding (*f);
 
 	TranslateWorldToTex (frag->facenum, worldtotex);
-	frag->mywinding = new Winding (facewinding->size());
+	frag->mywinding = new fast_winding (facewinding->size());
 	for (int x = 0; x < facewinding->size(); x++)
 	{
 		ApplyMatrix (worldtotex, facewinding->m_Points[x], frag->mywinding->m_Points[x]);
@@ -911,7 +911,7 @@ void ChopFrag (samplefrag_t *frag)
 		frag->mywinding->mutating_clip(frag->myrect.planes[x].normal, frag->myrect.planes[x].dist, false);
 	}
 
-	frag->winding = new Winding (frag->mywinding->size());
+	frag->winding = new fast_winding (frag->mywinding->size());
 	for (int x = 0; x < frag->mywinding->size(); x++)
 	{
 		ApplyMatrix (frag->mycoordtocoord, frag->mywinding->m_Points[x], frag->winding->m_Points[x]);
@@ -1131,7 +1131,7 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	}
 	for (samplefrag_t *f2 = info->head; f2 && !overlap; f2 = f2->next)
 	{
-		Winding *w = new Winding (*f2->winding);
+		fast_winding *w = new fast_winding (*f2->winding);
 		for (int x = 0; x < numclipplanes && w->size() > 0; x++)
 		{
 			w->mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false
@@ -1428,7 +1428,7 @@ static light_flag_t SetSampleFromST(float* const point,
 			const unsigned facenum = bestfrag->facenum;
 			ThreadLock ();
 			Log ("Malformed face (%d) normal @ \n", facenum);
-			Winding w{g_dfaces[facenum]};
+			fast_winding w{g_dfaces[facenum]};
 			for (float3_array& windingPoint : w.m_Points)
 			{
 				VectorAdd (windingPoint, g_face_offset[facenum], windingPoint);
@@ -2916,20 +2916,20 @@ static void AddSamplesToPatches (const sample_t **samples, const std::array<unsi
 	patch_t *patch;
 	int i, j, m, k;
 	int numtexwindings;
-	Winding **texwindings;
+	fast_winding **texwindings;
 
 	numtexwindings = 0;
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
 	{
 		numtexwindings++;
 	}
-	texwindings = (Winding **)malloc (numtexwindings * sizeof (Winding *));
+	texwindings = (fast_winding **)malloc (numtexwindings * sizeof (fast_winding *));
 	hlassume (texwindings != nullptr, assume_NoMemory);
 
 	// translate world winding into winding in s,t plane
 	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
 	{
-		Winding *w = new Winding (patch->winding->size());
+		fast_winding *w = new fast_winding (patch->winding->size());
 		for (int x = 0; x < w->size(); x++)
 		{
 			float s, t;
@@ -2966,7 +2966,7 @@ static void AddSamplesToPatches (const sample_t **samples, const std::array<unsi
 		// clip each patch
 		for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
 		{
-			Winding w{*texwindings[j]};
+			fast_winding w{*texwindings[j]};
 			for (k = 0; k < 4; k++)
 			{
 				if (w.size())
@@ -3287,7 +3287,7 @@ void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 			if (l->translucent_b)
 			{
 				const dplane_t *surfaceplane = getPlaneFromFaceNumber (surface);
-				Winding surfacewinding{g_dfaces[surface]};
+				fast_winding surfacewinding{g_dfaces[surface]};
 				
 				VectorCopy (spot, spot2);
 				for (int x = 0; x < surfacewinding.size(); x++)

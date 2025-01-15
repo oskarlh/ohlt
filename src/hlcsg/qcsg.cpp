@@ -291,7 +291,7 @@ void            WriteFace(const int hull, const bface_t* const f
         c_csgfaces++;
 
     // .p0 format
-    const Winding& w = f->w;
+    const accurate_winding& w = f->w;
 
     // plane summary
 	fprintf (out[hull], "%i %i %i %i %zu\n", detaillevel, f->planenum, f->texinfo, f->contents, w.size());
@@ -337,7 +337,7 @@ static void WriteDetailBrush (int hull, const std::vector<bface_t>& faces)
 	fprintf (out_detailbrush[hull], "0\n");
 	for (const bface_t &f : faces)
 	{
-		const Winding& w{f.w};
+		const accurate_winding& w{f.w};
 		fprintf (out_detailbrush[hull], "%i %zu\n", f.planenum, w.size());
 		for (int i = 0; i < w.size(); i++)
 		{
@@ -677,7 +677,7 @@ static void     CSGBrush(int brushnum)
                 // throw pieces on the front sides of the planes
                 // into the outside list, return the remains on the inside
 				// find the fragment inside brush2
-				Winding w{f.w};
+				accurate_winding w{f.w};
 				for (const bface_t& f2 : bh2.faces)
 				{
 					if (f.planenum == f2.planenum)
@@ -697,8 +697,8 @@ static void     CSGBrush(int brushnum)
 					{
 						continue;
 					}
-					Winding frontw;
-					Winding backw;
+					accurate_winding frontw;
+					accurate_winding backw;
 					w.Clip (f2.plane->normal, f2.plane->dist, frontw, backw);
                     w = std::move(backw);
 					if (w.empty())
@@ -727,8 +727,8 @@ static void     CSGBrush(int brushnum)
 						}
 						if (valid >= 2)
 						{ // this splitplane forms an edge
-							Winding frontw;
-							Winding backw;
+							accurate_winding frontw;
+							accurate_winding backw;
 							f.w.Clip (f2.plane->normal, f2.plane->dist, frontw, backw);
 							if (frontw)
 							{

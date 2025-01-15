@@ -13,6 +13,9 @@ bspFile.parent_path().parent_path().parent_path() / u8"valve" (with valve being 
 // However, not if these WADs are -wadincluded.
 
 
+For testing, these mods may have source files:
+Hazardous Course 2, Field Intensity, Delta Particles
+
 
 For testing model shadows https://twhl.info/vault/view/6031 can be used. Just set
 "zhlt_studioshadow" "1"
@@ -67,3 +70,4 @@ Sort key values (don't worry about the output order being different from the inp
 
 See if it's possible to compress textures by omitting mipmaps and using 0 (or other short) offsets,
 since modern HL doesn't use the mipmaps in OpenGL mode
+

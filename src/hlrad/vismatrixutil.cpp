@@ -312,7 +312,7 @@ void            MakeScales(const int threadnum)
 				float sightarea;
 				float3_array receiver_origin{origin};
 				float3_array receiver_normal{normal1};
-				const Winding *emitter_winding;
+				const fast_winding *emitter_winding;
 				if (useback)
 				{
 					receiver_origin = backorigin;
@@ -574,7 +574,7 @@ void            MakeRGBScales(const int threadnum)
 				float sightarea;
 				float3_array receiver_origin{origin};
 				float3_array receiver_normal{normal1};
-				const Winding *emitter_winding;
+				const fast_winding *emitter_winding;
 				if (useback)
 				{
 					receiver_origin = backorigin;

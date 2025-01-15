@@ -12,52 +12,56 @@
 constexpr float bogus_range = 80000.0;
 
 //
-// Winding Public Methods
+// winding_base Public Methods
 //
 
-void Winding::Print() const {
-    for (const vec3_array& point : m_Points) {
+template<any_vec_element VecElement>
+void winding_base<VecElement>::Print() const {
+    for (const vec3& point : m_Points) {
         Log("(%5.2f, %5.2f, %5.2f)\n", point[0], point[1], point[2]);
     }
 }
 
-void Winding::getPlane(dplane_t& plane) const {
+template<any_vec_element VecElement>
+void winding_base<VecElement>::getPlane(dplane_t& plane) const {
     if (size() < 3) {
         plane.normal = {};
         plane.dist = 0.0;
         return;
     }
 
-    vec3_array v1, v2;
+    vec3 v1, v2;
     VectorSubtract(m_Points[2], m_Points[1], v1);
     VectorSubtract(m_Points[0], m_Points[1], v2);
 
-    vec3_array plane_normal;
+    vec3 plane_normal;
     CrossProduct(v2, v1, plane_normal);
     normalize_vector(plane_normal);
     VectorCopy(plane_normal, plane.normal);
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
 
-void Winding::getPlane(mapplane_t& plane) const {
+template<any_vec_element VecElement>
+void winding_base<VecElement>::getPlane(mapplane_t& plane) const {
     if (size() < 3) {
         plane.normal = {};
         plane.dist = 0.0;
         return;
     }
 
-    vec3_array v1, v2;
+    vec3 v1, v2;
     VectorSubtract(m_Points[2], m_Points[1], v1);
     VectorSubtract(m_Points[0], m_Points[1], v2);
 
-    vec3_array plane_normal;
+    vec3 plane_normal;
     CrossProduct(v2, v1, plane_normal);
     normalize_vector(plane_normal);
     VectorCopy(plane_normal, plane.normal);
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
 
-void Winding::getPlane(winding_vec3& normal, winding_vec_t& dist) const {
+template<any_vec_element VecElement>
+void winding_base<VecElement>::getPlane(vec3& normal, vec_element& dist) const {
     if (size() < 3)
     {
         normal = {};
@@ -73,16 +77,17 @@ void Winding::getPlane(winding_vec3& normal, winding_vec_t& dist) const {
     dist = dot_product(m_Points[0], normal);
 }
 
-vec_t Winding::getArea() const {
+template<any_vec_element VecElement>
+auto winding_base<VecElement>::getArea() const -> vec_element {
     if (size() < 3)
     {
         return 0.0;
     }
 
-    vec_t total = 0.0;
+    vec_element total = 0.0;
     for (std::size_t i = 2; i < size(); ++i)
     {
-        vec3_array d1, d2, cross;
+        vec3 d1, d2, cross;
         VectorSubtract(m_Points[i - 1], m_Points[0], d1);
         VectorSubtract(m_Points[i], m_Points[0], d2);
         CrossProduct(d1, d2, cross);
@@ -91,55 +96,58 @@ vec_t Winding::getArea() const {
     return total;
 }
 
-bounding_box Winding::getBounds() const {
+template<any_vec_element VecElement>
+bounding_box winding_base<VecElement>::getBounds() const {
     bounding_box bounds = empty_bounding_box;
-    for (const vec3_array& point : m_Points)
+    for (const vec3& point : m_Points)
     {
         add_to_bounding_box(bounds, point);
     }
     return bounds;
 }
 
-Winding::winding_vec3 Winding::getCenter() const noexcept {
-    Winding::winding_vec3 center{};
+template<any_vec_element VecElement>
+auto winding_base<VecElement>::getCenter() const noexcept -> vec3 {
+    winding_base<VecElement>::vec3 center{};
 
-    for (const winding_vec3& point : m_Points) {
+    for (const vec3& point : m_Points) {
         center = vector_add(point, center);
     }
 
-    const winding_vec_t scale = winding_vec_t(1.0) / std::max(1UZ, size());
+    const vec_element scale = vec_element(1.0) / std::max(1UZ, size());
     return vector_scale(center, scale);
 }
 
-void Winding::Check(vec_t epsilon) const
+template<any_vec_element VecElement>
+void winding_base<VecElement>::Check(vec_element epsilon) const
 {
     unsigned int i, j;
-    vec_t d, edgedist;
-    vec3_array dir, edgenormal, facenormal;
+    vec_element d, edgedist;
+    vec3 dir, edgenormal, facenormal;
 
     if (size() < 3)
     {
-        Error("Winding::Check : %zu points", size());
+        Error("winding_base::Check : %zu points", size());
     }
 
-    const vec_t area = getArea();
+    const vec_element area = getArea();
     if (area < 1)
     {
-        Error("Winding::Check : %f area", area);
+        Error("winding_base::Check : %f area", area);
     }
 
-    vec_t facedist;
+    vec_element facedist;
     getPlane(facenormal, facedist);
 
     for (i = 0; i < size(); i++)
     {
-        const vec3_array& p1 = m_Points[i];
+        const vec3& p1 = m_Points[i];
 
         for (j = 0; j < 3; j++)
         {
             if (p1[j] > bogus_range || p1[j] < -bogus_range)
             {
-                Error("Winding::Check : bogus_range: %f", p1[j]);
+                Error("winding_base::Check : bogus_range: %f", p1[j]);
             }
         }
 
@@ -149,16 +157,16 @@ void Winding::Check(vec_t epsilon) const
         d = DotProduct(p1, facenormal) - facedist;
         if (d < -epsilon || d > epsilon)
         {
-            Error("Winding::Check : point off plane");
+            Error("winding_base::Check : point off plane");
         }
 
         // check the edge isn't degenerate
-        const vec3_array& p2 = m_Points[j];
+        const vec3& p2 = m_Points[j];
         VectorSubtract(p2, p1, dir);
 
         if (vector_length(dir) < epsilon)
         {
-            Error("Winding::Check : degenerate edge");
+            Error("winding_base::Check : degenerate edge");
         }
 
         CrossProduct(facenormal, dir, edgenormal);
@@ -176,36 +184,38 @@ void Winding::Check(vec_t epsilon) const
             d = DotProduct(m_Points[j], edgenormal);
             if (d > edgedist)
             {
-                Error("Winding::Check : non-convex");
+                Error("winding_base::Check : non-convex");
             }
         }
     }
 }
 
-bool Winding::Valid() const
+template<any_vec_element VecElement>
+bool winding_base<VecElement>::Valid() const
 {
     // TODO: Check to ensure there are 3 non-colinear points
     return size() >= 3;
 }
 
-bool Winding::empty() const {
+template<any_vec_element VecElement>
+bool winding_base<VecElement>::empty() const {
     return m_Points.empty();
 }
 
-void Winding::clear(bool shrinkToFit) {
+template<any_vec_element VecElement>
+void winding_base<VecElement>::clear(bool shrinkToFit) {
     m_Points.clear();
     m_Points.shrink_to_fit();
 }
 
 
-//
-// Construction
-//
 
-Winding::Winding()
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base()
 {}
 
-Winding::Winding(vec3_array *points, std::size_t numpoints)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(vec3 *points, std::size_t numpoints)
 {
 	hlassert(numpoints >= 3);
     std::size_t capacity = (numpoints + 3) & ~3;   // groups of 4
@@ -214,12 +224,14 @@ Winding::Winding(vec3_array *points, std::size_t numpoints)
 	m_Points.assign(points, points + numpoints);
 }
 
-Winding&      Winding::operator=(const Winding& other)
+template<any_vec_element VecElement>
+auto winding_base<VecElement>::operator=(const winding_base& other) -> winding_base&
 {
     m_Points = other.m_Points;
     return *this;
 }
-Winding&      Winding::operator=(Winding&& other)
+template<any_vec_element VecElement>
+auto winding_base<VecElement>::operator=(winding_base&& other) -> winding_base&
 {
     m_Points = std::move(other.m_Points);
     return *this;
@@ -227,7 +239,8 @@ Winding&      Winding::operator=(Winding&& other)
 
 
 
-Winding::Winding(std::uint_least32_t numpoints)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(std::uint_least32_t numpoints)
 {
     hlassert(numpoints >= 3);
     std::size_t capacity = (numpoints + 3) & ~3;   // groups of 4
@@ -236,23 +249,27 @@ Winding::Winding(std::uint_least32_t numpoints)
     m_Points.resize(numpoints);
 }
 
-Winding::Winding(const Winding& other)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(const winding_base& other)
 {
     m_Points = other.m_Points;
 }
 
-Winding::Winding(Winding&& other):
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(winding_base&& other):
     m_Points(std::move(other.m_Points))
 { }
 
-Winding::~Winding()
+template<any_vec_element VecElement>
+winding_base<VecElement>::~winding_base()
 { }
 
 
-void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
+template<any_vec_element VecElement>
+void winding_base<VecElement>::initFromPlane(const vec3& normal, const vec_element dist)
 {
     int             i;
-    vec_t           max, v;
+    vec_element           max, v;
 
     // find the major axis               
 
@@ -269,10 +286,10 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
     }                
     if (x == -1)
     {
-        Error("Winding::initFromPlane no major axis found\n");
+        Error("winding_base::initFromPlane no major axis found\n");
     }
 
-    vec3_array vup{};
+    vec3 vup{};
     switch (x) 
     {
     case 0:
@@ -288,10 +305,10 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
     VectorMA(vup, -v, normal, vup);
     normalize_vector(vup);
 
-    vec3_array org;
+    vec3 org;
     VectorScale(normal, dist, org);
 
-    vec3_array vright;
+    vec3 vright;
     CrossProduct(vup, normal, vright);
 
     VectorScale(vup, bogus_range, vup);
@@ -313,13 +330,15 @@ void Winding::initFromPlane(const vec3_array& normal, const vec_t dist)
     VectorSubtract(m_Points[3], vup, m_Points[3]);
 }
 
-Winding::Winding(const vec3_array& normal, const vec_t dist)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(const vec3& normal, const vec_element dist)
 {
     initFromPlane(normal, dist);
 }
 
-Winding::Winding(const dface_t& face
-				 , vec_t epsilon
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(const dface_t& face
+				 , vec_element epsilon
 				 )
 {
     int             se;
@@ -350,32 +369,32 @@ Winding::Winding(const dface_t& face
 		);
 }
 
-Winding::Winding(const dplane_t& plane)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(const dplane_t& plane)
 {
-    vec3_array normal;
+    vec3 normal;
     VectorCopy(plane.normal, normal);
     initFromPlane(normal, plane.dist);
 }
 
-Winding::Winding(const mapplane_t& plane)
+template<any_vec_element VecElement>
+winding_base<VecElement>::winding_base(const mapplane_t& plane)
 {
-    vec3_array normal;
+    vec3 normal;
     VectorCopy(plane.normal, normal);
     initFromPlane(normal, plane.dist);
 }
 
-//
-// Specialized Functions
-//
 
-// Remove the colinear point of any three points that forms a triangle which is thinner than epsilon
-void			Winding::RemoveColinearPoints(
-											  vec_t epsilon
+// Remove the colinear point of any three points that form a triangle which is thinner than epsilon
+template<any_vec_element VecElement>
+void winding_base<VecElement>::RemoveColinearPoints(
+											  vec_element epsilon
 											  )
 {
 	unsigned int	i;
-	vec3_array v1, v2;
-	vec_t			*p1, *p2, *p3;
+	vec3 v1, v2;
+	vec_element			*p1, *p2, *p3;
 	for (i = 0; i < size(); i++)
 	{
 		p1 = m_Points[(i+size()-1)%size()].data();
@@ -400,30 +419,32 @@ void			Winding::RemoveColinearPoints(
 }
 
 
-void Winding::Clip(const dplane_t& plane, Winding& front, Winding& back
-							  , vec_t epsilon
+template<any_vec_element VecElement>
+void winding_base<VecElement>::Clip(const dplane_t& plane, winding_base& front, winding_base& back
+							  , vec_element epsilon
 							  ) const
 {
-    vec3_array normal;
-    vec_t dist;
+    vec3 normal;
+    vec_element dist;
     VectorCopy(plane.normal, normal);
     dist = plane.dist;
     Clip(normal, dist, front, back, epsilon);
 }
 
 
-void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding& back
-							  , vec_t epsilon
+template<any_vec_element VecElement>
+void winding_base<VecElement>::Clip(const vec3& normal, vec_element dist, winding_base& front, winding_base& back
+							  , vec_element epsilon
 							  ) const
 {
-    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+    auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     std::array<std::size_t, 3> counts{};
 
     // determine sides for each point
     for (std::size_t i = 0; i < size(); i++)
     {
-        vec_t dot = DotProduct(m_Points[i], normal);
+        vec_element dot = DotProduct(m_Points[i], normal);
         dot -= dist;
         dists[i] = dot;
         if (dot > epsilon)
@@ -461,7 +482,7 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
 
     for (std::size_t i = 0; i < size(); ++i)
     {
-        const vec3_array& p1 = m_Points[i];
+        const vec3& p1 = m_Points[i];
 
         if (sides[i] == face_side::on)
         {
@@ -484,14 +505,14 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
         }
 
         // generate a split point
-        vec3_array mid;
+        vec3 mid;
         unsigned int tmp = i + 1;
         if (tmp >= size())
         {
             tmp = 0;
         }
-        const vec3_array& p2 = m_Points[tmp];
-        vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+        const vec3& p2 = m_Points[tmp];
+        vec_element dot = dists[i] / (dists[i] - dists[i + 1]);
 
         for (std::size_t j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -509,33 +530,35 @@ void Winding::Clip(const vec3_array& normal, vec_t dist, Winding& front, Winding
 
     if ((front.size() > MAX_POINTS_ON_WINDING) | (back.size() > MAX_POINTS_ON_WINDING)) // | instead of || for branch optimization
     {
-        Error("Winding::Clip : MAX_POINTS_ON_WINDING");
+        Error("winding_base::Clip : MAX_POINTS_ON_WINDING");
     }
     front.RemoveColinearPoints(epsilon);
     back.RemoveColinearPoints(epsilon);
 }
 
-bool Winding::Chop(const vec3_array& normal, const vec_t dist
-							, vec_t epsilon
+template<any_vec_element VecElement>
+bool winding_base<VecElement>::Chop(const vec3& normal, const vec_element dist
+							, vec_element epsilon
 							)
 {
-    Winding f;
-    Winding b;
+    winding_base f;
+    winding_base b;
 
     Clip(normal, dist, f, b, epsilon);
     swap(*this, f);
     return !empty();
 }
 
-face_side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
-											, vec_t epsilon
+template<any_vec_element VecElement>
+face_side winding_base<VecElement>::WindingOnPlaneSide(const vec3& normal, const vec_element dist
+											, vec_element epsilon
 											)
 {
     bool front = false;
     bool back = false;
     for (std::size_t i = 0; i < size(); i++)
     {
-        vec_t d = DotProduct(m_Points[i], normal) - dist;
+        vec_element d = DotProduct(m_Points[i], normal) - dist;
         if (d < -epsilon)
         {
             if (front)
@@ -568,11 +591,12 @@ face_side Winding::WindingOnPlaneSide(const vec3_array& normal, const vec_t dist
 }
 
 
-bool Winding::mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool keepon, vec_t epsilon) {
-    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+template<any_vec_element VecElement>
+bool winding_base<VecElement>::mutating_clip(const vec3& planeNormal, vec_element planeDist, bool keepon, vec_element epsilon) {
+    auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     int             counts[3];
-    vec_t           dot;
+    vec_element           dot;
     int             i, j;
 
     counts[0] = counts[1] = counts[2] = 0;
@@ -618,12 +642,12 @@ bool Winding::mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool
         return true;
     }
 
-    std::vector<vec3_array> newPoints{};
+    std::vector<vec3> newPoints{};
     newPoints.reserve(size() + 4);
 
     for (i = 0; i < size(); i++)
     {
-        const vec3_array& p1 = m_Points[i];
+        const vec3& p1 = m_Points[i];
 
         if (sides[i] == face_side::on)
         {
@@ -641,13 +665,13 @@ bool Winding::mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool
         }
 
         // generate a split point
-        vec3_array mid;
+        vec3 mid;
         unsigned int tmp = i + 1;
         if (tmp >= size())
         {
             tmp = 0;
         }
-        const vec3_array& p2 = m_Points[tmp];
+        const vec3& p2 = m_Points[tmp];
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -686,19 +710,19 @@ bool Winding::mutating_clip(const vec3_array& planeNormal, vec_t planeDist, bool
  * new windings will be created.
  * ==================
  */
-
-winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) const {
-    auto dists = std::make_unique_for_overwrite<vec_t[]>(size() + 1);
+template<any_vec_element VecElement>
+winding_base<VecElement>::division_result winding_base<VecElement>::Divide(const mapplane_t& split, vec_element epsilon) const {
+    auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
     auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
     std::array<std::size_t, 3> counts{ 0, 0, 0};
 
 
-    vec_t dotSum = 0;
+    vec_element dotSum = 0;
 
     // determine sides for each point
     for (std::size_t i = 0; i < size(); i++)
     {
-        vec_t dot = DotProduct(m_Points[i], split.normal);
+        vec_element dot = DotProduct(m_Points[i], split.normal);
         dot -= split.dist;
         dotSum += dot;
         dists[i] = dot;
@@ -722,28 +746,28 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
 	if (!counts[(std::size_t) face_side::back])
 	{
         if(counts[(std::size_t) face_side::front]) {
-            return one_sided_winding_division_result::all_in_the_front;
+            return one_sided_division_result::all_in_the_front;
         }
 		if (dotSum > NORMAL_EPSILON)
 		{
-            return one_sided_winding_division_result::all_in_the_front;
+            return one_sided_division_result::all_in_the_front;
         }	
-	    return one_sided_winding_division_result::all_in_the_back;
+	    return one_sided_division_result::all_in_the_back;
 	}
 	if (!counts[(std::size_t) face_side::front])
 	{
-	    return one_sided_winding_division_result::all_in_the_back;
+	    return one_sided_division_result::all_in_the_back;
 	}
 
-    Winding back;
-    Winding front;
+    winding_base back;
+    winding_base front;
     back.m_Points.reserve(size() + 4);
     front.m_Points.reserve(size() + 4);
 
 
     for (std::size_t i = 0; i < size(); i++)
     {
-        const vec3_array& p1 = m_Points[i];
+        const vec3& p1 = m_Points[i];
 
         if (sides[i] == face_side::on)
         {
@@ -766,14 +790,14 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
         }
 
         // generate a split point
-        vec3_array mid;
+        vec3 mid;
         unsigned int tmp = i + 1;
         if (tmp >= size())
         {
             tmp = 0;
         }
-        const vec3_array& p2 = m_Points[tmp];
-        vec_t dot = dists[i] / (dists[i] - dists[i + 1]);
+        const vec3& p2 = m_Points[tmp];
+        vec_element dot = dists[i] / (dists[i] - dists[i + 1]);
         for (std::size_t j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
             if (split.normal[j] == 1)
@@ -796,12 +820,12 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
 		);
 
     if(!front) {
-        return one_sided_winding_division_result::all_in_the_back;
+        return one_sided_division_result::all_in_the_back;
     }
     if(!back) {
-        return one_sided_winding_division_result::all_in_the_front;
+        return one_sided_division_result::all_in_the_front;
     }
-    return split_winding_division_result{
+    return split_division_result{
         .back = std::move(back),
         .front = std::move(front)
     };
@@ -810,27 +834,34 @@ winding_division_result Winding::Divide(const mapplane_t& split, vec_t epsilon) 
 
 
 // Unused??
-void Winding::insertPoint(const vec3_array& newpoint, std::size_t offset)
+template<any_vec_element VecElement>
+void winding_base<VecElement>::insertPoint(const vec3& newpoint, std::size_t offset)
 {
     grow_capacity();
     m_Points.insert(m_Points.begin() + offset, newpoint);
 }
 
 // Unused??
-void Winding::pushPoint(const vec3_array& newpoint)
+template<any_vec_element VecElement>
+void winding_base<VecElement>::pushPoint(const vec3& newpoint)
 {
     grow_capacity();
     m_Points.emplace_back(newpoint);
 }
 
-std::size_t Winding::size() const
+template<any_vec_element VecElement>
+std::size_t winding_base<VecElement>::size() const
 {
     return m_Points.size();
 }
 
-void Winding::grow_capacity()
+template<any_vec_element VecElement>
+void winding_base<VecElement>::grow_capacity()
 {
     std::size_t newsize = size() + 1;
     newsize = (newsize + 3) & ~3; // Groups of 4
     m_Points.resize(newsize);
 }
+
+template class winding_base<float>;
+template class winding_base<double>;

@@ -192,7 +192,7 @@ struct patch_t
 	float			exposure;
 	float			emitter_range;                         // Range from patch origin (cached info calculated from winding)
 	int				emitter_skylevel;                      // The "skylevel" used for sampling of normals, when the receiver patch is within the range of ACCURATEBOUNCE_THRESHOLD * this->radius. (cached info calculated from winding)
-    Winding*        winding;                               // Winding (patches are triangles, so its easy)
+    fast_winding*        winding;                               // fast_winding (patches are triangles, so its easy)
     float           scale;                                 // Texture scale for this face (blend of S and T scale)
     float           chop;                                  // Texture chop for this face factoring in S and T scale
 
@@ -515,7 +515,7 @@ extern void		TranslateWorldToTex (int facenum, matrix_t &m);
 extern bool		InvertMatrix (const matrix_t &m, matrix_t &m_inverse);
 extern void		FindFacePositions (int facenum);
 extern void		FreePositionMaps ();
-extern bool		FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *best_dist
+extern bool		FindNearestPosition (int facenum, const fast_winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *best_dist
 									, bool *nudged
 									);
 
@@ -557,17 +557,17 @@ extern bool     TestSegmentAgainstOpaqueList(const float3_array& p1, const float
 					);
 extern bool intersect_linesegment_plane(const dplane_t& plane, const float3_array& p1, const float3_array& p2, float3_array& point);
 extern void plane_from_points(const float3_array& p1, const float3_array& p2, const float3_array& p3, dplane_t& plane);
-extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const float3_array& point
+extern bool     point_in_winding(const fast_winding& w, const dplane_t& plane, const float3_array& point
 					, float epsilon = 0.0
 					);
-extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane, const float3_array& point, float width);
-extern void     snap_to_winding(const Winding& w, const dplane_t& plane, float* point);
-extern float	snap_to_winding_noedge(const Winding& w, const dplane_t& plane, float* point, float width, float maxmove);
+extern bool     point_in_winding_noedge(const fast_winding& w, const dplane_t& plane, const float3_array& point, float width);
+extern void     snap_to_winding(const fast_winding& w, const dplane_t& plane, float* point);
+extern float	snap_to_winding_noedge(const fast_winding& w, const dplane_t& plane, float* point, float width, float maxmove);
 extern void     SnapToPlane(const dplane_t* const plane, float* const point, float offset);
-extern float	CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, int skylevel
+extern float	CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const fast_winding *emitter_winding, int skylevel
 					, float lighting_power, float lighting_scale
 					);
-extern float	CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
+extern float	CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const fast_winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
 					, float lighting_power, float lighting_scale
 					);
 extern void		GetAlternateOrigin (const float3_array& pos, const float3_array& normal, const patch_t* patch, float3_array& origin);

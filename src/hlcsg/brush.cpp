@@ -520,7 +520,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			unsigned int counter, counter2, dir;
 			bool warned = false;
 			
-			const Winding& winding = current_face.w;
+			const accurate_winding& winding = current_face.w;
 			for(counter = 0; counter < (winding.size()); counter++) //for each edge
 			{
 				const double3_array edge_start{winding.m_Points[counter]};
@@ -539,7 +539,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 					{ continue; }
 					bool start_found{false};
 					bool end_found{false};
-					const Winding& other_winding{other_face.w};
+					const accurate_winding& other_winding{other_face.w};
 					for(counter2 = 0; counter2 < other_winding.size(); counter2++)
 					{
 						if(!start_found && vectors_almost_same(other_winding.m_Points[counter2], edge_start))
@@ -677,7 +677,7 @@ restart:
     // for each face in this brushes hull
     for (bface_t& f : h->faces)
     {
-        Winding w{f.plane->normal, f.plane->dist};
+        accurate_winding w{f.plane->normal, f.plane->dist};
  	   	for (const bface_t& f2 : h->faces)
         {
             if (&f == &f2)
@@ -1103,7 +1103,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	hullbrush_t *hb;
 	int numplanes;
 	mapplane_t planes[MAXSIZE];
-	Winding *w[MAXSIZE];
+	accurate_winding *w[MAXSIZE];
 	int numedges;
 	hullbrushedge_t edges[MAXSIZE];
 	int numvertexes;
@@ -1182,7 +1182,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 
 	for (i = 0; i < numplanes; i++)
 	{
-		w[i] = new Winding (planes[i].normal, planes[i].dist);
+		w[i] = new accurate_winding (planes[i].normal, planes[i].dist);
 		for (j = 0; j < numplanes; j++)
 		{
 			if (j == i)

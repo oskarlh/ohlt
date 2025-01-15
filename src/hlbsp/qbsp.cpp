@@ -224,7 +224,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
     counts[0] = counts[1] = counts[2] = 0;
 
     double dotSum = 0.0;
-    // This again... We have code like this in Winding repeated several times
+    // This again... We have code like this in accurate_winding repeated several times
     // determine sides for each point
     for (i = 0; i < in->numpoints; i++)
     {
@@ -366,7 +366,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
         Error("SplitFace: numpoints > MAXEDGES");
     }
 	{
-		Winding wd{newf->pts, (std::size_t) newf->numpoints};
+		accurate_winding wd{newf->pts, (std::size_t) newf->numpoints};
 		wd.RemoveColinearPoints ();
 		newf->numpoints = wd.size();
 		for (int x = 0; x < newf->numpoints; x++)
@@ -379,7 +379,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
 		}
 	}
 	{
-		Winding *wd = new Winding (new2->numpoints);
+		accurate_winding *wd = new accurate_winding (new2->numpoints);
 		int x;
 		for (x = 0; x < new2->numpoints; x++)
 		{
@@ -503,7 +503,7 @@ side_t *NewSideFromSide (const side_t *s)
 	side_t *news;
 	news = AllocSide ();
 	news->plane = s->plane;
-	news->w = new Winding (*s->w);
+	news->w = new accurate_winding (*s->w);
 	return news;
 }
 
@@ -545,7 +545,7 @@ brush_t *NewBrushFromBrush (const brush_t *b)
 void ClipBrush (brush_t **b, const mapplane_t *split, double epsilon)
 {
 	side_t *s, **pnext;
-	Winding *w;
+	accurate_winding *w;
 	for (pnext = &(*b)->sides, s = *pnext; s; s = *pnext)
 	{
 		if (s->w->mutating_clip(split->normal, split->dist, false, epsilon))
@@ -564,7 +564,7 @@ void ClipBrush (brush_t **b, const mapplane_t *split, double epsilon)
 		*b = nullptr;
 		return;
 	}
-	w = new Winding (*split);
+	w = new accurate_winding (*split);
 	for (s = (*b)->sides; s; s = s->next)
 	{
 		if (!w->mutating_clip(s->plane.normal, s->plane.dist, false, epsilon))
@@ -661,7 +661,7 @@ brush_t *BrushFromBox (const double3_array& mins, const double3_array& maxs)
 	}
 	b->sides = AllocSide ();
 	b->sides->plane = planes[0];
-	b->sides->w = new Winding (planes[0]);
+	b->sides->w = new accurate_winding (planes[0]);
 	for (int k = 1; k < 6; k++)
 	{
 		ClipBrush (&b, &planes[k], NORMAL_EPSILON);
@@ -1003,7 +1003,7 @@ static brush_t *ReadBrushes (FILE *file)
 			side_t *s;
 			s = AllocSide ();
 			s->plane = g_mapplanes[planenum ^ 1];
-			s->w = new Winding (numpoints);
+			s->w = new accurate_winding (numpoints);
 			int x;
 			for (x = 0; x < numpoints; x++)
 			{

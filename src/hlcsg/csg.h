@@ -68,7 +68,7 @@ struct side_t {
 };
 
 struct bface_t {
-    Winding w;
+    accurate_winding w;
     mapplane_t* plane;
     bounding_box bounds;
     int planenum;

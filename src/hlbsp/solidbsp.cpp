@@ -1310,11 +1310,11 @@ static void     MakeNodePortal(node_t* node)
     portal_t*       p;
     mapplane_t*       plane;
     mapplane_t        clipplane;
-    Winding *       w;
+    accurate_winding *       w;
     int             side = 0;
 
     plane = &g_mapplanes[node->planenum];
-    w = new Winding(*plane);
+    w = new accurate_winding(*plane);
 
     new_portal = AllocPortal();
     new_portal->plane = *plane;
@@ -1392,13 +1392,13 @@ static void     SplitNodePortals(node_t *node)
         RemovePortalFromNode(p, p->nodes[1]);
 
         // Cut the portal into two portals, one on each side of the cut plane
-		Winding& pWinding = *p->winding;
+		accurate_winding& pWinding = *p->winding;
 	
 		visit_with(
 			pWinding.Divide(*plane),
-			[&b, &f, &other_node, &p, &side](one_sided_winding_division_result backOrFront) {
+			[&b, &f, &other_node, &p, &side](accurate_winding::one_sided_division_result backOrFront) {
 				node_t* nodeToPush = (
-					backOrFront == one_sided_winding_division_result::all_in_the_back
+					backOrFront == accurate_winding::one_sided_division_result::all_in_the_back
 					? b : f
 				);
 				if (side == 0)
@@ -1410,12 +1410,12 @@ static void     SplitNodePortals(node_t *node)
 					AddPortalToNodes(p, other_node, nodeToPush);
 				}
         	},
-			[&b, &f, &other_node, &p, &side](split_winding_division_result& arg) {
+			[&b, &f, &other_node, &p, &side](accurate_winding::split_division_result& arg) {
 				// The winding is split
 				using std::swap;
     			portal_t* new_portal = AllocPortal();
 				*new_portal = *p;
-				new_portal->winding = new Winding{};
+				new_portal->winding = new accurate_winding{};
 				swap(*new_portal->winding, arg.back);
 				swap(*p->winding, arg.front);
 

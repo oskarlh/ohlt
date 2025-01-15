@@ -128,7 +128,7 @@ void            MakeHeadnodePortals(node_t* node, const double3_array& mins, con
                 pl->dist = bounds[j][i];
             }
             p->plane = *pl;
-            p->winding = new Winding(*pl);
+            p->winding = new accurate_winding(*pl);
             AddPortalToNodes(p, node, &g_outside_node);
         }
     }
@@ -165,7 +165,7 @@ static void     WritePortalFile_r(const node_t* const node)
 {
     int             i;
     portal_t*       p;
-    Winding*        w;
+    accurate_winding*        w;
     mapplane_t        plane2;
 
 	if (!node->isportalleaf)

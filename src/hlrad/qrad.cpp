@@ -661,7 +661,7 @@ static void		UpdateEmitterInfo (patch_t *patch)
 #error "please raise SKYLEVELMAX"
 #endif
 	const float *origin = patch->origin.data();
-	const Winding *winding = patch->winding;
+	const fast_winding *winding = patch->winding;
 	float radius = ON_EPSILON;
 	for (int x = 0; x < winding->size(); x++)
 	{
@@ -710,7 +710,7 @@ static void		UpdateEmitterInfo (patch_t *patch)
 
 // misc
 #define MAX_SUBDIVIDE 16384
-static Winding* windingArray[MAX_SUBDIVIDE];
+static fast_winding* windingArray[MAX_SUBDIVIDE];
 static unsigned g_numwindings = 0;
 
 // =====================================================================================
@@ -722,7 +722,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 {
 	// patch->winding->size() must > 0
 	// plA->dist and plB->dist will not be used
-	Winding *winding = nullptr;
+	fast_winding *winding = nullptr;
 	float chop;
 	float epsilon;
 	const int max_gridsize = 64;
@@ -734,7 +734,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 	float gridchopB;
 	int numstrips;
 	
-	winding = new Winding (*patch->winding); // perform all the operations on the copy
+	winding = new fast_winding (*patch->winding); // perform all the operations on the copy
 	chop = patch->chop;
 	chop = std::max((float) 1.0, chop);
 	epsilon = 0.6;
@@ -789,8 +789,8 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		for (int i = 1; i < gridsizeA; i++)
 		{
 			float dist;
-			Winding front;
-			Winding back;
+			fast_winding front;
+			fast_winding back;
 
 			dist = gridstartA + i * gridchopA;
 			winding->Clip (plA->normal, dist, front, back);
@@ -805,7 +805,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 			}
 
 			*winding = std::move(front);
-			windingArray[g_numwindings] = new Winding(std::move(back));
+			windingArray[g_numwindings] = new fast_winding(std::move(back));
 			g_numwindings++;
 		}
 
@@ -819,14 +819,14 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		numstrips = g_numwindings;
 		for (int i = 0; i < numstrips; i++)
 		{
-			Winding *strip = windingArray[i];
+			fast_winding *strip = windingArray[i];
 			windingArray[i] = nullptr;
 
 			for (int j = 1; j < gridsizeB; j++)
 			{
 				float dist;
-				Winding front;
-				Winding back;
+				fast_winding front;
+				fast_winding back;
 
 				dist = gridstartB + j * gridchopB;
 				strip->Clip (plB->normal, dist, front, back);
@@ -841,7 +841,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 				}
 
 				*strip = std::move(front);
-				windingArray[g_numwindings] = new Winding(std::move(back));
+				windingArray[g_numwindings] = new fast_winding(std::move(back));
 				g_numwindings++;
 			}
 
@@ -889,7 +889,7 @@ static void     SubdividePatch(patch_t* patch)
     dplane_t        planes[2];
     dplane_t*       plA = &planes[0];
     dplane_t*       plB = &planes[1];
-    Winding**       winding;
+    fast_winding**       winding;
     unsigned        x;
     patch_t*        new_patch;
 
@@ -1219,7 +1219,7 @@ static float    getChop(const patch_t* const patch)
 // =====================================================================================
 //  MakePatchForFace
 // =====================================================================================
-static void     MakePatchForFace(const int fn, Winding* w, int style
+static void     MakePatchForFace(const int fn, fast_winding* w, int style
 	, int bouncestyle
 	) //LRC
 {
@@ -1576,7 +1576,7 @@ static entity_t *FindTexlightEntity (int facenum)
 	const dplane_t *dplane = getPlaneFromFace (face);
 	const wad_texture_name texname{get_texture_by_number(face->texinfo)};
 	entity_t *faceent = g_face_entity[facenum];
-	float3_array centroid{ Winding(*face).getCenter() };
+	float3_array centroid{ fast_winding(*face).getCenter() };
 	VectorAdd (centroid, g_face_offset[facenum], centroid);
 
 	entity_t *found = nullptr;
@@ -1625,7 +1625,7 @@ static void     MakePatches()
     unsigned int    k;
     dface_t*        f;
     int             fn;
-    Winding*        w;
+    fast_winding*        w;
     dmodel_t*       mod;
     entity_t*       ent;
     eModelLightmodes lightmode;
@@ -1752,7 +1752,7 @@ static void     MakePatches()
 			g_face_texlights[fn] = FindTexlightEntity (fn);
             g_face_lightmode[fn] = lightmode;
             f = &g_dfaces[fn];
-            w = new Winding(*f);
+            w = new fast_winding(*f);
             for (k = 0; k < w->size(); k++)
             {
                 VectorAdd(w->m_Points[k], origin, w->m_Points[k]);
@@ -1863,7 +1863,7 @@ static void     WriteWorld(const char* const name)
     unsigned        j;
     FILE*           out;
     patch_t*        patch;
-    Winding*        w;
+    fast_winding*        w;
 
     out = fopen(name, "w");
 

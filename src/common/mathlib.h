@@ -61,7 +61,7 @@ constexpr largest_vec3<VecA, VecB> vector_subtract(const VecA& a, const VecB& b)
     };
 }
 
-constexpr void vector_fill(any_vec3 auto& vec, any_vec_t auto fillValue) noexcept {
+constexpr void vector_fill(any_vec3 auto& vec, any_vec_element auto fillValue) noexcept {
     vec.fill(fillValue);
 }
 
@@ -117,33 +117,33 @@ constexpr auto vec3_min(const any_vec3 auto& v) noexcept {
     (dest)[2] = (a)[2] + (scale) * (b)[2]; \
 }
 
-template<any_vec_t T>
-constexpr T vector_length(const std::array<T, 3>& v) noexcept {
+template<any_vec3 T>
+constexpr T::value_type vector_length(const T& v) noexcept {
     return std::hypot(v[0], v[1], v[2]);
 }
 
 template<any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB> vector_minimums(const VecA& a, const VecB& b) noexcept {
-    using vec_t = largest_vec3<VecA, VecB>::value_type;
+    using vec_element = largest_vec3<VecA, VecB>::value_type;
     return {
-        std::min(vec_t{a[0]}, vec_t{b[0]}),
-        std::min(vec_t{a[1]}, vec_t{b[1]}),
-        std::min(vec_t{a[2]}, vec_t{b[2]})
+        std::min(vec_element{a[0]}, vec_element{b[0]}),
+        std::min(vec_element{a[1]}, vec_element{b[1]}),
+        std::min(vec_element{a[2]}, vec_element{b[2]})
     };
 }
 
 template<any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB> vector_maximums(const VecA& a, const VecB& b) noexcept {
-    using vec_t = largest_vec3<VecA, VecB>::value_type;
+    using vec_element = largest_vec3<VecA, VecB>::value_type;
     return {
-        std::max(vec_t{a[0]}, vec_t{b[0]}),
-        std::max(vec_t{a[1]}, vec_t{b[1]}),
-        std::max(vec_t{a[2]}, vec_t{b[2]})
+        std::max(vec_element{a[0]}, vec_element{b[0]}),
+        std::max(vec_element{a[1]}, vec_element{b[1]}),
+        std::max(vec_element{a[2]}, vec_element{b[2]})
     };
 }
 
 
-template<any_vec_t T>
+template<any_vec_element T>
 constexpr T normalize_vector(std::array<T, 3>& v) {
     T length = vector_length(v);
     if (length < NORMAL_EPSILON) {
@@ -157,7 +157,7 @@ constexpr T normalize_vector(std::array<T, 3>& v) {
     return length;
 }
 
-template<any_vec_t T>
+template<any_vec_element T>
 [[nodiscard]] constexpr std::array<T, 3> negate_vector(const std::array<T, 3>& v) noexcept {
     // We do 0 - x instead of just -x, so we don't unnecessarily
     // introduce signed zeroes (-0.0)
@@ -195,7 +195,7 @@ constexpr planetype last_axial{planetype::plane_z};
 
 constexpr float DIR_EPSILON = 0.0001;
 
-template<any_vec_t T>
+template<any_vec_element T>
 constexpr planetype plane_type_for_normal(const std::array<T, 3>& normal) noexcept {
 
     const T ax = std::fabs(normal[0]);

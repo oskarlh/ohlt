@@ -105,7 +105,7 @@ surfchain_t;
 struct side_t {
 	side_t* next;
 	mapplane_t plane; // Facing inside (reversed when loading brush file)
-	Winding* w; // (Also reversed)
+	accurate_winding* w; // (Also reversed)
 };
 
 struct brush_t {
@@ -173,7 +173,7 @@ typedef struct portal_s
     node_t*         onnode;                                // NULL = outside box
     node_t*         nodes[2];                              // [0] = front side of plane
     struct portal_s* next[2];
-    Winding*        winding;
+    accurate_winding*        winding;
 }
 portal_t;
 

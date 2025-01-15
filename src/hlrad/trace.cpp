@@ -204,7 +204,7 @@ int             TestLine(const float3_array& start, const float3_array& stop
 
 typedef struct
 {
-	Winding *winding;
+	fast_winding *winding;
 	dplane_t plane;
 	int numedges;
 	dplane_t *edges;
@@ -249,8 +249,8 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 		return false;
 	}
 
-	Winding *w = f->winding;
-	const Winding *w2 = f2->winding;
+	fast_winding *w = f->winding;
+	const fast_winding *w2 = f2->winding;
 	const float3_array *pA, *pB, *pC, *pD, *p2A, *p2B, *p2C, *p2D;
 	int i, i2;
 
@@ -316,7 +316,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	}
 	side2 = (DotProduct (*p2B, pl2.normal) - pl2.dist > ON_EPSILON)? 1: 0;
 
-	Winding *neww = new Winding (w->size() + w2->size() - 4 + side1 + side2);
+	fast_winding *neww = new fast_winding (w->size() + w2->size() - 4 + side1 + side2);
 	int j, k;
 	k = 0;
 	for (j = (i + 2) % w->size(); j != i; j = (j + 1) % w->size())
@@ -421,7 +421,7 @@ void CreateOpaqueNodes () {
 	{
 		opaqueface_t *of = &opaquefaces[i];
 		dface_t *df = &g_dfaces[i];
-		of->winding = new Winding (*df);
+		of->winding = new fast_winding (*df);
 		if (of->winding->size() < 3)
 		{
 			delete of->winding;

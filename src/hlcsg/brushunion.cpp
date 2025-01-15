@@ -2,12 +2,12 @@
 
 double g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
-static Winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
+static accurate_winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
     mapplane_t* plane = &g_mapplanes[planenum];
-    Winding winding{plane->normal, plane->dist};
+    accurate_winding winding{plane->normal, plane->dist};
 
-    Winding back;
-    Winding front;
+    accurate_winding back;
+    accurate_winding front;
 
     for (const bface_t& face : hull->faces)
     {
@@ -58,8 +58,8 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
         }
 
         split = &g_mapplanes[planenum];
-        Winding front;
-        Winding back;
+        accurate_winding front;
+        accurate_winding back;
         face.w.Clip(split->normal, split->dist, front, back);
 
         if (front) {
@@ -82,7 +82,7 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
 
     if (need_new_face && hull->faces.size() > 2)
     {
-        Winding new_winding{NewWindingFromPlane(hull, planenum)};
+        accurate_winding new_winding{NewWindingFromPlane(hull, planenum)};
 
         if(new_winding) {
             bface_t newFace{};
@@ -142,7 +142,7 @@ static void     DumpHullWindings(const brushhull_t* const hull)
     bface_t*        face;
 
     for (const bface_t& face : hull->faces) {
-        Developer(DEVELOPER_LEVEL_MEGASPAM, "Winding %d\n", x++);
+        Developer(DEVELOPER_LEVEL_MEGASPAM, "accurate_winding %d\n", x++);
         face.w.Print();
         Developer(DEVELOPER_LEVEL_MEGASPAM, "\n");
     }

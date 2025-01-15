@@ -405,11 +405,11 @@ typedef struct
 	float3_array face_centroid;
 	matrix_t worldtotex;
 	matrix_t textoworld;
-	Winding *facewinding;
+	fast_winding *facewinding;
 	dplane_t faceplane;
-	Winding *facewindingwithoffset;
+	fast_winding *facewindingwithoffset;
 	dplane_t faceplanewithoffset;
-	Winding *texwinding;
+	fast_winding *texwinding;
 	dplane_t texplane; // (0, 0, 1, 0) or (0, 0, -1, 0)
 	float3_array texcentroid;
 	float3_array start; // s_start, t_start, 0
@@ -501,7 +501,7 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 	VectorScale (v_t, -1, clipplanes[3].normal); clipplanes[3].dist = -tmax;
 
 	p.nudged = true; // it's nudged unless it can get its position directly from its s,t
-	Winding zone{*map->texwinding};
+	fast_winding zone{*map->texwinding};
 	for (int x = 0; x < 4 && zone.size() > 0; x++)
 	{
 		zone.mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false);
@@ -618,9 +618,9 @@ void FindFacePositions (int facenum)
 		return;
 	}
 	
-	map->facewinding = new Winding (*f);
+	map->facewinding = new fast_winding (*f);
 	map->faceplane = *getPlaneFromFace (f);
-	map->facewindingwithoffset = new Winding (map->facewinding->size());
+	map->facewindingwithoffset = new fast_winding (map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++)
 	{
 		VectorAdd (map->facewinding->m_Points[x], map->face_offset, map->facewindingwithoffset->m_Points[x]);
@@ -628,7 +628,7 @@ void FindFacePositions (int facenum)
 	map->faceplanewithoffset = map->faceplane;
 	map->faceplanewithoffset.dist = map->faceplane.dist + DotProduct (map->face_offset, map->faceplane.normal);
 
-	map->texwinding = new Winding (map->facewinding->size());
+	map->texwinding = new fast_winding (map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++)
 	{
 		ApplyMatrix (map->worldtotex, map->facewinding->m_Points[x], map->texwinding->m_Points[x]);
@@ -770,7 +770,7 @@ void FreePositionMaps ()
 	}
 }
 
-bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *dist
+bool FindNearestPosition (int facenum, const fast_winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *dist
 							, bool *nudged
 							)
 {
