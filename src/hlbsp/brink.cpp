@@ -1165,27 +1165,21 @@ void FreeBrinks (bbrinkinfo_t *info)
 	delete[] info->brinks;
 }
 
-struct bwedge_s;
-struct bsurface_s;
-
-typedef struct bwedge_s
-{
+struct bsurface_t;
+struct bwedge_t {
 	int content;
 	int nodenum;
-	bsurface_s *prev;
-	bsurface_s *next;
-}
-bwedge_t;
+	bsurface_t *prev;
+	bsurface_t *next;
+};
 
-typedef struct bsurface_s
-{
+struct bsurface_t {
 	vec3_array normal; // pointing clockwise
 	int nodenum;
 	bool nodeside;
-	bwedge_s *prev;
-	bwedge_s *next;
-}
-bsurface_t;
+	bwedge_t *prev;
+	bwedge_t *next;
+};
 
 #define MAXBRINKWEDGES 64
 

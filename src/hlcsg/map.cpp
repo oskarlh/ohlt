@@ -10,15 +10,6 @@ brush_t         g_mapbrushes[MAX_MAP_BRUSHES];
 int             g_numbrushsides;
 side_t          g_brushsides[MAX_MAP_SIDES];
 
-static const vec3_t   s_baseaxis[18] = {
-    {0, 0, 1}, {1, 0, 0}, {0, -1, 0},                      // floor
-    {0, 0, -1}, {1, 0, 0}, {0, -1, 0},                     // ceiling
-    {1, 0, 0}, {0, 1, 0}, {0, 0, -1},                      // west wall
-    {-1, 0, 0}, {0, 1, 0}, {0, 0, -1},                     // east wall
-    {0, 1, 0}, {1, 0, 0}, {0, 0, -1},                      // south wall
-    {0, -1, 0}, {1, 0, 0}, {0, 0, -1},                     // north wall
-};
-
 int				g_numparsedentities;
 int				g_numparsedbrushes;
 

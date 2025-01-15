@@ -548,7 +548,7 @@ typedef struct
 	int				lmcache_density; // shared by both s and t direction
 	int				lmcache_offset; // shared by both s and t direction
 	int				lmcache_side;
-	vec3_array			(*lmcache)[ALLSTYLES]; // lm: short for lightmap // don't forget to free!
+	std::array<vec3_array, ALLSTYLES>* lmcache; // lm: short for lightmap // don't forget to free!
 	vec3_array			*lmcache_normal; // record the phong normals
 	int				*lmcache_wallflags; // wallflag_t
 	int				lmcachewidth;
@@ -673,7 +673,7 @@ static void     CalcFaceExtents(lightinfo_t* l)
 		l->lmcache_offset = l->lmcache_side;
 		l->lmcachewidth = l->texsize[0] * l->lmcache_density + 1 + 2 * l->lmcache_side;
 		l->lmcacheheight = l->texsize[1] * l->lmcache_density + 1 + 2 * l->lmcache_side;
-		l->lmcache = (vec3_array (*)[ALLSTYLES])malloc (l->lmcachewidth * l->lmcacheheight * sizeof (vec3_array [ALLSTYLES]));
+		l->lmcache = (std::array<vec3_array, ALLSTYLES>*) malloc (l->lmcachewidth * l->lmcacheheight * sizeof (std::array<vec3_array, ALLSTYLES>));
 		hlassume (l->lmcache != nullptr, assume_NoMemory);
 		l->lmcache_normal = (vec3_array *)malloc (l->lmcachewidth * l->lmcacheheight * sizeof (vec3_array));
 		hlassume (l->lmcache_normal != nullptr, assume_NoMemory);
@@ -2412,8 +2412,8 @@ void BuildDiffuseNormals ()
 	free (edges);
 	free (triangles);
 }
-static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, const vec3_array& normal, vec3_array* sample
-								  , byte* styles
+static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, const vec3_array& normal, std::array<vec3_array, ALLSTYLES>& sample
+								  , std::array<unsigned char, ALLSTYLES>& styles
 								  , int step
 								  , int miptex
 								  , int texlightgap_surfacenum
@@ -2432,9 +2432,8 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 	int				step_match;
 	bool			sky_used = false;
 	vec3_array			testline_origin;
-	vec3_array			adds[ALLSTYLES];
+	std::array<vec3_array, ALLSTYLES> adds{};
 	int				style;
-	memset (adds, 0, ALLSTYLES * sizeof(vec3_t));
 	bool			lighting_diversify;
 	vec_t			lighting_power;
 	vec_t			lighting_scale;
@@ -2912,7 +2911,7 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 //  AddSampleToPatch
 //      Take the sample's collected light and add it back into the apropriate patch for the radiosity pass.
 // =====================================================================================
-static void AddSamplesToPatches (const sample_t **samples, const unsigned char *styles, int facenum, const lightinfo_t *l)
+static void AddSamplesToPatches (const sample_t **samples, const std::array<unsigned char, ALLSTYLES>& styles, int facenum, const lightinfo_t *l)
 {
 	patch_t *patch;
 	int i, j, m, k;
@@ -2984,9 +2983,9 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 				{
 					int style = styles[m];
 					const sample_t *s = &samples[m][i];
-					for (k = 0; k < ALLSTYLES && patch->totalstyle_all[k] != 255; k++)
+					for (k = 0; k < ALLSTYLES && (*patch->totalstyle_all)[k] != 255; k++)
 					{
-						if (patch->totalstyle_all[k] == style)
+						if ((*patch->totalstyle_all)[k] == style)
 						{
 							break;
 						}
@@ -3002,11 +3001,11 @@ static void AddSamplesToPatches (const sample_t **samples, const unsigned char *
 					}
 					else
 					{
-						if (patch->totalstyle_all[k] == 255)
+						if ((*patch->totalstyle_all)[k] == 255)
 						{
-							patch->totalstyle_all[k] = style;
+							(*patch->totalstyle_all)[k] = style;
 						}
-						VectorMA (patch->samplelight_all[k], area, s->light, patch->samplelight_all[k]);
+						VectorMA ((*patch->samplelight_all)[k], area, s->light, (*patch->samplelight_all)[k]);
 					}
 				}
 			}
@@ -3176,7 +3175,7 @@ const vec3_t    s_circuscolors[] = {
 // =====================================================================================
 //  BuildFacelights
 // =====================================================================================
-void CalcLightmap (lightinfo_t *l, byte *styles)
+void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 {
 	int facenum;
 	int i, j;
@@ -3202,7 +3201,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 		bool blocked;
 		vec3_array spot2;
 		vec3_array pointnormal2;
-		vec3_array *sampled;
+		std::array<vec3_array, ALLSTYLES>* sampled;
 		vec3_array *normal_out;
 		bool nudged;
 		int *wallflags_out;
@@ -3215,7 +3214,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			t_vec = l->texmins[1] * TEXTURE_STEP + t * TEXTURE_STEP;
 			nearest_s = std::max(0, std::min((int)floor (s + 0.5), l->texsize[0]));
 			nearest_t = std::max(0, std::min((int)floor (t + 0.5), l->texsize[1]));
-			sampled = l->lmcache[i];
+			sampled = &l->lmcache[i];
 			normal_out = &l->lmcache_normal[i];
 			wallflags_out = &l->lmcache_wallflags[i];
 //
@@ -3378,7 +3377,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 		{
 			if (!blocked)
 			{
-				GatherSampleLight(spot, pvs, pointnormal, sampled
+				GatherSampleLight(spot, pvs, pointnormal, *sampled
 					, styles
 					, 0
 					, l->miptex
@@ -3387,8 +3386,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 			}
 			if (l->translucent_b)
 			{
-				vec3_array sampled2[ALLSTYLES];
-				memset (sampled2, 0, ALLSTYLES * sizeof (vec3_t));
+				std::array<vec3_array, ALLSTYLES> sampled2{};
 				if (!blocked)
 				{
 					GatherSampleLight(spot2, pvs2, pointnormal2, sampled2
@@ -3402,7 +3400,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 				{
 					for (int x = 0; x < 3; x++)
 					{
-						sampled[j][x] = (1.0 - l->translucent_v[x]) * sampled[j][x] + l->translucent_v[x] * sampled2[j][x];
+						(*sampled)[j][x] = (1.0 - l->translucent_v[x]) * (*sampled)[j][x] + l->translucent_v[x] * sampled2[j][x];
 					}
 				}
 			}
@@ -3412,17 +3410,17 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 				{
 					if (blocked && styles[j] == 0)
 					{
-						sampled[j][0] = 200;
-						sampled[j][1] = 0;
-						sampled[j][2] = 0;
+						(*sampled)[j][0] = 200;
+						(*sampled)[j][1] = 0;
+						(*sampled)[j][2] = 0;
 					}
 					else if (nudged && styles[j] == 0) // we assume style 0 is always present
 					{
-						VectorFill (sampled[j], 100);
+						(*sampled)[j].fill(100.0f);
 					}
 					else
 					{
-						VectorClear (sampled[j]);
+						(*sampled)[j] = {};
 					}
 				}
 			}
@@ -3432,7 +3430,7 @@ void CalcLightmap (lightinfo_t *l, byte *styles)
 void            BuildFacelights(const int facenum)
 {
     dface_t*        f;
-	unsigned char	f_styles[ALLSTYLES];
+	std::array<unsigned char, ALLSTYLES> f_styles;
 	sample_t		*fl_samples[ALLSTYLES];
     lightinfo_t     l;
     int             i;
@@ -3518,18 +3516,18 @@ void            BuildFacelights(const int facenum)
 	}
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
 	{
-		hlassume (patch->totalstyle_all = (unsigned char *)malloc (ALLSTYLES * sizeof (unsigned char)), assume_NoMemory);
-		hlassume (patch->samplelight_all = (vec3_array *)malloc (ALLSTYLES * sizeof (vec3_array)), assume_NoMemory);
-		hlassume (patch->totallight_all = (vec3_array *)malloc (ALLSTYLES * sizeof (vec3_array)), assume_NoMemory);
-		hlassume (patch->directlight_all = (vec3_array *)malloc (ALLSTYLES * sizeof (vec3_array)), assume_NoMemory);
+		hlassume (patch->totalstyle_all = (std::array<unsigned char, ALLSTYLES> *)malloc (sizeof(std::array<unsigned char, ALLSTYLES>)), assume_NoMemory);
+		hlassume (patch->samplelight_all = (std::array<vec3_array, ALLSTYLES> *)malloc (sizeof (std::array<vec3_array, ALLSTYLES>)), assume_NoMemory);
+		hlassume (patch->totallight_all = (std::array<vec3_array, ALLSTYLES> *)malloc (sizeof (std::array<vec3_array, ALLSTYLES>)), assume_NoMemory);
+		hlassume (patch->directlight_all = (std::array<vec3_array, ALLSTYLES> *)malloc (sizeof (std::array<vec3_array, ALLSTYLES>)), assume_NoMemory);
 		for (j = 0; j < ALLSTYLES; j++)
 		{
-			patch->totalstyle_all[j] = 255;
-			VectorClear (patch->samplelight_all[j]);
-			VectorClear (patch->totallight_all[j]);
-			VectorClear (patch->directlight_all[j]);
+			(*patch->totalstyle_all)[j] = 255;
+			VectorClear ((*patch->samplelight_all)[j]);
+			VectorClear ((*patch->totallight_all)[j]);
+			VectorClear ((*patch->directlight_all)[j]);
 		}
-		patch->totalstyle_all[0] = 0;
+		(*patch->totalstyle_all)[0] = 0;
 	}
 
 	sample_wallflags = (int *)malloc ((2 * l.lmcache_side + 1) * (2 * l.lmcache_side + 1) * sizeof (int));
@@ -3683,11 +3681,11 @@ void            BuildFacelights(const int facenum)
 				patch->samples = 0.0;
 			if (patch->samples)
 			{
-				for (istyle = 0; istyle < ALLSTYLES && patch->totalstyle_all[istyle] != 255; istyle++)
+				for (istyle = 0; istyle < ALLSTYLES && (*patch->totalstyle_all)[istyle] != 255; istyle++)
 				{
 					vec3_array v;
-					VectorScale (patch->samplelight_all[istyle], 1.0f / patch->samples, v);
-					VectorAdd (patch->directlight_all[istyle], v, patch->directlight_all[istyle]);
+					VectorScale ((*patch->samplelight_all)[istyle], 1.0f / patch->samples, v);
+					VectorAdd ((*patch->directlight_all)[istyle], v, (*patch->directlight_all)[istyle]);
 				}
 			}
             //LRC (ends)
@@ -3745,38 +3743,34 @@ void            BuildFacelights(const int facenum)
 				}
 				lastoffset2 = thisoffset2;
 			}
-			vec3_array frontsampled[ALLSTYLES], backsampled[ALLSTYLES];
-			for (j = 0; j < ALLSTYLES; j++)
-			{
-				VectorClear (frontsampled[j]);
-				VectorClear (backsampled[j]);
-			}
+			std::array<vec3_array, ALLSTYLES> frontsampled{};
+			std::array<vec3_array, ALLSTYLES> backsampled{};
 			normal2 = negate_vector(l.facenormal);
 			GatherSampleLight (patch->origin, pvs, l.facenormal, frontsampled, 
-				patch->totalstyle_all
+				(*patch->totalstyle_all)
 				, 1
 				, l.miptex
 				, facenum
 				);
 			GatherSampleLight (spot2, pvs2, normal2, backsampled, 
-				patch->totalstyle_all
+				(*patch->totalstyle_all)
 				, 1
 				, l.miptex
 				, facenum
 				);
-			for (j = 0; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 			{
 				for (int x = 0; x < 3; x++)
 				{
-					patch->totallight_all[j][x] += (1.0 - l.translucent_v[x]) * frontsampled[j][x] + l.translucent_v[x] * backsampled[j][x];
+					(*patch->totallight_all)[j][x] += (1.0 - l.translucent_v[x]) * frontsampled[j][x] + l.translucent_v[x] * backsampled[j][x];
 				}
 			}
 		}
 		else
 		{
 			GatherSampleLight (patch->origin, pvs, l.facenormal, 
-				patch->totallight_all, 
-				patch->totalstyle_all
+				*patch->totallight_all, 
+				*patch->totalstyle_all
 				, 1
 				, l.miptex
 				, facenum
@@ -3956,9 +3950,9 @@ void            BuildFacelights(const int facenum)
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
 	{
 		vec_t maxlights[ALLSTYLES];
-		for (j = 0; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 		{
-			maxlights[j] = VectorMaximum (patch->totallight_all[j]);
+			maxlights[j] = VectorMaximum ((*patch->totallight_all)[j]);
 		}
 		for (k = 0; k < MAXLIGHTMAPS; k++)
 		{
@@ -3970,7 +3964,7 @@ void            BuildFacelights(const int facenum)
 			else
 			{
 				vec_t bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+				for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 				{
 					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
 					{
@@ -3982,15 +3976,15 @@ void            BuildFacelights(const int facenum)
 			if (bestindex != -1)
 			{
 				maxlights[bestindex] = 0;
-				patch->totalstyle[k] = patch->totalstyle_all[bestindex];
-				VectorCopy (patch->totallight_all[bestindex], patch->totallight[k]);
+				patch->totalstyle[k] = (*patch->totalstyle_all)[bestindex];
+				VectorCopy ((*patch->totallight_all)[bestindex], patch->totallight[k]);
 			}
 			else
 			{
 				patch->totalstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 		{
 			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 			{
@@ -4003,9 +3997,9 @@ void            BuildFacelights(const int facenum)
 				ThreadUnlock ();
 			}
 		}
-		for (j = 0; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 		{
-			maxlights[j] = VectorMaximum (patch->directlight_all[j]);
+			maxlights[j] = VectorMaximum ((*patch->directlight_all)[j]);
 		}
 		for (k = 0; k < MAXLIGHTMAPS; k++)
 		{
@@ -4017,7 +4011,7 @@ void            BuildFacelights(const int facenum)
 			else
 			{
 				vec_t bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+				for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 				{
 					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
 					{
@@ -4029,15 +4023,15 @@ void            BuildFacelights(const int facenum)
 			if (bestindex != -1)
 			{
 				maxlights[bestindex] = 0;
-				patch->directstyle[k] = patch->totalstyle_all[bestindex];
-				VectorCopy (patch->directlight_all[bestindex], patch->directlight[k]);
+				patch->directstyle[k] = (*patch->totalstyle_all)[bestindex];
+				VectorCopy ((*patch->directlight_all)[bestindex], patch->directlight[k]);
 			}
 			else
 			{
 				patch->directstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && patch->totalstyle_all[j] != 255; j++)
+		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
 		{
 			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
 			{

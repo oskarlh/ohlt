@@ -221,10 +221,11 @@ struct patch_t
     vec3_array          baselight;                             // emissivity only, uses emitstyle
 	bool			emitmode;								// texlight emit mode. 1 for normal, 0 for fast.
 	vec_t			samples;
-	vec3_array*			samplelight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
-	unsigned char*	totalstyle_all;						// NULL, or [ALLSTYLES] during BuildFacelights
-	vec3_array*			totallight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
-	vec3_array*			directlight_all;						// NULL, or [ALLSTYLES] during BuildFacelights
+	// TODO: Create a single struct for these and allocate everything at once
+	std::array<vec3_array, ALLSTYLES>* samplelight_all; // NULL except during BuildFacelights
+	std::array<unsigned char, ALLSTYLES>* totalstyle_all; // NULL except during BuildFacelights
+	std::array<vec3_array, ALLSTYLES>* totallight_all; // NULL except during BuildFacelights
+	std::array<vec3_array, ALLSTYLES>* directlight_all; // NULL except during BuildFacelights
 	int				leafnum;
 };
 

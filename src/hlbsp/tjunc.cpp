@@ -2,22 +2,18 @@
 
 #include <cstring>
 
-typedef struct wvert_s
-{
-    vec_t           t;
-    struct wvert_s* prev;
-    struct wvert_s* next;
-}
-wvert_t;
+struct wvert_t {
+    vec_t t;
+    wvert_t* prev;
+    wvert_t* next;
+};
 
-typedef struct wedge_s
-{
-    struct wedge_s* next;
-    vec3_t          dir;
-    vec3_t          origin;
-    wvert_t         head;
-}
-wedge_t;
+struct wedge_t {
+    wedge_t* next;
+    vec3_array dir;
+    vec3_array origin;
+    wvert_t head;
+};
 
 static int      numwedges;
 static int      numwverts;
