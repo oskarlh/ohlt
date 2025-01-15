@@ -361,19 +361,7 @@ struct dheader_t {
 //
 
 struct entity_t {
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
-    #ifdef DOUBLEVEC_T
-        double3_array origin;
-    #else
-        float3_array origin;
-    #endif
+    float3_array origin;
     int firstbrush;
     int numbrushes;
     std::vector<entity_key_value> keyValues;

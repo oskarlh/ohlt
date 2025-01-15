@@ -788,7 +788,7 @@ bool            ParseMapEntity()
 
 
 
-    mapent->origin = get_double3_for_key(*mapent, u8"origin");
+    mapent->origin = get_float3_for_key(*mapent, u8"origin");
 
 	if (!strcmp("func_group", (const char*) ValueForKey(mapent, u8"classname"))
 		|| !strcmp("func_detail", (const char*) ValueForKey (mapent, u8"classname"))
