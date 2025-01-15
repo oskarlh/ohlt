@@ -2032,14 +2032,14 @@ int             main(const int argc, char** argv)
     // other stuff
     ResetErrorLog();                     
 	if (!g_onlyents && g_resetlog)
-		ResetLog();                          
-    OpenLog(g_clientid);                  
-    atexit(CloseLog);                       
+		ResetLog();
+    OpenLog(g_clientid);
+    atexit(CloseLog);
     LogStart(argcold, argvold);
 	log_arguments(argc, argv);
 	hlassume (CalcFaceExtents_test (), assume_first);
     atexit(CSGCleanup); // AJM
-    dtexdata_init();                        
+    dtexdata_init();
     atexit(dtexdata_free);
 
     // START CSG

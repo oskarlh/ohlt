@@ -202,19 +202,16 @@ int             TestLine(const float3_array& start, const float3_array& stop
 }
 
 
-typedef struct
-{
+struct opaqueface_t {
 	fast_winding *winding;
 	dplane_t plane;
-	int numedges;
 	dplane_t *edges;
-	int texinfo;
-	bool tex_alphatest;
 	float tex_vecs[2][4];
-	int tex_width;
-	int tex_height;
-	std::uint8_t *tex_canvas;
-} opaqueface_t;
+	std::uint32_t numedges;
+	std::int32_t texinfo;
+	std::uint32_t gTexturesIndex;
+	bool tex_alphatest;
+};
 opaqueface_t *opaquefaces;
 
 typedef struct opaquenode_s
@@ -379,7 +376,7 @@ int MergeOpaqueFaces (int firstface, int numfaces)
 	newnum = j;
 	for (; j < numfaces; j++)
 	{
-		memset (&faces[j], 0, sizeof(opaqueface_t));
+		faces[j] = opaqueface_t{};
 	}
 	return newnum;
 }
@@ -444,9 +441,7 @@ void CreateOpaqueNodes () {
 		}
 		radtexture_t *tex = &g_textures[info->miptex];
 		of->tex_alphatest = tex->name.is_transparent_or_decal();
-		of->tex_width = tex->width;
-		of->tex_height = tex->height;
-		of->tex_canvas = tex->canvas;
+		of->gTexturesIndex = info->miptex;
 	}
 	for (std::size_t i = 0; i < g_numnodes; ++i) {
 		opaquenode_t *on = &opaquenodes[i];
@@ -511,14 +506,14 @@ static int TestLineOpaque_face (int facenum, const float3_array& hit)
 	}
 	if (thisface->tex_alphatest)
 	{
-		double x, y;
-		x = DotProduct (hit, thisface->tex_vecs[0]) + thisface->tex_vecs[0][3];
-		y = DotProduct (hit, thisface->tex_vecs[1]) + thisface->tex_vecs[1][3];
-		x = floor (x - thisface->tex_width * floor (x / thisface->tex_width));
-		y = floor (y - thisface->tex_height * floor (y / thisface->tex_height));
-		x = x > thisface->tex_width - 1? thisface->tex_width - 1: x < 0? 0: x;
-		y = y > thisface->tex_height - 1? thisface->tex_height - 1: y < 0? 0: y;
-		if (thisface->tex_canvas[(int)y * thisface->tex_width + (int)x] == 0xFF)
+		const radtexture_t& tex = g_textures[thisface->gTexturesIndex];
+		double x = DotProduct (hit, thisface->tex_vecs[0]) + thisface->tex_vecs[0][3];
+		double y = DotProduct (hit, thisface->tex_vecs[1]) + thisface->tex_vecs[1][3];
+		x = floor (x - tex.width * floor (x / tex.width));
+		y = floor (y - tex.height * floor (y / tex.height));
+		x = x > tex.width - 1? tex.width - 1: x < 0? 0: x;
+		y = y > tex.height - 1? tex.height - 1: y < 0? 0: y;
+		if (tex.canvas[(int)y * tex.width + (int)x] == 0xFF)
 		{
 			return 0;
 		}

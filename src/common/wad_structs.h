@@ -23,7 +23,7 @@ struct lumpinfo_t { // Lump info in WAD
     std::int32_t disksize;
     std::int32_t size; // Uncompressed
     std::uint8_t type;
-    std::uint8_t compression;
+    std::uint8_t compression; // Unsupported
 
     // Unused padding
     std::uint8_t pad1;

@@ -47,7 +47,12 @@ class compilation_root_data {
 				)
 			};
 
-			std::cout << formatted << (char) u8'\n' << std::flush;
+			// TODO: Find a way to always flush the logs on exit or if there's an error
+			// using set_terminate, atexit, at_quick_exit.
+			// Also, for threads, consider using std::osyncstream if they ever need
+			// to log
+
+			std::cout << formatted << (char) u8'\n';
 			if(logFile.is_open()) {
 				logFile.write(formatted.data(), formatted.length());
 				logFile.write((const char *) u8"\n", 1);

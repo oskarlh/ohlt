@@ -206,15 +206,9 @@ static void DefaultTexture (radtexture_t *tex, wad_texture_name name)
 	tex->width = 16;
 	tex->height = 16;
 	tex->name = name;
-	tex->canvas = (std::uint8_t *)malloc (tex->width * tex->height);
-	hlassume (tex->canvas != nullptr, assume_NoMemory);
-	for (i = 0; i < 256; i++)
-	{
-		VectorFill (tex->palette[i], 0x80);
-	}
-	for (i = 0; i < tex->width * tex->height; i++)
-	{
-		tex->canvas[i] = 0x00;
+	tex->canvas = std::make_unique<std::uint8_t[]>(tex->width * tex->height);
+	for (i = 0; i < 256; i++) {
+		tex->palette[i].fill(0x80);
 	}
 }
 
@@ -247,8 +241,7 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 	{
 		Error ("Texture '%s': palette size is not 256.", tex->name.c_str());
 	}
-	tex->canvas = (std::uint8_t*) malloc (tex->width * tex->height);
-	hlassume (tex->canvas != nullptr, assume_NoMemory);
+	tex->canvas = std::make_unique_for_overwrite<std::uint8_t[]>(tex->width * tex->height);
 	for (int i = 0; i < tex->height; i++)
 	{
 		for (int j = 0; j < tex->width; j++)

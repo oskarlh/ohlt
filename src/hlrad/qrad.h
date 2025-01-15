@@ -326,8 +326,9 @@ struct opaqueList_t {
 
 struct radtexture_t {
 	wad_texture_name name; // Not always same with the name in texdata
-	std::int32_t width, height;
-	std::uint8_t *canvas; // [height][width]
+	std::int32_t width;
+	std::int32_t height;
+	std::unique_ptr<std::uint8_t[]> canvas; // [height][width]
 	std::array<std::array<std::uint8_t, 3>, 256> palette;
 	float3_array reflectivity;
 };

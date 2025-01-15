@@ -14,5 +14,3 @@ std::u8string_view code_name_of_legacy_encoding(legacy_encoding encoding) noexce
 std::u8string_view human_name_of_legacy_encoding(legacy_encoding encoding) noexcept;
 
 std::u8string legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding);
-
-//constexpr legacy_encoding default_legacy_encoding = legacy_encoding::windows_1252;
