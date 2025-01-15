@@ -218,9 +218,6 @@ static int      global_usage(const char* const szItem, const int itemstorage, co
     return itemstorage;
 }
 
-#define ENTRIES(a)		(sizeof(a)/sizeof(*(a)))
-#define ENTRYSIZE(a)	(sizeof(*(a)))
-
 // =====================================================================================
 //  PrintBSPFileSizes
 //      Dumps info about current file

@@ -250,7 +250,8 @@ struct dedge_t {
     std::array<std::uint16_t, 2> v;                                  // vertex numbers
 };
 
-#define MAXLIGHTMAPS    4
+constexpr std::size_t MAXLIGHTMAPS = 4;
+
 struct dface_t {
     std::uint16_t planenum;
     std::int16_t side;
@@ -263,12 +264,6 @@ struct dface_t {
     std::array<std::uint8_t, MAXLIGHTMAPS> styles;
     std::int32_t lightofs; // Start of [numstyles*surfsize] samples
 };
-
-#define AMBIENT_WATER   0
-#define AMBIENT_SKY     1
-#define AMBIENT_SLIME   2
-#define AMBIENT_LAVA    3
-
 
 // leaf 0 is the generic CONTENTS_SOLID leaf, used for all solid areas
 // all other leafs need visibility info
@@ -353,8 +348,8 @@ struct dheader_t {
 
 //============================================================================
 
-#define ANGLE_UP    -1.0 //#define ANGLE_UP    -1 //--vluzacn
-#define ANGLE_DOWN  -2.0 //#define ANGLE_DOWN  -2 //--vluzacn
+constexpr float ANGLE_UP{-1.0};
+constexpr float ANGLE_DOWN{-2.0};
 
 //
 // Entity Related Stuff
