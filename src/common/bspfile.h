@@ -361,7 +361,19 @@ struct dheader_t {
 //
 
 struct entity_t {
-    vec3_array origin;
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    // TODO: USE THE SAME TYPE FOR ALL PROGRAMS
+    #ifdef DOUBLEVEC_T
+        double3_array origin;
+    #else
+        float3_array origin;
+    #endif
     int firstbrush;
     int numbrushes;
     std::vector<entity_key_value> keyValues;
@@ -383,10 +395,20 @@ std::u8string_view get_classname(const entity_t& ent);
 
 std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key);
 float float_for_key(const entity_t& ent, std::u8string_view key);
-vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key);
+
 float3_array get_float3_for_key(const entity_t& ent, std::u8string_view key);
 double3_array get_double3_for_key(const entity_t& ent, std::u8string_view key);
 
+template<any_vec3 Vec3> inline float3_array
+get_vector_for_key(const entity_t& ent, std::u8string_view key)
+requires(std::is_same_v<Vec3, float3_array>) {
+    return get_float3_for_key(ent, key);
+}
+template<any_vec3 Vec3> inline double3_array
+get_vector_for_key(const entity_t& ent, std::u8string_view key)
+requires(std::is_same_v<Vec3, double3_array>) {
+    return get_double3_for_key(ent, key);
+}
 
 std::optional<std::reference_wrapper<entity_t>> find_target_entity(std::u8string_view target);
 entity_key_value parse_entity_key_value();

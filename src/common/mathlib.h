@@ -7,7 +7,11 @@
 #include <cstdint>
 
 
-// HLCSG_HLBSP_DOUBLEPLANE: We could use smaller epsilon for hlcsg and hlbsp (hlcsg and hlbsp use double as vec_t), which will totally eliminate all epsilon errors. But we choose this big epsilon to tolerate the imprecision caused by Hammer. Basically, this is a balance between precision and flexibility.
+// We could use smaller epsilon for HLCSG and HLBSP
+// (HLCSG and HLBSP use doubles for plane normals),
+// which will totally eliminate all epsilon errors.
+// But we choose this big epsilon to tolerate the imprecision caused by Hammer.
+// Basically, this is a balance between precision and flexibility.
 constexpr float NORMAL_EPSILON{0.00001f}; 
 constexpr float ON_EPSILON{0.04f}; // We should ensure that (float)BOGUS_RANGE < (float)(BOGUS_RANGE + 0.2 * ON_EPSILON)
 constexpr float EQUAL_EPSILON{0.004f};
@@ -26,6 +30,41 @@ constexpr float EQUAL_EPSILON{0.004f};
     (dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]; \
 }
 
+constexpr auto dot_product(const any_vec3 auto& a, const any_vec3 auto& b) noexcept {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+template<any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB> cross_product(const VecA& a, const VecB& b) noexcept {
+    return {
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    };
+}
+
+template<any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB> vector_add(const VecA& a, const VecB& b) noexcept {
+    return {
+        a[0] + b[0],
+        a[1] + b[1],
+        a[2] + b[2]
+    };
+}
+
+template<any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB> vector_subtract(const VecA& a, const VecB& b) noexcept {
+    return {
+        a[0] - b[0],
+        a[1] - b[1],
+        a[2] - b[2]
+    };
+}
+
+constexpr void vector_fill(any_vec3 auto& vec, any_vec_t auto fillValue) noexcept {
+    vec.fill(fillValue);
+}
+
 #define VectorMidpoint(a,b,c)    { (c)[0]=((a)[0]+(b)[0])/2; (c)[1]=((a)[1]+(b)[1])/2; (c)[2]=((a)[2]+(b)[2])/2; }
 
 #define VectorFill(a,b)          { (a)[0]=(b); (a)[1]=(b); (a)[2]=(b);}
@@ -42,6 +81,24 @@ constexpr float EQUAL_EPSILON{0.004f};
 
 #define VectorCopy(a,b) { (b)[0]=(a)[0]; (b)[1]=(a)[1]; (b)[2]=(a)[2]; }
 #define VectorClear(a)  { (a)[0] = (a)[1] = (a)[2] = 0.0; }
+
+
+template<any_vec3 Vec3>
+constexpr Vec3 vector_scale(Vec3& v, typename Vec3::value_type scale) noexcept {
+    return Vec3{
+        v[0] * scale,
+        v[1] * scale,
+        v[2] * scale
+    };
+}
+
+
+constexpr auto vec3_max(const any_vec3 auto& v) noexcept {
+    return std::max({ v[0], v[1], v[2] });
+}
+constexpr auto vec3_min(const any_vec3 auto& v) noexcept {
+    return std::min({ v[0], v[1], v[2] });
+}
 
 #define VectorMaximum(a) ( std::max({ (a)[0], (a)[1], (a)[2] }) )
 #define VectorMinimum(a) ( std::min({ (a)[0], (a)[1], (a)[2] }) )

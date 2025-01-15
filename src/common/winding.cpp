@@ -57,21 +57,20 @@ void Winding::getPlane(mapplane_t& plane) const {
     plane.dist = DotProduct(m_Points[0], plane.normal);
 }
 
-void Winding::getPlane(vec3_array& normal, vec_t& dist) const {
-    vec3_array v1, v2;
-
+void Winding::getPlane(winding_vec3& normal, winding_vec_t& dist) const {
     if (size() < 3)
     {
-        normal.fill(0.0);
+        normal = {};
         dist = 0.0;
         return;
     }
 
-    VectorSubtract(m_Points[1], m_Points[0], v1);
-    VectorSubtract(m_Points[2], m_Points[0], v2);
-    CrossProduct(v2, v1, normal);
+    normal = cross_product(
+         vector_subtract(m_Points[2], m_Points[0]),
+         vector_subtract(m_Points[1], m_Points[0])
+    );
     normalize_vector(normal);
-    dist = DotProduct(m_Points[0], normal);
+    dist = dot_product(m_Points[0], normal);
 }
 
 vec_t Winding::getArea() const {
@@ -101,18 +100,15 @@ bounding_box Winding::getBounds() const {
     return bounds;
 }
 
-vec3_array Winding::getCenter() const
-{
-    vec3_array center{};
+Winding::winding_vec3 Winding::getCenter() const noexcept {
+    Winding::winding_vec3 center{};
 
-    for (const vec3_array& point : m_Points)
-    {
-        VectorAdd(point, center, center);
+    for (const winding_vec3& point : m_Points) {
+        center = vector_add(point, center);
     }
 
-    vec_t scale = vec_t(1.0) / std::max(1UZ, size());
-    VectorScale(center, scale, center);
-    return center;
+    const winding_vec_t scale = winding_vec_t(1.0) / std::max(1UZ, size());
+    return vector_scale(center, scale);
 }
 
 void Winding::Check(vec_t epsilon) const

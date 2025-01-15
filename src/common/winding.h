@@ -37,17 +37,26 @@ template<class W> using winding_division_result_template = std::variant<
 >;
 
 
-class Winding final
-{
+#ifdef DOUBLEVEC_T
+using vec_t = double;
+using vec3_array = double3_array;
+#else
+using vec_t = float;
+using vec3_array = float3_array;
+#endif
+
+class Winding {
 public:
+    using winding_vec3 = vec3_array;
+    using winding_vec_t = vec_t;
+  
     // General Functions
     void Print() const;
     void getPlane(dplane_t& plane) const;
     void getPlane(mapplane_t& plane) const;
-    void getPlane(vec3_array& normal, vec_t& dist) const;
-    vec_t getArea() const;
+    winding_vec_t getArea() const;
     bounding_box getBounds() const;
-    vec3_array getCenter() const;
+    vec3_array getCenter() const noexcept;
     void Check(
 		  vec_t epsilon = ON_EPSILON
 		) const; // Developer check for validity
@@ -84,6 +93,7 @@ public:
 
 
 private:
+    void getPlane(winding_vec3& normal, winding_vec_t& dist) const;
     void            grow_capacity();
 
 public:

@@ -927,20 +927,6 @@ float3_array get_float3_for_key(const entity_t& ent, std::u8string_view key) {
 	return result;
 }
 
-template<class X = void> static double3_array get_vector_for_key_base(const entity_t& ent, std::u8string_view key)
-requires(std::is_same_v<vec3_array, double3_array>) {
-	return get_double3_for_key(ent, key);
-}
-
-template<class X = void> static float3_array get_vector_for_key_base(const entity_t& ent, std::u8string_view key)
-requires(std::is_same_v<vec3_array, float3_array>) {
-	return get_float3_for_key(ent, key);
-}
-
-vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key) {
-	return get_vector_for_key_base(ent, key);
-}
-
 
 // =====================================================================================
 //  FindTargetEntity

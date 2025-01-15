@@ -1773,7 +1773,7 @@ void            CreateDirectLights()
 
 		hlassume (dl != nullptr, assume_NoMemory);
 
-        dl->origin = get_vector_for_key(*e, u8"origin");
+        dl->origin = get_float3_for_key(*e, u8"origin");
 
         leaf = PointInLeaf(dl->origin);
         leafnum = leaf - g_dleafs.data();
@@ -1877,13 +1877,13 @@ void            CreateDirectLights()
 				target = u8"";
             }
             if (maybeE2) { // point towards target
-				dest = get_vector_for_key(maybeE2.value(), u8"origin");
+				dest = get_float3_for_key(maybeE2.value(), u8"origin");
 				VectorSubtract(dest, dl->origin, dl->normal);
 				normalize_vector(dl->normal);
             } else {                                              // point down angle
                 float3_array vAngles;
 
-                vAngles = get_vector_for_key(*e, u8"angles");
+                vAngles = get_float3_for_key(*e, u8"angles");
 
                 angle = float_for_key(*e, u8"angle");
                 if (angle == ANGLE_UP)
@@ -4519,8 +4519,8 @@ void MdlLightHack ()
 			continue;
 		}
 		const entity_t& ent2{maybeEnt2.value().get()};
-		origin1 = get_vector_for_key(ent1, u8"origin");
-		origin2 = get_vector_for_key(ent2, u8"origin");
+		origin1 = get_float3_for_key(ent1, u8"origin");
+		origin2 = get_float3_for_key(ent2, u8"origin");
 		r = MLH_CopyLight (origin2, origin1);
 		if (r < 0)
 			Warning ("can not copy light from (%f,%f,%f)", origin2[0], origin2[1], origin2[2]);

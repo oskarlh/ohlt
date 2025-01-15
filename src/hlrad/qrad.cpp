@@ -537,7 +537,7 @@ static float3_array BaseLightForFace(const dface_t* const f)
 			b *= scaler / 255.0;
 			break;
 		default:
-			float3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
+			float3_array origin{get_float3_for_key(*g_face_texlights[fn], u8"origin")};
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
 				origin[0], origin[1], origin[2], (const char*) ValueForKey (g_face_texlights[fn], u8"_light"));
 			r = g = b = 0;
@@ -591,7 +591,7 @@ static bool     PlacePatchInside(patch_t* patch)
 	float3_array point;
 	float dist;
 
-	float3_array center = patch->winding->getCenter ();
+	float3_array center = patch->winding->getCenter();
 	found = false;
 	
 	VectorMA (center, PATCH_HUNT_OFFSET, plane->normal, point);
@@ -1276,14 +1276,14 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	if (g_face_texlights[fn] && has_key_value(g_face_texlights[fn], u8"_texcolor"))
 	{
 		float3_array texturereflectivity;
-		float3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
+		float3_array texturecolor{get_float3_for_key(*g_face_texlights[fn], u8"_texcolor")};
 		for (int k = 0; k < 3; k++)
 		{
 			texturecolor[k] = floor (texturecolor[k] + 0.001);
 		}
 		if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
 		{
-			const float3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
+			const float3_array origin{get_float3_for_key(*g_face_texlights[fn], u8"origin")};
 			Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
 		}
 		VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
@@ -1461,15 +1461,15 @@ static void		LoadOpaqueEntities()
 				continue;
 			float3_array origin;
 			{
-				origin = get_vector_for_key(ent, u8"origin"); //Get origin vector of the ent
+				origin = get_float3_for_key(ent, u8"origin"); //Get origin vector of the ent
 
 				// If the entity has a light_origin and model_center, calculate a new origin
 				if (has_key_value(&ent, u8"light_origin") && has_key_value(&ent, u8"model_center")) {
 					auto maybeEnt2 = find_target_entity(value_for_key (&ent, u8"light_origin"));
 
 					if (maybeEnt2) {
-						float3_array light_origin = get_vector_for_key(maybeEnt2.value(), u8"origin");
-						float3_array model_center = get_vector_for_key(ent, u8"model_center");
+						float3_array light_origin = get_float3_for_key(maybeEnt2.value(), u8"origin");
+						float3_array model_center = get_float3_for_key(ent, u8"model_center");
 						VectorSubtract(light_origin, model_center, origin); // New origin
 					}
 				}
@@ -1588,7 +1588,7 @@ static entity_t *FindTexlightEntity (int facenum)
 			continue;
 		if (!key_value_is(&ent, u8"_tex", texname))
 			continue;
-		float3_array delta{get_vector_for_key(ent, u8"origin")};
+		float3_array delta{get_float3_for_key(ent, u8"origin")};
 		VectorSubtract(delta, centroid, delta);
 		float dist = vector_length(delta);
 		if (has_key_value(&ent, u8"_frange"))

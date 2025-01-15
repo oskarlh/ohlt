@@ -608,7 +608,7 @@ bool            ParseMapEntity()
 			}
 			DeleteKey (mapent, u8"zhlt_transform");
 		}
-		ent_scale_origin = get_vector_for_key(*mapent, u8"origin");
+		ent_scale_origin = get_double3_for_key(*mapent, u8"origin");
 
 		if (ent_move_b || ent_scale_b || ent_gscale_b)
 		{
@@ -731,7 +731,7 @@ bool            ParseMapEntity()
 					int origin[3];
 					char8_t string[MAXTOKEN];
 					int i;
-					v = get_vector_for_key(*mapent, u8"origin");
+					v = get_double3_for_key(*mapent, u8"origin");
 					VectorScale (v, ent_gscale, v);
 					for (i=0; i<3; ++i)
 						origin[i] = (int)(v[i]>=0? v[i]+0.5: v[i]-0.5);
@@ -788,7 +788,7 @@ bool            ParseMapEntity()
 
 
 
-    mapent->origin = get_vector_for_key(*mapent, u8"origin");
+    mapent->origin = get_double3_for_key(*mapent, u8"origin");
 
 	if (!strcmp("func_group", (const char*) ValueForKey(mapent, u8"classname"))
 		|| !strcmp("func_detail", (const char*) ValueForKey (mapent, u8"classname"))

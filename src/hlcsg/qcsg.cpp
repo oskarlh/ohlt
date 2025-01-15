@@ -311,7 +311,7 @@ void            WriteFace(const int hull, const bface_t* const f
 		side = !side;
 		if (side)
 		{
-			double3_array center = w.getCenter ();
+			double3_array center = w.getCenter();
 			double3_array center2;
 			VectorAdd (center, f->plane->normal, center2);
 			fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);

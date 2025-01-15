@@ -509,7 +509,7 @@ void GetAlternateOrigin (const float3_array& pos, const float3_array& normal, co
 			float dist;
 			float3_array v;
 
-			float3_array center = w.getCenter ();
+			float3_array center = w.getCenter();
 			found = false;
 
 			VectorMA (center, PATCH_HUNT_OFFSET, facenormal, point);
