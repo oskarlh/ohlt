@@ -1,0 +1,5 @@
+// Add entities to this file if you want to allow them to be placed in the void,
+// outside any rooms and skyboxes
+
+multi_manager
+trigger_relay

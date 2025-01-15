@@ -359,8 +359,11 @@ void LoadAllowableOutsideList(const char* const filename) {
         std::u8string_view line{remainingText.data(), nextEol};
 
         if(!line.empty()) {
-            Log("Adding entity '%s' to the allowable void list\n", (const char*) std::u8string(line).c_str());
-            g_strAllowableOutsideList.emplace_back(line);
+            const bool isComment = line.starts_with(u8'#') || line.starts_with(u8"//");
+            if(!isComment) {
+                Verbose("- %s can be placed in the void\n", (const char*) std::u8string(line).c_str());
+                g_strAllowableOutsideList.emplace_back(line);
+            }
         }
 
         if(line.length() == remainingText.length()) {

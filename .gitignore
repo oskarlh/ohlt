@@ -21,10 +21,11 @@ Desktop.ini
 
 /build/
 /tools/*
+!/tools/*.cfg
 !/tools/*.fgd
-!/tools/*.wad
+!/tools/*.rad
 !/tools/*.txt
-!/tools/lights.rad
-!/tools/wad.cfg
+!/tools/*.void
+!/tools/*.wad
 
 *.7z
