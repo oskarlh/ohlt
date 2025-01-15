@@ -3162,14 +3162,14 @@ void            GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& 
     }
 }
 
-const vec3_t    s_circuscolors[] = {
-    {100000.0,  100000.0,   100000.0},                              // white
-    {100000.0,  0.0,        0.0     },                              // red
-    {0.0,       100000.0,   0.0     },                              // green
-    {0.0,       0.0,        100000.0},                              // blue
-    {0.0,       100000.0,   100000.0},                              // cyan
-    {100000.0,  0.0,        100000.0},                              // magenta
-    {100000.0,  100000.0,   0.0     }                               // yellow
+const auto s_circuscolors = std::array{
+    float3_array{100000.0,  100000.0,   100000.0}, // white
+    float3_array{100000.0,  0.0,        0.0     }, // red
+    float3_array{0.0,       100000.0,   0.0     }, // green
+    float3_array{0.0,       0.0,        100000.0}, // blue
+    float3_array{0.0,       100000.0,   100000.0}, // cyan
+    float3_array{100000.0,  0.0,        100000.0}, // magenta
+    float3_array{100000.0,  100000.0,   0.0     }  // yellow
 };
 
 // =====================================================================================
@@ -3185,7 +3185,7 @@ void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 	int lastoffset2;
 
 	facenum = l->surfnum;
-	memset (l->lmcache, 0, l->lmcachewidth * l->lmcacheheight * sizeof (vec3_t [ALLSTYLES]));
+	memset (l->lmcache, 0, l->lmcachewidth * l->lmcacheheight * sizeof (std::array<vec3_array, ALLSTYLES>));
 
 	// for each sample whose light we need to calculate
 	for (i = 0; i < l->lmcachewidth * l->lmcacheheight; i++)

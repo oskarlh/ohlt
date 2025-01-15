@@ -646,7 +646,7 @@ void SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t 
 	return;
 }
 
-brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs)
+brush_t *BrushFromBox (const vec3_array& mins, const vec3_array& maxs)
 {
 	brush_t *b = AllocBrush ();
 	mapplane_t planes[6];
@@ -703,7 +703,7 @@ node_t*         AllocNode()
 // =====================================================================================
 //  AddPointToBounds
 // =====================================================================================
-static void            AddPointToBounds(const vec3_t v, vec3_array& mins, vec3_array& maxs)
+static void            AddPointToBounds(const vec3_array& v, vec3_array& mins, vec3_array& maxs)
 {
     int             i;
     vec_t           val;
@@ -731,7 +731,7 @@ static void     AddFaceToBounds(const face_t* const f, vec3_array& mins, vec3_ar
 
     for (i = 0; i < f->numpoints; i++)
     {
-        AddPointToBounds(f->pts[i].data(), mins, maxs);
+        AddPointToBounds(f->pts[i], mins, maxs);
     }
 }
 
@@ -798,8 +798,8 @@ static surfchain_t* SurflistFromValidFaces()
 			}
         }
 
-        AddPointToBounds(n->mins.data(), sc->mins, sc->maxs);
-        AddPointToBounds(n->maxs.data(), sc->mins, sc->maxs);
+        AddPointToBounds(n->mins, sc->mins, sc->maxs);
+        AddPointToBounds(n->maxs, sc->mins, sc->maxs);
 
         validfaces[i] = nullptr;
         validfaces[i + 1] = nullptr;

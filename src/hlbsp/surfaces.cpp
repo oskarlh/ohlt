@@ -2,14 +2,6 @@
 
 #include <cstring>
 
-//  SubdivideFace
-
-//  InitHash
-//  HashVec
-
-//  GetVertex
-//  GetEdge
-//  MakeFaceEdges
 
 static int      subdivides;
 
@@ -144,8 +136,8 @@ static int      firstmodelface;
 
 static std::array<hashvert_t*, NUM_HASH> hashverts;
 
-static const vec3_array hash_min{-8000.0, -8000.0, -8000.0};
-static vec3_t   hash_scale;
+constexpr vec_t hash_min{-8000};
+static vec3_array hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed in a cyclic way (modulus by hash_numslots)
 // So please don't change the hardcoded hash_min and scale
 static int		hash_numslots[3];
@@ -162,7 +154,7 @@ static void     InitHash()
 
     const vec_t volume = size * size;
 
-    const vec_t scale = sqrt(volume / NUM_HASH);
+    const vec_t scale = std::sqrt(volume / NUM_HASH);
 
 	hash_numslots[0] = (int)floor (size / scale);
 	hash_numslots[1] = (int)floor (size / scale);
@@ -182,7 +174,7 @@ static void     InitHash()
 // =====================================================================================
 //  HashVec
 // =====================================================================================
-static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors)
+static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneighbors)
 	// returned value: the one bucket that a new vertex may "write" into
 	// returned hashneighbors: the buckets that we should "read" to check for an existing vertex
 {
@@ -196,7 +188,7 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 
 	for (i = 0; i < 2; i++)
 	{
-		normalized[i] = hash_scale[i] * (vec[i] - hash_min[i]);
+		normalized[i] = hash_scale[i] * (vec[i] - hash_min);
 		slot[i] = (int)floor (normalized[i]);
 		slotdiff[i] = normalized[i] - (vec_t)slot[i];
 
@@ -235,15 +227,12 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 	return h;
 }
 
-// =====================================================================================
-//  GetVertex
-// =====================================================================================
-static int      GetVertex(const vec3_t in, const int planenum)
+static int      GetVertex(const vec3_array& in, const int planenum)
 {
     int             h;
     int             i;
     hashvert_t*     hv;
-    vec3_t          vert;
+    vec3_array vert;
 	int				num_hashneighbors;
 	int				hashneighbors[MAX_HASH_NEIGHBORS];
 
@@ -325,8 +314,8 @@ int             GetEdge(const vec3_array& p1, const vec3_array& p2, face_t* f)
 
     hlassert(f->contents);
 
-    v1 = GetVertex(p1.data(), f->planenum);
-    v2 = GetVertex(p2.data(), f->planenum);
+    v1 = GetVertex(p1, f->planenum);
+    v2 = GetVertex(p2, f->planenum);
     for (i = firstmodeledge; i < g_numedges; i++)
     {
         edge = &g_dedges[i];

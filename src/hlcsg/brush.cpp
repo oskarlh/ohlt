@@ -776,7 +776,7 @@ bool            MakeBrushPlanes(brush_t* b)
 		bface_t new_face{};
 		new_face.planenum = planenum;
 		new_face.plane = &g_mapplanes[planenum];
-        new_face.texinfo = g_onlyents ? 0 : TexinfoForBrushTexture(new_face.plane, &s->td, origin.data());
+        new_face.texinfo = g_onlyents ? 0 : TexinfoForBrushTexture(new_face.plane, &s->td, origin);
 		new_face.bevel = b->bevel || s->bevel;
 		b->hulls[0].faces.emplace_back(std::move(new_face));
     }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <filesystem>
-
 #include "cmdlib.h"
 #include "messages.h"
 #include "win32fix.h"
@@ -13,6 +11,9 @@
 #include "threads.h"
 #include "winding.h"
 #include "cmdlinecfg.h"
+
+#include <filesystem>
+
 
 extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 
@@ -224,7 +225,7 @@ extern brush_t *AllocBrush ();
 extern void		FreeBrush (brush_t *b);
 extern brush_t *NewBrushFromBrush (const brush_t *b);
 extern void		SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t **back);
-extern brush_t *BrushFromBox (const vec3_t mins, const vec3_t maxs);
+extern brush_t *BrushFromBox (const vec3_array& mins, const vec3_array& maxs);
 extern void		CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs);
 
 extern node_t*  AllocNode();

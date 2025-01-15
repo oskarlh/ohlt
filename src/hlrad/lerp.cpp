@@ -274,7 +274,7 @@ static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, 
 	return !istoofar;
 }
 
-static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const vec3_t spot, interpolation_t& interp)
+static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const vec3_array& spot, interpolation_t& interp)
 {
 	const localtriangulation_t::Wedge *w1;
 	const localtriangulation_t::Wedge *w2;
@@ -589,13 +589,13 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			else if (w->shape == localtriangulation_t::Wedge::eSquareLeft)
 			{
 				i = w - &lt->sortedwedges[0];
-				CalcInterpolation_Square (lt, i, spot.data(), interp);
+				CalcInterpolation_Square (lt, i, spot, interp);
 			}
 			else if (w->shape == localtriangulation_t::Wedge::eSquareRight)
 			{
 				i = w - &lt->sortedwedges[0];
 				i = (i - 1 + (int)lt->sortedwedges.size ()) % (int)lt->sortedwedges.size ();
-				CalcInterpolation_Square (lt, i, spot.data(), interp);
+				CalcInterpolation_Square (lt, i, spot, interp);
 			}
 			else
 			{
@@ -988,7 +988,7 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 	}
 }
 
-static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, const vec3_t p1, const vec3_t p2)
+static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, const vec3_array& p1, const vec3_array& p2)
 {
 	int i;
 	const facetriangulation_t::Wall *wall;
@@ -1036,7 +1036,7 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 	return false;
 }
 
-static bool TestFarPatch (const localtriangulation_t *lt, const vec3_t p2, const Winding &p2winding)
+static bool TestFarPatch (const localtriangulation_t *lt, const vec3_array& p2, const Winding &p2winding)
 {
 	int i;
 	vec_t dist;
@@ -1113,11 +1113,11 @@ static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *
 			{
 				continue;
 			}
-			if (facenum2 != facetrian->facenum && TestLineSegmentIntersectWall (facetrian, lt->center.data(), v.data()))
+			if (facenum2 != facetrian->facenum && TestLineSegmentIntersectWall (facetrian, lt->center, v))
 			{
 				continue;
 			}
-			if (TestFarPatch (lt, v.data(), *patch2->winding))
+			if (TestFarPatch (lt, v, *patch2->winding))
 			{
 				continue;
 			}

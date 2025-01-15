@@ -30,10 +30,10 @@ static wedge_t  wedges[MAX_WEDGES];
 
 #define NUM_HASH	4096
 
-wedge_t*        wedge_hash[NUM_HASH];
+std::array<wedge_t*, NUM_HASH> wedge_hash;
 
-static vec3_t   hash_min;
-static vec3_t   hash_scale;
+constexpr vec_t hash_min{-8000};
+static vec3_array hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed in a cyclic way (modulus by hash_numslots)
 // So please don't change the hardcoded hash_min and scale
 static int		hash_numslots[3];
@@ -41,22 +41,17 @@ static int		hash_numslots[3];
 
 static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
 {
-    vec3_t          size;
-    vec_t           volume;
-    vec_t           scale;
-    int             newsize[2];
+    
+    constexpr vec_t size{16000.0};
 
-	// Let's ignore the parameters and make things more predictable, so there won't be strange cases such as division by 0 or extreme scaling values.
-	VectorFill(hash_min, -8000);
-	VectorFill(size, 16000);
-    std::memset(wedge_hash, 0, sizeof(wedge_hash));
+    wedge_hash = {};
 
-    volume = size[0] * size[1];
+    const vec_t volume = size * size;
 
-    scale = sqrt(volume / NUM_HASH);
+    const vec_t scale = std::sqrt(volume / NUM_HASH);
 
-	hash_numslots[0] = (int)floor (size[0] / scale);
-	hash_numslots[1] = (int)floor (size[1] / scale);
+	hash_numslots[0] = (int)floor (size / scale);
+	hash_numslots[1] = (int)floor (size / scale);
 	while (hash_numslots[0] * hash_numslots[1] > NUM_HASH)
 	{
 		Developer (DEVELOPER_LEVEL_WARNING, "hash_numslots[0] * hash_numslots[1] > NUM_HASH");
@@ -64,11 +59,11 @@ static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
 		hash_numslots[1]--;
 	}
 
-	hash_scale[0] = hash_numslots[0] / size[0];
-	hash_scale[1] = hash_numslots[1] / size[1];
+	hash_scale[0] = hash_numslots[0] / size;
+	hash_scale[1] = hash_numslots[1] / size;
 }
 
-static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors)
+static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneighbors)
 {
 	int h;
 	int i;
@@ -80,7 +75,7 @@ static int HashVec (const vec3_t vec, int *num_hashneighbors, int *hashneighbors
 
 	for (i = 0; i < 2; i++)
 	{
-		normalized[i] = hash_scale[i] * (vec[i] - hash_min[i]);
+		normalized[i] = hash_scale[i] * (vec[i] - hash_min);
 		slot[i] = (int)floor (normalized[i]);
 		slotdiff[i] = normalized[i] - (vec_t)slot[i];
 
@@ -173,7 +168,7 @@ static bool     CanonicalVector(vec3_array& vec)
     return false;
 }
 
-static wedge_t *FindEdge(const vec3_t p1, const vec3_t p2, vec_t* t1, vec_t* t2)
+static wedge_t *FindEdge(const vec3_array& p1, const vec3_array& p2, vec_t* t1, vec_t* t2)
 {
     vec3_array          origin;
     vec3_array          dir;
@@ -203,7 +198,7 @@ static wedge_t *FindEdge(const vec3_t p1, const vec3_t p2, vec_t* t1, vec_t* t2)
         *t2 = temp;
     }
 
-	h = HashVec(origin.data(), &num_hashneighbors, hashneighbors);
+	h = HashVec(origin, &num_hashneighbors, hashneighbors);
 
   for (int i = 0; i < num_hashneighbors; ++i)
 	for (w = wedge_hash[hashneighbors[i]]; w; w = w->next)
@@ -284,7 +279,7 @@ static void     AddVert(const wedge_t* const w, const vec_t t)
  * AddEdge
  * ===============
  */
-static void     AddEdge(const vec3_t p1, const vec3_t p2)
+static void     AddEdge(const vec3_array& p1, const vec3_array& p2)
 {
     wedge_t*        w;
     vec_t           t1;
@@ -308,7 +303,7 @@ static void     AddFaceEdges(const face_t* const f)
     for (i = 0; i < f->numpoints; i++)
     {
         j = (i + 1) % f->numpoints;
-        AddEdge(f->pts[i].data(), f->pts[j].data());
+        AddEdge(f->pts[i], f->pts[j]);
     }
 }
 
@@ -316,7 +311,7 @@ static void     AddFaceEdges(const face_t* const f)
 
 static byte     superfacebuf[1024 * 16];
 static face_t*  superface = (face_t*)superfacebuf;
-static int      MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t) + sizeof(superface->pts)) / sizeof(vec3_t);
+static int      MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t) + sizeof(superface->pts)) / sizeof(vec3_array);
 static face_t*  newlist;
 
 static void     SplitFaceForTjunc(face_t* f, face_t* original)

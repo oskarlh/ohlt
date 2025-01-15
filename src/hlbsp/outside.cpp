@@ -23,7 +23,7 @@ static int      c_keep_faces;
 // =====================================================================================
 //  PointInLeaf
 // =====================================================================================
-static node_t*  PointInLeaf(node_t* node, const vec3_t point)
+static node_t*  PointInLeaf(node_t* node, const vec3_array& point)
 {
     vec_t           d;
 
@@ -44,7 +44,7 @@ static node_t*  PointInLeaf(node_t* node, const vec3_t point)
 // =====================================================================================
 //  PlaceOccupant
 // =====================================================================================
-static bool     PlaceOccupant(const int num, const vec3_t point, node_t* headnode)
+static bool     PlaceOccupant(const int num, const vec3_array& point, node_t* headnode)
 {
     node_t*         n;
 
@@ -422,7 +422,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
                         {
                             origin[0] += x;
                             origin[1] += y;
-                            if (PlaceOccupant(i, origin.data(), node))
+                            if (PlaceOccupant(i, origin, node))
                             {
                                 inside = true;
                                 goto gotit;
@@ -435,7 +435,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
                 }
                 else
                 {
-                    if (PlaceOccupant(i, origin.data(), node))
+                    if (PlaceOccupant(i, origin, node))
                         inside = true;
                 }
             }
@@ -608,10 +608,10 @@ void			FillInside (node_t* node)
 			node_t* innode;
 			origin = get_vector_for_key(g_entities[i], u8"origin");
 			origin[2] += 1;
-			innode = PointInLeaf (node, origin.data());
+			innode = PointInLeaf (node, origin);
 			MarkOccupied_r (innode);
 			origin[2] -= 2;
-			innode = PointInLeaf (node, origin.data());
+			innode = PointInLeaf (node, origin);
 			MarkOccupied_r (innode);
 		}
 	}

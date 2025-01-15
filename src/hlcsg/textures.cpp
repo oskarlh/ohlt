@@ -687,10 +687,10 @@ void LogWadUsage(wadpath_t *currentwad, int nummiptex)
 // =====================================================================================
 //  TexinfoForBrushTexture
 // =====================================================================================
-int             TexinfoForBrushTexture(const mapplane_t* const plane, brush_texture_t* bt, const vec3_t origin
+int             TexinfoForBrushTexture(const mapplane_t* const plane, brush_texture_t* bt, const vec3_array& origin
 					)
 {
-    std::array<vec3_t, 2> vecs;
+    std::array<vec3_array, 2> vecs;
     int             sv, tv;
     vec_t           ang, sinv, cosv;
     vec_t           ns, nt;

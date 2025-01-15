@@ -394,7 +394,7 @@ void DeleteSurfaceTree (surfacetree_t *tree)
 //      When there are a huge number of planes, just choose one closest
 //      to the middle.
 // =====================================================================================
-static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_t mins, const vec3_t maxs
+static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_array& mins, const vec3_array& maxs
 										 , int detaillevel
 										 )
 {
@@ -685,7 +685,7 @@ int CalcSplitDetaillevel (const node_t *node)
 }
 static surface_t* SelectPartition(surface_t* surfaces, const node_t* const node, const bool usemidsplit
 								  , int splitdetaillevel
-								  , vec3_t validmins, vec3_t validmaxs
+								  , const vec3_array& validmins, const vec3_array& validmaxs
 								  )
 {
 	if (splitdetaillevel == -1)
@@ -1440,7 +1440,7 @@ static void     SplitNodePortals(node_t *node)
 //      Returns true if the node should be midsplit.(very large)
 // =====================================================================================
 static bool     CalcNodeBounds(node_t* node
-							   , vec3_t validmins, vec3_t validmaxs
+							   , vec3_array& validmins, vec3_array& validmaxs
 							   )
 {
     int             i;
@@ -1573,7 +1573,7 @@ static void     BuildBspTree_r(node_t* node)
     surface_t*      split;
     bool            midsplit;
     surface_t*      allsurfs;
-	vec3_t			validmins, validmaxs;
+	vec3_array validmins, validmaxs;
 
     midsplit = CalcNodeBounds(node
 		, validmins, validmaxs
@@ -1699,7 +1699,7 @@ node_t*         SolidBSP(const surfchain_t* const surfhead,
     headnode->surfaces = surfhead->surfaces;
 	headnode->detailbrushes = detailbrushes;
 	headnode->isdetail = false;
-	vec3_t brushmins, brushmaxs;
+	vec3_array brushmins, brushmaxs;
 	VectorAddVec (surfhead->mins, -SIDESPACE, brushmins);
 	VectorAddVec (surfhead->maxs, SIDESPACE, brushmaxs);
 	headnode->boundsbrush = BrushFromBox (brushmins, brushmaxs);
