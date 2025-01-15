@@ -23,15 +23,6 @@ set(HLT_DIR ${CMAKE_SOURCE_DIR}/src)
 #================
 
 set(COMMON_DIR ${HLT_DIR}/common)
-set(COMMON_BSP_CSG_DIR ${HLT_DIR}/common-bsp-and-csg)
-
-set(COMMON_BSP_CSG_SOURCES
-    ${COMMON_BSP_CSG_DIR}/hull_size.cpp
-)
-
-set(COMMON_BSP_CSG_HEADERS
-    ${COMMON_BSP_CSG_DIR}/hull_size.h
-)
 
 set(COMMON_SOURCES
     ${COMMON_DIR}/bounding_box.cpp
@@ -40,6 +31,7 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/cmdlib.cpp
     ${COMMON_DIR}/cmdlinecfg.cpp
     ${COMMON_DIR}/filelib.cpp
+    ${COMMON_DIR}/hull_size.cpp
     ${COMMON_DIR}/legacy_character_encodings.cpp
     ${COMMON_DIR}/log.cpp
     ${COMMON_DIR}/mathlib.cpp
@@ -62,6 +54,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/entity_key_value.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
+    ${COMMON_DIR}/hull_size.h
     ${COMMON_DIR}/legacy_character_encodings.h
     ${COMMON_DIR}/log.h
     ${COMMON_DIR}/map_token_parser.h
@@ -90,8 +83,6 @@ set(COMMON_HEADERS
 set(BSP_DIR ${HLT_DIR}/hlbsp)
 
 set(BSP_SOURCES
-    ${COMMON_SOURCES}
-    ${COMMON_BSP_CSG_SOURCES}
     ${BSP_DIR}/brink.cpp
     ${BSP_DIR}/merge.cpp
     ${BSP_DIR}/outside.cpp
@@ -104,8 +95,7 @@ set(BSP_SOURCES
 )
 
 set(BSP_HEADERS
-    ${COMMON_HEADERS}
-    ${COMMON_BSP_CSG_HEADERS}
+#    ${COMMON_HEADERS}
     ${BSP_DIR}/brink.h
     ${BSP_DIR}/bsp5.h
 )
@@ -117,8 +107,6 @@ set(BSP_HEADERS
 set(CSG_DIR ${HLT_DIR}/hlcsg)
 
 set(CSG_SOURCES
-    ${COMMON_SOURCES}
-    ${COMMON_BSP_CSG_SOURCES}
     ${CSG_DIR}/ansitoutf8.cpp
     ${CSG_DIR}/brush.cpp
     ${CSG_DIR}/brushunion.cpp
@@ -132,8 +120,7 @@ set(CSG_SOURCES
 )
 
 set(CSG_HEADERS
-    ${COMMON_HEADERS}
-    ${COMMON_BSP_CSG_HEADERS}
+#    ${COMMON_HEADERS}
     ${CSG_DIR}/csg.h
     ${CSG_DIR}/wadpath.h
 )
@@ -145,7 +132,6 @@ set(CSG_HEADERS
 set(RAD_DIR ${HLT_DIR}/hlrad)
 
 set(RAD_SOURCES
-    ${COMMON_SOURCES}
     ${RAD_DIR}/compress.cpp
     ${RAD_DIR}/lerp.cpp
     ${RAD_DIR}/lightmap.cpp
@@ -168,7 +154,7 @@ set(RAD_SOURCES
 )
 
 set(RAD_HEADERS
-    ${COMMON_HEADERS}
+#    ${COMMON_HEADERS}
     ${RAD_DIR}/compress.h
 	${RAD_DIR}/list.h
 	${RAD_DIR}/meshdesc.h
@@ -184,13 +170,12 @@ set(RAD_HEADERS
 set(VIS_DIR ${HLT_DIR}/hlvis)
 
 set(VIS_SOURCES
-    ${COMMON_SOURCES}
     ${VIS_DIR}/flow.cpp
     ${VIS_DIR}/vis.cpp
 )
 
 set(VIS_HEADERS
-    ${COMMON_HEADERS}
+#    ${COMMON_HEADERS}
     ${VIS_DIR}/vis.h
 )
 
@@ -201,12 +186,11 @@ set(VIS_HEADERS
 set(RIPENT_DIR ${HLT_DIR}/ripent)
 
 set(RIPENT_SOURCES
-    ${COMMON_SOURCES}
     ${RIPENT_DIR}/ripent.cpp
 )
 
 set(RIPENT_HEADERS
-    ${COMMON_HEADERS}
+#    ${COMMON_HEADERS}
     ${RIPENT_DIR}/ripent.h
 )
 
@@ -216,7 +200,6 @@ set(RIPENT_HEADERS
 
 include_directories(
     ${COMMON_DIR}
-    ${COMMON_BSP_CSG_DIR}
 )
 
 #================
@@ -280,13 +263,21 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # Targets
 #================
 
+add_library(common OBJECT ${COMMON_SOURCES} ${COMMON_HEADERS})
+
 add_executable(hlbsp ${BSP_SOURCES} ${BSP_HEADERS} windows.manifest)
 add_executable(hlcsg ${CSG_SOURCES} ${CSG_HEADERS} windows.manifest)
 add_executable(hlrad ${RAD_SOURCES} ${RAD_HEADERS} windows.manifest)
 add_executable(hlvis ${VIS_SOURCES} ${VIS_HEADERS} windows.manifest)
 add_executable(ripent ${RIPENT_SOURCES} ${RIPENT_HEADERS} windows.manifest)
 
-set_target_properties(hlbsp hlcsg hlrad hlvis ripent
+set_target_properties(common hlbsp hlcsg hlrad hlvis ripent
     PROPERTIES
         CXX_STANDARD 26
 )
+
+target_link_libraries(hlbsp PUBLIC common)
+target_link_libraries(hlcsg PUBLIC common)
+target_link_libraries(hlrad PUBLIC common)
+target_link_libraries(hlvis PUBLIC common)
+target_link_libraries(ripent PUBLIC common)
