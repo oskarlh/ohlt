@@ -411,7 +411,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
                 origin[2] += 1;                            // so objects on floor are ok
 
                 // nudge playerstart around if needed so clipping hulls allways
-                // have a vlaid point
+                // have a valid point
                 if (cl == u8"info_player_start")
                 {
                     int             x, y;

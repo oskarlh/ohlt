@@ -86,7 +86,7 @@ std::size_t count_blocks (const bsp_data& bspData)
 			continue;
 		}
 		std::array<int, 2> extents;
-		vec3_array point;
+		float3_array point{};
 		{
 			int bmins[2];
 			int bmaxs[2];
@@ -96,12 +96,11 @@ std::size_t count_blocks (const bsp_data& bspData)
 				extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
 			}
 
-			point = {};
 			if (f->numedges > 0)
 			{
 				int e = g_dsurfedges[f->firstedge];
 				dvertex_t *v = &g_dvertexes[g_dedges[abs (e)].v[e >= 0? 0: 1]];
-				VectorCopy (v->point, point);
+				point = v->point;
 			}
 		}
 		if (extents[0] < 0 || extents[1] < 0 || extents[0] > std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP) || extents[1] > std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP))

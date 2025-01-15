@@ -1065,7 +1065,7 @@ static void UnparseEntities()
 		{
 			float3_array vec{};
 			{
-				vec = get_float_vector_for_key(*mapent, u8"angles");
+				vec = get_float3_for_key(*mapent, u8"angles");
 				float pitch = float_for_key(*mapent, u8"pitch");
 				if (pitch) {
 					vec[0] = pitch;
@@ -1075,8 +1075,8 @@ static void UnparseEntities()
 				if (!target.empty()) {
 					std::optional<std::reference_wrapper<entity_t>> maybeTargetEnt = find_target_entity(target);
 					if (maybeTargetEnt) {
-						float3_array originA = get_float_vector_for_key(*mapent, u8"origin");
-						float3_array originB = get_float_vector_for_key(maybeTargetEnt.value().get(), u8"origin");
+						float3_array originA = get_float3_for_key(*mapent, u8"origin");
+						float3_array originB = get_float3_for_key(maybeTargetEnt.value().get(), u8"origin");
 						float3_array normal;
 						VectorSubtract(originB, originA, normal);
 						vec = angles_for_vector(normal);

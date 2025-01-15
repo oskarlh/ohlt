@@ -1144,8 +1144,8 @@ int             main(const int argc, char** argv)
 
 			if (current_entity_classname == u8"info_overview_point") {
 				if (g_overview_count < g_overview_max) {
-					vec3_array p{get_vector_for_key(g_entities[i], u8"origin")};
-					VectorCopy (p, g_overview[g_overview_count].origin);
+					const float3_array p{get_float3_for_key(g_entities[i], u8"origin")};
+                    g_overview[g_overview_count].origin = p;
 					g_overview[g_overview_count].visleafnum = VisLeafnumForPoint (p);
 					g_overview[g_overview_count].reverse = IntForKey (&g_entities[i], u8"reverse");
 					g_overview_count++;
@@ -1153,8 +1153,8 @@ int             main(const int argc, char** argv)
 			} else if (current_entity_classname == u8"info_portal") {
                 if (g_room_count < g_room_max)
                 {
-                    vec3_array room_origin{
-                        get_vector_for_key(g_entities[i], u8"origin")
+                    const float3_array room_origin{
+                        get_float3_for_key(g_entities[i], u8"origin")
                     };
                     g_room[g_room_count].visleafnum = VisLeafnumForPoint (room_origin);
                     g_room[g_room_count].neighbor = std::clamp(IntForKey (&g_entities[i], u8"neighbor"), 0, MAX_ROOM_NEIGHBOR);
@@ -1175,8 +1175,8 @@ int             main(const int argc, char** argv)
                         if (key_value_is(&g_entities[j], u8"classname", u8"info_leaf")
                             && key_value_is(&g_entities[j], u8"targetname", target))
                         {
-                            const vec3_array room_target_origin{
-                                get_vector_for_key(g_entities[j], u8"origin")
+                            const float3_array room_target_origin{
+                                get_float3_for_key(g_entities[j], u8"origin")
                             };
                             g_room[g_room_count].target_visleafnum = VisLeafnumForPoint (room_target_origin);
 

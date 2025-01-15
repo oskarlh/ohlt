@@ -125,8 +125,8 @@ void LoadStudioModels() {
 			continue;
 		}
 
-		origin = get_vector_for_key(*e, u8"origin");
-		angles = get_vector_for_key(*e, u8"angles");
+		origin = get_float3_for_key(*e, u8"origin");
+		angles = get_float3_for_key(*e, u8"angles");
 
 		angles[0] = -angles[0]; // Stupid quake bug workaround
 		trace_method trace_mode = trace_method::shadow_normal;	// default mode
@@ -141,9 +141,8 @@ void LoadStudioModels() {
 		int skin = IntForKey(e, u8"skin");
 
 		float scale = float_for_key(*e, u8"scale" );
-		float3_array xform;
 
-		xform = get_vector_for_key(*e, u8"xform" );
+		float3_array xform = get_float3_for_key(*e, u8"xform" );
 
 		if( vectors_almost_same( xform, vec3_origin ))
 			VectorFill( xform, scale );

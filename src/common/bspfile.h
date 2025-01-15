@@ -384,8 +384,8 @@ std::u8string_view get_classname(const entity_t& ent);
 std::int32_t IntForKey(const entity_t* const ent, std::u8string_view key);
 float float_for_key(const entity_t& ent, std::u8string_view key);
 vec3_array get_vector_for_key(const entity_t& ent, std::u8string_view key);
-float3_array get_float_vector_for_key(const entity_t& ent, std::u8string_view key);
-double3_array get_double_vector_for_key(const entity_t& ent, std::u8string_view key);
+float3_array get_float3_for_key(const entity_t& ent, std::u8string_view key);
+double3_array get_double3_for_key(const entity_t& ent, std::u8string_view key);
 
 
 std::optional<std::reference_wrapper<entity_t>> find_target_entity(std::u8string_view target);
