@@ -56,7 +56,7 @@ bounding_box_state test_all(const bounding_box& thisBox, const bounding_box& oth
 }
 
 
-void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_array& mins) noexcept {
+void set_bounding_box(bounding_box& thisBox, const double3_array& maxs, const double3_array& mins) noexcept {
     thisBox.maxs = maxs;
     thisBox.mins = mins;
 }
@@ -64,7 +64,7 @@ void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_
 void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox) noexcept {
     set_bounding_box(thisBox, otherBox.maxs, otherBox.mins);
 }
-void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point) noexcept {
+void add_to_bounding_box(bounding_box& thisBox, const double3_array& point) noexcept {
     thisBox.mins[0] = std::min(thisBox.mins[0], point[0]);
     thisBox.maxs[0] = std::max(thisBox.maxs[0], point[0]);
     thisBox.mins[1] = std::min(thisBox.mins[1], point[1]);
@@ -72,8 +72,10 @@ void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point) noexcep
     thisBox.mins[2] = std::min(thisBox.mins[2], point[2]);
     thisBox.maxs[2] = std::max(thisBox.maxs[2], point[2]);
 }
+void add_to_bounding_box(bounding_box& thisBox, const float3_array& point) noexcept {
+    add_to_bounding_box(thisBox, to_double3(point));
+}
 void add_to_bounding_box(bounding_box& thisBox, bounding_box& other) noexcept {
     add_to_bounding_box(thisBox, other.maxs);
     add_to_bounding_box(thisBox, other.mins);
 }
-

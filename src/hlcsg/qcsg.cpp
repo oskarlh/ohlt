@@ -1484,7 +1484,7 @@ static void     BoundWorld()
     int             i;
     brushhull_t*    h;
 
-    world_bounds = bounding_box{};
+    world_bounds = empty_bounding_box;
 
     for (i = 0; i < g_nummapbrushes; i++)
     {

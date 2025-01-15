@@ -68,15 +68,15 @@ struct side_t {
 };
 
 struct bface_t {
-    Winding w{};
-    mapplane_t* plane{};
-    bounding_box bounds{};
-    int planenum{};
-    int texinfo{};
-    int contents{};
-    int backcontents{};
-    bool used{}; // just for face counting
-	bool bevel{}; //used for ExpandBrush
+    Winding w;
+    mapplane_t* plane;
+    bounding_box bounds;
+    int planenum;
+    int texinfo;
+    int contents;
+    int backcontents;
+    bool used; // just for face counting
+	bool bevel; //used for ExpandBrush
 };
 
 // NUM_HULLS should be no larger than MAX_MAP_HULLS

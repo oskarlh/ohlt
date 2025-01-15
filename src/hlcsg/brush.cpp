@@ -8,9 +8,9 @@ int             g_nummapplanes;
 hullshape_t		g_defaulthulls[NUM_HULLS]{};
 std::vector<hullshape_t> g_hullshapes{};
 
-constexpr vec_t DIST_EPSILON = 0.04;
+constexpr double DIST_EPSILON = 0.04;
 
-constexpr vec_t FLOOR_Z = 0.7; // Quake default
+constexpr double FLOOR_Z = 0.7; // Quake default
 
 
 // =====================================================================================
@@ -20,12 +20,12 @@ constexpr vec_t FLOOR_Z = 0.7; // Quake default
 //	very large given the change from O(N^2) to O(NlogN) to build the set of planes.
 // =====================================================================================
 
-static int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
+static int FindIntPlane(const double* const normal, const double* const origin)
 {
     int             returnval;
     mapplane_t*        p;
     mapplane_t         temp;
-    vec_t           t;
+    double           t;
 
 	returnval = 0;
 
@@ -95,7 +95,7 @@ static int FindIntPlane(const vec_t* const normal, const vec_t* const origin)
 
 
 
-int PlaneFromPoints(const vec_t* const p0, const vec_t* const p1, const vec_t* const p2)
+int PlaneFromPoints(const double* const p0, const double* const p1, const double* const p2)
 {
     vec3_array          v1, v2;
     vec3_array          normal;
@@ -124,7 +124,7 @@ const char* GetClipTypeString(cliptype ct)
 //  Called to add any and all clip hull planes by the new ExpandBrush.
 // =====================================================================================
 
-static void AddHullPlane(brushhull_t* hull, const vec_t* const normal, const vec_t* const origin, const bool check_planenum)
+static void AddHullPlane(brushhull_t* hull, const double* const normal, const double* const origin, const bool check_planenum)
 {
 	int planenum = FindIntPlane(normal,origin);
 	//check to see if this plane is already in the brush (optional to speed
@@ -208,14 +208,14 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 				continue;
 			}
 			// now test precisely
-			vec_t dotmin;
-			vec_t dotmax;
+			double dotmin;
+			double dotmax;
 			dotmin = g_iWorldExtent;
 			dotmax = -g_iWorldExtent;
 			hlassume (hbf->numvertexes >= 1, assume_first);
 			for (vec3_array *v = hbf->vertexes; v < hbf->vertexes + hbf->numvertexes; v++)
 			{
-				vec_t dot;
+				double dot;
 				dot = DotProduct (*v, brushface.normal);
 				dotmin = std::min(dotmin, dot);
 				dotmax = std::max(dotmax, dot);
@@ -236,7 +236,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		
 		// find the impact point
 		vec3_array bestvertex;
-		vec_t bestdist;
+		double bestdist;
 		bestdist = g_iWorldExtent;
 		hlassume (hb->numvertexes >= 1, assume_first);
 		for (hbv = hb->vertexes; hbv < hb->vertexes + hb->numvertexes; hbv++)
@@ -300,7 +300,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			}
 
 			// make sure the math is accurate
-			vec_t len;
+			double len;
 			len = vector_length(brushedge.delta);
 			CrossProduct (brushedge.normals[0], brushedge.normals[1], brushedge.delta);
 			if (!normalize_vector(brushedge.delta))
@@ -312,7 +312,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			// check for each edge in the hullbrush
 			for (hbe = hb->edges; hbe < hb->edges + hb->numedges; hbe++)
 			{
-				vec_t dot[4];
+				double dot[4];
 				dot[0] = DotProduct (hbe->delta, brushedge.normals[0]);
 				dot[1] = DotProduct (hbe->delta, brushedge.normals[1]);
 				dot[2] = DotProduct (brushedge.delta, hbe->normals[0]);
@@ -347,7 +347,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 	{
 		// find the impact point
 		vec3_array bestvertex;
-		vec_t bestdist = g_iWorldExtent;
+		double bestdist = g_iWorldExtent;
 		if (hull0->faces.empty())
 		{
 			continue;
@@ -672,7 +672,7 @@ void MakeHullFaces(const brush_t* const b, brushhull_t *h)
 	SortSides (h);
 
 restart:
-    h->bounds = bounding_box{};
+    h->bounds = empty_bounding_box;
 
     // for each face in this brushes hull
     for (bface_t& f : h->faces)
@@ -1163,7 +1163,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		axial = plane_type_for_normal(normal);
 		if (axial <= last_axial)
 		{
-			vec_t sign = normal[std::size_t(axial)] > 0 ? 1: -1;
+			double sign = normal[std::size_t(axial)] > 0 ? 1: -1;
 			normal = vec3_array{};
 			normal[std::size_t(axial)] = sign;
 		}
@@ -1189,7 +1189,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			{
 				continue;
 			}
-			vec_t dist;
+			double dist;
 			const vec3_array normal = negate_vector(planes[j].normal);
 			dist = -planes[j].dist;
 			if (!w[i]->Chop (normal, dist))

@@ -1388,10 +1388,10 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		{
 			vec_t           amt;
 			vec_t           length;
-			vec3_array          delta;
+			float3_array delta;
 
 			bounding_box bounds = patch->winding->getBounds();
-			VectorSubtract(bounds.maxs, bounds.mins, delta);
+			VectorSubtract(to_float3(bounds.maxs), to_float3(bounds.mins), delta);
 			length = vector_length(delta);
 			amt = patch->chop;
 

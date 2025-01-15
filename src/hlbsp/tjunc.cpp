@@ -449,7 +449,7 @@ restart:
     {
         j = (i + 1) % superface->numpoints;
 
-        w = FindEdge(superface->pts[i].data(), superface->pts[j].data(), &t1, &t2);
+        w = FindEdge(superface->pts[i], superface->pts[j], &t1, &t2);
 
         for (v = w->head.next; v->t < t1 + T_EPSILON; v = v->next)
         {

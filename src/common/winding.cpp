@@ -93,7 +93,7 @@ vec_t Winding::getArea() const {
 }
 
 bounding_box Winding::getBounds() const {
-    bounding_box bounds{};
+    bounding_box bounds = empty_bounding_box;
     for (const vec3_array& point : m_Points)
     {
         add_to_bounding_box(bounds, point);

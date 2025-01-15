@@ -4,8 +4,13 @@
 
 
 struct bounding_box {
-    vec3_array maxs = { -999999999.999, -999999999.999, -999999999.999 };
-    vec3_array mins = { 999999999.999, 999999999.999, 999999999.999 };
+    double3_array mins;
+    double3_array maxs;
+};
+
+constexpr bounding_box empty_bounding_box {
+    .mins = double3_array{ 999999999.999, 999999999.999, 999999999.999 },
+    .maxs = double3_array{ -999999999.999, -999999999.999, -999999999.999 }
 };
 
 
@@ -34,9 +39,10 @@ bounding_box_state test_all(const bounding_box& thisBox, const bounding_box& oth
 
 
 
-void set_bounding_box(bounding_box& thisBox, const vec3_array& maxs, const vec3_array& mins) noexcept;
+void set_bounding_box(bounding_box& thisBox, const double3_array& maxs, const double3_array& mins) noexcept;
 
 void set_bounding_box(bounding_box& thisBox, const bounding_box& otherBox) noexcept;
 
-void add_to_bounding_box(bounding_box& thisBox, const vec3_array& point) noexcept;
+void add_to_bounding_box(bounding_box& thisBox, const double3_array& point) noexcept;
+void add_to_bounding_box(bounding_box& thisBox, const float3_array& point) noexcept;
 void add_to_bounding_box(bounding_box& thisBox, bounding_box& other) noexcept;
