@@ -7,41 +7,23 @@
 int g_numtextures;
 radtexture_t *g_textures;
 
-typedef struct waddir_s
-{
-	struct waddir_s *next;
-	char path[_MAX_PATH];
-} waddir_t;
-waddir_t *g_waddirs = nullptr;
+std::vector<std::filesystem::path> g_wadDirs;
 
-void AddWadFolder (const char *path)
-{
-	waddir_t *waddir;
-	waddir = (waddir_t *)malloc (sizeof (waddir_t));
-	hlassume (waddir != nullptr, assume_NoMemory);
-	{
-		waddir_t **pos;
-		for (pos = &g_waddirs; *pos; pos = &(*pos)->next)
-			;
-		waddir->next = *pos;
-		*pos = waddir;
-	}
-	safe_snprintf (waddir->path, _MAX_PATH, "%s", path);
+void AddWadFolder(std::filesystem::path path) {
+	g_wadDirs.emplace_back(std::move(path));
 }
 
 
 
-struct wadfile_t
-{
-	struct wadfile_t *next;
-	char path[_MAX_PATH];
+struct wadfile_t {
+	wad_lumpinfo *lumpinfos;
 	FILE *file;
+	std::filesystem::path path;
 	int filesize;
 	int numlumps;
-	lumpinfo_t *lumpinfos;
 };
+std::vector<wadfile_t> g_wadFiles;
 
-wadfile_t *g_wadfiles = nullptr;
 bool g_wadfiles_opened;
 
 constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
@@ -49,85 +31,67 @@ constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
 }
 static int lump_sorter_by_name (const void *lump1, const void *lump2)
 {
-	lumpinfo_t *plump1 = (lumpinfo_t *)lump1;
-	lumpinfo_t *plump2 = (lumpinfo_t *)lump2;
+	wad_lumpinfo *plump1 = (wad_lumpinfo *)lump1;
+	wad_lumpinfo *plump2 = (wad_lumpinfo *)lump2;
 	return ordering_as_int(plump1->name <=> plump2->name);
 }
 
-void OpenWadFile (const char *name
-	, bool fullpath = false
-	)
-{
-	wadfile_t *wad;
-	wad = (wadfile_t *)malloc (sizeof (wadfile_t));
-	hlassume (wad != nullptr, assume_NoMemory);
-	{
-		wadfile_t **pos;
-		for (pos = &g_wadfiles; *pos; pos = &(*pos)->next)
-			;
-		wad->next = *pos;
-		*pos = wad;
-	}
-   if (fullpath)
-   {
-	safe_snprintf (wad->path, _MAX_PATH, "%s", name);
-	wad->file = fopen (wad->path, "rb");
-	if (!wad->file)
-	{
-		Error ("Couldn't open %s", wad->path);
-	}
-   }
-   else
-   {
-	waddir_t *dir;
-	for (dir = g_waddirs; dir; dir = dir->next)
-	{
-		safe_snprintf (wad->path, _MAX_PATH, "%s\\%s", dir->path, name);
-		wad->file = fopen (wad->path, "rb");
-		if (wad->file)
-		{
-			break;
+void OpenWadFile(std::filesystem::path name, bool fullpath = false) {
+	wadfile_t wad{};
+	if(fullpath) {
+		wad.path = std::move(name);
+		wad.file = fopen (wad.path.c_str(), "rb");
+		if (!wad.file) {
+			Error("Couldn't open %s", wad.path.c_str());
+		}
+	} else {
+		for (const std::filesystem::path& dirPath : g_wadDirs) {
+			wad.path = dirPath / name;
+			wad.file = fopen (wad.path.c_str(), "rb");
+			if (wad.file) {
+				break;
+			}
+		}
+		if (!wad.file) {
+			Fatal (assume_COULD_NOT_LOCATE_WAD, "Could not locate wad file %s", name.c_str());
+			return;
 		}
 	}
-	if (!dir)
-	{
-		Fatal (assume_COULD_NOT_LOCATE_WAD, "Could not locate wad file %s", name);
-		return;
-	}
-   }
-	Log ("Using Wadfile: %s\n", wad->path);
-	wad->filesize = q_filelength (wad->file);
+	Log ("Using Wadfile: %s\n", wad.path.c_str());
+	wad.filesize = q_filelength(wad.file);
 	wadinfo_t wadinfo;
-	if (wad->filesize < (int)sizeof (wadinfo))
+	if (wad.filesize < (int)sizeof (wadinfo))
 	{
-		Error ("Invalid wad file '%s'.", wad->path);
+		Error ("Invalid wad file '%s'.", wad.path.c_str());
 	}
-	SafeRead (wad->file, &wadinfo, sizeof (wadinfo));
+	SafeRead (wad.file, &wadinfo, sizeof (wadinfo));
 	wadinfo.numlumps  = (wadinfo.numlumps);
 	wadinfo.infotableofs = (wadinfo.infotableofs);
 	if (!has_wad_identification(wadinfo))
-		Error ("%s isn't a Wadfile!", wad->path);
-	wad->numlumps = wadinfo.numlumps;
-	if (wad->numlumps < 0 || wadinfo.infotableofs < 0 || wadinfo.infotableofs + wad->numlumps * (int)sizeof (lumpinfo_t) > wad->filesize)
+		Error ("%s isn't a Wadfile!", wad.path.c_str());
+	wad.numlumps = wadinfo.numlumps;
+	if (wad.numlumps < 0 || wadinfo.infotableofs < 0 || wadinfo.infotableofs + wad.numlumps * (int)sizeof (wad_lumpinfo) > wad.filesize)
 	{
-		Error ("Invalid wad file '%s'.", wad->path);
+		Error ("Invalid wad file '%s'.", wad.path.c_str());
 	}
-	wad->lumpinfos = (lumpinfo_t *)malloc (wad->numlumps * sizeof (lumpinfo_t));
-	hlassume (wad->lumpinfos != nullptr, assume_NoMemory);
-    if (fseek (wad->file, wadinfo.infotableofs, SEEK_SET))
-		Error ("File read failure: %s", wad->path);
-	for (std::size_t i = 0; i < wad->numlumps; ++i)
+	wad.lumpinfos = (wad_lumpinfo *)malloc (wad.numlumps * sizeof (wad_lumpinfo));
+	hlassume (wad.lumpinfos != nullptr, assume_NoMemory);
+    if (fseek (wad.file, wadinfo.infotableofs, SEEK_SET))
+		Error ("File read failure: %s", wad.path.c_str());
+	for (std::size_t i = 0; i < wad.numlumps; ++i)
 	{
-		SafeRead (wad->file, &wad->lumpinfos[i], sizeof (lumpinfo_t));
-		if (!wad->lumpinfos[i].name.validate_and_normalize())
+		SafeRead (wad.file, &wad.lumpinfos[i], sizeof (wad_lumpinfo));
+		if (!wad.lumpinfos[i].name.validate_and_normalize())
 		{
-			Error("Texture number %zu has a bad name. The WAD file %s has been corrupted or it was generated by a program that either incorrectly tries to write texture names longer than 15 code units or writes non-UTF-8 names.", i, wad->path);
+			Error("Texture number %zu has a bad name. The WAD file %s has been corrupted or it was generated by a program that either incorrectly tries to write texture names longer than 15 code units or writes non-UTF-8 names.", i, wad.path.c_str());
 		}
-		wad->lumpinfos[i].filepos = (wad->lumpinfos[i].filepos);
-		wad->lumpinfos[i].disksize = (wad->lumpinfos[i].disksize);
-		wad->lumpinfos[i].size = (wad->lumpinfos[i].size);
+		wad.lumpinfos[i].filepos = (wad.lumpinfos[i].filepos);
+		wad.lumpinfos[i].disksize = (wad.lumpinfos[i].disksize);
+		wad.lumpinfos[i].size = (wad.lumpinfos[i].size);
 	}
-	qsort (wad->lumpinfos, wad->numlumps, sizeof (lumpinfo_t), lump_sorter_by_name);
+	qsort (wad.lumpinfos, wad.numlumps, sizeof (wad_lumpinfo), lump_sorter_by_name);
+
+	g_wadFiles.push_back(std::move(wad));
 }
 
 void TryOpenWadFiles ()
@@ -148,16 +112,14 @@ void TryOpenWadFiles ()
 	{
 		Warning ("Couldn't open %s", filename);
 		Log ("Opening wad files from directories:\n");
-		if (!g_waddirs)
+		if (g_wadDirs.empty())
 		{
 			Warning ("No wad directories have been set.");
 		}
 		else
 		{
-			waddir_t *dir;
-			for (dir = g_waddirs; dir; dir = dir->next)
-			{
-				Log ("  %s\n", dir->path);
+			for (const std::filesystem::path& dirPath : g_wadDirs) {
+				Log("  %s\n", dirPath.c_str());
 			}
 		}
 		std::u8string_view wadValue = value_for_key(&g_entities[0], u8"wad");
@@ -189,15 +151,12 @@ void TryCloseWadFiles ()
 		return;
 	}
 	g_wadfiles_opened = false;
-	wadfile_t *wadfile, *next;
-	for (wadfile = g_wadfiles; wadfile; wadfile = next)
+	for (wadfile_t& wadfile : g_wadFiles)
 	{
-		next = wadfile->next;
-		free (wadfile->lumpinfos);
-		fclose (wadfile->file);
-		free (wadfile);
+		free (wadfile.lumpinfos);
+		fclose (wadfile.file);
 	}
-	g_wadfiles = nullptr;
+	g_wadFiles.clear();
 }
 
 static void DefaultTexture (radtexture_t *tex, wad_texture_name name)
@@ -260,47 +219,48 @@ void LoadTexture (radtexture_t *tex, const miptex_t *mt, int size)
 
 void LoadTextureFromWad (radtexture_t *tex, const miptex_t *header)
 {
+	bool loadedTexture = false;
 	tex->width = header->width;
 	tex->height = header->height;
 	tex->name = header->name;
-	wadfile_t *wad;
-	for (wad = g_wadfiles; wad; wad = wad->next)
+	for (wadfile_t& wad : g_wadFiles)
 	{
-		lumpinfo_t temp, *found;
+		wad_lumpinfo temp;
 		temp.name = tex->name;
-		found = (lumpinfo_t *)bsearch (&temp, wad->lumpinfos, wad->numlumps, sizeof (lumpinfo_t), lump_sorter_by_name);
+		wad_lumpinfo* found = (wad_lumpinfo *)bsearch (&temp, wad.lumpinfos, wad.numlumps, sizeof (wad_lumpinfo), lump_sorter_by_name);
 		if (found)
 		{
-			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", tex->name.c_str(), wad->path);
+			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': found in '%s'.\n", tex->name.c_str(), wad.path.c_str());
 			if (found->type != 67 || found->compression != 0)
 				continue;
-			if (found->disksize < (int)sizeof (miptex_t) || found->filepos < 0 || found->filepos + found->disksize > wad->filesize)
+			if (found->disksize < (int)sizeof (miptex_t) || found->filepos < 0 || found->filepos + found->disksize > wad.filesize)
 			{
-				Warning ("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad->path);
+				Warning ("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad.path.c_str());
 				continue;
 			}
 			miptex_t *mt = (miptex_t *)malloc (found->disksize);
 			hlassume (mt != nullptr, assume_NoMemory);
-			if (fseek (wad->file, found->filepos, SEEK_SET))
+			if (fseek (wad.file, found->filepos, SEEK_SET))
 				Error ("File read failure");
-			SafeRead (wad->file, mt, found->disksize);
+			SafeRead (wad.file, mt, found->disksize);
 			if (!mt->name.validate_and_normalize())
 			{
-				Warning("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad->path);
+				Warning("Texture '%s': invalid texture data in '%s'.", tex->name.c_str(), wad.path.c_str());
 				free (mt);
 				continue;
 			}
 			Developer (DEVELOPER_LEVEL_MESSAGE, "Texture '%s': name '%s', width %d, height %d.\n", tex->name.c_str(), mt->name.c_str(), mt->width, mt->height);
 			if (!strings_equal_with_ascii_case_insensitivity (mt->name, tex->name))
 			{
-				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name.c_str(), mt->name.c_str(), tex->name.c_str(), wad->path);
+				Warning("Texture '%s': texture name '%s' differs from its reference name '%s' in '%s'.", tex->name.c_str(), mt->name.c_str(), tex->name.c_str(), wad.path.c_str());
 			}
 			LoadTexture (tex, mt, found->disksize);
 			free (mt);
+			loadedTexture = true;
 			break;
 		}
 	}
-	if (!wad)
+	if (!loadedTexture)
 	{
 		Warning ("Texture '%s': texture is not found in wad files.", tex->name.c_str());
 		DefaultTexture (tex, tex->name);

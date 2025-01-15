@@ -206,7 +206,7 @@ struct opaqueface_t {
 	fast_winding *winding;
 	dplane_t plane;
 	dplane_t *edges;
-	float tex_vecs[2][4];
+	tex_vecs texVecs;
 	std::uint32_t numedges;
 	std::int32_t texinfo;
 	std::uint32_t gTexturesIndex;
@@ -436,7 +436,7 @@ void CreateOpaqueNodes () {
 		{
 			for (std::size_t  k = 0; k < 4; ++k)
 			{
-				of->tex_vecs[j][k] = info->vecs[j][k];
+				of->texVecs[j][k] = info->vecs[j][k];
 			}
 		}
 		radtexture_t *tex = &g_textures[info->miptex];
@@ -507,8 +507,8 @@ static int TestLineOpaque_face (int facenum, const float3_array& hit)
 	if (thisface->tex_alphatest)
 	{
 		const radtexture_t& tex = g_textures[thisface->gTexturesIndex];
-		double x = DotProduct (hit, thisface->tex_vecs[0]) + thisface->tex_vecs[0][3];
-		double y = DotProduct (hit, thisface->tex_vecs[1]) + thisface->tex_vecs[1][3];
+		double x = DotProduct (hit, thisface->texVecs[0]) + thisface->texVecs[0][3];
+		double y = DotProduct (hit, thisface->texVecs[1]) + thisface->texVecs[1][3];
 		x = floor (x - tex.width * floor (x / tex.width));
 		y = floor (y - tex.height * floor (y / tex.height));
 		x = x > tex.width - 1? tex.width - 1: x < 0? 0: x;

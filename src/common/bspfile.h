@@ -236,8 +236,9 @@ struct dclipnode_t {
     std::int16_t children[2]; // Negative numbers are contents
 };
 
+using tex_vecs = std::array<std::array<float, 4>, 2>; // [s/t][xyz offset]
 struct texinfo_t {
-    std::array<std::array<float, 4>, 2> vecs; // [s/t][xyz offset]
+    tex_vecs vecs;
     std::int32_t miptex;
     std::uint32_t flags;
 };

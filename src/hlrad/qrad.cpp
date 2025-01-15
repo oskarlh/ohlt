@@ -3644,7 +3644,7 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				AddWadFolder (argv[++i]);
+				AddWadFolder(std::filesystem::path(argv[++i], std::filesystem::path::auto_format));
 			}
 			else
 			{

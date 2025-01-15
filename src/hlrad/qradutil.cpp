@@ -2,8 +2,7 @@
 
 static dplane_t backplanes[MAX_MAP_PLANES];
 
-dleaf_t*		PointInLeaf_Worst_r(int nodenum, const float3_array& point)
-{
+dleaf_t* PointInLeaf_Worst_r(int nodenum, const float3_array& point) {
 	float			dist;
 	dnode_t*		node;
 	dplane_t*		plane;
@@ -333,15 +332,14 @@ void TranslateWorldToTex (int facenum, matrix_t &m)
 
 bool InvertMatrix (const matrix_t &m, matrix_t &m_inverse)
 {
-	double texplanes[2][4];
-	double faceplane[4];
-	int i;
-	double texaxis[2][3];
-	double normalaxis[3];
+	std::array<std::array<double, 4>, 2> texplanes;
+	std::array<double, 4> faceplane;
+	std::array<std::array<double, 3>, 2> texaxis;
+	double3_array normalaxis;
 	double det, sqrlen1, sqrlen2, sqrlen3;
-	double texorg[3];
+	double3_array texorg;
 
-	for (i = 0; i < 4; i++)
+	for (std::size_t i = 0; i < 4; ++i)
 	{
 		texplanes[0][i] = m.v[i][0];
 		texplanes[1][i] = m.v[i][1];
@@ -383,22 +381,19 @@ bool InvertMatrix (const matrix_t &m, matrix_t &m_inverse)
 	return true;
 }
 
-typedef struct
-{
+struct position_t {
 	bool valid;
 	bool nudged;
 	float best_s; // FindNearestPosition will return this value
 	float best_t;
 	float3_array pos; // with DEFAULT_HUNT_OFFSET
-}
-position_t;
+};
 
 // Size of potision_t (21) * positions per sample (9) * max number of samples (max AllocBlock (64) * 128 * 128)
 //   = 200MB of RAM
 // But they are freed before BuildVisLeafs, so it's not a problem.
 
-typedef struct
-{
+struct positionmap_t {
 	bool valid;
 	int facenum;
 	float3_array face_offset;
@@ -417,8 +412,7 @@ typedef struct
 	int w; // number of s
 	int h; // number of t
 	position_t *grid; // [h][w]
-}
-positionmap_t;
+};
 
 static positionmap_t g_face_positions[MAX_MAP_FACES];
 

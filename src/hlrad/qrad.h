@@ -334,7 +334,7 @@ struct radtexture_t {
 };
 extern int g_numtextures;
 extern radtexture_t *g_textures;
-extern void AddWadFolder (const char *path);
+extern void AddWadFolder(std::filesystem::path);
 extern void LoadTextures ();
 extern void EmbedLightmapInTextures ();
 

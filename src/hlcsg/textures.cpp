@@ -16,7 +16,7 @@ using namespace std::literals;
 
 struct lumpinfo_with_wadfileindex
 {
-    lumpinfo_t lump_info;
+    wad_lumpinfo lump_info;
     int iTexFile;                              // index of the wad this texture is located in
 };
 
@@ -597,7 +597,7 @@ void WriteMiptex(const std::filesystem::path& bspPath)
 		char writewad_name[_MAX_PATH]; //Write temp wad file with processed textures
 		FILE *writewad_file;
 		int writewad_maxlumpinfos;
-		lumpinfo_t *writewad_lumpinfos;
+		wad_lumpinfo *writewad_lumpinfos;
 		wadinfo_t writewad_header;
 
 		safe_snprintf (writewad_name, _MAX_PATH, "%s.wa_", g_Mapname); //Generate temp wad file name based on mapname
@@ -605,7 +605,7 @@ void WriteMiptex(const std::filesystem::path& bspPath)
 
         //Malloc for storing lump info
 		writewad_maxlumpinfos = nummiptex;
-		writewad_lumpinfos = (lumpinfo_t *)malloc (writewad_maxlumpinfos * sizeof (lumpinfo_t));
+		writewad_lumpinfos = (wad_lumpinfo *)malloc (writewad_maxlumpinfos * sizeof (wad_lumpinfo));
 		hlassume (writewad_lumpinfos != nullptr, assume_NoMemory);
 
         //Header for the temp wad file
@@ -627,7 +627,7 @@ void WriteMiptex(const std::filesystem::path& bspPath)
 			if (writewad_data)
 			{
                 //Prepare lump info for temp wad file
-				lumpinfo_t *writewad_lumpinfo = &writewad_lumpinfos[writewad_header.numlumps];
+				wad_lumpinfo *writewad_lumpinfo = &writewad_lumpinfos[writewad_header.numlumps];
 				writewad_lumpinfo->filepos = ftell (writewad_file);
 				writewad_lumpinfo->disksize = writewad_datasize;
 				writewad_lumpinfo->size = miptex[i].lump_info.size;
@@ -657,7 +657,7 @@ void WriteMiptex(const std::filesystem::path& bspPath)
         g_texdatasize = data - g_dtexdata.data();
         //Write lump info and header to the temp wad file
 		writewad_header.infotableofs = ftell (writewad_file);
-		SafeWrite (writewad_file, writewad_lumpinfos, writewad_header.numlumps * sizeof (lumpinfo_t));
+		SafeWrite (writewad_file, writewad_lumpinfos, writewad_header.numlumps * sizeof (wad_lumpinfo));
 		if (fseek (writewad_file, 0, SEEK_SET))
 			Error ("File write failure");
 		SafeWrite (writewad_file, &writewad_header, sizeof (wadinfo_t));

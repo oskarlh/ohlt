@@ -18,7 +18,7 @@ constexpr bool has_wad_identification(const wadinfo_t& wadHeader) {
     return std::u8string_view{wadHeader.identification} == u8"WAD3";
 }
 
-struct lumpinfo_t { // Lump info in WAD
+struct wad_lumpinfo { // Lump info in WAD
     std::int32_t filepos;
     std::int32_t disksize;
     std::int32_t size; // Uncompressed

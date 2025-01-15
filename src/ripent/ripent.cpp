@@ -470,10 +470,10 @@ static void		WriteTextures(const char* const name)
 
 		SafeWrite (wadfile, (byte *)g_dtexdata.data() + dataofs, g_texdatasize - dataofs);
 
-		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (lumpinfo_t));
+		wad_lumpinfo *info;
+		info = (wad_lumpinfo *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (wad_lumpinfo));
 		hlassume (info != nullptr, assume_NoMemory);
-		memset (info, 0, header.numlumps * sizeof(lumpinfo_t));
+		memset (info, 0, header.numlumps * sizeof(wad_lumpinfo));
 
 		for (int i = 0; i < header.numlumps; i++)
 		{
@@ -494,7 +494,7 @@ static void		WriteTextures(const char* const name)
 			info[i].compression = 0;
 			info[i].name = ofs >= 0? wad_texture_name{((miptex_t*)(g_dtexdata.data()+ofs))->name}: wad_texture_name{u8"texturemissing"};
 		}
-		SafeWrite (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
+		SafeWrite (wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 		free (info);
 	}
 	else
@@ -509,8 +509,8 @@ static void		WriteTextures(const char* const name)
 		header.identification[3] = '3';
 		header.numlumps = 0;
 		
-		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (lumpinfo_t)); // might be more than needed
+		wad_lumpinfo *info;
+		info = (wad_lumpinfo *)malloc (((dmiptexlump_t*)g_dtexdata.data())->nummiptex * sizeof (wad_lumpinfo)); // might be more than needed
 		hlassume (info != nullptr, assume_NoMemory);
 
 		fprintf (texfile, "%d\r\n", ((dmiptexlump_t*)g_dtexdata.data())->nummiptex);
@@ -536,7 +536,7 @@ static void		WriteTextures(const char* const name)
 					included = true;
 				if (included)
 				{
-					memset (&info[header.numlumps], 0, sizeof (lumpinfo_t));
+					memset (&info[header.numlumps], 0, sizeof (wad_lumpinfo));
 					info[header.numlumps].filepos = ftell (wadfile);
 					SafeWrite (wadfile, tex, size);
 					info[header.numlumps].disksize = ftell (wadfile) - info[header.numlumps].filepos;
@@ -553,7 +553,7 @@ static void		WriteTextures(const char* const name)
 			}
 		}
 		header.infotableofs = ftell (wadfile);
-		SafeWrite (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
+		SafeWrite (wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 		fseek (wadfile, 0, SEEK_SET);
 		SafeWrite (wadfile, &header, sizeof(wadinfo_t));
 
@@ -586,10 +586,10 @@ static void		ReadTextures(const char *name)
 
 		SafeRead (wadfile, (byte *)g_dtexdata.data() + dataofs, g_texdatasize - dataofs);
 		
-		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (header.numlumps * sizeof (lumpinfo_t));
+		wad_lumpinfo *info;
+		info = (wad_lumpinfo *)malloc (header.numlumps * sizeof (wad_lumpinfo));
 		hlassume (info != nullptr, assume_NoMemory);
-		SafeRead (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
+		SafeRead (wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 
 		for (int i = 0; i < header.numlumps; i++)
 		{
@@ -607,10 +607,10 @@ static void		ReadTextures(const char *name)
 		SafeRead (wadfile, &header, sizeof(wadinfo_t));
 		fseek (wadfile, header.infotableofs, SEEK_SET);
 
-		lumpinfo_t *info;
-		info = (lumpinfo_t *)malloc (header.numlumps * sizeof (lumpinfo_t));
+		wad_lumpinfo *info;
+		info = (wad_lumpinfo *)malloc (header.numlumps * sizeof (wad_lumpinfo));
 		hlassume (info != nullptr, assume_NoMemory);
-		SafeRead (wadfile, info, header.numlumps * sizeof(lumpinfo_t));
+		SafeRead (wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 
 		int nummiptex = 0;
 		if (skipspace (texfile), fscanf (texfile, "%d", &nummiptex) != 1)
