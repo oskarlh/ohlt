@@ -81,7 +81,7 @@ bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 	// we have two edge directions, we can calculate the normal
 	CrossProduct( facet->edge2, facet->edge1, n );
 
-	if( vectors_almost_same( n, vec3_origin ))
+	if( vectors_almost_same( n, float3_array{} ))
 		return false; // degenerate triangle
 
 	VectorSubtract( m_vecEnd, m_vecStart, p );

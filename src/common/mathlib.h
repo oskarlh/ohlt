@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cstdint>
 
-extern const vec3_array vec3_origin;
 
 // HLCSG_HLBSP_DOUBLEPLANE: We could use smaller epsilon for hlcsg and hlbsp (hlcsg and hlbsp use double as vec_t), which will totally eliminate all epsilon errors. But we choose this big epsilon to tolerate the imprecision caused by Hammer. Basically, this is a balance between precision and flexibility.
 constexpr float NORMAL_EPSILON{0.00001f}; 

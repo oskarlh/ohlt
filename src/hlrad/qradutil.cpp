@@ -443,7 +443,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 	hunt_offset = DotProduct (pos, map->faceplanewithoffset.normal) - map->faceplanewithoffset.dist; // might be smaller than DEFAULT_HUNT_OFFSET
 
 	// push the point 0.2 units around to avoid walls
-	if (!HuntForWorld (pos, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+	if (!HuntForWorld (pos, float3_array{}, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 	{
 		return false;
 	}
@@ -458,7 +458,7 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 		VectorCopy (pos, test);
 		snap_to_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, test.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
 
-		if (!HuntForWorld (test, vec3_origin, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
+		if (!HuntForWorld (test, float3_array{}, &map->faceplanewithoffset, hunt_size, hunt_scale, hunt_offset))
 		{
 			return false;
 		}

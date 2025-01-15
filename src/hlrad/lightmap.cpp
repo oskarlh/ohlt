@@ -1237,8 +1237,8 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, vec_t s, vec_t t,
 	info->head->flippedangle = 0.0;
 	info->head->noseam = true;
 
-	info->head->coordtomycoord = MatrixForScale(vec3_origin, 1.0);
-	info->head->mycoordtocoord = MatrixForScale(vec3_origin, 1.0);
+	info->head->coordtomycoord = MatrixForScale({0.0f, 0.0f, 0.0f}, 1.0f);
+	info->head->mycoordtocoord = MatrixForScale({0.0f, 0.0f, 0.0f}, 1.0f);
 
 	info->head->origin[0] = s;
 	info->head->origin[1] = t;
@@ -2112,7 +2112,7 @@ void            CreateDirectLights()
 				case emit_surface:
 				case emit_point:
 				case emit_spotlight:
-					if (!vectors_almost_same(dl->intensity, vec3_origin))
+					if (!vectors_almost_same(dl->intensity, float3_array{}))
 					{
 						if (dl->topatch)
 						{
@@ -2125,7 +2125,7 @@ void            CreateDirectLights()
 					}
 					break;
 				case emit_skylight:
-					if (!vectors_almost_same(dl->intensity, vec3_origin))
+					if (!vectors_almost_same(dl->intensity, float3_array{}))
 					{
 						if (dl->topatch)
 						{
@@ -2146,7 +2146,7 @@ void            CreateDirectLights()
 							}
 						}
 					}
-					if (g_indirect_sun > 0 && !vectors_almost_same(dl->diffuse_intensity, vec3_origin))
+					if (g_indirect_sun > 0 && !vectors_almost_same(dl->diffuse_intensity, float3_array{}))
 					{
 						if (g_softsky)
 						{
@@ -2560,8 +2560,8 @@ static void     GatherSampleLight(const vec3_array& pos, const byte* const pvs, 
 							if (g_indirect_sun <= 0.0 ||
 								vectors_almost_same (
 									l->diffuse_intensity,
-									vec3_origin)
-								&& vectors_almost_same (l->diffuse_intensity2, vec3_origin)
+									float3_array{})
+								&& vectors_almost_same (l->diffuse_intensity2, float3_array{})
 								)
 								continue;
 
@@ -3484,7 +3484,7 @@ void            BuildFacelights(const int facenum)
     l.face = f;
 
 	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], l.translucent_v);
-	l.translucent_b = !vectors_almost_same (l.translucent_v, vec3_origin);
+	l.translucent_b = !vectors_almost_same (l.translucent_v, float3_array{});
 	l.miptex = g_texinfo[f->texinfo].miptex;
 
     //
@@ -4831,7 +4831,7 @@ void            FinalLightFace(const int facenum)
 			{
 				Warning ("wrong f->styles[0]");
 			}
-			vec3_array lb = vector_maximums(samp->light, vec3_origin);
+			vec3_array lb = vector_maximums(samp->light, float3_array{});
 			if (k == 0)
 			{
 				VectorCopy (lb, original_basiclight[j]);

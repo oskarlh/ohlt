@@ -1347,7 +1347,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	patch->scale = getScale(patch);
 	patch->chop = getChop(patch);
 	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], patch->translucent_v);
-	patch->translucent_b = !vectors_almost_same (patch->translucent_v, vec3_origin);
+	patch->translucent_b = !vectors_almost_same (patch->translucent_v, float3_array{});
 	PlacePatchInside(patch);
 	UpdateEmitterInfo (patch);
 

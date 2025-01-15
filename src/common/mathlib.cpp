@@ -6,7 +6,6 @@
 #include "mathlib.h"
 #include "win32fix.h"
 
-const vec3_array vec3_origin = { 0, 0, 0 };
 
 
 std::uint16_t float_to_half(float v) {

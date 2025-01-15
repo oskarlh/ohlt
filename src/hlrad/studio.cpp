@@ -144,7 +144,7 @@ void LoadStudioModels() {
 
 		float3_array xform = get_float3_for_key(*e, u8"xform" );
 
-		if( vectors_almost_same( xform, vec3_origin ))
+		if( vectors_almost_same( xform, float3_array{} ))
 			VectorFill( xform, scale );
 
 		// check xform values
@@ -203,7 +203,7 @@ bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p
 
 	float3_array trace_mins, trace_maxs;
 
-	MoveBounds( p1, vec3_origin, vec3_origin, p2, trace_mins, trace_maxs );
+	MoveBounds( p1, float3_array{}, float3_array{}, p2, trace_mins, trace_maxs );
 
 	for( std::size_t i = 0; i < models.size(); ++i )
 	{
@@ -219,7 +219,7 @@ bool TestSegmentAgainstStudioList( const float3_array& p1, const float3_array& p
 
 		trm.SetTraceModExtradata( m->extradata );
 		trm.SetTraceMesh( pMesh, pHeadNode );
-		trm.SetupTrace( p1, vec3_origin, vec3_origin, p2 );
+		trm.SetupTrace( p1, float3_array{}, float3_array{}, p2 );
 
 		if( trm.DoTrace())
 			return true; // we hit studio model
