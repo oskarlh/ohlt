@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cstddef>
 #include "developer_level.h"
 #include "threads.h"
+
+#include <cstddef>
 
 namespace cli_option_defaults {
 	constexpr bool chart = true;
@@ -15,7 +16,6 @@ namespace cli_option_defaults {
 	constexpr std::ptrdiff_t numberOfThreads = -1;
 	constexpr bool verbose = false;
 	constexpr q_threadpriority threadPriority = q_threadpriority::eThreadPriorityNormal;
-
 
 	// This value is arbitrary
 	constexpr std::size_t max_map_miptex = 0x2000000;

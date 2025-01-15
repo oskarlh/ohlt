@@ -1,16 +1,12 @@
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <string>
+#include "filelib.h"
 
-
-#include "cmdlib.h"
-#include "messages.h"
 #include "log.h"
-#include "mathtypes.h"
 #include "mathlib.h"
+#include "mathtypes.h"
+#include "messages.h"
+#include "utf8.h"
 
-using namespace std::literals;
+#include <cstring>
 
 
 // <Opened successfully>, <Size of file>, <File stream>
@@ -50,7 +46,7 @@ read_binary_file(const std::filesystem::path& filePath) {
     return { true, fileSize, std::move(buffer) };
 }
 
-std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePath, bool windowsLineEndingsToUnix) {
+std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePath, bool windowsLineEndingsToUnix, std::optional<legacy_encoding> legacyEncoding, bool forceLegacyEncoding) {
 	auto [fileOpened, fileSize, file] = open_file_and_get_size(filePath);
 	if(!fileOpened) {
         return std::nullopt;
@@ -79,12 +75,23 @@ std::optional<std::u8string> read_utf8_file(const std::filesystem::path& filePat
             !remainingCharactersToCopy.empty();
             remainingCharactersToCopy = remainingCharactersToCopy.substr(1)
         ) {
-            if (remainingCharactersToCopy.starts_with(u8"\r\n"sv)) {
+            if (remainingCharactersToCopy.starts_with(u8"\r\n")) {
                 remainingCharactersToCopy = remainingCharactersToCopy.substr(1);
             }
             text[outIndex++] = remainingCharactersToCopy[0];
         }
         text.resize(outIndex);
+    }
+
+    const bool needToConvert = (legacyEncoding && forceLegacyEncoding) || !validate_utf8(text);
+    if(needToConvert) [[unlikely]] {
+        if(!legacyEncoding) {
+            return std::nullopt;
+        }
+        return legacy_encoding_to_utf8(
+            std::string_view((const char*) text.data(), (const char*) text.data() + text.length()),
+            legacyEncoding.value()
+        );
     }
 
     // Don't waste space if the file shrunk between tellg() and read()

@@ -1,4 +1,5 @@
 #include "csg.h"
+#include "hlcsg_settings.h"
 #include "utf8.h"
 
 #include <string_view>
@@ -912,11 +913,11 @@ unsigned int    CountEngineEntities()
 // =====================================================================================
 const char*     ContentsToString(const contents_t type);
 
-void            LoadMapFile(const char* const filename)
+void            LoadMapFile(const hlcsg_settings& settings, const char* const filename)
 {
     unsigned num_engine_entities;
 
-    LoadScriptFile(filename);
+    LoadScriptFile(filename, settings.legacyMapEncoding, settings.forceLegacyMapEncoding);
 
     g_numentities = 0;
 

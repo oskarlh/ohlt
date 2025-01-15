@@ -4,22 +4,23 @@
 #include <string>
 #include <map>
 
-#include "cmdlib.h"
-#include "messages.h"
-#include "win32fix.h"
-#include "log.h"
-#include "hlassert.h"
-#include "mathlib.h"
-#include "scriplib.h"
-#include "winding.h"
-#include "threads.h"
-#include "bspfile.h"
-#include "filelib.h"
 #include "bounding_box.h"
-#include "hull_size.h"
-#include "wadpath.h"
+#include "bspfile.h"
+#include "cmdlib.h"
 #include "cmdlinecfg.h"
+#include "filelib.h"
+#include "hlassert.h"
+#include "hlcsg_settings.h"
+#include "hull_size.h"
+#include "log.h"
+#include "mathlib.h"
+#include "messages.h"
 #include "planes.h"
+#include "scriplib.h"
+#include "threads.h"
+#include "wadpath.h"
+#include "win32fix.h"
+#include "winding.h"
 
 #define DEFAULT_BRUSH_UNION_THRESHOLD 0.0f
 #define DEFAULT_TINY_THRESHOLD        0.0
@@ -38,9 +39,6 @@
 #define DEFAULT_SCALESIZE -1.0 //dont scale
 #define DEFAULT_RESETLOG true
 #define DEFAULT_NOLIGHTOPT false
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-#define DEFAULT_NOUTF8 false
-#endif
 #define DEFAULT_NULLIFYTRIGGER true
 
 // AJM: added in
@@ -146,10 +144,6 @@ struct hullshape_t {
 	bool disabled;
 };
 
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-std::u8string ansiToUtf8(std::string_view ansiString);
-#endif
-
 //=============================================================================
 // map.c
 
@@ -164,7 +158,7 @@ extern side_t   g_brushsides[MAX_MAP_SIDES];
 extern hullshape_t g_defaulthulls[NUM_HULLS];
 extern std::vector<hullshape_t> g_hullshapes;
 
-extern void     LoadMapFile(const char* const filename);
+extern void     LoadMapFile(const hlcsg_settings& settings, const char* const filename);
 
 //=============================================================================
 // textures.cpp
@@ -212,9 +206,6 @@ extern const char* GetClipTypeString(cliptype);
 extern double g_scalesize;
 extern bool g_resetlog;
 extern bool g_nolightopt;
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-extern bool g_noutf8;
-#endif
 extern bool g_nullifytrigger;
 
 extern double g_tiny_threshold;

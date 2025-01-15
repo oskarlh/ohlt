@@ -1,12 +1,13 @@
 #pragma once
 
 #include "cmdlib.h"
+#include "legacy_character_encodings.h"
 
 #define	MAXTOKEN 4096
 
 extern std::u8string g_token;
 
-extern void     LoadScriptFile(const char* const filename);
+extern void     LoadScriptFile(const char* const filename, legacy_encoding legacyEncoding, bool forceLegacyEncoding);
 extern void ParseFromMemory(std::u8string_view buffer);
 
 extern bool     GetToken(bool crossline);

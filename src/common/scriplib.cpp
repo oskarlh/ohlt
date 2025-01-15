@@ -40,7 +40,7 @@ bool s_tokenready;                                // only true if UnGetToken was
 // =====================================================================================
 //  AddScriptToStack
 // =====================================================================================
-static void AddScriptToStack(const char* const filename) {
+static void AddScriptToStack(const char* const filename, legacy_encoding legacyEncoding, bool forceLegacyEncoding) {
     s_script++;
 
     if (s_script == &s_scriptstack[MAX_INCLUDES]) {
@@ -50,7 +50,7 @@ static void AddScriptToStack(const char* const filename) {
     s_script->filename = filename;
     s_script->fromMemory = false;
 
-    std::optional<std::u8string> maybeContents = read_utf8_file(filename, true);
+    std::optional<std::u8string> maybeContents = read_utf8_file(filename, true, legacyEncoding, forceLegacyEncoding);
     if(!maybeContents) {
         Error("Failed to load %s", filename);
     }
@@ -67,10 +67,10 @@ static void AddScriptToStack(const char* const filename) {
 // =====================================================================================
 //  LoadScriptFile
 // =====================================================================================
-void            LoadScriptFile(const char* const filename)
+void LoadScriptFile(const char* const filename, legacy_encoding legacyEncoding, bool forceLegacyEncoding)
 {
     s_script = s_scriptstack;
-    AddScriptToStack(filename);
+    AddScriptToStack(filename, legacyEncoding, forceLegacyEncoding);
 
     s_endofscript = false;
     s_tokenready = false;

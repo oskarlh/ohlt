@@ -4,6 +4,7 @@
 ![Banner](media/banner.webp)
 
 *TODO: Describe new features and improvements in OHLT here*
+New features such as MacOS support, -fallback-encoding
 
 New features *in SDHLT* include shadows from studiomodels, new entities, additional tool textures, ability to extend world size limits, portal file optimisation for J.A.C.K. map editor and minor algorithm optimization.
 

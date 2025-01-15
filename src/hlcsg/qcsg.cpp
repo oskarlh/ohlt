@@ -20,6 +20,8 @@
 #endif
 #include "cli_option_defaults.h"
 #include "filelib.h"
+#include "hlcsg_settings.h"
+#include "legacy_character_encodings.h"
 #include <numbers>
 #include "utf8.h"
 
@@ -74,9 +76,6 @@ bool            g_bWadAutoDetect = DEFAULT_WADAUTODETECT; // "-nowadautodetect"
 double g_scalesize = DEFAULT_SCALESIZE;
 bool g_resetlog = DEFAULT_RESETLOG;
 bool g_nolightopt = DEFAULT_NOLIGHTOPT;
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-bool g_noutf8 = DEFAULT_NOUTF8;
-#endif
 bool g_nullifytrigger = DEFAULT_NULLIFYTRIGGER;
 bool g_viewsurface = false;
 
@@ -1507,12 +1506,16 @@ static void     BoundWorld()
 // =====================================================================================
 static void     Usage()
 {
+    const hlcsg_settings defaultSettings{};
+
     Banner(); // TODO: Call banner from main CSG process? 
 
     Log("\n-= %s Options =-\n\n", g_Program);
     Log("    -nowadtextures   : Include all used textures into bsp\n");
     Log("    -wadinclude file : Include specific wad or directory into bsp\n");
     Log("    -noclip          : don't create clipping hull\n");
+    Log("    -legacy-map-encoding : Legacy character encoding such as %s to use if the .map is not in UTF-8\n", (const char*) code_name_of_legacy_encoding(defaultSettings.legacyMapEncoding).data());
+    Log("    -force-legacy-map-encoding : Always use the -legacy-map-encoding character encoding for the .map instead of UTF-8\n");
     
     Log("    -clipeconomy     : turn clipnode economy mode on\n");
 
@@ -1547,10 +1550,6 @@ static void     Usage()
 
 	Log("    -nolightopt      : don't optimize engine light entities\n");
 
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-	Log("    -notextconvert   : don't convert game_text message from Windows ANSI to UTF8 format\n");
-#endif
-
     Log("    -dev #           : compile with developer message\n\n");
 
 
@@ -1580,13 +1579,16 @@ static void     DumpWadinclude()
     Log("---------------\n\n");
 }
 
+
 // =====================================================================================
 //  Settings
 //      prints out settings sheet
 // =====================================================================================
-static void     Settings(const bsp_data& bspData)
+static void     Settings(const bsp_data& bspData, const hlcsg_settings& settings)
 {
+    const hlcsg_settings defaultSettings{};
     const char*           tmp;
+
 
     if (!g_info)
         return; 
@@ -1624,6 +1626,8 @@ static void     Settings(const bsp_data& bspData)
 
     // HLCSG Specific Settings
 
+    Log(".map legacy encoding  [ %7s ] [ %7s ]\n", (const char*) human_name_of_legacy_encoding(settings.legacyMapEncoding).data(), (const char*) human_name_of_legacy_encoding(defaultSettings.legacyMapEncoding).data());
+    Log("force .map legacy enc.[ %7s ] [ %7s ]\n", settings.forceLegacyMapEncoding ? "on" : "off", defaultSettings.forceLegacyMapEncoding ? "on" : "off");
     Log("noclip                [ %7s ] [ %7s ]\n", g_noclip          ? "on" : "off", DEFAULT_NOCLIP       ? "on" : "off");
 
     Log("null texture stripping[ %7s ] [ %7s ]\n", g_bUseNullTex     ? "on" : "off", cli_option_defaults::nulltex      ? "on" : "off");
@@ -1675,9 +1679,6 @@ static void     Settings(const bsp_data& bspData)
         Log("map scaling           [ %7s ] [ %7s ]\n", buf1, buf2);
     }
     Log("light name optimize   [ %7s ] [ %7s ]\n", !g_nolightopt? "on" : "off", !DEFAULT_NOLIGHTOPT? "on" : "off");
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-	Log("convert game_text     [ %7s ] [ %7s ]\n", !g_noutf8? "on" : "off", !DEFAULT_NOUTF8? "on" : "off");
-#endif
     Log("world extent          [ %7d ] [ %7d ]\n", bspData.worldExtent, 65536);
 
     Log("\n");
@@ -1699,6 +1700,7 @@ void            CSGCleanup()
 // =====================================================================================
 int             main(const int argc, char** argv)
 {
+    hlcsg_settings settings{};
     bsp_data& bspData = bspGlobals;
     int             i;                          
     char            name[_MAX_PATH];            // mapanme 
@@ -1946,6 +1948,27 @@ int             main(const int argc, char** argv)
 				Usage ();
 			}
 		}
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-force-legacy-map-encoding"))
+		{
+            settings.forceLegacyMapEncoding = true;
+		}
+		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-legacy-map-encoding"))
+		{
+			if (i + 1 < argc)
+			{
+				std::u8string_view name{(const char8_t*) argv[++i]};
+                auto encoding = legacy_encoding_by_code_name(name);
+                if(encoding) {
+                    settings.legacyMapEncoding = encoding.value();
+                } else {
+                    Usage();
+                }
+			}
+			else
+			{
+				Usage ();
+			}
+		}
         else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-scale"))
         {
             if (i + 1 < argc)
@@ -1965,12 +1988,6 @@ int             main(const int argc, char** argv)
 		{
 			g_nolightopt = true;
 		}
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-notextconvert"))
-		{
-			g_noutf8 = true;
-		}
-#endif
 		else if (strings_equal_with_ascii_case_insensitivity(argv[i], u8"-viewsurface"))
 		{
 			g_viewsurface = true;
@@ -2088,45 +2105,11 @@ int             main(const int argc, char** argv)
 	FlipSlashes(name);
     DefaultExtension(name, ".map");                  // might be .reg
     Verbose("Loading map file\n");
-    LoadMapFile(name);
+    LoadMapFile(settings, name);
     ThreadSetDefault();                    
     ThreadSetPriority(g_threadpriority);  
-    Settings(bspData);
+    Settings(bspData, settings);
 
-
-#ifdef HLCSG_GAMETEXTMESSAGE_UTF8
-	if (!g_noutf8)
-	{
-		int count = 0;
-
-		for (i = 0; i < g_numentities; i++)
-		{
-			entity_t *ent = &g_entities[i];
-			const char *value;
-
-			if (!classname_is(ent, u8"game_text"))
-			{
-				continue;
-			}
-
-			value = value_for_key (ent, u8"message");
-			if (!value.empty())
-			{
-				std::u8string newvalue = ansiToUtf8 (value);
-				if (newvalue != value)
-				{
-					SetKeyValue (ent, u8"message", newvalue);
-					count++;
-				}
-			}
-		}
-
-		if (count)
-		{
-			Log ("%d game_text messages converted from Windows ANSI(CP_ACP) to UTF-8 encoding\n", count);
-		}
-	}
-#endif
   if (!g_onlyents)
   {
 	if (g_wadconfigname) //If wadconfig had a name provided //seedee
