@@ -370,7 +370,7 @@ static void ParseBrush(entity_t* mapent)
 					);
 		}
         char            string[MAXTOKEN];
-        vec3_array origin;
+        double3_array origin;
 
         b->contents = CONTENTS_SOLID;
         CreateBrush(mapent->firstbrush + b->brushnum);     // to get sizes
@@ -435,10 +435,10 @@ static void ParseBrush(entity_t* mapent)
 
         if (b->entitynum != 0)  // Ignore for WORLD (code elsewhere enforces no ORIGIN in world message)
         {
-       		const vec3_array mins{
+       		const double3_array mins{
 				b->hulls[0].bounds.mins
 			};
-       		const vec3_array maxs{
+       		const double3_array maxs{
 				b->hulls[0].bounds.maxs
 			};
     
@@ -575,8 +575,8 @@ bool            ParseMapEntity()
 	if (strcmp ((const char*) ValueForKey (mapent, u8"classname"), "info_hullshape")) // info_hullshape is not affected by '-scale'
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
-		vec3_array ent_move = {0,0,0}, ent_scale_origin = {0,0,0};
-		vec_t ent_scale = 1, ent_gscale = 1;
+		double3_array ent_move = {0,0,0}, ent_scale_origin = {0,0,0};
+		double ent_scale = 1, ent_gscale = 1;
 
 		if (g_scalesize > 0)
 		{
@@ -617,7 +617,7 @@ bool            ParseMapEntity()
 			int ibrush, iside, ipoint;
 			brush_t *brush;
 			side_t *side;
-			vec_t *point;
+			double *point;
 			for (ibrush = 0, brush = g_mapbrushes + mapent->firstbrush; ibrush < mapent->numbrushes; ++ibrush, ++brush)
 			{
 				for (iside = 0, side = g_brushsides + brush->firstside; iside < brush->numsides; ++iside, ++side)
@@ -655,7 +655,7 @@ bool            ParseMapEntity()
 					}
 					if (ent_scale_b)
 					{
-						vec_t coord[2];
+						double coord[2];
 						if (fabs (side->td.vects.scale[0]) > NORMAL_EPSILON)
 						{
 							coord[0] = DotProduct (ent_scale_origin, side->td.vects.UAxis) / side->td.vects.scale[0] + side->td.vects.shift[0];
@@ -727,7 +727,7 @@ bool            ParseMapEntity()
 			{
 				if (has_key_value(mapent, u8"origin"))
 				{
-					vec3_array v;
+					double3_array v;
 					int origin[3];
 					char8_t string[MAXTOKEN];
 					int i;
@@ -740,12 +740,12 @@ bool            ParseMapEntity()
 				}
 			}
 			{
-				std::array<vec3_array, 2> b;
+				std::array<double3_array, 2> b;
 				if (sscanf ((const char*) ValueForKey (mapent, u8"zhlt_minsmaxs"), "%lf %lf %lf %lf %lf %lf", &b[0][0], &b[0][1], &b[0][2], &b[1][0], &b[1][1], &b[1][2]) == 6)
 				{
 					for (int i = 0; i < 2; i++)
 					{
-						vec3_array& point = b[i];
+						double3_array& point = b[i];
 						if (ent_scale_b)
 						{
 							VectorSubtract(point, ent_scale_origin, point);

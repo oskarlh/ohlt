@@ -167,8 +167,8 @@ void            GetParamsFromEnt(entity_t* mapent)
 // =====================================================================================
 static void     PlaneFromWinding(winding_t* w, hlvis_plane_t* plane)
 {
-    vec3_array          v1;
-    vec3_array          v2;
+    float3_array          v1;
+    float3_array          v2;
 
     // calc plane
     VectorSubtract(w->points[2], w->points[1], v1);
@@ -700,7 +700,7 @@ static void     LoadPortals(char* portal_image)
             CheckNullToken(token);
             rval += sscanf(token, "%lf", &v[2]);
 
-            // scanf into double, then assign to vec_t
+            // scanf into double, then assign to float
             if (rval != 3)
             {
                 Error("LoadPortals: reading portal %i", i);
@@ -841,10 +841,10 @@ static void     Settings()
     Log("\n\n");
 }
 
-int        VisLeafnumForPoint(const vec3_array& point)
+int        VisLeafnumForPoint(const float3_array& point)
 {
     int             nodenum;
-    vec_t           dist;
+    float           dist;
     dnode_t*        node;
     dplane_t*       plane;
 

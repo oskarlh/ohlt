@@ -62,9 +62,9 @@ static face_side FaceSide(face_t* in, const mapplane_t* const split
 						 , double *epsilonsplit = nullptr
 						 )
 {
-	const vec_t		epsilonmin = 0.002, epsilonmax = 0.2;
-	vec_t			d_front, d_back;
-    vec_t           dot;
+	const double		epsilonmin = 0.002, epsilonmax = 0.2;
+	double			d_front, d_back;
+    double           dot;
     int             i;
 
 	d_front = d_back = 0;
@@ -72,10 +72,10 @@ static face_side FaceSide(face_t* in, const mapplane_t* const split
     // axial planes are fast
     if (split->type <= last_axial)
     {
-        vec_t           splitGtEp = split->dist + ON_EPSILON;   // Invariant moved out of loop
-        vec_t           splitLtEp = split->dist - ON_EPSILON;   // Invariant moved out of loop
+        double           splitGtEp = split->dist + ON_EPSILON;   // Invariant moved out of loop
+        double           splitLtEp = split->dist - ON_EPSILON;   // Invariant moved out of loop
 
-	    const vec_t* p;
+	    const double* p;
 		// TODO: This pointer logic is ugly, with the p += 3
         for (i = 0, p = &in->pts[0][(std::size_t) split->type]; i < in->numpoints; i++, p += 3)
         {
@@ -89,7 +89,7 @@ static face_side FaceSide(face_t* in, const mapplane_t* const split
     else
     {
         // sloping planes take longer
-	    const vec_t* p;
+	    const double* p;
 		// TODO: This pointer logic is ugly, with the p += 3
         for (i = 0, p = in->pts[0].data(); i < in->numpoints; i++, p += 3)
         {
@@ -133,8 +133,8 @@ static face_side FaceSide(face_t* in, const mapplane_t* const split
 struct surfacetreenode_t {
 	int size; // can be zero, which invalidates mins and maxs
 	int size_discardable;
-	vec3_array mins;
-	vec3_array maxs;
+	double3_array mins;
+	double3_array maxs;
 	bool isleaf;
 	// node
 	surfacetreenode_t *children[2];
@@ -146,7 +146,7 @@ struct surfacetreenode_t {
 
 struct surfacetree_t {
 	bool dontbuild;
-	vec_t epsilon; // if a face is not epsilon far from the splitting plane, put it in result.middle
+	double epsilon; // if a face is not epsilon far from the splitting plane, put it in result.middle
 	surfacetreenode_t *headnode;
 	struct
 	{
@@ -185,7 +185,7 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 
 	int bestaxis = -1;
 	{
-		vec_t bestdelta = 0;
+		double bestdelta = 0;
 		for (int k = 0; k < 3; k++)
 		{
 			if (node->maxs[k] - node->mins[k] > bestdelta + ON_EPSILON)
@@ -202,7 +202,7 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 	}
 
 	node->isleaf = false;
-	vec_t dist, dist1, dist2;
+	double dist, dist1, dist2;
 	dist = (node->mins[bestaxis] + node->maxs[bestaxis]) / 2;
 	dist1 = (3 * node->mins[bestaxis] + node->maxs[bestaxis]) / 4;
 	dist2 = (node->mins[bestaxis] + 3 * node->maxs[bestaxis]) / 4;
@@ -217,8 +217,8 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 	for (std::vector< face_t * >::iterator i = node->leaffaces->begin (); i != node->leaffaces->end (); ++i)
 	{
 		face_t *f = *i;
-		vec_t low = hlbsp_bogus_range;
-		vec_t high = -hlbsp_bogus_range;
+		double low = hlbsp_bogus_range;
+		double high = -hlbsp_bogus_range;
 		for (int x = 0; x < f->numpoints; x++)
 		{
 			low = std::min(low, f->pts[x][bestaxis]);
@@ -268,7 +268,7 @@ void BuildSurfaceTree_r (surfacetree_t *tree, surfacetreenode_t *node)
 	BuildSurfaceTree_r (tree, node->children[1]);
 }
 
-surfacetree_t *BuildSurfaceTree (surface_t *surfaces, vec_t epsilon)
+surfacetree_t *BuildSurfaceTree (surface_t *surfaces, double epsilon)
 {
 	surfacetree_t *tree;
 	tree = (surfacetree_t *)malloc (sizeof (surfacetree_t));
@@ -308,7 +308,7 @@ void TestSurfaceTree_r (surfacetree_t *tree, const surfacetreenode_t *node, cons
 	{
 		return;
 	}
-	vec_t low, high;
+	double low, high;
 	low = high = -split->dist;
 	for (int k = 0; k < 3; k++)
 	{
@@ -394,16 +394,16 @@ void DeleteSurfaceTree (surfacetree_t *tree)
 //      When there are a huge number of planes, just choose one closest
 //      to the middle.
 // =====================================================================================
-static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_array& mins, const vec3_array& maxs
+static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const double3_array& mins, const double3_array& maxs
 										 , int detaillevel
 										 )
 {
     int             j;
     surface_t*      p;
     surface_t*      bestsurface;
-    vec_t           bestvalue;
-    vec_t           value;
-    vec_t           dist;
+    double           bestvalue;
+    double           value;
+    double           dist;
     mapplane_t*       plane;
 	surfacetree_t*	surfacetree;
 	std::vector< face_t * >::iterator it;
@@ -517,7 +517,7 @@ static surface_t* ChooseMidPlaneFromList(surface_t* surfaces, const vec3_array& 
 //  ChoosePlaneFromList
 //      Choose the plane that splits the least faces
 // =====================================================================================
-static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& mins, const vec3_array& maxs
+static surface_t* ChoosePlaneFromList(surface_t* surfaces, const double3_array& mins, const double3_array& maxs
 									  // mins and maxs are invalid when detaillevel > 0
 									  , int detaillevel
 									  )
@@ -525,8 +525,8 @@ static surface_t* ChoosePlaneFromList(surface_t* surfaces, const vec3_array& min
 	surface_t*      p;
 	surface_t*      p2;
 	surface_t*      bestsurface;
-	vec_t           bestvalue;
-	vec_t           value;
+	double           bestvalue;
+	double           value;
 	mapplane_t*       plane;
 	face_t*         f;
 	double			planecount;
@@ -685,7 +685,7 @@ int CalcSplitDetaillevel (const node_t *node)
 }
 static surface_t* SelectPartition(surface_t* surfaces, const node_t* const node, const bool usemidsplit
 								  , int splitdetaillevel
-								  , const vec3_array& validmins, const vec3_array& validmaxs
+								  , const double3_array& validmins, const double3_array& validmaxs
 								  )
 {
 	if (splitdetaillevel == -1)
@@ -1440,12 +1440,12 @@ static void     SplitNodePortals(node_t *node)
 //      Returns true if the node should be midsplit.(very large)
 // =====================================================================================
 static bool     CalcNodeBounds(node_t* node
-							   , vec3_array& validmins, vec3_array& validmaxs
+							   , double3_array& validmins, double3_array& validmaxs
 							   )
 {
     int             i;
     int             j;
-    vec_t           v;
+    double           v;
     portal_t*       p;
     portal_t*       next_portal;
     int             side = 0;
@@ -1573,7 +1573,7 @@ static void     BuildBspTree_r(node_t* node)
     surface_t*      split;
     bool            midsplit;
     surface_t*      allsurfs;
-	vec3_array validmins, validmaxs;
+	double3_array validmins, validmaxs;
 
     midsplit = CalcNodeBounds(node
 		, validmins, validmaxs
@@ -1699,7 +1699,7 @@ node_t*         SolidBSP(const surfchain_t* const surfhead,
     headnode->surfaces = surfhead->surfaces;
 	headnode->detailbrushes = detailbrushes;
 	headnode->isdetail = false;
-	vec3_array brushmins, brushmaxs;
+	double3_array brushmins, brushmaxs;
 	VectorAddVec (surfhead->mins, -SIDESPACE, brushmins);
 	VectorAddVec (surfhead->maxs, SIDESPACE, brushmaxs);
 	headnode->boundsbrush = BrushFromBox (brushmins, brushmaxs);

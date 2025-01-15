@@ -47,7 +47,7 @@ bounding_box     world_bounds;
 
 hull_sizes g_hull_size{standard_hull_sizes};
 
-vec_t           g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
+double           g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
      
 bool            g_noclip = DEFAULT_NOCLIP;              // no clipping hull "-noclip"
 bool            g_onlyents = DEFAULT_ONLYENTS;          // onlyents mode "-onlyents"
@@ -71,7 +71,7 @@ bool            g_bClipNazi = DEFAULT_CLIPNAZI;         // "-noclipeconomy"
 bool            g_bWadAutoDetect = DEFAULT_WADAUTODETECT; // "-nowadautodetect"
 
 
-vec_t g_scalesize = DEFAULT_SCALESIZE;
+double g_scalesize = DEFAULT_SCALESIZE;
 bool g_resetlog = DEFAULT_RESETLOG;
 bool g_nolightopt = DEFAULT_NOLIGHTOPT;
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
@@ -311,14 +311,14 @@ void            WriteFace(const int hull, const bface_t* const f
 		side = !side;
 		if (side)
 		{
-			vec3_array center = w.getCenter ();
-			vec3_array center2;
+			double3_array center = w.getCenter ();
+			double3_array center2;
 			VectorAdd (center, f->plane->normal, center2);
 			fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0], center2[1], center2[2]);
 			for (i = 0; i < w.size(); i++)
 			{
-				const vec3_array& p1{w.m_Points[i]};
-                const vec3_array& p2{w.m_Points[(i+1) % w.size()]};
+				const double3_array& p1{w.m_Points[i]};
+                const double3_array& p2{w.m_Points[(i+1) % w.size()]};
 
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", center[0], center[1], center[2]);
 				fprintf (out_view[hull], "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);
@@ -438,7 +438,7 @@ static void SaveOutside(brush_t& b, const int hull, std::vector<bface_t>& outsid
                 )
 			{
 				// check for "Malformed face (%d) normal"
-				vec3_array texnormal;
+				double3_array texnormal;
 				CrossProduct (tex->vecs[1], tex->vecs[0], texnormal);
 				normalize_vector(texnormal);
 				if (fabs (DotProduct (texnormal, f.plane->normal)) <= NORMAL_EPSILON)
@@ -451,7 +451,7 @@ static void SaveOutside(brush_t& b, const int hull, std::vector<bface_t>& outsid
 
 				// check for "Bad surface extents"
 				bool bad;
-				vec_t val;
+				double val;
 				
 				bad = false;
 				for (int i = 0; i < f.w.size(); ++i)
@@ -719,7 +719,7 @@ static void     CSGBrush(int brushnum)
 						int valid = 0;
 						for (int x = 0; x < w.size(); x++)
 						{
-							vec_t dist = DotProduct(w.m_Points[x], f2.plane->normal) - f2.plane->dist;
+							double dist = DotProduct(w.m_Points[x], f2.plane->normal) - f2.plane->dist;
 							if (dist >= -ON_EPSILON*4) // only estimate
 							{
 								++valid;
@@ -758,7 +758,7 @@ static void     CSGBrush(int brushnum)
                     continue;
 				}
 
-                vec_t area = f.w.getArea();
+                double area = f.w.getArea();
                 if (area < g_tiny_threshold)
                 {
                     Verbose("Entity %i, Brush %i: tiny penetration\n", 
@@ -1464,7 +1464,7 @@ static void     SetModelCenters(int entitynum)
         }
     }
 
-    vec3_array center;
+    double3_array center;
     VectorAdd(bounds.mins, bounds.maxs, center);
     VectorScale(center, 0.5, center);
 

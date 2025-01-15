@@ -38,7 +38,7 @@ bool g_studioshadow = DEFAULT_STUDIOSHADOW;
 
 static vis_method g_method = cli_option_defaults::visMethod;
 
-vec_t           g_fade = DEFAULT_FADE;
+float           g_fade = DEFAULT_FADE;
 
 patch_t*        g_face_patches[MAX_MAP_FACES];
 entity_t*       g_face_entity[MAX_MAP_FACES];
@@ -47,20 +47,20 @@ patch_t*		g_patches;
 entity_t*		g_face_texlights[MAX_MAP_FACES];
 unsigned        g_num_patches;
 
-static std::array<vec3_array, MAXLIGHTMAPS> *addlight;
-static std::array<vec3_array, MAXLIGHTMAPS> *emitlight;
+static std::array<float3_array, MAXLIGHTMAPS> *addlight;
+static std::array<float3_array, MAXLIGHTMAPS> *emitlight;
 static std::array<unsigned char, MAXLIGHTMAPS>* newstyles;
 
-vec3_array          g_face_offset[MAX_MAP_FACES];              // for rotating bmodels
+float3_array          g_face_offset[MAX_MAP_FACES];              // for rotating bmodels
 
-vec_t           g_direct_scale = DEFAULT_DLIGHT_SCALE;
+float           g_direct_scale = DEFAULT_DLIGHT_SCALE;
 
 unsigned        g_numbounce = DEFAULT_BOUNCE;              // 3; /* Originally this was 8 */
 
 static bool     g_dumppatches = DEFAULT_DUMPPATCHES;
 
-vec3_array g_ambient{ DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
-vec_t			g_limitthreshold = DEFAULT_LIMITTHRESHOLD;
+float3_array g_ambient{ DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE };
+float			g_limitthreshold = DEFAULT_LIMITTHRESHOLD;
 bool			g_drawoverload = false;
 
 float           g_lightscale = DEFAULT_LIGHTSCALE;
@@ -83,10 +83,10 @@ bool            g_circus = DEFAULT_CIRCUS;
 bool            g_allow_opaques = DEFAULT_ALLOW_OPAQUES;
 bool			g_allow_spread = DEFAULT_ALLOW_SPREAD;
 
-vec3_array g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED, DEFAULT_COLOUR_GAMMA_GREEN, DEFAULT_COLOUR_GAMMA_BLUE };
-vec3_array g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN, DEFAULT_COLOUR_LIGHTSCALE_BLUE };
-vec3_array g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN, DEFAULT_COLOUR_JITTER_HACK_BLUE };
-vec3_array g_jitter_hack = { DEFAULT_JITTER_HACK_RED, DEFAULT_JITTER_HACK_GREEN, DEFAULT_JITTER_HACK_BLUE };
+float3_array g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED, DEFAULT_COLOUR_GAMMA_GREEN, DEFAULT_COLOUR_GAMMA_BLUE };
+float3_array g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN, DEFAULT_COLOUR_LIGHTSCALE_BLUE };
+float3_array g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN, DEFAULT_COLOUR_JITTER_HACK_BLUE };
+float3_array g_jitter_hack = { DEFAULT_JITTER_HACK_RED, DEFAULT_JITTER_HACK_GREEN, DEFAULT_JITTER_HACK_BLUE };
 
 
 bool		g_customshadow_with_bouncelight = DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT;
@@ -99,13 +99,13 @@ vector_type g_rgbtransfer_compress_type = cli_option_defaults::rgbTransferCompre
 bool g_softsky = DEFAULT_SOFTSKY;
 bool g_blockopaque = cli_option_defaults::blockOpaque;
 bool g_notextures = DEFAULT_NOTEXTURES;
-vec_t g_texreflectgamma = DEFAULT_TEXREFLECTGAMMA;
-vec_t g_texreflectscale = DEFAULT_TEXREFLECTSCALE;
+float g_texreflectgamma = DEFAULT_TEXREFLECTGAMMA;
+float g_texreflectscale = DEFAULT_TEXREFLECTSCALE;
 bool g_bleedfix = DEFAULT_BLEEDFIX;
 bool g_drawpatch = false;
 bool g_drawsample = false;
-vec3_array g_drawsample_origin = {0,0,0};
-vec_t g_drawsample_radius = 0;
+float3_array g_drawsample_origin = {0,0,0};
+float g_drawsample_radius = 0;
 bool g_drawedge = false;
 bool g_drawlerp = false;
 bool g_drawnudge = false;
@@ -119,26 +119,26 @@ bool            g_info = cli_option_defaults::info;
 
 // Patch creation and subdivision criteria
 bool            g_subdivide = DEFAULT_SUBDIVIDE;
-vec_t           g_chop = DEFAULT_CHOP;
-vec_t           g_texchop = DEFAULT_TEXCHOP;
+float           g_chop = DEFAULT_CHOP;
+float           g_texchop = DEFAULT_TEXCHOP;
 
 // Opaque faces
 std::vector<opaqueList_t>   g_opaque_face_list;
 
-vec_t			g_corings[ALLSTYLES];
-std::unique_ptr<vec3_array[]> g_translucenttextures{};
-vec_t			g_translucentdepth = DEFAULT_TRANSLUCENTDEPTH;
-vec_t			g_blur = DEFAULT_BLUR;
+float			g_corings[ALLSTYLES];
+std::unique_ptr<float3_array[]> g_translucenttextures{};
+float			g_translucentdepth = DEFAULT_TRANSLUCENTDEPTH;
+float			g_blur = DEFAULT_BLUR;
 bool			g_noemitterrange = DEFAULT_NOEMITTERRANGE;
-vec_t			g_texlightgap = DEFAULT_TEXLIGHTGAP;
+float			g_texlightgap = DEFAULT_TEXLIGHTGAP;
 
 // Misc
 int             leafparents[MAX_MAP_LEAFS];
 int             nodeparents[MAX_MAP_NODES];
 int				stylewarningcount = 0;
 int				stylewarningnext = 1;
-vec_t g_maxdiscardedlight = 0;
-vec3_array g_maxdiscardedpos{0, 0, 0};
+float g_maxdiscardedlight = 0;
+float3_array g_maxdiscardedpos{0, 0, 0};
 
 // =====================================================================================
 //  GetParamsFromEnt
@@ -389,7 +389,7 @@ static void     MakeParents(const int nodenum, const int parent)
 // misc
 struct texlight_t {
     wad_texture_name name{};
-    vec3_array value{};
+    float3_array value{};
     const char* filename{nullptr}; // Either info_texlights or lights.rad filename
 };
 
@@ -423,7 +423,7 @@ static void     ReadLightFile(const char* const filename)
     {
         char*           comment;
         char            szTexlight[_MAX_PATH];
-        vec_t           r, g, b, i = 1;
+        float           r, g, b, i = 1;
 
         comment = strstr(scan, "//");
         if (comment)
@@ -497,16 +497,16 @@ static void     ReadLightFile(const char* const filename)
 	Log("%u texlights parsed (%s)\n", file_texlights, filename); //readded //seedee
 }
 
-static vec3_array LightForTexture(wad_texture_name name) {
+static float3_array LightForTexture(wad_texture_name name) {
     for (texlight_i it = s_texlights.begin(); it != s_texlights.end(); it++) {
         if (name == it->name)
         {
-			vec3_array result{};
+			float3_array result{};
             VectorCopy(it->value, result);
 			return result;
         }
     }
-	return vec3_array{};
+	return float3_array{};
 }
 
 
@@ -516,7 +516,7 @@ static vec3_array LightForTexture(wad_texture_name name) {
 //
 // =====================================================================================
 
-static vec3_array BaseLightForFace(const dface_t* const f)
+static float3_array BaseLightForFace(const dface_t* const f)
 {
 	int fn = f - g_dfaces.data();
 	if (g_face_texlights[fn])
@@ -537,13 +537,13 @@ static vec3_array BaseLightForFace(const dface_t* const f)
 			b *= scaler / 255.0;
 			break;
 		default:
-			vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
+			float3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
 				origin[0], origin[1], origin[2], (const char*) ValueForKey (g_face_texlights[fn], u8"_light"));
 			r = g = b = 0;
 			break;
 		}
-		vec3_array light{};
+		float3_array light{};
 		light[0] = r > 0? r: 0;
 		light[1] = g > 0? g: 0;
 		light[2] = b > 0? b: 0;
@@ -578,20 +578,20 @@ static bool     IsSpecial(const dface_t* const f)
 static bool     PlacePatchInside(patch_t* patch)
 {
     const dplane_t* plane;
-    const vec3_array&    face_offset = g_face_offset[patch->faceNumber];
+    const float3_array&    face_offset = g_face_offset[patch->faceNumber];
 
     plane = getPlaneFromFaceNumber(patch->faceNumber);
 
-	vec_t pointsfound;
-	vec_t pointstested;
+	float pointsfound;
+	float pointstested;
 	pointsfound = pointstested = 0;
 	bool found;
-	vec3_array bestpoint{};
-	vec_t bestdist = -1.0;
-	vec3_array point;
-	vec_t dist;
+	float3_array bestpoint{};
+	float bestdist = -1.0;
+	float3_array point;
+	float dist;
 
-	vec3_array center = patch->winding->getCenter ();
+	float3_array center = patch->winding->getCenter ();
 	found = false;
 	
 	VectorMA (center, PATCH_HUNT_OFFSET, plane->normal, point);
@@ -600,7 +600,7 @@ static bool     PlacePatchInside(patch_t* patch)
 		HuntForWorld (point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET))
 	{
 		pointsfound++;
-		vec3_array v;
+		float3_array v;
 		VectorSubtract(point, center, v);
 		dist = vector_length(v);
 		if (!found || dist < bestdist)
@@ -613,8 +613,8 @@ static bool     PlacePatchInside(patch_t* patch)
 	{
 		for (int i = 0; i < patch->winding->size(); i++)
 		{
-			const vec_t *p1;
-			const vec_t *p2;
+			const float *p1;
+			const float *p2;
 			p1 = patch->winding->m_Points[i].data();
 			p2 = patch->winding->m_Points[(i+1)%patch->winding->size()].data();
 			VectorAdd (p1, p2, point);
@@ -626,7 +626,7 @@ static bool     PlacePatchInside(patch_t* patch)
 				HuntForWorld (point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET))
 			{
 				pointsfound++;
-				vec3_array v;
+				float3_array v;
 				VectorSubtract(point, center, v);
 				dist = vector_length(v);
 				if (!found || dist < bestdist)
@@ -660,13 +660,13 @@ static void		UpdateEmitterInfo (patch_t *patch)
 #if ACCURATEBOUNCE_DEFAULT_SKYLEVEL + 3 > SKYLEVELMAX
 #error "please raise SKYLEVELMAX"
 #endif
-	const vec_t *origin = patch->origin.data();
+	const float *origin = patch->origin.data();
 	const Winding *winding = patch->winding;
-	vec_t radius = ON_EPSILON;
+	float radius = ON_EPSILON;
 	for (int x = 0; x < winding->size(); x++)
 	{
-		vec3_array delta;
-		vec_t dist;
+		float3_array delta;
+		float dist;
 		VectorSubtract(winding->m_Points[x], origin, delta);
 		dist = vector_length(delta);
 		if (dist > radius)
@@ -675,8 +675,8 @@ static void		UpdateEmitterInfo (patch_t *patch)
 		}
 	}
 	int skylevel = ACCURATEBOUNCE_DEFAULT_SKYLEVEL;
-	vec_t area = winding->getArea ();
-	vec_t size = 0.8f;
+	float area = winding->getArea ();
+	float size = 0.8f;
 	if (area < size * radius * radius) // the shape is too thin
 	{
 		skylevel++;
@@ -723,36 +723,36 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 	// patch->winding->size() must > 0
 	// plA->dist and plB->dist will not be used
 	Winding *winding = nullptr;
-	vec_t chop;
-	vec_t epsilon;
+	float chop;
+	float epsilon;
 	const int max_gridsize = 64;
-	vec_t gridstartA;
-	vec_t gridstartB;
+	float gridstartA;
+	float gridstartB;
 	int gridsizeA;
 	int gridsizeB;
-	vec_t gridchopA;
-	vec_t gridchopB;
+	float gridchopA;
+	float gridchopB;
 	int numstrips;
 	
 	winding = new Winding (*patch->winding); // perform all the operations on the copy
 	chop = patch->chop;
-	chop = std::max((vec_t) 1.0, chop);
+	chop = std::max((float) 1.0, chop);
 	epsilon = 0.6;
 
 	// optimize the grid
 	{
-		vec_t minA;
-		vec_t maxA;
-		vec_t minB;
-		vec_t maxB;
+		float minA;
+		float maxA;
+		float minB;
+		float maxB;
 
 		minA = minB = hlrad_bogus_range;
 		maxA = maxB = -hlrad_bogus_range;
 		for (int x = 0; x < winding->size(); x++)
 		{
-			vec_t *point;
-			vec_t dotA;
-			vec_t dotB;
+			float *point;
+			float dotA;
+			float dotB;
 			point = winding->m_Points[x].data();
 			dotA = DotProduct (point, plA->normal);
 			minA = std::min(minA, dotA);
@@ -768,7 +768,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		if (gridsizeA > max_gridsize)
 		{
 			gridsizeA = max_gridsize;
-			gridchopA = (maxA - minA) / (vec_t)gridsizeA;
+			gridchopA = (maxA - minA) / (float)gridsizeA;
 		}
 		gridstartA = (minA + maxA) / 2.0 - (gridsizeA / 2.0) * gridchopA;
 
@@ -778,7 +778,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		if (gridsizeB > max_gridsize)
 		{
 			gridsizeB = max_gridsize;
-			gridchopB = (maxB - minB) / (vec_t)gridsizeB;
+			gridchopB = (maxB - minB) / (float)gridsizeB;
 		}
 		gridstartB = (minB + maxB) / 2.0 - (gridsizeB / 2.0) * gridchopB;
 	}
@@ -788,7 +788,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 		g_numwindings = 0;
 		for (int i = 1; i < gridsizeA; i++)
 		{
-			vec_t dist;
+			float dist;
 			Winding front;
 			Winding back;
 
@@ -824,7 +824,7 @@ static void     cutWindingWithGrid (patch_t *patch, const dplane_t *plA, const d
 
 			for (int j = 1; j < gridsizeB; j++)
 			{
-				vec_t dist;
+				float dist;
 				Winding front;
 				Winding back;
 
@@ -873,7 +873,7 @@ static void     getGridPlanes(const patch_t* const p, dplane_t* const pl)
     for (x = 0; x < 2; x++, plane++)
     {
 		// cut the patch along texel grid planes
-		vec_t			val;
+		float			val;
 		val = DotProduct (faceplane->normal, tx->vecs[!x]);
 		VectorMA (tx->vecs[!x], -val, faceplane->normal, plane->normal);
         normalize_vector(plane->normal);
@@ -942,7 +942,7 @@ static void     SubdividePatch(patch_t* patch)
 static float    totalarea = 0;
 // =====================================================================================
 
-std::unique_ptr<vec_t[]> chopscales; //[nummiptex]
+std::unique_ptr<float[]> chopscales; //[nummiptex]
 void ReadCustomChopValue()
 {
 	int num;
@@ -950,7 +950,7 @@ void ReadCustomChopValue()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
-	chopscales = std::make_unique<vec_t[]>(num);
+	chopscales = std::make_unique<float[]>(num);
 	for (i = 0; i < num; i++)
 	{
 		chopscales[i] = 1.0;
@@ -979,11 +979,11 @@ void ReadCustomChopValue()
 		}
 	}
 }
-vec_t ChopScaleForTexture (int facenum)
+float ChopScaleForTexture (int facenum)
 {
     return chopscales[g_texinfo[g_dfaces[facenum].texinfo].miptex];
 }
-vec_t *g_smoothvalues; //[nummiptex]
+float *g_smoothvalues; //[nummiptex]
 void ReadCustomSmoothValue()
 {
 	int num;
@@ -991,7 +991,7 @@ void ReadCustomSmoothValue()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
-	g_smoothvalues = (vec_t *)malloc (num * sizeof(vec_t));
+	g_smoothvalues = (float *)malloc (num * sizeof(float));
 	for (i = 0; i < num; i++)
 	{
 		g_smoothvalues[i] = g_smoothing_threshold;
@@ -1025,7 +1025,7 @@ void ReadTranslucentTextures()
 	entity_t *mapent;
 
 	num = ((dmiptexlump_t *)g_dtexdata.data())->nummiptex;
-	g_translucenttextures = std::make_unique<vec3_array[]>(num);
+	g_translucenttextures = std::make_unique<float3_array[]>(num);
 	for (k = 0; k < g_numentities; k++)
 	{
 		mapent = &g_entities[k];
@@ -1068,9 +1068,9 @@ void ReadTranslucentTextures()
 	}
 }
 std::unique_ptr<lighting_cone_power_and_scale[]> g_lightingconeinfo; // size == nummiptex
-static vec_t DefaultScaleForPower (vec_t power)
+static float DefaultScaleForPower (float power)
 {
-	vec_t scale;
+	float scale;
 	// scale = Pi / Integrate [2 Pi * Sin [x] * Cos[x] ^ power, {x, 0, Pi / 2}]
 	scale = (1 + power) / 2.0;
 	return scale;
@@ -1125,7 +1125,7 @@ void ReadLightingCone ()
 	}
 }
 
-static vec_t    getScale(const patch_t* const patch)
+static float    getScale(const patch_t* const patch)
 {
     dface_t*        f = &g_dfaces[patch->faceNumber];
     texinfo_t*      tx = &g_texinfo[f->texinfo];
@@ -1133,9 +1133,9 @@ static vec_t    getScale(const patch_t* const patch)
     if (g_texscale)
     {
 		const dplane_t*	faceplane = getPlaneFromFace (f);
-		std::array<vec3_array, 2> vecs_perpendicular;
-		std::array<vec_t, 2> scale;
-		vec_t dot;
+		std::array<float3_array, 2> vecs_perpendicular;
+		std::array<float, 2> scale;
+		float dot;
 		
 		// snap texture "vecs" to faceplane without affecting texture alignment
 		for (std::size_t x = 0; x < 2; ++x) {
@@ -1161,7 +1161,7 @@ static vec_t    getScale(const patch_t* const patch)
 // =====================================================================================
 static bool		getEmitMode (const patch_t *patch)
 {
-	vec_t value = 
+	float value = 
 		DotProduct (patch->baselight, patch->texturereflectivity) / 3
 		;
 	if (g_face_texlights[patch->faceNumber])
@@ -1186,9 +1186,9 @@ static bool		getEmitMode (const patch_t *patch)
 	}
 	return emitmode;
 }
-static vec_t    getChop(const patch_t* const patch)
+static float    getChop(const patch_t* const patch)
 {
-    vec_t           rval;
+    float           rval;
 
 	if (g_face_texlights[patch->faceNumber])
 	{
@@ -1275,15 +1275,15 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	VectorCopy (g_textures[g_texinfo[f->texinfo].miptex].reflectivity, patch->texturereflectivity);
 	if (g_face_texlights[fn] && has_key_value(g_face_texlights[fn], u8"_texcolor"))
 	{
-		vec3_array texturereflectivity;
-		vec3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
+		float3_array texturereflectivity;
+		float3_array texturecolor{get_vector_for_key(*g_face_texlights[fn], u8"_texcolor")};
 		for (int k = 0; k < 3; k++)
 		{
 			texturecolor[k] = floor (texturecolor[k] + 0.001);
 		}
 		if (VectorMinimum (texturecolor) < -0.001 || VectorMaximum (texturecolor) > 255.001)
 		{
-			const vec3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
+			const float3_array origin{get_vector_for_key(*g_face_texlights[fn], u8"origin")};
 			Error ("light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.", origin[0], origin[1], origin[2], texturecolor[0], texturecolor[1], texturecolor[2]);
 		}
 		VectorScale (texturecolor, 1.0 / 255.0, texturereflectivity);
@@ -1299,7 +1299,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		VectorCopy (texturereflectivity, patch->texturereflectivity);
 	}
 	{
-		vec_t opacity = 0.0;
+		float opacity = 0.0;
 		if (g_face_entity[fn] == g_entities.data())
 		{
 			opacity = 1.0;
@@ -1354,7 +1354,7 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	g_face_patches[fn] = patch;
 	g_num_patches++;
 
-	vec3_array centroid{};
+	float3_array centroid{};
 
 	// Per-face data
 	{
@@ -1386,8 +1386,8 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 	{
 		if (g_subdivide)
 		{
-			vec_t           amt;
-			vec_t           length;
+			float           amt;
+			float           length;
 			float3_array delta;
 
 			bounding_box bounds = patch->winding->getBounds();
@@ -1411,8 +1411,8 @@ static void     MakePatchForFace(const int fn, Winding* w, int style
 		}
 	}
 }
-static void AddFaceToOpaqueList(int entitynum, int modelnum, const vec3_array& origin
-									, const std::optional<vec3_array>& transparency_scale
+static void AddFaceToOpaqueList(int entitynum, int modelnum, const float3_array& origin
+									, const std::optional<float3_array>& transparency_scale
 									, int style
 									, bool block
 									)
@@ -1459,7 +1459,7 @@ static void		LoadOpaqueEntities()
 
 			if (!key_value_is (&ent, u8"model", stringmodel.data())) // Skip ents that don't match the current model
 				continue;
-			vec3_array origin;
+			float3_array origin;
 			{
 				origin = get_vector_for_key(ent, u8"origin"); //Get origin vector of the ent
 
@@ -1468,8 +1468,8 @@ static void		LoadOpaqueEntities()
 					auto maybeEnt2 = find_target_entity(value_for_key (&ent, u8"light_origin"));
 
 					if (maybeEnt2) {
-						vec3_array light_origin = get_vector_for_key(maybeEnt2.value(), u8"origin");
-						vec3_array model_center = get_vector_for_key(ent, u8"model_center");
+						float3_array light_origin = get_vector_for_key(maybeEnt2.value(), u8"origin");
+						float3_array model_center = get_vector_for_key(ent, u8"model_center");
 						VectorSubtract(light_origin, model_center, origin); // New origin
 					}
 				}
@@ -1480,7 +1480,7 @@ static void		LoadOpaqueEntities()
 					opaque = true;
 			}
 
-	   		std::optional<vec3_array> transparency;
+	   		std::optional<float3_array> transparency;
 			{
 				// If the entity has a custom shadow (transparency) value
 				std::u8string_view transparencyString = value_for_key(&ent, u8"zhlt_customshadow");
@@ -1500,7 +1500,7 @@ static void		LoadOpaqueEntities()
 						transparency = { r, r, r };
 					}
 				}
-				if (transparency == vec3_array{ 0.0f, 0.0f, 0.0f }) {
+				if (transparency == float3_array{ 0.0f, 0.0f, 0.0f }) {
 					// 0 transparency is no transparency
 					transparency = std::nullopt;
 				}
@@ -1576,11 +1576,11 @@ static entity_t *FindTexlightEntity (int facenum)
 	const dplane_t *dplane = getPlaneFromFace (face);
 	const wad_texture_name texname{get_texture_by_number(face->texinfo)};
 	entity_t *faceent = g_face_entity[facenum];
-	vec3_array centroid{ Winding(*face).getCenter() };
+	float3_array centroid{ Winding(*face).getCenter() };
 	VectorAdd (centroid, g_face_offset[facenum], centroid);
 
 	entity_t *found = nullptr;
-	vec_t bestdist = -1;
+	float bestdist = -1;
 	for (int i = 0; i < g_numentities; i++)
 	{
 		entity_t& ent = g_entities[i];
@@ -1588,9 +1588,9 @@ static entity_t *FindTexlightEntity (int facenum)
 			continue;
 		if (!key_value_is(&ent, u8"_tex", texname))
 			continue;
-		vec3_array delta{get_vector_for_key(ent, u8"origin")};
+		float3_array delta{get_vector_for_key(ent, u8"origin")};
 		VectorSubtract(delta, centroid, delta);
-		vec_t dist = vector_length(delta);
+		float dist = vector_length(delta);
 		if (has_key_value(&ent, u8"_frange"))
 		{
 			if (dist > float_for_key(ent, u8"_frange"))
@@ -1652,7 +1652,7 @@ static void     MakePatches()
             lightmode = (eModelLightmodes)atoi((const char*) zhltLightFlagsString.data());
         }
 
-   		vec3_array origin{};
+   		float3_array origin{};
 		std::u8string_view originString = value_for_key(ent, u8"origin");
         // models with origin brushes need to be offset into their in-use position
         if (!originString.empty())
@@ -1668,7 +1668,7 @@ static void     MakePatches()
 
         }
 
-	    std::optional<vec3_array> lightOrigin;
+	    std::optional<float3_array> lightOrigin;
 		std::u8string_view lightOriginString = value_for_key(ent, u8"light_origin");
         // Allow models to be lit in an alternate location (pt1)
         if (!lightOriginString.empty())
@@ -1686,7 +1686,7 @@ static void     MakePatches()
             }
         }
 
-	    std::optional<vec3_array> modelCenter;
+	    std::optional<float3_array> modelCenter;
 		std::u8string_view modelCenterString = value_for_key(ent, u8"model_center");
         // Allow models to be lit in an alternate location (pt2)
         if (!modelCenterString.empty())
@@ -1898,7 +1898,7 @@ static void     CollectLight()
 
     for (i = 0, patch = g_patches; i < g_num_patches; i++, patch++)
     {
-		std::array<vec3_array, MAXLIGHTMAPS> newtotallight;
+		std::array<float3_array, MAXLIGHTMAPS> newtotallight;
 		for (j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255; j++)
 		{
 			VectorClear (newtotallight[j]);
@@ -1944,7 +1944,7 @@ static void     GatherLight(int threadnum)
     unsigned        iIndex;
     transfer_data_t* tData;
     transfer_index_t* tIndex;
-	std::array<vec3_array, ALLSTYLES> adds;
+	std::array<float3_array, ALLSTYLES> adds;
 	unsigned int	fastfind_index = 0;
 
     while (1)
@@ -1985,7 +1985,7 @@ static void     GatherLight(int threadnum)
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->directstyle[emitstyle] != 255; emitstyle++)
 				{
-               		vec3_array v;
+               		float3_array v;
 					VectorScale(emitpatch->directlight[emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
 					if (is_point_finite (v)) [[likely]] {
@@ -2009,7 +2009,7 @@ static void     GatherLight(int threadnum)
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->totalstyle[emitstyle] != 255; emitstyle++)
 				{
-                	vec3_array v;
+                	float3_array v;
 					VectorScale(emitlight[patchnum][emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
 					if (is_point_finite(v)) [[likely]] {
@@ -2040,7 +2040,7 @@ static void     GatherLight(int threadnum)
             }
         }
 
-		vec_t maxlights[ALLSTYLES];
+		float maxlights[ALLSTYLES];
 		for (std::size_t style = 0; style < ALLSTYLES; style++)
 		{
 			maxlights[style] = VectorMaximum (adds[style]);
@@ -2054,7 +2054,7 @@ static void     GatherLight(int threadnum)
 			}
 			else
 			{
-				vec_t bestmaxlight = 0;
+				float bestmaxlight = 0;
 				for (std::size_t style = 1; style < ALLSTYLES; style++)
 				{
 					if (maxlights[style] > bestmaxlight + NORMAL_EPSILON)
@@ -2103,7 +2103,7 @@ static void     GatherRGBLight(int threadnum)
     rgb_transfer_data_t* tRGBData;
     transfer_index_t* tIndex;
 	float f[3];
-	std::array<vec3_array, ALLSTYLES> adds;
+	std::array<float3_array, ALLSTYLES> adds;
 	int				style;
 	unsigned int	fastfind_index = 0;
 
@@ -2144,7 +2144,7 @@ static void     GatherRGBLight(int threadnum)
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->directstyle[emitstyle] != 255; emitstyle++)
 				{
-              		vec3_array v;
+              		float3_array v;
 					VectorMultiply(emitpatch->directlight[emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
 					if (is_point_finite (v)) [[likely]] {
@@ -2168,7 +2168,7 @@ static void     GatherRGBLight(int threadnum)
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS && emitpatch->totalstyle[emitstyle] != 255; emitstyle++)
 				{
-                	vec3_array v;
+                	float3_array v;
 					VectorMultiply(emitlight[patchnum][emitstyle], f, v);
 					VectorMultiply(v, emitpatch->bouncereflectivity, v);
 					if (is_point_finite(v)) [[likely]] {
@@ -2199,7 +2199,7 @@ static void     GatherRGBLight(int threadnum)
             }
         }
 
-		vec_t maxlights[ALLSTYLES];
+		float maxlights[ALLSTYLES];
 		for (style = 0; style < ALLSTYLES; style++)
 		{
 			maxlights[style] = VectorMaximum (adds[style]);
@@ -2213,7 +2213,7 @@ static void     GatherRGBLight(int threadnum)
 			}
 			else
 			{
-				vec_t bestmaxlight = 0;
+				float bestmaxlight = 0;
 				for (style = 1; style < ALLSTYLES; style++)
 				{
 					if (maxlights[style] > bestmaxlight + NORMAL_EPSILON)
@@ -2257,8 +2257,8 @@ static void     BounceLight()
 {
 
 	// these arrays are only used in CollectLight, GatherLight and BounceLight
-	emitlight = new std::array<vec3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
-	addlight = new std::array<vec3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+	emitlight = new std::array<float3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+	addlight = new std::array<float3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
 	newstyles = new std::array<unsigned char, MAXLIGHTMAPS>[g_num_patches + 1]();
 	
     unsigned        i;
@@ -2404,22 +2404,22 @@ static void ExtendLightmapBuffer ()
 }
 
 
-const std::array<vec3_array, 15> pos{
-	vec3_array{0,	0,	0},
-	vec3_array{1,	0,	0},
-	vec3_array{0,	1,	0},
-	vec3_array{-1,	0,	0},
-	vec3_array{0,	-1,	0},
-	vec3_array{1,	0,	0},
-	vec3_array{0,	0,	1},
-	vec3_array{-1,	0,	0},
-	vec3_array{0,	0,	-1},
-	vec3_array{0,	-1,	0},
-	vec3_array{0,	0,	1},
-	vec3_array{0,	1,	0},
-	vec3_array{0,	0,	-1},
-	vec3_array{1,	0,	0},
-	vec3_array{0,	0,	0}
+const std::array<float3_array, 15> pos{
+	float3_array{0,	0,	0},
+	float3_array{1,	0,	0},
+	float3_array{0,	1,	0},
+	float3_array{-1,	0,	0},
+	float3_array{0,	-1,	0},
+	float3_array{1,	0,	0},
+	float3_array{0,	0,	1},
+	float3_array{-1,	0,	0},
+	float3_array{0,	0,	-1},
+	float3_array{0,	-1,	0},
+	float3_array{0,	0,	1},
+	float3_array{0,	1,	0},
+	float3_array{0,	0,	-1},
+	float3_array{1,	0,	0},
+	float3_array{0,	0,	0}
 };
 
 // =====================================================================================
@@ -2450,8 +2450,8 @@ static void     RadWorld() {
 				if (patch->flags == ePatchFlagOutside)
 					continue;
 
-				const vec3_array v{patch->origin};
-				for (const vec3_array& p : pos) {
+				const float3_array v{patch->origin};
+				for (const float3_array& p : pos) {
 					fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
 				}
 			}
@@ -2479,12 +2479,12 @@ static void     RadWorld() {
 				if (es->smooth)
 				{
 					int v0 = g_dedges[j].v[0], v1 = g_dedges[j].v[1];
-					vec3_array v;
+					float3_array v;
 					VectorAdd (g_dvertexes[v0].point, g_dvertexes[v1].point, v);
 					VectorScale (v, 0.5, v);
 					VectorAdd (v, es->interface_normal, v);
 					VectorAdd (v, g_face_offset[es->faces[0] - g_dfaces.data()], v);
-					for (const vec3_array& p : pos) {
+					for (const float3_array& p : pos) {
 						fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
 					}
 				}

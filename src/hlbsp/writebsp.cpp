@@ -195,7 +195,7 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
     //
     // write bounding box info
     //
-	vec3_array mins, maxs;
+	double3_array mins, maxs;
 
 	if (node->isdetail)
 	{
@@ -341,7 +341,7 @@ static int WriteDrawNodes_r (node_t *node, const node_t *portalleaf)
     n = &g_dnodes[g_numnodes];
     g_numnodes++;
 
-	vec3_array mins, maxs;
+	double3_array mins, maxs;
 
 	if (node->isdetail)
 	{

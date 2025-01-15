@@ -97,8 +97,8 @@ static int FindIntPlane(const double* const normal, const double* const origin)
 
 int PlaneFromPoints(const double* const p0, const double* const p1, const double* const p2)
 {
-    vec3_array          v1, v2;
-    vec3_array          normal;
+    double3_array          v1, v2;
+    double3_array          normal;
 
     VectorSubtract(p0, p1, v1);
     VectorSubtract(p2, p1, v2);
@@ -183,8 +183,8 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 {
 	const hullbrushedge_t *hbe;
 	const hullbrushvertex_t *hbv;
-	vec3_array normal;
-	vec3_array origin;
+	double3_array normal;
+	double3_array origin;
 	bool *axialbevel;
 	bool warned;
 
@@ -213,7 +213,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 			dotmin = g_iWorldExtent;
 			dotmax = -g_iWorldExtent;
 			hlassume (hbf->numvertexes >= 1, assume_first);
-			for (vec3_array *v = hbf->vertexes; v < hbf->vertexes + hbf->numvertexes; v++)
+			for (double3_array *v = hbf->vertexes; v < hbf->vertexes + hbf->numvertexes; v++)
 			{
 				double dot;
 				dot = DotProduct (*v, brushface.normal);
@@ -235,7 +235,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		
 		// find the impact point
-		vec3_array bestvertex;
+		double3_array bestvertex;
 		double bestdist;
 		bestdist = g_iWorldExtent;
 		hlassume (hb->numvertexes >= 1, assume_first);
@@ -325,8 +325,8 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 				// in the outer loop, each edge in the brush will be iterated twice (once from f and once from the corresponding f2)
 				// but since brushedge.delta are exactly the opposite between the two iterations
 				// only one of them can reach here
-				vec3_array e1;
-				vec3_array e2;
+				double3_array e1;
+				double3_array e2;
 				VectorCopy (brushedge.delta, e1);
 				normalize_vector(e1);
 				VectorCopy (hbe->delta, e2);
@@ -346,7 +346,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 	for (const hullbrushface_t* hbf = hb->faces; hbf < hb->faces + hb->numfaces; hbf++)
 	{
 		// find the impact point
-		vec3_array bestvertex;
+		double3_array bestvertex;
 		double bestdist = g_iWorldExtent;
 		if (hull0->faces.empty())
 		{
@@ -354,7 +354,7 @@ void ExpandBrushWithHullBrush (const brush_t *brush, const brushhull_t *hull0, c
 		}
 		for (const bface_t& f : hull0->faces)
 		{
-			for (const vec3_array& v : f.w.m_Points)
+			for (const double3_array& v : f.w.m_Points)
 			{
 				if (DotProduct (v, hbf->normal) < bestdist - NORMAL_EPSILON)
 				{
@@ -447,8 +447,8 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 		}
 
 		//add the offset non-axial plane to the expanded hull
-		vec3_array origin{current_plane->origin};
-		vec3_array normal{current_plane->normal};
+		double3_array origin{current_plane->origin};
+		double3_array normal{current_plane->normal};
 
 		//old code multiplied offset by normal -- this led to post-csg "sticky" walls where a
 		//slope met an axial plane from the next brush since the offset from the slope would be less
@@ -523,11 +523,11 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			const Winding& winding = current_face.w;
 			for(counter = 0; counter < (winding.size()); counter++) //for each edge
 			{
-				const vec3_array edge_start{winding.m_Points[counter]};
-				const vec3_array edge_end{winding.m_Points[(counter+1)%winding.size()]};
+				const double3_array edge_start{winding.m_Points[counter]};
+				const double3_array edge_end{winding.m_Points[(counter+1)%winding.size()]};
 
 				// Grab the edge (find relative length)
-				vec3_array edge, bevel_edge;
+				double3_array edge, bevel_edge;
 				VectorSubtract(edge_end,edge_start,edge);
 
 				const bface_t* foundOtherFace{};
@@ -577,7 +577,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 						bevel_edge[dir] = (current_plane->normal[dir] > 0) ? -1 : 1;
 
 						//find normal by taking normalized cross of the edge vector and the bevel edge
-						vec3_array normal;
+						double3_array normal;
 						CrossProduct(edge,bevel_edge,normal);
 
 						//normalize to length 1
@@ -588,7 +588,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 						}
 
 						//get the origin
-						vec3_array origin = edge_start;
+						double3_array origin = edge_start;
 
 						//unrolled loop - legacy never hits this point, so don't test for it
 						if (g_cliptype == clip_precise && normal[2] > FLOOR_Z)
@@ -628,9 +628,9 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 	//completely axial brush, this is the only necessary step
 
 	//add mins
-	vec3_array origin;
+	double3_array origin;
 	VectorAdd(brush->hulls[0].bounds.mins, g_hull_size[hullnum][0], origin);
-	vec3_array normal{-1, 0,0};
+	double3_array normal{-1, 0,0};
 	AddHullPlane(hull,normal.data(),(axialbevel[std::size_t(planetype::plane_x)][0] ? brush->hulls[0].bounds.mins.data() : origin.data()),false);
 	normal[0] = 0;
 	normal[1] = -1;
@@ -660,9 +660,9 @@ void SortSides (brushhull_t *h) {
 	// The only reason it's a stable sort is so we get identical .bsp files
 	// no matter which implementation of the C++ standard library is used
 	std::stable_sort(h->faces.begin(), h->faces.end(), [](const bface_t& a, const bface_t& b) {
-		const vec3_array normalsA = g_mapplanes[a.planenum].normal;
+		const double3_array normalsA = g_mapplanes[a.planenum].normal;
 		int axialA = (fabs (normalsA[0]) < NORMAL_EPSILON) + (fabs (normalsA[1]) < NORMAL_EPSILON) + (fabs (normalsA[2]) < NORMAL_EPSILON);
-		const vec3_array normalsB = g_mapplanes[b.planenum].normal;
+		const double3_array normalsB = g_mapplanes[b.planenum].normal;
 		int axialB = (fabs (normalsB[0]) < NORMAL_EPSILON) + (fabs (normalsB[1]) < NORMAL_EPSILON) + (fabs (normalsB[2]) < NORMAL_EPSILON);
 		return axialA > axialB;
 	});
@@ -732,7 +732,7 @@ bool            MakeBrushPlanes(brush_t* b)
     int             j;
     int             planenum;
     side_t*         s;
-    vec3_array          origin;
+    double3_array          origin;
 
     //
     // if the origin key is set (by an origin brush), offset all of the values
@@ -1113,7 +1113,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	int k;
 	int e;
 	int e2;
-	vec3_array origin;
+	double3_array origin;
 	bool failed = false;
 
 	// planes
@@ -1124,10 +1124,10 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	for (i = 0; i < b->numsides; i++)
 	{
 		side_t *s;
-		vec3_array p[3];
-		vec3_array v1;
-		vec3_array v2;
-		vec3_array normal;
+		double3_array p[3];
+		double3_array v1;
+		double3_array v2;
+		double3_array normal;
 		planetype axial;
 
 		s = &g_brushsides[b->firstside + i];
@@ -1164,7 +1164,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		if (axial <= last_axial)
 		{
 			double sign = normal[std::size_t(axial)] > 0 ? 1: -1;
-			normal = vec3_array{};
+			normal = double3_array{};
 			normal[std::size_t(axial)] = sign;
 		}
 
@@ -1190,7 +1190,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 				continue;
 			}
 			double dist;
-			const vec3_array normal = negate_vector(planes[j].normal);
+			const double3_array normal = negate_vector(planes[j].normal);
 			dist = -planes[j].dist;
 			if (!w[i]->Chop (normal, dist))
 			{
@@ -1264,7 +1264,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 	{
 		for (e = 0; e < w[i]->size(); e++)
 		{
-			vec3_array v;
+			double3_array v;
 			VectorCopy (w[i]->m_Points[e], v);
 			for (j = 0; j < numvertexes; j++)
 			{
@@ -1315,7 +1315,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 			VectorCopy (planes[i].normal, f->normal);
 			VectorCopy (w[i]->m_Points[0], f->point);
 			f->numvertexes = w[i]->size();
-			f->vertexes = (vec3_array *)malloc (f->numvertexes * sizeof (vec3_array));
+			f->vertexes = (double3_array *)malloc (f->numvertexes * sizeof (double3_array));
 			hlassume (f->vertexes != nullptr, assume_NoMemory);
 			for (k = 0; k < w[i]->size(); k++)
 			{
@@ -1370,9 +1370,9 @@ hullbrush_t *CopyHullBrush (const hullbrush_t *hb)
 	{
 		hullbrushface_t *f2 = &hb2->faces[i];
 		const hullbrushface_t *f = &hb->faces[i];
-		f2->vertexes = (vec3_array *)malloc (f->numvertexes * sizeof (vec3_array));
+		f2->vertexes = (double3_array *)malloc (f->numvertexes * sizeof (double3_array));
 		hlassume (f2->vertexes != nullptr, assume_NoMemory);
-		memcpy (f2->vertexes, f->vertexes, f->numvertexes * sizeof (vec3_array));
+		memcpy (f2->vertexes, f->vertexes, f->numvertexes * sizeof (double3_array));
 	}
 	return hb2;
 }

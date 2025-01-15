@@ -2,7 +2,7 @@
 #include <numbers>
 
 funcCheckVisBit g_CheckVisBit = nullptr;
-std::vector<vec3_array> g_transparencyList{1, vec3_array{1.0, 1.0, 1.0}};
+std::vector<float3_array> g_transparencyList{1, float3_array{1.0, 1.0, 1.0}};
 
 size_t          g_total_transfer = 0;
 size_t          g_transfer_index_bytes = 0;
@@ -174,20 +174,20 @@ void            MakeScales(const int threadnum)
 {
     int             i;
     unsigned        j;
-    vec3_array          delta;
-    vec_t           dist;
+    float3_array          delta;
+    float           dist;
     int             count;
     float           trans;
     patch_t*        patch;
     patch_t*        patch2;
     float           send;
-    vec3_array          origin;
-    vec_t           area;
-    const vec_t*    normal2;
+    float3_array          origin;
+    float           area;
+    const float*    normal2;
 
     unsigned int    fastfind_index = 0;
 
-    vec_t           total;
+    float           total;
 
     transfer_raw_index_t* tIndex;
     float* tData;
@@ -212,19 +212,19 @@ void            MakeScales(const int threadnum)
         tData = tData_All;
 
         VectorCopy(patch->origin, origin);
-        const vec3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
+        const float3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
 
         area = patch->area;
-		vec3_array backorigin;
-		vec3_array backnormal;
+		float3_array backorigin;
+		float3_array backnormal;
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
 			backnormal = negate_vector(normal1);
 		}
 		bool lighting_diversify;
-		vec_t lighting_power;
-		vec_t lighting_scale;
+		float lighting_power;
+		float lighting_scale;
 		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
 		lighting_power = g_lightingconeinfo[miptex].power;
 		lighting_scale = g_lightingconeinfo[miptex].scale;
@@ -236,10 +236,10 @@ void            MakeScales(const int threadnum)
 
         for (j = 0, patch2 = g_patches; j < g_num_patches; j++, patch2++)
         {
-            vec_t           dot1;
-            vec_t           dot2;
+            float           dot1;
+            float           dot2;
 
-            vec3_array          transparency = {1.0,1.0,1.0};
+            float3_array          transparency = {1.0,1.0,1.0};
 			bool useback;
 			useback = false;
 
@@ -309,9 +309,9 @@ void            MakeScales(const int threadnum)
 				{
 					trans = 0.0;
 				}
-				vec_t sightarea;
-				vec3_array receiver_origin{origin};
-				vec3_array receiver_normal{normal1};
+				float sightarea;
+				float3_array receiver_origin{origin};
+				float3_array receiver_normal{normal1};
 				const Winding *emitter_winding;
 				if (useback)
 				{
@@ -323,10 +323,10 @@ void            MakeScales(const int threadnum)
 					, lighting_power, lighting_scale
 					);
 				
-				vec_t frac;
+				float frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition between the two methods
-				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+				frac = std::max((float) 0, std::min(frac, (float) 1));
 				trans = frac * trans + (1 - frac) * (sightarea / patch2->area); // because later we will multiply this back
 			}
 			else
@@ -435,20 +435,20 @@ void            MakeRGBScales(const int threadnum)
 {
     int             i;
     unsigned        j;
-    vec3_array          delta;
-    vec_t           dist;
+    float3_array          delta;
+    float           dist;
     int             count;
     float           trans[3];
     float           trans_one;
     patch_t*        patch;
     patch_t*        patch2;
     float           send;
-    vec3_array          origin;
-    vec_t           area;
-    const vec_t*    normal2;
+    float3_array          origin;
+    float           area;
+    const float*    normal2;
 
     unsigned int    fastfind_index = 0;
-    vec_t           total;
+    float           total;
 
     transfer_raw_index_t* tIndex;
     float* tRGBData;
@@ -474,19 +474,19 @@ void            MakeRGBScales(const int threadnum)
         tRGBData = tRGBData_All;
 
         VectorCopy(patch->origin, origin);
-        const vec3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
+        const float3_array normal1 = getPlaneFromFaceNumber(patch->faceNumber)->normal;
 
         area = patch->area;
-		vec3_array backorigin;
-		vec3_array backnormal;
+		float3_array backorigin;
+		float3_array backnormal;
 		if (patch->translucent_b)
 		{
 			VectorMA (patch->origin, -(g_translucentdepth + 2*PATCH_HUNT_OFFSET), normal1, backorigin);
 			backnormal = negate_vector(normal1);
 		}
 		bool lighting_diversify;
-		vec_t lighting_power;
-		vec_t lighting_scale;
+		float lighting_power;
+		float lighting_scale;
 		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
 		lighting_power = g_lightingconeinfo[miptex].power;
 		lighting_scale = g_lightingconeinfo[miptex].scale;
@@ -498,9 +498,9 @@ void            MakeRGBScales(const int threadnum)
 
         for (j = 0, patch2 = g_patches; j < g_num_patches; j++, patch2++)
         {
-            vec_t           dot1;
-            vec_t           dot2;
-            vec3_array          transparency = {1.0,1.0,1.0};
+            float           dot1;
+            float           dot2;
+            float3_array          transparency = {1.0,1.0,1.0};
 			bool useback = false;
 
             if (!g_CheckVisBit(i, j
@@ -571,9 +571,9 @@ void            MakeRGBScales(const int threadnum)
 				{
 					trans_one = 0.0;
 				}
-				vec_t sightarea;
-				vec3_array receiver_origin{origin};
-				vec3_array receiver_normal{normal1};
+				float sightarea;
+				float3_array receiver_origin{origin};
+				float3_array receiver_normal{normal1};
 				const Winding *emitter_winding;
 				if (useback)
 				{
@@ -585,10 +585,10 @@ void            MakeRGBScales(const int threadnum)
 					, lighting_power, lighting_scale
 					);
 				
-				vec_t frac;
+				float frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition between the two methods
-				frac = std::max((vec_t) 0, std::min(frac,(vec_t) 1));
+				frac = std::max((float) 0, std::min(frac,(float) 1));
 				trans_one = frac * trans_one + (1 - frac) * (sightarea / patch2->area); // because later we will multiply this back
 			}
 			else

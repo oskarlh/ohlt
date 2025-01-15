@@ -208,10 +208,10 @@ face_t*         NewFaceFromFace(const face_t* const in)
 // =====================================================================================
 static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t** front, face_t** back)
 {
-    vec_t           dists[MAXEDGES + 1];
+    double           dists[MAXEDGES + 1];
     face_side sides[MAXEDGES + 1];
     int             counts[3];
-    vec_t           dot;
+    double           dot;
     int             i;
     int             j;
     face_t*         newf;
@@ -223,7 +223,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
     }
     counts[0] = counts[1] = counts[2] = 0;
 
-    vec_t dotSum = 0.0;
+    double dotSum = 0.0;
     // This again... We have code like this in Winding repeated several times
     // determine sides for each point
     for (i = 0; i < in->numpoints; i++)
@@ -307,7 +307,7 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
             Error("SplitFace: numpoints > MAXEDGES");
         }
 
-        const vec3_array& p1 {in->pts[i]};
+        const double3_array& p1 {in->pts[i]};
 
         if (sides[i] == face_side::on)
         {
@@ -335,9 +335,9 @@ static void     SplitFaceTmp(face_t* in, const mapplane_t* const split, face_t**
         }
 
         // generate a split point
-        const vec3_array& p2 {in->pts[(i + 1) % in->numpoints]};
+        const double3_array& p2 {in->pts[(i + 1) % in->numpoints]};
 
-        vec3_array mid;
+        double3_array mid;
         dot = dists[i] / (dists[i] - dists[i + 1]);
         for (j = 0; j < 3; j++)
         {                                                  // avoid round off error when possible
@@ -542,7 +542,7 @@ brush_t *NewBrushFromBrush (const brush_t *b)
 	return newb;
 }
 
-void ClipBrush (brush_t **b, const mapplane_t *split, vec_t epsilon)
+void ClipBrush (brush_t **b, const mapplane_t *split, double epsilon)
 {
 	side_t *s, **pnext;
 	Winding *w;
@@ -646,7 +646,7 @@ void SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t 
 	return;
 }
 
-brush_t *BrushFromBox (const vec3_array& mins, const vec3_array& maxs)
+brush_t *BrushFromBox (const double3_array& mins, const double3_array& maxs)
 {
 	brush_t *b = AllocBrush ();
 	mapplane_t planes[6];
@@ -673,7 +673,7 @@ brush_t *BrushFromBox (const vec3_array& mins, const vec3_array& maxs)
 	return b;
 }
 
-void CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs)
+void CalcBrushBounds (const brush_t *b, double3_array& mins, double3_array& maxs)
 {
 	VectorFill (mins, hlbsp_bogus_range);
 	VectorFill (maxs, -hlbsp_bogus_range);
@@ -703,10 +703,10 @@ node_t*         AllocNode()
 // =====================================================================================
 //  AddPointToBounds
 // =====================================================================================
-static void            AddPointToBounds(const vec3_array& v, vec3_array& mins, vec3_array& maxs)
+static void            AddPointToBounds(const double3_array& v, double3_array& mins, double3_array& maxs)
 {
     int             i;
-    vec_t           val;
+    double           val;
 
     for (i = 0; i < 3; i++)
     {
@@ -725,7 +725,7 @@ static void            AddPointToBounds(const vec3_array& v, vec3_array& mins, v
 // =====================================================================================
 //  AddFaceToBounds
 // =====================================================================================
-static void     AddFaceToBounds(const face_t* const f, vec3_array& mins, vec3_array& maxs)
+static void     AddFaceToBounds(const face_t* const f, double3_array& mins, double3_array& maxs)
 {
     int             i;
 
@@ -738,7 +738,7 @@ static void     AddFaceToBounds(const face_t* const f, vec3_array& mins, vec3_ar
 // =====================================================================================
 //  ClearBounds
 // =====================================================================================
-static void     ClearBounds(vec3_array& mins, vec3_array& maxs)
+static void     ClearBounds(double3_array& mins, double3_array& maxs)
 {
     mins[0] = mins[1] = mins[2] = 99999;
     maxs[0] = maxs[1] = maxs[2] = -99999;
@@ -1060,15 +1060,15 @@ static bool     ProcessModel(bsp_data& bspData)
 		}
 		else
 		{
-			vec3_array mins;
-            vec3_array maxs;
+			double3_array mins;
+            double3_array maxs;
 			VectorSubtract(surfs->mins, g_hull_size[g_hullnum][0], mins);
 			VectorSubtract(surfs->maxs, g_hull_size[g_hullnum][1], maxs);
 			for (std::size_t i = 0; i < 3; ++i)
 			{
 				if (mins[i] > maxs[i])
 				{
-					vec_t tmp;
+					double tmp;
 					tmp = (mins[i] + maxs[i]) / 2;
 					mins[i] = tmp;
 					maxs[i] = tmp;
@@ -1174,15 +1174,15 @@ static bool     ProcessModel(bsp_data& bspData)
 			}
 			else
 			{
-				vec3_array mins;
-                vec3_array maxs;
+				double3_array mins;
+                double3_array maxs;
 				VectorSubtract(surfs->mins, g_hull_size[hullnum][0], mins);
 				VectorSubtract(surfs->maxs, g_hull_size[hullnum][1], maxs);
 				for (std::size_t i = 0; i < 3; ++i)
 				{
 					if (mins[i] > maxs[i])
 					{
-						vec_t tmp;
+						double tmp;
 						tmp = (mins[i] + maxs[i]) / 2;
 						mins[i] = tmp;
 						maxs[i] = tmp;

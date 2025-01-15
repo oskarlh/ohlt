@@ -2,9 +2,9 @@
 
 static dplane_t backplanes[MAX_MAP_PLANES];
 
-dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_array& point)
+dleaf_t*		PointInLeaf_Worst_r(int nodenum, const float3_array& point)
 {
-	vec_t			dist;
+	float			dist;
 	dnode_t*		node;
 	dplane_t*		plane;
 
@@ -42,14 +42,14 @@ dleaf_t*		PointInLeaf_Worst_r(int nodenum, const vec3_array& point)
 
 	return &g_dleafs[-nodenum - 1];
 }
-dleaf_t*		PointInLeaf_Worst(const vec3_array& point)
+dleaf_t*		PointInLeaf_Worst(const float3_array& point)
 {
 	return PointInLeaf_Worst_r(0, point);
 }
-dleaf_t*        PointInLeaf(const vec3_array& point)
+dleaf_t*        PointInLeaf(const float3_array& point)
 {
     int             nodenum;
-    vec_t           dist;
+    float           dist;
     dnode_t*        node;
     dplane_t*       plane;
 
@@ -78,7 +78,7 @@ dleaf_t*        PointInLeaf(const vec3_array& point)
  * Fixes up patch planes for brush models with an origin brush
  * ==============
  */
-vec_t           PatchPlaneDist(const patch_t* const patch)
+float           PatchPlaneDist(const patch_t* const patch)
 {
     const dplane_t* plane = getPlaneFromFaceNumber(patch->faceNumber);
 
@@ -131,13 +131,13 @@ const dplane_t* getPlaneFromFaceNumber(const unsigned int faceNumber)
 void getAdjustedPlaneFromFaceNumber(unsigned int faceNumber, dplane_t* plane)
 {
     dface_t*        face = &g_dfaces[faceNumber];
-    const vec3_array&    face_offset = g_face_offset[faceNumber];
+    const float3_array&    face_offset = g_face_offset[faceNumber];
 
     plane->type = (planetype)0;
     
     if (face->side)
     {
-        vec_t dist;
+        float dist;
 
         VectorCopy(backplanes[face->planenum].normal, plane->normal);
         dist = DotProduct(plane->normal, face_offset);
@@ -145,7 +145,7 @@ void getAdjustedPlaneFromFaceNumber(unsigned int faceNumber, dplane_t* plane)
     }
     else
     {
-        vec_t dist;
+        float dist;
 
         VectorCopy(g_dplanes[face->planenum].normal, plane->normal);
         dist = DotProduct(plane->normal, face_offset);
@@ -154,30 +154,30 @@ void getAdjustedPlaneFromFaceNumber(unsigned int faceNumber, dplane_t* plane)
 }
 
 // Will modify the plane with the new dist
-void            TranslatePlane(dplane_t* plane, const vec_t* delta)
+void            TranslatePlane(dplane_t* plane, const float* delta)
 {
 	plane->dist += DotProduct (plane->normal, delta);
 }
 
 // HuntForWorld will never return CONTENTS_SKY or CONTENTS_SOLID leafs
-dleaf_t*        HuntForWorld(vec3_array& point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset)
+dleaf_t*        HuntForWorld(float3_array& point, const float3_array& plane_offset, const dplane_t* plane, int hunt_size, float hunt_scale, float hunt_offset)
 {
     dleaf_t*        leaf;
     int             x, y, z;
     int             a;
 
-    vec3_array          current_point;
-    vec3_array original_point{point};
+    float3_array          current_point;
+    float3_array original_point{point};
 
-    vec3_array best_point{point};
+    float3_array best_point{point};
     dleaf_t*        best_leaf = nullptr;
-    vec_t           best_dist = 99999999.0;
+    float           best_dist = 99999999.0;
 
 
     dplane_t        new_plane = *plane;
 
 
-    vec3_array scales{0.0, -hunt_scale, hunt_scale};
+    float3_array scales{0.0, -hunt_scale, hunt_scale};
 
     TranslatePlane(&new_plane, plane_offset.data());
 
@@ -198,8 +198,8 @@ dleaf_t*        HuntForWorld(vec3_array& point, const vec3_array& plane_offset, 
 							continue;
 						}
 					}
-                    vec3_array          delta;
-                    vec_t           dist;
+                    float3_array          delta;
+                    float           dist;
 
                     current_point[2] = original_point[2] + (scales[z % 3] * a);
 
@@ -248,7 +248,7 @@ dleaf_t*        HuntForWorld(vec3_array& point, const vec3_array& plane_offset, 
 }
 
 // ApplyMatrix: (x y z 1)T -> matrix * (x y z 1)T
-void ApplyMatrix (const matrix_t &m, const vec3_array& in, vec3_array& out) {
+void ApplyMatrix (const matrix_t &m, const float3_array& in, float3_array& out) {
 	hlassume (&in[0] != &out[0], assume_first);
 	VectorCopy (m.v[3], out);
 	for (std::size_t i = 0; i < 3; ++i)
@@ -258,7 +258,7 @@ void ApplyMatrix (const matrix_t &m, const vec3_array& in, vec3_array& out) {
 }
 
 // ApplyMatrixOnPlane: (x y z -dist) -> (x y z -dist) * matrix
-void ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist)
+void ApplyMatrixOnPlane (const matrix_t &m_inverse, const float3_array& in_normal, float in_dist, float3_array &out_normal, float &out_dist)
 	// out_normal is not normalized
 {
 	int i;
@@ -277,7 +277,7 @@ matrix_t MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexce
 	//  B) v_temp = MultiplyMatrix(m2, m1); v_out = ApplyMatrix(v_temp, v_in);
 
 	matrix_t m;
-	const std::array<vec_t, 4> lastrow = {0, 0, 0, 1};
+	const std::array<float, 4> lastrow = {0, 0, 0, 1};
 	hlassume (&m != &m_left && &m != &m_right, assume_first);
 	for (std::size_t i = 0; i < 3; i++){
 		for (std::size_t j = 0; j < 4; j++)
@@ -291,7 +291,7 @@ matrix_t MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexce
 	return m;
 }
 
-matrix_t MatrixForScale(const vec3_array& center, vec_t scale) noexcept {
+matrix_t MatrixForScale(const float3_array& center, float scale) noexcept {
 	matrix_t result;
 	for (std::size_t i = 0; i < 3; ++i) {
 		VectorClear(result.v[i]);
@@ -302,9 +302,9 @@ matrix_t MatrixForScale(const vec3_array& center, vec_t scale) noexcept {
 }
 
 
-vec_t CalcMatrixSign (const matrix_t &m)
+float CalcMatrixSign (const matrix_t &m)
 {
-	vec3_array v;
+	float3_array v;
 	CrossProduct (m.v[0], m.v[1], v);
 	return DotProduct (v, m.v[2]);
 }
@@ -387,9 +387,9 @@ typedef struct
 {
 	bool valid;
 	bool nudged;
-	vec_t best_s; // FindNearestPosition will return this value
-	vec_t best_t;
-	vec3_array pos; // with DEFAULT_HUNT_OFFSET
+	float best_s; // FindNearestPosition will return this value
+	float best_t;
+	float3_array pos; // with DEFAULT_HUNT_OFFSET
 }
 position_t;
 
@@ -401,8 +401,8 @@ typedef struct
 {
 	bool valid;
 	int facenum;
-	vec3_array face_offset;
-	vec3_array face_centroid;
+	float3_array face_offset;
+	float3_array face_centroid;
 	matrix_t worldtotex;
 	matrix_t textoworld;
 	Winding *facewinding;
@@ -411,9 +411,9 @@ typedef struct
 	dplane_t faceplanewithoffset;
 	Winding *texwinding;
 	dplane_t texplane; // (0, 0, 1, 0) or (0, 0, -1, 0)
-	vec3_array texcentroid;
-	vec3_array start; // s_start, t_start, 0
-	vec3_array step; // s_step, t_step, 0
+	float3_array texcentroid;
+	float3_array start; // s_start, t_start, 0
+	float3_array step; // s_step, t_step, 0
 	int w; // number of s
 	int h; // number of t
 	position_t *grid; // [h][w]
@@ -422,11 +422,11 @@ positionmap_t;
 
 static positionmap_t g_face_positions[MAX_MAP_FACES];
 
-static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_array& pos_out, bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2, vec_t hunt_scale = 0.2)
+static bool IsPositionValid (positionmap_t *map, const float3_array& pos_st, float3_array& pos_out, bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2, float hunt_scale = 0.2)
 {
-	vec3_array pos;
-	vec3_array pos_normal;
-	vec_t hunt_offset;
+	float3_array pos;
+	float3_array pos_normal;
+	float hunt_offset;
 
 	ApplyMatrix (map->textoworld, pos_st, pos);
 	VectorAdd (pos, map->face_offset, pos);
@@ -451,8 +451,8 @@ static bool IsPositionValid (positionmap_t *map, const vec3_array& pos_st, vec3_
 	if (doedgetest && !point_in_winding_noedge (*map->facewindingwithoffset, map->faceplanewithoffset, pos, DEFAULT_EDGE_WIDTH))
 	{
 		// if the sample has gone beyond face boundaries, be careful that it hasn't passed a wall
-		vec3_array test;
-		vec3_array transparency;
+		float3_array test;
+		float3_array transparency;
 		int opaquestyle;
 
 		VectorCopy (pos, test);
@@ -487,14 +487,14 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 {
 
 	position_t& p = map->grid[is + map->w * it];
-	const vec_t smin = map->start[0] + is * map->step[0];
-	const vec_t smax = map->start[0] + (is + 1) * map->step[0];
-	const vec_t tmin = map->start[1] + it * map->step[1];
-	const vec_t tmax = map->start[1] + (it + 1) * map->step[1];
+	const float smin = map->start[0] + is * map->step[0];
+	const float smax = map->start[0] + (is + 1) * map->step[0];
+	const float tmin = map->start[1] + it * map->step[1];
+	const float tmax = map->start[1] + (it + 1) * map->step[1];
 
 	std::array<dplane_t, 4> clipplanes{};
-	const vec3_array v_s = {1, 0, 0};
-	const vec3_array v_t = {0, 1, 0};
+	const float3_array v_s = {1, 0, 0};
+	const float3_array v_t = {0, 1, 0};
 	VectorScale (v_s,  1, clipplanes[0].normal); clipplanes[0].dist =  smin;
 	VectorScale (v_s, -1, clipplanes[1].normal); clipplanes[1].dist = -smax;
 	VectorScale (v_t,  1, clipplanes[2].normal); clipplanes[2].dist =  tmin;
@@ -512,13 +512,13 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 		return;
 	}
 
-	vec3_array original_st;
+	float3_array original_st;
 
 	original_st[0] = map->start[0] + (is + 0.5) * map->step[0];
 	original_st[1] = map->start[1] + (it + 0.5) * map->step[1];
 	original_st[2] = 0.0;
 
-	vec3_array test_st;
+	float3_array test_st;
 
 	VectorCopy (original_st, test_st);
 	snap_to_winding (zone, map->texplane, test_st.data());
@@ -547,22 +547,22 @@ static void CalcSinglePosition (positionmap_t *map, int is, int it)
 	}
 
 	constexpr std::size_t numNudges = 12;
-	const std::array<vec3_array, 12> nudgeList{
-			vec3_array{0.1, 0, 0},
-			vec3_array{-0.1, 0, 0},
-			vec3_array{0, 0.1, 0},
-			vec3_array{0, -0.1, 0},
-			vec3_array{0.3, 0, 0},
-			vec3_array{-0.3, 0, 0},
-			vec3_array{0, 0.3, 0},
-			vec3_array{0, -0.3, 0},
-			vec3_array{0.3, 0.3, 0},
-			vec3_array{-0.3, 0.3, 0},
-			vec3_array{-0.3, -0.3, 0},
-			vec3_array{0.3, -0.3, 0}
+	const std::array<float3_array, 12> nudgeList{
+			float3_array{0.1, 0, 0},
+			float3_array{-0.1, 0, 0},
+			float3_array{0, 0.1, 0},
+			float3_array{0, -0.1, 0},
+			float3_array{0.3, 0, 0},
+			float3_array{-0.3, 0, 0},
+			float3_array{0, 0.3, 0},
+			float3_array{0, -0.3, 0},
+			float3_array{0.3, 0.3, 0},
+			float3_array{-0.3, 0.3, 0},
+			float3_array{-0.3, -0.3, 0},
+			float3_array{0.3, -0.3, 0}
 	};
 
-	for (const vec3_array& nudge : nudgeList)
+	for (const float3_array& nudge : nudgeList)
 	{
 		VectorMultiply (nudge, map->step, test_st);
 		VectorAdd (test_st, original_st, test_st);
@@ -585,9 +585,9 @@ void FindFacePositions (int facenum)
 	dface_t *f;
 	positionmap_t *map;
 	texinfo_t *ti;
-	const vec3_array v_up{0, 0, 1};
-	vec_t density;
-	vec_t texmins[2], texmaxs[2];
+	const float3_array v_up{0, 0, 1};
+	float density;
+	float texmins[2], texmaxs[2];
 	int imins[2], imaxs[2];
 	int is, it;
 	int x;
@@ -652,7 +652,7 @@ void FindFacePositions (int facenum)
 		map->valid = false;
 		return;
 	}
-	vec3_array v;
+	float3_array v;
 	VectorSubtract(map->face_centroid, map->face_offset, v);
 	ApplyMatrix (map->worldtotex, v, map->texcentroid);
 	map->texcentroid[2] = 0.0;
@@ -672,8 +672,8 @@ void FindFacePositions (int facenum)
 	{
 		density = 1.0;
 	}
-	map->step[0] = (vec_t)TEXTURE_STEP / density;
-	map->step[1] = (vec_t)TEXTURE_STEP / density;
+	map->step[0] = (float)TEXTURE_STEP / density;
+	map->step[1] = (float)TEXTURE_STEP / density;
 	map->step[2] = 1.0;
 	for (k = 0; k < 2; k++)
 	{
@@ -722,7 +722,7 @@ void FreePositionMaps ()
 		f = fopen(name, "w");
 		if (f)
 		{
-			vec3_array v, dist;
+			float3_array v, dist;
 			for (std::size_t i = 0; i < g_numfaces; ++i)
 			{
 				positionmap_t *map = &g_face_positions[i];
@@ -740,7 +740,7 @@ void FreePositionMaps ()
 					VectorSubtract(v, g_drawsample_origin, dist);
 					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
 					{
-						for(const vec3_array& p : pos) {
+						for(const float3_array& p : pos) {
 							fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
 						}
 					}
@@ -770,7 +770,7 @@ void FreePositionMaps ()
 	}
 }
 
-bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_array& pos, vec_t *best_s, vec_t *best_t, vec_t *dist
+bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *dist
 							, bool *nudged
 							)
 {
@@ -781,7 +781,7 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 	bool found;
 	int best_is;
 	int best_it;
-	vec_t best_dist;
+	float best_dist;
 
 	const positionmap_t* map = &g_face_positions[facenum];
 	if (!map->valid)
@@ -789,7 +789,7 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 		return false;
 	}
 
-	const vec3_array original_st = { s, t, 0.0 };
+	const float3_array original_st = { s, t, 0.0 };
 
 	if (point_in_winding (*map->texwinding, map->texplane, original_st, 4 * ON_EPSILON))
 	{
@@ -812,11 +812,11 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 				if (!p->valid) {
 					continue;
 				}
-				const vec3_array current_st{p->best_s, p->best_t, 0};
+				const float3_array current_st{p->best_s, p->best_t, 0};
 
-				vec3_array v;
+				float3_array v;
 				VectorSubtract(current_st, original_st, v);
-				const vec_t d = vector_length(v);
+				const float d = vector_length(v);
 
 				if (!found || 
 					!p->nudged && best_nudged ||
@@ -877,10 +877,10 @@ bool FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t
 			if (!p->valid) {
 				continue;
 			}
-			const vec3_array current_st{p->best_s, p->best_t, 0};
-			vec3_array v;
+			const float3_array current_st{p->best_s, p->best_t, 0};
+			float3_array v;
 			VectorSubtract(current_st, original_st, v);
-			const vec_t d = vector_length(v);
+			const float d = vector_length(v);
 
 			if (!found || d < best_dist - ON_EPSILON)
 			{

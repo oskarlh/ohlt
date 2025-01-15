@@ -122,7 +122,7 @@ void CTriangle :: ComputeNormal( void )
 	if( vector_length( normal ) == 0.0f )
 		return;
 
-	vec3_array n{normal[0], normal[1], normal[2]};
+	float3_array n{normal[0], normal[1], normal[2]};
 	normalize_vector( n );
 	normal[0] = n[0];
 	normal[1] = n[1];

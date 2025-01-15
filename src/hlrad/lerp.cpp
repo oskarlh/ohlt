@@ -10,11 +10,11 @@ struct interpolation_t
 	struct Point
 	{
 		int patchnum;
-		vec_t weight;
+		float weight;
 	};
 	
 	bool isbiased;
-	vec_t totalweight;
+	float totalweight;
 	std::vector< Point > points;
 };
 
@@ -33,23 +33,23 @@ struct localtriangulation_t
 		
 		eShape shape;
 		int leftpatchnum;
-		vec3_array leftspot;
-		vec3_array leftdirection;
+		float3_array leftspot;
+		float3_array leftdirection;
 		// right side equals to the left side of the next wedge
 
-		vec3_array wedgenormal; // for custom usage
+		float3_array wedgenormal; // for custom usage
 	};
 	struct HullPoint
 	{
-		vec3_array spot;
-		vec3_array direction;
+		float3_array spot;
+		float3_array direction;
 	};
 	
 	dplane_t plane;
 	Winding winding;
-	vec3_array center; // center is on the plane
+	float3_array center; // center is on the plane
 
-	vec3_array normal;
+	float3_array normal;
 	int patchnum;
 	std::vector< int > neighborfaces; // including the face itself
 
@@ -61,9 +61,9 @@ struct facetriangulation_t
 {
 	struct Wall
 	{
-		vec3_array points[2];
-		vec3_array direction;
-		vec3_array normal;
+		float3_array points[2];
+		float3_array direction;
+		float3_array normal;
 	};
 
 	int facenum;
@@ -75,7 +75,7 @@ struct facetriangulation_t
 
 facetriangulation_t *g_facetriangulations[MAX_MAP_FACES];
 
-static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& position, int surface, vec3_array& spot)
+static bool CalcAdaptedSpot (const localtriangulation_t *lt, const float3_array& position, int surface, float3_array& spot)
 	// If the surface formed by the face and its neighbor faces is not flat, the surface should be unfolded onto the face plane
 	// CalcAdaptedSpot calculates the coordinate of the unfolded spot on the face plane from the original position on the surface
 	// CalcAdaptedSpot(center) = {0,0,0}
@@ -83,14 +83,14 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 	// Param position: must include g_face_offset
 {
 	int i;
-	vec_t dot;
-	vec3_array surfacespot;
-	vec_t dist;
-	vec_t dist2;
-	vec3_array phongnormal;
-	vec_t frac;
-	vec3_array middle;
-	vec3_array v;
+	float dot;
+	float3_array surfacespot;
+	float dist;
+	float dist2;
+	float3_array phongnormal;
+	float frac;
+	float3_array middle;
+	float3_array v;
 	
 	for (i = 0; i < (int)lt->neighborfaces.size (); i++)
 	{
@@ -115,7 +115,7 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 	if (fabs (dot) > ON_EPSILON)
 	{
 		frac = DotProduct (surfacespot, phongnormal) / dot;
-		frac = std::max(vec_t(0), std::min(frac, vec_t(1))); // to correct some extreme cases
+		frac = std::max(float(0), std::min(frac, float(1))); // to correct some extreme cases
 	}
 	else
 	{
@@ -134,10 +134,10 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const vec3_array& p
 	return true;
 }
 
-static vec_t GetAngle (const vec3_array& leftdirection, const vec3_array& rightdirection, const vec3_array& normal)
+static float GetAngle (const float3_array& leftdirection, const float3_array& rightdirection, const float3_array& normal)
 {
-	vec_t angle;
-	vec3_array v;
+	float angle;
+	float3_array v;
 	
 	CrossProduct (rightdirection, leftdirection, v);
 	angle = atan2 (DotProduct (v, normal), DotProduct (rightdirection, leftdirection));
@@ -145,9 +145,9 @@ static vec_t GetAngle (const vec3_array& leftdirection, const vec3_array& rightd
 	return angle;
 }
 
-static vec_t GetAngleDiff (vec_t angle, vec_t base)
+static float GetAngleDiff (float angle, float base)
 {
-	vec_t diff;
+	float diff;
 
 	diff = angle - base;
 	if (diff < 0)
@@ -157,12 +157,12 @@ static vec_t GetAngleDiff (vec_t angle, vec_t base)
 	return diff;
 }
 
-static vec_t GetFrac (const vec3_array& leftspot, const vec3_array& rightspot, const vec3_array& direction, const vec3_array& normal)
+static float GetFrac (const float3_array& leftspot, const float3_array& rightspot, const float3_array& direction, const float3_array& normal)
 {
-	vec3_array v;
-	vec_t dot1;
-	vec_t dot2;
-	vec_t frac;
+	float3_array v;
+	float dot1;
+	float dot2;
+	float frac;
 
 	CrossProduct (direction, normal, v);
 	dot1 = DotProduct (leftspot, v);
@@ -188,37 +188,37 @@ static vec_t GetFrac (const vec3_array& leftspot, const vec3_array& rightspot, c
 	else
 	{
 		frac = dot1 / (dot1 - dot2);
-		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
 	return frac;
 }
 
-static vec_t GetDirection (const vec3_array& spot, const vec3_array& normal, vec3_array& direction_out)
+static float GetDirection (const float3_array& spot, const float3_array& normal, float3_array& direction_out)
 {
-	vec_t dot;
+	float dot;
 
 	dot = DotProduct (spot, normal);
 	VectorMA (spot, -dot, normal, direction_out);
 	return normalize_vector(direction_out);
 }
 
-static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, vec_t *weight_out)
+static bool CalcWeight (const localtriangulation_t *lt, const float3_array& spot, float *weight_out)
 	// It returns true when the point is inside the hull region (with boundary), even if weight = 0.
 {
-	vec3_array direction;
+	float3_array direction;
 	const localtriangulation_t::HullPoint *hp1;
 	const localtriangulation_t::HullPoint *hp2;
 	bool istoofar;
-	vec_t ratio;
+	float ratio;
 
 	int i;
 	int j;
-	vec_t angle;
-	std::vector< vec_t > angles;
-	vec_t frac;
-	vec_t len;
-	vec_t dist;
+	float angle;
+	std::vector< float > angles;
+	float frac;
+	float len;
+	float dist;
 
 	if (GetDirection (spot, lt->normal, direction) <= 2 * ON_EPSILON)
 	{
@@ -267,32 +267,32 @@ static bool CalcWeight (const localtriangulation_t *lt, const vec3_array& spot, 
 	{
 		istoofar = false;
 		ratio = dist / len;
-		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
 	*weight_out = 1 - ratio;
 	return !istoofar;
 }
 
-static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const vec3_array& spot, interpolation_t& interp)
+static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const float3_array& spot, interpolation_t& interp)
 {
 	const localtriangulation_t::Wedge *w1;
 	const localtriangulation_t::Wedge *w2;
 	const localtriangulation_t::Wedge *w3;
-	vec_t weights[4];
-	vec_t dot1;
-	vec_t dot2;
-	vec_t dot;
-	vec3_array normal1;
-	vec3_array normal2;
-	vec3_array normal;
-	vec_t frac;
-	vec_t frac_near;
-	vec_t frac_far;
-	vec_t ratio;
-	vec3_array mid_far;
-	vec3_array mid_near;
-	vec3_array test;
+	float weights[4];
+	float dot1;
+	float dot2;
+	float dot;
+	float3_array normal1;
+	float3_array normal2;
+	float3_array normal;
+	float frac;
+	float frac_near;
+	float frac_far;
+	float ratio;
+	float3_array mid_far;
+	float3_array mid_near;
+	float3_array test;
 	
 	w1 = &lt->sortedwedges[i];
 	w2 = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
@@ -325,7 +325,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		frac = dot1 / (dot1 + dot2);
-		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
 	dot1 = DotProduct (w3->leftspot, normal1) - 0;
@@ -376,7 +376,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		ratio = dot / dot1;
-		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
 	VectorScale (mid_near, 1 - ratio, test);
@@ -410,7 +410,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		frac = dot1 / (dot1 + dot2);
-		frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
 	dot1 = DotProduct (w1->leftspot, normal1) - 0;
@@ -461,7 +461,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	else
 	{
 		ratio = dot / dot1;
-		ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
 	VectorScale (mid_near, 1 - ratio, test);
@@ -490,17 +490,17 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	interp.points[3].weight = weights[3];
 }
 
-static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array& spot, interpolation_t& interp)
+static void CalcInterpolation (const localtriangulation_t *lt, const float3_array& spot, interpolation_t& interp)
 	// The interpolation function is defined over the entire plane, so CalcInterpolation never fails.
 {
-	vec3_array direction;
+	float3_array direction;
 	const localtriangulation_t::Wedge *w;
 	const localtriangulation_t::Wedge *wnext;
 
 	int i;
 	int j;
-	vec_t angle;
-	std::vector< vec_t > angles;
+	float angle;
+	std::vector< float > angles;
 
 	if (GetDirection (spot, lt->normal, direction) <= 2 * ON_EPSILON)
 	{
@@ -549,11 +549,11 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	case localtriangulation_t::Wedge::eTriangular:
 		// w->wedgenormal is undefined
 		{
-			vec_t frac;
-			vec_t len;
-			vec_t dist;
+			float frac;
+			float len;
+			float dist;
 			bool istoofar;
-			vec_t ratio;
+			float ratio;
 
 			frac = GetFrac (w->leftspot, wnext->leftspot, direction, lt->normal);
 			
@@ -573,7 +573,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			{
 				istoofar = false;
 				ratio = dist / len;
-				ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+				ratio = std::max((float) 0, std::min(ratio, (float) 1));
 			}
 
 			if (istoofar)
@@ -614,10 +614,10 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	case localtriangulation_t::Wedge::eConvex:
 		// w->wedgenormal is the unit vector pointing from w->leftspot to wnext->leftspot
 		{
-			vec_t dot;
-			vec_t dot1;
-			vec_t dot2;
-			vec_t frac;
+			float dot;
+			float dot1;
+			float dot2;
+			float frac;
 
 			dot1 = DotProduct (w->leftspot, w->wedgenormal) - DotProduct (spot, w->wedgenormal);
 			dot2 = DotProduct (wnext->leftspot, w->wedgenormal) - DotProduct (spot, w->wedgenormal);
@@ -647,7 +647,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			else if (dot > 0) // dot1 < 0 < dot < dot2
 			{
 				frac = dot1 / (dot1 - dot);
-				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+				frac = std::max((float) 0, std::min(frac, (float) 1));
 
 				interp.isbiased = true;
 				interp.totalweight = 1.0;
@@ -660,7 +660,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 			else // dot1 < dot <= 0 < dot2
 			{
 				frac = dot / (dot - dot2);
-				frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+				frac = std::max((float) 0, std::min(frac, (float) 1));
 			
 				interp.isbiased = true;
 				interp.totalweight = 1.0;
@@ -674,9 +674,9 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 		break;
 	case localtriangulation_t::Wedge::eConcave:
 		{
-			vec_t len;
-			vec_t dist;
-			vec_t ratio;
+			float len;
+			float dist;
+			float ratio;
 
 			if (DotProduct (spot, w->wedgenormal) < 0) // the spot is closer to the left edge than the right edge
 			{
@@ -705,7 +705,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 				else
 				{
 					ratio = dist / len;
-					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+					ratio = std::max((float) 0, std::min(ratio, (float) 1));
 
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
@@ -743,7 +743,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 				else
 				{
 					ratio = dist / len;
-					ratio = std::max((vec_t) 0, std::min(ratio, (vec_t) 1));
+					ratio = std::max((float) 0, std::min(ratio, (float) 1));
 
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
@@ -762,7 +762,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const vec3_array&
 	}
 }
 
-static void ApplyInterpolation (const interpolation_t& interp, int style, vec3_array& out)
+static void ApplyInterpolation (const interpolation_t& interp, int style, float3_array& out)
 {
 	out = {};
 	if (interp.totalweight <= 0)
@@ -770,7 +770,7 @@ static void ApplyInterpolation (const interpolation_t& interp, int style, vec3_a
 		return;
 	}
 	for (const auto& point : interp.points) {
-		const vec3_array *b = GetTotalLight(&g_patches[point.patchnum], style);
+		const float3_array *b = GetTotalLight(&g_patches[point.patchnum], style);
 		VectorMA (out, point.weight / interp.totalweight, *b, out);
 	}
 }
@@ -778,13 +778,13 @@ static void ApplyInterpolation (const interpolation_t& interp, int style, vec3_a
 // =====================================================================================
 //  InterpolateSampleLight
 // =====================================================================================
-void InterpolateSampleLight (const vec3_array& position, int surface, int style, vec3_array &out)
+void InterpolateSampleLight (const float3_array& position, int surface, int style, float3_array &out)
 {
 	try
 	{
 	
 	const facetriangulation_t *ft;
-	std::vector< vec_t > localweights;
+	std::vector< float > localweights;
 	std::vector< interpolation_t * > localinterps;
 
 	int i;
@@ -792,14 +792,14 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 	int n;
 	const facetriangulation_t *ft2;
 	const localtriangulation_t *lt;
-	vec3_array spot;
-	vec_t weight;
+	float3_array spot;
+	float weight;
 	interpolation_t *interp;
 	const localtriangulation_t *best;
-	vec3_array v;
-	vec_t dist;
-	vec_t bestdist;
-	vec_t dot;
+	float3_array v;
+	float dist;
+	float bestdist;
+	float dot;
 
 	if (surface < 0 || surface >= g_numfaces)
 	{
@@ -988,18 +988,18 @@ void InterpolateSampleLight (const vec3_array& position, int surface, int style,
 	}
 }
 
-static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, const vec3_array& p1, const vec3_array& p2)
+static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, const float3_array& p1, const float3_array& p2)
 {
 	int i;
 	const facetriangulation_t::Wall *wall;
-	vec_t front;
-	vec_t back;
-	vec_t dot1;
-	vec_t dot2;
-	vec_t dot;
-	vec_t bottom;
-	vec_t top;
-	vec_t frac;
+	float front;
+	float back;
+	float dot1;
+	float dot2;
+	float dot;
+	float bottom;
+	float top;
+	float frac;
 
 	for (i = 0; i < (int)facetrian->walls.size (); i++)
 	{
@@ -1022,7 +1022,7 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 		else
 		{
 			frac = front / (front - back);
-			frac = std::max((vec_t) 0, std::min(frac, (vec_t) 1));
+			frac = std::max((float) 0, std::min(frac, (float) 1));
 			dot = dot1 + frac * (dot2 - dot1);
 			top = std::min(top, dot);
 			bottom = std::max(bottom, dot);
@@ -1036,17 +1036,17 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 	return false;
 }
 
-static bool TestFarPatch (const localtriangulation_t *lt, const vec3_array& p2, const Winding &p2winding)
+static bool TestFarPatch (const localtriangulation_t *lt, const float3_array& p2, const Winding &p2winding)
 {
 	int i;
-	vec_t dist;
-	vec_t size1;
-	vec_t size2;
+	float dist;
+	float size1;
+	float size2;
 
 	size1 = 0;
 	for (i = 0; i < lt->winding.size(); i++)
 	{
-		vec3_array v;
+		float3_array v;
 		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
 		dist = vector_length(v);
 		if (dist > size1)
@@ -1058,7 +1058,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_array& p2, 
 	size2 = 0;
 	for (i = 0; i < p2winding.size(); i++)
 	{
-		vec3_array v;
+		float3_array v;
 		VectorSubtract(p2winding.m_Points[i], p2, v);
 		dist = vector_length(v);
 		if (dist > size2)
@@ -1067,7 +1067,7 @@ static bool TestFarPatch (const localtriangulation_t *lt, const vec3_array& p2, 
 		}
 	}
 
-	vec3_array v;
+	float3_array v;
 	VectorSubtract(p2, lt->center, v);
 	dist = vector_length(v);
 
@@ -1084,11 +1084,11 @@ static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *
 	const dplane_t *dp2;
 	const patch_t *patch2;
 	int patchnum2;
-	vec3_array v;
+	float3_array v;
 	localtriangulation_t::Wedge point;
 	std::vector< localtriangulation_t::Wedge > points;
-	std::vector< std::pair< vec_t, int > > angles;
-	vec_t angle;
+	std::vector< std::pair< float, int > > angles;
+	float angle;
 
 	if (!g_lerp_enabled)
 	{
@@ -1168,10 +1168,10 @@ static void PurgePatches (localtriangulation_t *lt)
 	std::vector< int > next;
 	std::vector< int > prev;
 	std::vector< int > valid;
-	std::vector< std::pair< vec_t, int > > dists;
-	vec_t angle;
-	vec3_array normal;
-	vec3_array v;
+	std::vector< std::pair< float, int > > dists;
+	float angle;
+	float3_array normal;
+	float3_array v;
 
 	points.swap (lt->sortedwedges);
 	lt->sortedwedges.resize (0);
@@ -1256,26 +1256,26 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 	int i;
 	int j;
 	int n;
-	vec_t dot;
-	vec_t angle;
+	float dot;
+	float angle;
 	localtriangulation_t::HullPoint hp;
 	std::vector< localtriangulation_t::HullPoint > spots;
-	std::vector< std::pair< vec_t, int > > angles;
+	std::vector< std::pair< float, int > > angles;
 	const localtriangulation_t::Wedge *w;
 	const localtriangulation_t::Wedge *wnext;
 	std::vector< localtriangulation_t::HullPoint > arc_spots;
-	std::vector< vec_t > arc_angles;
+	std::vector< float > arc_angles;
 	std::vector< int > next;
 	std::vector< int > prev;
-	vec_t frac;
-	vec_t len;
-	vec_t dist;
+	float frac;
+	float len;
+	float dist;
 
 	spots.reserve (lt->winding.size());
 	spots.resize (0);
 	for (i = 0; i < (int)lt->winding.size(); i++)
 	{
-		vec3_array v;
+		float3_array v;
 		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
 		dot = DotProduct (v, lt->normal);
 		VectorMA (v, -dot, lt->normal, hp.spot);
@@ -1399,10 +1399,10 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	localtriangulation_t::Wedge *w1;
 	localtriangulation_t::Wedge *w2;
 	localtriangulation_t::Wedge *w3;
-	vec3_array v;
-	vec3_array dir1;
-	vec3_array dir2;
-	vec_t angle;
+	float3_array v;
+	float3_array dir1;
+	float3_array dir2;
+	float angle;
 
 	w1 = &lt->sortedwedges[i];
 	w2 = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
@@ -1451,7 +1451,7 @@ static void FindSquares (localtriangulation_t *lt)
 {
 	int i;
 	localtriangulation_t::Wedge *w;
-	std::vector< std::pair< vec_t, int > > dists;
+	std::vector< std::pair< float, int > > dists;
 
 	if ((int)lt->sortedwedges.size () <= 2)
 	{
@@ -1479,14 +1479,14 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 	localtriangulation_t *lt;
 	int i;
 	const patch_t *patch;
-	vec_t dot;
+	float dot;
 	int facenum;
 	localtriangulation_t::Wedge *w;
 	localtriangulation_t::Wedge *wnext;
-	vec_t angle;
-	vec_t total;
-	vec3_array v;
-	vec3_array normal;
+	float angle;
+	float total;
+	float3_array v;
+	float3_array normal;
 
 	facenum = facetrian->facenum;
 	patch = &g_patches[patchnum];
@@ -1675,7 +1675,7 @@ static void BuildWalls (facetriangulation_t *facetrian)
 	const dplane_t *dp2;
 	int e;
 	const edgeshare_t *es;
-	vec_t dot;
+	float dot;
 
 	facenum = facetrian->facenum;
 	f = &g_dfaces[facenum];

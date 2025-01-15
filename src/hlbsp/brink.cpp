@@ -41,7 +41,7 @@ static bbrink_t CopyBrink(const bbrink_t& other) {
 	return b;
 }
 
-static bbrink_t CreateBrink (const vec3_array& start,const vec3_array& stop)
+static bbrink_t CreateBrink (const double3_array& start,const double3_array& stop)
 {
 	bbrink_t b{};
 	b.start = start;
@@ -161,8 +161,8 @@ void BrinkReplaceClipnode (bbrink_t *b, bclipnode_t *prev, bclipnode_t *n)
 
 struct btreepoint_t {
 	btreeedge_l *edges; // this is a reversed reference
-	vec3_array v;
-	vec_t tmp_dist;
+	double3_array v;
+	double tmp_dist;
 	face_side tmp_side;
 	bool infinite;
 	bool tmp_tested;
@@ -318,7 +318,7 @@ btreeleaf_t *BuildOutside (int &numobjects)
 	return leaf_outside;
 }
 
-btreeleaf_t *BuildBaseCell (int &numobjects, bclipnode_t *clipnode, vec_t range, btreeleaf_t *leaf_outside)
+btreeleaf_t *BuildBaseCell (int &numobjects, bclipnode_t *clipnode, double range, btreeleaf_t *leaf_outside)
 {
 	btreepoint_t *tp[8];
 	for (int i = 0; i < 8; i++)
@@ -554,7 +554,7 @@ void DeleteLeaf (int &numobjects, btreeleaf_t *tl)
 	numobjects--;
 }
 
-void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, int planenum, vec_t epsilon, btreeleaf_t *&front, btreeleaf_t *&back, bclipnode_t *c0, bclipnode_t *c1)
+void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, int planenum, double epsilon, btreeleaf_t *&front, btreeleaf_t *&back, bclipnode_t *c0, bclipnode_t *c1)
 {
 	btreeface_l::iterator fi;
 	btreeedge_l::iterator ei;
@@ -592,7 +592,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 					continue;
 				}
 				tp->tmp_tested = true;
-				vec_t dist = DotProduct (tp->v, plane->normal) - plane->dist;
+				double dist = DotProduct (tp->v, plane->normal) - plane->dist;
 				tp->tmp_dist = dist;
 				if (dist > epsilon)
 				{
@@ -645,7 +645,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				tpmid->tmp_tested = true;
 				tpmid->tmp_dist = 0;
 				tpmid->tmp_side = face_side::on;
-				vec_t frac = tp0->tmp_dist / (tp0->tmp_dist - tp1->tmp_dist);
+				double frac = tp0->tmp_dist / (tp0->tmp_dist - tp1->tmp_dist);
 				for (int k = 0; k < 3; k++)
 				{
 					tpmid->v[k] = tp0->v[k] + frac * (tp1->v[k] - tp0->v[k]);
@@ -1174,7 +1174,7 @@ struct bwedge_t {
 };
 
 struct bsurface_t {
-	vec3_array normal; // pointing clockwise
+	double3_array normal; // pointing clockwise
 	int nodenum;
 	bool nodeside;
 	bwedge_t *prev;
@@ -1185,8 +1185,8 @@ struct bsurface_t {
 
 typedef struct
 {
-	vec3_array axis;
-	vec3_array basenormal;
+	double3_array axis;
+	double3_array basenormal;
 	int numwedges[2]; // the front and back side of nodes[0]
 	bwedge_t wedges[2][MAXBRINKWEDGES]; // in counterclosewise order
 	bsurface_t surfaces[2][MAXBRINKWEDGES]; // the surface between two adjacent wedges
@@ -1205,7 +1205,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 	int side, i;
 	for (side = 0; side < 2; side++)
 	{
-		vec3_array facing;
+		double3_array facing;
 		CrossProduct (c->basenormal, c->axis, facing);
 		VectorScale (facing, side? -1: 1, facing);
 		if (normalize_vector(facing) < 1 - 0.01)
@@ -1285,7 +1285,7 @@ bool CalculateCircle (bbrink_t *b, bcircle_t *c)
 			{
 				continue;
 			}
-			vec3_array v;
+			double3_array v;
 			CrossProduct (w->prev->normal, w->next->normal, v);
 			if (!normalize_vector(v) ||
 				DotProduct (v, c->axis) < 1 - 0.01)
@@ -1333,7 +1333,7 @@ bool AddPartition (bclipnode_t *clipnode, int planenum, bool planeside, int cont
 			{
 				btreepoint_t *tp = GetPointFromEdge (ei->e, side);
 				const mapplane_t *plane = &g_mapplanes[planenum];
-				vec_t dist = DotProduct (tp->v, plane->normal) - plane->dist;
+				double dist = DotProduct (tp->v, plane->normal) - plane->dist;
 				if (planeside ? dist < -ON_EPSILON: dist > ON_EPSILON)
 				{
 					return false;
@@ -1464,7 +1464,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		}
 		bool bfix = false;
 		bool berror = false;
-		vec3_array vup = {0, 0, 1};
+		double3_array vup = {0, 0, 1};
 		bool isfloor;
 		bool onfloor;
 		bool blocking;
@@ -1472,7 +1472,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			isfloor = false;
 			for (int side2 = 0; side2 < 2; side2++)
 			{
-				vec3_array normal;
+				double3_array normal;
 				VectorScale (transitionpos[side2]->normal, transitionside[side2]? -1: 1, normal); // pointing from SOLID to EMPTY
 				if (DotProduct (normal, vup) > BRINK_FLOOR_THRESHOLD)
 				{
@@ -1500,7 +1500,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 						}
 						for (int side3 = 0; side3 < 2; side3++)
 						{
-							vec3_array normal;
+							double3_array normal;
 							VectorScale (fi->f->plane->normal, (fi->f->planeside != (bool)side3)? -1: 1, normal);
 							if (DotProduct (normal, vup) > BRINK_FLOOR_THRESHOLD
 								&& GetLeafFromFace (fi->f, side3)->clipnode->content == CONTENTS_SOLID
@@ -1522,8 +1522,8 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			{
 				bwedge_t *w = transitionside[!side]? s->next: s->prev;
 				bsurface_t *snext = transitionside[!side]? w->next: w->prev;
-				vec3_array tmp;
-				vec_t dot;
+				double3_array tmp;
+				double dot;
 				CrossProduct (smovement->normal, snext->normal, tmp);
 				dot = DotProduct (tmp, c.axis);
 				if (transitionside[!side]? dot < 0.01: dot > -0.01)

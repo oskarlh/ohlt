@@ -24,7 +24,7 @@ static byte*    s_vismatrix;
 // =====================================================================================
 static void     TestPatchToFace(const unsigned patchnum, const int facenum, const int head, const unsigned int bitpos
 								, byte *pvs,
-                                std::vector<vec3_array>& transparencyList
+                                std::vector<float3_array>& transparencyList
                 )
 {
     patch_t*        patch = &g_patches[patchnum];
@@ -45,7 +45,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
             {
                 unsigned        m = patch2 - g_patches;
 
-				vec3_array 		transparency = {1.0, 1.0, 1.0};
+				float3_array 		transparency = {1.0, 1.0, 1.0};
 				int opaquestyle = -1;
 		
                 // check vis between patch and patch2
@@ -58,9 +58,9 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					{
 						continue;
 					}
-					vec3_array origin1, origin2;
-					vec3_array delta;
-					vec_t dist;
+					float3_array origin1, origin2;
+					float3_array delta;
+					float dist;
 					VectorSubtract(patch->origin, patch2->origin, delta);
 					dist = vector_length(delta);
 					if (dist < patch2->emitter_range - ON_EPSILON)
@@ -112,7 +112,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
                     // patchnum can see patch m
                     unsigned        bitset = bitpos + m;
 
-                    if(g_customshadow_with_bouncelight && !vectors_almost_same(transparency, vec3_array{1.0,1.0,1.0}))
+                    if(g_customshadow_with_bouncelight && !vectors_almost_same(transparency, float3_array{1.0,1.0,1.0}))
 					// zhlt3.4: if(g_customshadow_with_bouncelight && vectors_almost_same(transparency, {1.0,1.0,1.0})) . --vluzacn
                     {
 						AddTransparencyToRawArray(patchnum, m, transparency, transparencyList);
@@ -246,9 +246,9 @@ static void     FreeVisMatrix()
 // CheckVisBit
 // =====================================================================================
 static bool     CheckVisBitVismatrix(unsigned p1, unsigned p2
-									 , vec3_array &transparency_out
+									 , float3_array &transparency_out
 									 , unsigned int &next_index,
-                                     const std::vector<vec3_array>& transparencyList
+                                     const std::vector<float3_array>& transparencyList
 									 )
 {
     unsigned        bitpos;

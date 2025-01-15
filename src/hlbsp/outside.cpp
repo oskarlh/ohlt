@@ -23,9 +23,9 @@ static int      c_keep_faces;
 // =====================================================================================
 //  PointInLeaf
 // =====================================================================================
-static node_t*  PointInLeaf(node_t* node, const vec3_array& point)
+static node_t*  PointInLeaf(node_t* node, const double3_array& point)
 {
-    vec_t           d;
+    double           d;
 
 	if (node->isportalleaf)
     {
@@ -44,7 +44,7 @@ static node_t*  PointInLeaf(node_t* node, const vec3_array& point)
 // =====================================================================================
 //  PlaceOccupant
 // =====================================================================================
-static bool     PlaceOccupant(const int num, const vec3_array& point, node_t* headnode)
+static bool     PlaceOccupant(const int num, const double3_array& point, node_t* headnode)
 {
     node_t*         n;
 
@@ -80,8 +80,8 @@ static void     MarkLeakTrail(portal_t* n2)
         return;
     }
 
-    vec3_array p1 = n1->winding->getCenter();
-    vec3_array p2 = n2->winding->getCenter();
+    double3_array p1 = n1->winding->getCenter();
+    double3_array p2 = n2->winding->getCenter();
 
     // Linefile
     fprintf(linefile, "%f %f %f - %f %f %f\n", p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
@@ -89,7 +89,7 @@ static void     MarkLeakTrail(portal_t* n2)
     // Pointfile
     fprintf(pointfile, "%f %f %f\n", p1[0], p1[1], p1[2]);
 
-    vec3_array          dir;
+    double3_array          dir;
     VectorSubtract(p2, p1, dir);
     len = vector_length(dir);
     normalize_vector(dir);
@@ -383,7 +383,7 @@ node_t*         FillOutside(node_t* node, const bool leakfile, const unsigned hu
     int             i;
     bool            inside;
     bool            ret;
-    vec3_array          origin;
+    double3_array          origin;
 
     Verbose("----- FillOutside ----\n");
 
@@ -604,7 +604,7 @@ void			FillInside (node_t* node)
     {
 		if (has_key_value(&g_entities[i], u8"origin"))
 		{
-			vec3_array origin;
+			double3_array origin;
 			node_t* innode;
 			origin = get_vector_for_key(g_entities[i], u8"origin");
 			origin[2] += 1;

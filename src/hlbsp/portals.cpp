@@ -88,9 +88,9 @@ void            RemovePortalFromNode(portal_t* portal, node_t* l)
  * The created portals will face the global g_outside_node
  * ================
  */
-void            MakeHeadnodePortals(node_t* node, const vec3_array& mins, const vec3_array& maxs)
+void            MakeHeadnodePortals(node_t* node, const double3_array& mins, const double3_array& maxs)
 {
-    std::array<vec3_array, 2> bounds;
+    std::array<double3_array, 2> bounds;
     portal_t*       p;
     portal_t*       portals[6];
     mapplane_t        bplanes[6];
@@ -219,16 +219,16 @@ static void     WritePortalFile_r(const node_t* const node)
                 fprintf(pf, "\n");
 				if (g_viewportal)
 				{
-					vec3_array center1, center2;
-					vec3_array from = {0.0, 0.0, -65536};
-					vec3_array center = w->getCenter ();
+					double3_array center1, center2;
+					double3_array from = {0.0, 0.0, -65536};
+					double3_array center = w->getCenter ();
 					VectorMA (center, 0.5, p->plane.normal, center1);
 					VectorMA (center, -0.5, p->plane.normal, center2);
 					fprintf (pf_view, "%5.2f %5.2f %5.2f\n", from[0], from[1], from[2]);
 					fprintf (pf_view, "%5.2f %5.2f %5.2f\n", center1[0], center1[1], center1[2]);
 					for (i = 0; i < w->size(); i++)
 					{
-						vec_t *p1, *p2;
+						double *p1, *p2;
 						p1 = w->m_Points[i].data();
 						p2 = w->m_Points[(i+1)%w->size()].data();
 						fprintf (pf_view, "%5.2f %5.2f %5.2f\n", p1[0], p1[1], p1[2]);

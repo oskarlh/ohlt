@@ -1,6 +1,6 @@
 #include "csg.h"
 
-vec_t g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
+double g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
 static Winding NewWindingFromPlane(const brushhull_t* const hull, const int planenum) {
     mapplane_t* plane = &g_mapplanes[planenum];
@@ -93,7 +93,7 @@ static void     AddPlaneToUnion(brushhull_t* hull, const int planenum)
     }
 }
 
-static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
+static double    CalculateSolidVolume(const brushhull_t* const hull)
 {
     // calculate polyhedron origin
     // subdivide face winding into triangles
@@ -102,13 +102,13 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
     // calculate volume of triangle of face to origin
     // add subidivided volume chunk to total
 
-    vec_t           volume = 0.0;
-    vec_t           inverse;
-    vec3_array          midpoint = { 0.0, 0.0, 0.0 };
+    double           volume = 0.0;
+    double           inverse;
+    double3_array          midpoint = { 0.0, 0.0, 0.0 };
 
     int x = 0;
     for (const bface_t& face : hull->faces) {
-        vec3_array facemid = face.w.getCenter();
+        double3_array facemid = face.w.getCenter();
         VectorAdd(midpoint, facemid, midpoint);
         Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for face %d is %f %f %f\n", x, facemid[0], facemid[1], facemid[2]);
         ++x;
@@ -122,8 +122,8 @@ static vec_t    CalculateSolidVolume(const brushhull_t* const hull)
 
     for (const bface_t& face : hull->faces) {
         mapplane_t* plane = &g_mapplanes[face.planenum];
-        vec_t area = face.w.getArea();
-        vec_t dist = DotProduct(plane->normal, midpoint);
+        double area = face.w.getArea();
+        double dist = DotProduct(plane->normal, midpoint);
 
         dist -= plane->dist;
         dist = fabs(dist);
@@ -151,11 +151,11 @@ static void     DumpHullWindings(const brushhull_t* const hull)
 static bool isInvalidHull(const brushhull_t* hull)
 {
 
-    vec3_array mins{ 99999.0, 99999.0, 99999.0 };
-    vec3_array maxs{ -99999.0, -99999.0, -99999.0 };
+    double3_array mins{ 99999.0, 99999.0, 99999.0 };
+    double3_array maxs{ -99999.0, -99999.0, -99999.0 };
 
     for (const bface_t& face : hull->faces) {
-        for (const vec3_array& windingPoint : face.w.m_Points) {
+        for (const double3_array& windingPoint : face.w.m_Points) {
             mins = vector_minimums(mins, windingPoint);
             maxs = vector_maximums(maxs, windingPoint);
         }
@@ -238,11 +238,11 @@ void            CalculateBrushUnions(const int brushnum)
 
 
                 {
-                    vec_t           volume_brush_1;
-                    vec_t           volume_brush_2;
-                    vec_t           volume_brush_union;
-                    vec_t           volume_ratio_1;
-                    vec_t           volume_ratio_2;
+                    double           volume_brush_1;
+                    double           volume_brush_2;
+                    double           volume_brush_union;
+                    double           volume_ratio_1;
+                    double           volume_ratio_2;
 
                     if (isInvalidHull(&union_hull))
                     {

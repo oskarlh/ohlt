@@ -58,7 +58,7 @@ CreateAreaNode
 builds a uniformly subdivided tree for the given mesh size
 ===============
 */
-areanode_t *CMeshDesc::CreateAreaNode(int depth, const vec3_array& mins, const vec3_array& maxs)
+areanode_t *CMeshDesc::CreateAreaNode(int depth, const float3_array& mins, const float3_array& maxs)
 {
 	areanode_t	*anode{&areanodes[numareanodes++]};
 
@@ -71,7 +71,7 @@ areanode_t *CMeshDesc::CreateAreaNode(int depth, const vec3_array& mins, const v
 		return anode;
 	}
 
-	vec3_array size;
+	float3_array size;
 	VectorSubtract( maxs, mins, size );	
 
 	if(size[0] > size[1]) {
@@ -81,8 +81,8 @@ areanode_t *CMeshDesc::CreateAreaNode(int depth, const vec3_array& mins, const v
 	
 	anode->dist = 0.5f * ( maxs[anode->axis] + mins[anode->axis] );
 
-	vec3_array mins2{mins};
-	vec3_array maxs1{maxs};
+	float3_array mins2{mins};
+	float3_array maxs1{maxs};
 
 	maxs1[anode->axis] = mins2[anode->axis] = anode->dist;
 	anode->children[0] = CreateAreaNode(depth+1, mins2, maxs);
@@ -211,8 +211,8 @@ The normal will point out of the clock for clockwise ordered points
 */
 bool CMeshDesc :: PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane )
 {
-	vec3_array v1;
-	vec3_array v2;
+	float3_array v1;
+	float3_array v2;
 	VectorSubtract( triangle[1].point, triangle[0].point, v1 );
 	VectorSubtract( triangle[2].point, triangle[0].point, v2 );
 	CrossProduct( v2, v1, plane->normal );
@@ -234,7 +234,7 @@ bool CMeshDesc :: PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane )
 ComparePlanes
 =================
 */
-bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const vec3_array& normal, float dist )
+bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const float3_array& normal, float dist )
 {
 	if( fabs( plane->normal[0] - normal[0] ) < PLANE_NORMAL_EPSILON
 	 && fabs( plane->normal[1] - normal[1] ) < PLANE_NORMAL_EPSILON
@@ -249,7 +249,7 @@ bool CMeshDesc :: ComparePlanes( const mplane_t *plane, const vec3_array& normal
 SnapVectorToGrid
 ==================
 */
-void CMeshDesc :: SnapVectorToGrid( vec3_array& normal )
+void CMeshDesc :: SnapVectorToGrid( float3_array& normal )
 {
 	for( int i = 0; i < 3; i++ )
 	{
@@ -320,7 +320,7 @@ void CMeshDesc :: CategorizePlane( mplane_t *plane )
 	}
 }
 
-void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t& quat) {
+void CMeshDesc::AngleQuaternion(const float3_array& angles, vec4_t& quat) {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
 
@@ -341,7 +341,7 @@ void CMeshDesc::AngleQuaternion(const vec3_array& angles, vec4_t& quat) {
 	quat[3] = cr*cp*cy+sr*sp*sy; // W
 }
 
-void CMeshDesc::AngleMatrix(const vec3_array& angles, const vec3_array& origin, const vec3_array& scale, matrix3x4& matrix)
+void CMeshDesc::AngleMatrix(const float3_array& angles, const float3_array& origin, const float3_array& scale, matrix3x4& matrix)
 {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;
@@ -371,7 +371,7 @@ void CMeshDesc::AngleMatrix(const vec3_array& angles, const vec3_array& origin, 
 	matrix[2][3] = origin[2];
 }
 
-void CMeshDesc :: QuaternionMatrix(const vec4_t& quat, const vec3_array& origin, matrix3x4& matrix)
+void CMeshDesc :: QuaternionMatrix(const vec4_t& quat, const float3_array& origin, matrix3x4& matrix)
 {
 	matrix[0][0] = 1.0 - 2.0 * quat[1] * quat[1] - 2.0 * quat[2] * quat[2];
 	matrix[1][0] = 2.0 * quat[0] * quat[1] + 2.0 * quat[3] * quat[2];
@@ -405,7 +405,7 @@ void CMeshDesc::ConcatTransforms(const matrix3x4& in1, const matrix3x4& in2, mat
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 }
 
-void CMeshDesc::VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec3_array& out) {
+void CMeshDesc::VectorTransform(const float3_array& in1, const matrix3x4& in2, float3_array& out) {
 	out[0] = DotProduct( in1, in2[0] ) + in2[0][3];
 	out[1] = DotProduct( in1, in2[1] ) + in2[1][3];
 	out[2] = DotProduct( in1, in2[2] ) + in2[2][3];
@@ -414,7 +414,7 @@ void CMeshDesc::VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec
 void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t& q )
 {
 	mstudioanimvalue_t *panimvalue;
-	vec3_array angle;
+	float3_array angle;
 
 	for(std::size_t i = 0; i < 3; ++i)
 	{
@@ -433,7 +433,7 @@ void CMeshDesc :: StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *
 	AngleQuaternion( angle, q );
 }
 
-void CMeshDesc :: StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_array& pos )
+void CMeshDesc :: StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, float3_array& pos )
 {
 	mstudioanimvalue_t *panimvalue;
 
@@ -479,7 +479,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 	mstudioanim_t *panim = (mstudioanim_t *)((byte *)phdr + pseqgroup->data + pseqdesc->animindex);
 
 	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)phdr + phdr->boneindex);
-	std::array<vec3_array, MAXSTUDIOBONES> pos;
+	std::array<float3_array, MAXSTUDIOBONES> pos;
 	std::array<vec4_t, MAXSTUDIOBONES> q;
 
 	for(std::size_t i = 0; i < phdr->numbones; i++, pbone++, panim++ ) 
@@ -519,15 +519,15 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		maxVertSize = std::max(maxVertSize, psubmodel->numverts);
 	}
 
-	std::unique_ptr<vec3_array[]> verts{std::make_unique_for_overwrite<vec3_array[]>(totalVertSize * 8)}; // Temporary vertices
+	std::unique_ptr<float3_array[]> verts{std::make_unique_for_overwrite<float3_array[]>(totalVertSize * 8)}; // Temporary vertices
 	std::unique_ptr<float[]> coords{std::make_unique_for_overwrite<float[]>(totalVertSize * 16)}; // Temporary vertices
 	mstudiotexture_t **textures = (mstudiotexture_t **)malloc( sizeof( mstudiotexture_t* ) * totalVertSize * 8 ); // lame way...
 	unsigned int *indices = (unsigned int *)malloc( sizeof( int ) * totalVertSize * 24 );
 	std::uint32_t numVerts = 0, numElems = 0, numTris = 0;
 	mvert_t triangle[3];
 
-	std::unique_ptr<vec3_array[]> m_verts = std::make_unique_for_overwrite<vec3_array[]>(maxVertSize);
-	std::vector<vec3_array> gr;
+	std::unique_ptr<float3_array[]> m_verts = std::make_unique_for_overwrite<float3_array[]>(maxVertSize);
+	std::vector<float3_array> gr;
 	for( int k = 0; k < phdr->numbodyparts; k++ )
 	{
 		mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)((byte *)phdr + phdr->bodypartindex) + k;
@@ -537,7 +537,7 @@ bool CMeshDesc :: StudioConstructMesh( model_t *pModel )
 		int m_skinnum = std::min( std::max( 0, pModel->skin ), MAXSTUDIOSKINS );
 
 		mstudiomodel_t *psubmodel = (mstudiomodel_t *)((byte *)phdr + pbodypart->modelindex) + index;
-		vec3_array *pstudioverts = (vec3_array *)((byte *)phdr + psubmodel->vertindex);
+		float3_array *pstudioverts = (float3_array *)((byte *)phdr + psubmodel->vertindex);
 		byte *pvertbone = ((byte *)phdr + psubmodel->vertinfoindex);
 
 		// setup all the vertices
@@ -830,7 +830,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 	for( i = 0; i < 3; i++ )
 	{
 		int j = (i + 1) % 3;
-		vec3_array vec;
+		float3_array vec;
 
 		VectorSubtract( triangle[i].point, triangle[j].point, vec );
 		if( vector_length( vec ) < 0.5f ) continue;
@@ -852,7 +852,7 @@ bool CMeshDesc :: AddMeshTrinagle( const mvert_t triangle[3], mstudiotexture_t *
 			for( int dir = -1; dir <= 1; dir += 2 )
 			{
 				// construct a plane
-				vec3_array vec2 = { 0.0f, 0.0f, 0.0f };
+				float3_array vec2 = { 0.0f, 0.0f, 0.0f };
 				vec2[axis] = dir;
 				CrossProduct( vec, vec2, normal );
 

@@ -64,7 +64,7 @@ struct brush_texture_t {
 struct side_t {
     brush_texture_t td;
 	bool			bevel;
-    vec_t           planepts[3][3];
+    double           planepts[3][3];
 };
 
 struct bface_t {
@@ -111,23 +111,23 @@ struct brush_t {
 };
 
 struct hullbrushface_t {
-	vec3_array normal;
-	vec3_array point;
+	double3_array normal;
+	double3_array point;
 
 	std::int32_t numvertexes;
-	vec3_array *vertexes;
+	double3_array *vertexes;
 };
 
 struct hullbrushedge_t{
-	vec3_array normals[2];
-	vec3_array point;
+	double3_array normals[2];
+	double3_array point;
 
-	vec3_array vertexes[2];
-	vec3_array delta; // delta has the same direction as CrossProduct(normals[0],normals[1])
+	double3_array vertexes[2];
+	double3_array delta; // delta has the same direction as CrossProduct(normals[0],normals[1])
 };
 
 struct hullbrushvertex_t {
-	vec3_array point;
+	double3_array point;
 };
 
 struct hullbrush_t {
@@ -174,7 +174,7 @@ extern std::deque<std::u8string> g_WadInclude;  // List of substrings to wadincl
 
 extern void     WriteMiptex(const std::filesystem::path& bspPath);
 extern void     LogWadUsage(wadpath_t* currentwad, int nummiptex);
-extern int      TexinfoForBrushTexture(const mapplane_t* const plane, brush_texture_t* bt, const vec3_array& origin
+extern int      TexinfoForBrushTexture(const mapplane_t* const plane, brush_texture_t* bt, const double3_array& origin
 					);
 extern std::optional<wad_texture_name> GetTextureByNumber_CSG(int texturenumber);
 
@@ -209,7 +209,7 @@ typedef enum{clip_smallest,clip_normalized,clip_simple,clip_precise,clip_legacy}
 extern cliptype g_cliptype;
 extern const char* GetClipTypeString(cliptype);
 
-extern vec_t g_scalesize;
+extern double g_scalesize;
 extern bool g_resetlog;
 extern bool g_nolightopt;
 #ifdef HLCSG_GAMETEXTMESSAGE_UTF8
@@ -217,8 +217,8 @@ extern bool g_noutf8;
 #endif
 extern bool g_nullifytrigger;
 
-extern vec_t g_tiny_threshold;
-extern vec_t g_BrushUnionThreshold;
+extern double g_tiny_threshold;
+extern double g_BrushUnionThreshold;
 
 extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 extern int g_nummapplanes;

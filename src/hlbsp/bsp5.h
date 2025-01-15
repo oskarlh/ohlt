@@ -20,7 +20,7 @@ extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 #define ENTITIES_VOID "entities.void"
 #define ENTITIES_VOID_EXT ".void"
 
-constexpr vec_t hlbsp_bogus_range = 144000.0;
+constexpr double hlbsp_bogus_range = 144000.0;
 
 
 // the exact bounding box of the brushes is expanded some for the headnode
@@ -80,7 +80,7 @@ typedef struct face_s                                      // This structure is 
 	int				referenced;                            // only valid for original faces
     facestyle_e     facestyle;
     // vector quad word aligned
-    vec3_array pts[MAXEDGES]; // FIXME: change to use winding_t
+    double3_array pts[MAXEDGES]; // FIXME: change to use winding_t
 }
 face_t;
 
@@ -89,7 +89,7 @@ typedef struct surface_s
     struct surface_s* next;
     face_t*         faces;                                 // links to all the faces on either side of the surf
     struct node_s*  onnode;                                // true if surface has already been used as a splitting node
-    vec3_array mins, maxs;
+    double3_array mins, maxs;
     int             planenum;
 	int				detaillevel; // minimum detail level of its faces
 }
@@ -97,7 +97,7 @@ surface_t;
 
 typedef struct
 {
-    vec3_array          mins, maxs;
+    double3_array          mins, maxs;
     surface_t*      surfaces;
 }
 surfchain_t;
@@ -124,12 +124,12 @@ typedef struct node_s
     surface_t*      surfaces;
 	brush_t			*detailbrushes;
 	brush_t			*boundsbrush;
-	vec3_array loosemins, loosemaxs; // all leafs and nodes have this, while 'mins' and 'maxs' are only valid for nondetail leafs and nodes.
+	double3_array loosemins, loosemaxs; // all leafs and nodes have this, while 'mins' and 'maxs' are only valid for nondetail leafs and nodes.
 
 	bool			isdetail; // is under a diskleaf
 	bool			isportalleaf; // not detail and children are detail; only visleafs have contents, portals, mins, maxs
 	bool			iscontentsdetail; // inside a detail brush
-    vec3_array mins, maxs;                            // bounding volume of portals;
+    double3_array mins, maxs;                            // bounding volume of portals;
 
     // information for decision nodes
     int             planenum;                              // -1 = leaf node
@@ -163,7 +163,7 @@ extern void     MergeAll(surface_t* surfhead);
 //=============================================================================
 // surfaces.c
 extern void     MakeFaceEdges();
-extern int      GetEdge(const vec3_array& p1, const vec3_array& p2, face_t* f);
+extern int      GetEdge(const double3_array& p1, const double3_array& p2, face_t* f);
 
 //=============================================================================
 // portals.c
@@ -181,7 +181,7 @@ extern node_t   g_outside_node;                            // portals outside th
 
 extern void     AddPortalToNodes(portal_t* p, node_t* front, node_t* back);
 extern void     RemovePortalFromNode(portal_t* portal, node_t* l);
-extern void     MakeHeadnodePortals(node_t* node, const vec3_array& mins, const vec3_array& maxs);
+extern void     MakeHeadnodePortals(node_t* node, const double3_array& mins, const double3_array& maxs);
 
 extern void     FreePortals(node_t* node);
 extern void     WritePortalfile(node_t* headnode);
@@ -225,8 +225,8 @@ extern brush_t *AllocBrush ();
 extern void		FreeBrush (brush_t *b);
 extern brush_t *NewBrushFromBrush (const brush_t *b);
 extern void		SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t **back);
-extern brush_t *BrushFromBox (const vec3_array& mins, const vec3_array& maxs);
-extern void		CalcBrushBounds (const brush_t *b, vec3_array& mins, vec3_array& maxs);
+extern brush_t *BrushFromBox (const double3_array& mins, const double3_array& maxs);
+extern void		CalcBrushBounds (const brush_t *b, double3_array& mins, double3_array& maxs);
 
 extern node_t*  AllocNode();
 

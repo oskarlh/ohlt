@@ -6,7 +6,7 @@
 //      returns whether the point is in the winding (including its edges)
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t epsilon/* = 0.0*/)
+bool point_in_winding(const Winding& w, const dplane_t& plane, const float3_array& point, float epsilon/* = 0.0*/)
 {
 
 	const int numpoints = w.size();
@@ -14,11 +14,11 @@ bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array&
 	for (int x = 0; x < numpoints; x++)
 	{
 
-		vec3_array delta;
+		float3_array delta;
 		VectorSubtract(w.m_Points[(x+ 1) % numpoints], w.m_Points[x], delta);
-		vec3_array normal;
+		float3_array normal;
 		CrossProduct (delta, plane.normal, normal);
-		const vec_t dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
+		const float dist = DotProduct (point, normal) - DotProduct (w.m_Points[x], normal);
 
 		if (dist < 0.0
 			&& (epsilon == 0.0 || dist * dist > epsilon * epsilon * DotProduct (normal, normal)))
@@ -36,13 +36,13 @@ bool point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array&
 //      parameter 'width' : the radius of the ball
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t width)
+bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const float3_array& point, float width)
 {
 	int				numpoints;
 	int				x;
-	vec3_array delta;
-	vec3_array normal;
-	vec_t			dist;
+	float3_array delta;
+	float3_array normal;
+	float			dist;
 
 	numpoints = w.size();
 
@@ -67,17 +67,17 @@ bool point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3
 //      if the point is not on the plane, the distance between the point and the plane is preserved
 //      the point and all the vertexes of the winding can move freely along the plane's normal without changing the result
 // =====================================================================================
-void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const point)
+void			snap_to_winding(const Winding& w, const dplane_t& plane, float* const point)
 {
 	int				numpoints;
 	int				x;
-	const vec_t *p1, *p2;
-	vec3_array			delta;
-	vec3_array			normal;
-	vec_t			dist;
-	vec_t			dot1, dot2, dot;
-	vec3_array			bestpoint;
-	vec_t			bestdist;
+	const float *p1, *p2;
+	float3_array			delta;
+	float3_array			normal;
+	float			dist;
+	float			dot1, dot2, dot;
+	float3_array			bestpoint;
+	float			bestdist;
 	bool			in;
 
 	numpoints = w.size();
@@ -142,16 +142,16 @@ void			snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* const poi
 //      returns the maximal distance that the point can be kept away from all the edges
 //      in most of the cases, the maximal distance = width; in other cases, the maximal distance < width
 // =====================================================================================
-vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* const point, vec_t width, vec_t maxmove)
+float snap_to_winding_noedge(const Winding& w, const dplane_t& plane, float* const point, float width, float maxmove)
 {
 	int pass;
 	int numplanes;
 	dplane_t *planes;
 	int x;
-	vec3_array v;
-	vec_t newwidth;
-	vec_t bestwidth;
-	vec3_array bestpoint;
+	float3_array v;
+	float newwidth;
+	float bestwidth;
+	float3_array bestpoint;
 
 	snap_to_winding (w, plane, point);
 
@@ -177,7 +177,7 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 	for (pass = 0; pass < 5; pass++) // apply binary search method for 5 iterations to find the maximal distance that the point can be kept away from all the edges
 	{
 		bool failed;
-		vec3_array newpoint;
+		float3_array newpoint;
 		Winding *newwinding;
 
 		failed = true;
@@ -227,9 +227,9 @@ vec_t snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* con
 }
 
 
-bool intersect_linesegment_plane(const dplane_t& plane, const vec3_array& p1, const vec3_array& p2, vec3_array& point) {
-	const vec_t part1 = DotProduct (p1, plane.normal) - plane.dist;
-	const vec_t part2 = DotProduct (p2, plane.normal) - plane.dist;
+bool intersect_linesegment_plane(const dplane_t& plane, const float3_array& p1, const float3_array& p2, float3_array& point) {
+	const float part1 = DotProduct (p1, plane.normal) - plane.dist;
+	const float part2 = DotProduct (p2, plane.normal) - plane.dist;
 	if (part1 * part2 > 0 || part1 == part2) {
 		return false;
 	}
@@ -239,10 +239,10 @@ bool intersect_linesegment_plane(const dplane_t& plane, const vec3_array& p1, co
 	return true;
 }
 
-void plane_from_points(const vec3_array& p1, const vec3_array& p2, const vec3_array& p3, dplane_t& plane) {
-    vec3_array delta1;
-    vec3_array delta2;
-    vec3_array normal;
+void plane_from_points(const float3_array& p1, const float3_array& p2, const float3_array& p3, dplane_t& plane) {
+    float3_array delta1;
+    float3_array delta2;
+    float3_array normal;
 
     VectorSubtract(p3, p2, delta1);
     VectorSubtract(p1, p2, delta2);
@@ -253,10 +253,10 @@ void plane_from_points(const vec3_array& p1, const vec3_array& p2, const vec3_ar
 }
 
 //LineSegmentIntersectsBounds --vluzacn
-bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_t* mins, const vec_t* maxs, int d)
+bool LineSegmentIntersectsBounds_r (const float* p1, const float* p2, const float* mins, const float* maxs, int d)
 {
-	vec_t lmin, lmax;
-	const vec_t* tmp;
+	float lmin, lmax;
+	const float* tmp;
 	int i;
 	d--;
 	if (p2[d]<p1[d])
@@ -267,7 +267,7 @@ bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_
 		return true;
 	lmin = p1[d]>=mins[d]? 0 : (mins[d]-p1[d])/(p2[d]-p1[d]);
 	lmax = p2[d]<=maxs[d]? 1 : (p2[d]-maxs[d])/(p2[d]-p1[d]);
-	vec3_array x1, x2;
+	float3_array x1, x2;
 	for (i=0; i<d; ++i)
 	{
 		x1[i]=(1-lmin)*p1[i]+lmin*p2[i];
@@ -275,7 +275,7 @@ bool LineSegmentIntersectsBounds_r (const vec_t* p1, const vec_t* p2, const vec_
 	}
 	return LineSegmentIntersectsBounds_r (x1.data(), x2.data(), mins, maxs, d);
 }
-inline bool LineSegmentIntersectsBounds (const vec3_array& p1, const vec3_array& p2, const vec3_array& mins, const vec3_array& maxs)
+inline bool LineSegmentIntersectsBounds (const float3_array& p1, const float3_array& p2, const float3_array& mins, const float3_array& maxs)
 {
 	return LineSegmentIntersectsBounds_r (p1.data(), p2.data(), mins.data(), maxs.data(), 3);
 }
@@ -284,8 +284,8 @@ inline bool LineSegmentIntersectsBounds (const vec3_array& p1, const vec3_array&
 //  TestSegmentAgainstOpaqueList
 //      Returns true if the segment intersects an item in the opaque list
 // =====================================================================================
-bool            TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_array& p2
-					, vec3_array& scaleout
+bool            TestSegmentAgainstOpaqueList(const float3_array& p1, const float3_array& p2
+					, float3_array& scaleout
 					, int &opaquestyleout // light must convert to this style. -1 = no convert
 					)
 	{
@@ -329,9 +329,9 @@ bool            TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_ar
 // =====================================================================================
 //  SnapToPlane
 // =====================================================================================
-void            SnapToPlane(const dplane_t* const plane, vec_t* const point, vec_t offset)
+void            SnapToPlane(const dplane_t* const plane, float* const point, float offset)
 {
-	vec_t			dist;
+	float			dist;
 	dist = DotProduct (point, plane->normal) - plane->dist;
 	dist -= offset;
 	VectorMA (point, -dist, plane->normal, point);
@@ -339,20 +339,20 @@ void            SnapToPlane(const dplane_t* const plane, vec_t* const point, vec
 // =====================================================================================
 //  CalcSightArea
 // =====================================================================================
-vec_t CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, int skylevel
-					, vec_t lighting_power, vec_t lighting_scale
+float CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, int skylevel
+					, float lighting_power, float lighting_scale
 					)
 {
 	// maybe there are faster ways in calculating the weighted area, but at least this way is not bad.
-	vec_t area = 0.0;
+	float area = 0.0;
 
 	int numedges = emitter_winding->size();
-	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
+	float3_array *edges = (float3_array *)malloc (numedges * sizeof (float3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{
-		vec3_array v1, v2, normal;
+		float3_array v1, v2, normal;
 		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract(emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
@@ -365,10 +365,10 @@ vec_t CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiv
 	if (!error)
 	{
 		int i, j;
-		vec3_array *pnormal;
-		vec_t *psize;
-		vec_t dot;
-		vec3_array *pedge;
+		float3_array *pnormal;
+		float *psize;
+		float dot;
+		float3_array *pedge;
 		for (i = 0, pnormal = g_skynormals[skylevel], psize = g_skynormalsizes[skylevel]; i < g_numskynormals[skylevel]; i++, pnormal++, psize++)
 		{
 			dot = DotProduct (*pnormal, receiver_normal);
@@ -398,8 +398,8 @@ vec_t CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiv
 	return area;
 }
 
-vec_t CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, const vec3_array& emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
-					, vec_t lighting_power, vec_t lighting_scale
+float CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
+					, float lighting_power, float lighting_scale
 					)
 {
 	// stopdot = cos (cone)
@@ -408,15 +408,15 @@ vec_t CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_arr
 	// ratio = 1.0 , when dot2 >= stopdot
 	// ratio = (dot - stopdot2) / (stopdot - stopdot2) , when stopdot > dot2 > stopdot2
 	// ratio = 0.0 , when stopdot2 >= dot2
-	vec_t area = 0.0;
+	float area = 0.0;
 
 	int numedges = emitter_winding->size();
-	vec3_array *edges = (vec3_array *)malloc (numedges * sizeof (vec3_array));
+	float3_array *edges = (float3_array *)malloc (numedges * sizeof (float3_array));
 	hlassume (edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++)
 	{
-		vec3_array v1, v2, normal;
+		float3_array v1, v2, normal;
 		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract(emitter_winding->m_Points[(x + 1) % numedges], receiver_origin, v2);
 		CrossProduct (v1, v2, normal); // pointing inward
@@ -429,11 +429,11 @@ vec_t CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_arr
 	if (!error)
 	{
 		int i, j;
-		vec3_array *pnormal;
-		vec_t *psize;
-		vec_t dot;
-		vec_t dot2;
-		vec3_array *pedge;
+		float3_array *pnormal;
+		float *psize;
+		float dot;
+		float dot2;
+		float3_array *pedge;
 		for (i = 0, pnormal = g_skynormals[skylevel], psize = g_skynormalsizes[skylevel]; i < g_numskynormals[skylevel]; i++, pnormal++, psize++)
 		{
 			dot = DotProduct (*pnormal, receiver_normal);
@@ -475,15 +475,15 @@ vec_t CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_arr
 // =====================================================================================
 //  GetAlternateOrigin
 // =====================================================================================
-void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin)
+void GetAlternateOrigin (const float3_array& pos, const float3_array& normal, const patch_t* patch, float3_array& origin)
 {
 	const dplane_t *faceplane;
-	const vec_t *facenormal;
+	const float *facenormal;
 	dplane_t clipplane;
 	Winding w;
 
 	faceplane = getPlaneFromFaceNumber (patch->faceNumber);
-	const vec3_array& faceplaneoffset = g_face_offset[patch->faceNumber];
+	const float3_array& faceplaneoffset = g_face_offset[patch->faceNumber];
 	facenormal = faceplane->normal.data();
 	VectorCopy (normal, clipplane.normal);
 	clipplane.dist = DotProduct (pos, clipplane.normal);
@@ -503,13 +503,13 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 		else
 		{
 			bool found;
-			vec3_array bestpoint;
-			vec_t bestdist = -1.0;
-			vec3_array point;
-			vec_t dist;
-			vec3_array v;
+			float3_array bestpoint;
+			float bestdist = -1.0;
+			float3_array point;
+			float dist;
+			float3_array v;
 
-			vec3_array center = w.getCenter ();
+			float3_array center = w.getCenter ();
 			found = false;
 
 			VectorMA (center, PATCH_HUNT_OFFSET, facenormal, point);
@@ -528,8 +528,8 @@ void GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const 
 			{
 				for (int i = 0; i < w.size(); i++)
 				{
-					const vec_t *p1;
-					const vec_t *p2;
+					const float *p1;
+					const float *p2;
 					p1 = w.m_Points[i].data();
 					p2 = w.m_Points[(i + 1) % w.size()].data();
 					VectorAdd (p1, p2, point);

@@ -3,15 +3,15 @@
 #include <cstring>
 
 struct wvert_t {
-    vec_t t;
+    double t;
     wvert_t* prev;
     wvert_t* next;
 };
 
 struct wedge_t {
     wedge_t* next;
-    vec3_array dir;
-    vec3_array origin;
+    double3_array dir;
+    double3_array origin;
     wvert_t head;
 };
 
@@ -32,23 +32,23 @@ static wedge_t  wedges[MAX_WEDGES];
 
 std::array<wedge_t*, NUM_HASH> wedge_hash;
 
-constexpr vec_t hash_min{-8000};
-static vec3_array hash_scale;
+constexpr double hash_min{-8000};
+static double3_array hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed in a cyclic way (modulus by hash_numslots)
 // So please don't change the hardcoded hash_min and scale
 static int		hash_numslots[3];
 #define MAX_HASH_NEIGHBORS	4
 
-static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
+static void     InitHash(const double3_array& mins, const double3_array& maxs)
 {
     
-    constexpr vec_t size{16000.0};
+    constexpr double size{16000.0};
 
     wedge_hash = {};
 
-    const vec_t volume = size * size;
+    const double volume = size * size;
 
-    const vec_t scale = std::sqrt(volume / NUM_HASH);
+    const double scale = std::sqrt(volume / NUM_HASH);
 
 	hash_numslots[0] = (int)floor (size / scale);
 	hash_numslots[1] = (int)floor (size / scale);
@@ -63,21 +63,21 @@ static void     InitHash(const vec3_array& mins, const vec3_array& maxs)
 	hash_scale[1] = hash_numslots[1] / size;
 }
 
-static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneighbors)
+static int HashVec (const double3_array& vec, int *num_hashneighbors, int *hashneighbors)
 {
 	int h;
 	int i;
 	int x;
 	int y;
 	int slot[2];
-	vec_t normalized[2];
-	vec_t slotdiff[2];
+	double normalized[2];
+	double slotdiff[2];
 
 	for (i = 0; i < 2; i++)
 	{
 		normalized[i] = hash_scale[i] * (vec[i] - hash_min);
 		slot[i] = (int)floor (normalized[i]);
-		slotdiff[i] = normalized[i] - (vec_t)slot[i];
+		slotdiff[i] = normalized[i] - (double)slot[i];
 
 		slot[i] = (slot[i] + hash_numslots[i]) % hash_numslots[i];
 		slot[i] = (slot[i] + hash_numslots[i]) % hash_numslots[i]; // do it twice to handle negative values
@@ -116,7 +116,7 @@ static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneig
 
 //============================================================================
 
-static bool     CanonicalVector(vec3_array& vec)
+static bool     CanonicalVector(double3_array& vec)
 {
     if (normalize_vector(vec))
     {
@@ -168,12 +168,12 @@ static bool     CanonicalVector(vec3_array& vec)
     return false;
 }
 
-static wedge_t *FindEdge(const vec3_array& p1, const vec3_array& p2, vec_t* t1, vec_t* t2)
+static wedge_t *FindEdge(const double3_array& p1, const double3_array& p2, double* t1, double* t2)
 {
-    vec3_array          origin;
-    vec3_array          dir;
+    double3_array          origin;
+    double3_array          dir;
     wedge_t*        w;
-    vec_t           temp;
+    double           temp;
     int             h;
 	int				num_hashneighbors;
 	int				hashneighbors[MAX_HASH_NEIGHBORS];
@@ -241,7 +241,7 @@ static wedge_t *FindEdge(const vec3_array& p1, const vec3_array& p2, vec_t* t1, 
  */
 #define T_EPSILON	ON_EPSILON
 
-static void     AddVert(const wedge_t* const w, const vec_t t)
+static void     AddVert(const wedge_t* const w, const double t)
 {
     wvert_t*        v;
     wvert_t*        newv;
@@ -279,11 +279,11 @@ static void     AddVert(const wedge_t* const w, const vec_t t)
  * AddEdge
  * ===============
  */
-static void     AddEdge(const vec3_array& p1, const vec3_array& p2)
+static void     AddEdge(const double3_array& p1, const double3_array& p2)
 {
     wedge_t*        w;
-    vec_t           t1;
-    vec_t           t2;
+    double           t1;
+    double           t2;
 
     w = FindEdge(p1, p2, &t1, &t2);
     AddVert(w, t1);
@@ -311,7 +311,7 @@ static void     AddFaceEdges(const face_t* const f)
 
 static byte     superfacebuf[1024 * 16];
 static face_t*  superface = (face_t*)superfacebuf;
-static int      MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t) + sizeof(superface->pts)) / sizeof(vec3_array);
+static int      MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t) + sizeof(superface->pts)) / sizeof(double3_array);
 static face_t*  newlist;
 
 static void     SplitFaceForTjunc(face_t* f, face_t* original)
@@ -319,8 +319,8 @@ static void     SplitFaceForTjunc(face_t* f, face_t* original)
     int             i;
     face_t*         newface;
     face_t*         chain;
-    vec3_array          dir, test;
-    vec_t           v;
+    double3_array          dir, test;
+    double           v;
     int             firstcorner, lastcorner;
 
 #ifdef _DEBUG
@@ -439,8 +439,8 @@ static void     FixFaceEdges(face_t* f)
     int             k;
     wedge_t*        w;
     wvert_t*        v;
-    vec_t           t1;
-    vec_t           t2;
+    double           t1;
+    double           t2;
 
     *superface = *f;
 
@@ -536,7 +536,7 @@ static void     tjunc_fix_r(node_t* node)
  */
 void            tjunc(node_t* headnode)
 {
-    vec3_array          maxs, mins;
+    double3_array          maxs, mins;
     int             i;
 
     Verbose("---- tjunc ----\n");

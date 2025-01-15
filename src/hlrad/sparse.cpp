@@ -114,9 +114,9 @@ static void SetVisColumn (int patchnum, bool uncompressedcolumn[MAX_SPARSE_VISMA
 
 // Vismatrix public
 static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
-								  , vec3_array &transparency_out
+								  , float3_array &transparency_out
 								  , unsigned int &next_index,
-								  const std::vector<vec3_array>& transparencyList
+								  const std::vector<float3_array>& transparencyList
 								  )
 {
     VectorFill(transparency_out, 1.0);
@@ -166,7 +166,7 @@ static bool CheckVisBitSparse(std::uint32_t x, std::uint32_t y
 static void     TestPatchToFace(const unsigned patchnum, const int facenum, const int head
 								, byte *pvs
 								, bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES],
-								std::vector<vec3_array>& transparencyList
+								std::vector<float3_array>& transparencyList
 								)
 {
     patch_t*        patch = &g_patches[patchnum];
@@ -187,7 +187,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
             {
                 unsigned        m = patch2 - g_patches;
 
-                vec3_array		transparency = {1.0,1.0,1.0};
+                float3_array		transparency = {1.0,1.0,1.0};
 				int opaquestyle = -1;
 
                 // check vis between patch and patch2
@@ -200,9 +200,9 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					{
 						continue;
 					}
-					vec3_array origin1, origin2;
-					vec3_array delta;
-					vec_t dist;
+					float3_array origin1, origin2;
+					float3_array delta;
+					float dist;
 					VectorSubtract(patch->origin, patch2->origin, delta);
 					dist = vector_length(delta);
 					if (dist < patch2->emitter_range - ON_EPSILON)
@@ -251,7 +251,7 @@ static void     TestPatchToFace(const unsigned patchnum, const int facenum, cons
 					}
                                         
 
-                    if(g_customshadow_with_bouncelight && !vectors_almost_same(transparency, vec3_array{1.0,1.0,1.0}) )
+                    if(g_customshadow_with_bouncelight && !vectors_almost_same(transparency, float3_array{1.0,1.0,1.0}) )
                     {
                     	AddTransparencyToRawArray(patchnum, m, transparency, transparencyList);
                     }

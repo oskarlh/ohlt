@@ -142,10 +142,10 @@
 
 #define ALLSTYLES 64 // HL limit. //--vluzacn
 
-constexpr vec_t hlrad_bogus_range = 131072;
+constexpr float hlrad_bogus_range = 131072;
 
 struct matrix_t {
-	vec_t v[4][3];
+	float v[4][3];
 };
 
 // a 4x4 matrix that represents the following transformation (see the ApplyMatrix function)
@@ -187,14 +187,14 @@ typedef enum
 struct patch_t
 {
     patch_t* next;                                  // next in face
-    vec3_array          origin;                                // Center centroid of winding (cached info calculated from winding)
-    vec_t           area;                                  // Surface area of this patch (cached info calculated from winding)
-	vec_t			exposure;
-	vec_t			emitter_range;                         // Range from patch origin (cached info calculated from winding)
+    float3_array          origin;                                // Center centroid of winding (cached info calculated from winding)
+    float           area;                                  // Surface area of this patch (cached info calculated from winding)
+	float			exposure;
+	float			emitter_range;                         // Range from patch origin (cached info calculated from winding)
 	int				emitter_skylevel;                      // The "skylevel" used for sampling of normals, when the receiver patch is within the range of ACCURATEBOUNCE_THRESHOLD * this->radius. (cached info calculated from winding)
     Winding*        winding;                               // Winding (patches are triangles, so its easy)
-    vec_t           scale;                                 // Texture scale for this face (blend of S and T scale)
-    vec_t           chop;                                  // Texture chop for this face factoring in S and T scale
+    float           scale;                                 // Texture scale for this face (blend of S and T scale)
+    float           chop;                                  // Texture chop for this face factoring in S and T scale
 
     unsigned        iIndex;
     unsigned        iData;
@@ -206,26 +206,26 @@ struct patch_t
     int             faceNumber;
     ePatchFlags     flags;
 	bool			translucent_b;                           // gather light from behind
-	vec3_array			translucent_v;
-	vec3_array			texturereflectivity;
-	vec3_array			bouncereflectivity;
+	float3_array			translucent_v;
+	float3_array			texturereflectivity;
+	float3_array			bouncereflectivity;
 
 	unsigned char	totalstyle[MAXLIGHTMAPS];
 	unsigned char	directstyle[MAXLIGHTMAPS];
 	// HLRAD_AUTOCORING: totallight: all light gathered by patch
-	vec3_array          totallight[MAXLIGHTMAPS];				// accumulated by radiosity does NOT include light accounted for by direct lighting
+	float3_array          totallight[MAXLIGHTMAPS];				// accumulated by radiosity does NOT include light accounted for by direct lighting
 	// HLRAD_AUTOCORING: directlight: emissive light gathered by sample
-	vec3_array			directlight[MAXLIGHTMAPS];				// direct light only
+	float3_array			directlight[MAXLIGHTMAPS];				// direct light only
 	int				bouncestyle; // light reflected from this patch must convert to this style. -1 = normal (don't convert)
 	unsigned char	emitstyle;
-    vec3_array          baselight;                             // emissivity only, uses emitstyle
+    float3_array          baselight;                             // emissivity only, uses emitstyle
 	bool			emitmode;								// texlight emit mode. 1 for normal, 0 for fast.
-	vec_t			samples;
+	float			samples;
 	// TODO: Create a single struct for these and allocate everything at once
-	std::array<vec3_array, ALLSTYLES>* samplelight_all; // NULL except during BuildFacelights
+	std::array<float3_array, ALLSTYLES>* samplelight_all; // NULL except during BuildFacelights
 	std::array<unsigned char, ALLSTYLES>* totalstyle_all; // NULL except during BuildFacelights
-	std::array<vec3_array, ALLSTYLES>* totallight_all; // NULL except during BuildFacelights
-	std::array<vec3_array, ALLSTYLES>* directlight_all; // NULL except during BuildFacelights
+	std::array<float3_array, ALLSTYLES>* totallight_all; // NULL except during BuildFacelights
+	std::array<float3_array, ALLSTYLES>* directlight_all; // NULL except during BuildFacelights
 	int				leafnum;
 };
 
@@ -244,37 +244,37 @@ typedef struct directlight_s
     struct directlight_s* next;
     emittype_t      type;
     int             style;
-    vec3_array          origin;
-    vec3_array          intensity;
-    vec3_array          normal;                                // for surfaces and spotlights
+    float3_array          origin;
+    float3_array          intensity;
+    float3_array          normal;                                // for surfaces and spotlights
     float           stopdot;                               // for spotlights
     float           stopdot2;                              // for spotlights
 
     // 'Arghrad'-like features
-    vec_t           fade;                                  // falloff scaling for linear and inverse square falloff 1.0 = normal, 0.5 = farther, 2.0 = shorter etc
+    float           fade;                                  // falloff scaling for linear and inverse square falloff 1.0 = normal, 0.5 = farther, 2.0 = shorter etc
 
 	// -----------------------------------------------------------------------------------
 	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
 	// Diffuse light_environment light colour
 	// Really horrible hack which probably won't work!
-	vec3_array			diffuse_intensity;
+	float3_array			diffuse_intensity;
 	// -----------------------------------------------------------------------------------
-	vec3_array			diffuse_intensity2;
-	vec_t			sunspreadangle;
+	float3_array			diffuse_intensity2;
+	float			sunspreadangle;
 	int				numsunnormals;
-	vec3_array*			sunnormals;
-	vec_t*			sunnormalweights;
+	float3_array*			sunnormals;
+	float*			sunnormalweights;
 
-	vec_t			patch_area;
-	vec_t			patch_emitter_range;
+	float			patch_area;
+	float			patch_emitter_range;
 	patch_t			*patch;
-	vec_t			texlightgap;
+	float			texlightgap;
 	bool			topatch;
 } directlight_t;
 
 
 //LRC
-vec3_array* GetTotalLight(patch_t* patch, int style
+float3_array* GetTotalLight(patch_t* patch, int style
 	);
 
 typedef struct facelist_s
@@ -285,9 +285,9 @@ typedef struct facelist_s
 typedef struct
 {
     dface_t*        faces[2];
-    vec3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
-	vec3_array vertex_normal[2];
-    vec_t           cos_normals_angle; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
+    float3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
+	float3_array vertex_normal[2];
+    float           cos_normals_angle; // HLRAD_GetPhongNormal_VL: this field must be set when smooth==true
     bool            coplanar;
 	bool			smooth;
 	facelist_t*		vertex_facelist[2]; //possible smooth faces, not include faces[0] and faces[1]
@@ -313,9 +313,9 @@ eModelLightmodes;
 struct opaqueList_t {
 	int entitynum;
 	int modelnum;
-	vec3_array origin;
+	float3_array origin;
 
-    vec3_array transparency_scale;
+    float3_array transparency_scale;
     bool transparency;
 	int style; // -1 = no style; transparency must be false if style >= 0
 	// style0 and same style will change to this style, other styles will be blocked.
@@ -329,7 +329,7 @@ struct radtexture_t {
 	std::int32_t width, height;
 	std::uint8_t *canvas; // [height][width]
 	std::array<std::array<std::uint8_t, 3>, 256> palette;
-	vec3_array reflectivity;
+	float3_array reflectivity;
 };
 extern int g_numtextures;
 extern radtexture_t *g_textures;
@@ -351,9 +351,9 @@ typedef std::vector<minlight_t>::iterator minlight_i;
 extern std::vector<minlight_t> s_minlights;
 extern patch_t* g_face_patches[MAX_MAP_FACES];
 extern entity_t* g_face_entity[MAX_MAP_FACES];
-extern vec3_array   g_face_offset[MAX_MAP_FACES];              // for models with origins
+extern float3_array   g_face_offset[MAX_MAP_FACES];              // for models with origins
 extern eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
-extern std::array<vec3_array, MAX_MAP_EDGES> g_face_centroids;
+extern std::array<float3_array, MAX_MAP_EDGES> g_face_centroids;
 extern entity_t* g_face_texlights[MAX_MAP_FACES];
 extern patch_t* g_patches; // shrinked to its real size, because 1048576 patches * 256 bytes = 256MB will be too big
 extern unsigned g_num_patches;
@@ -369,9 +369,9 @@ extern void     MakeShadowSplits();
 
 extern bool		g_fastmode;
 extern bool     g_extra;
-extern vec3_array g_ambient;
-extern vec_t    g_direct_scale;
-extern vec_t	g_limitthreshold;
+extern float3_array g_ambient;
+extern float    g_direct_scale;
+extern float	g_limitthreshold;
 extern bool		g_drawoverload;
 extern unsigned g_numbounce;
 extern float    g_qgamma;
@@ -380,23 +380,23 @@ extern float    g_smoothing_threshold;
 extern float    g_smoothing_value;
 extern float g_smoothing_threshold_2;
 extern float g_smoothing_value_2;
-extern vec_t *g_smoothvalues; //[nummiptex]
+extern float *g_smoothvalues; //[nummiptex]
 extern bool     g_estimate;
 extern char     g_source[_MAX_PATH];
-extern vec_t    g_fade;
+extern float    g_fade;
 extern bool     g_incremental;
 extern bool     g_circus;
 extern bool		g_allow_spread;
 extern bool     g_sky_lighting_fix;
-extern vec_t    g_chop;    // Chop value for normal textures
-extern vec_t    g_texchop; // Chop value for texture lights
+extern float    g_chop;    // Chop value for normal textures
+extern float    g_texchop; // Chop value for texture lights
 extern std::vector<opaqueList_t> g_opaque_face_list;
 
-extern vec3_array g_colour_qgamma;
-extern vec3_array g_colour_lightscale;
+extern float3_array g_colour_qgamma;
+extern float3_array g_colour_lightscale;
 
-extern vec3_array g_colour_jitter_hack;
-extern vec3_array g_jitter_hack;
+extern float3_array g_colour_jitter_hack;
+extern float3_array g_jitter_hack;
 
 struct lighting_cone_power_and_scale {
 	float power{1.0};
@@ -415,26 +415,26 @@ extern bool g_softsky;
 extern bool g_blockopaque;
 extern bool g_drawpatch;
 extern bool g_drawsample;
-extern vec3_array g_drawsample_origin;
-extern vec_t g_drawsample_radius;
+extern float3_array g_drawsample_origin;
+extern float g_drawsample_radius;
 extern bool g_drawedge;
 extern bool g_drawlerp;
 extern bool g_drawnudge;
 extern float g_corings[ALLSTYLES];
 extern int stylewarningcount; // not thread safe
 extern int stylewarningnext; // not thread safe
-extern std::unique_ptr<vec3_array[]> g_translucenttextures;
-extern vec_t g_translucentdepth;
+extern std::unique_ptr<float3_array[]> g_translucenttextures;
+extern float g_translucentdepth;
 extern std::unique_ptr<lighting_cone_power_and_scale[]> g_lightingconeinfo; // size == nummiptex
 extern bool g_notextures;
-extern vec_t g_texreflectgamma;
-extern vec_t g_texreflectscale;
-extern vec_t g_blur;
+extern float g_texreflectgamma;
+extern float g_texreflectscale;
+extern float g_blur;
 extern bool g_noemitterrange;
 extern bool g_bleedfix;
-extern vec_t g_maxdiscardedlight;
-extern vec3_array g_maxdiscardedpos;
-extern vec_t g_texlightgap;
+extern float g_maxdiscardedlight;
+extern float3_array g_maxdiscardedpos;
+extern float g_texlightgap;
 
 extern void     MakeTnodes(dmodel_t* bm);
 extern void     PairEdges();
@@ -444,8 +444,8 @@ extern void     PairEdges();
 #define SUNSPREAD_SKYLEVEL 7
 #define SUNSPREAD_THRESHOLD 15.0
 extern int		g_numskynormals[SKYLEVELMAX+1]; // 0, 6, 18, 66, 258, 1026, 4098, 16386, 65538
-extern vec3_array*	g_skynormals[SKYLEVELMAX+1]; //[numskynormals]
-extern vec_t*	g_skynormalsizes[SKYLEVELMAX+1]; // the weight of each normal
+extern float3_array*	g_skynormals[SKYLEVELMAX+1]; //[numskynormals]
+extern float*	g_skynormalsizes[SKYLEVELMAX+1]; // the weight of each normal
 extern void     BuildDiffuseNormals ();
 extern void     BuildFacelights(int facenum);
 extern void     PrecompLightmapOffsets();
@@ -455,15 +455,15 @@ extern void		ScaleDirectLights (); // run before AddPatchLights
 extern void		CreateFacelightDependencyList (); // run before AddPatchLights
 extern void		AddPatchLights (int facenum);
 extern void		FreeFacelightDependencyList ();
-extern int      TestLine(const vec3_array& start, const vec3_array& stop
-						 , vec3_array& skyhitout
+extern int      TestLine(const float3_array& start, const float3_array& stop
+						 , float3_array& skyhitout
 						 );
-inline int TestLine(const vec3_array& start, const vec3_array& stop) {
-	vec3_array skyhitout;
+inline int TestLine(const float3_array& start, const float3_array& stop) {
+	float3_array skyhitout;
 	return TestLine(start, stop, skyhitout);
 }
 
-extern const std::array<vec3_array, 15> pos;
+extern const std::array<float3_array, 15> pos;
 
 enum class vis_method {
     vismatrix,
@@ -472,50 +472,50 @@ enum class vis_method {
 };
 
 struct opaquemodel_t {
-	vec3_array mins, maxs;
+	float3_array mins, maxs;
 	int headnode;
 };
 extern opaquemodel_t *opaquemodels;
 extern void		CreateOpaqueNodes();
-extern int		TestLineOpaque(int modelnum, const vec3_array& modelorigin, const vec3_array& start, const vec3_array& stop);
+extern int		TestLineOpaque(int modelnum, const float3_array& modelorigin, const float3_array& start, const float3_array& stop);
 extern int		CountOpaqueFaces(int modelnum);
 extern void		DeleteOpaqueNodes();
-extern int		TestPointOpaque (int modelnum, const vec3_array& modelorigin, bool solid, const vec3_array& point);
+extern int		TestPointOpaque (int modelnum, const float3_array& modelorigin, bool solid, const float3_array& point);
 
 extern void     CreateDirectLights();
 extern void     DeleteDirectLights();
-extern void     GetPhongNormal(int facenum, const vec3_array& spot, vec3_array& phongnormal); // added "const" --vluzacn
+extern void     GetPhongNormal(int facenum, const float3_array& spot, float3_array& phongnormal); // added "const" --vluzacn
 
 typedef bool (*funcCheckVisBit) (unsigned, unsigned
-								 , vec3_array&
+								 , float3_array&
 								 , unsigned int&,
-								 const std::vector<vec3_array>& transparencyList
+								 const std::vector<float3_array>& transparencyList
 								 );
 extern funcCheckVisBit g_CheckVisBit;
-extern std::vector<vec3_array> g_transparencyList;
-extern bool CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_array& backorigin, const vec3_array& backnormal
-								, vec3_array& transparency_out
+extern std::vector<float3_array> g_transparencyList;
+extern bool CheckVisBitBackwards(unsigned receiver, unsigned emitter, const float3_array& backorigin, const float3_array& backnormal
+								, float3_array& transparency_out
 								);
 extern void	    MdlLightHack(void);
 
 // qradutil.c
-extern vec_t    PatchPlaneDist(const patch_t* const patch);
-extern dleaf_t* PointInLeaf(const vec3_array& point);
+extern float    PatchPlaneDist(const patch_t* const patch);
+extern dleaf_t* PointInLeaf(const float3_array& point);
 extern void     MakeBackplanes();
 extern const dplane_t* getPlaneFromFace(const dface_t* const face);
 extern const dplane_t* getPlaneFromFaceNumber(unsigned int facenum);
 extern void     getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
-extern dleaf_t* HuntForWorld(vec3_array& point, const vec3_array& plane_offset, const dplane_t* plane, int hunt_size, vec_t hunt_scale, vec_t hunt_offset);
-extern void		ApplyMatrix (const matrix_t &m, const vec3_array& in, vec3_array& out);
-extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const vec3_array& in_normal, vec_t in_dist, vec3_array &out_normal, vec_t &out_dist);
+extern dleaf_t* HuntForWorld(float3_array& point, const float3_array& plane_offset, const dplane_t* plane, int hunt_size, float hunt_scale, float hunt_offset);
+extern void		ApplyMatrix (const matrix_t &m, const float3_array& in, float3_array& out);
+extern void		ApplyMatrixOnPlane (const matrix_t &m_inverse, const float3_array& in_normal, float in_dist, float3_array &out_normal, float &out_dist);
 extern matrix_t	MultiplyMatrix (const matrix_t &m_left, const matrix_t &m_right) noexcept;
-extern matrix_t	MatrixForScale (const vec3_array& center, vec_t scale) noexcept;
-extern vec_t	CalcMatrixSign (const matrix_t &m);
+extern matrix_t	MatrixForScale (const float3_array& center, float scale) noexcept;
+extern float	CalcMatrixSign (const matrix_t &m);
 extern void		TranslateWorldToTex (int facenum, matrix_t &m);
 extern bool		InvertMatrix (const matrix_t &m, matrix_t &m_inverse);
 extern void		FindFacePositions (int facenum);
 extern void		FreePositionMaps ();
-extern bool		FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, vec_t s, vec_t t, vec3_array& pos, vec_t *best_s, vec_t *best_t, vec_t *best_dist
+extern bool		FindNearestPosition (int facenum, const Winding *texwinding, const dplane_t &texplane, float s, float t, float3_array& pos, float *best_s, float *best_t, float *best_dist
 									, bool *nudged
 									);
 
@@ -535,9 +535,9 @@ extern void     DumpTransfersMemoryUsage();
 extern void     MakeRGBScales(int threadnum);
 
 // transparency.c (transparency array functions - shared between vismatrix.c and sparse.c)
-extern void	GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index, const std::vector<vec3_array>& transparencyList);
-extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans, std::vector<vec3_array>& transparencyList);
-extern void	CreateFinalTransparencyArrays(const char *print_name, std::vector<vec3_array>& transparencyList);
+extern void	GetTransparency(const unsigned p1, const unsigned p2, float3_array& trans, unsigned int &next_index, const std::vector<float3_array>& transparencyList);
+extern void	AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const float3_array& trans, std::vector<float3_array>& transparencyList);
+extern void	CreateFinalTransparencyArrays(const char *print_name, std::vector<float3_array>& transparencyList);
 extern void	FreeTransparencyArrays();
 extern void GetStyle(const unsigned p1, const unsigned p2, int &style, unsigned int &next_index);
 extern void	AddStyleToStyleArray(const unsigned p1, const unsigned p2, const int style);
@@ -547,33 +547,33 @@ extern void	FreeStyleArrays();
 // lerp.c
 extern void CreateTriangulations (int facenum);
 extern void GetTriangulationPatches (int facenum, int *numpatches, const int **patches);
-extern void InterpolateSampleLight (const vec3_array& position, int surface, int style, vec3_array& out);
+extern void InterpolateSampleLight (const float3_array& position, int surface, int style, float3_array& out);
 extern void FreeTriangulations ();
 
 // mathutil.c
-extern bool     TestSegmentAgainstOpaqueList(const vec3_array& p1, const vec3_array& p2
-					, vec3_array& scaleout
+extern bool     TestSegmentAgainstOpaqueList(const float3_array& p1, const float3_array& p2
+					, float3_array& scaleout
 					, int &opaquestyleout
 					);
-extern bool intersect_linesegment_plane(const dplane_t& plane, const vec3_array& p1, const vec3_array& p2, vec3_array& point);
-extern void plane_from_points(const vec3_array& p1, const vec3_array& p2, const vec3_array& p3, dplane_t& plane);
-extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const vec3_array& point
-					, vec_t epsilon = 0.0
+extern bool intersect_linesegment_plane(const dplane_t& plane, const float3_array& p1, const float3_array& p2, float3_array& point);
+extern void plane_from_points(const float3_array& p1, const float3_array& p2, const float3_array& p3, dplane_t& plane);
+extern bool     point_in_winding(const Winding& w, const dplane_t& plane, const float3_array& point
+					, float epsilon = 0.0
 					);
-extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane, const vec3_array& point, vec_t width);
-extern void     snap_to_winding(const Winding& w, const dplane_t& plane, vec_t* point);
-extern vec_t	snap_to_winding_noedge(const Winding& w, const dplane_t& plane, vec_t* point, vec_t width, vec_t maxmove);
-extern void     SnapToPlane(const dplane_t* const plane, vec_t* const point, vec_t offset);
-extern vec_t	CalcSightArea (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, int skylevel
-					, vec_t lighting_power, vec_t lighting_scale
+extern bool     point_in_winding_noedge(const Winding& w, const dplane_t& plane, const float3_array& point, float width);
+extern void     snap_to_winding(const Winding& w, const dplane_t& plane, float* point);
+extern float	snap_to_winding_noedge(const Winding& w, const dplane_t& plane, float* point, float width, float maxmove);
+extern void     SnapToPlane(const dplane_t* const plane, float* const point, float offset);
+extern float	CalcSightArea (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, int skylevel
+					, float lighting_power, float lighting_scale
 					);
-extern vec_t	CalcSightArea_SpotLight (const vec3_array& receiver_origin, const vec3_array& receiver_normal, const Winding *emitter_winding, const vec3_array& emitter_normal, vec_t emitter_stopdot, vec_t emitter_stopdot2, int skylevel
-					, vec_t lighting_power, vec_t lighting_scale
+extern float	CalcSightArea_SpotLight (const float3_array& receiver_origin, const float3_array& receiver_normal, const Winding *emitter_winding, const float3_array& emitter_normal, float emitter_stopdot, float emitter_stopdot2, int skylevel
+					, float lighting_power, float lighting_scale
 					);
-extern void		GetAlternateOrigin (const vec3_array& pos, const vec3_array& normal, const patch_t* patch, vec3_array& origin);
+extern void		GetAlternateOrigin (const float3_array& pos, const float3_array& normal, const patch_t* patch, float3_array& origin);
 
 // studio.cpp
 extern void LoadStudioModels();
 extern void FreeStudioModels();
-extern bool TestSegmentAgainstStudioList(const vec3_array& p1, const vec3_array& p2);
+extern bool TestSegmentAgainstStudioList(const float3_array& p1, const float3_array& p2);
 extern bool g_studioshadow;

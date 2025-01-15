@@ -16,7 +16,7 @@ GNU General Public License for more details.
 #include "qrad.h"
 #include "meshtrace.h"
 
-void TraceMesh :: SetupTrace( const vec3_array& start, const vec3_array& mins, const vec3_array& maxs, const vec3_array& end )
+void TraceMesh :: SetupTrace( const float3_array& start, const float3_array& mins, const float3_array& maxs, const float3_array& end )
 {
 	m_bHitTriangle = false;
 
@@ -48,16 +48,16 @@ void TraceMesh :: SetupTrace( const vec3_array& start, const vec3_array& mins, c
 	}
 }
 
-bool TraceMesh :: ClipRayToBox( const vec3_array& mins, const vec3_array& maxs )
+bool TraceMesh :: ClipRayToBox( const float3_array& mins, const float3_array& maxs )
 {
-	vec3_array	t0, t1;
-	vec3_array	n, f;
+	float3_array	t0, t1;
+	float3_array	n, f;
 	float	d, t;
 
 	VectorSubtract( mins, m_vecStart, t0 );
 	VectorSubtract( maxs, m_vecStart, t1 );
 
-	vec3_array ray_inv = m_vecTraceDirection;
+	float3_array ray_inv = m_vecTraceDirection;
 	CrossProduct( t0, ray_inv, t0 );
 	CrossProduct( t1, ray_inv, t1 );
 
@@ -76,7 +76,7 @@ bool TraceMesh :: ClipRayToBox( const vec3_array& mins, const vec3_array& maxs )
 
 bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 {
-	vec3_array w, n, p;
+	float3_array w, n, p;
 
 	// we have two edge directions, we can calculate the normal
 	CrossProduct( facet->edge2, facet->edge1, n );
@@ -127,7 +127,7 @@ bool TraceMesh :: ClipRayToTriangle( const mfacet_t *facet )
 
 bool TraceMesh :: ClipRayToFace( const mfacet_t *facet )
 {
-	vec3_array tvec, pvec, qvec;
+	float3_array tvec, pvec, qvec;
 
 	// begin calculating determinant - also used to calculate u parameter
 	CrossProduct( m_vecTraceDirection, facet->edge2, pvec );

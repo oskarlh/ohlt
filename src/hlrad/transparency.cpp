@@ -25,7 +25,7 @@ static unsigned int	s_sorted_count	= 0;
 //===============================================
 // AddTransparencyToRawArray
 //===============================================
-static std::size_t AddTransparencyToDataList(const vec3_array& trans, std::vector<vec3_array>& transparencyList)
+static std::size_t AddTransparencyToDataList(const float3_array& trans, std::vector<float3_array>& transparencyList)
 {
 	//Check if this value is in list already
 	for(std::size_t i = 0; i < transparencyList.size(); ++i) {
@@ -43,7 +43,7 @@ static std::size_t AddTransparencyToDataList(const vec3_array& trans, std::vecto
 //===============================================
 // AddTransparencyToRawArray
 //===============================================
-void AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const vec3_array& trans, std::vector<vec3_array>& transparencyList)
+void AddTransparencyToRawArray(const unsigned p1, const unsigned p2, const float3_array& trans, std::vector<float3_array>& transparencyList)
 {
 	// Make thread safe
 	ThreadLock();
@@ -98,7 +98,7 @@ static int SortList(const void *a, const void *b)
 //===============================================
 // CreateFinalTransparencyArrays
 //===============================================
-void	CreateFinalTransparencyArrays(const char *print_name, std::vector<vec3_array>& transparencyList)
+void	CreateFinalTransparencyArrays(const char *print_name, std::vector<float3_array>& transparencyList)
 {
 	if( s_raw_count == 0 )
 	{
@@ -132,7 +132,7 @@ void	CreateFinalTransparencyArrays(const char *print_name, std::vector<vec3_arra
 	//need to sorted for fast search function
 	qsort( s_sorted_list, s_sorted_count, sizeof(transList_t), SortList );
 	
-	size_t size = s_sorted_count * sizeof(transList_t) + transparencyList.size() * sizeof(vec3_array);
+	size_t size = s_sorted_count * sizeof(transList_t) + transparencyList.size() * sizeof(float3_array);
 	if ( size > 1024 * 1024 )
         	Log("%-20s: %5.1f megs \n", print_name, (double)size / (1024.0 * 1024.0));
         else if ( size > 1024 )
@@ -158,7 +158,7 @@ void	FreeTransparencyArrays( )
 //===============================================
 // GetTransparency -- find transparency from list. remembers last location
 //===============================================
-void GetTransparency(const unsigned p1, const unsigned p2, vec3_array& trans, unsigned int &next_index, const std::vector<vec3_array>& transparencyList)
+void GetTransparency(const unsigned p1, const unsigned p2, float3_array& trans, unsigned int &next_index, const std::vector<float3_array>& transparencyList)
 {
 	VectorFill( trans, 1.0 );
 	

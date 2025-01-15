@@ -29,11 +29,11 @@ struct winding_t
 {
     bool original; // Don't free, it's part of the portal
     std::size_t numpoints;
-    vec3_array points[MAX_POINTS_ON_FIXED_WINDING];
+    float3_array points[MAX_POINTS_ON_FIXED_WINDING];
 };
 
 struct hlvis_plane_t {
-    vec3_array normal;
+    float3_array normal;
     float dist;
 };
 
@@ -134,7 +134,7 @@ extern std::unordered_map<int, bool> leaf_flow_add_exclude;
 
 typedef struct
 {
-	vec3_array origin;
+	float3_array origin;
 	int visleafnum;
 	int reverse;
 }

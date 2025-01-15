@@ -355,11 +355,11 @@ void LoadTextures ()
 			}
 		}
 		{
-			vec3_array total;
+			float3_array total;
 			VectorClear (total);
 			for (int j = 0; j < tex->width * tex->height; j++)
 			{
-				vec3_array reflectivity;
+				float3_array reflectivity;
 				if (tex->name.is_transparent_or_decal() && tex->canvas[j] == 0xFF)
 				{
 					VectorFill (reflectivity, 0.0);
@@ -368,9 +368,9 @@ void LoadTextures ()
 				{
 					const auto& rgb = tex->palette[(std::size_t) tex->canvas[j]];
 					reflectivity = {
-						rgb[0] * vec_t(1.0 / 255.0),
-						rgb[1] * vec_t(1.0 / 255.0),
-						rgb[2] * vec_t(1.0 / 255.0)
+						rgb[0] * float(1.0 / 255.0),
+						rgb[1] * float(1.0 / 255.0),
+						rgb[2] * float(1.0 / 255.0)
 					};
 					for (int k = 0; k < 3; k++)
 					{
@@ -912,7 +912,7 @@ static unsigned int Hash (int size, void *data)
 	return hash;
 }
 
-static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, vec3_array &light)
+static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, float3_array &light)
 {
 	ix = std::max(0, std::min(ix, texsize[0]));
 	iy = std::max(0, std::min(iy, texsize[1]));
@@ -931,7 +931,7 @@ static void GetLightInt (dface_t *face, const int texsize[2], int ix, int iy, ve
 	}
 }
 
-static void GetLight (dface_t *face, const int texsize[2], double x, double y, vec3_array &light)
+static void GetLight (dface_t *face, const int texsize[2], double x, double y, float3_array &light)
 {
 	int ix, iy;
 	double dx, dy;
@@ -943,12 +943,12 @@ static void GetLight (dface_t *face, const int texsize[2], double x, double y, v
 	dy = std::max(0.0, std::min(dy, 1.0));
 	
 	// do bilinear interpolation
-	vec3_array light00, light10, light01, light11;
+	float3_array light00, light10, light01, light11;
 	GetLightInt (face, texsize, ix, iy, light00);
 	GetLightInt (face, texsize, ix + 1, iy, light10);
 	GetLightInt (face, texsize, ix, iy + 1, light01);
 	GetLightInt (face, texsize, ix + 1, iy + 1, light11);
-	vec3_array light0, light1;
+	float3_array light0, light1;
 	VectorScale (light00, 1 - dy, light0);
 	VectorMA (light0, dy, light01, light0);
 	VectorScale (light10, 1 - dy, light1);
@@ -1057,8 +1057,8 @@ void EmbedLightmapInTextures ()
 		}
 
 		bool poweroftwo = DEFAULT_EMBEDLIGHTMAP_POWEROFTWO;
-		vec_t denominator = DEFAULT_EMBEDLIGHTMAP_DENOMINATOR;
-		vec_t gamma = DEFAULT_EMBEDLIGHTMAP_GAMMA;
+		float denominator = DEFAULT_EMBEDLIGHTMAP_DENOMINATOR;
+		float gamma = DEFAULT_EMBEDLIGHTMAP_GAMMA;
 		int resolution = DEFAULT_EMBEDLIGHTMAP_RESOLUTION;
 		if (IntForKey (ent, u8"zhlt_embedlightmapresolution"))
 		{
@@ -1144,7 +1144,7 @@ void EmbedLightmapInTextures ()
 				std::int32_t dest_is, dest_it;
 				float (*dest)[5];
 				double light_s, light_t;
-				vec3_array light;
+				float3_array light;
 
 				s_vec = s + texmins[0] * TEXTURE_STEP + 0.5;
 				t_vec = t + texmins[1] * TEXTURE_STEP + 0.5;

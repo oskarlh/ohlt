@@ -17,20 +17,20 @@
 // =====================================================================================
 static face_t*  TryMerge(face_t* f1, face_t* f2)
 {
-    vec_t*          p1;
-    vec_t*          p2;
-    vec_t*          p3;
-    vec_t*          p4;
-    vec_t*          back;
+    double*          p1;
+    double*          p2;
+    double*          p3;
+    double*          p4;
+    double*          back;
     face_t*         newf;
     int             i;
     int             j;
     int             k;
     int             l;
-    vec3_array normal;
-    vec3_array          delta;
-    vec3_array         planenormal;
-    vec_t           dot;
+    double3_array normal;
+    double3_array          delta;
+    double3_array         planenormal;
+    double           dot;
     mapplane_t*       plane;
     bool            keep1;
     bool            keep2;

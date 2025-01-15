@@ -4,9 +4,9 @@
 //  CheckVisBit
 // =====================================================================================
 static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
-									   , vec3_array &transparency_out
+									   , float3_array &transparency_out
 									   , unsigned int &,
-									   const std::vector<vec3_array>& transparencyList
+									   const std::vector<float3_array>& transparencyList
 									   )
 	// patchnum1=receiver, patchnum2=emitter. //HLRAD_CheckVisBitNoVismatrix_NOSWAP
 {
@@ -37,15 +37,15 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 
             const dplane_t* plane = getPlaneFromFaceNumber(patch->faceNumber);
 
-            vec3_array transparency = {1.0,1.0,1.0};
+            float3_array transparency = {1.0,1.0,1.0};
 			int opaquestyle = -1;
 
             // check vis between patch and patch2
             //  if v2 is not behind light plane
             //  && v2 is visible from v1
-			vec3_array origin1, origin2;
-			vec3_array delta;
-			vec_t dist;
+			float3_array origin1, origin2;
+			float3_array delta;
+			float dist;
 			VectorSubtract(patch->origin, patch2->origin, delta);
 			dist = vector_length(delta);
 			if (dist < patch2->emitter_range - ON_EPSILON)
@@ -103,8 +103,8 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
 
     return false;
 }
-       bool     CheckVisBitBackwards(unsigned receiver, unsigned emitter, const vec3_array& backorigin, const vec3_array& backnormal
-									   , vec3_array& transparency_out
+       bool     CheckVisBitBackwards(unsigned receiver, unsigned emitter, const float3_array& backorigin, const float3_array& backnormal
+									   , float3_array& transparency_out
 									   )
 {	
     patch_t*        patch = &g_patches[receiver];
@@ -119,12 +119,12 @@ static bool     CheckVisBitNoVismatrix(unsigned patchnum1, unsigned patchnum2
         if (DotProduct(backorigin, emitplane->normal) > (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE))
         {
 
-            vec3_array transparency = {1.0,1.0,1.0};
+            float3_array transparency = {1.0,1.0,1.0};
 			int opaquestyle = -1;
 
-			vec3_array emitorigin;
-			vec3_array delta;
-			vec_t dist;
+			float3_array emitorigin;
+			float3_array delta;
+			float dist;
 			VectorSubtract(backorigin, emitpatch->origin, delta);
 			dist = vector_length(delta);
 			if (dist < emitpatch->emitter_range - ON_EPSILON)

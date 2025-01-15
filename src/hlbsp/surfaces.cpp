@@ -15,8 +15,8 @@ static int      subdivides;
 // =====================================================================================
 void            SubdivideFace(face_t* f, face_t** prevptr)
 {
-    vec_t           mins, maxs;
-    vec_t           v;
+    double           mins, maxs;
+    double           v;
     int             axis;
     int             i;
     mapplane_t        plane;
@@ -80,7 +80,7 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
             // split it
             subdivides++;
 
-            vec3_array temp;
+            double3_array temp;
             VectorCopy(tex->vecs[axis], temp);
             v = normalize_vector(temp);
 
@@ -113,7 +113,7 @@ void            SubdivideFace(face_t* f, face_t** prevptr)
 
 struct hashvert_t {
     hashvert_t* next;
-    vec3_array point;
+    double3_array point;
     int             num;
     int             numplanes;                             // for corner determination
     int             planenums[2];
@@ -136,8 +136,8 @@ static int      firstmodelface;
 
 static std::array<hashvert_t*, NUM_HASH> hashverts;
 
-constexpr vec_t hash_min{-8000};
-static vec3_array hash_scale;
+constexpr double hash_min{-8000};
+static double3_array hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed in a cyclic way (modulus by hash_numslots)
 // So please don't change the hardcoded hash_min and scale
 static int		hash_numslots[3];
@@ -148,13 +148,13 @@ static int		hash_numslots[3];
 // =====================================================================================
 static void     InitHash()
 {
-    constexpr vec_t size{16000.0};
+    constexpr double size{16000.0};
 
     hashverts = {};
 
-    const vec_t volume = size * size;
+    const double volume = size * size;
 
-    const vec_t scale = std::sqrt(volume / NUM_HASH);
+    const double scale = std::sqrt(volume / NUM_HASH);
 
 	hash_numslots[0] = (int)floor (size / scale);
 	hash_numslots[1] = (int)floor (size / scale);
@@ -174,7 +174,7 @@ static void     InitHash()
 // =====================================================================================
 //  HashVec
 // =====================================================================================
-static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneighbors)
+static int HashVec (const double3_array& vec, int *num_hashneighbors, int *hashneighbors)
 	// returned value: the one bucket that a new vertex may "write" into
 	// returned hashneighbors: the buckets that we should "read" to check for an existing vertex
 {
@@ -183,14 +183,14 @@ static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneig
 	int x;
 	int y;
 	int slot[2];
-	vec_t normalized[2];
-	vec_t slotdiff[2];
+	double normalized[2];
+	double slotdiff[2];
 
 	for (i = 0; i < 2; i++)
 	{
 		normalized[i] = hash_scale[i] * (vec[i] - hash_min);
 		slot[i] = (int)floor (normalized[i]);
-		slotdiff[i] = normalized[i] - (vec_t)slot[i];
+		slotdiff[i] = normalized[i] - (double)slot[i];
 
 		slot[i] = (slot[i] + hash_numslots[i]) % hash_numslots[i];
 		slot[i] = (slot[i] + hash_numslots[i]) % hash_numslots[i]; // do it twice to handle negative values
@@ -227,12 +227,12 @@ static int HashVec (const vec3_array& vec, int *num_hashneighbors, int *hashneig
 	return h;
 }
 
-static int      GetVertex(const vec3_array& in, const int planenum)
+static int      GetVertex(const double3_array& in, const int planenum)
 {
     int             h;
     int             i;
     hashvert_t*     hv;
-    vec3_array vert;
+    double3_array vert;
 	int				num_hashneighbors;
 	int				hashneighbors[MAX_HASH_NEIGHBORS];
 
@@ -305,7 +305,7 @@ static int      GetVertex(const vec3_array& in, const int planenum)
 //  GetEdge
 //      Don't allow four way edges
 // =====================================================================================
-int             GetEdge(const vec3_array& p1, const vec3_array& p2, face_t* f)
+int             GetEdge(const double3_array& p1, const double3_array& p2, face_t* f)
 {
     int             v1;
     int             v2;

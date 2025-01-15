@@ -77,9 +77,9 @@ struct bbrinknode_t {
 struct bbrink_t {
 	std::vector<bbrinknode_t> nodes{};
 	btreeedge_t *edge{}; // Only for use in deciding brink type
-	vec3_array start{};
-	vec3_array stop{};
-	vec3_array direction{};
+	double3_array start{};
+	double3_array stop{};
+	double3_array direction{};
 
 	int numnodes{0}; // Including both nodes and leafs
 };

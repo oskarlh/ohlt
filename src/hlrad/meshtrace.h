@@ -31,11 +31,11 @@ GNU General Public License for more details.
 class TraceMesh
 {
 private:
-	vec3_array		m_vecStart, m_vecEnd;
-	vec3_array		m_vecStartMins, m_vecEndMins;
-	vec3_array		m_vecStartMaxs, m_vecEndMaxs;
-	vec3_array		m_vecAbsMins, m_vecAbsMaxs;
-	vec3_array		m_vecTraceDirection;// ray direction
+	float3_array		m_vecStart, m_vecEnd;
+	float3_array		m_vecStartMins, m_vecEndMins;
+	float3_array		m_vecStartMaxs, m_vecEndMaxs;
+	float3_array		m_vecAbsMins, m_vecAbsMaxs;
+	float3_array		m_vecTraceDirection;// ray direction
 	float		m_flTraceDistance;
 	bool		m_bHitTriangle;	// now we hit triangle
 	areanode_t	*areanodes;	// AABB for static meshes
@@ -43,14 +43,14 @@ private:
 	int		checkcount;	// debug
 	void		*m_extradata;	// pointer to model extradata
 
-	inline void ClearBounds( vec3_array& mins, vec3_array& maxs )
+	inline void ClearBounds( float3_array& mins, float3_array& maxs )
 	{
 		// make bogus range
 		mins[0] = mins[1] = mins[2] =  999999.0f;
 		maxs[0] = maxs[1] = maxs[2] = -999999.0f;
 	}
 
-	inline void AddPointToBounds( const vec3_array& v, vec3_array& mins, vec3_array& maxs )
+	inline void AddPointToBounds( const float3_array& v, float3_array& mins, float3_array& maxs )
 	{
 		for( int i = 0; i < 3; i++ )
 		{
@@ -59,7 +59,7 @@ private:
 		}
 	}
 
-	inline bool BoundsIntersect( const vec3_array& mins1, const vec3_array& maxs1, const vec3_array& mins2, const vec3_array& maxs2 )
+	inline bool BoundsIntersect( const float3_array& mins1, const float3_array& maxs1, const float3_array& mins2, const float3_array& maxs2 )
 	{
 		if( mins1[0] > maxs2[0] || mins1[1] > maxs2[1] || mins1[2] > maxs2[2] )
 			return false;
@@ -73,9 +73,9 @@ public:
 
 	// trace stuff
 	void SetTraceMesh( mmesh_t *cached_mesh, areanode_t *tree ) { mesh = cached_mesh; areanodes = tree; }
-	void SetupTrace( const vec3_array& start, const vec3_array& mins, const vec3_array& maxs, const vec3_array& end ); 
+	void SetupTrace( const float3_array& start, const float3_array& mins, const float3_array& maxs, const float3_array& end ); 
 	void SetTraceModExtradata( void *data ) { m_extradata = data; }
-	bool ClipRayToBox( const vec3_array& mins, const vec3_array& maxs );
+	bool ClipRayToBox( const float3_array& mins, const float3_array& maxs );
 	bool ClipRayToTriangle( const mfacet_t *facet );	// obsolete
 	bool ClipRayToFacet( const mfacet_t *facet );
 	bool ClipRayToFace( const mfacet_t *facet ); // ripped out from q3map2

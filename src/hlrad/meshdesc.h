@@ -37,15 +37,15 @@ enum class trace_method : std::uint8_t {
 
 typedef unsigned short	word;
 typedef unsigned int	uint;
-using vec4_t = std::array<vec_t, 4>;	// x,y,z,w
-typedef std::array<std::array<vec_t, 4>, 3> matrix3x4;
+using vec4_t = std::array<float, 4>;	// x,y,z,w
+typedef std::array<std::array<float, 4>, 3> matrix3x4;
 
 #define Q_rint( x )		((x) < 0 ? ((int)((x)-0.5f)) : ((int)((x)+0.5f)))
 
 
 typedef struct mplane_s
 {
-	vec3_array		normal;
+	float3_array		normal;
 	float		dist;
 	byte		type;		// for fast side tests
 	byte		signbits;		// signx + (signy<<1) + (signz<<1)
@@ -73,7 +73,7 @@ typedef struct areanode_s
 
 typedef struct mvert_s
 {
-	vec3_array		point;
+	float3_array		point;
 	float		st[2];		// for alpha-texture test
 } mvert_t;
 
@@ -82,8 +82,8 @@ typedef struct
 	link_t		area;		// linked to a division node or leaf
 	mstudiotexture_t	*texture;		// valid for alpha-testing surfaces
 	mvert_t		triangle[3];	// store triangle points
-	vec3_array		mins, maxs;	// an individual size of each facet
-	vec3_array		edge1, edge2;	// new trace stuff
+	float3_array		mins, maxs;	// an individual size of each facet
+	float3_array		edge1, edge2;	// new trace stuff
 	byte		numplanes;	// because numplanes for each facet can't exceeds MAX_FACET_PLANES!
 	uint		*indices;		// a indexes into mesh plane pool
 } mfacet_t;
@@ -91,8 +91,8 @@ typedef struct
 struct mmesh_t {
 	mfacet_t *facets;
 	mplane_t *planes; // Shared plane pool
-	vec3_array mins;
-	vec3_array maxs;
+	float3_array mins;
+	float3_array maxs;
 	std::uint32_t numfacets;
 	std::uint32_t numplanes;
 	trace_method trace_mode; // Trace method
@@ -136,15 +136,15 @@ public:
 	void FreeMesh( );
 
 	// local mathlib
-	void AngleMatrix(const vec3_array& angles, const vec3_array& origin, const vec3_array& scale, matrix3x4& matrix);
+	void AngleMatrix(const float3_array& angles, const float3_array& origin, const float3_array& scale, matrix3x4& matrix);
 	void ConcatTransforms(const matrix3x4& in1, const matrix3x4& in2, matrix3x4& out);
-	void QuaternionMatrix(const vec4_t& quat, const vec3_array& origin, matrix3x4& matrix);
-	void VectorTransform(const vec3_array& in1, const matrix3x4& in2, vec3_array& out);
-	void AngleQuaternion(const vec3_array& angles, vec4_t& quat);
+	void QuaternionMatrix(const vec4_t& quat, const float3_array& origin, matrix3x4& matrix);
+	void VectorTransform(const float3_array& in1, const matrix3x4& in2, float3_array& out);
+	void AngleQuaternion(const float3_array& angles, vec4_t& quat);
 
 	// studio models processing
 	void StudioCalcBoneQuaterion( mstudiobone_t *pbone, mstudioanim_t *panim, vec4_t& q );
-	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, vec3_array& pos );
+	void StudioCalcBonePosition( mstudiobone_t *pbone, mstudioanim_t *panim, float3_array& pos );
 	bool StudioConstructMesh( model_t *pModel );
 
 	// linked list operations
@@ -153,29 +153,29 @@ public:
 	void ClearLink( link_t *l );
 
 	// AABB tree contsruction
-	areanode_t *CreateAreaNode(int depth, const vec3_array& mins, const vec3_array& maxs);
+	areanode_t *CreateAreaNode(int depth, const float3_array& mins, const float3_array& maxs);
 	void RelinkFacet( mfacet_t *facet );
 	inline areanode_t *GetHeadNode( void ) { return (has_tree) ? &areanodes[0] : nullptr; }
 
 	// plane cache
 	uint AddPlaneToPool( const mplane_t *pl );
 	bool PlaneFromPoints( const mvert_t triangle[3], mplane_t *plane );
-	bool ComparePlanes( const mplane_t *plane, const vec3_array& normal, float dist );
+	bool ComparePlanes( const mplane_t *plane, const float3_array& normal, float dist );
 	bool PlaneEqual( const mplane_t *p0, const mplane_t *p1 );
 	void CategorizePlane( mplane_t *plane );
 	void SnapPlaneToGrid( mplane_t *plane );
-	void SnapVectorToGrid( vec3_array& normal );
+	void SnapVectorToGrid( float3_array& normal );
 
 	// check for cache
 	inline mmesh_t *GetMesh() { return &m_mesh; } 
 
-	void ClearBounds(vec3_array& mins, vec3_array& maxs ) {
+	void ClearBounds(float3_array& mins, float3_array& maxs ) {
 		// make bogus range
 		mins[0] = mins[1] = mins[2] =  999999.0f;
 		maxs[0] = maxs[1] = maxs[2] = -999999.0f;
 	}
 
-	void AddPointToBounds( const vec3_array& v, vec3_array& mins, vec3_array& maxs )
+	void AddPointToBounds( const float3_array& v, float3_array& mins, float3_array& maxs )
 	{
 		for( int i = 0; i < 3; i++ )
 		{
@@ -184,7 +184,7 @@ public:
 		}
 	}
 
-	bool Intersect( const vec3_array& trace_mins, const vec3_array& trace_maxs )
+	bool Intersect( const float3_array& trace_mins, const float3_array& trace_maxs )
 	{
 		if( m_mesh.mins[0] > trace_maxs[0] || m_mesh.mins[1] > trace_maxs[1] || m_mesh.mins[2] > trace_maxs[2] )
 			return false;
@@ -202,9 +202,9 @@ int MapVertex( int a, int mx, List<int> &map );
 // collision description
 struct model_t {
 	char name[64];		// model name
-	vec3_array origin;
-	vec3_array angles;
-	vec3_array scale;		// scale X-Form
+	float3_array origin;
+	float3_array angles;
+	float3_array scale;		// scale X-Form
 	int body;		// sets by level-designer
 	int skin;		// e.g. various alpha-textures
 	trace_method trace_mode;
