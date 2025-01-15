@@ -122,16 +122,26 @@ constexpr T vector_length(const std::array<T, 3>& v) noexcept {
     return std::hypot(v[0], v[1], v[2]);
 }
 
-template<any_vec3 T>
-constexpr T vector_minimums(const T& a, const T& b) noexcept {
-    return { std::min(a[0], b[0]), std::min(a[1], b[1]), std::min(a[2], b[2]) };
+template<any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB> vector_minimums(const VecA& a, const VecB& b) noexcept {
+    using vec_t = largest_vec3<VecA, VecB>::value_type;
+    return {
+        std::min(vec_t{a[0]}, vec_t{b[0]}),
+        std::min(vec_t{a[1]}, vec_t{b[1]}),
+        std::min(vec_t{a[2]}, vec_t{b[2]})
+    };
 }
 
-
-template<any_vec3 T>
-constexpr T vector_maximums(const T& a, const T& b) noexcept {
-    return { std::max(a[0], b[0]), std::max(a[1], b[1]), std::max(a[2], b[2]) };
+template<any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB> vector_maximums(const VecA& a, const VecB& b) noexcept {
+    using vec_t = largest_vec3<VecA, VecB>::value_type;
+    return {
+        std::max(vec_t{a[0]}, vec_t{b[0]}),
+        std::max(vec_t{a[1]}, vec_t{b[1]}),
+        std::max(vec_t{a[2]}, vec_t{b[2]})
+    };
 }
+
 
 template<any_vec_t T>
 constexpr T normalize_vector(std::array<T, 3>& v) {
