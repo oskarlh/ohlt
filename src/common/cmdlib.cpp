@@ -50,15 +50,6 @@ bool a_starts_with_b_ignoring_ascii_character_case_differences(std::u8string_vie
 }
 
 
-std::u8string_view filename_in_file_path_string(std::u8string_view filePathString) {
-	return filePathString.substr(
-		std::max(
-			filePathString.find_last_of(u8'\\') + 1,
-			filePathString.find_last_of(u8'/') + 1
-		)
-	);
-}
-
 /*--------------------------------------------------------------------
 // New implementation of FlipSlashes, DefaultExtension, StripFilename, 
 // StripExtension, ExtractFilePath, ExtractFile, ExtractFileBase, etc.
@@ -163,25 +154,6 @@ void ExtractFile(const char* const path, char* dest)
 
     memcpy(dest,path+directory_pos+1,length); //exclude directory slash
     dest[length] = 0;
-}
-
-std::u8string_view extract_filename_from_filepath_string(std::u8string_view pathString) {
-	std::u8string_view cutPathString = pathString;
-
-	{
-		const std::size_t lastUnixDirSeparatorPosition = cutPathString.find_last_of('/');
-		if(lastUnixDirSeparatorPosition != std::u8string_view::npos) {
-			cutPathString = cutPathString.substr(lastUnixDirSeparatorPosition + 1);
-		}
-	}
-	{
-		const std::size_t lastWindowsDirSeparatorPosition = cutPathString.find_last_of('\\');
-		if(lastWindowsDirSeparatorPosition != std::u8string_view::npos) {
-			cutPathString = cutPathString.substr(lastWindowsDirSeparatorPosition + 1);
-		}
-	}
-
-	return cutPathString;
 }
 
 void ExtractFileBase(const char* const path, char* dest)

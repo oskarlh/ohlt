@@ -43,8 +43,6 @@
 #define sizeofElement(type,identifier) (sizeof((type*)0)->identifier)
 
 
-std::u8string_view filename_in_file_path_string(std::u8string_view filePathString);
-
 bool a_starts_with_b_ignoring_ascii_character_case_differences(std::u8string_view string, std::u8string_view substring);
 bool a_contains_b_ignoring_ascii_character_case_differences(std::u8string_view string, std::u8string_view substring);
 
@@ -72,8 +70,6 @@ extern void     DefaultExtension(char* path, const char* extension);
 extern void     DefaultPath(char* path, char* basepath);
 extern void     StripFilename(char* path);
 extern void     StripExtension(char* path);
-
-std::u8string_view extract_filename_from_filepath_string(std::u8string_view pathString);
 
 extern void     ExtractFile(const char* const path, char* dest);
 extern void     ExtractFilePath(const char* const path, char* dest);

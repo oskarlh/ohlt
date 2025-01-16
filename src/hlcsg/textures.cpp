@@ -194,7 +194,7 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
         if (!texfiles[nTexFiles]) {
             // Look in the mod dir
             const std::filesystem::path modDir = bspPath.parent_path().parent_path();
-            const std::filesystem::path wadFilename = extract_filename_from_filepath_string(pszWadFile);
+            const std::filesystem::path wadFilename = filename_in_file_path_string(pszWadFile);
             auto wadInModDir = modDir / wadFilename;
             texfiles[nTexFiles] = fopen((const char*) wadInModDir.c_str(), "rb");
         }

@@ -131,7 +131,7 @@ void TryOpenWadFiles ()
 			std::u8string_view pathString{wadValue.data(), nextSeparator};
 
 			if(!pathString.empty()) {
-				OpenWadFile(filename_from_file_path_string(pathString).c_str());
+				OpenWadFile(filename_in_file_path_string_as_path(pathString).c_str());
 			}
 
 			if(pathString.length() == wadValue.length()) {

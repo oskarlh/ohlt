@@ -234,9 +234,16 @@ std::filesystem::path get_path_to_directory_with_executable(char** argvForFallba
 
 
 
-std::filesystem::path filename_from_file_path_string(std::u8string_view filePathString) {
-    std::u8string_view withoutWindowsDirectorySepartors{filePathString.substr(filePathString.find_last_of(u8'\\') + 1zu)};
-    return std::filesystem::path(withoutWindowsDirectorySepartors, std::filesystem::path::generic_format).filename();
+
+std::u8string_view filename_in_file_path_string(std::u8string_view filePathString) {
+	return filePathString.substr(
+        // find_last_of finds the last location of ANY of the characters
+		filePathString.find_last_of(u8"/\\") + 1zu
+	);
+}
+
+std::filesystem::path filename_in_file_path_string_as_path(std::u8string_view filePathString) {
+    return std::filesystem::path(filename_in_file_path_string(filePathString), std::filesystem::path::generic_format).filename();
 }
 
 /*
