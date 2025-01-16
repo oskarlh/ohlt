@@ -329,7 +329,7 @@ bool TestSegmentAgainstOpaqueList(
 	float3_array& scaleout,
 	int& opaquestyleout // light must convert to this style. -1 = no convert
 ) {
-	scaleout = {};
+	scaleout.fill(1.0);
 	opaquestyleout = -1;
 	for (int x = 0; x < g_opaque_face_list.size(); x++) {
 		if (!TestLineOpaque(

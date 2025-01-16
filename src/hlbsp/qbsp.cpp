@@ -1031,8 +1031,8 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[0]->faces = nullptr;
 		nodes->children[0]->markfaces
 			= (face_t**) calloc(1, sizeof(face_t*));
-		nodes->children[0]->mins.fill(0);
-		nodes->children[0]->maxs.fill(0);
+		nodes->children[0]->mins = {};
+		nodes->children[0]->maxs = {};
 		nodes->children[1] = AllocNode();
 		nodes->children[1]->planenum = -1;
 		nodes->children[1]->contents = CONTENTS_EMPTY;
@@ -1042,15 +1042,15 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[1]->faces = nullptr;
 		nodes->children[1]->markfaces
 			= (face_t**) calloc(1, sizeof(face_t*));
-		nodes->children[1]->mins.fill(0);
-		nodes->children[1]->maxs.fill(0);
+		nodes->children[1]->mins = {};
+		nodes->children[1]->maxs = {};
 		nodes->contents = 0;
 		nodes->isdetail = false;
 		nodes->isportalleaf = false;
 		nodes->faces = nullptr;
 		nodes->markfaces = nullptr;
-		nodes->mins.fill(0);
-		nodes->maxs.fill(0);
+		nodes->mins = {};
+		nodes->maxs = {};
 	}
 	WriteDrawNodes(nodes);
 	model->numfaces = g_numfaces - model->firstface;
