@@ -46,7 +46,7 @@ void LoadWadconfig (const char *filename, std::u8string_view configName)
 		{
 			if (!GetToken (true))
 			{
-				Error("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configName);
+				Error("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, (const char*) configName.data());
 			}
 			if (strings_equal_with_ascii_case_insensitivity(g_token, u8"}"sv)) //If we find closing bracket
 			{
@@ -85,12 +85,12 @@ void LoadWadconfig (const char *filename, std::u8string_view configName)
 	}
 	//Log ("Using custom wadfile configuration: '%s' (with %i wad%s)\n", configname, wadPathsFound, wadPathsFound > 1 ? "s" : "");
 }
-void LoadWadcfgfile (const char *filename)
+void LoadWadcfgfile(std::filesystem::path wadCfgPath)
 {
-	Log ("Loading %s\n", filename);
+	Log ("Loading %s\n", wadCfgPath.c_str());
 	Log ("------------\n");
 	int wadPathsCount = 0;
-	std::optional<std::u8string> maybeContent = read_utf8_file(filename, true);
+	std::optional<std::u8string> maybeContent = read_utf8_file(wadCfgPath, true);
 	if(!maybeContent) {
 		Error("Failed to read the WAD config");
 	}
@@ -104,7 +104,7 @@ void LoadWadcfgfile (const char *filename)
 			include = true;
 			if (!GetToken (true))
 			{
-				Error ("parsing '%s': unexpected end of file.", filename);
+				Error ("parsing '%s': unexpected end of file.", wadCfgPath.c_str());
 			}
 		}
 		Log ("\"%s\"\n", (const char*) g_token.c_str());

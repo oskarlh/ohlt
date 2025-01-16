@@ -59,7 +59,7 @@ bool            g_skyclip = DEFAULT_SKYCLIP;            // no sky clipping "-nos
 bool            g_estimate = cli_option_defaults::estimate;          // progress estimates "-estimate"
 bool            g_info = cli_option_defaults::info;                  // "-info" ?
 const char*     g_hullfile = nullptr;                      // external hullfile "-hullfie sdfsd"
-const char*		g_wadcfgfile = nullptr;
+std::filesystem::path g_wadcfgfile;
 std::u8string g_wadconfigname;
 
 bool            g_bUseNullTex = cli_option_defaults::nulltex;        // "-nonulltex"
@@ -159,12 +159,6 @@ void            GetParamsFromEnt(entity_t* mapent)
     {
         g_wadconfigname = value_for_key(mapent, u8"wadconfig");
         Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name", (const char*) g_wadconfigname.c_str());
-    }
-	// wadcfgfile(string) : "Custom Wad Configuration File" : ""
-    if (*ValueForKey(mapent, u8"wadcfgfile"))
-    {
-        g_wadcfgfile = c_strdup((const char*) ValueForKey(mapent, u8"wadcfgfile"));
-        Log("%30s [ %-9s ]\n", "Custom Wad Configuration File", g_wadcfgfile);
     }
 
     // noclipeconomy(choices) : "Strip Uneeded Clipnodes?" : 1 = [ 1 : "Yes" 0 : "No" ]
@@ -1641,7 +1635,7 @@ static void     Settings(const bsp_data& bspData, const hlcsg_settings& settings
     Log("wadtextures           [ %7s ] [ %7s ]\n", g_wadtextures     ? "on" : "off", DEFAULT_WADTEXTURES  ? "on" : "off");
     Log("skyclip               [ %7s ] [ %7s ]\n", g_skyclip         ? "on" : "off", DEFAULT_SKYCLIP      ? "on" : "off");
     Log("hullfile              [ %7s ] [ %7s ]\n", g_hullfile ? g_hullfile : "None", "None");
-	Log("wad.cfg file          [ %7s ] [ %7s ]\n", g_wadcfgfile? g_wadcfgfile: "None", "None");
+	Log("wad.cfg file          [ %7s ] [ %7s ]\n", g_wadcfgfile.empty() ? "None" : g_wadcfgfile.c_str(), "None");
 	Log("wad.cfg config name   [ %7s ] [ %7s ]\n", g_wadconfigname.empty()?  "None" : (const char*) g_wadconfigname.c_str(), "None");
 	Log("nullfile              [ %7s ] [ %7s ]\n", g_nullfile ? g_nullfile : "None", "None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n", g_nullifytrigger? "on": "off", DEFAULT_NULLIFYTRIGGER? "on": "off");
@@ -1930,7 +1924,8 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				g_wadcfgfile = argv[++i];
+
+                g_wadcfgfile = std::filesystem::path{argv[++i], std::filesystem::path::auto_format};
 			}
 			else
 			{
@@ -2080,12 +2075,12 @@ int             main(const int argc, char** argv)
 			}
 		}
 	}
-	if (g_wadcfgfile) // If wad.cfg exists
+	if (!g_wadcfgfile.empty()) // If wad.cfg exists
 	{
         std::filesystem::path wadCfgPath = std::filesystem::path(g_Mapname).parent_path() / g_wadcfgfile;
 		if (std::filesystem::exists (wadCfgPath)) // Use global wad.cfg if file exists
 		{
-			g_wadcfgfile = c_strdup(wadCfgPath.c_str()); 
+			g_wadcfgfile = wadCfgPath.c_str();
 		}
 		else
 		{
@@ -2116,17 +2111,17 @@ int             main(const int argc, char** argv)
 	{
         std::filesystem::path wadCfgPath = get_path_to_directory_with_executable(argv) / u8"wad.cfg";
 
-        if (g_wadcfgfile) //If provided override the default
+        if (!g_wadcfgfile.empty()) //If provided override the default
         {
             wadCfgPath = g_wadcfgfile;
         }
         LoadWadconfig(wadCfgPath.c_str(), g_wadconfigname);
 	}
-	else if (g_wadcfgfile)
+	else if (!g_wadcfgfile.empty())
 	{
 		if (!std::filesystem::exists (g_wadcfgfile))
 		{
-			Error("Couldn't find wad configuration file '%s'\n", g_wadcfgfile);
+			Error("Couldn't find wad configuration file '%s'\n", g_wadcfgfile.c_str());
 		}
 		LoadWadcfgfile (g_wadcfgfile);
 	}

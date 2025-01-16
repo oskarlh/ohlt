@@ -231,10 +231,10 @@ void CalculateBrushUnions(int brushnum);
 extern hull_sizes g_hull_size;
 extern void LoadHullfile(const char* filename);
 
-extern const char *g_wadcfgfile;
+extern std::filesystem::path g_wadcfgfile;
 extern std::u8string g_wadconfigname;
-extern void LoadWadcfgfile (const char *filename);
-extern void LoadWadconfig (const char *filename, std::u8string_view configname);
+extern void LoadWadcfgfile(std::filesystem::path wadCfgPath);
+extern void LoadWadconfig(const char *filename, std::u8string_view configname);
 
 //============================================================================
 // autowad.cpp      AJM
