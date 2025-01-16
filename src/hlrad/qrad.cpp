@@ -650,7 +650,7 @@ static bool     PlacePatchInside(patch_t* patch)
 	{
 		VectorMA (center, PATCH_HUNT_OFFSET, plane->normal, patch->origin);
 		patch->flags = ePatchFlagOutside;
-		Developer(DEVELOPER_LEVEL_FLUFF, "Patch @ (%4.3f %4.3f %4.3f) outside world\n",
+		Developer(developer_level::fluff, "Patch @ (%4.3f %4.3f %4.3f) outside world\n",
 				  patch->origin[0], patch->origin[1], patch->origin[2]);
 		return false;
 	}
@@ -960,7 +960,7 @@ void ReadCustomChopValue()
 		mapent = &g_entities[k];
 		if (!classname_is(mapent, u8"info_chopscale"))
 			continue;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale entity detected.\n");
+		Developer (developer_level::message, "info_chopscale entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const wad_texture_name texname{
@@ -975,7 +975,7 @@ void ReadCustomChopValue()
 			if (atof ((const char*) value.data()) <= 0)
 				continue;
 			chopscales[i] = atof ((const char*) value.data());
-			Developer (DEVELOPER_LEVEL_MESSAGE, "info_chopscale: %s = %f\n", texname.c_str(), chopscales[i]);
+			Developer (developer_level::message, "info_chopscale: %s = %f\n", texname.c_str(), chopscales[i]);
 		}
 	}
 }
@@ -1001,7 +1001,7 @@ void ReadCustomSmoothValue()
 		mapent = &g_entities[k];
 		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_smoothvalue"))
 			continue;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue entity detected.\n");
+		Developer (developer_level::message, "info_smoothvalue entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const wad_texture_name texname{
@@ -1014,7 +1014,7 @@ void ReadCustomSmoothValue()
 			if (texname.is_origin())
 				continue;
 			g_smoothvalues[i] = cos(atof ((const char*) value.data()) * (std::numbers::pi_v<double> / 180.0));
-			Developer (DEVELOPER_LEVEL_MESSAGE, "info_smoothvalue: %s = %f\n", texname.c_str(), atof ((const char*) value.data()));
+			Developer (developer_level::message, "info_smoothvalue: %s = %f\n", texname.c_str(), atof ((const char*) value.data()));
 		}
 	}
 }
@@ -1031,7 +1031,7 @@ void ReadTranslucentTextures()
 		mapent = &g_entities[k];
 		if (strcmp((const char*) ValueForKey(mapent, u8"classname"), "info_translucent"))
 			continue;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent entity detected.\n");
+		Developer (developer_level::message, "info_translucent entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const wad_texture_name texname{
@@ -1063,7 +1063,7 @@ void ReadTranslucentTextures()
 			g_translucenttextures[i][0] = r;
 			g_translucenttextures[i][1] = g;
 			g_translucenttextures[i][2] = b;
-			Developer (DEVELOPER_LEVEL_MESSAGE, "info_translucent: %s = %f %f %f\n", texname.c_str(), r, g, b);
+			Developer (developer_level::message, "info_translucent: %s = %f %f %f\n", texname.c_str(), r, g, b);
 		}
 	}
 }
@@ -1088,7 +1088,7 @@ void ReadLightingCone ()
 		mapent = &g_entities[k];
 		if (!classname_is(mapent, u8"info_angularfade"))
 			continue;
-		Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade entity detected.\n");
+		Developer (developer_level::message, "info_angularfade entity detected.\n");
 		for (i = 0; i < num; i++)
 		{
 			const wad_texture_name texname{((miptex_t*)(g_dtexdata.data()+((dmiptexlump_t*)g_dtexdata.data())->dataofs[i]))->name};
@@ -1120,7 +1120,7 @@ void ReadLightingCone ()
 			scale *= DefaultScaleForPower (power);
 			g_lightingconeinfo[i].power = power;
 			g_lightingconeinfo[i].scale = scale;
-			Developer (DEVELOPER_LEVEL_MESSAGE, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
+			Developer (developer_level::message, "info_angularfade: %s = %f %f\n", texname.c_str(), power, scale);
 		}
 	}
 }
@@ -1246,7 +1246,7 @@ static void     MakePatchForFace(const int fn, fast_winding* w, int style
 
 	if (numpoints < 3)                                 // WTF! (Actually happens in real-world maps too)
 	{
-		Developer(DEVELOPER_LEVEL_WARNING, "Face %d only has %d points on winding\n", fn, numpoints);
+		Developer(developer_level::warning, "Face %d only has %d points on winding\n", fn, numpoints);
 		return;
 	}
 	if (numpoints > MAX_POINTS_ON_WINDING)
@@ -1399,7 +1399,7 @@ static void     MakePatchForFace(const int fn, fast_winding* w, int style
 			{
 				if (patch->area < 1.0)
 				{
-					Developer(DEVELOPER_LEVEL_WARNING,
+					Developer(developer_level::warning,
 								"Patch at (%4.3f %4.3f %4.3f) (face %d) tiny area (%4.3f) not subdividing \n",
 								patch->origin[0], patch->origin[1], patch->origin[2], patch->faceNumber, patch->area);
 				}
@@ -2681,7 +2681,7 @@ static void     Settings()
     Log("threads             [ %17td ] [  Varies ]\n", g_numthreads);
     Log("verbose              [ %17s ] [ %17s ]\n", g_verbose ? "on" : "off", cli_option_defaults::verbose ? "on" : "off");
     Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
-    Log("developer            [ %17d ] [ %17d ]\n", g_developer, cli_option_defaults::developer);
+    Log("developer            [ %17d ] [ %17d ]\n", (int) g_developer, (int) cli_option_defaults::developer);
     Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate             [ %17s ] [ %17s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory   [ %17td ] [ %17td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
@@ -3100,7 +3100,7 @@ int             main(const int argc, char** argv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
-                g_developer = (developer_level_t)atoi(argv[++i]);
+                g_developer = (developer_level)atoi(argv[++i]);
             }
             else
             {

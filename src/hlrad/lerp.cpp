@@ -173,7 +173,7 @@ static float GetFrac (const float3_array& leftspot, const float3_array& rightspo
 	{
 		if (g_drawlerp && dot1 > ON_EPSILON)
 		{
-			Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 1.\n");
+			Developer (developer_level::spam, "Debug: triangulation: internal error 1.\n");
 		}
 		frac = 0.0;
 	}
@@ -181,7 +181,7 @@ static float GetFrac (const float3_array& leftspot, const float3_array& rightspo
 	{
 		if (g_drawlerp && dot2 < -ON_EPSILON)
 		{
-			Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 2.\n");
+			Developer (developer_level::spam, "Debug: triangulation: internal error 2.\n");
 		}
 		frac = 1.0;
 	}
@@ -384,7 +384,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	VectorSubtract(test, spot, test);
 	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
 	{
-		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 12.\n");
+		Developer (developer_level::spam, "Debug: triangulation: internal error 12.\n");
 	}
 
 	weights[0] += 0.5 * (1 - ratio) * (1 - frac_near);
@@ -469,7 +469,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	VectorSubtract(test, spot, test);
 	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
 	{
-		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 13.\n");
+		Developer (developer_level::spam, "Debug: triangulation: internal error 13.\n");
 	}
 
 	weights[0] += 0.5 * (1 - ratio) * (1 - frac_near);
@@ -626,7 +626,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const float3_arra
 
 			if (g_drawlerp && (dot1 > dot || dot > dot2))
 			{
-				Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 3.\n");
+				Developer (developer_level::spam, "Debug: triangulation: internal error 3.\n");
 			}
 			if (dot1 >= -NORMAL_EPSILON) // 0 <= dot1 < dot < dot2
 			{
@@ -684,7 +684,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const float3_arra
 				dist = DotProduct (spot, w->leftdirection);
 				if (g_drawlerp && len <= ON_EPSILON)
 				{
-					Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 4.\n");
+					Developer (developer_level::spam, "Debug: triangulation: internal error 4.\n");
 				}
 				if (dist <= NORMAL_EPSILON)
 				{
@@ -722,7 +722,7 @@ static void CalcInterpolation (const localtriangulation_t *lt, const float3_arra
 				dist = DotProduct (spot, wnext->leftdirection);
 				if (g_drawlerp && len <= ON_EPSILON)
 				{
-					Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 5.\n");
+					Developer (developer_level::spam, "Debug: triangulation: internal error 5.\n");
 				}
 				if (dist <= NORMAL_EPSILON)
 				{
@@ -824,7 +824,7 @@ void InterpolateSampleLight (const float3_array& position, int surface, int styl
 				{
 					if (g_drawlerp && ft2 == ft)
 					{
-						Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 6.\n");
+						Developer (developer_level::spam, "Debug: triangulation: internal error 6.\n");
 					}
 					continue;
 				}
@@ -1144,7 +1144,7 @@ static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *
 		{
 			if (g_drawlerp && fabs (angle) > NORMAL_EPSILON)
 			{
-				Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 7.\n");
+				Developer (developer_level::spam, "Debug: triangulation: internal error 7.\n");
 			}
 			angle = 0.0;
 		}
@@ -1305,7 +1305,7 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 		{
 			if (g_drawlerp && angles[i].second != i)
 			{
-				Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 8.\n");
+				Developer (developer_level::spam, "Debug: triangulation: internal error 8.\n");
 			}
 			lt->sortedhullpoints.push_back (spots[angles[i].second]);
 		}
@@ -1523,7 +1523,7 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
 		if (g_drawlerp && ((int)lt->sortedwedges.size () >= 2 && fabs (angle) <= (0.9*std::numbers::pi_v<double>/180)))
 		{
-			Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 9.\n");
+			Developer (developer_level::spam, "Debug: triangulation: internal error 9.\n");
 		}
 		angle = GetAngleDiff (angle, 0);
 		if ((int)lt->sortedwedges.size () == 1)
@@ -1556,13 +1556,13 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 			GetDirection (normal, lt->normal, w->wedgenormal);
 			if (g_drawlerp && vector_length(w->wedgenormal) == 0)
 			{
-				Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 10.\n");
+				Developer (developer_level::spam, "Debug: triangulation: internal error 10.\n");
 			}
 		}
 	}
 	if (g_drawlerp && ((int)lt->sortedwedges.size () > 0 && fabs (total - 2 * std::numbers::pi_v<double>) > 10 * NORMAL_EPSILON))
 	{
-		Developer (DEVELOPER_LEVEL_SPAM, "Debug: triangulation: internal error 11.\n");
+		Developer (developer_level::spam, "Debug: triangulation: internal error 11.\n");
 	}
 	FindSquares (lt);
 

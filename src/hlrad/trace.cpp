@@ -45,7 +45,7 @@ static void     MakeTnode(const int nodenum)
 		}
 		else
 		{
-			Developer (DEVELOPER_LEVEL_MESSAGE, "Warning: MakeTnode: negative plane\n");
+			Developer (developer_level::message, "Warning: MakeTnode: negative plane\n");
 		}
 	}
     t->dist = plane.dist;
@@ -289,7 +289,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	CrossProduct (normal, e1, pl1.normal); // pointing outward
 	if (normalize_vector(pl1.normal) == 0.0)
 	{
-		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty edge.\n");
+		Developer (developer_level::warning, "Warning: TryMerge: Empty edge.\n");
 		return false;
 	}
 	pl1.dist = DotProduct (*pA, pl1.normal);
@@ -303,7 +303,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	CrossProduct (normal, e2, pl2.normal); // pointing outward
 	if (normalize_vector(pl2.normal) == 0.0)
 	{
-		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty edge.\n");
+		Developer (developer_level::warning, "Warning: TryMerge: Empty edge.\n");
 		return false;
 	}
 	pl2.dist = DotProduct (*p2A, pl2.normal);
@@ -339,7 +339,7 @@ bool TryMerge (opaqueface_t *f, const opaqueface_t *f2)
 	neww->RemoveColinearPoints ();
 	if (neww->size() < 3)
 	{
-		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TryMerge: Empty winding.\n");
+		Developer (developer_level::warning, "Warning: TryMerge: Empty winding.\n");
 		delete neww;
 		neww = nullptr;
 	}
@@ -401,7 +401,7 @@ void BuildFaceEdges (opaqueface_t *f)
 		CrossProduct (n, e, pl->normal);
 		if (normalize_vector(pl->normal) == 0.0)
 		{
-			Developer (DEVELOPER_LEVEL_WARNING, "Warning: BuildFaceEdges: Empty edge.\n");
+			Developer (developer_level::warning, "Warning: BuildFaceEdges: Empty edge.\n");
 			VectorClear (pl->normal);
 			pl->dist = -1;
 			continue;
@@ -494,7 +494,7 @@ static int TestLineOpaque_face (int facenum, const float3_array& hit)
 	int x;
 	if (thisface->numedges == 0)
 	{
-		Developer (DEVELOPER_LEVEL_WARNING, "Warning: TestLineOpaque: Empty face.\n");
+		Developer (developer_level::warning, "Warning: TestLineOpaque: Empty face.\n");
 		return 0;
 	}
 	for (x = 0; x < thisface->numedges; x++)

@@ -1227,11 +1227,11 @@ static void     LinkLeafFaces(surface_t* planelist, node_t* leafnode)
 		{
 			for (face_t *f2 = surf2->faces; f2; f2 = f2->next)
 			{
-				Developer (DEVELOPER_LEVEL_SPAM, "content = %d plane = %d normal = (%g,%g,%g)\n", f2->contents, f2->planenum, 
+				Developer (developer_level::spam, "content = %d plane = %d normal = (%g,%g,%g)\n", f2->contents, f2->planenum, 
 					g_mapplanes[f2->planenum].normal[0], g_mapplanes[f2->planenum].normal[1], g_mapplanes[f2->planenum].normal[2]);
 				for (int i = 0; i < f2->numpoints; i++)
 				{
-					Developer (DEVELOPER_LEVEL_SPAM, "(%g,%g,%g)\n", f2->pts[i][0], f2->pts[i][1], f2->pts[i][2]);
+					Developer (developer_level::spam, "(%g,%g,%g)\n", f2->pts[i][0], f2->pts[i][1], f2->pts[i][2]);
 				}
 			}
 		}
@@ -1341,7 +1341,7 @@ static void     MakeNodePortal(node_t* node)
         w->mutating_clip(clipplane.normal, clipplane.dist, true);
 		if (w->size() == 0)
         {
-			Developer (DEVELOPER_LEVEL_WARNING, 
+			Developer (developer_level::warning, 
 				"MakeNodePortal:new portal was clipped away from node@(%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
                     node->mins[0], node->mins[1], node->mins[2], node->maxs[0], node->maxs[1], node->maxs[2]);
             FreePortal(new_portal);

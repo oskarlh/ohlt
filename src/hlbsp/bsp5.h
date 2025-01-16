@@ -84,23 +84,21 @@ typedef struct face_s                                      // This structure is 
 }
 face_t;
 
-typedef struct surface_s
+struct node_t;
+struct surface_t
 {
-    struct surface_s* next;
+    surface_t* next;
     face_t*         faces;                                 // links to all the faces on either side of the surf
-    struct node_s*  onnode;                                // true if surface has already been used as a splitting node
+    node_t*  onnode;                                // true if surface has already been used as a splitting node
     double3_array mins, maxs;
     int             planenum;
 	int				detaillevel; // minimum detail level of its faces
-}
-surface_t;
+};
 
-typedef struct
-{
+struct surfchain_t {
     double3_array          mins, maxs;
     surface_t*      surfaces;
-}
-surfchain_t;
+};
 
 struct side_t {
 	side_t* next;
@@ -119,8 +117,7 @@ struct brush_t {
 #define	PLANENUM_LEAF		-1
 #define BOUNDS_EXPANSION 1.0 // expand the bounds of detail leafs when clipping its boundsbrush, to prevent some strange brushes in the func_detail from clipping away the entire boundsbrush making the func_detail invisible.
 
-typedef struct node_s
-{
+struct node_t {
     surface_t*      surfaces;
 	brush_t			*detailbrushes;
 	brush_t			*boundsbrush;
@@ -133,7 +130,7 @@ typedef struct node_s
 
     // information for decision nodes
     int             planenum;                              // -1 = leaf node
-    struct node_s*  children[2];                           // only valid for decision nodes
+    node_t*  children[2];                           // only valid for decision nodes
     face_t*         faces;                                 // decision nodes only, list for both sides
 
     // information for leafs
@@ -144,8 +141,7 @@ typedef struct node_s
     int             valid;                                 // for flood filling
     int             occupied;                              // light number in leaf for outside filling
 	int				empty;
-}
-node_t;
+};
 
 
 //=============================================================================

@@ -16,7 +16,7 @@ const char*           g_Program = "Uninitialized variable ::g_Program";
 char            g_Mapname[_MAX_PATH] = "Uninitialized variable ::g_Mapname";
 char            g_Wadpath[_MAX_PATH] = "Uninitialized variable ::g_Wadpath";
 
-developer_level_t g_developer = cli_option_defaults::developer;
+developer_level g_developer = cli_option_defaults::developer;
 bool            g_verbose = cli_option_defaults::verbose;
 bool            g_log = cli_option_defaults::log;
 
@@ -352,7 +352,7 @@ void FORMAT_PRINTF(1,2)      Verbose(const char* const warning, ...)
 //  Developer
 //      Same as log but only prints when in developer mode
 // =====================================================================================
-void FORMAT_PRINTF(2,3)      Developer(developer_level_t level, const char* const warning, ...)
+void FORMAT_PRINTF(2,3)      Developer(developer_level level, const char* const warning, ...)
 {
     if (level <= g_developer)
     {
@@ -376,31 +376,31 @@ static void     DisplayDeveloperLevel()
     char            message[MAX_MESSAGE];
 
     safe_strncpy(message, "Developer messages enabled : [", MAX_MESSAGE);
-    if (g_developer >= DEVELOPER_LEVEL_MEGASPAM)
+    if (g_developer >= developer_level::megaspam)
     {
         safe_strncat(message, "MegaSpam ", MAX_MESSAGE);
     }
-    if (g_developer >= DEVELOPER_LEVEL_SPAM)
+    if (g_developer >= developer_level::spam)
     {
         safe_strncat(message, "Spam ", MAX_MESSAGE);
     }
-    if (g_developer >= DEVELOPER_LEVEL_FLUFF)
+    if (g_developer >= developer_level::fluff)
     {
         safe_strncat(message, "Fluff ", MAX_MESSAGE);
     }
-    if (g_developer >= DEVELOPER_LEVEL_MESSAGE)
+    if (g_developer >= developer_level::message)
     {
         safe_strncat(message, "Message ", MAX_MESSAGE);
     }
-    if (g_developer >= DEVELOPER_LEVEL_WARNING)
+    if (g_developer >= developer_level::warning)
     {
         safe_strncat(message, "Warning ", MAX_MESSAGE);
     }
-    if (g_developer >= DEVELOPER_LEVEL_ERROR)
+    if (g_developer >= developer_level::error)
     {
         safe_strncat(message, "Error", MAX_MESSAGE);
     }
-    if (g_developer)
+    if (g_developer >= developer_level::always)
     {
         safe_strncat(message, "]\n", MAX_MESSAGE);
         Log("%s", message);

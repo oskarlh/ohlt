@@ -14,7 +14,7 @@ extern const char*    g_Program;
 extern char     g_Mapname[_MAX_PATH];
 extern char     g_Wadpath[_MAX_PATH]; //seedee
 
-extern developer_level_t g_developer;
+extern developer_level g_developer;
 extern bool          g_verbose;
 extern bool          g_log;
 extern unsigned long g_clientid;                           // Client id of this program
@@ -35,7 +35,7 @@ extern void     WriteLog(const char* const message);
 
 extern void     CheckFatal();
 
-extern void FORMAT_PRINTF(2,3) Developer(developer_level_t level, const char* const message, ...);
+extern void FORMAT_PRINTF(2,3) Developer(developer_level level, const char* const message, ...);
 
 #ifdef _DEBUG
 #define IfDebug(x) (x)

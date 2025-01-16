@@ -19,7 +19,7 @@ static accurate_winding NewWindingFromPlane(const brushhull_t* const hull, const
 
         if(!winding)
         {
-            Developer(DEVELOPER_LEVEL_ERROR, "NewFaceFromPlane returning NULL");
+            Developer(developer_level::error, "NewFaceFromPlane returning NULL");
             break;
         }
     }
@@ -110,7 +110,7 @@ static double    CalculateSolidVolume(const brushhull_t* const hull)
     for (const bface_t& face : hull->faces) {
         double3_array facemid = face.w.getCenter();
         VectorAdd(midpoint, facemid, midpoint);
-        Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for face %d is %f %f %f\n", x, facemid[0], facemid[1], facemid[2]);
+        Developer(developer_level::message, "Midpoint for face %d is %f %f %f\n", x, facemid[0], facemid[1], facemid[2]);
         ++x;
     }
 
@@ -118,7 +118,7 @@ static double    CalculateSolidVolume(const brushhull_t* const hull)
 
     VectorScale(midpoint, inverse, midpoint);
 
-    Developer(DEVELOPER_LEVEL_MESSAGE, "Midpoint for hull is %f %f %f\n", midpoint[0], midpoint[1], midpoint[2]);
+    Developer(developer_level::message, "Midpoint for hull is %f %f %f\n", midpoint[0], midpoint[1], midpoint[2]);
 
     for (const bface_t& face : hull->faces) {
         mapplane_t* plane = &g_mapplanes[face.planenum];
@@ -131,7 +131,7 @@ static double    CalculateSolidVolume(const brushhull_t* const hull)
         volume += area * dist / 3.0;
     }
 
-    Developer(DEVELOPER_LEVEL_MESSAGE, "Volume for brush is %f\n", volume);
+    Developer(developer_level::message, "Volume for brush is %f\n", volume);
 
     return volume;
 }
@@ -142,9 +142,9 @@ static void     DumpHullWindings(const brushhull_t* const hull)
     bface_t*        face;
 
     for (const bface_t& face : hull->faces) {
-        Developer(DEVELOPER_LEVEL_MEGASPAM, "accurate_winding %d\n", x++);
+        Developer(developer_level::megaspam, "accurate_winding %d\n", x++);
         face.w.Print();
-        Developer(DEVELOPER_LEVEL_MEGASPAM, "\n");
+        Developer(developer_level::megaspam, "\n");
     }
 }
 
@@ -205,7 +205,7 @@ void            CalculateBrushUnions(const int brushnum)
                 continue;                                  // different contents, ignore
             }
 
-            Developer(DEVELOPER_LEVEL_SPAM, "Processing hull %d brush %d and brush %d\n", hull, brushnum, bn);
+            Developer(developer_level::spam, "Processing hull %d brush %d and brush %d\n", hull, brushnum, bn);
 
             {
                 brushhull_t     union_hull;
@@ -224,7 +224,7 @@ void            CalculateBrushUnions(const int brushnum)
                     continue;
                 }
 
-                if (g_developer >= DEVELOPER_LEVEL_MESSAGE)
+                if (g_developer >= developer_level::message)
                 {
                     Log("\nUnion windings\n");
                     DumpHullWindings(&union_hull);
@@ -257,14 +257,14 @@ void            CalculateBrushUnions(const int brushnum)
                     volume_ratio_1 = volume_brush_union / volume_brush_1;
                     volume_ratio_2 = volume_brush_union / volume_brush_2;
 
-                    if ((volume_ratio_1 > g_BrushUnionThreshold) || (g_developer >= DEVELOPER_LEVEL_MESSAGE))
+                    if ((volume_ratio_1 > g_BrushUnionThreshold) || (g_developer >= developer_level::message))
                     {
                         volume_ratio_1 *= 100.0;
                         Warning("Entity %d : Brush %d intersects with brush %d by %2.3f percent", 
 							b1->originalentitynum, b1->originalbrushnum, b2->originalbrushnum, 
 							volume_ratio_1);
                     }
-                    if ((volume_ratio_2 > g_BrushUnionThreshold) || (g_developer >= DEVELOPER_LEVEL_MESSAGE))
+                    if ((volume_ratio_2 > g_BrushUnionThreshold) || (g_developer >= developer_level::message))
                     {
                         volume_ratio_2 *= 100.0;
                         Warning("Entity %d : Brush %d intersects with brush %d by %2.3f percent", 

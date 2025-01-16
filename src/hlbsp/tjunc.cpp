@@ -54,7 +54,7 @@ static void     InitHash(const double3_array& mins, const double3_array& maxs)
 	hash_numslots[1] = (int)floor (size / scale);
 	while (hash_numslots[0] * hash_numslots[1] > NUM_HASH)
 	{
-		Developer (DEVELOPER_LEVEL_WARNING, "hash_numslots[0] * hash_numslots[1] > NUM_HASH");
+		Developer (developer_level::warning, "hash_numslots[0] * hash_numslots[1] > NUM_HASH");
 		hash_numslots[0]--;
 		hash_numslots[1]--;
 	}

@@ -139,7 +139,7 @@ void	CreateFinalTransparencyArrays(const char *print_name, std::vector<float3_ar
         	Log("%-20s: %5.1f kilos\n", print_name, (double)size / 1024.0);
         else
         	Log("%-20s: %5.1f bytes\n", print_name, (double)size); //--vluzacn
-	Developer (DEVELOPER_LEVEL_MESSAGE, "\ts_trans_count=%zu\ts_sorted_count=%d\n", transparencyList.size(), s_sorted_count); //--vluzacn
+	Developer (developer_level::message, "\ts_trans_count=%zu\ts_sorted_count=%d\n", transparencyList.size(), s_sorted_count); //--vluzacn
 
 }
 

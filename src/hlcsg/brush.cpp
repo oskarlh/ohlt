@@ -1333,7 +1333,7 @@ hullbrush_t *CreateHullBrush (const brush_t *b)
 		hlassume (hb->vertexes != nullptr, assume_NoMemory);
 		memcpy (hb->vertexes, vertexes, hb->numvertexes * sizeof (hullbrushvertex_t));
 
-		Developer (DEVELOPER_LEVEL_MESSAGE, "info_hullshape @ (%.0f,%.0f,%.0f): %d faces, %d edges, %d vertexes.\n", origin[0], origin[1], origin[2], hb->numfaces, hb->numedges, hb->numvertexes);
+		Developer (developer_level::message, "info_hullshape @ (%.0f,%.0f,%.0f): %d faces, %d edges, %d vertexes.\n", origin[0], origin[1], origin[2], hb->numfaces, hb->numedges, hb->numvertexes);
 	}
 	else
 	{

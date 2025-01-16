@@ -46,19 +46,19 @@ int             GetThreadWork()
 
     if (dispatch > workcount)
     {
-        Developer(DEVELOPER_LEVEL_ERROR, "dispatch > workcount!!!\n");
+        Developer(developer_level::error, "dispatch > workcount!!!\n");
         ThreadUnlock();
         return -1;
     }
     if (dispatch == workcount)
     {
-        Developer(DEVELOPER_LEVEL_MESSAGE, "dispatch == workcount, work is complete\n");
+        Developer(developer_level::message, "dispatch == workcount, work is complete\n");
         ThreadUnlock();
         return -1;
     }
     if (dispatch < 0)
     {
-        Developer(DEVELOPER_LEVEL_ERROR, "negative dispatch!!!\n");
+        Developer(developer_level::error, "negative dispatch!!!\n");
         ThreadUnlock();
         return -1;
     }

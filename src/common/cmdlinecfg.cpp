@@ -103,11 +103,9 @@ void delparams (char8_t *cmdline, char8_t *params)
 		memmove (cmdline, c, strlen ((char*) c) + 1);
 	}
 }
-typedef enum
-{
+enum class command_t {
 	IFDEF, IFNDEF, ELSE, ENDIF, DEFINE, UNDEF
-}
-command_t;
+};
 struct execute_t {
 	int stack;
 	bool skip;
@@ -119,26 +117,26 @@ void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int 
 	if (!pvalid (words))
 		return;
 	if (pmatch (words, u8"#ifdef" SEPSTR))
-		t = IFDEF;
+		t = command_t::IFDEF;
 	else if (pmatch (words, u8"#ifndef" SEPSTR))
-		t = IFNDEF;
+		t = command_t::IFNDEF;
 	else if (pmatch (words, u8"#else" SEPSTR))
-		t = ELSE;
+		t = command_t::ELSE;
 	else if (pmatch (words, u8"#endif" SEPSTR))
-		t = ENDIF;
+		t = command_t::ENDIF;
 	else if (pmatch (words, u8"#define" SEPSTR))
-		t = DEFINE;
+		t = command_t::DEFINE;
 	else if (pmatch (words, u8"#undef" SEPSTR))
-		t = UNDEF;
+		t = command_t::UNDEF;
 	else
 		return;
-	if (t == IFDEF || t == IFNDEF)
+	if (t == command_t::IFDEF || t == command_t::IFNDEF)
 	{
 		e.stack ++;
 		if (!e.skip)
 		{
-			if (t == IFDEF && findparams (cmdline, pnext (words)) ||
-				(t == IFNDEF && !findparams (cmdline, pnext (words))))
+			if (t == command_t::IFDEF && findparams (cmdline, pnext (words)) ||
+				(t == command_t::IFNDEF && !findparams (cmdline, pnext (words))))
 				e.skip = false;
 			else
 			{
@@ -147,7 +145,7 @@ void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int 
 			}
 		}
 	}
-	else if (t == ELSE)
+	else if (t == command_t::ELSE)
 	{
 		if (e.skip)
 		{
@@ -160,7 +158,7 @@ void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int 
 			e.skip = true;
 		}
 	}
-	else if (t == ENDIF)
+	else if (t == command_t::ENDIF)
 	{
 		if (e.skip)
 		{
@@ -173,9 +171,9 @@ void parsecommand (execute_t &e, char8_t *cmdline, char8_t *words, unsigned int 
 	{
 		if (!e.skip)
 		{
-			if (t == DEFINE)
+			if (t == command_t::DEFINE)
 				addparams (cmdline, pnext(words), n);
-			if (t == UNDEF)
+			if (t == command_t::UNDEF)
 				delparams (cmdline, pnext(words));
 		}
 	}

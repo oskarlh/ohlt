@@ -573,7 +573,7 @@ void FinishBSPFile(const bsp_data& bspData)
 	{
 		Warning ("Number of world faces(%d) exceeded %zd. Some faces will disappear in game.\nTo reduce world faces, change some world brushes (including func_details) to func_walls.\n", g_dmodels[0].numfaces, MAX_MAP_WORLDFACES);
 	}
-	Developer (DEVELOPER_LEVEL_MESSAGE, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
+	Developer (developer_level::message, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
 	if (!g_noclipnodemerge)
 	{
 		Log ("Reduced %d clipnodes to %d\n", g_numclipnodes + count_mergedclipnodes, g_numclipnodes);
@@ -742,7 +742,7 @@ void FinishBSPFile(const bsp_data& bspData)
 		for (i = 0; i < g_nummodels; i++)
 		{
 			dmodel_t *m = &g_dmodels[i];
-			Developer (DEVELOPER_LEVEL_MESSAGE, " model %d\n", i);
+			Developer (developer_level::message, " model %d\n", i);
 			for (j = 1; j < NUM_HULLS; j++)
 			{
 				brinkinfo[i][j] = CreateBrinkinfo (g_dclipnodes.data(), m->headnode[j]);
@@ -788,7 +788,7 @@ void FinishBSPFile(const bsp_data& bspData)
 			{
 				Warning ("Not all brinks have been fixed because clipnode data is almost full.");
 			}
-			Developer (DEVELOPER_LEVEL_MESSAGE, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
+			Developer (developer_level::message, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
 			Log ("Increased %d clipnodes to %d.\n", g_numclipnodes, numclipnodes);
 			g_numclipnodes = numclipnodes;
 			std::memcpy (g_dclipnodes.data(), clipnodes, numclipnodes * sizeof (dclipnode_t));

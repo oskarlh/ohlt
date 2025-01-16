@@ -1603,7 +1603,7 @@ static void     Settings(const bsp_data& bspData, const hlcsg_settings& settings
     Log("log                   [ %7s ] [ %7s ]\n", g_log ? "on" : "off", cli_option_defaults::log ? "on" : "off");
     Log("reset logfile         [ %7s ] [ %7s ]\n", g_resetlog ? "on" : "off", DEFAULT_RESETLOG ? "on" : "off");
 
-    Log("developer             [ %7d ] [ %7d ]\n", g_developer, cli_option_defaults::developer);
+    Log("developer             [ %7d ] [ %7d ]\n", (int) g_developer, (int) cli_option_defaults::developer);
     Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off", cli_option_defaults::chart ? "on" : "off");
     Log("estimate              [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off", cli_option_defaults::estimate ? "on" : "off");
     Log("max texture memory    [ %7td ] [ %7td ]\n", g_max_map_miptex, cli_option_defaults::max_map_miptex);
@@ -1765,7 +1765,7 @@ int             main(const int argc, char** argv)
         {
             if (i + 1 < argc)	//added "1" .--vluzacn
             {
-                g_developer = (developer_level_t)atoi(argv[++i]);
+                g_developer = (developer_level)atoi(argv[++i]);
             }
             else
             {

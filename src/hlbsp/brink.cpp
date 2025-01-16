@@ -755,7 +755,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 			}
 			if (vertexes.size () != 2)
 			{
-				Developer (DEVELOPER_LEVEL_WARNING, "SplitTreeLeaf: got invalid edge from split\n");
+				Developer (developer_level::warning, "SplitTreeLeaf: got invalid edge from split\n");
 			}
 
 			while (1)
@@ -785,7 +785,7 @@ void SplitTreeLeaf (int &numobjects, btreeleaf_t *tl, const mapplane_t *plane, i
 				}
 				if (vertex->second != 1 || vertex2->second != -1)
 				{
-					Developer (DEVELOPER_LEVEL_WARNING, "SplitTreeLeaf: got deformed edge from split\n");
+					Developer (developer_level::warning, "SplitTreeLeaf: got deformed edge from split\n");
 				}
 				if (vertex->first->tmp_side != face_side::on || vertex2->first->tmp_side != face_side::on)
 				{
@@ -1380,9 +1380,9 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			// because a brink won't necessarily be split twice after its creation
 			if (b.numnodes == 3)
 			{
-				if (g_developer >= DEVELOPER_LEVEL_FLUFF)
+				if (g_developer >= developer_level::fluff)
 				{
-					Developer (DEVELOPER_LEVEL_FLUFF, "Brink wasn't split by the second plane:\n");
+					Developer (developer_level::fluff, "Brink wasn't split by the second plane:\n");
 					PrintBrink (b);
 				}
 				countinvalid++;
@@ -1396,9 +1396,9 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		
 		if (b.numnodes > 2 * MAXBRINKWEDGES - 1)
 		{
-			if (g_developer >= DEVELOPER_LEVEL_MEGASPAM)
+			if (g_developer >= developer_level::megaspam)
 			{
-				Developer (DEVELOPER_LEVEL_MEGASPAM, "Skipping complicated brink:\n");
+				Developer (developer_level::megaspam, "Skipping complicated brink:\n");
 				PrintBrink (b);
 			}
 			countskipped++;
@@ -1408,9 +1408,9 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		// build the circle to find out the planes a player may move along
 		if (!CalculateCircle (&b, &c))
 		{
-			if (g_developer >= DEVELOPER_LEVEL_FLUFF)
+			if (g_developer >= developer_level::fluff)
 			{
-				Developer (DEVELOPER_LEVEL_FLUFF, "CalculateCircle failed for brink:\n");
+				Developer (developer_level::fluff, "CalculateCircle failed for brink:\n");
 				PrintBrink (b);
 			}
 			countinvalid++;
@@ -1447,9 +1447,9 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			(c.surfaces[1][0].prev->content == CONTENTS_SOLID) != (c.surfaces[1][0].next->content == CONTENTS_SOLID))
 		{
 			// there must at least 3 transition surfaces now, which is too complicated. just leave it unfixed
-			if (g_developer >= DEVELOPER_LEVEL_MEGASPAM)
+			if (g_developer >= developer_level::megaspam)
 			{
-				Developer (DEVELOPER_LEVEL_MEGASPAM, "Skipping complicated brink:\n");
+				Developer (developer_level::megaspam, "Skipping complicated brink:\n");
 				PrintBrink (b);
 				PrintCircle (&c);
 			}
@@ -1536,7 +1536,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 				}
 				if (snext == (transitionside[!side]? &c.surfaces[side][0]: &c.surfaces[!side][0]))
 				{
-					Developer (DEVELOPER_LEVEL_ERROR, "AnalyzeBrinks: surface past 0\n");
+					Developer (developer_level::error, "AnalyzeBrinks: surface past 0\n");
 					break;
 				}
 				bfix = true;
@@ -1563,9 +1563,9 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 		}
 		if (berror)
 		{
-			if (g_developer >= DEVELOPER_LEVEL_FLUFF)
+			if (g_developer >= developer_level::fluff)
 			{
-				Developer (DEVELOPER_LEVEL_FLUFF, "AddPartition failed for brink:\n");
+				Developer (developer_level::fluff, "AddPartition failed for brink:\n");
 				PrintBrink (b);
 			}
 			countinvalid++;
@@ -1579,7 +1579,7 @@ void AnalyzeBrinks (bbrinkinfo_t *info)
 			countfixed++;
 		}
 	}
-	Developer (DEVELOPER_LEVEL_MESSAGE, "brinks: good = %d skipped = %d fixed = %d invalid = %d\n", countgood, countskipped, countfixed, countinvalid);
+	Developer (developer_level::message, "brinks: good = %d skipped = %d fixed = %d invalid = %d\n", countgood, countskipped, countfixed, countinvalid);
 }
 
 void DeleteClipnodes(bbrinkinfo_t *info)
@@ -1665,7 +1665,7 @@ void SortPartitions (bbrinkinfo_t *info) // to merge same partition planes and c
 			*pp = current;
 		}
 	}
-	Developer (DEVELOPER_LEVEL_MESSAGE, "partitions: floorblocking = %d floor = %d wallblocking = %d wall = %d any = %d\n", countfloorblocking, countfloor, countwallblocking, countwall, countany);
+	Developer (developer_level::message, "partitions: floorblocking = %d floor = %d wallblocking = %d wall = %d any = %d\n", countfloorblocking, countfloor, countwallblocking, countwall, countany);
 }
 
 bbrinkinfo_t* CreateBrinkinfo (const dclipnode_t *clipnodes, int headnode)

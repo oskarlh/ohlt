@@ -404,7 +404,7 @@ static int LoadLump(const lumpinfo_with_wadfileindex* const source, std::byte* d
         }
         else
         {
-            Developer(DEVELOPER_LEVEL_MESSAGE, "Including texture %s\n", source->lump_info.name.c_str());
+            Developer(developer_level::message, "Including texture %s\n", source->lump_info.name.c_str());
 
             // Load the entire texture here so the BSP contains the texture
 			hlassume (source->lump_info.disksize <= dest_maxsize, assume_MAX_MAP_MIPTEX);

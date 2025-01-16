@@ -11,7 +11,7 @@ static void LoadStudioModel(std::u8string_view modelname, const float3_array& or
 {
 	if( models.size() >= MAX_MODELS )
 	{
-		Developer( DEVELOPER_LEVEL_ERROR, "LoadStudioModel: MAX_MODELS exceeded\n" );
+		Developer( developer_level::error, "LoadStudioModel: MAX_MODELS exceeded\n" );
 		return;
 	}
 	model_t *m = &models.emplace_back();
@@ -113,7 +113,7 @@ void LoadStudioModels() {
 			model = value_for_key( e, u8"model" );
 
 			if(model.empty()) {
-				Developer( DEVELOPER_LEVEL_WARNING, "env_static has empty model field\n" );
+				Developer( developer_level::warning, "env_static has empty model field\n" );
 				continue;
 			}
 		} else if( IntForKey( e, u8"zhlt_studioshadow" )) {
