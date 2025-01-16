@@ -43,11 +43,6 @@
 #define sizeofElement(type,identifier) (sizeof((type*)0)->identifier)
 
 
-#ifdef SYSTEM_POSIX
-extern char*    strlwr(char* string);
-#endif
-
-
 std::u8string_view filename_in_file_path_string(std::u8string_view filePathString);
 
 bool a_starts_with_b_ignoring_ascii_character_case_differences(std::u8string_view string, std::u8string_view substring);

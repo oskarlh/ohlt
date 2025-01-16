@@ -184,8 +184,8 @@ static bool TEX_InitFromWad(const std::filesystem::path& bspPath)
             if (!texfiles[nTexFiles])
             {
                 // if we cant find it, Convert to lower case and try again
-                strlwr(szTmp);
-                texfiles[nTexFiles] = fopen(szTmp, "rb");
+                std::u8string lowercase = ascii_characters_to_lowercase_in_utf8_string((const char8_t*) szTmp);
+                texfiles[nTexFiles] = fopen((const char*) lowercase.c_str(), "rb");
             }
             #endif
         }

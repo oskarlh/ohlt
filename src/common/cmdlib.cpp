@@ -32,20 +32,6 @@ double I_FloatTime()
 }
 
 
-
-
-char* strlwr(char* string)
-{
-    int i;
-    int len = std::strlen(string);
-
-    for (i = 0; i < len; i++)
-    {
-        string[i] = tolower(string[i]);
-    }
-    return string;
-}
-
 // Case-insensitive substring matching
 bool a_contains_b_ignoring_ascii_character_case_differences(std::u8string_view string, std::u8string_view substring)
 {
