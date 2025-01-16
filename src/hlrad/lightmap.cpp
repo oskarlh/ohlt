@@ -1832,9 +1832,8 @@ void CreateDirectLights() {
 				dl->intensity, 1.0 / std::numbers::pi_v<double>,
 				dl->intensity
 			);
-			VectorMultiply(
-				dl->intensity, p->texturereflectivity, dl->intensity
-			);
+			dl->intensity
+				= vector_multiply(dl->intensity, p->texturereflectivity);
 
 			dface_t* f = &g_dfaces[p->faceNumber];
 			if (g_face_entity[p->faceNumber] != g_entities.data()
@@ -2754,8 +2753,8 @@ static void GatherSampleLight(
 									l->intensity,
 									dot * l->sunnormalweights[j], add_one
 								);
-								VectorMultiply(
-									add_one, transparency, add_one
+								add_one = vector_multiply(
+									add_one, transparency
 								);
 								// add to the total brightness of this
 								// sample
@@ -2876,8 +2875,8 @@ static void GatherSampleLight(
 										* pow(dot, lighting_power);
 								}
 								VectorScale(sky_intensity, dot, add_one);
-								VectorMultiply(
-									add_one, transparency, add_one
+								add_one = vector_multiply(
+									add_one, transparency
 								);
 								// add to the total brightness of this
 								// sample
@@ -3154,7 +3153,7 @@ static void GatherSampleLight(
 							)) {
 							continue;
 						}
-						VectorMultiply(add, transparency, add);
+						add = vector_multiply(add, transparency);
 						// add to the total brightness of this sample
 						style = l->style;
 						if (opaquestyle != -1) {

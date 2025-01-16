@@ -44,16 +44,19 @@ cross_product(VecA const & a, VecB const & b) noexcept {
 			 a[0] * b[1] - a[1] * b[0] };
 }
 
-template <any_vec3 VecA, any_vec3 VecB>
-constexpr largest_vec3<VecA, VecB>
-vector_add(VecA const & a, VecB const & b) noexcept {
-	return { a[0] + b[0], a[1] + b[1], a[2] + b[2] };
+constexpr auto
+vector_add(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
+	return std::array{ a[0] + b[0], a[1] + b[1], a[2] + b[2] };
 }
 
-template <any_vec3 VecA, any_vec3 VecB>
-constexpr largest_vec3<VecA, VecB>
-vector_subtract(VecA const & a, VecB const & b) noexcept {
-	return { a[0] - b[0], a[1] - b[1], a[2] - b[2] };
+constexpr auto
+vector_multiply(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
+	return to_vec3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
+}
+
+constexpr auto
+vector_subtract(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
+	return std::array{ a[0] - b[0], a[1] - b[1], a[2] - b[2] };
 }
 
 #define VectorMidpoint(a, b, c)         \
@@ -76,12 +79,6 @@ vector_subtract(VecA const & a, VecB const & b) noexcept {
 		(c)[0] = (a)[0] + (b)[0]; \
 		(c)[1] = (a)[1] + (b)[1]; \
 		(c)[2] = (a)[2] + (b)[2]; \
-	}
-#define VectorMultiply(a, b, c)   \
-	{                             \
-		(c)[0] = (a)[0] * (b)[0]; \
-		(c)[1] = (a)[1] * (b)[1]; \
-		(c)[2] = (a)[2] * (b)[2]; \
 	}
 
 #define VectorAddVec(a, b, c)  \
@@ -114,8 +111,7 @@ vector_subtract(VecA const & a, VecB const & b) noexcept {
 	{ (a)[0] = (a)[1] = (a)[2] = 0.0; }
 
 template <any_vec3 Vec3>
-constexpr Vec3
-vector_scale(Vec3& v, typename Vec3::value_type scale) noexcept {
+constexpr Vec3 vector_scale(Vec3& v, any_vec_element auto scale) noexcept {
 	return Vec3{ v[0] * scale, v[1] * scale, v[2] * scale };
 }
 

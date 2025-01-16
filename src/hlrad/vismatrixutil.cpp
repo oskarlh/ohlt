@@ -569,9 +569,8 @@ void MakeRGBScales(int const threadnum) {
 				}
 			}
 			trans_one *= patch2->exposure;
-			trans.fill(trans_one);
-			VectorMultiply(
-				trans, transparency, trans
+			trans = vector_scale(
+				transparency, trans_one
 			); // hullu: add transparency effect
 			if (patch->translucent_b) {
 				if (useback) {

@@ -17,6 +17,9 @@ Desktop.ini
 # Windows shortcuts
 *.lnk
 
+# Shortcuts folder
+/Shortcuts/
+
 
 
 /build/

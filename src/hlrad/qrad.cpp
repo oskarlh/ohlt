@@ -2124,9 +2124,10 @@ static void GatherLight(int threadnum) {
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
 					 && emitpatch->directstyle[emitstyle] != 255;
 					 emitstyle++) {
-					float3_array v;
-					VectorScale(emitpatch->directlight[emitstyle], f, v);
-					VectorMultiply(v, emitpatch->bouncereflectivity, v);
+					float3_array v = vector_multiply(
+						vector_scale(emitpatch->directlight[emitstyle], f),
+						emitpatch->bouncereflectivity
+					);
 					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
@@ -2150,9 +2151,10 @@ static void GatherLight(int threadnum) {
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
 					 && emitpatch->totalstyle[emitstyle] != 255;
 					 emitstyle++) {
-					float3_array v;
-					VectorScale(emitlight[patchnum][emitstyle], f, v);
-					VectorMultiply(v, emitpatch->bouncereflectivity, v);
+					float3_array v = vector_multiply(
+						vector_scale(emitlight[patchnum][emitstyle], f),
+						emitpatch->bouncereflectivity
+					);
 					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
@@ -2232,7 +2234,7 @@ static void GatherRGBLight(int threadnum) {
 	unsigned iIndex;
 	rgb_transfer_data_t* tRGBData;
 	transfer_index_t* tIndex;
-	float f[3];
+	float3_array f;
 	std::array<float3_array, ALLSTYLES> adds;
 	int style;
 	unsigned int fastfind_index = 0;
@@ -2280,9 +2282,10 @@ static void GatherRGBLight(int threadnum) {
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
 					 && emitpatch->directstyle[emitstyle] != 255;
 					 emitstyle++) {
-					float3_array v;
-					VectorMultiply(emitpatch->directlight[emitstyle], f, v);
-					VectorMultiply(v, emitpatch->bouncereflectivity, v);
+					float3_array v = vector_multiply(
+						vector_multiply(emitlight[patchnum][emitstyle], f),
+						emitpatch->bouncereflectivity
+					);
 					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
@@ -2306,9 +2309,10 @@ static void GatherRGBLight(int threadnum) {
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
 					 && emitpatch->totalstyle[emitstyle] != 255;
 					 emitstyle++) {
-					float3_array v;
-					VectorMultiply(emitlight[patchnum][emitstyle], f, v);
-					VectorMultiply(v, emitpatch->bouncereflectivity, v);
+					float3_array v = vector_multiply(
+						vector_multiply(emitlight[patchnum][emitstyle], f),
+						emitpatch->bouncereflectivity
+					);
 					if (is_point_finite(v)) [[likely]] {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {

@@ -339,8 +339,8 @@ bool TestSegmentAgainstOpaqueList(
 			continue;
 		}
 		if (g_opaque_face_list[x].transparency) {
-			VectorMultiply(
-				scaleout, g_opaque_face_list[x].transparency_scale, scaleout
+			scaleout = vector_multiply(
+				scaleout, g_opaque_face_list[x].transparency_scale
 			);
 			continue;
 		}

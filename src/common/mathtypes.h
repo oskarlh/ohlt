@@ -61,3 +61,9 @@ constexpr double3_array to_vec3(any_vec3 auto const & input) noexcept
 	requires(std::is_same_v<Out, double3_array>) {
 	return to_double3(input);
 }
+
+template <any_vec_element VecElement>
+constexpr std::array<VecElement, 3>
+to_vec3(VecElement el0, VecElement el1, VecElement el2) noexcept {
+	return std::array<VecElement, 3>{ el0, el1, el2 };
+}
