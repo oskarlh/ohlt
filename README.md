@@ -1,5 +1,5 @@
 # Oskar's Half-Life Tools
-<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various contributors. Based on Valve's compile tools, modified with permission.</sub>
+<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various people. Based on Valve's compile tools, modified with permission.</sub>
 
 ![Banner](media/banner.webp)
 

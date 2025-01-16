@@ -105,7 +105,7 @@ surfchain_t;
 struct side_t {
 	side_t* next;
 	mapplane_t plane; // Facing inside (reversed when loading brush file)
-	accurate_winding* w; // (Also reversed)
+	accurate_winding wind; // (Also reversed)
 };
 
 struct brush_t {
@@ -218,8 +218,6 @@ extern void     FreePortal(struct portal_s* p);
 extern surface_t* AllocSurface();
 extern void     FreeSurface(surface_t* s);
 
-extern side_t *	AllocSide ();
-extern void		FreeSide (side_t *s);
 extern side_t *	NewSideFromSide (const side_t *s);
 extern brush_t *AllocBrush ();
 extern void		FreeBrush (brush_t *b);

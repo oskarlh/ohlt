@@ -479,31 +479,12 @@ void            FreePortal(portal_t* p) // consider: inline
     free(p);
 }
 
-
-side_t *AllocSide ()
-{
-	side_t *s;
-	s = (side_t *)malloc (sizeof (side_t));
-    *s = {};
-	return s;
-}
-
-void FreeSide (side_t *s)
-{
-	if (s->w)
-	{
-		delete s->w;
-	}
-	free (s);
-	return;
-}
-
 side_t *NewSideFromSide (const side_t *s)
 {
 	side_t *news;
-	news = AllocSide ();
+	news = new side_t{};
 	news->plane = s->plane;
-	news->w = new accurate_winding (*s->w);
+	news->wind = accurate_winding(s->wind);
 	return news;
 }
 
@@ -523,7 +504,7 @@ void FreeBrush (brush_t *b)
 		for (s = b->sides; s; s = next)
 		{
 			next = s->next;
-			FreeSide (s);
+			delete s;
 		}
 	}
 	free (b);
@@ -544,18 +525,17 @@ brush_t *NewBrushFromBrush (const brush_t *b)
 
 void ClipBrush (brush_t **b, const mapplane_t *split, double epsilon)
 {
-	side_t *s, **pnext;
-	accurate_winding *w;
+	side_t *s{}, **pnext{};
 	for (pnext = &(*b)->sides, s = *pnext; s; s = *pnext)
 	{
-		if (s->w->mutating_clip(split->normal, split->dist, false, epsilon))
+		if (s->wind.mutating_clip(split->normal, split->dist, false, epsilon))
 		{
 			pnext = &s->next;
 		}
 		else
 		{
 			*pnext = s->next;
-			FreeSide (s);
+			delete s;
 		}
 	}
 	if (!(*b)->sides)
@@ -564,23 +544,19 @@ void ClipBrush (brush_t **b, const mapplane_t *split, double epsilon)
 		*b = nullptr;
 		return;
 	}
-	w = new accurate_winding (*split);
+	accurate_winding wind{*split};
 	for (s = (*b)->sides; s; s = s->next)
 	{
-		if (!w->mutating_clip(s->plane.normal, s->plane.dist, false, epsilon))
+		if (!wind.mutating_clip(s->plane.normal, s->plane.dist, false, epsilon))
 		{
 			break;
 		}
 	}
-	if (w->size() == 0)
+	if (!wind.empty())
 	{
-		delete w;
-	}
-	else
-	{
-		s = AllocSide ();
+		s = new side_t{};
 		s->plane = *split;
-		s->w = w;
+		s->wind = std::move(wind);
 		s->next = (*b)->sides;
 		(*b)->sides = s;
 	}
@@ -598,7 +574,7 @@ void SplitBrush (brush_t *in, const mapplane_t *split, brush_t **front, brush_t 
 	side_t *s;
 	for (s = in->sides; s; s = s->next)
 	{
-		switch (s->w->WindingOnPlaneSide (split->normal, split->dist, 2 * ON_EPSILON))
+		switch (s->wind.WindingOnPlaneSide (split->normal, split->dist, 2 * ON_EPSILON))
 		{
 		case face_side::cross:
 			onfront = true;
@@ -659,9 +635,9 @@ brush_t *BrushFromBox (const double3_array& mins, const double3_array& maxs)
 		planes[k+3].normal[k] = -1.0;
 		planes[k+3].dist = -maxs[k];
 	}
-	b->sides = AllocSide ();
+	b->sides = new side_t{};
 	b->sides->plane = planes[0];
-	b->sides->w = new accurate_winding (planes[0]);
+	b->sides->wind = accurate_winding(planes[0]);
 	for (int k = 1; k < 6; k++)
 	{
 		ClipBrush (&b, &planes[k], NORMAL_EPSILON);
@@ -680,7 +656,7 @@ void CalcBrushBounds (const brush_t *b, double3_array& mins, double3_array& maxs
 	for (side_t *s = b->sides; s; s = s->next)
 	{
         
-		const bounding_box bounds = s->w->getBounds();
+		const bounding_box bounds = s->wind.getBounds();
 		mins = vector_minimums(mins, bounds.mins);
 		maxs = vector_maximums(maxs, bounds.maxs);
 	}
@@ -1000,20 +976,19 @@ static brush_t *ReadBrushes (FILE *file)
 			{
 				break;
 			}
-			side_t *s;
-			s = AllocSide ();
+			side_t *s = new side_t{};
 			s->plane = g_mapplanes[planenum ^ 1];
-			s->w = new accurate_winding (numpoints);
+			s->wind = accurate_winding(numpoints);
 			int x;
 			for (x = 0; x < numpoints; x++)
 			{
-				double v[3];
+				double3_array v;
 				r = fscanf (file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 				if (r != 3)
 				{
 					Error ("ReadBrushes: get point failed");
 				}
-				VectorCopy (v, s->w->m_Points[numpoints - 1 - x]);
+				s->wind.m_Points[numpoints - 1 - x] = v;
 			}
 			s->next = nullptr;
 			*psn = s;
