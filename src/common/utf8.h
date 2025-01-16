@@ -44,7 +44,15 @@ inline bool validate_utf8(Range&& string) noexcept {
 	return true;
 }
 
-
+constexpr bool is_ascii_whitespace(char8_t c) noexcept {
+	return
+		c == u8' ' ||
+		c == u8'\n' ||
+		c == u8'\r' ||
+		c == u8'\t' ||
+		c == u8'\v'
+	;
+}
 
 constexpr char8_t ascii_character_to_lowercase(char8_t c) noexcept {
 	const char8_t add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'\0';

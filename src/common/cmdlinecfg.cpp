@@ -1,13 +1,15 @@
 #include "cmdlib.h"
-#include "scriplib.h"
 #include "cmdlinecfg.h"
-#include "log.h"
 #include "filelib.h"
+#include "log.h"
+#include "scriplib.h"
+#include "utf8.h"
+
+#include <algorithm>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <algorithm>
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
