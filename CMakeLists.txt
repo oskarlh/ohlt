@@ -47,6 +47,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/bsp_file_sizes.h
     ${COMMON_DIR}/bspfile.h
     ${COMMON_DIR}/call_finally.h
+    ${COMMON_DIR}/common_settings.h
     ${COMMON_DIR}/context.h
     ${COMMON_DIR}/cmdlib.h
     ${COMMON_DIR}/cmdlinecfg.h
@@ -121,6 +122,7 @@ set(CSG_SOURCES
 set(CSG_HEADERS
 #    ${COMMON_HEADERS}
     ${CSG_DIR}/csg.h
+    ${CSG_DIR}/hlcsg_settings.h
     ${CSG_DIR}/wadpath.h
 )
 
@@ -251,7 +253,6 @@ else()
     )
     message("${CMAKE_PROJECT_NAME} > WARNING: Unknown system \"${CMAKE_SYSTEM_NAME}\"")
 endif()
-
 
 # Tell MSVC the source files are in UTF-8
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")

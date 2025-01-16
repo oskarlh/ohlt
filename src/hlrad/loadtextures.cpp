@@ -353,51 +353,51 @@ void LoadTextures ()
 
 // color quantization algorithm
 
-#define CQ_DIM 3
+constexpr std::size_t CQ_DIMENSIONS = 3;
 
-template<class T, class T2, class T3> inline void CQ_VectorSubtract(const T a[CQ_DIM], const T2 b[CQ_DIM], T3 c[CQ_DIM])
+template<class T, class T2, class T3> inline void CQ_VectorSubtract(const T a[CQ_DIMENSIONS], const T2 b[CQ_DIMENSIONS], T3 c[CQ_DIMENSIONS])
 {
-	for (int x = 0; x < CQ_DIM; x++)
+	for (int x = 0; x < CQ_DIMENSIONS; x++)
 	{
 		c[x] = a[x] - b[x];
 	}
 }
 
-template<class T, class T2, class T3> inline void CQ_VectorAdd (const T a[CQ_DIM], const T2 b[CQ_DIM], T3 c[CQ_DIM])
+template<class T, class T2, class T3> inline void CQ_VectorAdd (const T a[CQ_DIMENSIONS], const T2 b[CQ_DIMENSIONS], T3 c[CQ_DIMENSIONS])
 {
-	for (int x = 0; x < CQ_DIM; x++)
+	for (int x = 0; x < CQ_DIMENSIONS; x++)
 	{
 		c[x] = a[x] + b[x];
 	}
 }
 
-template<class T, class T2> inline void CQ_VectorScale (const T a[CQ_DIM], const T2 b, T c[CQ_DIM])
+template<class T, class T2> inline void CQ_VectorScale (const T a[CQ_DIMENSIONS], const T2 b, T c[CQ_DIMENSIONS])
 {
-	for (int x = 0; x < CQ_DIM; x++)
+	for (int x = 0; x < CQ_DIMENSIONS; x++)
 	{
 		c[x] = a[x] * b;
 	}
 }
 
-template<class T, class T2> inline void CQ_VectorCopy (const T a[CQ_DIM], T2 b[CQ_DIM])
+template<class T, class T2> inline void CQ_VectorCopy (const T a[CQ_DIMENSIONS], T2 b[CQ_DIMENSIONS])
 {
-	for (int x = 0; x < CQ_DIM; x++)
+	for (int x = 0; x < CQ_DIMENSIONS; x++)
 	{
 		b[x] = a[x];
 	}
 }
 
-template<class T> inline void CQ_VectorClear (T a[CQ_DIM])
+template<class T> inline void CQ_VectorClear (T a[CQ_DIMENSIONS])
 {
-	for (std::size_t x = 0; x < CQ_DIM; ++x) {
+	for (std::size_t x = 0; x < CQ_DIMENSIONS; ++x) {
 		a[x] = (T)0;
 	}
 }
 
-template<class T> inline T CQ_DotProduct (const T a[CQ_DIM], const T b[CQ_DIM])
+template<class T> inline T CQ_DotProduct (const T a[CQ_DIMENSIONS], const T b[CQ_DIMENSIONS])
 {
 	T dot = (T)0;
-	for (std::size_t x = 0; x < CQ_DIM; ++x) {
+	for (std::size_t x = 0; x < CQ_DIMENSIONS; ++x) {
 		dot += a[x] * b[x];
 	}
 	return dot;
@@ -418,8 +418,8 @@ typedef struct cq_node_s
 	cq_node_s *childrennode[2];
 
 	int numpoints; // numpoints > 0
-	unsigned char (*refpoints)[CQ_DIM];
-	double centerofpoints[CQ_DIM];
+	unsigned char (*refpoints)[CQ_DIMENSIONS];
+	double centerofpoints[CQ_DIMENSIONS];
 
 	bool needsplit;
 	cq_splitter_t bestsplitter;
@@ -449,20 +449,20 @@ static void CQ_SelectPartition (cq_node_t *node)
 	CQ_VectorScale (node->centerofpoints, 1 / (double)node->numpoints, node->centerofpoints);
 
 	node->needsplit = false;
-	for (int k = 0; k < CQ_DIM; k++)
+	for (int k = 0; k < CQ_DIMENSIONS; k++)
 	{
 		double count;
 		double counts[256];
-		double sum[CQ_DIM];
-		double sums[256][CQ_DIM];
+		double sum[CQ_DIMENSIONS];
+		double sums[256][CQ_DIMENSIONS];
 
-		double bucketsums[256][CQ_DIM];
+		double bucketsums[256][CQ_DIMENSIONS];
 		int bucketsizes[256];
 
-		const unsigned char (*nodepoints)[CQ_DIM] = node->refpoints;
+		const unsigned char (*nodepoints)[CQ_DIMENSIONS] = node->refpoints;
 		const int nodenumpoints = node->numpoints;
 
-		memset (bucketsums, 0, 256 * sizeof (double [CQ_DIM]));
+		memset (bucketsums, 0, 256 * sizeof (double [CQ_DIMENSIONS]));
 		memset (bucketsizes, 0, 256 * sizeof (int));
 		for (int i = 0; i < nodenumpoints; i++)
 		{
@@ -503,7 +503,7 @@ static void CQ_SelectPartition (cq_node_t *node)
 			double priority = 0; // the decrease in total square deviation
 			priority -= CQ_DotProduct (sum, sum) / count;
 			priority += CQ_DotProduct (sums[j], sums[j]) / counts[j];
-			double remain[CQ_DIM];
+			double remain[CQ_DIMENSIONS];
 			CQ_VectorSubtract(sum, sums[j], remain); // sums and counts are precise (have no round-off error)
 			priority += CQ_DotProduct (remain, remain) / (count - counts[j]);
 			if (node->needsplit == false ||
@@ -535,8 +535,8 @@ static void CQ_FreeSearchTree (cq_searchnode_t *searchtree)
 	free (searchtree);
 }
 
-static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DIM],
-					   int maxcolors, unsigned char (*colors_out)[CQ_DIM], int &numcolors_out,
+static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DIMENSIONS],
+					   int maxcolors, unsigned char (*colors_out)[CQ_DIMENSIONS], int &numcolors_out,
 					   cq_searchnode_t *searchtree_out) //[2 * maxcolors - 1]
 {
 	if (numpoints <= 0 || maxcolors <= 0)
@@ -545,10 +545,10 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 		return;
 	}
 
-	unsigned char (*pointarray)[CQ_DIM];
-	pointarray = (unsigned char (*)[CQ_DIM])malloc (numpoints * sizeof (unsigned char [CQ_DIM]));
+	unsigned char (*pointarray)[CQ_DIMENSIONS];
+	pointarray = (unsigned char (*)[CQ_DIMENSIONS])malloc (numpoints * sizeof (unsigned char [CQ_DIMENSIONS]));
 	hlassume (pointarray != nullptr, assume_NoMemory);
-	memcpy (pointarray, points, numpoints * sizeof (unsigned char [CQ_DIM]));
+	memcpy (pointarray, points, numpoints * sizeof (unsigned char [CQ_DIMENSIONS]));
 
 	cq_node_t *n;
 	cq_searchnode_t *s;
@@ -614,10 +614,10 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 			const int splitaxis = bestnode->bestsplitter.axis;
 			const int splitdist = bestnode->bestsplitter.dist;
 			const int numpoints = bestnode->numpoints;
-			unsigned char (*points)[CQ_DIM] = bestnode->refpoints;
+			unsigned char (*points)[CQ_DIMENSIONS] = bestnode->refpoints;
 
-			unsigned char (*left)[CQ_DIM];
-			unsigned char (*right)[CQ_DIM];
+			unsigned char (*left)[CQ_DIMENSIONS];
+			unsigned char (*right)[CQ_DIMENSIONS];
 			left = &bestnode->refpoints[0];
 			right = &bestnode->refpoints[bestnode->numpoints - 1];
 			while (1)
@@ -634,7 +634,7 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 				{
 					break;
 				}
-				unsigned char tmp[CQ_DIM];
+				unsigned char tmp[CQ_DIMENSIONS];
 				CQ_VectorCopy (*left, tmp);
 				CQ_VectorCopy (*right, *left);
 				CQ_VectorCopy (tmp, *right);
@@ -688,7 +688,7 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 		}
 		s = &searchtree_out[n - nodes];
 		s->result = numcolors_out;
-		for (int k = 0; k < CQ_DIM; k++)
+		for (int k = 0; k < CQ_DIMENSIONS; k++)
 		{
 			int val = (int)floor (n->centerofpoints[k] + 0.5 + 0.00001);
 			val = std::max(0, std::min(val, 255));
@@ -720,8 +720,8 @@ static void CQ_CreatePalette (int numpoints, const unsigned char (*points)[CQ_DI
 }
 
 static void CQ_MapPoint_r (int *bestdist, int *best,
-					cq_searchnode_t *node, const unsigned char (*colors)[CQ_DIM],
-					const unsigned char point[CQ_DIM], int searchradius)
+					cq_searchnode_t *node, const unsigned char (*colors)[CQ_DIMENSIONS],
+					const unsigned char point[CQ_DIMENSIONS], int searchradius)
 {
 	while (!node->isleafnode)
 	{
@@ -742,7 +742,7 @@ static void CQ_MapPoint_r (int *bestdist, int *best,
 		}
 	}
 	int dist = 0;
-	for (int k = 0; k < CQ_DIM; k++)
+	for (int k = 0; k < CQ_DIMENSIONS; k++)
 	{
 		dist += (colors[node->result][k] - point[k]) * (colors[node->result][k] - point[k]);
 	}
@@ -756,7 +756,7 @@ static void CQ_MapPoint_r (int *bestdist, int *best,
 	}
 }
 
-static int CQ_MapPoint (const unsigned char point[CQ_DIM], const unsigned char (*colors)[CQ_DIM], int numcolors, cq_searchnode_t *searchtree)
+static int CQ_MapPoint (const unsigned char point[CQ_DIMENSIONS], const unsigned char (*colors)[CQ_DIMENSIONS], int numcolors, cq_searchnode_t *searchtree)
 {
 	if (numcolors <= 0)
 	{
@@ -774,7 +774,7 @@ static int CQ_MapPoint (const unsigned char point[CQ_DIM], const unsigned char (
 	}
 	best = node->result;
 	bestdist = 0;
-	for (int k = 0; k < CQ_DIM; k++)
+	for (int k = 0; k < CQ_DIMENSIONS; k++)
 	{
 		bestdist += (colors[best][k] - point[k]) * (colors[best][k] - point[k]);
 	}

@@ -95,47 +95,47 @@
 			"inherits": ["base-release", "base-windows-msvc"]
 		}
 	],
-    "buildPresets": [
-        {
-            "name":				"debug-default",
-			"configurePreset":	"debug-default"
-        },
-        {
-            "name":				"debug-linux-gcc14",
-			"configurePreset": 	"debug-linux-gcc14"
-        },
-        {
-            "name":				"debug-macos-clang18-homebrew",
-			"configurePreset":	"debug-macos-clang18-homebrew"
-        },
-        {
-            "name":				"debug-macos-gcc14-homebrew",
-			"configurePreset":	"debug-macos-gcc14-homebrew"
-        },
-        {
-            "name":				"debug-windows-msvc",
-            "configurePreset":	"debug-windows-msvc"
-        },
+	"buildPresets": [
+		{
+			"name": "debug-default",
+			"configurePreset": "debug-default"
+		},
+		{
+			"name": "debug-linux-gcc14",
+			"configurePreset": "debug-linux-gcc14"
+		},
+		{
+			"name": "debug-macos-clang18-homebrew",
+			"configurePreset": "debug-macos-clang18-homebrew"
+		},
+		{
+			"name": "debug-macos-gcc14-homebrew",
+			"configurePreset": "debug-macos-gcc14-homebrew"
+		},
+		{
+			"name": "debug-windows-msvc",
+			"configurePreset": "debug-windows-msvc"
+		},
 
-        {
-            "name":				"release-default",
-			"configurePreset":	"release-default"
-        },
-        {
-            "name":				"release-linux-gcc14",
-			"configurePreset": 	"release-linux-gcc14"
-        },
-        {
-            "name":				"release-macos-clang18-homebrew",
-			"configurePreset":	"release-macos-clang18-homebrew"
-        },
-        {
-            "name":				"release-macos-gcc14-homebrew",
-			"configurePreset":	"release-macos-gcc14-homebrew"
-        },
-        {
-            "name":				"release-windows-msvc",
-            "configurePreset":	"release-windows-msvc"
-        }
-    ]
+		{
+			"name": "release-default",
+			"configurePreset": "release-default"
+		},
+		{
+			"name": "release-linux-gcc14",
+			"configurePreset": "release-linux-gcc14"
+		},
+		{
+			"name": "release-macos-clang18-homebrew",
+			"configurePreset": "release-macos-clang18-homebrew"
+		},
+		{
+			"name": "release-macos-gcc14-homebrew",
+			"configurePreset": "release-macos-gcc14-homebrew"
+		},
+		{
+			"name": "release-windows-msvc",
+			"configurePreset": "release-windows-msvc"
+		}
+	]
 }
