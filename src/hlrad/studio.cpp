@@ -8,9 +8,13 @@ constexpr std::size_t MAX_MODELS = 10000;
 static std::vector<model_t> models;
 
 static void LoadStudioModel(
-	std::u8string_view modelname, float3_array const & origin,
-	float3_array const & angles, float3_array const & scale, int body,
-	int skin, trace_method trace_mode
+	std::u8string_view modelname,
+	float3_array const & origin,
+	float3_array const & angles,
+	float3_array const & scale,
+	int body,
+	int skin,
+	trace_method trace_mode
 ) {
 	if (models.size() >= MAX_MODELS) {
 		Developer(
@@ -219,9 +223,12 @@ void FreeStudioModels() {
 }
 
 static void MoveBounds(
-	float3_array const & start, float3_array const & mins,
-	float3_array const & maxs, float3_array const & end,
-	float3_array& outmins, float3_array& outmaxs
+	float3_array const & start,
+	float3_array const & mins,
+	float3_array const & maxs,
+	float3_array const & end,
+	float3_array& outmins,
+	float3_array& outmaxs
 ) {
 	for (int i = 0; i < 3; i++) {
 		if (end[i] > start[i]) {

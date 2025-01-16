@@ -137,8 +137,10 @@ class CMeshDesc {
 
 	// local mathlib
 	void AngleMatrix(
-		float3_array const & angles, float3_array const & origin,
-		float3_array const & scale, matrix3x4& matrix
+		float3_array const & angles,
+		float3_array const & origin,
+		float3_array const & scale,
+		matrix3x4& matrix
 	);
 	void ConcatTransforms(
 		matrix3x4 const & in1, matrix3x4 const & in2, matrix3x4& out
@@ -227,7 +229,9 @@ class CMeshDesc {
 
 // simplification
 void ProgressiveMesh(
-	List<float3_array>& vert, List<triset>& tri, List<int>& map,
+	List<float3_array>& vert,
+	List<triset>& tri,
+	List<int>& map,
 	List<int>& permutation
 );
 void PermuteVertices(

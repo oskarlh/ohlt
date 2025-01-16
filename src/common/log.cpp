@@ -486,8 +486,11 @@ void hlassume(bool exp, assume_msgs msgid) {
 //  seconds_to_hhmm
 // =====================================================================================
 static void seconds_to_hhmm(
-	unsigned int elapsed_time, unsigned& days, unsigned& hours,
-	unsigned& minutes, unsigned& seconds
+	unsigned int elapsed_time,
+	unsigned& days,
+	unsigned& hours,
+	unsigned& minutes,
+	unsigned& seconds
 ) {
 	seconds = elapsed_time % 60;
 	elapsed_time /= 60;

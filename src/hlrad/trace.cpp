@@ -83,8 +83,11 @@ void MakeTnodes(dmodel_t* /*bm*/) {
 //==========================================================
 
 static int TestLine_r(
-	int const node, float3_array const & start, float3_array const & stop,
-	int& linecontent, float3_array& skyhit
+	int const node,
+	float3_array const & start,
+	float3_array const & stop,
+	int& linecontent,
+	float3_array& skyhit
 ) {
 	tnode_t* tnode;
 	float front, back;
@@ -185,7 +188,8 @@ static int TestLine_r(
 }
 
 int TestLine(
-	float3_array const & start, float3_array const & stop,
+	float3_array const & start,
+	float3_array const & stop,
 	float3_array& skyhit
 ) {
 	int linecontent = 0;
@@ -556,8 +560,10 @@ static int TestLineOpaque_r(
 }
 
 int TestLineOpaque(
-	int modelnum, float3_array const & modelorigin,
-	float3_array const & start, float3_array const & stop
+	int modelnum,
+	float3_array const & modelorigin,
+	float3_array const & start,
+	float3_array const & stop
 ) {
 	opaquemodel_t* thismodel = &opaquemodels[modelnum];
 	float front, back, frac;
@@ -670,7 +676,9 @@ int TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 }
 
 int TestPointOpaque(
-	int modelnum, float3_array const & modelorigin, bool solid,
+	int modelnum,
+	float3_array const & modelorigin,
+	bool solid,
 	float3_array const & point
 ) {
 	opaquemodel_t* thismodel = &opaquemodels[modelnum];

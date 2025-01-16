@@ -18,8 +18,10 @@ GNU General Public License for more details.
 #include "qrad.h"
 
 void TraceMesh ::SetupTrace(
-	float3_array const & start, float3_array const & mins,
-	float3_array const & maxs, float3_array const & end
+	float3_array const & start,
+	float3_array const & mins,
+	float3_array const & maxs,
+	float3_array const & end
 ) {
 	m_bHitTriangle = false;
 

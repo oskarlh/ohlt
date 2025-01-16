@@ -562,8 +562,10 @@ static void CQ_FreeSearchTree(cq_searchnode_t* searchtree) {
 }
 
 static void CQ_CreatePalette(
-	int numpoints, unsigned char const (*points)[CQ_DIMENSIONS],
-	int maxcolors, unsigned char (*colors_out)[CQ_DIMENSIONS],
+	int numpoints,
+	unsigned char const (*points)[CQ_DIMENSIONS],
+	int maxcolors,
+	unsigned char (*colors_out)[CQ_DIMENSIONS],
 	int& numcolors_out,
 	cq_searchnode_t* searchtree_out
 ) //[2 * maxcolors - 1]
@@ -735,9 +737,12 @@ static void CQ_CreatePalette(
 }
 
 static void CQ_MapPoint_r(
-	int* bestdist, int* best, cq_searchnode_t* node,
+	int* bestdist,
+	int* best,
+	cq_searchnode_t* node,
 	unsigned char const (*colors)[CQ_DIMENSIONS],
-	unsigned char const point[CQ_DIMENSIONS], int searchradius
+	unsigned char const point[CQ_DIMENSIONS],
+	int searchradius
 ) {
 	while (!node->isleafnode) {
 		int dist = point[node->planeaxis] - node->planedist;
@@ -772,7 +777,8 @@ static void CQ_MapPoint_r(
 
 static int CQ_MapPoint(
 	unsigned char const point[CQ_DIMENSIONS],
-	unsigned char const (*colors)[CQ_DIMENSIONS], int numcolors,
+	unsigned char const (*colors)[CQ_DIMENSIONS],
+	int numcolors,
 	cq_searchnode_t* searchtree
 ) {
 	if (numcolors <= 0) {
@@ -921,7 +927,10 @@ static void GetLightInt(
 }
 
 static void GetLight(
-	dface_t* face, int const texsize[2], double x, double y,
+	dface_t* face,
+	int const texsize[2],
+	double x,
+	double y,
 	float3_array& light
 ) {
 	int ix, iy;

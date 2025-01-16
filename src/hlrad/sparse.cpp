@@ -96,7 +96,9 @@ static void SetVisColumn(
 
 // Vismatrix public
 static bool CheckVisBitSparse(
-	std::uint32_t x, std::uint32_t y, float3_array& transparency_out,
+	std::uint32_t x,
+	std::uint32_t y,
+	float3_array& transparency_out,
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {
@@ -141,7 +143,10 @@ static bool CheckVisBitSparse(
  * ==============
  */
 static void TestPatchToFace(
-	unsigned const patchnum, int const facenum, int const head, byte* pvs,
+	unsigned const patchnum,
+	int const facenum,
+	int const head,
+	byte* pvs,
 	bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES],
 	std::vector<float3_array>& transparencyList
 ) {

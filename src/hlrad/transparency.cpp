@@ -43,7 +43,9 @@ static std::size_t AddTransparencyToDataList(
 // AddTransparencyToRawArray
 //===============================================
 void AddTransparencyToRawArray(
-	unsigned const p1, unsigned const p2, float3_array const & trans,
+	unsigned const p1,
+	unsigned const p2,
+	float3_array const & trans,
 	std::vector<float3_array>& transparencyList
 ) {
 	// Make thread safe
@@ -171,7 +173,9 @@ void FreeTransparencyArrays() {
 // GetTransparency -- find transparency from list. remembers last location
 //===============================================
 void GetTransparency(
-	unsigned const p1, unsigned const p2, float3_array& trans,
+	unsigned const p1,
+	unsigned const p2,
+	float3_array& trans,
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {
@@ -299,7 +303,9 @@ void FreeStyleArrays() {
 }
 
 void GetStyle(
-	unsigned const p1, unsigned const p2, int& style,
+	unsigned const p1,
+	unsigned const p2,
+	int& style,
 	unsigned int& next_index
 ) {
 	style = -1;

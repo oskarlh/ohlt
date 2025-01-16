@@ -14,7 +14,8 @@ size_t g_transfer_data_bytes = 0;
 constexpr bool ENABLE_COMPRESSED_TRANSFERS = true;
 
 int FindTransferOffsetPatchnum(
-	transfer_index_t* tIndex, patch_t const * const patch,
+	transfer_index_t* tIndex,
+	patch_t const * const patch,
 	unsigned const patchnum
 ) {
 	//

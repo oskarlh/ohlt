@@ -55,7 +55,8 @@ static void UpdateStatus(void) {
 //      For BSP hueristic
 // =====================================================================================
 static face_side FaceSide(
-	face_t* in, mapplane_t const * const split,
+	face_t* in,
+	mapplane_t const * const split,
 	double* epsilonsplit = nullptr
 ) {
 	double const epsilonmin = 0.002, epsilonmax = 0.2;
@@ -285,7 +286,8 @@ surfacetree_t* BuildSurfaceTree(surface_t* surfaces, double epsilon) {
 }
 
 void TestSurfaceTree_r(
-	surfacetree_t* tree, surfacetreenode_t const * node,
+	surfacetree_t* tree,
+	surfacetreenode_t const * node,
 	mapplane_t const * split
 ) {
 	if (node->size == 0) {
@@ -362,8 +364,10 @@ void DeleteSurfaceTree(surfacetree_t* tree) {
 //      to the middle.
 // =====================================================================================
 static surface_t* ChooseMidPlaneFromList(
-	surface_t* surfaces, double3_array const & mins,
-	double3_array const & maxs, int detaillevel
+	surface_t* surfaces,
+	double3_array const & mins,
+	double3_array const & maxs,
+	int detaillevel
 ) {
 	int j;
 	surface_t* p;
@@ -491,7 +495,8 @@ static surface_t* ChooseMidPlaneFromList(
 //      Choose the plane that splits the least faces
 // =====================================================================================
 static surface_t* ChoosePlaneFromList(
-	surface_t* surfaces, double3_array const & mins,
+	surface_t* surfaces,
+	double3_array const & mins,
 	double3_array const & maxs
 	// mins and maxs are invalid when detaillevel > 0
 	,
@@ -650,8 +655,11 @@ int CalcSplitDetaillevel(node_t const * node) {
 }
 
 static surface_t* SelectPartition(
-	surface_t* surfaces, node_t const * const node, bool const usemidsplit,
-	int splitdetaillevel, double3_array const & validmins,
+	surface_t* surfaces,
+	node_t const * const node,
+	bool const usemidsplit,
+	int splitdetaillevel,
+	double3_array const & validmins,
 	double3_array const & validmaxs
 ) {
 	if (splitdetaillevel == -1) {
@@ -752,7 +760,9 @@ void FixDetaillevelForDiscardable(node_t* node, int detaillevel) {
 //  DivideSurface
 // =====================================================================================
 static void DivideSurface(
-	surface_t* in, mapplane_t const * const split, surface_t** front,
+	surface_t* in,
+	mapplane_t const * const split,
+	surface_t** front,
 	surface_t** back
 ) {
 	face_t* facet;
@@ -1562,7 +1572,8 @@ static void BuildBspTree_r(node_t* node) {
 //      completely freed.
 // =====================================================================================
 node_t* SolidBSP(
-	surfchain_t const * const surfhead, brush_t* detailbrushes,
+	surfchain_t const * const surfhead,
+	brush_t* detailbrushes,
 	bool report_progress
 ) {
 	node_t* headnode;

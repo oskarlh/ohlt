@@ -95,7 +95,9 @@ std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{ bspGlobals.entities };
  * ===============
  */
 int CompressVis(
-	byte const * const src, unsigned int const src_length, byte* dest,
+	byte const * const src,
+	unsigned int const src_length,
+	byte* dest,
 	unsigned int dest_length
 ) {
 	unsigned int j;
@@ -351,7 +353,8 @@ std::uint32_t hash_data() {
 
 template <lump_id LumpId>
 void add_lump(
-	std::span<lump_element_type<LumpId> const> data, dheader_t* header,
+	std::span<lump_element_type<LumpId> const> data,
+	dheader_t* header,
 	FILE* bspfile
 ) {
 	//	Log("CHECKSUM %s%u %u\n",

@@ -360,7 +360,9 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 //      generate a mirrored copy of the face to be seen from the inside.
 // =====================================================================================
 static void SaveOutside(
-	brush_t& b, int const hull, std::vector<bface_t>& outside,
+	brush_t& b,
+	int const hull,
+	std::vector<bface_t>& outside,
 	int const mirrorcontents
 ) {
 	for (bface_t& f : outside) {

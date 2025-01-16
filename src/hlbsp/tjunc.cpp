@@ -154,7 +154,9 @@ static bool CanonicalVector(double3_array& vec) {
 }
 
 static wedge_t* FindEdge(
-	double3_array const & p1, double3_array const & p2, double* t1,
+	double3_array const & p1,
+	double3_array const & p2,
+	double* t1,
 	double* t2
 ) {
 	double3_array origin;

@@ -50,8 +50,10 @@ read_binary_file(std::filesystem::path const & filePath) {
 }
 
 std::optional<std::u8string> read_utf8_file(
-	std::filesystem::path const & filePath, bool windowsLineEndingsToUnix,
-	std::optional<legacy_encoding> legacyEncoding, bool forceLegacyEncoding
+	std::filesystem::path const & filePath,
+	bool windowsLineEndingsToUnix,
+	std::optional<legacy_encoding> legacyEncoding,
+	bool forceLegacyEncoding
 ) {
 	auto [fileOpened, fileSize, file] = open_file_and_get_size(filePath);
 	if (!fileOpened) {

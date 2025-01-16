@@ -354,7 +354,9 @@ static CVertex* MinimumCostEdge(void) {
 }
 
 void ProgressiveMesh(
-	List<float3_array>& vert, List<triset>& tri, List<int>& map,
+	List<float3_array>& vert,
+	List<triset>& tri,
+	List<int>& map,
 	List<int>& permutation
 ) {
 	AddVertex(vert); // put input data into our data structures

@@ -64,8 +64,10 @@ class TraceMesh {
 	}
 
 	inline bool BoundsIntersect(
-		float3_array const & mins1, float3_array const & maxs1,
-		float3_array const & mins2, float3_array const & maxs2
+		float3_array const & mins1,
+		float3_array const & maxs1,
+		float3_array const & mins2,
+		float3_array const & maxs2
 	) {
 		if (mins1[0] > maxs2[0] || mins1[1] > maxs2[1]
 			|| mins1[2] > maxs2[2]) {
@@ -92,8 +94,10 @@ class TraceMesh {
 	}
 
 	void SetupTrace(
-		float3_array const & start, float3_array const & mins,
-		float3_array const & maxs, float3_array const & end
+		float3_array const & start,
+		float3_array const & mins,
+		float3_array const & maxs,
+		float3_array const & end
 	);
 
 	void SetTraceModExtradata(void* data) {

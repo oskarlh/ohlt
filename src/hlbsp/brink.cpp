@@ -78,8 +78,12 @@ void PrintBrink(bbrink_t const & b) {
 }
 
 void BrinkSplitClipnode(
-	bbrink_t* b, mapplane_t const * plane, int planenum, bclipnode_t* prev,
-	bclipnode_t* n0, bclipnode_t* n1
+	bbrink_t* b,
+	mapplane_t const * plane,
+	int planenum,
+	bclipnode_t* prev,
+	bclipnode_t* n0,
+	bclipnode_t* n1
 ) {
 	int found{ 0 };
 	int numfound{ 0 };
@@ -187,8 +191,8 @@ struct btreeface_t {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite; // when the face is infinite, all its edges must also be
-				   // infinite
+	bool infinite;	// when the face is infinite, all its edges must also be
+					// infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -312,7 +316,9 @@ btreeleaf_t* BuildOutside(int& numobjects) {
 }
 
 btreeleaf_t* BuildBaseCell(
-	int& numobjects, bclipnode_t* clipnode, double range,
+	int& numobjects,
+	bclipnode_t* clipnode,
+	double range,
 	btreeleaf_t* leaf_outside
 ) {
 	btreepoint_t* tp[8];
@@ -531,9 +537,15 @@ void DeleteLeaf(int& numobjects, btreeleaf_t* tl) {
 }
 
 void SplitTreeLeaf(
-	int& numobjects, btreeleaf_t* tl, mapplane_t const * plane,
-	int planenum, double epsilon, btreeleaf_t*& front, btreeleaf_t*& back,
-	bclipnode_t* c0, bclipnode_t* c1
+	int& numobjects,
+	btreeleaf_t* tl,
+	mapplane_t const * plane,
+	int planenum,
+	double epsilon,
+	btreeleaf_t*& front,
+	btreeleaf_t*& back,
+	bclipnode_t* c0,
+	bclipnode_t* c1
 ) {
 	btreeface_l::iterator fi;
 	btreeedge_l::iterator ei;
@@ -964,8 +976,10 @@ void BuildTreeCells_r(int& numobjects, bclipnode_t* c) {
 #define MAXCLIPNODES (MAX_MAP_CLIPNODES * 8)
 
 bclipnode_t* ExpandClipnodes_r(
-	bclipnode_t* bclipnodes, int& numbclipnodes,
-	dclipnode_t const * clipnodes, int headnode
+	bclipnode_t* bclipnodes,
+	int& numbclipnodes,
+	dclipnode_t const * clipnodes,
+	int headnode
 ) {
 	if (numbclipnodes >= MAXCLIPNODES) {
 		Error("ExpandClipnodes_r: exceeded MAXCLIPNODES");
@@ -1260,7 +1274,10 @@ void PrintCircle(bcircle_t const * c) {
 }
 
 bool AddPartition(
-	bclipnode_t* clipnode, int planenum, bool planeside, int content,
+	bclipnode_t* clipnode,
+	int planenum,
+	bool planeside,
+	int content,
 	bbrinklevel_e brinktype
 ) {
 	// make sure we won't do any harm
@@ -1665,9 +1682,14 @@ inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
 }
 
 bool FixBrinks_r_r(
-	bclipnode_t const * clipnode, bpartition_t const * p,
-	bbrinklevel_e level, int& headnode_out, dclipnode_t* begin,
-	dclipnode_t* end, dclipnode_t*& current, clipnodemap_t* outputmap
+	bclipnode_t const * clipnode,
+	bpartition_t const * p,
+	bbrinklevel_e level,
+	int& headnode_out,
+	dclipnode_t* begin,
+	dclipnode_t* end,
+	dclipnode_t*& current,
+	clipnodemap_t* outputmap
 ) {
 	while (p && p->type > level) {
 		p = p->next;
@@ -1711,8 +1733,12 @@ bool FixBrinks_r_r(
 }
 
 bool FixBrinks_r(
-	bclipnode_t const * clipnode, bbrinklevel_e level, int& headnode_out,
-	dclipnode_t* begin, dclipnode_t* end, dclipnode_t*& current,
+	bclipnode_t const * clipnode,
+	bbrinklevel_e level,
+	int& headnode_out,
+	dclipnode_t* begin,
+	dclipnode_t* end,
+	dclipnode_t*& current,
 	clipnodemap_t* outputmap
 ) {
 	if (clipnode->isleaf) {
@@ -1759,8 +1785,13 @@ bool FixBrinks_r(
 }
 
 bool FixBrinks(
-	bbrinkinfo_t const * brinkinfo, bbrinklevel_e level, int& headnode_out,
-	dclipnode_t* clipnodes_out, int maxsize, int size, int& size_out
+	bbrinkinfo_t const * brinkinfo,
+	bbrinklevel_e level,
+	int& headnode_out,
+	dclipnode_t* clipnodes_out,
+	int maxsize,
+	int size,
+	int& size_out
 ) {
 	bbrinkinfo_t const * info = (bbrinkinfo_t const *) brinkinfo;
 	dclipnode_t* begin = clipnodes_out;

@@ -64,19 +64,27 @@ class winding_base {
 	// Specialized Functions
 	void RemoveColinearPoints(vec_element epsilon = ON_EPSILON);
 	bool mutating_clip(
-		vec3 const & planeNormal, vec_element planeDist, bool keepon,
+		vec3 const & planeNormal,
+		vec_element planeDist,
+		bool keepon,
 		vec_element epsilon = ON_EPSILON
 	);
 	void Clip(
-		dplane_t const & split, winding_base& front, winding_base& back,
+		dplane_t const & split,
+		winding_base& front,
+		winding_base& back,
 		vec_element epsilon = ON_EPSILON
 	) const;
 	void Clip(
-		vec3 const & normal, vec_element dist, winding_base& front,
-		winding_base& back, vec_element epsilon = ON_EPSILON
+		vec3 const & normal,
+		vec_element dist,
+		winding_base& front,
+		winding_base& back,
+		vec_element epsilon = ON_EPSILON
 	) const;
 	bool Chop(
-		vec3 const & normal, vec_element const dist,
+		vec3 const & normal,
+		vec_element const dist,
 		vec_element epsilon = ON_EPSILON
 	);
 
@@ -90,7 +98,8 @@ class winding_base {
 	) const;
 
 	face_side WindingOnPlaneSide(
-		vec3 const & normal, vec_element const dist,
+		vec3 const & normal,
+		vec_element const dist,
 		vec_element epsilon = ON_EPSILON
 	);
 

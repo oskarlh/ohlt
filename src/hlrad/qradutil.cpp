@@ -144,8 +144,11 @@ void TranslatePlane(dplane_t* plane, float const * delta) {
 
 // HuntForWorld will never return CONTENTS_SKY or CONTENTS_SOLID leafs
 dleaf_t* HuntForWorld(
-	float3_array& point, float3_array const & plane_offset,
-	dplane_t const * plane, int hunt_size, float hunt_scale,
+	float3_array& point,
+	float3_array const & plane_offset,
+	dplane_t const * plane,
+	int hunt_size,
+	float hunt_scale,
 	float hunt_offset
 ) {
 	dleaf_t* leaf;
@@ -242,8 +245,11 @@ void ApplyMatrix(
 
 // ApplyMatrixOnPlane: (x y z -dist) -> (x y z -dist) * matrix
 void ApplyMatrixOnPlane(
-	matrix_t const & m_inverse, float3_array const & in_normal,
-	float in_dist, float3_array& out_normal, float& out_dist
+	matrix_t const & m_inverse,
+	float3_array const & in_normal,
+	float in_dist,
+	float3_array& out_normal,
+	float& out_dist
 )
 // out_normal is not normalized
 {
@@ -403,8 +409,12 @@ struct positionmap_t {
 static positionmap_t g_face_positions[MAX_MAP_FACES];
 
 static bool IsPositionValid(
-	positionmap_t* map, float3_array const & pos_st, float3_array& pos_out,
-	bool usephongnormal = true, bool doedgetest = true, int hunt_size = 2,
+	positionmap_t* map,
+	float3_array const & pos_st,
+	float3_array& pos_out,
+	bool usephongnormal = true,
+	bool doedgetest = true,
+	int hunt_size = 2,
 	float hunt_scale = 0.2
 ) {
 	float3_array pos;
@@ -750,9 +760,16 @@ void FreePositionMaps() {
 }
 
 bool FindNearestPosition(
-	int facenum, fast_winding const * texwinding, dplane_t const & texplane,
-	float s, float t, float3_array& pos, float* best_s, float* best_t,
-	float* dist, bool* nudged
+	int facenum,
+	fast_winding const * texwinding,
+	dplane_t const & texplane,
+	float s,
+	float t,
+	float3_array& pos,
+	float* best_s,
+	float* best_t,
+	float* dist,
+	bool* nudged
 ) {
 	int x;
 	int itmin, itmax, ismin, ismax;

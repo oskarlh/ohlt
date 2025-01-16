@@ -4,7 +4,8 @@
 
 namespace utf8_internal {
 	bool validate_utf8_continuing_code_units(
-		unsigned char const *& it, unsigned char const * end,
+		unsigned char const *& it,
+		unsigned char const * end,
 		unsigned char firstCodeUnitInCodePoint
 	) noexcept {
 		std::size_t codeUnitsToCheck

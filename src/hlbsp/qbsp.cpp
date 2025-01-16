@@ -193,7 +193,9 @@ face_t* NewFaceFromFace(face_t const * const in) {
 //      blah
 // =====================================================================================
 static void SplitFaceTmp(
-	face_t* in, mapplane_t const * const split, face_t** front,
+	face_t* in,
+	mapplane_t const * const split,
+	face_t** front,
 	face_t** back
 ) {
 	double dists[MAXEDGES + 1];
@@ -356,7 +358,9 @@ static void SplitFaceTmp(
 //      blah
 // =====================================================================================
 void SplitFace(
-	face_t* in, mapplane_t const * const split, face_t** front,
+	face_t* in,
+	mapplane_t const * const split,
+	face_t** front,
 	face_t** back
 ) {
 	SplitFaceTmp(in, split, front, back);

@@ -479,11 +479,13 @@ value_for_key(entity_t const * const ent, std::u8string_view key);
 bool has_key_value(entity_t const * const ent, std::u8string_view key);
 bool key_value_is_empty(entity_t const * const ent, std::u8string_view key);
 bool key_value_is(
-	entity_t const * const ent, std::u8string_view key,
+	entity_t const * const ent,
+	std::u8string_view key,
 	std::u8string_view value
 );
 bool key_value_starts_with(
-	entity_t const * const ent, std::u8string_view key,
+	entity_t const * const ent,
+	std::u8string_view key,
 	std::u8string_view prefix
 );
 bool classname_is(entity_t const * const ent, std::u8string_view classname);
@@ -644,7 +646,9 @@ extern void DecompressVis(
 	byte const * src, byte* const dest, unsigned int const dest_length
 );
 extern int CompressVis(
-	byte const * const src, unsigned int const src_length, byte* dest,
+	byte const * const src,
+	unsigned int const src_length,
+	byte* dest,
 	unsigned int dest_length
 );
 

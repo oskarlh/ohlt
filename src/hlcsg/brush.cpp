@@ -102,7 +102,8 @@ find_plane:
 }
 
 int PlaneFromPoints(
-	double const * const p0, double const * const p1,
+	double const * const p0,
+	double const * const p1,
 	double const * const p2
 ) {
 	double3_array v1, v2;
@@ -133,8 +134,10 @@ char const * GetClipTypeString(cliptype ct) {
 // =====================================================================================
 
 static void AddHullPlane(
-	brushhull_t* hull, double const * const normal,
-	double const * const origin, bool const check_planenum
+	brushhull_t* hull,
+	double const * const normal,
+	double const * const origin,
+	bool const check_planenum
 ) {
 	int planenum = FindIntPlane(normal, origin);
 	// check to see if this plane is already in the brush (optional to speed
@@ -196,8 +199,10 @@ static void AddHullPlane(
 //     clipnodecount        971       1089       1202       1232       1000
 
 void ExpandBrushWithHullBrush(
-	brush_t const * brush, brushhull_t const * hull0,
-	hullbrush_t const * hb, brushhull_t* hull
+	brush_t const * brush,
+	brushhull_t const * hull0,
+	hullbrush_t const * hb,
+	brushhull_t* hull
 ) {
 	hullbrushedge_t const * hbe;
 	hullbrushvertex_t const * hbv;

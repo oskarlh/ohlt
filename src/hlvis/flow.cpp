@@ -38,7 +38,8 @@ FreeStackWinding(winding_t const * const w, pstack_t* const stack) {
 //  ChopWinding
 // =====================================================================================
 inline winding_t* ChopWinding(
-	winding_t* const in, pstack_t* const stack,
+	winding_t* const in,
+	pstack_t* const stack,
 	hlvis_plane_t const * const split
 ) {
 	float dists[128];
@@ -188,8 +189,11 @@ AddPlane(pstack_t* const stack, hlvis_plane_t const * const split) {
 //      pass, source, target then flipclip should be set.
 // =====================================================================================
 inline static winding_t* ClipToSeperators(
-	winding_t const * const source, winding_t const * const pass,
-	winding_t* const a_target, bool const flipclip, pstack_t* const stack
+	winding_t const * const source,
+	winding_t const * const pass,
+	winding_t* const a_target,
+	bool const flipclip,
+	pstack_t* const stack
 ) {
 	int i, j, k, l;
 	hlvis_plane_t plane;
@@ -306,7 +310,8 @@ inline static winding_t* ClipToSeperators(
 //      If src_portal is NULL, this is the originating leaf
 // =====================================================================================
 inline static void RecursiveLeafFlow(
-	int const leafnum, threaddata_t const * const thread,
+	int const leafnum,
+	threaddata_t const * const thread,
 	pstack_t const * const prevstack
 ) {
 	pstack_t stack;
@@ -514,7 +519,9 @@ void PortalFlow(portal_t* p) {
 //      reject some of the final calculations.
 // =====================================================================================
 static void SimpleFlood(
-	byte* const srcmightsee, int const leafnum, byte* const portalsee,
+	byte* const srcmightsee,
+	int const leafnum,
+	byte* const portalsee,
 	unsigned int* const c_leafsee
 ) {
 	unsigned i;

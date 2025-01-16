@@ -68,7 +68,8 @@ bounding_box_state test_all(
 }
 
 void set_bounding_box(
-	bounding_box& thisBox, double3_array const & maxs,
+	bounding_box& thisBox,
+	double3_array const & maxs,
 	double3_array const & mins
 ) noexcept {
 	thisBox.maxs = maxs;

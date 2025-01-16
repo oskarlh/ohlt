@@ -479,7 +479,8 @@ extern void CreateFacelightDependencyList(); // run before AddPatchLights
 extern void AddPatchLights(int facenum);
 extern void FreeFacelightDependencyList();
 extern int TestLine(
-	float3_array const & start, float3_array const & stop,
+	float3_array const & start,
+	float3_array const & stop,
 	float3_array& skyhitout
 );
 
@@ -504,13 +505,17 @@ struct opaquemodel_t {
 extern opaquemodel_t* opaquemodels;
 extern void CreateOpaqueNodes();
 extern int TestLineOpaque(
-	int modelnum, float3_array const & modelorigin,
-	float3_array const & start, float3_array const & stop
+	int modelnum,
+	float3_array const & modelorigin,
+	float3_array const & start,
+	float3_array const & stop
 );
 extern int CountOpaqueFaces(int modelnum);
 extern void DeleteOpaqueNodes();
 extern int TestPointOpaque(
-	int modelnum, float3_array const & modelorigin, bool solid,
+	int modelnum,
+	float3_array const & modelorigin,
+	bool solid,
 	float3_array const & point
 );
 
@@ -521,14 +526,20 @@ extern void GetPhongNormal(
 ); // added "const" --vluzacn
 
 typedef bool (*funcCheckVisBit)(
-	unsigned, unsigned, float3_array&, unsigned int&,
+	unsigned,
+	unsigned,
+	float3_array&,
+	unsigned int&,
 	std::vector<float3_array> const & transparencyList
 );
 extern funcCheckVisBit g_CheckVisBit;
 extern std::vector<float3_array> g_transparencyList;
 extern bool CheckVisBitBackwards(
-	unsigned receiver, unsigned emitter, float3_array const & backorigin,
-	float3_array const & backnormal, float3_array& transparency_out
+	unsigned receiver,
+	unsigned emitter,
+	float3_array const & backorigin,
+	float3_array const & backnormal,
+	float3_array& transparency_out
 );
 extern void MdlLightHack(void);
 
@@ -541,15 +552,21 @@ extern dplane_t const * getPlaneFromFaceNumber(unsigned int facenum);
 extern void
 getAdjustedPlaneFromFaceNumber(unsigned int facenum, dplane_t* plane);
 extern dleaf_t* HuntForWorld(
-	float3_array& point, float3_array const & plane_offset,
-	dplane_t const * plane, int hunt_size, float hunt_scale,
+	float3_array& point,
+	float3_array const & plane_offset,
+	dplane_t const * plane,
+	int hunt_size,
+	float hunt_scale,
 	float hunt_offset
 );
 extern void
 ApplyMatrix(matrix_t const & m, float3_array const & in, float3_array& out);
 extern void ApplyMatrixOnPlane(
-	matrix_t const & m_inverse, float3_array const & in_normal,
-	float in_dist, float3_array& out_normal, float& out_dist
+	matrix_t const & m_inverse,
+	float3_array const & in_normal,
+	float in_dist,
+	float3_array& out_normal,
+	float& out_dist
 );
 extern matrix_t
 MultiplyMatrix(matrix_t const & m_left, matrix_t const & m_right) noexcept;
@@ -561,9 +578,16 @@ extern bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse);
 extern void FindFacePositions(int facenum);
 extern void FreePositionMaps();
 extern bool FindNearestPosition(
-	int facenum, fast_winding const * texwinding, dplane_t const & texplane,
-	float s, float t, float3_array& pos, float* best_s, float* best_t,
-	float* best_dist, bool* nudged
+	int facenum,
+	fast_winding const * texwinding,
+	dplane_t const & texplane,
+	float s,
+	float t,
+	float3_array& pos,
+	float* best_s,
+	float* best_t,
+	float* best_dist,
+	bool* nudged
 );
 
 // makescales.c
@@ -585,12 +609,16 @@ extern void MakeRGBScales(int threadnum);
 // transparency.c (transparency array functions - shared between vismatrix.c
 // and sparse.c)
 extern void GetTransparency(
-	unsigned const p1, unsigned const p2, float3_array& trans,
+	unsigned const p1,
+	unsigned const p2,
+	float3_array& trans,
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 );
 extern void AddTransparencyToRawArray(
-	unsigned const p1, unsigned const p2, float3_array const & trans,
+	unsigned const p1,
+	unsigned const p2,
+	float3_array const & trans,
 	std::vector<float3_array>& transparencyList
 );
 extern void CreateFinalTransparencyArrays(
@@ -598,7 +626,9 @@ extern void CreateFinalTransparencyArrays(
 );
 extern void FreeTransparencyArrays();
 extern void GetStyle(
-	unsigned const p1, unsigned const p2, int& style,
+	unsigned const p1,
+	unsigned const p2,
+	int& style,
 	unsigned int& next_index
 );
 extern void
@@ -617,51 +647,71 @@ extern void FreeTriangulations();
 
 // mathutil.c
 extern bool TestSegmentAgainstOpaqueList(
-	float3_array const & p1, float3_array const & p2,
-	float3_array& scaleout, int& opaquestyleout
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array& scaleout,
+	int& opaquestyleout
 );
 extern bool intersect_linesegment_plane(
-	dplane_t const & plane, float3_array const & p1,
-	float3_array const & p2, float3_array& point
+	dplane_t const & plane,
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array& point
 );
 extern void plane_from_points(
-	float3_array const & p1, float3_array const & p2,
-	float3_array const & p3, dplane_t& plane
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array const & p3,
+	dplane_t& plane
 );
 extern bool point_in_winding(
-	fast_winding const & w, dplane_t const & plane,
-	float3_array const & point, float epsilon = 0.0
+	fast_winding const & w,
+	dplane_t const & plane,
+	float3_array const & point,
+	float epsilon = 0.0
 );
 extern bool point_in_winding_noedge(
-	fast_winding const & w, dplane_t const & plane,
-	float3_array const & point, float width
+	fast_winding const & w,
+	dplane_t const & plane,
+	float3_array const & point,
+	float width
 );
 extern void snap_to_winding(
 	fast_winding const & w, dplane_t const & plane, float* point
 );
 extern float snap_to_winding_noedge(
-	fast_winding const & w, dplane_t const & plane, float* point,
-	float width, float maxmove
+	fast_winding const & w,
+	dplane_t const & plane,
+	float* point,
+	float width,
+	float maxmove
 );
 extern void
 SnapToPlane(dplane_t const * const plane, float* const point, float offset);
 extern float CalcSightArea(
 	float3_array const & receiver_origin,
 	float3_array const & receiver_normal,
-	fast_winding const * emitter_winding, int skylevel,
-	float lighting_power, float lighting_scale
+	fast_winding const * emitter_winding,
+	int skylevel,
+	float lighting_power,
+	float lighting_scale
 );
 extern float CalcSightArea_SpotLight(
 	float3_array const & receiver_origin,
 	float3_array const & receiver_normal,
 	fast_winding const * emitter_winding,
-	float3_array const & emitter_normal, float emitter_stopdot,
-	float emitter_stopdot2, int skylevel, float lighting_power,
+	float3_array const & emitter_normal,
+	float emitter_stopdot,
+	float emitter_stopdot2,
+	int skylevel,
+	float lighting_power,
 	float lighting_scale
 );
 extern void GetAlternateOrigin(
-	float3_array const & pos, float3_array const & normal,
-	patch_t const * patch, float3_array& origin
+	float3_array const & pos,
+	float3_array const & normal,
+	patch_t const * patch,
+	float3_array& origin
 );
 
 // studio.cpp

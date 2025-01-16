@@ -20,8 +20,11 @@ static byte* s_vismatrix;
 //      Sets vis bits for all patches in the face
 // =====================================================================================
 static void TestPatchToFace(
-	unsigned const patchnum, int const facenum, int const head,
-	unsigned int const bitpos, byte* pvs,
+	unsigned const patchnum,
+	int const facenum,
+	int const head,
+	unsigned int const bitpos,
+	byte* pvs,
 	std::vector<float3_array>& transparencyList
 ) {
 	patch_t* patch = &g_patches[patchnum];
@@ -241,7 +244,9 @@ static void FreeVisMatrix() {
 // CheckVisBit
 // =====================================================================================
 static bool CheckVisBitVismatrix(
-	unsigned p1, unsigned p2, float3_array& transparency_out,
+	unsigned p1,
+	unsigned p2,
+	float3_array& transparency_out,
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {

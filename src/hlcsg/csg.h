@@ -173,7 +173,8 @@ extern std::deque<std::u8string>
 extern void WriteMiptex(std::filesystem::path const & bspPath);
 extern void LogWadUsage(wadpath_t* currentwad, int nummiptex);
 extern int TexinfoForBrushTexture(
-	mapplane_t const * const plane, brush_texture_t* bt,
+	mapplane_t const * const plane,
+	brush_texture_t* bt,
 	double3_array const & origin
 );
 extern std::optional<wad_texture_name>

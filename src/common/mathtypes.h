@@ -19,7 +19,8 @@ concept any_vec_element = std::same_as<T, float> || std::same_as<T, double>;
 template <any_vec3 FirstVec3, any_vec3... Rest>
 struct largest_vec3_helper {
 	using type = std::conditional_t<
-		std::is_same_v<FirstVec3, double3_array>, double3_array,
+		std::is_same_v<FirstVec3, double3_array>,
+		double3_array,
 		typename largest_vec3_helper<Rest...>::type>;
 };
 

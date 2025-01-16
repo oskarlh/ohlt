@@ -385,7 +385,9 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 
 template <any_vec_element VecElement>
 void winding_base<VecElement>::Clip(
-	dplane_t const & plane, winding_base& front, winding_base& back,
+	dplane_t const & plane,
+	winding_base& front,
+	winding_base& back,
 	vec_element epsilon
 ) const {
 	vec3 normal;
@@ -397,8 +399,11 @@ void winding_base<VecElement>::Clip(
 
 template <any_vec_element VecElement>
 void winding_base<VecElement>::Clip(
-	vec3 const & normal, vec_element dist, winding_base& front,
-	winding_base& back, vec_element epsilon
+	vec3 const & normal,
+	vec_element dist,
+	winding_base& front,
+	winding_base& back,
+	vec_element epsilon
 ) const {
 	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
 	auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
@@ -540,7 +545,9 @@ face_side winding_base<VecElement>::WindingOnPlaneSide(
 
 template <any_vec_element VecElement>
 bool winding_base<VecElement>::mutating_clip(
-	vec3 const & planeNormal, vec_element planeDist, bool keepon,
+	vec3 const & planeNormal,
+	vec_element planeDist,
+	bool keepon,
 	vec_element epsilon
 ) {
 	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);

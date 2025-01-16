@@ -48,8 +48,12 @@ bool g_deleteembeddedlightmaps = DEFAULT_DELETEEMBEDDEDLIGHTMAPS;
 // is encountered iLine is incremented.  If iToken is not null, the index
 // cToken was found at is inserted into it.
 bool ScanForToken(
-	char cToken, int& iIndex, int& iLine, bool bIgnoreWhiteSpace,
-	bool bIgnoreOthers, int* iToken = 0
+	char cToken,
+	int& iIndex,
+	int& iLine,
+	bool bIgnoreWhiteSpace,
+	bool bIgnoreOthers,
+	int* iToken = 0
 ) {
 	for (; iIndex < g_entdatasize; iIndex++) {
 		// If we found a null char, consider it end of data.
@@ -103,8 +107,12 @@ typedef std::list<CEntityPairList*> CEntityList;
 // function.  The length is specified because in some cases (i.e. the
 // terminator) a null char is desired to be printed.
 void ParseEntityData(
-	char const * cTab, int iTabLength, char const * cNewLine,
-	int iNewLineLength, char const * cTerminator, int iTerminatorLength
+	char const * cTab,
+	int iTabLength,
+	char const * cNewLine,
+	int iNewLineLength,
+	char const * cTerminator,
+	int iTerminatorLength
 ) {
 	CEntityList EntityList; // Parsed entities.
 

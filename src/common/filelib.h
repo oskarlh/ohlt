@@ -13,7 +13,8 @@ std::tuple<bool, std::size_t, std::unique_ptr<std::byte[]>>
 read_binary_file(std::filesystem::path const & filePath);
 
 std::optional<std::u8string> read_utf8_file(
-	std::filesystem::path const & filePath, bool windowsLineEndingsToUnix,
+	std::filesystem::path const & filePath,
+	bool windowsLineEndingsToUnix,
 	std::optional<legacy_encoding> legacyEncoding = std::nullopt,
 	bool forceLegacyEncoding = false
 );

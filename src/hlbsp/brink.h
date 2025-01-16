@@ -96,7 +96,12 @@ struct bbrinkinfo_t {
 extern bbrinkinfo_t*
 CreateBrinkinfo(dclipnode_t const * clipnodes, int headnode);
 extern bool FixBrinks(
-	bbrinkinfo_t const * brinkinfo, bbrinklevel_e level, int& headnode_out,
-	dclipnode_t* clipnodes_out, int maxsize, int size, int& size_out
+	bbrinkinfo_t const * brinkinfo,
+	bbrinklevel_e level,
+	int& headnode_out,
+	dclipnode_t* clipnodes_out,
+	int maxsize,
+	int size,
+	int& size_out
 );
 extern void DeleteBrinkinfo(bbrinkinfo_t* brinkinfo);

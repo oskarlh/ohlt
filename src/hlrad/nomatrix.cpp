@@ -4,8 +4,11 @@
 //  CheckVisBit
 // =====================================================================================
 static bool CheckVisBitNoVismatrix(
-	unsigned patchnum1, unsigned patchnum2, float3_array& transparency_out,
-	unsigned int&, std::vector<float3_array> const & transparencyList
+	unsigned patchnum1,
+	unsigned patchnum2,
+	float3_array& transparency_out,
+	unsigned int&,
+	std::vector<float3_array> const & transparencyList
 )
 // patchnum1=receiver, patchnum2=emitter.
 // //HLRAD_CheckVisBitNoVismatrix_NOSWAP
@@ -93,8 +96,11 @@ static bool CheckVisBitNoVismatrix(
 }
 
 bool CheckVisBitBackwards(
-	unsigned receiver, unsigned emitter, float3_array const & backorigin,
-	float3_array const & backnormal, float3_array& transparency_out
+	unsigned receiver,
+	unsigned emitter,
+	float3_array const & backorigin,
+	float3_array const & backnormal,
+	float3_array& transparency_out
 ) {
 	patch_t* patch = &g_patches[receiver];
 	patch_t* emitpatch = &g_patches[emitter];

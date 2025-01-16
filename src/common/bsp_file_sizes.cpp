@@ -218,7 +218,9 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 }
 
 static int array_usage(
-	char const * const szItem, int const items, int const maxitems,
+	char const * const szItem,
+	int const items,
+	int const maxitems,
 	int const itemsize
 ) {
 	float percentage = maxitems ? items * 100.0 / maxitems : 0.0;

@@ -9,8 +9,10 @@
 //      the plane's normal without changing the result
 // =====================================================================================
 bool point_in_winding(
-	fast_winding const & w, dplane_t const & plane,
-	float3_array const & point, float epsilon /* = 0.0*/
+	fast_winding const & w,
+	dplane_t const & plane,
+	float3_array const & point,
+	float epsilon /* = 0.0*/
 ) {
 	int const numpoints = w.size();
 
@@ -43,8 +45,10 @@ bool point_in_winding(
 //      can move freely along the plane's normal without changing the result
 // =====================================================================================
 bool point_in_winding_noedge(
-	fast_winding const & w, dplane_t const & plane,
-	float3_array const & point, float width
+	fast_winding const & w,
+	dplane_t const & plane,
+	float3_array const & point,
+	float width
 ) {
 	int numpoints;
 	int x;
@@ -151,8 +155,11 @@ void snap_to_winding(
 //      other cases, the maximal distance < width
 // =====================================================================================
 float snap_to_winding_noedge(
-	fast_winding const & w, dplane_t const & plane, float* const point,
-	float width, float maxmove
+	fast_winding const & w,
+	dplane_t const & plane,
+	float* const point,
+	float width,
+	float maxmove
 ) {
 	int pass;
 	int numplanes;
@@ -234,8 +241,10 @@ float snap_to_winding_noedge(
 }
 
 bool intersect_linesegment_plane(
-	dplane_t const & plane, float3_array const & p1,
-	float3_array const & p2, float3_array& point
+	dplane_t const & plane,
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array& point
 ) {
 	float const part1 = DotProduct(p1, plane.normal) - plane.dist;
 	float const part2 = DotProduct(p2, plane.normal) - plane.dist;
@@ -249,8 +258,10 @@ bool intersect_linesegment_plane(
 }
 
 void plane_from_points(
-	float3_array const & p1, float3_array const & p2,
-	float3_array const & p3, dplane_t& plane
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array const & p3,
+	dplane_t& plane
 ) {
 	float3_array delta1;
 	float3_array delta2;
@@ -266,8 +277,11 @@ void plane_from_points(
 
 // LineSegmentIntersectsBounds --vluzacn
 bool LineSegmentIntersectsBounds_r(
-	float const * p1, float const * p2, float const * mins,
-	float const * maxs, int d
+	float const * p1,
+	float const * p2,
+	float const * mins,
+	float const * maxs,
+	int d
 ) {
 	float lmin, lmax;
 	float const * tmp;
@@ -295,8 +309,10 @@ bool LineSegmentIntersectsBounds_r(
 }
 
 inline bool LineSegmentIntersectsBounds(
-	float3_array const & p1, float3_array const & p2,
-	float3_array const & mins, float3_array const & maxs
+	float3_array const & p1,
+	float3_array const & p2,
+	float3_array const & mins,
+	float3_array const & maxs
 ) {
 	return LineSegmentIntersectsBounds_r(
 		p1.data(), p2.data(), mins.data(), maxs.data(), 3
@@ -308,7 +324,8 @@ inline bool LineSegmentIntersectsBounds(
 //      Returns true if the segment intersects an item in the opaque list
 // =====================================================================================
 bool TestSegmentAgainstOpaqueList(
-	float3_array const & p1, float3_array const & p2,
+	float3_array const & p1,
+	float3_array const & p2,
 	float3_array& scaleout,
 	int& opaquestyleout // light must convert to this style. -1 = no convert
 ) {
@@ -369,8 +386,10 @@ void SnapToPlane(
 float CalcSightArea(
 	float3_array const & receiver_origin,
 	float3_array const & receiver_normal,
-	fast_winding const * emitter_winding, int skylevel,
-	float lighting_power, float lighting_scale
+	fast_winding const * emitter_winding,
+	int skylevel,
+	float lighting_power,
+	float lighting_scale
 ) {
 	// maybe there are faster ways in calculating the weighted area, but at
 	// least this way is not bad.
@@ -432,8 +451,11 @@ float CalcSightArea_SpotLight(
 	float3_array const & receiver_origin,
 	float3_array const & receiver_normal,
 	fast_winding const * emitter_winding,
-	float3_array const & emitter_normal, float emitter_stopdot,
-	float emitter_stopdot2, int skylevel, float lighting_power,
+	float3_array const & emitter_normal,
+	float emitter_stopdot,
+	float emitter_stopdot2,
+	int skylevel,
+	float lighting_power,
 	float lighting_scale
 ) {
 	// stopdot = cos (cone)
@@ -508,8 +530,10 @@ float CalcSightArea_SpotLight(
 //  GetAlternateOrigin
 // =====================================================================================
 void GetAlternateOrigin(
-	float3_array const & pos, float3_array const & normal,
-	patch_t const * patch, float3_array& origin
+	float3_array const & pos,
+	float3_array const & normal,
+	patch_t const * patch,
+	float3_array& origin
 ) {
 	dplane_t const * faceplane;
 	float const * facenormal;

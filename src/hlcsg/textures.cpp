@@ -390,8 +390,11 @@ FindTexture(lumpinfo_with_wadfileindex const * const source) {
 //  LoadLump
 // =====================================================================================
 static int LoadLump(
-	lumpinfo_with_wadfileindex const * const source, std::byte* dest,
-	int* texsize, int dest_maxsize, std::byte*& writewad_data,
+	lumpinfo_with_wadfileindex const * const source,
+	std::byte* dest,
+	int* texsize,
+	int dest_maxsize,
+	std::byte*& writewad_data,
 	int& writewad_datasize
 ) {
 	writewad_data = nullptr;
@@ -758,7 +761,8 @@ void LogWadUsage(wadpath_t* currentwad, int nummiptex) {
 //  TexinfoForBrushTexture
 // =====================================================================================
 int TexinfoForBrushTexture(
-	mapplane_t const * const plane, brush_texture_t* bt,
+	mapplane_t const * const plane,
+	brush_texture_t* bt,
 	double3_array const & origin
 ) {
 	std::array<double3_array, 2> vecs;

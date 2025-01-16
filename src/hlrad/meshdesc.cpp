@@ -343,8 +343,10 @@ void CMeshDesc::AngleQuaternion(float3_array const & angles, vec4_t& quat) {
 }
 
 void CMeshDesc::AngleMatrix(
-	float3_array const & angles, float3_array const & origin,
-	float3_array const & scale, matrix3x4& matrix
+	float3_array const & angles,
+	float3_array const & origin,
+	float3_array const & scale,
+	matrix3x4& matrix
 ) {
 	float sr, sp, sy, cr, cp, cy;
 	float angle;

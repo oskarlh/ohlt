@@ -1496,8 +1496,11 @@ static void MakePatchForFace(
 }
 
 static void AddFaceToOpaqueList(
-	int entitynum, int modelnum, float3_array const & origin,
-	std::optional<float3_array> const & transparency_scale, int style,
+	int entitynum,
+	int modelnum,
+	float3_array const & origin,
+	std::optional<float3_array> const & transparency_scale,
+	int style,
 	bool block
 ) {
 	opaqueList_t opaque{};

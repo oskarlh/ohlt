@@ -107,8 +107,13 @@ void AddFaceForVertexNormal_printerror(
 }
 
 int AddFaceForVertexNormal(
-	int const edgeabs, int& edgeabsnext, int const edgeend,
-	int& edgeendnext, dface_t* const f, dface_t*& fnext, float& angle,
+	int const edgeabs,
+	int& edgeabsnext,
+	int const edgeend,
+	int& edgeendnext,
+	dface_t* const f,
+	dface_t*& fnext,
+	float& angle,
 	float3_array& normal
 )
 // Must guarantee these faces will form a loop or a chain, otherwise will
@@ -1156,7 +1161,8 @@ void ChopFrag(samplefrag_t* frag)
 }
 
 static samplefrag_t* GrowSingleFrag(
-	samplefraginfo_t const * info, samplefrag_t* parent,
+	samplefraginfo_t const * info,
+	samplefrag_t* parent,
 	samplefragedge_t* edge
 ) {
 	samplefrag_t* frag;
@@ -1278,7 +1284,8 @@ static samplefrag_t* GrowSingleFrag(
 }
 
 static bool FindBestEdge(
-	samplefraginfo_t* info, samplefrag_t*& bestfrag,
+	samplefraginfo_t* info,
+	samplefrag_t*& bestfrag,
 	samplefragedge_t*& bestedge
 ) {
 	samplefrag_t* f;
@@ -1454,7 +1461,9 @@ static light_flag_t SetSampleFromST(
 	float* const position, // a valid world position for light tracing
 	int* const
 		surface, // the face used for phong normal and patch interpolation
-	bool* nudged, lightinfo_t const * const l, float const original_s,
+	bool* nudged,
+	lightinfo_t const * const l,
+	float const original_s,
 	float const original_t,
 	float const square[2][2], // {smin, tmin}, {smax, tmax}
 	eModelLightmodes lightmode
@@ -2415,8 +2424,13 @@ typedef struct {
 } triangle_t;
 
 void CopyToSkynormals(
-	int skylevel, int numpoints, point_t* points, int numedges,
-	edge_t* edges, int numtriangles, triangle_t* triangles
+	int skylevel,
+	int numpoints,
+	point_t* points,
+	int numedges,
+	edge_t* edges,
+	int numtriangles,
+	triangle_t* triangles
 ) {
 	hlassume(numpoints == (1 << (2 * skylevel)) + 2, assume_first);
 	hlassume(numedges == (1 << (2 * skylevel)) * 4 - 4, assume_first);
@@ -2616,10 +2630,13 @@ void BuildDiffuseNormals() {
 }
 
 static void GatherSampleLight(
-	float3_array const & pos, byte const * const pvs,
+	float3_array const & pos,
+	byte const * const pvs,
 	float3_array const & normal,
 	std::array<float3_array, ALLSTYLES>& sample,
-	std::array<unsigned char, ALLSTYLES>& styles, int step, int miptex,
+	std::array<unsigned char, ALLSTYLES>& styles,
+	int step,
+	int miptex,
 	int texlightgap_surfacenum
 ) {
 	int i;
@@ -3211,7 +3228,8 @@ static void GatherSampleLight(
 // =====================================================================================
 static void AddSamplesToPatches(
 	sample_t const ** samples,
-	std::array<unsigned char, ALLSTYLES> const & styles, int facenum,
+	std::array<unsigned char, ALLSTYLES> const & styles,
+	int facenum,
 	lightinfo_t const * l
 ) {
 	patch_t* patch;
@@ -4726,7 +4744,12 @@ int MLH_AddFace(mdllight_t* ml, int facenum) {
 }
 
 void MLH_AddSample(
-	mdllight_t* ml, int facenum, int w, int h, int s, int t,
+	mdllight_t* ml,
+	int facenum,
+	int w,
+	int h,
+	int s,
+	int t,
 	float3_array const & pos
 ) {
 	dface_t* f = &g_dfaces[facenum];
@@ -4772,7 +4795,9 @@ void MLH_CalcExtents(dface_t const * f, int* texturemins, int* extents) {
 }
 
 void MLH_GetSamples_r(
-	mdllight_t* ml, int nodenum, float3_array const & start,
+	mdllight_t* ml,
+	int nodenum,
+	float3_array const & start,
 	float3_array const & end
 ) {
 	if (nodenum < 0) {

@@ -152,7 +152,8 @@ struct node_t {
 // solidbsp.c
 extern void SubdivideFace(face_t* f, face_t** prevptr);
 extern node_t* SolidBSP(
-	surfchain_t const * const surfhead, brush_t* detailbrushes,
+	surfchain_t const * const surfhead,
+	brush_t* detailbrushes,
 	bool report_progress
 );
 
@@ -280,6 +281,8 @@ extern bool g_nohull2;
 
 extern face_t* NewFaceFromFace(face_t const * const in);
 extern void SplitFace(
-	face_t* in, mapplane_t const * const split, face_t** front,
+	face_t* in,
+	mapplane_t const * const split,
+	face_t** front,
 	face_t** back
 );

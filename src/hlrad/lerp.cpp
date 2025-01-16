@@ -72,8 +72,10 @@ struct facetriangulation_t {
 facetriangulation_t* g_facetriangulations[MAX_MAP_FACES];
 
 static bool CalcAdaptedSpot(
-	localtriangulation_t const * lt, float3_array const & position,
-	int surface, float3_array& spot
+	localtriangulation_t const * lt,
+	float3_array const & position,
+	int surface,
+	float3_array& spot
 )
 // If the surface formed by the face and its neighbor faces is not flat, the
 // surface should be unfolded onto the face plane CalcAdaptedSpot calculates
@@ -131,7 +133,8 @@ static bool CalcAdaptedSpot(
 }
 
 static float GetAngle(
-	float3_array const & leftdirection, float3_array const & rightdirection,
+	float3_array const & leftdirection,
+	float3_array const & rightdirection,
 	float3_array const & normal
 ) {
 	float angle;
@@ -156,8 +159,10 @@ static float GetAngleDiff(float angle, float base) {
 }
 
 static float GetFrac(
-	float3_array const & leftspot, float3_array const & rightspot,
-	float3_array const & direction, float3_array const & normal
+	float3_array const & leftspot,
+	float3_array const & rightspot,
+	float3_array const & direction,
+	float3_array const & normal
 ) {
 	float3_array v;
 	float dot1;
@@ -194,7 +199,8 @@ static float GetFrac(
 }
 
 static float GetDirection(
-	float3_array const & spot, float3_array const & normal,
+	float3_array const & spot,
+	float3_array const & normal,
 	float3_array& direction_out
 ) {
 	float dot;
@@ -205,7 +211,8 @@ static float GetDirection(
 }
 
 static bool CalcWeight(
-	localtriangulation_t const * lt, float3_array const & spot,
+	localtriangulation_t const * lt,
+	float3_array const & spot,
 	float* weight_out
 )
 // It returns true when the point is inside the hull region (with boundary),
@@ -276,7 +283,9 @@ static bool CalcWeight(
 }
 
 static void CalcInterpolation_Square(
-	localtriangulation_t const * lt, int i, float3_array const & spot,
+	localtriangulation_t const * lt,
+	int i,
+	float3_array const & spot,
 	interpolation_t& interp
 ) {
 	localtriangulation_t::Wedge const * w1;
@@ -464,7 +473,8 @@ static void CalcInterpolation_Square(
 }
 
 static void CalcInterpolation(
-	localtriangulation_t const * lt, float3_array const & spot,
+	localtriangulation_t const * lt,
+	float3_array const & spot,
 	interpolation_t& interp
 )
 // The interpolation function is defined over the entire plane, so
@@ -936,7 +946,8 @@ void InterpolateSampleLight(
 }
 
 static bool TestLineSegmentIntersectWall(
-	facetriangulation_t const * facetrian, float3_array const & p1,
+	facetriangulation_t const * facetrian,
+	float3_array const & p1,
 	float3_array const & p2
 ) {
 	int i;
@@ -983,7 +994,8 @@ static bool TestLineSegmentIntersectWall(
 }
 
 static bool TestFarPatch(
-	localtriangulation_t const * lt, float3_array const & p2,
+	localtriangulation_t const * lt,
+	float3_array const & p2,
 	fast_winding const & p2winding
 ) {
 	int i;

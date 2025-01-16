@@ -38,7 +38,8 @@ bool s_tokenready; // only true if UnGetToken was just called
 //  AddScriptToStack
 // =====================================================================================
 static void AddScriptToStack(
-	char const * const filename, legacy_encoding legacyEncoding,
+	char const * const filename,
+	legacy_encoding legacyEncoding,
 	bool forceLegacyEncoding
 ) {
 	s_script++;
@@ -70,7 +71,8 @@ static void AddScriptToStack(
 //  LoadScriptFile
 // =====================================================================================
 void LoadScriptFile(
-	char const * const filename, legacy_encoding legacyEncoding,
+	char const * const filename,
+	legacy_encoding legacyEncoding,
 	bool forceLegacyEncoding
 ) {
 	s_script = s_scriptstack;

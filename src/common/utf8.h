@@ -13,7 +13,8 @@ constexpr bool is_ascii_code_unit(char codeUnit) noexcept {
 
 namespace utf8_internal {
 	bool validate_utf8_continuing_code_units(
-		unsigned char const *& it, unsigned char const * end,
+		unsigned char const *& it,
+		unsigned char const * end,
 		unsigned char firstCodeUnitInCodePoint
 	) noexcept;
 } // namespace utf8_internal
