@@ -7,46 +7,45 @@
 #include <cstring>
 #include <map>
 
-typedef std::map< int, int > PlaneMap;
+typedef std::map<int, int> PlaneMap;
 static PlaneMap gPlaneMap;
 static int gNumMappedPlanes;
 static mapplane_t gMappedPlanes[MAX_MAP_PLANES];
 extern bool g_noopt;
 
-typedef std::map< int, int > texinfomap_t;
+typedef std::map<int, int> texinfomap_t;
 static int g_nummappedtexinfo;
 static texinfo_t g_mappedtexinfo[MAX_MAP_TEXINFO];
 static texinfomap_t g_texinfomap;
 
 int count_mergedclipnodes;
-typedef std::map< std::pair< int, std::pair< int, int > >, int > clipnodemap_t;
-inline clipnodemap_t::key_type MakeKey (const dclipnode_t &c)
-{
-	return std::make_pair (c.planenum, std::make_pair (c.children[0], c.children[1]));
+typedef std::map<std::pair<int, std::pair<int, int>>, int> clipnodemap_t;
+
+inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
+	return std::make_pair(
+		c.planenum, std::make_pair(c.children[0], c.children[1])
+	);
 }
 
 // =====================================================================================
 //  WritePlane
 //  hook for plane optimization
 // =====================================================================================
-static int WritePlane(int planenum)
-{
+static int WritePlane(int planenum) {
 	planenum = planenum & (~1);
 
-	if(g_noopt)
-	{
+	if (g_noopt) {
 		return planenum;
 	}
 
 	PlaneMap::iterator item = gPlaneMap.find(planenum);
-	if(item != gPlaneMap.end())
-	{
+	if (item != gPlaneMap.end()) {
 		return item->second;
 	}
-	//add plane to BSP
+	// add plane to BSP
 	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
 	gMappedPlanes[gNumMappedPlanes] = g_mapplanes[planenum];
-	gPlaneMap.insert(PlaneMap::value_type(planenum,gNumMappedPlanes));
+	gPlaneMap.insert(PlaneMap::value_type(planenum, gNumMappedPlanes));
 
 	return gNumMappedPlanes++;
 }
@@ -54,30 +53,28 @@ static int WritePlane(int planenum)
 // =====================================================================================
 //  WriteTexinfo
 // =====================================================================================
-static int WriteTexinfo (int texinfo)
-{
-	if (texinfo < 0 || texinfo >= g_numtexinfo)
-	{
-		Error ("Bad texinfo number %d.\n", texinfo);
+static int WriteTexinfo(int texinfo) {
+	if (texinfo < 0 || texinfo >= g_numtexinfo) {
+		Error("Bad texinfo number %d.\n", texinfo);
 	}
 
-	if (g_noopt)
-	{
+	if (g_noopt) {
 		return texinfo;
 	}
 
 	texinfomap_t::iterator it;
-	it = g_texinfomap.find (texinfo);
-	if (it != g_texinfomap.end ())
-	{
+	it = g_texinfomap.find(texinfo);
+	if (it != g_texinfomap.end()) {
 		return it->second;
 	}
 
 	int c;
-	hlassume (g_nummappedtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
+	hlassume(g_nummappedtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
 	c = g_nummappedtexinfo;
 	g_mappedtexinfo[g_nummappedtexinfo] = g_texinfo[texinfo];
-	g_texinfomap.insert (texinfomap_t::value_type (texinfo, g_nummappedtexinfo));
+	g_texinfomap.insert(
+		texinfomap_t::value_type(texinfo, g_nummappedtexinfo)
+	);
 	g_nummappedtexinfo++;
 	return c;
 }
@@ -85,153 +82,127 @@ static int WriteTexinfo (int texinfo)
 // =====================================================================================
 //  WriteClipNodes_r
 // =====================================================================================
-static int      WriteClipNodes_r(node_t* node
-								 , const node_t *portalleaf
-								 , clipnodemap_t *outputmap
-								 )
-{
-    int             i, c;
-    dclipnode_t*    cn;
-    int             num;
+static int WriteClipNodes_r(
+	node_t* node, node_t const * portalleaf, clipnodemap_t* outputmap
+) {
+	int i, c;
+	dclipnode_t* cn;
+	int num;
 
-	if (node->isportalleaf)
-	{
-		if (node->contents == CONTENTS_SOLID)
-		{
-			free (node);
+	if (node->isportalleaf) {
+		if (node->contents == CONTENTS_SOLID) {
+			free(node);
 			return CONTENTS_SOLID;
-		}
-		else
-		{
+		} else {
 			portalleaf = node;
 		}
 	}
-	if (node->planenum == -1)
-	{
-		if (node->iscontentsdetail)
-		{
+	if (node->planenum == -1) {
+		if (node->iscontentsdetail) {
 			num = CONTENTS_SOLID;
-		}
-		else
-		{
+		} else {
 			num = portalleaf->contents;
 		}
-		free (node->markfaces);
-		free (node);
+		free(node->markfaces);
+		free(node);
 		return num;
 	}
 
-	dclipnode_t tmpclipnode; // this clipnode will be inserted into g_dclipnodes[c] if it can't be merged
+	dclipnode_t tmpclipnode; // this clipnode will be inserted into
+							 // g_dclipnodes[c] if it can't be merged
 	cn = &tmpclipnode;
 	c = g_numclipnodes;
 	g_numclipnodes++;
-    if (node->planenum & 1)
-    {
-        Error("WriteClipNodes_r: odd planenum");
-    }
-    cn->planenum = WritePlane(node->planenum);
-    for (i = 0; i < 2; i++)
-    {
-        cn->children[i] = WriteClipNodes_r(node->children[i]
-			, portalleaf
-			, outputmap
-			);
-    }
-	clipnodemap_t::iterator output;
-	output = outputmap->find (MakeKey (*cn));
-	if (g_noclipnodemerge || output == outputmap->end ())
-	{
-		hlassume (c < MAX_MAP_CLIPNODES, assume_MAX_MAP_CLIPNODES);
-		g_dclipnodes[c] = *cn;
-		(*outputmap)[MakeKey (*cn)] = c;
+	if (node->planenum & 1) {
+		Error("WriteClipNodes_r: odd planenum");
 	}
-	else
-	{
+	cn->planenum = WritePlane(node->planenum);
+	for (i = 0; i < 2; i++) {
+		cn->children[i]
+			= WriteClipNodes_r(node->children[i], portalleaf, outputmap);
+	}
+	clipnodemap_t::iterator output;
+	output = outputmap->find(MakeKey(*cn));
+	if (g_noclipnodemerge || output == outputmap->end()) {
+		hlassume(c < MAX_MAP_CLIPNODES, assume_MAX_MAP_CLIPNODES);
+		g_dclipnodes[c] = *cn;
+		(*outputmap)[MakeKey(*cn)] = c;
+	} else {
 		count_mergedclipnodes++;
-		if (g_numclipnodes != c + 1)
-		{
-			Error ("Merge clipnodes: internal error");
+		if (g_numclipnodes != c + 1) {
+			Error("Merge clipnodes: internal error");
 		}
 		g_numclipnodes = c;
 		c = output->second; // use existing clipnode
 	}
 
-    free(node);
-    return c;
+	free(node);
+	return c;
 }
 
 // =====================================================================================
 //  WriteClipNodes
-//      Called after the clipping hull is completed.  Generates a disk format
-//      representation and frees the original memory.
+//      Called after the clipping hull is completed.  Generates a disk
+//      format representation and frees the original memory.
 // =====================================================================================
-void            WriteClipNodes(node_t* nodes)
-{
+void WriteClipNodes(node_t* nodes) {
 	// we only merge among the clipnodes of the same hull of the same model
 	clipnodemap_t outputmap;
-    WriteClipNodes_r(nodes
-		, nullptr
-		, &outputmap
-		);
+	WriteClipNodes_r(nodes, nullptr, &outputmap);
 }
 
 // =====================================================================================
 //  WriteDrawLeaf
 // =====================================================================================
-static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
-{
-    face_t**        fp;
-    face_t*         f;
-    dleaf_t*        leaf_p;
-	int				leafnum = g_numleafs;
+static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
+	face_t** fp;
+	face_t* f;
+	dleaf_t* leaf_p;
+	int leafnum = g_numleafs;
 
-    // emit a leaf
-	hlassume (g_numleafs < MAX_MAP_LEAFS, assume_MAX_MAP_LEAFS);
-    leaf_p = &g_dleafs[g_numleafs];
-    g_numleafs++;
+	// emit a leaf
+	hlassume(g_numleafs < MAX_MAP_LEAFS, assume_MAX_MAP_LEAFS);
+	leaf_p = &g_dleafs[g_numleafs];
+	g_numleafs++;
 
 	leaf_p->contents = portalleaf->contents;
 
-    //
-    // write bounding box info
-    //
+	//
+	// write bounding box info
+	//
 	double3_array mins, maxs;
 
-	if (node->isdetail)
-	{
-		// intersect its loose bounds with the strict bounds of its parent portalleaf
+	if (node->isdetail) {
+		// intersect its loose bounds with the strict bounds of its parent
+		// portalleaf
 		mins = vector_maximums(portalleaf->mins, node->loosemins);
 		maxs = vector_minimums(portalleaf->maxs, node->loosemaxs);
+	} else {
+		VectorCopy(node->mins, mins);
+		VectorCopy(node->maxs, maxs);
 	}
-	else
-	{
-		VectorCopy (node->mins, mins);
-		VectorCopy (node->maxs, maxs);
-	}
-	for (int k = 0; k < 3; k++)
-	{
-		leaf_p->mins[k] = (short)std::max (-32767, std::min((int)mins[k], 32767));
-		leaf_p->maxs[k] = (short)std::max (-32767, std::min((int)maxs[k], 32767));
+	for (int k = 0; k < 3; k++) {
+		leaf_p->mins[k]
+			= (short) std::max(-32767, std::min((int) mins[k], 32767));
+		leaf_p->maxs[k]
+			= (short) std::max(-32767, std::min((int) maxs[k], 32767));
 	}
 
-    leaf_p->visofs = -1;                                   // no vis info yet
+	leaf_p->visofs = -1; // no vis info yet
 
-    //
-    // write the marksurfaces
-    //
-    leaf_p->firstmarksurface = g_nummarksurfaces;
+	//
+	// write the marksurfaces
+	//
+	leaf_p->firstmarksurface = g_nummarksurfaces;
 
-    hlassume(node->markfaces != nullptr, assume_EmptySolid);
+	hlassume(node->markfaces != nullptr, assume_EmptySolid);
 
-    for (fp = node->markfaces; *fp; fp++)
-    {
-        // emit a marksurface
-        f = *fp;
-        do
-        {
+	for (fp = node->markfaces; *fp; fp++) {
+		// emit a marksurface
+		f = *fp;
+		do {
 			// fix face 0 being seen everywhere
-			if (f->outputnumber == -1)
-			{
+			if (f->outputnumber == -1) {
 				f = f->original;
 				continue;
 			}
@@ -239,178 +210,162 @@ static int		WriteDrawLeaf (node_t *node, const node_t *portalleaf)
 				f = f->original;
 				continue;
 			}
-            g_dmarksurfaces[g_nummarksurfaces] = f->outputnumber;
-            hlassume(g_nummarksurfaces < MAX_MAP_MARKSURFACES, assume_MAX_MAP_MARKSURFACES);
-            g_nummarksurfaces++;
-            f = f->original;                               // grab tjunction split faces
-        }
-        while (f);
-    }
-    free(node->markfaces);
+			g_dmarksurfaces[g_nummarksurfaces] = f->outputnumber;
+			hlassume(
+				g_nummarksurfaces < MAX_MAP_MARKSURFACES,
+				assume_MAX_MAP_MARKSURFACES
+			);
+			g_nummarksurfaces++;
+			f = f->original; // grab tjunction split faces
+		} while (f);
+	}
+	free(node->markfaces);
 
-    leaf_p->nummarksurfaces = g_nummarksurfaces - leaf_p->firstmarksurface;
+	leaf_p->nummarksurfaces = g_nummarksurfaces - leaf_p->firstmarksurface;
 	return leafnum;
 }
 
 // =====================================================================================
 //  WriteFace
 // =====================================================================================
-static void     WriteFace(face_t* f)
-{
-    dface_t*        df;
-    int             i;
-    int             e;
+static void WriteFace(face_t* f) {
+	dface_t* df;
+	int i;
+	int e;
 
-	const wad_texture_name textureName{get_texture_by_number(f->texturenum)};
+	wad_texture_name const textureName{ get_texture_by_number(f->texturenum
+	) };
 
-    if (
-		textureName.is_ordinary_hint()
-        || textureName.is_skip()
-        || should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces()
-		|| f->texturenum == -1
-		|| f->referenced == 0 // this face is not referenced by any nonsolid leaf because it is completely covered by func_details
-        || textureName.is_env_sky()
-       )
-    {
+	if (textureName.is_ordinary_hint() || textureName.is_skip()
+		|| should_face_have_facestyle_null(textureName, f->contents)
+		|| textureName.marks_discardable_faces() || f->texturenum == -1
+		|| f->referenced
+			== 0 // this face is not referenced by any nonsolid leaf because
+				 // it is completely covered by func_details
+		|| textureName.is_env_sky()) {
 		f->outputnumber = -1;
-        return;
-    }
+		return;
+	}
 
-    f->outputnumber = g_numfaces;
+	f->outputnumber = g_numfaces;
 
-    df = &g_dfaces[g_numfaces];
-    hlassume(g_numfaces < MAX_MAP_FACES, assume_MAX_MAP_FACES);
-    g_numfaces++;
+	df = &g_dfaces[g_numfaces];
+	hlassume(g_numfaces < MAX_MAP_FACES, assume_MAX_MAP_FACES);
+	g_numfaces++;
 
 	df->planenum = WritePlane(f->planenum);
 	df->side = f->planenum & 1;
-    df->firstedge = g_numsurfedges;
-    df->numedges = f->numpoints;
+	df->firstedge = g_numsurfedges;
+	df->numedges = f->numpoints;
 
-	df->texinfo = WriteTexinfo (f->texturenum);
+	df->texinfo = WriteTexinfo(f->texturenum);
 
-    for (i = 0; i < f->numpoints; i++)
-    {
+	for (i = 0; i < f->numpoints; i++) {
 		e = f->outputedges[i];
-        hlassume(g_numsurfedges < MAX_MAP_SURFEDGES, assume_MAX_MAP_SURFEDGES);
-        g_dsurfedges[g_numsurfedges] = e;
-        g_numsurfedges++;
-    }
-	free (f->outputedges);
+		hlassume(
+			g_numsurfedges < MAX_MAP_SURFEDGES, assume_MAX_MAP_SURFEDGES
+		);
+		g_dsurfedges[g_numsurfedges] = e;
+		g_numsurfedges++;
+	}
+	free(f->outputedges);
 	f->outputedges = nullptr;
 }
 
 // =====================================================================================
 //  WriteDrawNodes_r
 // =====================================================================================
-static int WriteDrawNodes_r (node_t *node, const node_t *portalleaf)
-{
-	if (node->isportalleaf)
-	{
-		if (node->contents == CONTENTS_SOLID)
-		{
+static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
+	if (node->isportalleaf) {
+		if (node->contents == CONTENTS_SOLID) {
 			return -1;
-		}
-		else
-		{
+		} else {
 			portalleaf = node;
-			// Warning: make sure parent data have not been freed when writing children.
+			// Warning: make sure parent data have not been freed when
+			// writing children.
 		}
 	}
-	if (node->planenum == -1)
-	{
-		if (node->iscontentsdetail)
-		{
+	if (node->planenum == -1) {
+		if (node->iscontentsdetail) {
 			free(node->markfaces);
 			return -1;
-		}
-		else
-		{
-			int leafnum = WriteDrawLeaf (node, portalleaf);
+		} else {
+			int leafnum = WriteDrawLeaf(node, portalleaf);
 			return -1 - leafnum;
 		}
 	}
-    dnode_t*        n;
-    int             i;
-    face_t*         f;
+	dnode_t* n;
+	int i;
+	face_t* f;
 	int nodenum = g_numnodes;
 
-    // emit a node
-    hlassume(g_numnodes < MAX_MAP_NODES, assume_MAX_MAP_NODES);
-    n = &g_dnodes[g_numnodes];
-    g_numnodes++;
+	// emit a node
+	hlassume(g_numnodes < MAX_MAP_NODES, assume_MAX_MAP_NODES);
+	n = &g_dnodes[g_numnodes];
+	g_numnodes++;
 
 	double3_array mins, maxs;
 
-	if (node->isdetail)
-	{
-		// intersect its loose bounds with the strict bounds of its parent portalleaf
+	if (node->isdetail) {
+		// intersect its loose bounds with the strict bounds of its parent
+		// portalleaf
 		mins = vector_maximums(portalleaf->mins, node->loosemins);
-		maxs = vector_minimums (portalleaf->maxs, node->loosemaxs);
+		maxs = vector_minimums(portalleaf->maxs, node->loosemaxs);
+	} else {
+		VectorCopy(node->mins, mins);
+		VectorCopy(node->maxs, maxs);
 	}
-	else
-	{
-		VectorCopy (node->mins, mins);
-		VectorCopy (node->maxs, maxs);
-	}
-	for (int k = 0; k < 3; k++)
-	{
-		n->mins[k] = (short)std::max (-32767, std::min((int)mins[k], 32767));
-		n->maxs[k] = (short)std::max (-32767, std::min((int)maxs[k], 32767));
+	for (int k = 0; k < 3; k++) {
+		n->mins[k]
+			= (short) std::max(-32767, std::min((int) mins[k], 32767));
+		n->maxs[k]
+			= (short) std::max(-32767, std::min((int) maxs[k], 32767));
 	}
 
-    if (node->planenum & 1)
-    {
-        Error("WriteDrawNodes_r: odd planenum");
-    }
-    n->planenum = WritePlane(node->planenum);
-    n->firstface = g_numfaces;
+	if (node->planenum & 1) {
+		Error("WriteDrawNodes_r: odd planenum");
+	}
+	n->planenum = WritePlane(node->planenum);
+	n->firstface = g_numfaces;
 
-    for (f = node->faces; f; f = f->next)
-    {
-        WriteFace(f);
-    }
+	for (f = node->faces; f; f = f->next) {
+		WriteFace(f);
+	}
 
-    n->numfaces = g_numfaces - n->firstface;
+	n->numfaces = g_numfaces - n->firstface;
 
-    //
-    // recursively output the other nodes
-    //
-    for (i = 0; i < 2; i++)
-    {
-		n->children[i] = WriteDrawNodes_r (node->children[i], portalleaf);
-    }
+	//
+	// recursively output the other nodes
+	//
+	for (i = 0; i < 2; i++) {
+		n->children[i] = WriteDrawNodes_r(node->children[i], portalleaf);
+	}
 	return nodenum;
 }
 
 // =====================================================================================
 //  FreeDrawNodes_r
 // =====================================================================================
-static void     FreeDrawNodes_r(node_t* node)
-{
-    int             i;
-    face_t*         f;
-    face_t*         next;
+static void FreeDrawNodes_r(node_t* node) {
+	int i;
+	face_t* f;
+	face_t* next;
 
-    for (i = 0; i < 2; i++)
-    {
-        if (node->children[i]->planenum != -1)
-        {
-            FreeDrawNodes_r(node->children[i]);
-        }
-    }
+	for (i = 0; i < 2; i++) {
+		if (node->children[i]->planenum != -1) {
+			FreeDrawNodes_r(node->children[i]);
+		}
+	}
 
-    //
-    // free the faces on the node
-    //
-    for (f = node->faces; f; f = next)
-    {
-        next = f->next;
-        FreeFace(f);
-    }
+	//
+	// free the faces on the node
+	//
+	for (f = node->faces; f; f = next) {
+		next = f->next;
+		FreeFace(f);
+	}
 
-    free(node);
+	free(node);
 }
 
 // =====================================================================================
@@ -418,86 +373,66 @@ static void     FreeDrawNodes_r(node_t* node)
 //      Called after a drawing hull is completed
 //      Frees all nodes and faces
 // =====================================================================================
-void OutputEdges_face (face_t *f)
-{
-	const wad_texture_name textureName{get_texture_by_number(f->texturenum)};
+void OutputEdges_face(face_t* f) {
+	wad_texture_name const textureName{ get_texture_by_number(f->texturenum
+	) };
 
-	if (
-		textureName.is_ordinary_hint()
-		|| textureName.is_skip()
-        || should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces()
-		|| f->texturenum == -1
-		|| f->referenced == 0
-		|| textureName.is_env_sky()
-		)
-	{
+	if (textureName.is_ordinary_hint() || textureName.is_skip()
+		|| should_face_have_facestyle_null(textureName, f->contents)
+		|| textureName.marks_discardable_faces() || f->texturenum == -1
+		|| f->referenced == 0 || textureName.is_env_sky()) {
 		return;
 	}
-	f->outputedges = (int *)malloc (f->numpoints * sizeof (int));
-	hlassume (f->outputedges != nullptr, assume_NoMemory);
+	f->outputedges = (int*) malloc(f->numpoints * sizeof(int));
+	hlassume(f->outputedges != nullptr, assume_NoMemory);
 	int i;
-	for (i = 0; i < f->numpoints; i++)
-	{
-		int e = GetEdge (f->pts[i], f->pts[(i + 1) % f->numpoints], f);
+	for (i = 0; i < f->numpoints; i++) {
+		int e = GetEdge(f->pts[i], f->pts[(i + 1) % f->numpoints], f);
 		f->outputedges[i] = e;
 	}
 }
-int OutputEdges_r (node_t *node, int detaillevel)
-{
+
+int OutputEdges_r(node_t* node, int detaillevel) {
 	int next = -1;
-	if (node->planenum == -1)
-	{
+	if (node->planenum == -1) {
 		return next;
 	}
-	face_t *f;
-	for (f = node->faces; f; f = f->next)
-	{
-		if (f->detaillevel > detaillevel)
-		{
-			if (next == -1? true: f->detaillevel < next)
-			{
+	face_t* f;
+	for (f = node->faces; f; f = f->next) {
+		if (f->detaillevel > detaillevel) {
+			if (next == -1 ? true : f->detaillevel < next) {
 				next = f->detaillevel;
 			}
 		}
-		if (f->detaillevel == detaillevel)
-		{
-			OutputEdges_face (f);
+		if (f->detaillevel == detaillevel) {
+			OutputEdges_face(f);
 		}
 	}
 	int i;
-	for (i = 0; i < 2; i++)
-	{
-		int r = OutputEdges_r (node->children[i], detaillevel);
-		if (r == -1? false: next == -1? true: r < next)
-		{
+	for (i = 0; i < 2; i++) {
+		int r = OutputEdges_r(node->children[i], detaillevel);
+		if (r == -1 ? false : next == -1 ? true : r < next) {
 			next = r;
 		}
 	}
 	return next;
 }
-static void RemoveCoveredFaces_r (node_t *node)
-{
-	if (node->isportalleaf)
-	{
-		if (node->contents == CONTENTS_SOLID)
-		{
+
+static void RemoveCoveredFaces_r(node_t* node) {
+	if (node->isportalleaf) {
+		if (node->contents == CONTENTS_SOLID) {
 			return; // stop here, don't go deeper into children
 		}
 	}
-	if (node->planenum == -1)
-	{
+	if (node->planenum == -1) {
 		// this is a leaf
-		if (node->iscontentsdetail)
-		{
+		if (node->iscontentsdetail) {
 			return;
-		}
-		else
-		{
-			face_t **fp;
-			for (fp = node->markfaces; *fp; fp++)
-			{
-				for (face_t *f = *fp; f; f = f->original) // for each tjunc subface
+		} else {
+			face_t** fp;
+			for (fp = node->markfaces; *fp; fp++) {
+				for (face_t* f = *fp; f;
+					 f = f->original) // for each tjunc subface
 				{
 					f->referenced++; // mark the face as referenced
 				}
@@ -505,157 +440,167 @@ static void RemoveCoveredFaces_r (node_t *node)
 		}
 		return;
 	}
-	
+
 	// this is a node
-	for (face_t *f = node->faces; f; f = f->next)
-	{
+	for (face_t* f = node->faces; f; f = f->next) {
 		f->referenced = 0; // clear the mark
 	}
 
-	RemoveCoveredFaces_r (node->children[0]);
-	RemoveCoveredFaces_r (node->children[1]);
-}
-void            WriteDrawNodes(node_t* headnode)
-{
-	RemoveCoveredFaces_r (headnode); // fill "referenced" value
-	// higher detail level should not compete for edge pairing with lower detail level.
-	int detaillevel, nextdetaillevel;
-	for (detaillevel = 0; detaillevel != -1; detaillevel = nextdetaillevel)
-	{
-		nextdetaillevel = OutputEdges_r (headnode, detaillevel);
-	}
-	WriteDrawNodes_r (headnode, nullptr);
+	RemoveCoveredFaces_r(node->children[0]);
+	RemoveCoveredFaces_r(node->children[1]);
 }
 
+void WriteDrawNodes(node_t* headnode) {
+	RemoveCoveredFaces_r(headnode); // fill "referenced" value
+	// higher detail level should not compete for edge pairing with lower
+	// detail level.
+	int detaillevel, nextdetaillevel;
+	for (detaillevel = 0; detaillevel != -1;
+		 detaillevel = nextdetaillevel) {
+		nextdetaillevel = OutputEdges_r(headnode, detaillevel);
+	}
+	WriteDrawNodes_r(headnode, nullptr);
+}
 
 // =====================================================================================
 //  BeginBSPFile
 // =====================================================================================
-void            BeginBSPFile()
-{
-    // these values may actually be initialized
-    // if the file existed when loaded, so clear them explicitly
+void BeginBSPFile() {
+	// these values may actually be initialized
+	// if the file existed when loaded, so clear them explicitly
 	gNumMappedPlanes = 0;
 	gPlaneMap.clear();
 
 	g_nummappedtexinfo = 0;
-	g_texinfomap.clear ();
+	g_texinfomap.clear();
 
 	count_mergedclipnodes = 0;
-    g_nummodels = 0;
-    g_numfaces = 0;
-    g_numnodes = 0;
-    g_numclipnodes = 0;
-    g_numvertexes = 0;
-    g_nummarksurfaces = 0;
-    g_numsurfedges = 0;
+	g_nummodels = 0;
+	g_numfaces = 0;
+	g_numnodes = 0;
+	g_numclipnodes = 0;
+	g_numvertexes = 0;
+	g_nummarksurfaces = 0;
+	g_numsurfedges = 0;
 
-    // edge 0 is not used, because 0 can't be negated
-    g_numedges = 1;
+	// edge 0 is not used, because 0 can't be negated
+	g_numedges = 1;
 
-    // leaf 0 is common solid with no faces
-    g_numleafs = 1;
-    g_dleafs[0].contents = CONTENTS_SOLID;
+	// leaf 0 is common solid with no faces
+	g_numleafs = 1;
+	g_dleafs[0].contents = CONTENTS_SOLID;
 }
 
 // =====================================================================================
 //  FinishBSPFile
 // =====================================================================================
-void FinishBSPFile(const bsp_data& bspData)
-{
-    Verbose("--- FinishBSPFile ---\n");
+void FinishBSPFile(bsp_data const & bspData) {
+	Verbose("--- FinishBSPFile ---\n");
 
-	if (g_dmodels[0].visleafs > MAX_MAP_LEAFS_ENGINE)
-	{
-		Warning ("Number of world leaves(%d) exceeded MAX_MAP_LEAFS(%zd)\nIf you encounter problems when running your map, consider this the most likely cause.\n", g_dmodels[0].visleafs, MAX_MAP_LEAFS_ENGINE);
+	if (g_dmodels[0].visleafs > MAX_MAP_LEAFS_ENGINE) {
+		Warning(
+			"Number of world leaves(%d) exceeded MAX_MAP_LEAFS(%zd)\nIf you encounter problems when running your map, consider this the most likely cause.\n",
+			g_dmodels[0].visleafs, MAX_MAP_LEAFS_ENGINE
+		);
 	}
-	if (g_dmodels[0].numfaces > MAX_MAP_WORLDFACES)
-	{
-		Warning ("Number of world faces(%d) exceeded %zd. Some faces will disappear in game.\nTo reduce world faces, change some world brushes (including func_details) to func_walls.\n", g_dmodels[0].numfaces, MAX_MAP_WORLDFACES);
+	if (g_dmodels[0].numfaces > MAX_MAP_WORLDFACES) {
+		Warning(
+			"Number of world faces(%d) exceeded %zd. Some faces will disappear in game.\nTo reduce world faces, change some world brushes (including func_details) to func_walls.\n",
+			g_dmodels[0].numfaces, MAX_MAP_WORLDFACES
+		);
 	}
-	Developer (developer_level::message, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
-	if (!g_noclipnodemerge)
-	{
-		Log ("Reduced %d clipnodes to %d\n", g_numclipnodes + count_mergedclipnodes, g_numclipnodes);
+	Developer(
+		developer_level::message, "count_mergedclipnodes = %d\n",
+		count_mergedclipnodes
+	);
+	if (!g_noclipnodemerge) {
+		Log("Reduced %d clipnodes to %d\n",
+			g_numclipnodes + count_mergedclipnodes, g_numclipnodes);
 	}
-	if(!g_noopt)
-	{
+	if (!g_noopt) {
 		{
-			Log ("Reduced %d texinfos to %d\n", g_numtexinfo, g_nummappedtexinfo);
-			for (int i = 0; i < g_nummappedtexinfo; i++)
-			{
+			Log("Reduced %d texinfos to %d\n", g_numtexinfo,
+				g_nummappedtexinfo);
+			for (int i = 0; i < g_nummappedtexinfo; i++) {
 				g_texinfo[i] = g_mappedtexinfo[i];
 			}
 			g_numtexinfo = g_nummappedtexinfo;
 		}
 		{
-			dmiptexlump_t *l = (dmiptexlump_t *)g_dtexdata.data();
-			int &g_nummiptex = l->nummiptex;
-			bool *Used = (bool *)calloc (g_nummiptex, sizeof(bool));
+			dmiptexlump_t* l = (dmiptexlump_t*) g_dtexdata.data();
+			int& g_nummiptex = l->nummiptex;
+			bool* Used = (bool*) calloc(g_nummiptex, sizeof(bool));
 			int Num = 0, Size = 0;
-			int *Map = (int *)malloc (g_nummiptex * sizeof(int));
+			int* Map = (int*) malloc(g_nummiptex * sizeof(int));
 			int i;
-			hlassume (Used != nullptr && Map != nullptr, assume_NoMemory);
-			int *lumpsizes = (int *)malloc (g_nummiptex * sizeof (int));
-			const int newdatasizemax = g_texdatasize - ((byte *)&l->dataofs[g_nummiptex] - (byte *)l);
-			byte *newdata = (byte *)malloc (newdatasizemax);
+			hlassume(Used != nullptr && Map != nullptr, assume_NoMemory);
+			int* lumpsizes = (int*) malloc(g_nummiptex * sizeof(int));
+			int const newdatasizemax = g_texdatasize
+				- ((byte*) &l->dataofs[g_nummiptex] - (byte*) l);
+			byte* newdata = (byte*) malloc(newdatasizemax);
 			int newdatasize = 0;
-			hlassume (lumpsizes != nullptr && newdata != nullptr, assume_NoMemory);
+			hlassume(
+				lumpsizes != nullptr && newdata != nullptr, assume_NoMemory
+			);
 			int total = 0;
-			for (i = 0; i < g_nummiptex; i++)
-			{
-				if (l->dataofs[i] == -1)
-				{
+			for (i = 0; i < g_nummiptex; i++) {
+				if (l->dataofs[i] == -1) {
 					lumpsizes[i] = -1;
 					continue;
 				}
 				lumpsizes[i] = g_texdatasize - l->dataofs[i];
-				for (int j = 0; j < g_nummiptex; j++)
-				{
+				for (int j = 0; j < g_nummiptex; j++) {
 					int lumpsize = l->dataofs[j] - l->dataofs[i];
-					if (l->dataofs[j] == -1 || lumpsize < 0 || lumpsize == 0 && j <= i)
+					if (l->dataofs[j] == -1 || lumpsize < 0
+						|| lumpsize == 0 && j <= i) {
 						continue;
-					if (lumpsize < lumpsizes[i])
+					}
+					if (lumpsize < lumpsizes[i]) {
 						lumpsizes[i] = lumpsize;
+					}
 				}
 				total += lumpsizes[i];
 			}
-			if (total != newdatasizemax)
-			{
-				Warning ("Bad texdata structure.\n");
+			if (total != newdatasizemax) {
+				Warning("Bad texdata structure.\n");
 				goto skipReduceTexdata;
 			}
-			for (i = 0; i < g_numtexinfo; i++)
-			{
-				texinfo_t *t = &g_texinfo[i];
-				if (t->miptex < 0 || t->miptex >= g_nummiptex)
-				{
-					Warning ("Bad miptex number %d.\n", t->miptex);
+			for (i = 0; i < g_numtexinfo; i++) {
+				texinfo_t* t = &g_texinfo[i];
+				if (t->miptex < 0 || t->miptex >= g_nummiptex) {
+					Warning("Bad miptex number %d.\n", t->miptex);
 					goto skipReduceTexdata;
 				}
 				Used[t->miptex] = true;
 			}
-			for (i = 0; i < g_nummiptex; i++)
-			{
-				if (l->dataofs[i] < 0)
+			for (i = 0; i < g_nummiptex; i++) {
+				if (l->dataofs[i] < 0) {
 					continue;
-				if (Used[i] == true)
-				{
-					miptex_t *m = (miptex_t *)((std::byte *)l + l->dataofs[i]);
-					wad_texture_name name{m->name};
+				}
+				if (Used[i] == true) {
+					miptex_t* m
+						= (miptex_t*) ((std::byte*) l + l->dataofs[i]);
+					wad_texture_name name{ m->name };
 					if (!name.is_animation_frame() && !name.is_tile()) {
 						continue;
 					}
 
-					for(bool alternateAnimation : std::array{false, true}) {
-						for (std::size_t frameNumber = 0; frameNumber < 10; ++frameNumber) {
-							name.set_animation_frame_or_tile_number(frameNumber, alternateAnimation);
-							// TODO: IS THIS REALLY THE BEST WAY TO FIND THESE TEXTURES????
+					for (bool alternateAnimation :
+						 std::array{ false, true }) {
+						for (std::size_t frameNumber = 0; frameNumber < 10;
+							 ++frameNumber) {
+							name.set_animation_frame_or_tile_number(
+								frameNumber, alternateAnimation
+							);
+							// TODO: IS THIS REALLY THE BEST WAY TO FIND
+							// THESE TEXTURES????
 							for (std::size_t k = 0; k < g_nummiptex; ++k) {
 								if (l->dataofs[k] < 0) {
 									continue;
 								}
-								const miptex_t *m2 = (miptex_t *)((byte *)l + l->dataofs[k]);
+								miptex_t const * m2
+									= (miptex_t*) ((byte*) l + l->dataofs[k]
+									);
 								if (name == m2->name) {
 									Used[k] = true;
 								}
@@ -664,162 +609,155 @@ void FinishBSPFile(const bsp_data& bspData)
 					}
 				}
 			}
-			for (i = 0; i < g_nummiptex; i++)
-			{
-				if (Used[i])
-				{
+			for (i = 0; i < g_nummiptex; i++) {
+				if (Used[i]) {
 					Map[i] = Num;
 					Num++;
-				}
-				else
-				{
+				} else {
 					Map[i] = -1;
 				}
 			}
-			for (i = 0; i < g_numtexinfo; i++)
-			{
-				texinfo_t *t = &g_texinfo[i];
+			for (i = 0; i < g_numtexinfo; i++) {
+				texinfo_t* t = &g_texinfo[i];
 				t->miptex = Map[t->miptex];
 			}
-			Size += (byte *)&l->dataofs[Num] - (byte *)l;
-			for (i = 0; i < g_nummiptex; i++)
-			{
-				if (Used[i])
-				{
-					if (lumpsizes[i] == -1)
-					{
+			Size += (byte*) &l->dataofs[Num] - (byte*) l;
+			for (i = 0; i < g_nummiptex; i++) {
+				if (Used[i]) {
+					if (lumpsizes[i] == -1) {
 						l->dataofs[Map[i]] = -1;
-					}
-					else
-					{
-						std::memcpy ((byte *)newdata + newdatasize, (byte *)l + l->dataofs[i], lumpsizes[i]);
+					} else {
+						std::memcpy(
+							(byte*) newdata + newdatasize,
+							(byte*) l + l->dataofs[i], lumpsizes[i]
+						);
 						l->dataofs[Map[i]] = Size;
 						newdatasize += lumpsizes[i];
 						Size += lumpsizes[i];
 					}
 				}
 			}
-			std::memcpy (&l->dataofs[Num], newdata, newdatasize);
-			Log ("Reduced %d texdatas to %d (%d bytes to %d)\n", g_nummiptex, Num, g_texdatasize, Size);
+			std::memcpy(&l->dataofs[Num], newdata, newdatasize);
+			Log("Reduced %d texdatas to %d (%d bytes to %d)\n", g_nummiptex,
+				Num, g_texdatasize, Size);
 			g_nummiptex = Num;
 			g_texdatasize = Size;
-			skipReduceTexdata:;
-			free (lumpsizes);
-			free (newdata);
-			free (Used);
-			free (Map);
+		skipReduceTexdata:;
+			free(lumpsizes);
+			free(newdata);
+			free(Used);
+			free(Map);
 		}
-		Log ("Reduced %d planes to %d\n", g_numplanes, gNumMappedPlanes);
+		Log("Reduced %d planes to %d\n", g_numplanes, gNumMappedPlanes);
 
-		for(int counter = 0; counter < gNumMappedPlanes; counter++)
-		{
+		for (int counter = 0; counter < gNumMappedPlanes; counter++) {
 			g_mapplanes[counter] = gMappedPlanes[counter];
 		}
 		g_numplanes = gNumMappedPlanes;
-	}
-	else
-	{
-		hlassume (g_numtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
-		hlassume (g_numplanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
+	} else {
+		hlassume(g_numtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
+		hlassume(g_numplanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
 	}
 
-	if (!g_nobrink)
-	{
-		Log ("FixBrinks:\n");
-		dclipnode_t *clipnodes; //[MAX_MAP_CLIPNODES]
+	if (!g_nobrink) {
+		Log("FixBrinks:\n");
+		dclipnode_t* clipnodes; //[MAX_MAP_CLIPNODES]
 		int numclipnodes;
-		clipnodes = (dclipnode_t *)malloc (MAX_MAP_CLIPNODES * sizeof (dclipnode_t));
-		hlassume (clipnodes != nullptr, assume_NoMemory);
+		clipnodes = (dclipnode_t*) malloc(
+			MAX_MAP_CLIPNODES * sizeof(dclipnode_t)
+		);
+		hlassume(clipnodes != nullptr, assume_NoMemory);
 		std::array<bbrinkinfo_t*, NUM_HULLS>* brinkinfo; //[MAX_MAP_MODELS]
-		int (*headnode)[NUM_HULLS]; //[MAX_MAP_MODELS]
-		brinkinfo = (std::array<bbrinkinfo_t*, NUM_HULLS>*) malloc (MAX_MAP_MODELS * sizeof (std::array<bbrinkinfo_t*, NUM_HULLS>));
+		int(*headnode)[NUM_HULLS];						 //[MAX_MAP_MODELS]
+		brinkinfo = (std::array<bbrinkinfo_t*, NUM_HULLS>*) malloc(
+			MAX_MAP_MODELS * sizeof(std::array<bbrinkinfo_t*, NUM_HULLS>)
+		);
 
-		hlassume (brinkinfo != nullptr, assume_NoMemory);
-		headnode = (int (*)[NUM_HULLS])malloc (MAX_MAP_MODELS * sizeof (int [NUM_HULLS]));
-		hlassume (headnode != nullptr, assume_NoMemory);
+		hlassume(brinkinfo != nullptr, assume_NoMemory);
+		headnode = (int(*)[NUM_HULLS]
+		) malloc(MAX_MAP_MODELS * sizeof(int[NUM_HULLS]));
+		hlassume(headnode != nullptr, assume_NoMemory);
 
 		int i, j, level;
-		for (i = 0; i < g_nummodels; i++)
-		{
-			dmodel_t *m = &g_dmodels[i];
-			Developer (developer_level::message, " model %d\n", i);
-			for (j = 1; j < NUM_HULLS; j++)
-			{
-				brinkinfo[i][j] = CreateBrinkinfo (g_dclipnodes.data(), m->headnode[j]);
+		for (i = 0; i < g_nummodels; i++) {
+			dmodel_t* m = &g_dmodels[i];
+			Developer(developer_level::message, " model %d\n", i);
+			for (j = 1; j < NUM_HULLS; j++) {
+				brinkinfo[i][j]
+					= CreateBrinkinfo(g_dclipnodes.data(), m->headnode[j]);
 			}
 		}
-		for (level = BrinkAny; level > BrinkNone; level--)
-		{
+		for (level = BrinkAny; level > BrinkNone; level--) {
 			numclipnodes = 0;
 			count_mergedclipnodes = 0;
-			for (i = 0; i < g_nummodels; i++)
-			{
-				for (j = 1; j < NUM_HULLS; j++)
-				{
-					if (!FixBrinks (brinkinfo[i][j], (bbrinklevel_e) level, headnode[i][j], clipnodes, MAX_MAP_CLIPNODES, numclipnodes, numclipnodes))
-					{
+			for (i = 0; i < g_nummodels; i++) {
+				for (j = 1; j < NUM_HULLS; j++) {
+					if (!FixBrinks(
+							brinkinfo[i][j], (bbrinklevel_e) level,
+							headnode[i][j], clipnodes, MAX_MAP_CLIPNODES,
+							numclipnodes, numclipnodes
+						)) {
 						break;
 					}
 				}
-				if (j < NUM_HULLS)
-				{
+				if (j < NUM_HULLS) {
 					break;
 				}
 			}
-			if (i == g_nummodels)
-			{
+			if (i == g_nummodels) {
 				break;
 			}
 		}
-		for (i = 0; i < g_nummodels; i++)
-		{
-			for (j = 1; j < NUM_HULLS; j++)
-			{
-				DeleteBrinkinfo (brinkinfo[i][j]);
+		for (i = 0; i < g_nummodels; i++) {
+			for (j = 1; j < NUM_HULLS; j++) {
+				DeleteBrinkinfo(brinkinfo[i][j]);
 			}
 		}
-		if (level == BrinkNone)
-		{
-			Warning ("No brinks have been fixed because clipnode data is almost full.");
-		}
-		else
-		{
-			if (level != BrinkAny)
-			{
-				Warning ("Not all brinks have been fixed because clipnode data is almost full.");
+		if (level == BrinkNone) {
+			Warning(
+				"No brinks have been fixed because clipnode data is almost full."
+			);
+		} else {
+			if (level != BrinkAny) {
+				Warning(
+					"Not all brinks have been fixed because clipnode data is almost full."
+				);
 			}
-			Developer (developer_level::message, "count_mergedclipnodes = %d\n", count_mergedclipnodes);
-			Log ("Increased %d clipnodes to %d.\n", g_numclipnodes, numclipnodes);
+			Developer(
+				developer_level::message, "count_mergedclipnodes = %d\n",
+				count_mergedclipnodes
+			);
+			Log("Increased %d clipnodes to %d.\n", g_numclipnodes,
+				numclipnodes);
 			g_numclipnodes = numclipnodes;
-			std::memcpy (g_dclipnodes.data(), clipnodes, numclipnodes * sizeof (dclipnode_t));
-			for (i = 0; i < g_nummodels; i++)
-			{
-				dmodel_t *m = &g_dmodels[i];
-				for (j = 1; j < NUM_HULLS; j++)
-				{
+			std::memcpy(
+				g_dclipnodes.data(), clipnodes,
+				numclipnodes * sizeof(dclipnode_t)
+			);
+			for (i = 0; i < g_nummodels; i++) {
+				dmodel_t* m = &g_dmodels[i];
+				for (j = 1; j < NUM_HULLS; j++) {
 					m->headnode[j] = headnode[i][j];
 				}
 			}
 		}
-		free (brinkinfo);
-		free (headnode);
-		free (clipnodes);
+		free(brinkinfo);
+		free(headnode);
+		free(clipnodes);
 	}
-	
-	WriteExtentFile (g_extentfilename);
 
-	if (g_chart)
-    {
-        print_bsp_file_sizes(bspData);
-    }
+	WriteExtentFile(g_extentfilename);
 
-	for (int i = 0; i < g_numplanes; i++)
-	{
+	if (g_chart) {
+		print_bsp_file_sizes(bspData);
+	}
+
+	for (int i = 0; i < g_numplanes; i++) {
 		mapplane_t& mp = g_mapplanes[i];
 		dplane_t& dp = g_dplanes[i];
-		VectorCopy (mp.normal, dp.normal);
+		VectorCopy(mp.normal, dp.normal);
 		dp.dist = mp.dist;
 		dp.type = mp.type;
 	}
-    WriteBSPFile(g_bspfilename);
+	WriteBSPFile(g_bspfilename);
 }

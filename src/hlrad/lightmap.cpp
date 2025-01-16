@@ -5,36 +5,34 @@
 #include <numbers>
 #include <span>
 
-edgeshare_t     g_edgeshare[MAX_MAP_EDGES];
-std::array<float3_array, MAX_MAP_EDGES> g_face_centroids; // BUG: should this be MAX_MAP_FACES instead of MAX_MAP_EDGES???
-bool            g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
+edgeshare_t g_edgeshare[MAX_MAP_EDGES];
+std::array<float3_array, MAX_MAP_EDGES>
+	g_face_centroids; // BUG: should this be MAX_MAP_FACES instead of
+					  // MAX_MAP_EDGES???
+bool g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
 
-//#define TEXTURE_STEP   16.0
+// #define TEXTURE_STEP   16.0
 
 // =====================================================================================
 //  PairEdges
 // =====================================================================================
-typedef struct
-{
+typedef struct {
 	int numclipplanes;
-	dplane_t *clipplanes;
-}
-intersecttest_t;
-bool TestFaceIntersect (intersecttest_t *t, int facenum)
-{
-	dface_t *f2 = &g_dfaces[facenum];
-	fast_winding *w = new fast_winding (*f2);
+	dplane_t* clipplanes;
+} intersecttest_t;
+
+bool TestFaceIntersect(intersecttest_t* t, int facenum) {
+	dface_t* f2 = &g_dfaces[facenum];
+	fast_winding* w = new fast_winding(*f2);
 	int k;
-	for (k = 0; k < w->size(); k++)
-	{
-		VectorAdd (w->m_Points[k], g_face_offset[facenum], w->m_Points[k]);
+	for (k = 0; k < w->size(); k++) {
+		VectorAdd(w->m_Points[k], g_face_offset[facenum], w->m_Points[k]);
 	}
-	for (k = 0; k < t->numclipplanes; k++)
-	{
-		if (!w->mutating_clip(t->clipplanes[k].normal, t->clipplanes[k].dist, false
-			, ON_EPSILON*4
-			))
-		{
+	for (k = 0; k < t->numclipplanes; k++) {
+		if (!w->mutating_clip(
+				t->clipplanes[k].normal, t->clipplanes[k].dist, false,
+				ON_EPSILON * 4
+			)) {
 			break;
 		}
 	}
@@ -42,74 +40,79 @@ bool TestFaceIntersect (intersecttest_t *t, int facenum)
 	delete w;
 	return intersect;
 }
-intersecttest_t *CreateIntersectTest (const dplane_t *p, int facenum)
-{
-	dface_t *f = &g_dfaces[facenum];
-	intersecttest_t *t;
-	t = (intersecttest_t *)malloc (sizeof (intersecttest_t));
-	hlassume (t != nullptr, assume_NoMemory);
-	t->clipplanes = (dplane_t *)malloc (f->numedges * sizeof (dplane_t));
-	hlassume (t->clipplanes != nullptr, assume_NoMemory);
+
+intersecttest_t* CreateIntersectTest(dplane_t const * p, int facenum) {
+	dface_t* f = &g_dfaces[facenum];
+	intersecttest_t* t;
+	t = (intersecttest_t*) malloc(sizeof(intersecttest_t));
+	hlassume(t != nullptr, assume_NoMemory);
+	t->clipplanes = (dplane_t*) malloc(f->numedges * sizeof(dplane_t));
+	hlassume(t->clipplanes != nullptr, assume_NoMemory);
 	t->numclipplanes = 0;
 	int j;
-	for (j = 0; j < f->numedges; j++)
-	{
+	for (j = 0; j < f->numedges; j++) {
 		// should we use winding instead?
 		int edgenum = g_dsurfedges[f->firstedge + j];
 		{
 			float3_array v0, v1;
 			float3_array dir, normal;
-			if (edgenum < 0)
-			{
-				VectorCopy (g_dvertexes[g_dedges[-edgenum].v[1]].point, v0);
-				VectorCopy (g_dvertexes[g_dedges[-edgenum].v[0]].point, v1);
+			if (edgenum < 0) {
+				VectorCopy(g_dvertexes[g_dedges[-edgenum].v[1]].point, v0);
+				VectorCopy(g_dvertexes[g_dedges[-edgenum].v[0]].point, v1);
+			} else {
+				VectorCopy(g_dvertexes[g_dedges[edgenum].v[0]].point, v0);
+				VectorCopy(g_dvertexes[g_dedges[edgenum].v[1]].point, v1);
 			}
-			else
-			{
-				VectorCopy (g_dvertexes[g_dedges[edgenum].v[0]].point, v0);
-				VectorCopy (g_dvertexes[g_dedges[edgenum].v[1]].point, v1);
-			}
-			VectorAdd (v0, g_face_offset[facenum], v0);
-			VectorAdd (v1, g_face_offset[facenum], v1);
+			VectorAdd(v0, g_face_offset[facenum], v0);
+			VectorAdd(v1, g_face_offset[facenum], v1);
 			VectorSubtract(v1, v0, dir);
-			CrossProduct (dir, p->normal, normal); // facing inward
-			if (!normalize_vector(normal))
-			{
+			CrossProduct(dir, p->normal, normal); // facing inward
+			if (!normalize_vector(normal)) {
 				continue;
 			}
-			VectorCopy (normal, t->clipplanes[t->numclipplanes].normal);
-			t->clipplanes[t->numclipplanes].dist = DotProduct (v0, normal);
+			VectorCopy(normal, t->clipplanes[t->numclipplanes].normal);
+			t->clipplanes[t->numclipplanes].dist = DotProduct(v0, normal);
 			t->numclipplanes++;
 		}
 	}
 	return t;
 }
-void FreeIntersectTest (intersecttest_t *t)
-{
-	free (t->clipplanes);
-	free (t);
+
+void FreeIntersectTest(intersecttest_t* t) {
+	free(t->clipplanes);
+	free(t);
 }
-void AddFaceForVertexNormal_printerror (const int edgeabs, const int edgeend, dface_t *const f)
-{
-	if (developer_level::warning <= g_developer)
-	{
+
+void AddFaceForVertexNormal_printerror(
+	int const edgeabs, int const edgeend, dface_t* const f
+) {
+	if (developer_level::warning <= g_developer) {
 		int i, e;
-		Log ("AddFaceForVertexNormal - bad face:\n");
-		Log (" edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
-		for (i = 0; i < f->numedges; i++)
-		{
+		Log("AddFaceForVertexNormal - bad face:\n");
+		Log(" edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
+		for (i = 0; i < f->numedges; i++) {
 			e = g_dsurfedges[f->firstedge + i];
-			edgeshare_t *es = &g_edgeshare[abs(e)];
+			edgeshare_t* es = &g_edgeshare[abs(e)];
 			int v0 = g_dedges[abs(e)].v[0], v1 = g_dedges[abs(e)].v[1];
-			Log (" e=%d v0=%d(%f,%f,%f) v1=%d(%f,%f,%f) share0=%li share1=%li\n", e,
-				v0, g_dvertexes[v0].point[0], g_dvertexes[v0].point[1], g_dvertexes[v0].point[2],
-				v1, g_dvertexes[v1].point[0], g_dvertexes[v1].point[1], g_dvertexes[v1].point[2],
-				(es->faces[0]==nullptr? -1: es->faces[0]-g_dfaces.data()), (es->faces[1]==nullptr? -1: es->faces[1]-g_dfaces.data()));
+			Log(" e=%d v0=%d(%f,%f,%f) v1=%d(%f,%f,%f) share0=%li share1=%li\n",
+				e, v0, g_dvertexes[v0].point[0], g_dvertexes[v0].point[1],
+				g_dvertexes[v0].point[2], v1, g_dvertexes[v1].point[0],
+				g_dvertexes[v1].point[1], g_dvertexes[v1].point[2],
+				(es->faces[0] == nullptr ? -1
+										 : es->faces[0] - g_dfaces.data()),
+				(es->faces[1] == nullptr ? -1
+										 : es->faces[1] - g_dfaces.data()));
 		}
 	}
 }
-int AddFaceForVertexNormal (const int edgeabs, int &edgeabsnext, const int edgeend, int &edgeendnext, dface_t *const f, dface_t *&fnext, float& angle, float3_array& normal)
-// Must guarantee these faces will form a loop or a chain, otherwise will result in endless loop.
+
+int AddFaceForVertexNormal(
+	int const edgeabs, int& edgeabsnext, int const edgeend,
+	int& edgeendnext, dface_t* const f, dface_t*& fnext, float& angle,
+	float3_array& normal
+)
+// Must guarantee these faces will form a loop or a chain, otherwise will
+// result in endless loop.
 //
 //   e[end]/enext[endnext]
 //  *
@@ -126,255 +129,294 @@ int AddFaceForVertexNormal (const int edgeabs, int &edgeabsnext, const int edgee
 	int iedge, iedgenext, edge, edgenext;
 	int i, e, count1, count2;
 	float dot;
-	for (count1 = count2 = 0, i = 0; i < f->numedges; i++)
-	{
+	for (count1 = count2 = 0, i = 0; i < f->numedges; i++) {
 		e = g_dsurfedges[f->firstedge + i];
-		if (g_dedges[abs(e)].v[0] == g_dedges[abs(e)].v[1])
+		if (g_dedges[abs(e)].v[0] == g_dedges[abs(e)].v[1]) {
 			continue;
-		if (abs(e) == edgeabs)
-		{
+		}
+		if (abs(e) == edgeabs) {
 			iedge = i;
 			edge = e;
-			count1 ++;
-		}
-		else if (g_dedges[abs(e)].v[0] == vnum || g_dedges[abs(e)].v[1] == vnum)
-		{
+			count1++;
+		} else if (g_dedges[abs(e)].v[0] == vnum
+				   || g_dedges[abs(e)].v[1] == vnum) {
 			iedgenext = i;
 			edgenext = e;
-			count2 ++;
+			count2++;
 		}
 	}
-	if (count1 != 1 || count2 != 1)
-	{
-		AddFaceForVertexNormal_printerror (edgeabs, edgeend, f);
+	if (count1 != 1 || count2 != 1) {
+		AddFaceForVertexNormal_printerror(edgeabs, edgeend, f);
 		return -1;
 	}
 	int vnum11, vnum12, vnum21, vnum22;
 	float3_array vec1, vec2;
-	vnum11 = g_dedges[abs(edge)].v[edge>0?0:1];
-	vnum12 = g_dedges[abs(edge)].v[edge>0?1:0];
-	vnum21 = g_dedges[abs(edgenext)].v[edgenext>0?0:1];
-	vnum22 = g_dedges[abs(edgenext)].v[edgenext>0?1:0];
-	if (vnum == vnum12 && vnum == vnum21 && vnum != vnum11 && vnum != vnum22)
-	{
-		VectorSubtract(g_dvertexes[vnum11].point, g_dvertexes[vnum].point, vec1);
-		VectorSubtract(g_dvertexes[vnum22].point, g_dvertexes[vnum].point, vec2);
+	vnum11 = g_dedges[abs(edge)].v[edge > 0 ? 0 : 1];
+	vnum12 = g_dedges[abs(edge)].v[edge > 0 ? 1 : 0];
+	vnum21 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 0 : 1];
+	vnum22 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 1 : 0];
+	if (vnum == vnum12 && vnum == vnum21 && vnum != vnum11
+		&& vnum != vnum22) {
+		VectorSubtract(
+			g_dvertexes[vnum11].point, g_dvertexes[vnum].point, vec1
+		);
+		VectorSubtract(
+			g_dvertexes[vnum22].point, g_dvertexes[vnum].point, vec2
+		);
 		edgeabsnext = abs(edgenext);
-		edgeendnext = edgenext>0?0:1;
-	}
-	else if (vnum == vnum11 && vnum == vnum22 && vnum != vnum12 && vnum != vnum21)
-	{
-		VectorSubtract(g_dvertexes[vnum12].point, g_dvertexes[vnum].point, vec1);
-		VectorSubtract(g_dvertexes[vnum21].point, g_dvertexes[vnum].point, vec2);
+		edgeendnext = edgenext > 0 ? 0 : 1;
+	} else if (vnum == vnum11 && vnum == vnum22 && vnum != vnum12
+			   && vnum != vnum21) {
+		VectorSubtract(
+			g_dvertexes[vnum12].point, g_dvertexes[vnum].point, vec1
+		);
+		VectorSubtract(
+			g_dvertexes[vnum21].point, g_dvertexes[vnum].point, vec2
+		);
 		edgeabsnext = abs(edgenext);
-		edgeendnext = edgenext>0?1:0;
-	}
-	else
-	{
-		AddFaceForVertexNormal_printerror (edgeabs, edgeend, f);
+		edgeendnext = edgenext > 0 ? 1 : 0;
+	} else {
+		AddFaceForVertexNormal_printerror(edgeabs, edgeend, f);
 		return -1;
 	}
 	normalize_vector(vec1);
 	normalize_vector(vec2);
-	dot = DotProduct(vec1,vec2);
-	dot = dot>1? 1: dot<-1? -1: dot;
+	dot = DotProduct(vec1, vec2);
+	dot = dot > 1 ? 1 : dot < -1 ? -1 : dot;
 	angle = acos(dot);
-	edgeshare_t *es = &g_edgeshare[edgeabsnext];
-	if (!(es->faces[0] && es->faces[1]))
+	edgeshare_t* es = &g_edgeshare[edgeabsnext];
+	if (!(es->faces[0] && es->faces[1])) {
 		return 1;
-	if (es->faces[0] == f && es->faces[1] != f)
+	}
+	if (es->faces[0] == f && es->faces[1] != f) {
 		fnext = es->faces[1];
-	else if (es->faces[1] == f && es->faces[0] != f)
+	} else if (es->faces[1] == f && es->faces[0] != f) {
 		fnext = es->faces[0];
-	else
-	{
-		AddFaceForVertexNormal_printerror (edgeabs, edgeend, f);
+	} else {
+		AddFaceForVertexNormal_printerror(edgeabs, edgeend, f);
 		return -1;
 	}
 	return 0;
 }
 
-static bool TranslateTexToTex (int facenum, int edgenum, int facenum2, matrix_t &m, matrix_t &m_inverse)
-	// This function creates a matrix that can translate texture coords in face1 into texture coords in face2.
-	// It keeps all points in the common edge invariant. For example, if there is a point in the edge, and in the texture of face1, its (s,t)=(16,0), and in face2, its (s,t)=(128,64), then we must let matrix*(16,0,0)=(128,64,0)
+static bool TranslateTexToTex(
+	int facenum, int edgenum, int facenum2, matrix_t& m, matrix_t& m_inverse
+)
+// This function creates a matrix that can translate texture coords in face1
+// into texture coords in face2. It keeps all points in the common edge
+// invariant. For example, if there is a point in the edge, and in the
+// texture of face1, its (s,t)=(16,0), and in face2, its (s,t)=(128,64),
+// then we must let matrix*(16,0,0)=(128,64,0)
 {
 	matrix_t worldtotex;
 	matrix_t worldtotex2;
-	dedge_t *e;
+	dedge_t* e;
 	int i;
-	dvertex_t *vert[2];
+	dvertex_t* vert[2];
 	float3_array face_vert[2];
 	float3_array face2_vert[2];
 	float3_array face_axis[2];
 	float3_array face2_axis[2];
-	const float3_array v_up = {0, 0, 1};
+	float3_array const v_up = { 0, 0, 1 };
 	float len;
 	float len2;
 	matrix_t edgetotex, edgetotex2;
 	matrix_t inv, inv2;
 
-	TranslateWorldToTex (facenum, worldtotex);
-	TranslateWorldToTex (facenum2, worldtotex2);
+	TranslateWorldToTex(facenum, worldtotex);
+	TranslateWorldToTex(facenum2, worldtotex2);
 
 	e = &g_dedges[edgenum];
-	for (i = 0; i < 2; i++)
-	{
+	for (i = 0; i < 2; i++) {
 		vert[i] = &g_dvertexes[e->v[i]];
-		ApplyMatrix (worldtotex, vert[i]->point, face_vert[i]);
-		face_vert[i][2] = 0; // this value is naturally close to 0 assuming that the edge is on the face plane, but let's make this more explicit.
-		ApplyMatrix (worldtotex2, vert[i]->point, face2_vert[i]);
+		ApplyMatrix(worldtotex, vert[i]->point, face_vert[i]);
+		face_vert[i][2] = 0; // this value is naturally close to 0 assuming
+							 // that the edge is on the face plane, but
+							 // let's make this more explicit.
+		ApplyMatrix(worldtotex2, vert[i]->point, face2_vert[i]);
 		face2_vert[i][2] = 0;
 	}
 
 	VectorSubtract(face_vert[1], face_vert[0], face_axis[0]);
 	len = vector_length(face_axis[0]);
-	CrossProduct (v_up, face_axis[0], face_axis[1]);
-	if (CalcMatrixSign (worldtotex) < 0.0) // the three vectors s, t, facenormal are in reverse order
+	CrossProduct(v_up, face_axis[0], face_axis[1]);
+	if (CalcMatrixSign(worldtotex)
+		< 0.0) // the three vectors s, t, facenormal are in reverse order
 	{
-		VectorInverse (face_axis[1]);
+		VectorInverse(face_axis[1]);
 	}
 
 	VectorSubtract(face2_vert[1], face2_vert[0], face2_axis[0]);
 	len2 = vector_length(face2_axis[0]);
-	CrossProduct (v_up, face2_axis[0], face2_axis[1]);
-	if (CalcMatrixSign (worldtotex2) < 0.0)
-	{
-		VectorInverse (face2_axis[1]);
+	CrossProduct(v_up, face2_axis[0], face2_axis[1]);
+	if (CalcMatrixSign(worldtotex2) < 0.0) {
+		VectorInverse(face2_axis[1]);
 	}
 
-	VectorCopy (face_axis[0], edgetotex.v[0]); // / v[0][0] v[1][0] \ is a rotation (possibly with a reflection by the edge)
-	VectorCopy (face_axis[1], edgetotex.v[1]); // \ v[0][1] v[1][1] / 
-	VectorScale (v_up, len, edgetotex.v[2]); // encode the length into the 3rd value of the matrix
-	VectorCopy (face_vert[0], edgetotex.v[3]); // map (0,0) into the origin point
+	VectorCopy(
+		face_axis[0], edgetotex.v[0]
+	); // / v[0][0] v[1][0] \ is a rotation (possibly with a reflection by
+	   // the edge)
+	VectorCopy(face_axis[1], edgetotex.v[1]); // \ v[0][1] v[1][1] /
+	VectorScale(
+		v_up, len, edgetotex.v[2]
+	); // encode the length into the 3rd value of the matrix
+	VectorCopy(
+		face_vert[0], edgetotex.v[3]
+	); // map (0,0) into the origin point
 
-	VectorCopy (face2_axis[0], edgetotex2.v[0]);
-	VectorCopy (face2_axis[1], edgetotex2.v[1]);
-	VectorScale (v_up, len2, edgetotex2.v[2]);
-	VectorCopy (face2_vert[0], edgetotex2.v[3]);
+	VectorCopy(face2_axis[0], edgetotex2.v[0]);
+	VectorCopy(face2_axis[1], edgetotex2.v[1]);
+	VectorScale(v_up, len2, edgetotex2.v[2]);
+	VectorCopy(face2_vert[0], edgetotex2.v[3]);
 
-	if (!InvertMatrix (edgetotex, inv) || !InvertMatrix (edgetotex2, inv2))
-	{
+	if (!InvertMatrix(edgetotex, inv) || !InvertMatrix(edgetotex2, inv2)) {
 		return false;
 	}
-	m = MultiplyMatrix (edgetotex2, inv);
-	m_inverse = MultiplyMatrix (edgetotex, inv2);
+	m = MultiplyMatrix(edgetotex2, inv);
+	m_inverse = MultiplyMatrix(edgetotex, inv2);
 
 	return true;
 }
 
-void            PairEdges()
-{
-    int             i, j, k;
-    dface_t*        f;
-    edgeshare_t*    e;
+void PairEdges() {
+	int i, j, k;
+	dface_t* f;
+	edgeshare_t* e;
 
-    memset(&g_edgeshare, 0, sizeof(g_edgeshare));
+	memset(&g_edgeshare, 0, sizeof(g_edgeshare));
 
-    f = g_dfaces.data();
-    for (i = 0; i < g_numfaces; i++, f++)
-    {
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-		{
+	f = g_dfaces.data();
+	for (i = 0; i < g_numfaces; i++, f++) {
+		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
 			// special textures don't have lightmaps
 			continue;
 		}
-        for (j = 0; j < f->numedges; j++)
-        {
-            k = g_dsurfedges[f->firstedge + j];
-            if (k < 0)
-            {
-                e = &g_edgeshare[-k];
+		for (j = 0; j < f->numedges; j++) {
+			k = g_dsurfedges[f->firstedge + j];
+			if (k < 0) {
+				e = &g_edgeshare[-k];
 
-                hlassert(e->faces[1] == nullptr);
-                e->faces[1] = f;
-            }
-            else
-            {
-                e = &g_edgeshare[k];
+				hlassert(e->faces[1] == nullptr);
+				e->faces[1] = f;
+			} else {
+				e = &g_edgeshare[k];
 
-                hlassert(e->faces[0] == nullptr);
-                e->faces[0] = f;
-            }
+				hlassert(e->faces[0] == nullptr);
+				e->faces[0] = f;
+			}
 
-            if (e->faces[0] && e->faces[1]) {
+			if (e->faces[0] && e->faces[1]) {
 				// determine if coplanar
 				if (e->faces[0]->planenum == e->faces[1]->planenum
-					&& e->faces[0]->side == e->faces[1]->side
-					) {
-						e->coplanar = true;
-						VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
-						e->cos_normals_angle = 1.0;
+					&& e->faces[0]->side == e->faces[1]->side) {
+					e->coplanar = true;
+					VectorCopy(
+						getPlaneFromFace(e->faces[0])->normal,
+						e->interface_normal
+					);
+					e->cos_normals_angle = 1.0;
 				} else {
-                    // see if they fall into a "smoothing group" based on angle of the normals
-                    std::array<float3_array, 2> normals;
+					// see if they fall into a "smoothing group" based on
+					// angle of the normals
+					std::array<float3_array, 2> normals;
 
-                    VectorCopy(getPlaneFromFace(e->faces[0])->normal, normals[0]);
-                    VectorCopy(getPlaneFromFace(e->faces[1])->normal, normals[1]);
+					VectorCopy(
+						getPlaneFromFace(e->faces[0])->normal, normals[0]
+					);
+					VectorCopy(
+						getPlaneFromFace(e->faces[1])->normal, normals[1]
+					);
 
-                    e->cos_normals_angle = DotProduct(normals[0], normals[1]);
+					e->cos_normals_angle
+						= DotProduct(normals[0], normals[1]);
 
 					float smoothvalue;
 					int m0 = g_texinfo[e->faces[0]->texinfo].miptex;
 					int m1 = g_texinfo[e->faces[1]->texinfo].miptex;
-					smoothvalue = std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
-					if (m0 != m1)
-					{
-						smoothvalue = std::max(smoothvalue, g_smoothing_threshold_2);
+					smoothvalue
+						= std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
+					if (m0 != m1) {
+						smoothvalue = std::max(
+							smoothvalue, g_smoothing_threshold_2
+						);
 					}
-					if (smoothvalue >= 1.0 - NORMAL_EPSILON)
-					{
+					if (smoothvalue >= 1.0 - NORMAL_EPSILON) {
 						smoothvalue = 2.0;
 					}
-                    if (e->cos_normals_angle > (1.0 - NORMAL_EPSILON))
-                    {
-                        e->coplanar = true;
-						VectorCopy(getPlaneFromFace(e->faces[0])->normal, e->interface_normal);
+					if (e->cos_normals_angle > (1.0 - NORMAL_EPSILON)) {
+						e->coplanar = true;
+						VectorCopy(
+							getPlaneFromFace(e->faces[0])->normal,
+							e->interface_normal
+						);
 						e->cos_normals_angle = 1.0;
-                    }
-                    else if (e->cos_normals_angle >= std::max(smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
-					{
-                        {
-                            VectorAdd(normals[0], normals[1], e->interface_normal);
-                            normalize_vector(e->interface_normal);
-                        }
-                    }
-                }
-				if (!vectors_almost_same(g_translucenttextures[g_texinfo[e->faces[0]->texinfo].miptex], g_translucenttextures[g_texinfo[e->faces[1]->texinfo].miptex]))
-				{
+					} else if (e->cos_normals_angle >= std::max(
+								   smoothvalue - NORMAL_EPSILON,
+								   NORMAL_EPSILON
+							   )) {
+						{
+							VectorAdd(
+								normals[0], normals[1], e->interface_normal
+							);
+							normalize_vector(e->interface_normal);
+						}
+					}
+				}
+				if (!vectors_almost_same(
+						g_translucenttextures
+							[g_texinfo[e->faces[0]->texinfo].miptex],
+						g_translucenttextures
+							[g_texinfo[e->faces[1]->texinfo].miptex]
+					)) {
 					e->coplanar = false;
-					VectorClear (e->interface_normal);
+					VectorClear(e->interface_normal);
 				}
 				{
 					int miptex0, miptex1;
 					miptex0 = g_texinfo[e->faces[0]->texinfo].miptex;
 					miptex1 = g_texinfo[e->faces[1]->texinfo].miptex;
-					if (fabs (g_lightingconeinfo[miptex0].power - g_lightingconeinfo[miptex1].power) > NORMAL_EPSILON ||
-						fabs (g_lightingconeinfo[miptex0].scale - g_lightingconeinfo[miptex1].scale) > NORMAL_EPSILON )
-					{
+					if (fabs(
+							g_lightingconeinfo[miptex0].power
+							- g_lightingconeinfo[miptex1].power
+						) > NORMAL_EPSILON
+						|| fabs(
+							   g_lightingconeinfo[miptex0].scale
+							   - g_lightingconeinfo[miptex1].scale
+						   ) > NORMAL_EPSILON) {
 						e->coplanar = false;
-						VectorClear (e->interface_normal);
+						VectorClear(e->interface_normal);
 					}
 				}
-				if (!vectors_almost_same(e->interface_normal, float3_array{0, 0, 0}))
-				{
+				if (!vectors_almost_same(
+						e->interface_normal, float3_array{ 0, 0, 0 }
+					)) {
 					e->smooth = true;
 				}
-				if (e->smooth)
-				{
+				if (e->smooth) {
 					// compute the matrix in advance
-					if (!TranslateTexToTex (e->faces[0] - g_dfaces.data(), abs (k), e->faces[1] - g_dfaces.data(), e->textotex[0], e->textotex[1]))
-					{
+					if (!TranslateTexToTex(
+							e->faces[0] - g_dfaces.data(), abs(k),
+							e->faces[1] - g_dfaces.data(), e->textotex[0],
+							e->textotex[1]
+						)) {
 						e->smooth = false;
 						e->coplanar = false;
-						VectorClear (e->interface_normal);
+						VectorClear(e->interface_normal);
 
-						dvertex_t *dv = &g_dvertexes[g_dedges[abs(k)].v[0]];
-						Developer (developer_level::megaspam, "TranslateTexToTex failed on face %d and %d @(%f,%f,%f)", (int)(e->faces[0] - g_dfaces.data()), (int)(e->faces[1] - g_dfaces.data()), dv->point[0], dv->point[1], dv->point[2]);
+						dvertex_t* dv = &g_dvertexes[g_dedges[abs(k)].v[0]];
+						Developer(
+							developer_level::megaspam,
+							"TranslateTexToTex failed on face %d and %d @(%f,%f,%f)",
+							(int) (e->faces[0] - g_dfaces.data()),
+							(int) (e->faces[1] - g_dfaces.data()),
+							dv->point[0], dv->point[1], dv->point[2]
+						);
 					}
 				}
-            }
-        }
-    }
+			}
+		}
+	}
 	{
 		int edgeabs, edgeabsnext;
 		int edgeend, edgeendnext;
@@ -384,123 +426,172 @@ void            PairEdges()
 		float3_array normal, normals;
 		float3_array edgenormal;
 		int r, count;
-		for (edgeabs = 0; edgeabs < MAX_MAP_EDGES; edgeabs++)
-		{
+		for (edgeabs = 0; edgeabs < MAX_MAP_EDGES; edgeabs++) {
 			e = &g_edgeshare[edgeabs];
-			if (!e->smooth)
+			if (!e->smooth) {
 				continue;
+			}
 			VectorCopy(e->interface_normal, edgenormal);
-			if (g_dedges[edgeabs].v[0] == g_dedges[edgeabs].v[1])
-			{
+			if (g_dedges[edgeabs].v[0] == g_dedges[edgeabs].v[1]) {
 				float3_array errorpos;
-				VectorCopy (g_dvertexes[g_dedges[edgeabs].v[0]].point, errorpos);
-				VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
-				Developer (developer_level::warning, "PairEdges: invalid edge at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+				VectorCopy(
+					g_dvertexes[g_dedges[edgeabs].v[0]].point, errorpos
+				);
+				VectorAdd(
+					errorpos, g_face_offset[e->faces[0] - g_dfaces.data()],
+					errorpos
+				);
+				Developer(
+					developer_level::warning,
+					"PairEdges: invalid edge at (%f,%f,%f)", errorpos[0],
+					errorpos[1], errorpos[2]
+				);
 				VectorCopy(edgenormal, e->vertex_normal[0]);
 				VectorCopy(edgenormal, e->vertex_normal[1]);
-			}
-			else
-			{
-				const dplane_t *p0 = getPlaneFromFace (e->faces[0]);
-				const dplane_t *p1 = getPlaneFromFace (e->faces[1]);
-				intersecttest_t *test0 = CreateIntersectTest (p0, e->faces[0] - g_dfaces.data());
-				intersecttest_t *test1 = CreateIntersectTest (p1, e->faces[1] - g_dfaces.data());
-				for (edgeend = 0; edgeend < 2; edgeend++)
-				{
+			} else {
+				dplane_t const * p0 = getPlaneFromFace(e->faces[0]);
+				dplane_t const * p1 = getPlaneFromFace(e->faces[1]);
+				intersecttest_t* test0 = CreateIntersectTest(
+					p0, e->faces[0] - g_dfaces.data()
+				);
+				intersecttest_t* test1 = CreateIntersectTest(
+					p1, e->faces[1] - g_dfaces.data()
+				);
+				for (edgeend = 0; edgeend < 2; edgeend++) {
 					float3_array errorpos;
-					VectorCopy (g_dvertexes[g_dedges[edgeabs].v[edgeend]].point, errorpos);
-					VectorAdd (errorpos, g_face_offset[e->faces[0] - g_dfaces.data()], errorpos);
+					VectorCopy(
+						g_dvertexes[g_dedges[edgeabs].v[edgeend]].point,
+						errorpos
+					);
+					VectorAdd(
+						errorpos,
+						g_face_offset[e->faces[0] - g_dfaces.data()],
+						errorpos
+					);
 					angles = 0;
-					VectorClear (normals);
+					VectorClear(normals);
 
-					for (d = 0; d < 2; d++)
-					{
+					for (d = 0; d < 2; d++) {
 						f = e->faces[d];
-						count = 0, fnext = f, edgeabsnext = edgeabs, edgeendnext = edgeend;
-						while (1)
-						{
+						count = 0, fnext = f, edgeabsnext = edgeabs,
+						edgeendnext = edgeend;
+						while (1) {
 							fcurrent = fnext;
-							r = AddFaceForVertexNormal (edgeabsnext, edgeabsnext, edgeendnext, edgeendnext, fcurrent, fnext, angle, normal);
+							r = AddFaceForVertexNormal(
+								edgeabsnext, edgeabsnext, edgeendnext,
+								edgeendnext, fcurrent, fnext, angle, normal
+							);
 							count++;
-							if (r == -1)
-							{
-								Developer (developer_level::warning, "PairEdges: face edges mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+							if (r == -1) {
+								Developer(
+									developer_level::warning,
+									"PairEdges: face edges mislink at (%f,%f,%f)",
+									errorpos[0], errorpos[1], errorpos[2]
+								);
 								break;
 							}
-							if (count >= 100)
-							{
-								Developer (developer_level::warning, "PairEdges: faces mislink at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
+							if (count >= 100) {
+								Developer(
+									developer_level::warning,
+									"PairEdges: faces mislink at (%f,%f,%f)",
+									errorpos[0], errorpos[1], errorpos[2]
+								);
 								break;
 							}
-							if (DotProduct (normal, p0->normal) <= NORMAL_EPSILON || DotProduct(normal, p1->normal) <= NORMAL_EPSILON)
+							if (DotProduct(normal, p0->normal)
+									<= NORMAL_EPSILON
+								|| DotProduct(normal, p1->normal)
+									<= NORMAL_EPSILON) {
 								break;
+							}
 							float smoothvalue;
 							int m0 = g_texinfo[f->texinfo].miptex;
 							int m1 = g_texinfo[fcurrent->texinfo].miptex;
-							smoothvalue = std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
-							if (m0 != m1)
-							{
-								smoothvalue = std::max(smoothvalue, g_smoothing_threshold_2);
+							smoothvalue = std::max(
+								g_smoothvalues[m0], g_smoothvalues[m1]
+							);
+							if (m0 != m1) {
+								smoothvalue = std::max(
+									smoothvalue, g_smoothing_threshold_2
+								);
 							}
-							if (smoothvalue >= 1.0 - NORMAL_EPSILON)
-							{
+							if (smoothvalue >= 1.0 - NORMAL_EPSILON) {
 								smoothvalue = 2.0;
 							}
-							if (DotProduct (edgenormal, normal) < std::max(smoothvalue - NORMAL_EPSILON, NORMAL_EPSILON))
+							if (DotProduct(edgenormal, normal) < std::max(
+									smoothvalue - NORMAL_EPSILON,
+									NORMAL_EPSILON
+								)) {
 								break;
-							if (fcurrent != e->faces[0] && fcurrent != e->faces[1] &&
-								(TestFaceIntersect (test0, fcurrent - g_dfaces.data()) || TestFaceIntersect (test1, fcurrent - g_dfaces.data())))
-							{
-								Developer (developer_level::warning, "Overlapping faces around corner (%f,%f,%f)\n", errorpos[0], errorpos[1], errorpos[2]);
+							}
+							if (fcurrent != e->faces[0]
+								&& fcurrent != e->faces[1]
+								&& (TestFaceIntersect(
+										test0, fcurrent - g_dfaces.data()
+									)
+									|| TestFaceIntersect(
+										test1, fcurrent - g_dfaces.data()
+									))) {
+								Developer(
+									developer_level::warning,
+									"Overlapping faces around corner (%f,%f,%f)\n",
+									errorpos[0], errorpos[1], errorpos[2]
+								);
 								break;
 							}
 							angles += angle;
 							VectorMA(normals, angle, normal, normals);
 							{
 								bool in = false;
-								if (fcurrent == e->faces[0] || fcurrent == e->faces[1])
-								{
+								if (fcurrent == e->faces[0]
+									|| fcurrent == e->faces[1]) {
 									in = true;
 								}
-								for (facelist_t *l = e->vertex_facelist[edgeend]; l; l = l->next)
-								{
-									if (fcurrent == l->face)
-									{
+								for (facelist_t* l
+									 = e->vertex_facelist[edgeend];
+									 l; l = l->next) {
+									if (fcurrent == l->face) {
 										in = true;
 									}
 								}
-								if (!in)
-								{
-									facelist_t *l = (facelist_t *)malloc (sizeof (facelist_t));
-									hlassume (l != nullptr, assume_NoMemory);
+								if (!in) {
+									facelist_t* l = (facelist_t*) malloc(
+										sizeof(facelist_t)
+									);
+									hlassume(l != nullptr, assume_NoMemory);
 									l->face = fcurrent;
 									l->next = e->vertex_facelist[edgeend];
 									e->vertex_facelist[edgeend] = l;
 								}
 							}
-							if (r != 0 || fnext == f)
+							if (r != 0 || fnext == f) {
 								break;
+							}
 						}
 					}
 
-					if (angles < NORMAL_EPSILON)
-					{
+					if (angles < NORMAL_EPSILON) {
 						VectorCopy(edgenormal, e->vertex_normal[edgeend]);
-						Developer (developer_level::warning, "PairEdges: no valid faces at (%f,%f,%f)", errorpos[0], errorpos[1], errorpos[2]);
-					}
-					else
-					{
+						Developer(
+							developer_level::warning,
+							"PairEdges: no valid faces at (%f,%f,%f)",
+							errorpos[0], errorpos[1], errorpos[2]
+						);
+					} else {
 						normalize_vector(normals);
 						VectorCopy(normals, e->vertex_normal[edgeend]);
 					}
 				}
-				FreeIntersectTest (test0);
-				FreeIntersectTest (test1);
+				FreeIntersectTest(test0);
+				FreeIntersectTest(test1);
 			}
-			if (e->coplanar)
-			{
-				if (!vectors_almost_same(e->vertex_normal[0], e->interface_normal) || !vectors_almost_same(e->vertex_normal[1], e->interface_normal))
-				{
+			if (e->coplanar) {
+				if (!vectors_almost_same(
+						e->vertex_normal[0], e->interface_normal
+					)
+					|| !vectors_almost_same(
+						e->vertex_normal[1], e->interface_normal
+					)) {
 					e->coplanar = false;
 				}
 			}
@@ -508,58 +599,64 @@ void            PairEdges()
 	}
 }
 
-#define MAX_SINGLEMAP ((MAX_SURFACE_EXTENT+1)*(MAX_SURFACE_EXTENT+1)) //#define	MAX_SINGLEMAP	(18*18*4) //--vluzacn
+#define MAX_SINGLEMAP                                    \
+	((MAX_SURFACE_EXTENT + 1) * (MAX_SURFACE_EXTENT + 1) \
+	) // #define	MAX_SINGLEMAP	(18*18*4) //--vluzacn
 
-typedef enum
-{
+typedef enum {
 	WALLFLAG_NONE = 0,
 	WALLFLAG_NUDGED = 0x1,
-	WALLFLAG_BLOCKED = 0x2, // this only happens when the entire face and its surroundings are covered by solid or opaque entities
+	WALLFLAG_BLOCKED
+		= 0x2, // this only happens when the entire face and its
+			   // surroundings are covered by solid or opaque entities
 	WALLFLAG_SHADOWED = 0x4,
-}
-wallflag_t;
+} wallflag_t;
 
-typedef struct
-{
-    float*          light;
-    float           facedist;
-    float3_array          facenormal;
-	bool			translucent_b;
-	float3_array			translucent_v;
-	int				miptex;
+typedef struct {
+	float* light;
+	float facedist;
+	float3_array facenormal;
+	bool translucent_b;
+	float3_array translucent_v;
+	int miptex;
 
-    int             numsurfpt;
-    float3_array          surfpt[MAX_SINGLEMAP];
-	float3_array*			surfpt_position; //[MAX_SINGLEMAP] // surfpt_position[] are valid positions for light tracing, while surfpt[] are positions for getting phong normal and doing patch interpolation
-	int*			surfpt_surface; //[MAX_SINGLEMAP] // the face that owns this position
-	bool			surfpt_lightoutside[MAX_SINGLEMAP];
+	int numsurfpt;
+	float3_array surfpt[MAX_SINGLEMAP];
+	float3_array*
+		surfpt_position; //[MAX_SINGLEMAP] // surfpt_position[] are valid
+						 // positions for light tracing, while surfpt[] are
+						 // positions for getting phong normal and doing
+						 // patch interpolation
+	int* surfpt_surface; //[MAX_SINGLEMAP] // the face that owns this
+						 // position
+	bool surfpt_lightoutside[MAX_SINGLEMAP];
 
-    float3_array          texorg;
-    float3_array          worldtotex[2];                         // s = (world - texorg) . worldtotex[0]
-    float3_array          textoworld[2];                         // world = texorg + s * textoworld[0]
-	float3_array			texnormal;
+	float3_array texorg;
+	float3_array worldtotex[2]; // s = (world - texorg) . worldtotex[0]
+	float3_array textoworld[2]; // world = texorg + s * textoworld[0]
+	float3_array texnormal;
 
-    float           exactmins[2], exactmaxs[2];
+	float exactmins[2], exactmaxs[2];
 
-    int             texmins[2], texsize[2];
-    int             lightstyles[256];
-    int             surfnum;
-    dface_t*        face;
-	int				lmcache_density; // shared by both s and t direction
-	int				lmcache_offset; // shared by both s and t direction
-	int				lmcache_side;
-	std::array<float3_array, ALLSTYLES>* lmcache; // lm: short for lightmap // don't forget to free!
-	float3_array			*lmcache_normal; // record the phong normals
-	int				*lmcache_wallflags; // wallflag_t
-	int				lmcachewidth;
-	int				lmcacheheight;
-}
-lightinfo_t;
+	int texmins[2], texsize[2];
+	int lightstyles[256];
+	int surfnum;
+	dface_t* face;
+	int lmcache_density; // shared by both s and t direction
+	int lmcache_offset;	 // shared by both s and t direction
+	int lmcache_side;
+	std::array<float3_array, ALLSTYLES>*
+		lmcache; // lm: short for lightmap // don't forget to free!
+	float3_array* lmcache_normal; // record the phong normals
+	int* lmcache_wallflags;		  // wallflag_t
+	int lmcachewidth;
+	int lmcacheheight;
+} lightinfo_t;
 
 // =====================================================================================
 //  TextureNameFromFace
 // =====================================================================================
-static wad_texture_name TextureNameFromFace(const dface_t* const f) {
+static wad_texture_name TextureNameFromFace(dface_t const * const f) {
 	return get_texture_by_number(f->texinfo);
 }
 
@@ -568,120 +665,122 @@ static wad_texture_name TextureNameFromFace(const dface_t* const f) {
 //      Fills in s->texmins[] and s->texsize[]
 //      also sets exactmins[] and exactmaxs[]
 // =====================================================================================
-static void     CalcFaceExtents(lightinfo_t* l)
-{
-    const int       facenum = l->surfnum;
-    dface_t*        s;
-    float           mins[2], maxs[2], val; //float           mins[2], maxs[2], val; //vluzacn
-    int             i, j, e;
-    dvertex_t*      v;
-    texinfo_t*      tex;
+static void CalcFaceExtents(lightinfo_t* l) {
+	int const facenum = l->surfnum;
+	dface_t* s;
+	float mins[2], maxs[2],
+		val; // float           mins[2], maxs[2], val; //vluzacn
+	int i, j, e;
+	dvertex_t* v;
+	texinfo_t* tex;
 
-    s = l->face;
+	s = l->face;
 
 	mins[0] = mins[1] = 99999999.0f;
 	maxs[0] = maxs[1] = -99999999.0f;
 
-    tex = &g_texinfo[s->texinfo];
+	tex = &g_texinfo[s->texinfo];
 
-    for (i = 0; i < s->numedges; i++)
-    {
-        e = g_dsurfedges[s->firstedge + i];
-        if (e >= 0)
-        {
-            v = g_dvertexes.data() + g_dedges[e].v[0];
-        }
-        else
-        {
-            v = g_dvertexes.data() + g_dedges[-e].v[1];
-        }
+	for (i = 0; i < s->numedges; i++) {
+		e = g_dsurfedges[s->firstedge + i];
+		if (e >= 0) {
+			v = g_dvertexes.data() + g_dedges[e].v[0];
+		} else {
+			v = g_dvertexes.data() + g_dedges[-e].v[1];
+		}
 
-        for (j = 0; j < 2; j++)
-        {
-            val = v->point[0] * tex->vecs[j][0] +
-                v->point[1] * tex->vecs[j][1] + v->point[2] * tex->vecs[j][2] + tex->vecs[j][3];
-            if (val < mins[j])
-            {
-                mins[j] = val;
-            }
-            if (val > maxs[j])
-            {
-                maxs[j] = val;
-            }
-        }
-    }
+		for (j = 0; j < 2; j++) {
+			val = v->point[0] * tex->vecs[j][0]
+				+ v->point[1] * tex->vecs[j][1]
+				+ v->point[2] * tex->vecs[j][2] + tex->vecs[j][3];
+			if (val < mins[j]) {
+				mins[j] = val;
+			}
+			if (val > maxs[j]) {
+				maxs[j] = val;
+			}
+		}
+	}
 
-    for (i = 0; i < 2; i++)
-    {
-        l->exactmins[i] = mins[i];
-        l->exactmaxs[i] = maxs[i];
-
+	for (i = 0; i < 2; i++) {
+		l->exactmins[i] = mins[i];
+		l->exactmaxs[i] = maxs[i];
 	}
 	int bmins[2];
 	int bmaxs[2];
-	GetFaceExtents (l->surfnum, bmins, bmaxs);
-	for (i = 0; i < 2; i++)
-	{
+	GetFaceExtents(l->surfnum, bmins, bmaxs);
+	for (i = 0; i < 2; i++) {
 		mins[i] = bmins[i];
 		maxs[i] = bmaxs[i];
 		l->texmins[i] = bmins[i];
 		l->texsize[i] = bmaxs[i] - bmins[i];
 	}
 
-	if (!(tex->flags & TEX_SPECIAL))
-	{
-		if ((l->texsize[0] > MAX_SURFACE_EXTENT) || (l->texsize[1] > MAX_SURFACE_EXTENT)
-			|| l->texsize[0] < 0 || l->texsize[1] < 0 //--vluzacn
-			)
-		{
+	if (!(tex->flags & TEX_SPECIAL)) {
+		if ((l->texsize[0] > MAX_SURFACE_EXTENT)
+			|| (l->texsize[1] > MAX_SURFACE_EXTENT) || l->texsize[0] < 0
+			|| l->texsize[1] < 0 //--vluzacn
+		) {
 			ThreadLock();
-			PrintOnce("\nfor Face %li (texture %s) at ", s - g_dfaces.data(), TextureNameFromFace(s).c_str());
+			PrintOnce(
+				"\nfor Face %li (texture %s) at ", s - g_dfaces.data(),
+				TextureNameFromFace(s).c_str()
+			);
 
-			for (i = 0; i < s->numedges; i++)
-			{
+			for (i = 0; i < s->numedges; i++) {
 				e = g_dsurfedges[s->firstedge + i];
-				if (e >= 0)
-                {
+				if (e >= 0) {
 					v = g_dvertexes.data() + g_dedges[e].v[0];
-                }
-				else
-                {
+				} else {
 					v = g_dvertexes.data() + g_dedges[-e].v[1];
-                }
+				}
 				float3_array pos;
-				VectorAdd (v->point, g_face_offset[facenum], pos);
-				Log ("(%4.3f %4.3f %4.3f) ", pos[0], pos[1], pos[2]);
+				VectorAdd(v->point, g_face_offset[facenum], pos);
+				Log("(%4.3f %4.3f %4.3f) ", pos[0], pos[1], pos[2]);
 			}
 			Log("\n");
 
-			Error( "Bad surface extents (%d x %d)\nCheck the file ZHLTProblems.html for a detailed explanation of this problem", l->texsize[0], l->texsize[1]);
+			Error(
+				"Bad surface extents (%d x %d)\nCheck the file ZHLTProblems.html for a detailed explanation of this problem",
+				l->texsize[0], l->texsize[1]
+			);
 		}
 	}
 	// allocate sample light cache
 	{
-		if (g_extra
-			&& !g_fastmode
-			)
-		{
+		if (g_extra && !g_fastmode) {
 			l->lmcache_density = 3;
-		}
-		else
-		{
+		} else {
 			l->lmcache_density = 1;
 		}
-		l->lmcache_side = (int)ceil ((0.5 * g_blur * l->lmcache_density - 0.5) * (1 - NORMAL_EPSILON));
+		l->lmcache_side = (int) ceil(
+			(0.5 * g_blur * l->lmcache_density - 0.5) * (1 - NORMAL_EPSILON)
+		);
 		l->lmcache_offset = l->lmcache_side;
-		l->lmcachewidth = l->texsize[0] * l->lmcache_density + 1 + 2 * l->lmcache_side;
-		l->lmcacheheight = l->texsize[1] * l->lmcache_density + 1 + 2 * l->lmcache_side;
-		l->lmcache = (std::array<float3_array, ALLSTYLES>*) malloc (l->lmcachewidth * l->lmcacheheight * sizeof (std::array<float3_array, ALLSTYLES>));
-		hlassume (l->lmcache != nullptr, assume_NoMemory);
-		l->lmcache_normal = (float3_array *)malloc (l->lmcachewidth * l->lmcacheheight * sizeof (float3_array));
-		hlassume (l->lmcache_normal != nullptr, assume_NoMemory);
-		l->lmcache_wallflags = (int *)malloc (l->lmcachewidth * l->lmcacheheight * sizeof (int));
-		hlassume (l->lmcache_wallflags != nullptr, assume_NoMemory);
-		l->surfpt_position = (float3_array *)malloc (MAX_SINGLEMAP * sizeof (float3_array));
-		l->surfpt_surface = (int *)malloc (MAX_SINGLEMAP * sizeof (int));
-		hlassume (l->surfpt_position != nullptr && l->surfpt_surface != nullptr, assume_NoMemory);
+		l->lmcachewidth
+			= l->texsize[0] * l->lmcache_density + 1 + 2 * l->lmcache_side;
+		l->lmcacheheight
+			= l->texsize[1] * l->lmcache_density + 1 + 2 * l->lmcache_side;
+		l->lmcache = (std::array<float3_array, ALLSTYLES>*) malloc(
+			l->lmcachewidth * l->lmcacheheight
+			* sizeof(std::array<float3_array, ALLSTYLES>)
+		);
+		hlassume(l->lmcache != nullptr, assume_NoMemory);
+		l->lmcache_normal = (float3_array*) malloc(
+			l->lmcachewidth * l->lmcacheheight * sizeof(float3_array)
+		);
+		hlassume(l->lmcache_normal != nullptr, assume_NoMemory);
+		l->lmcache_wallflags = (int*) malloc(
+			l->lmcachewidth * l->lmcacheheight * sizeof(int)
+		);
+		hlassume(l->lmcache_wallflags != nullptr, assume_NoMemory);
+		l->surfpt_position
+			= (float3_array*) malloc(MAX_SINGLEMAP * sizeof(float3_array));
+		l->surfpt_surface = (int*) malloc(MAX_SINGLEMAP * sizeof(int));
+		hlassume(
+			l->surfpt_position != nullptr && l->surfpt_surface != nullptr,
+			assume_NoMemory
+		);
 	}
 }
 
@@ -689,237 +788,240 @@ static void     CalcFaceExtents(lightinfo_t* l)
 //  CalcFaceVectors
 //      Fills in texorg, worldtotex. and textoworld
 // =====================================================================================
-static void     CalcFaceVectors(lightinfo_t* l)
-{
-    texinfo_t*      tex;
-    int             i, j;
-    float3_array          texnormal;
-    float           distscale;
-    float           dist, len;
+static void CalcFaceVectors(lightinfo_t* l) {
+	texinfo_t* tex;
+	int i, j;
+	float3_array texnormal;
+	float distscale;
+	float dist, len;
 
-    tex = &g_texinfo[l->face->texinfo];
+	tex = &g_texinfo[l->face->texinfo];
 
-    // convert from float to double
-    for (i = 0; i < 2; i++)
-    {
-        for (j = 0; j < 3; j++)
-        {
-            l->worldtotex[i][j] = tex->vecs[i][j];
-        }
-    }
-
-    // calculate a normal to the texture axis.  points can be moved along this
-    // without changing their S/T
-    CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
-    normalize_vector(texnormal);
-
-    // flip it towards plane normal
-    distscale = DotProduct(texnormal, l->facenormal);
-    if (distscale == 0.0)
-    {
-        const unsigned facenum = l->face - g_dfaces.data();
-    
-        ThreadLock();
-        Log("Malformed face (%d) normal @ \n", facenum);
-        fast_winding* w = new fast_winding(*l->face);
-        {
-            const unsigned numpoints = w->size();
-            unsigned x;
-            for (x=0; x<numpoints; x++)
-            {
-                VectorAdd(w->m_Points[x], g_face_offset[facenum], w->m_Points[x]);
-            }
-        }
-        w->Print();
-        delete w;
-        ThreadUnlock();
-
-        hlassume(false, assume_MalformedTextureFace);
-    }
-
-    if (distscale < 0)
-    {
-        distscale = -distscale;
-		texnormal = negate_vector(texnormal);
-    }
-
-    // distscale is the ratio of the distance along the texture normal to
-    // the distance along the plane normal
-    distscale = 1.0 / distscale;
-
-	for (i = 0; i < 2; i++)
-	{
-		CrossProduct (l->worldtotex[!i], l->facenormal, l->textoworld[i]);
-		len = DotProduct (l->textoworld[i], l->worldtotex[i]);
-		VectorScale (l->textoworld[i], 1 / len, l->textoworld[i]);
+	// convert from float to double
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 3; j++) {
+			l->worldtotex[i][j] = tex->vecs[i][j];
+		}
 	}
 
-    // calculate texorg on the texture plane
-    for (i = 0; i < 3; i++)
-    {
-        l->texorg[i] = -tex->vecs[0][3] * l->textoworld[0][i] - tex->vecs[1][3] * l->textoworld[1][i];
-    }
+	// calculate a normal to the texture axis.  points can be moved along
+	// this without changing their S/T
+	CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
+	normalize_vector(texnormal);
 
-    // project back to the face plane
-    dist = DotProduct(l->texorg, l->facenormal) - l->facedist;
-    dist *= distscale;
-    VectorMA(l->texorg, -dist, texnormal, l->texorg);
-	VectorCopy (texnormal, l->texnormal);
+	// flip it towards plane normal
+	distscale = DotProduct(texnormal, l->facenormal);
+	if (distscale == 0.0) {
+		unsigned const facenum = l->face - g_dfaces.data();
 
+		ThreadLock();
+		Log("Malformed face (%d) normal @ \n", facenum);
+		fast_winding* w = new fast_winding(*l->face);
+		{
+			unsigned const numpoints = w->size();
+			unsigned x;
+			for (x = 0; x < numpoints; x++) {
+				VectorAdd(
+					w->m_Points[x], g_face_offset[facenum], w->m_Points[x]
+				);
+			}
+		}
+		w->Print();
+		delete w;
+		ThreadUnlock();
+
+		hlassume(false, assume_MalformedTextureFace);
+	}
+
+	if (distscale < 0) {
+		distscale = -distscale;
+		texnormal = negate_vector(texnormal);
+	}
+
+	// distscale is the ratio of the distance along the texture normal to
+	// the distance along the plane normal
+	distscale = 1.0 / distscale;
+
+	for (i = 0; i < 2; i++) {
+		CrossProduct(l->worldtotex[!i], l->facenormal, l->textoworld[i]);
+		len = DotProduct(l->textoworld[i], l->worldtotex[i]);
+		VectorScale(l->textoworld[i], 1 / len, l->textoworld[i]);
+	}
+
+	// calculate texorg on the texture plane
+	for (i = 0; i < 3; i++) {
+		l->texorg[i] = -tex->vecs[0][3] * l->textoworld[0][i]
+			- tex->vecs[1][3] * l->textoworld[1][i];
+	}
+
+	// project back to the face plane
+	dist = DotProduct(l->texorg, l->facenormal) - l->facedist;
+	dist *= distscale;
+	VectorMA(l->texorg, -dist, texnormal, l->texorg);
+	VectorCopy(texnormal, l->texnormal);
 }
 
 // =====================================================================================
 //  SetSurfFromST
 // =====================================================================================
-static void     SetSurfFromST(const lightinfo_t* const l, float* surf, const float s, const float t)
-{
-    const int       facenum = l->surfnum;
-    int             j;
+static void SetSurfFromST(
+	lightinfo_t const * const l, float* surf, float const s, float const t
+) {
+	int const facenum = l->surfnum;
+	int j;
 
-    for (j = 0; j < 3; j++)
-    {
-        surf[j] = l->texorg[j] + l->textoworld[0][j] * s + l->textoworld[1][j] * t;
-    }
+	for (j = 0; j < 3; j++) {
+		surf[j] = l->texorg[j] + l->textoworld[0][j] * s
+			+ l->textoworld[1][j] * t;
+	}
 
-    // Adjust for origin-based models
-    VectorAdd(surf, g_face_offset[facenum], surf);
+	// Adjust for origin-based models
+	VectorAdd(surf, g_face_offset[facenum], surf);
 }
 
-
-typedef enum
-{
-    LightOutside,                                          // Not lit
-    LightShifted,                                          // used HuntForWorld on 100% dark face
-    LightShiftedInside,                                    // moved to neighbhor on 2nd cleanup pass
-    LightNormal,                                           // Normally lit with no movement
-    LightPulledInside,                                     // Pulled inside by bleed code adjustments
-    LightSimpleNudge,                                      // A simple nudge 1/3 or 2/3 towards center along S or T axist
-}
-light_flag_t;
+typedef enum {
+	LightOutside,		// Not lit
+	LightShifted,		// used HuntForWorld on 100% dark face
+	LightShiftedInside, // moved to neighbhor on 2nd cleanup pass
+	LightNormal,		// Normally lit with no movement
+	LightPulledInside,	// Pulled inside by bleed code adjustments
+	LightSimpleNudge, // A simple nudge 1/3 or 2/3 towards center along S or
+					  // T axist
+} light_flag_t;
 
 // =====================================================================================
 //  CalcPoints
 //      For each texture aligned grid point, back project onto the plane
 //      to get the world xyz value of the sample point
 // =====================================================================================
-static void		SetSTFromSurf(const lightinfo_t* const l, const float* surf, float& s, float& t)
-{
-    const int       facenum = l->surfnum;
-    int             j;
+static void SetSTFromSurf(
+	lightinfo_t const * const l, float const * surf, float& s, float& t
+) {
+	int const facenum = l->surfnum;
+	int j;
 
 	s = t = 0;
-	for (j = 0; j < 3; j++)
-	{
-		s += (surf[j] - g_face_offset[facenum][j] - l->texorg[j]) * l->worldtotex[0][j];
-		t += (surf[j] - g_face_offset[facenum][j] - l->texorg[j]) * l->worldtotex[1][j];
+	for (j = 0; j < 3; j++) {
+		s += (surf[j] - g_face_offset[facenum][j] - l->texorg[j])
+			* l->worldtotex[0][j];
+		t += (surf[j] - g_face_offset[facenum][j] - l->texorg[j])
+			* l->worldtotex[1][j];
 	}
 }
 
-typedef struct
-{
+typedef struct {
 	int edgenum; // g_dedges index
 	int edgeside;
 	int nextfacenum; // where to grow
 	bool tried;
 
-	float3_array point1; // start point
-	float3_array point2; // end point
+	float3_array point1;	// start point
+	float3_array point2;	// end point
 	float3_array direction; // normalized; from point1 to point2
-	
+
 	bool noseam;
 	float distance; // distance from origin
 	float distancereduction;
 	float flippedangle;
-	
+
 	float ratio; // if ratio != 1, seam is unavoidable
 	matrix_t prevtonext;
 	matrix_t nexttoprev;
-}
-samplefragedge_t;
+} samplefragedge_t;
 
-typedef struct
-{
+typedef struct {
 	dplane_t planes[4];
-}
-samplefragrect_t;
+} samplefragrect_t;
 
-typedef struct samplefrag_s
-{
-	samplefrag_s *next; // since this is a node in a list
-	samplefrag_s *parentfrag; // where it grew from
-	samplefragedge_t *parentedge;
+typedef struct samplefrag_s {
+	samplefrag_s* next;		  // since this is a node in a list
+	samplefrag_s* parentfrag; // where it grew from
+	samplefragedge_t* parentedge;
 	int facenum; // facenum
 
 	float flippedangle; // copied from parent edge
-	bool noseam; // copied from parent edge
+	bool noseam;		// copied from parent edge
 
-	matrix_t coordtomycoord; // v[2][2] > 0, v[2][0] = v[2][1] = v[0][2] = v[1][2] = 0.0
+	matrix_t coordtomycoord; // v[2][2] > 0, v[2][0] = v[2][1] = v[0][2] =
+							 // v[1][2] = 0.0
 	matrix_t mycoordtocoord;
 
 	float3_array origin; // original s,t
-	float3_array myorigin; // relative to the texture coordinate on that face
+	float3_array
+		myorigin; // relative to the texture coordinate on that face
 	samplefragrect_t rect; // original rectangle that forms the boundary
-	samplefragrect_t myrect; // relative to the texture coordinate on that face
+	samplefragrect_t
+		myrect; // relative to the texture coordinate on that face
 
-	fast_winding *winding; // a fragment of the original rectangle in the texture coordinate plane; windings of different frags should not overlap
-	dplane_t windingplane; // normal = (0,0,1) or (0,0,-1); if this normal is wrong, point_in_winding() will never return true
-	fast_winding *mywinding; // relative to the texture coordinate on that face
+	fast_winding* winding; // a fragment of the original rectangle in the
+						   // texture coordinate plane; windings of
+						   // different frags should not overlap
+	dplane_t
+		windingplane; // normal = (0,0,1) or (0,0,-1); if this normal is
+					  // wrong, point_in_winding() will never return true
+	fast_winding*
+		mywinding; // relative to the texture coordinate on that face
 	dplane_t mywindingplane;
 
-	int numedges; // # of candicates for the next growth
-	samplefragedge_t *edges; // candicates for the next growth
-}
-samplefrag_t;
+	int numedges;			 // # of candicates for the next growth
+	samplefragedge_t* edges; // candicates for the next growth
+} samplefrag_t;
 
-typedef struct
-{
+typedef struct {
 	int maxsize;
 	int size;
-	samplefrag_t *head;
-}
-samplefraginfo_t;
+	samplefrag_t* head;
+} samplefraginfo_t;
 
-void ChopFrag (samplefrag_t *frag)
-	// fill winding, windingplane, mywinding, mywindingplane, numedges, edges
+void ChopFrag(samplefrag_t* frag)
+// fill winding, windingplane, mywinding, mywindingplane, numedges, edges
 {
-	// get the shape of the fragment by clipping the face using the boundaries
-	dface_t *f;
-	fast_winding *facewinding;
+	// get the shape of the fragment by clipping the face using the
+	// boundaries
+	dface_t* f;
+	fast_winding* facewinding;
 	matrix_t worldtotex;
-	const float3_array v_up = {0, 0, 1};
+	float3_array const v_up = { 0, 0, 1 };
 
 	f = &g_dfaces[frag->facenum];
-	facewinding = new fast_winding (*f);
+	facewinding = new fast_winding(*f);
 
-	TranslateWorldToTex (frag->facenum, worldtotex);
-	frag->mywinding = new fast_winding (facewinding->size());
-	for (int x = 0; x < facewinding->size(); x++)
-	{
-		ApplyMatrix (worldtotex, facewinding->m_Points[x], frag->mywinding->m_Points[x]);
+	TranslateWorldToTex(frag->facenum, worldtotex);
+	frag->mywinding = new fast_winding(facewinding->size());
+	for (int x = 0; x < facewinding->size(); x++) {
+		ApplyMatrix(
+			worldtotex, facewinding->m_Points[x],
+			frag->mywinding->m_Points[x]
+		);
 		frag->mywinding->m_Points[x][2] = 0.0;
 	}
-	frag->mywinding->RemoveColinearPoints ();
-	VectorCopy (v_up, frag->mywindingplane.normal); // this is the same as applying the worldtotex matrix to the faceplane
-	if (CalcMatrixSign (worldtotex) < 0.0)
-	{
+	frag->mywinding->RemoveColinearPoints();
+	VectorCopy(
+		v_up, frag->mywindingplane.normal
+	); // this is the same as applying the worldtotex matrix to the
+	   // faceplane
+	if (CalcMatrixSign(worldtotex) < 0.0) {
 		frag->mywindingplane.normal[2] *= -1;
 	}
 	frag->mywindingplane.dist = 0.0;
 
-	for (int x = 0; x < 4 && frag->mywinding->size() > 0; x++)
-	{
-		frag->mywinding->mutating_clip(frag->myrect.planes[x].normal, frag->myrect.planes[x].dist, false);
+	for (int x = 0; x < 4 && frag->mywinding->size() > 0; x++) {
+		frag->mywinding->mutating_clip(
+			frag->myrect.planes[x].normal, frag->myrect.planes[x].dist,
+			false
+		);
 	}
 
-	frag->winding = new fast_winding (frag->mywinding->size());
-	for (int x = 0; x < frag->mywinding->size(); x++)
-	{
-		ApplyMatrix (frag->mycoordtocoord, frag->mywinding->m_Points[x], frag->winding->m_Points[x]);
+	frag->winding = new fast_winding(frag->mywinding->size());
+	for (int x = 0; x < frag->mywinding->size(); x++) {
+		ApplyMatrix(
+			frag->mycoordtocoord, frag->mywinding->m_Points[x],
+			frag->winding->m_Points[x]
+		);
 	}
-	frag->winding->RemoveColinearPoints ();
-	VectorCopy (frag->mywindingplane.normal, frag->windingplane.normal);
-	if (CalcMatrixSign (frag->mycoordtocoord) < 0.0)
-	{
+	frag->winding->RemoveColinearPoints();
+	VectorCopy(frag->mywindingplane.normal, frag->windingplane.normal);
+	if (CalcMatrixSign(frag->mycoordtocoord) < 0.0) {
 		frag->windingplane.normal[2] *= -1;
 	}
 	frag->windingplane.dist = 0.0;
@@ -928,123 +1030,122 @@ void ChopFrag (samplefrag_t *frag)
 
 	// find the edges where the fragment can grow in the future
 	frag->numedges = 0;
-	frag->edges = (samplefragedge_t *)malloc (f->numedges * sizeof (samplefragedge_t));
-	hlassume (frag->edges != nullptr, assume_NoMemory);
-	for (int i = 0; i < f->numedges; i++)
-	{
-		samplefragedge_t *e;
-		edgeshare_t *es;
-		dedge_t *de;
-		dvertex_t *dv1;
-		dvertex_t *dv2;
+	frag->edges = (samplefragedge_t*) malloc(
+		f->numedges * sizeof(samplefragedge_t)
+	);
+	hlassume(frag->edges != nullptr, assume_NoMemory);
+	for (int i = 0; i < f->numedges; i++) {
+		samplefragedge_t* e;
+		edgeshare_t* es;
+		dedge_t* de;
+		dvertex_t* dv1;
+		dvertex_t* dv2;
 		float frac1, frac2;
 		float edgelen;
 		float dot, dot1, dot2;
 		float3_array tmp, v, normal;
-		const matrix_t *m;
-		const matrix_t *m_inverse;
-		
+		matrix_t const * m;
+		matrix_t const * m_inverse;
+
 		e = &frag->edges[frag->numedges];
 
 		// some basic info
-		e->edgenum = abs (g_dsurfedges[f->firstedge + i]);
-		e->edgeside = (g_dsurfedges[f->firstedge + i] < 0? 1: 0);
+		e->edgenum = abs(g_dsurfedges[f->firstedge + i]);
+		e->edgeside = (g_dsurfedges[f->firstedge + i] < 0 ? 1 : 0);
 		es = &g_edgeshare[e->edgenum];
-		if (!es->smooth)
-		{
+		if (!es->smooth) {
 			continue;
 		}
-		if (es->faces[e->edgeside] - g_dfaces.data() != frag->facenum)
-		{
-			Error ("internal error 1 in GrowSingleSampleFrag");
+		if (es->faces[e->edgeside] - g_dfaces.data() != frag->facenum) {
+			Error("internal error 1 in GrowSingleSampleFrag");
 		}
 		m = &es->textotex[e->edgeside];
-		m_inverse = &es->textotex[1-e->edgeside];
-		e->nextfacenum = es->faces[1-e->edgeside] - g_dfaces.data();
-		if (e->nextfacenum == frag->facenum)
-		{
+		m_inverse = &es->textotex[1 - e->edgeside];
+		e->nextfacenum = es->faces[1 - e->edgeside] - g_dfaces.data();
+		if (e->nextfacenum == frag->facenum) {
 			continue; // an invalid edge (usually very short)
 		}
-		e->tried = false; // because the frag hasn't been linked into the list yet
+		e->tried = false; // because the frag hasn't been linked into the
+						  // list yet
 
-		// translate the edge points from world to the texture plane of the original frag
-		//   so the distances are able to be compared among edges from different frags
+		// translate the edge points from world to the texture plane of the
+		// original frag
+		//   so the distances are able to be compared among edges from
+		//   different frags
 		de = &g_dedges[e->edgenum];
 		dv1 = &g_dvertexes[de->v[e->edgeside]];
-		dv2 = &g_dvertexes[de->v[1-e->edgeside]];
-		ApplyMatrix (worldtotex, dv1->point, tmp);
-		ApplyMatrix (frag->mycoordtocoord, tmp, e->point1);
+		dv2 = &g_dvertexes[de->v[1 - e->edgeside]];
+		ApplyMatrix(worldtotex, dv1->point, tmp);
+		ApplyMatrix(frag->mycoordtocoord, tmp, e->point1);
 		e->point1[2] = 0.0;
-		ApplyMatrix (worldtotex, dv2->point, tmp);
-		ApplyMatrix (frag->mycoordtocoord, tmp, e->point2);
+		ApplyMatrix(worldtotex, dv2->point, tmp);
+		ApplyMatrix(frag->mycoordtocoord, tmp, e->point2);
 		e->point2[2] = 0.0;
 		VectorSubtract(e->point2, e->point1, e->direction);
 		edgelen = normalize_vector(e->direction);
-		if (edgelen <= ON_EPSILON)
-		{
+		if (edgelen <= ON_EPSILON) {
 			continue;
 		}
 
 		// clip the edge
 		frac1 = 0;
 		frac2 = 1;
-		for (int x = 0; x < 4; x++)
-		{
+		for (int x = 0; x < 4; x++) {
 			float dot1;
 			float dot2;
 
-			dot1 = DotProduct (e->point1, frag->rect.planes[x].normal) - frag->rect.planes[x].dist;
-			dot2 = DotProduct (e->point2, frag->rect.planes[x].normal) - frag->rect.planes[x].dist;
-			if (dot1 <= ON_EPSILON && dot2 <= ON_EPSILON)
-			{
+			dot1 = DotProduct(e->point1, frag->rect.planes[x].normal)
+				- frag->rect.planes[x].dist;
+			dot2 = DotProduct(e->point2, frag->rect.planes[x].normal)
+				- frag->rect.planes[x].dist;
+			if (dot1 <= ON_EPSILON && dot2 <= ON_EPSILON) {
 				frac1 = 1;
 				frac2 = 0;
-			}
-			else if (dot1 < 0)
-			{
+			} else if (dot1 < 0) {
 				frac1 = std::max(frac1, dot1 / (dot1 - dot2));
-			}
-			else if (dot2 < 0)
-			{
+			} else if (dot2 < 0) {
 				frac2 = std::min(frac2, dot1 / (dot1 - dot2));
 			}
 		}
-		if (edgelen * (frac2 - frac1) <= ON_EPSILON)
-		{
+		if (edgelen * (frac2 - frac1) <= ON_EPSILON) {
 			continue;
 		}
-		VectorMA (e->point1, edgelen * frac2, e->direction, e->point2);
-		VectorMA (e->point1, edgelen * frac1, e->direction, e->point1);
+		VectorMA(e->point1, edgelen * frac2, e->direction, e->point2);
+		VectorMA(e->point1, edgelen * frac1, e->direction, e->point1);
 
-		// calculate the distance, etc., which are used to determine its priority
+		// calculate the distance, etc., which are used to determine its
+		// priority
 		e->noseam = frag->noseam;
-		dot = DotProduct (frag->origin, e->direction);
-		dot1 = DotProduct (e->point1, e->direction);
-		dot2 = DotProduct (e->point2, e->direction);
+		dot = DotProduct(frag->origin, e->direction);
+		dot1 = DotProduct(e->point1, e->direction);
+		dot2 = DotProduct(e->point2, e->direction);
 		dot = std::max(dot1, std::min(dot, dot2));
-		VectorMA (e->point1, dot - dot1, e->direction, v);
+		VectorMA(e->point1, dot - dot1, e->direction, v);
 		VectorSubtract(v, frag->origin, v);
 		e->distance = vector_length(v);
-		CrossProduct (e->direction, frag->windingplane.normal, normal);
+		CrossProduct(e->direction, frag->windingplane.normal, normal);
 		normalize_vector(normal); // points inward
-		e->distancereduction = DotProduct (v, normal);
-		e->flippedangle = frag->flippedangle + acos (std::min (es->cos_normals_angle, (float) 1.0));
+		e->distancereduction = DotProduct(v, normal);
+		e->flippedangle = frag->flippedangle
+			+ acos(std::min(es->cos_normals_angle, (float) 1.0));
 
 		// calculate the matrix
 		e->ratio = (*m_inverse).v[2][2];
-		if (e->ratio <= NORMAL_EPSILON || (1 / e->ratio) <= NORMAL_EPSILON)
-		{
-			Developer (developer_level::spam, "TranslateTexToTex failed on face %d and %d @(%f,%f,%f)", frag->facenum, e->nextfacenum, dv1->point[0], dv1->point[1], dv1->point[2]);
+		if (e->ratio <= NORMAL_EPSILON
+			|| (1 / e->ratio) <= NORMAL_EPSILON) {
+			Developer(
+				developer_level::spam,
+				"TranslateTexToTex failed on face %d and %d @(%f,%f,%f)",
+				frag->facenum, e->nextfacenum, dv1->point[0], dv1->point[1],
+				dv1->point[2]
+			);
 			continue;
 		}
 
-		if (fabs (e->ratio - 1) < 0.005)
-		{
+		if (fabs(e->ratio - 1) < 0.005) {
 			e->prevtonext = *m;
 			e->nexttoprev = *m_inverse;
-		}
-		else
-		{
+		} else {
 			e->noseam = false;
 			e->prevtonext = *m;
 			e->nexttoprev = *m_inverse;
@@ -1054,15 +1155,17 @@ void ChopFrag (samplefrag_t *frag)
 	}
 }
 
-static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t *parent, samplefragedge_t *edge)
-{
-	samplefrag_t *frag;
+static samplefrag_t* GrowSingleFrag(
+	samplefraginfo_t const * info, samplefrag_t* parent,
+	samplefragedge_t* edge
+) {
+	samplefrag_t* frag;
 	bool overlap;
 	int numclipplanes;
-	dplane_t *clipplanes;
+	dplane_t* clipplanes;
 
-	frag = (samplefrag_t *)malloc (sizeof (samplefrag_t));
-	hlassume (frag != nullptr, assume_NoMemory);
+	frag = (samplefrag_t*) malloc(sizeof(samplefrag_t));
+	hlassume(frag != nullptr, assume_NoMemory);
 
 	// some basic info
 	frag->next = nullptr;
@@ -1074,136 +1177,154 @@ static samplefrag_t *GrowSingleFrag (const samplefraginfo_t *info, samplefrag_t 
 	frag->noseam = edge->noseam;
 
 	// calculate the matrix
-	frag->coordtomycoord = MultiplyMatrix(edge->prevtonext, parent->coordtomycoord);
-	frag->mycoordtocoord = MultiplyMatrix(parent->mycoordtocoord, edge->nexttoprev);
+	frag->coordtomycoord
+		= MultiplyMatrix(edge->prevtonext, parent->coordtomycoord);
+	frag->mycoordtocoord
+		= MultiplyMatrix(parent->mycoordtocoord, edge->nexttoprev);
 
 	// fill in origin
-	VectorCopy (parent->origin, frag->origin);
-	ApplyMatrix (frag->coordtomycoord, frag->origin, frag->myorigin);
+	VectorCopy(parent->origin, frag->origin);
+	ApplyMatrix(frag->coordtomycoord, frag->origin, frag->myorigin);
 
 	// fill in boundaries
 	frag->rect = parent->rect;
-	for (int x = 0; x < 4; x++)
-	{
-		// since a plane's parameters are in the dual coordinate space, we translate the original absolute plane into this relative plane by multiplying the inverse matrix
-		ApplyMatrixOnPlane (frag->mycoordtocoord, frag->rect.planes[x].normal, frag->rect.planes[x].dist, frag->myrect.planes[x].normal, frag->myrect.planes[x].dist);
+	for (int x = 0; x < 4; x++) {
+		// since a plane's parameters are in the dual coordinate space, we
+		// translate the original absolute plane into this relative plane by
+		// multiplying the inverse matrix
+		ApplyMatrixOnPlane(
+			frag->mycoordtocoord, frag->rect.planes[x].normal,
+			frag->rect.planes[x].dist, frag->myrect.planes[x].normal,
+			frag->myrect.planes[x].dist
+		);
 		double len = vector_length(frag->myrect.planes[x].normal);
-		if (!len)
-		{
-			Developer (developer_level::megaspam, "couldn't translate sample boundaries on face %d", frag->facenum);
-			free (frag);
+		if (!len) {
+			Developer(
+				developer_level::megaspam,
+				"couldn't translate sample boundaries on face %d",
+				frag->facenum
+			);
+			free(frag);
 			return nullptr;
 		}
-		VectorScale (frag->myrect.planes[x].normal, 1 / len, frag->myrect.planes[x].normal);
+		VectorScale(
+			frag->myrect.planes[x].normal, 1 / len,
+			frag->myrect.planes[x].normal
+		);
 		frag->myrect.planes[x].dist /= len;
 	}
 
 	// chop windings and edges
-	ChopFrag (frag);
+	ChopFrag(frag);
 
-	if (frag->winding->size() == 0 || frag->mywinding->size() == 0)
-	{
+	if (frag->winding->size() == 0 || frag->mywinding->size() == 0) {
 		// empty
 		delete frag->mywinding;
 		delete frag->winding;
-		free (frag->edges);
-		free (frag);
+		free(frag->edges);
+		free(frag);
 		return nullptr;
 	}
 
 	// do overlap test
-	
+
 	overlap = false;
-	clipplanes = (dplane_t *)malloc (frag->winding->size() * sizeof (dplane_t));
-	hlassume (clipplanes != nullptr, assume_NoMemory);
+	clipplanes
+		= (dplane_t*) malloc(frag->winding->size() * sizeof(dplane_t));
+	hlassume(clipplanes != nullptr, assume_NoMemory);
 	numclipplanes = 0;
-	for (int x = 0; x < frag->winding->size(); x++)
-	{
+	for (int x = 0; x < frag->winding->size(); x++) {
 		float3_array v;
-		VectorSubtract(frag->winding->m_Points[(x + 1) % frag->winding->size()], frag->winding->m_Points[x], v);
-		CrossProduct (v, frag->windingplane.normal, clipplanes[numclipplanes].normal);
-		if (!normalize_vector(clipplanes[numclipplanes].normal))
-		{
+		VectorSubtract(
+			frag->winding->m_Points[(x + 1) % frag->winding->size()],
+			frag->winding->m_Points[x], v
+		);
+		CrossProduct(
+			v, frag->windingplane.normal, clipplanes[numclipplanes].normal
+		);
+		if (!normalize_vector(clipplanes[numclipplanes].normal)) {
 			continue;
 		}
-		clipplanes[numclipplanes].dist = DotProduct (frag->winding->m_Points[x], clipplanes[numclipplanes].normal);
+		clipplanes[numclipplanes].dist = DotProduct(
+			frag->winding->m_Points[x], clipplanes[numclipplanes].normal
+		);
 		numclipplanes++;
 	}
-	for (samplefrag_t *f2 = info->head; f2 && !overlap; f2 = f2->next)
-	{
-		fast_winding *w = new fast_winding (*f2->winding);
-		for (int x = 0; x < numclipplanes && w->size() > 0; x++)
-		{
-			w->mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false
-					, 4 * ON_EPSILON
-					);
+	for (samplefrag_t* f2 = info->head; f2 && !overlap; f2 = f2->next) {
+		fast_winding* w = new fast_winding(*f2->winding);
+		for (int x = 0; x < numclipplanes && w->size() > 0; x++) {
+			w->mutating_clip(
+				clipplanes[x].normal, clipplanes[x].dist, false,
+				4 * ON_EPSILON
+			);
 		}
-		if (w->size() > 0)
-		{
+		if (w->size() > 0) {
 			overlap = true;
 		}
 		delete w;
 	}
-	free (clipplanes);
-	if (overlap)
-	{
-		// in the original texture plane, this fragment overlaps with some existing fragments
+	free(clipplanes);
+	if (overlap) {
+		// in the original texture plane, this fragment overlaps with some
+		// existing fragments
 		delete frag->mywinding;
 		delete frag->winding;
-		free (frag->edges);
-		free (frag);
+		free(frag->edges);
+		free(frag);
 		return nullptr;
 	}
 
 	return frag;
 }
 
-static bool FindBestEdge (samplefraginfo_t *info, samplefrag_t *&bestfrag, samplefragedge_t *&bestedge)
-{
-	samplefrag_t *f;
-	samplefragedge_t *e;
+static bool FindBestEdge(
+	samplefraginfo_t* info, samplefrag_t*& bestfrag,
+	samplefragedge_t*& bestedge
+) {
+	samplefrag_t* f;
+	samplefragedge_t* e;
 	bool found;
 
 	found = false;
 
-	for (f = info->head; f; f = f->next)
-	{
-		for (e = f->edges; e < f->edges + f->numedges; e++)
-		{
-			if (e->tried)
-			{
+	for (f = info->head; f; f = f->next) {
+		for (e = f->edges; e < f->edges + f->numedges; e++) {
+			if (e->tried) {
 				continue;
 			}
 
 			bool better;
 
-			if (!found)
-			{
+			if (!found) {
 				better = true;
-			}
-			else if ((e->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON) != (bestedge->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON))
-			{
-				better = ((e->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON) && !(bestedge->flippedangle < std::numbers::pi_v<double> + NORMAL_EPSILON));
-			}
-			else if (e->noseam != bestedge->noseam)
-			{
+			} else if ((e->flippedangle < std::numbers::pi_v<double>
+							+ NORMAL_EPSILON)
+					   != (bestedge->flippedangle
+						   < std::numbers::pi_v<double> + NORMAL_EPSILON)) {
+				better
+					= ((e->flippedangle < std::numbers::pi_v<double>
+							+ NORMAL_EPSILON)
+					   && !(
+						   bestedge->flippedangle
+						   < std::numbers::pi_v<double> + NORMAL_EPSILON
+					   ));
+			} else if (e->noseam != bestedge->noseam) {
 				better = (e->noseam && !bestedge->noseam);
-			}
-			else if (fabs (e->distance - bestedge->distance) > ON_EPSILON)
-			{
+			} else if (fabs(e->distance - bestedge->distance)
+					   > ON_EPSILON) {
 				better = (e->distance < bestedge->distance);
-			}
-			else if (fabs (e->distancereduction - bestedge->distancereduction) > ON_EPSILON)
-			{
-				better = (e->distancereduction > bestedge->distancereduction);
-			}
-			else
-			{
+			} else if (fabs(
+						   e->distancereduction
+						   - bestedge->distancereduction
+					   )
+					   > ON_EPSILON) {
+				better
+					= (e->distancereduction > bestedge->distancereduction);
+			} else {
 				better = e->edgenum < bestedge->edgenum;
 			}
 
-			if (better)
-			{
+			if (better) {
 				found = true;
 				bestfrag = f;
 				bestedge = e;
@@ -1214,103 +1335,96 @@ static bool FindBestEdge (samplefraginfo_t *info, samplefrag_t *&bestfrag, sampl
 	return found;
 }
 
-static samplefraginfo_t *CreateSampleFrag (int facenum, float s, float t, 
-	const float square[2][2],
-	int maxsize)
-{
-	samplefraginfo_t *info;
-	const float3_array v_s{1, 0, 0};
-	const float3_array v_t{0, 1, 0};
+static samplefraginfo_t* CreateSampleFrag(
+	int facenum, float s, float t, float const square[2][2], int maxsize
+) {
+	samplefraginfo_t* info;
+	float3_array const v_s{ 1, 0, 0 };
+	float3_array const v_t{ 0, 1, 0 };
 
-	info = (samplefraginfo_t *)malloc (sizeof (samplefraginfo_t));
-	hlassume (info != nullptr, assume_NoMemory);
+	info = (samplefraginfo_t*) malloc(sizeof(samplefraginfo_t));
+	hlassume(info != nullptr, assume_NoMemory);
 	info->maxsize = maxsize;
 	info->size = 1;
-	info->head = (samplefrag_t *)malloc (sizeof (samplefrag_t));
-	hlassume (info->head != nullptr, assume_NoMemory);
+	info->head = (samplefrag_t*) malloc(sizeof(samplefrag_t));
+	hlassume(info->head != nullptr, assume_NoMemory);
 
 	info->head->next = nullptr;
 	info->head->parentfrag = nullptr;
 	info->head->parentedge = nullptr;
 	info->head->facenum = facenum;
-	
+
 	info->head->flippedangle = 0.0;
 	info->head->noseam = true;
 
-	info->head->coordtomycoord = MatrixForScale({0.0f, 0.0f, 0.0f}, 1.0f);
-	info->head->mycoordtocoord = MatrixForScale({0.0f, 0.0f, 0.0f}, 1.0f);
+	info->head->coordtomycoord = MatrixForScale({ 0.0f, 0.0f, 0.0f }, 1.0f);
+	info->head->mycoordtocoord = MatrixForScale({ 0.0f, 0.0f, 0.0f }, 1.0f);
 
 	info->head->origin[0] = s;
 	info->head->origin[1] = t;
 	info->head->origin[2] = 0.0;
-	VectorCopy (info->head->origin, info->head->myorigin);
+	VectorCopy(info->head->origin, info->head->myorigin);
 
-	VectorScale (v_s,  1, info->head->rect.planes[0].normal); info->head->rect.planes[0].dist =  square[0][0]; // smin
-	VectorScale (v_s, -1, info->head->rect.planes[1].normal); info->head->rect.planes[1].dist = -square[1][0]; // smax
-	VectorScale (v_t,  1, info->head->rect.planes[2].normal); info->head->rect.planes[2].dist =  square[0][1]; // tmin
-	VectorScale (v_t, -1, info->head->rect.planes[3].normal); info->head->rect.planes[3].dist = -square[1][1]; // tmax
+	VectorScale(v_s, 1, info->head->rect.planes[0].normal);
+	info->head->rect.planes[0].dist = square[0][0]; // smin
+	VectorScale(v_s, -1, info->head->rect.planes[1].normal);
+	info->head->rect.planes[1].dist = -square[1][0]; // smax
+	VectorScale(v_t, 1, info->head->rect.planes[2].normal);
+	info->head->rect.planes[2].dist = square[0][1]; // tmin
+	VectorScale(v_t, -1, info->head->rect.planes[3].normal);
+	info->head->rect.planes[3].dist = -square[1][1]; // tmax
 	info->head->myrect = info->head->rect;
 
-	ChopFrag (info->head);
+	ChopFrag(info->head);
 
-	if (info->head->winding->size() == 0 || info->head->mywinding->size() == 0)
-	{
+	if (info->head->winding->size() == 0
+		|| info->head->mywinding->size() == 0) {
 		// empty
 		delete info->head->mywinding;
 		delete info->head->winding;
-		free (info->head->edges);
-		free (info->head);
+		free(info->head->edges);
+		free(info->head);
 		info->head = nullptr;
 		info->size = 0;
-	}
-	else
-	{
+	} else {
 		// prune edges
-		for (samplefragedge_t *e = info->head->edges; e < info->head->edges + info->head->numedges; e++)
-		{
-			if (e->nextfacenum == info->head->facenum)
-			{
+		for (samplefragedge_t* e = info->head->edges;
+			 e < info->head->edges + info->head->numedges; e++) {
+			if (e->nextfacenum == info->head->facenum) {
 				e->tried = true;
 			}
 		}
 	}
 
-	while (info->size < info->maxsize)
-	{
-		samplefrag_t *bestfrag;
-		samplefragedge_t *bestedge;
-		samplefrag_t *newfrag;
+	while (info->size < info->maxsize) {
+		samplefrag_t* bestfrag;
+		samplefragedge_t* bestedge;
+		samplefrag_t* newfrag;
 
-		if (!FindBestEdge (info, bestfrag, bestedge))
-		{
+		if (!FindBestEdge(info, bestfrag, bestedge)) {
 			break;
 		}
 
-		newfrag = GrowSingleFrag (info, bestfrag, bestedge);
+		newfrag = GrowSingleFrag(info, bestfrag, bestedge);
 		bestedge->tried = true;
 
-		if (newfrag)
-		{
+		if (newfrag) {
 			newfrag->next = info->head;
 			info->head = newfrag;
 			info->size++;
 
-			for (samplefrag_t *f = info->head; f; f = f->next)
-			{
-				for (samplefragedge_t *e = newfrag->edges; e < newfrag->edges + newfrag->numedges; e++)
-				{
-					if (e->nextfacenum == f->facenum)
-					{
+			for (samplefrag_t* f = info->head; f; f = f->next) {
+				for (samplefragedge_t* e = newfrag->edges;
+					 e < newfrag->edges + newfrag->numedges; e++) {
+					if (e->nextfacenum == f->facenum) {
 						e->tried = true;
 					}
 				}
 			}
-			for (samplefrag_t *f = info->head; f; f = f->next)
-			{
-				for (samplefragedge_t *e = f->edges; e < f->edges + f->numedges; e++)
-				{
-					if (e->nextfacenum == newfrag->facenum)
-					{
+			for (samplefrag_t* f = info->head; f; f = f->next) {
+				for (samplefragedge_t* e = f->edges;
+					 e < f->edges + f->numedges; e++) {
+					if (e->nextfacenum == newfrag->facenum) {
 						e->tried = true;
 					}
 				}
@@ -1321,92 +1435,80 @@ static samplefraginfo_t *CreateSampleFrag (int facenum, float s, float t,
 	return info;
 }
 
-static void DeleteSampleFrag (samplefraginfo_t *fraginfo)
-{
-	while (fraginfo->head)
-	{
-		samplefrag_t *f;
+static void DeleteSampleFrag(samplefraginfo_t* fraginfo) {
+	while (fraginfo->head) {
+		samplefrag_t* f;
 
 		f = fraginfo->head;
 		fraginfo->head = f->next;
 		delete f->mywinding;
 		delete f->winding;
-		free (f->edges);
-		free (f);
+		free(f->edges);
+		free(f);
 	}
-	free (fraginfo);
+	free(fraginfo);
 }
 
-static light_flag_t SetSampleFromST(float* const point,
-									float* const position, // a valid world position for light tracing
-									int* const surface, // the face used for phong normal and patch interpolation
-									bool *nudged,
-									const lightinfo_t* const l, const float original_s, const float original_t,
-									const float square[2][2], // {smin, tmin}, {smax, tmax}
-									eModelLightmodes lightmode)
-{
+static light_flag_t SetSampleFromST(
+	float* const point,
+	float* const position, // a valid world position for light tracing
+	int* const
+		surface, // the face used for phong normal and patch interpolation
+	bool* nudged, lightinfo_t const * const l, float const original_s,
+	float const original_t,
+	float const square[2][2], // {smin, tmin}, {smax, tmax}
+	eModelLightmodes lightmode
+) {
 	light_flag_t LuxelFlag;
 	int facenum;
-	dface_t *face;
-	const dplane_t*	faceplane;
-	samplefraginfo_t *fraginfo;
-	samplefrag_t *f;
+	dface_t* face;
+	dplane_t const * faceplane;
+	samplefraginfo_t* fraginfo;
+	samplefrag_t* f;
 
 	facenum = l->surfnum;
 	face = l->face;
-	faceplane = getPlaneFromFace (face);
-	
-	fraginfo = CreateSampleFrag (facenum, original_s, original_t, 
-		square,
-		100);
-	
+	faceplane = getPlaneFromFace(face);
+
+	fraginfo
+		= CreateSampleFrag(facenum, original_s, original_t, square, 100);
+
 	bool found;
-	samplefrag_t *bestfrag;
+	samplefrag_t* bestfrag;
 	float3_array bestpos;
 	float bests, bestt;
 	float best_dist;
 	bool best_nudged;
 
 	found = false;
-	for (f = fraginfo->head; f; f = f->next)
-	{
+	for (f = fraginfo->head; f; f = f->next) {
 		float3_array pos;
 		float s, t;
 		float dist;
 
 		bool nudged_one;
-		if (!FindNearestPosition (f->facenum, f->mywinding, f->mywindingplane, f->myorigin[0], f->myorigin[1], pos, &s, &t, &dist
-									, &nudged_one
-									))
-		{
+		if (!FindNearestPosition(
+				f->facenum, f->mywinding, f->mywindingplane, f->myorigin[0],
+				f->myorigin[1], pos, &s, &t, &dist, &nudged_one
+			)) {
 			continue;
 		}
 
 		bool better;
 
-		if (!found)
-		{
+		if (!found) {
 			better = true;
-		}
-		else if (nudged_one != best_nudged)
-		{
+		} else if (nudged_one != best_nudged) {
 			better = !nudged_one;
-		}
-		else if (fabs (dist - best_dist) > 2 * ON_EPSILON)
-		{
+		} else if (fabs(dist - best_dist) > 2 * ON_EPSILON) {
 			better = (dist < best_dist);
-		}
-		else if (f->noseam != bestfrag->noseam)
-		{
+		} else if (f->noseam != bestfrag->noseam) {
 			better = (f->noseam && !bestfrag->noseam);
-		}
-		else
-		{
+		} else {
 			better = (f->facenum < bestfrag->facenum);
 		}
 
-		if (better)
-		{
+		if (better) {
 			found = true;
 			bestfrag = f;
 			bestpos = pos;
@@ -1416,79 +1518,77 @@ static light_flag_t SetSampleFromST(float* const point,
 			best_nudged = nudged_one;
 		}
 	}
-	
-	if (found)
-	{
+
+	if (found) {
 		matrix_t worldtotex, textoworld;
 		float3_array tex;
 
-		TranslateWorldToTex (bestfrag->facenum, worldtotex);
-		if (!InvertMatrix (worldtotex, textoworld))
-		{
-			const unsigned facenum = bestfrag->facenum;
-			ThreadLock ();
-			Log ("Malformed face (%d) normal @ \n", facenum);
-			fast_winding w{g_dfaces[facenum]};
-			for (float3_array& windingPoint : w.m_Points)
-			{
-				VectorAdd (windingPoint, g_face_offset[facenum], windingPoint);
+		TranslateWorldToTex(bestfrag->facenum, worldtotex);
+		if (!InvertMatrix(worldtotex, textoworld)) {
+			unsigned const facenum = bestfrag->facenum;
+			ThreadLock();
+			Log("Malformed face (%d) normal @ \n", facenum);
+			fast_winding w{ g_dfaces[facenum] };
+			for (float3_array& windingPoint : w.m_Points) {
+				VectorAdd(
+					windingPoint, g_face_offset[facenum], windingPoint
+				);
 			}
-			w.Print ();
-			ThreadUnlock ();
-			hlassume (false, assume_MalformedTextureFace);
+			w.Print();
+			ThreadUnlock();
+			hlassume(false, assume_MalformedTextureFace);
 		}
-		
+
 		// point
 		tex[0] = bests;
 		tex[1] = bestt;
 		tex[2] = 0.0;
-		{float3_array v; ApplyMatrix (textoworld, tex, v); VectorCopy (v, point);}
-		VectorAdd (point, g_face_offset[bestfrag->facenum], point);
+		{
+			float3_array v;
+			ApplyMatrix(textoworld, tex, v);
+			VectorCopy(v, point);
+		}
+		VectorAdd(point, g_face_offset[bestfrag->facenum], point);
 		// position
-		VectorCopy (bestpos, position);
+		VectorCopy(bestpos, position);
 		// surface
 		*surface = bestfrag->facenum;
 		// whether nudged to fit
 		*nudged = best_nudged;
 		// returned value
 		LuxelFlag = LightNormal;
-	}
-	else
-	{
-		SetSurfFromST (l, point, original_s, original_t);
-		VectorMA (point, DEFAULT_HUNT_OFFSET, faceplane->normal, position);
+	} else {
+		SetSurfFromST(l, point, original_s, original_t);
+		VectorMA(point, DEFAULT_HUNT_OFFSET, faceplane->normal, position);
 		*surface = facenum;
 		*nudged = true;
 		LuxelFlag = LightOutside;
 	}
 
-	DeleteSampleFrag (fraginfo);
-	
-	return LuxelFlag;
+	DeleteSampleFrag(fraginfo);
 
+	return LuxelFlag;
 }
-static void		CalcPoints(lightinfo_t* l)
-{
-	const int       facenum = l->surfnum;
-	const dface_t*  f = g_dfaces.data() + facenum;
-	const dplane_t* p = getPlaneFromFace (f);
-	const eModelLightmodes lightmode = g_face_lightmode[facenum];
-	const int       h = l->texsize[1] + 1;
-	const int       w = l->texsize[0] + 1;
-	const float     starts = l->texmins[0] * TEXTURE_STEP;
-	const float     startt = l->texmins[1] * TEXTURE_STEP;
-	light_flag_t    LuxelFlags[MAX_SINGLEMAP];
-	light_flag_t*   pLuxelFlags;
-	float           us, ut;
-	float*          surf;
-	int             s, t;
+
+static void CalcPoints(lightinfo_t* l) {
+	int const facenum = l->surfnum;
+	dface_t const * f = g_dfaces.data() + facenum;
+	dplane_t const * p = getPlaneFromFace(f);
+	eModelLightmodes const lightmode = g_face_lightmode[facenum];
+	int const h = l->texsize[1] + 1;
+	int const w = l->texsize[0] + 1;
+	float const starts = l->texmins[0] * TEXTURE_STEP;
+	float const startt = l->texmins[1] * TEXTURE_STEP;
+	light_flag_t LuxelFlags[MAX_SINGLEMAP];
+	light_flag_t* pLuxelFlags;
+	float us, ut;
+	float* surf;
+	int s, t;
 	l->numsurfpt = w * h;
-	for (t = 0; t < h; t++)
-	{
-		for (s = 0; s < w; s++)
-		{
-			surf = l->surfpt[s+w*t].data();
-			pLuxelFlags = &LuxelFlags[s+w*t];
+	for (t = 0; t < h; t++) {
+		for (s = 0; s < w; s++) {
+			surf = l->surfpt[s + w * t].data();
+			pLuxelFlags = &LuxelFlags[s + w * t];
 			us = starts + s * TEXTURE_STEP;
 			ut = startt + t * TEXTURE_STEP;
 			float square[2][2];
@@ -1497,727 +1597,776 @@ static void		CalcPoints(lightinfo_t* l)
 			square[1][0] = us + TEXTURE_STEP;
 			square[1][1] = ut + TEXTURE_STEP;
 			bool nudged;
-			*pLuxelFlags = SetSampleFromST (surf,
-											l->surfpt_position[s+w*t].data(), &l->surfpt_surface[s+w*t],
-											&nudged,
-											l, us, ut,
-											square,
-											lightmode);
+			*pLuxelFlags = SetSampleFromST(
+				surf, l->surfpt_position[s + w * t].data(),
+				&l->surfpt_surface[s + w * t], &nudged, l, us, ut, square,
+				lightmode
+			);
 		}
 	}
-    {
+	{
 		int i, n;
 		int s_other, t_other;
 		light_flag_t* pLuxelFlags_other;
 		float* surf_other;
 		bool adjusted;
-		for (i = 0; i < h + w; i++)
-		{ // propagate valid light samples
+		for (i = 0; i < h + w; i++) { // propagate valid light samples
 			adjusted = false;
-			for (t = 0; t < h; t++)
-			{
-				for (s = 0; s < w; s++)
-				{
-					surf = l->surfpt[s+w*t].data();
-					pLuxelFlags = &LuxelFlags[s+w*t];
-					if (*pLuxelFlags != LightOutside)
+			for (t = 0; t < h; t++) {
+				for (s = 0; s < w; s++) {
+					surf = l->surfpt[s + w * t].data();
+					pLuxelFlags = &LuxelFlags[s + w * t];
+					if (*pLuxelFlags != LightOutside) {
 						continue;
-					for (n = 0; n < 4; n++)
-					{
-						switch (n)
-						{
-						case 0: s_other = s + 1; t_other = t; break;
-						case 1: s_other = s - 1; t_other = t; break;
-						case 2: s_other = s; t_other = t + 1; break;
-						case 3: s_other = s; t_other = t - 1; break;
+					}
+					for (n = 0; n < 4; n++) {
+						switch (n) {
+							case 0:
+								s_other = s + 1;
+								t_other = t;
+								break;
+							case 1:
+								s_other = s - 1;
+								t_other = t;
+								break;
+							case 2:
+								s_other = s;
+								t_other = t + 1;
+								break;
+							case 3:
+								s_other = s;
+								t_other = t - 1;
+								break;
 						}
-						if (t_other < 0 || t_other >= h || s_other < 0 || s_other >= w)
+						if (t_other < 0 || t_other >= h || s_other < 0
+							|| s_other >= w) {
 							continue;
-						surf_other = l->surfpt[s_other+w*t_other].data();
-						pLuxelFlags_other = &LuxelFlags[s_other+w*t_other];
-						if (*pLuxelFlags_other != LightOutside && *pLuxelFlags_other != LightShifted)
-						{
+						}
+						surf_other
+							= l->surfpt[s_other + w * t_other].data();
+						pLuxelFlags_other
+							= &LuxelFlags[s_other + w * t_other];
+						if (*pLuxelFlags_other != LightOutside
+							&& *pLuxelFlags_other != LightShifted) {
 							*pLuxelFlags = LightShifted;
-							VectorCopy (surf_other, surf);
-							VectorCopy (l->surfpt_position[s_other+w*t_other], l->surfpt_position[s+w*t]);
-							l->surfpt_surface[s+w*t] = l->surfpt_surface[s_other+w*t_other];
+							VectorCopy(surf_other, surf);
+							VectorCopy(
+								l->surfpt_position[s_other + w * t_other],
+								l->surfpt_position[s + w * t]
+							);
+							l->surfpt_surface[s + w * t]
+								= l->surfpt_surface[s_other + w * t_other];
 							adjusted = true;
 							break;
 						}
 					}
 				}
 			}
-			for (t = 0; t < h; t++)
-			{
-				for (s = 0; s < w; s++)
-				{
-					pLuxelFlags = &LuxelFlags[s+w*t];
-					if (*pLuxelFlags == LightShifted)
-					{
+			for (t = 0; t < h; t++) {
+				for (s = 0; s < w; s++) {
+					pLuxelFlags = &LuxelFlags[s + w * t];
+					if (*pLuxelFlags == LightShifted) {
 						*pLuxelFlags = LightShiftedInside;
 					}
 				}
 			}
-			if (!adjusted)
+			if (!adjusted) {
 				break;
+			}
 		}
 	}
-	for (int i = 0; i < MAX_SINGLEMAP; i++)
-	{
+	for (int i = 0; i < MAX_SINGLEMAP; i++) {
 		l->surfpt_lightoutside[i] = (LuxelFlags[i] == LightOutside);
 	}
 }
 
 //==============================================================
 
-typedef struct
-{
-    float3_array          pos;
-    float3_array          light;
-	int				surface; // this sample can grow into another face
-}
-sample_t;
+typedef struct {
+	float3_array pos;
+	float3_array light;
+	int surface; // this sample can grow into another face
+} sample_t;
 
-typedef struct
-{
-    int             numsamples;
-    sample_t*       samples[MAXLIGHTMAPS];
-}
-facelight_t;
+typedef struct {
+	int numsamples;
+	sample_t* samples[MAXLIGHTMAPS];
+} facelight_t;
 
 static directlight_t* directlights[MAX_MAP_LEAFS];
 static facelight_t facelight[MAX_MAP_FACES];
-static int      numdlights;
-
+static int numdlights;
 
 // =====================================================================================
 //  CreateDirectLights
 // =====================================================================================
-void            CreateDirectLights()
-{
-    unsigned        i;
-    patch_t*        p;
-    directlight_t*  dl;
-    dleaf_t*        leaf;
-    int             leafnum;
-    entity_t*       e;
-    const char*     name;
-    float           angle;
-    float3_array          dest;
+void CreateDirectLights() {
+	unsigned i;
+	patch_t* p;
+	directlight_t* dl;
+	dleaf_t* leaf;
+	int leafnum;
+	entity_t* e;
+	char const * name;
+	float angle;
+	float3_array dest;
 
-
-    numdlights = 0;
+	numdlights = 0;
 	int styleused[ALLSTYLES];
-	memset (styleused, 0, ALLSTYLES * sizeof(styleused[0]));
+	memset(styleused, 0, ALLSTYLES * sizeof(styleused[0]));
 	styleused[0] = true;
 	int numstyles = 1;
 
-    //
-    // surfaces
-    //
-    for (i = 0, p = g_patches; i < g_num_patches; i++, p++)
-    {
-		if (p->emitstyle >= 0 && p->emitstyle < ALLSTYLES)
-		{
-			if (styleused[p->emitstyle] == false)
-			{
+	//
+	// surfaces
+	//
+	for (i = 0, p = g_patches; i < g_num_patches; i++, p++) {
+		if (p->emitstyle >= 0 && p->emitstyle < ALLSTYLES) {
+			if (styleused[p->emitstyle] == false) {
 				styleused[p->emitstyle] = true;
 				numstyles++;
 			}
 		}
-        if (
-			DotProduct (p->baselight, p->texturereflectivity) / 3
-			> 0.0
-			&& !(g_face_texlights[p->faceNumber]
-				&& has_key_value(g_face_texlights[p->faceNumber], u8"_scale")
-				&& float_for_key(*g_face_texlights[p->faceNumber], u8"_scale") <= 0)
-			) //LRC
-        {
-            numdlights++;
-            dl = (directlight_t*)calloc(1, sizeof(directlight_t));
+		if (DotProduct(p->baselight, p->texturereflectivity) / 3 > 0.0
+			&& !(
+				g_face_texlights[p->faceNumber]
+				&& has_key_value(
+					g_face_texlights[p->faceNumber], u8"_scale"
+				)
+				&& float_for_key(
+					   *g_face_texlights[p->faceNumber], u8"_scale"
+				   ) <= 0
+			)) // LRC
+		{
+			numdlights++;
+			dl = (directlight_t*) calloc(1, sizeof(directlight_t));
 
-			hlassume (dl != nullptr, assume_NoMemory);
+			hlassume(dl != nullptr, assume_NoMemory);
 
-            VectorCopy(p->origin, dl->origin);
+			VectorCopy(p->origin, dl->origin);
 
-            leaf = PointInLeaf(dl->origin);
-            leafnum = leaf - g_dleafs.data();
+			leaf = PointInLeaf(dl->origin);
+			leafnum = leaf - g_dleafs.data();
 
-            dl->next = directlights[leafnum];
-            directlights[leafnum] = dl;
-            dl->style = p->emitstyle; //LRC
+			dl->next = directlights[leafnum];
+			directlights[leafnum] = dl;
+			dl->style = p->emitstyle; // LRC
 			dl->topatch = false;
-			if (!p->emitmode)
-			{
+			if (!p->emitmode) {
 				dl->topatch = true;
 			}
-			if (g_fastmode)
-			{
+			if (g_fastmode) {
 				dl->topatch = true;
 			}
 			dl->patch_area = p->area;
 			dl->patch_emitter_range = p->emitter_range;
 			dl->patch = p;
 			dl->texlightgap = g_texlightgap;
-			if (g_face_texlights[p->faceNumber] && *ValueForKey (g_face_texlights[p->faceNumber], u8"_texlightgap"))
-			{
-				dl->texlightgap = float_for_key(*g_face_texlights[p->faceNumber], u8"_texlightgap");
+			if (g_face_texlights[p->faceNumber]
+				&& *ValueForKey(
+					g_face_texlights[p->faceNumber], u8"_texlightgap"
+				)) {
+				dl->texlightgap = float_for_key(
+					*g_face_texlights[p->faceNumber], u8"_texlightgap"
+				);
 			}
 			dl->stopdot = 0.0;
 			dl->stopdot2 = 0.0;
-			if (g_face_texlights[p->faceNumber])
-			{
-				if (has_key_value(g_face_texlights[p->faceNumber], u8"_cone"))
-				{
-					dl->stopdot = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone");
-					dl->stopdot = dl->stopdot >= 90? 0: (float)cos (dl->stopdot / 180 * std::numbers::pi_v<double>);
+			if (g_face_texlights[p->faceNumber]) {
+				if (has_key_value(
+						g_face_texlights[p->faceNumber], u8"_cone"
+					)) {
+					dl->stopdot = float_for_key(
+						*g_face_texlights[p->faceNumber], u8"_cone"
+					);
+					dl->stopdot = dl->stopdot >= 90
+						? 0
+						: (float)
+							  cos(dl->stopdot / 180
+								  * std::numbers::pi_v<double>);
 				}
-				if (has_key_value(g_face_texlights[p->faceNumber], u8"_cone2"))
-				{
-					dl->stopdot2 = float_for_key(*g_face_texlights[p->faceNumber], u8"_cone2");
-					dl->stopdot2 = dl->stopdot2 >= 90? 0: (float)cos (dl->stopdot2 / 180 * std::numbers::pi_v<double>);
+				if (has_key_value(
+						g_face_texlights[p->faceNumber], u8"_cone2"
+					)) {
+					dl->stopdot2 = float_for_key(
+						*g_face_texlights[p->faceNumber], u8"_cone2"
+					);
+					dl->stopdot2 = dl->stopdot2 >= 90
+						? 0
+						: (float)
+							  cos(dl->stopdot2 / 180
+								  * std::numbers::pi_v<double>);
 				}
-				if (dl->stopdot2 > dl->stopdot)
+				if (dl->stopdot2 > dl->stopdot) {
 					dl->stopdot2 = dl->stopdot;
+				}
 			}
 
-            dl->type = emit_surface;
-            VectorCopy(getPlaneFromFaceNumber(p->faceNumber)->normal, dl->normal);
-            VectorCopy(p->baselight, dl->intensity); //LRC
-			if (g_face_texlights[p->faceNumber])
-			{
-				if (has_key_value(g_face_texlights[p->faceNumber], u8"_scale"))
-				{
-					float scale = float_for_key(*g_face_texlights[p->faceNumber], u8"_scale");
-					VectorScale (dl->intensity, scale, dl->intensity);
+			dl->type = emit_surface;
+			VectorCopy(
+				getPlaneFromFaceNumber(p->faceNumber)->normal, dl->normal
+			);
+			VectorCopy(p->baselight, dl->intensity); // LRC
+			if (g_face_texlights[p->faceNumber]) {
+				if (has_key_value(
+						g_face_texlights[p->faceNumber], u8"_scale"
+					)) {
+					float scale = float_for_key(
+						*g_face_texlights[p->faceNumber], u8"_scale"
+					);
+					VectorScale(dl->intensity, scale, dl->intensity);
 				}
 			}
-            VectorScale(dl->intensity, p->area, dl->intensity);
-			VectorScale (dl->intensity, p->exposure, dl->intensity);
-			VectorScale (dl->intensity, 1.0 / std::numbers::pi_v<double>, dl->intensity);
-			VectorMultiply (dl->intensity, p->texturereflectivity, dl->intensity);
-        
-			dface_t *f = &g_dfaces[p->faceNumber];
-			if (g_face_entity[p->faceNumber] != g_entities.data() && get_texture_by_number(f->texinfo).is_water())
-			{
-				directlight_t *dl2;
+			VectorScale(dl->intensity, p->area, dl->intensity);
+			VectorScale(dl->intensity, p->exposure, dl->intensity);
+			VectorScale(
+				dl->intensity, 1.0 / std::numbers::pi_v<double>,
+				dl->intensity
+			);
+			VectorMultiply(
+				dl->intensity, p->texturereflectivity, dl->intensity
+			);
+
+			dface_t* f = &g_dfaces[p->faceNumber];
+			if (g_face_entity[p->faceNumber] != g_entities.data()
+				&& get_texture_by_number(f->texinfo).is_water()) {
+				directlight_t* dl2;
 				numdlights++;
-				dl2 = (directlight_t *)calloc (1, sizeof (directlight_t));
-				hlassume (dl2 != nullptr, assume_NoMemory);
+				dl2 = (directlight_t*) calloc(1, sizeof(directlight_t));
+				hlassume(dl2 != nullptr, assume_NoMemory);
 				*dl2 = *dl;
-				VectorMA (dl->origin, -2, dl->normal, dl2->origin);
+				VectorMA(dl->origin, -2, dl->normal, dl2->origin);
 				dl2->normal = negate_vector(dl->normal);
-				leaf = PointInLeaf (dl2->origin);
+				leaf = PointInLeaf(dl2->origin);
 				leafnum = leaf - g_dleafs.data();
 				dl2->next = directlights[leafnum];
 				directlights[leafnum] = dl2;
 			}
-        }
+		}
 
-        //LRC        VectorClear(p->totallight[0]);
-    }
+		// LRC        VectorClear(p->totallight[0]);
+	}
 
-    //
-    // entities
-    //
-    for (i = 0; i < (unsigned)g_numentities; i++)
-    {
-        const char*     pLight;
-        double          r, g, b, scaler;
-        float           l1;
-        int             argCnt;
+	//
+	// entities
+	//
+	for (i = 0; i < (unsigned) g_numentities; i++) {
+		char const * pLight;
+		double r, g, b, scaler;
+		float l1;
+		int argCnt;
 
-        e = &g_entities[i];
-        name = (const char*) ValueForKey(e, u8"classname");
-        if (strncmp(name, "light", 5))
-            continue;
+		e = &g_entities[i];
+		name = (char const *) ValueForKey(e, u8"classname");
+		if (strncmp(name, "light", 5)) {
+			continue;
+		}
 		{
-			int style = IntForKey (e, u8"style");
-			if (style < 0)
-			{
+			int style = IntForKey(e, u8"style");
+			if (style < 0) {
 				style = -style;
 			}
-			style = (unsigned char)style;
-			if (style > 0 && style < ALLSTYLES && *ValueForKey (e, u8"zhlt_stylecoring"))
-			{
+			style = (unsigned char) style;
+			if (style > 0 && style < ALLSTYLES
+				&& *ValueForKey(e, u8"zhlt_stylecoring")) {
 				g_corings[style] = float_for_key(*e, u8"zhlt_stylecoring");
 			}
 		}
-		if (!strcmp (name, "light_shadow")
-			|| !strcmp (name, "light_bounce")
-			)
-		{
-			int style = IntForKey (e, u8"style");
-			if (style < 0)
-			{
+		if (!strcmp(name, "light_shadow")
+			|| !strcmp(name, "light_bounce")) {
+			int style = IntForKey(e, u8"style");
+			if (style < 0) {
 				style = -style;
 			}
-			style = (unsigned char)style;
-			if (style >= 0 && style < ALLSTYLES)
-			{
-				if (styleused[style] == false)
-				{
+			style = (unsigned char) style;
+			if (style >= 0 && style < ALLSTYLES) {
+				if (styleused[style] == false) {
 					styleused[style] = true;
 					numstyles++;
 				}
 			}
 			continue;
 		}
-		if (!strcmp (name, "light_surface"))
-		{
+		if (!strcmp(name, "light_surface")) {
 			continue;
 		}
 
-        numdlights++;
-        dl = (directlight_t*)calloc(1, sizeof(directlight_t));
+		numdlights++;
+		dl = (directlight_t*) calloc(1, sizeof(directlight_t));
 
-		hlassume (dl != nullptr, assume_NoMemory);
+		hlassume(dl != nullptr, assume_NoMemory);
 
-        dl->origin = get_float3_for_key(*e, u8"origin");
+		dl->origin = get_float3_for_key(*e, u8"origin");
 
-        leaf = PointInLeaf(dl->origin);
-        leafnum = leaf - g_dleafs.data();
+		leaf = PointInLeaf(dl->origin);
+		leafnum = leaf - g_dleafs.data();
 
-        dl->next = directlights[leafnum];
-        directlights[leafnum] = dl;
+		dl->next = directlights[leafnum];
+		directlights[leafnum] = dl;
 
-        dl->style = IntForKey(e, u8"style");
-        if (dl->style < 0) 
-            dl->style = -dl->style; //LRC
-		dl->style = (unsigned char)dl->style;
-		if (dl->style >= ALLSTYLES)
-		{
-			Error ("invalid light style: style (%d) >= ALLSTYLES (%d)", dl->style, ALLSTYLES);
+		dl->style = IntForKey(e, u8"style");
+		if (dl->style < 0) {
+			dl->style = -dl->style; // LRC
 		}
-		if (dl->style >= 0 && dl->style < ALLSTYLES)
-		{
-			if (styleused[dl->style] == false)
-			{
+		dl->style = (unsigned char) dl->style;
+		if (dl->style >= ALLSTYLES) {
+			Error(
+				"invalid light style: style (%d) >= ALLSTYLES (%d)",
+				dl->style, ALLSTYLES
+			);
+		}
+		if (dl->style >= 0 && dl->style < ALLSTYLES) {
+			if (styleused[dl->style] == false) {
 				styleused[dl->style] = true;
 				numstyles++;
 			}
 		}
 		dl->topatch = false;
-		if (IntForKey (e, u8"_fast") == 1)
-		{
+		if (IntForKey(e, u8"_fast") == 1) {
 			dl->topatch = true;
 		}
-		if (g_fastmode)
-		{
+		if (g_fastmode) {
 			dl->topatch = true;
 		}
-        pLight = (const char*) ValueForKey(e, u8"_light");
-        // scanf into doubles, then assign, so it is float size independent
-        r = g = b = scaler = 0;
-        argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
-        dl->intensity[0] = (float)r;
-        if (argCnt == 1)
-        {
-            // The R,G,B values are all equal.
-            dl->intensity[1] = dl->intensity[2] = (float)r;
-        }
-        else if (argCnt == 3 || argCnt == 4)
-        {
-            // Save the other two G,B values.
-            dl->intensity[1] = (float)g;
-            dl->intensity[2] = (float)b;
+		pLight = (char const *) ValueForKey(e, u8"_light");
+		// scanf into doubles, then assign, so it is float size independent
+		r = g = b = scaler = 0;
+		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
+		dl->intensity[0] = (float) r;
+		if (argCnt == 1) {
+			// The R,G,B values are all equal.
+			dl->intensity[1] = dl->intensity[2] = (float) r;
+		} else if (argCnt == 3 || argCnt == 4) {
+			// Save the other two G,B values.
+			dl->intensity[1] = (float) g;
+			dl->intensity[2] = (float) b;
 
-            // Did we also get an "intensity" scaler value too?
-            if (argCnt == 4)
-            {
-                // Scale the normalized 0-255 R,G,B values by the intensity scaler
-                dl->intensity[0] = dl->intensity[0] / 255 * (float)scaler;
-                dl->intensity[1] = dl->intensity[1] / 255 * (float)scaler;
-                dl->intensity[2] = dl->intensity[2] / 255 * (float)scaler;
-            }
-        }
-        else
-        {
-            Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
-                dl->origin[0], dl->origin[1], dl->origin[2], pLight);
-            continue;
-        }
+			// Did we also get an "intensity" scaler value too?
+			if (argCnt == 4) {
+				// Scale the normalized 0-255 R,G,B values by the intensity
+				// scaler
+				dl->intensity[0] = dl->intensity[0] / 255 * (float) scaler;
+				dl->intensity[1] = dl->intensity[1] / 255 * (float) scaler;
+				dl->intensity[2] = dl->intensity[2] / 255 * (float) scaler;
+			}
+		} else {
+			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
+				dl->origin[0], dl->origin[1], dl->origin[2], pLight);
+			continue;
+		}
 
-        dl->fade = float_for_key(*e, u8"_fade");
-        if (dl->fade == 0.0)
-        {
-            dl->fade = g_fade;
-        }
+		dl->fade = float_for_key(*e, u8"_fade");
+		if (dl->fade == 0.0) {
+			dl->fade = g_fade;
+		}
 
+		std::u8string_view target = value_for_key(e, u8"target");
 
-        std::u8string_view target = value_for_key(e, u8"target");
+		if (!strcmp(name, "light_spot")
+			|| !strcmp(name, "light_environment") || !target.empty()) {
+			if (!VectorAvg(dl->intensity)) {
+			}
+			dl->type = emit_spotlight;
+			dl->stopdot = float_for_key(*e, u8"_cone");
+			if (!dl->stopdot) {
+				dl->stopdot = 10;
+			}
+			dl->stopdot2 = float_for_key(*e, u8"_cone2");
+			if (!dl->stopdot2) {
+				dl->stopdot2 = dl->stopdot;
+			}
+			if (dl->stopdot2 < dl->stopdot) {
+				dl->stopdot2 = dl->stopdot;
+			}
+			dl->stopdot2 = (float
+			) cos(dl->stopdot2 / 180 * std::numbers::pi_v<double>);
+			dl->stopdot = (float
+			) cos(dl->stopdot / 180 * std::numbers::pi_v<double>);
 
-        if (!strcmp(name, "light_spot") || !strcmp(name, "light_environment") || !target.empty())
-        {
-            if (!VectorAvg(dl->intensity))
-            {
-            }
-            dl->type = emit_spotlight;
-            dl->stopdot = float_for_key(*e, u8"_cone");
-            if (!dl->stopdot)
-            {
-                dl->stopdot = 10;
-            }
-            dl->stopdot2 = float_for_key(*e, u8"_cone2");
-            if (!dl->stopdot2)
-            {
-                dl->stopdot2 = dl->stopdot;
-            }
-            if (dl->stopdot2 < dl->stopdot)
-            {
-                dl->stopdot2 = dl->stopdot;
-            }
-            dl->stopdot2 = (float)cos(dl->stopdot2 / 180 * std::numbers::pi_v<double>);
-            dl->stopdot = (float)cos(dl->stopdot / 180 * std::numbers::pi_v<double>);
-
-   			auto maybeE2 = find_target_entity(target);
-            if (!target.empty() && !maybeE2) {
-                Warning("light at (%i %i %i) has missing target",
-                        (int)dl->origin[0], (int)dl->origin[1], (int)dl->origin[2]);
+			auto maybeE2 = find_target_entity(target);
+			if (!target.empty() && !maybeE2) {
+				Warning(
+					"light at (%i %i %i) has missing target",
+					(int) dl->origin[0], (int) dl->origin[1],
+					(int) dl->origin[2]
+				);
 				target = u8"";
-            }
-            if (maybeE2) { // point towards target
+			}
+			if (maybeE2) { // point towards target
 				dest = get_float3_for_key(maybeE2.value(), u8"origin");
 				VectorSubtract(dest, dl->origin, dl->normal);
 				normalize_vector(dl->normal);
-            } else {                                              // point down angle
-                float3_array vAngles;
+			} else { // point down angle
+				float3_array vAngles;
 
-                vAngles = get_float3_for_key(*e, u8"angles");
+				vAngles = get_float3_for_key(*e, u8"angles");
 
-                angle = float_for_key(*e, u8"angle");
-                if (angle == ANGLE_UP)
-                {
-                    dl->normal[0] = dl->normal[1] = 0;
-                    dl->normal[2] = 1;
-                }
-                else if (angle == ANGLE_DOWN)
-                {
-                    dl->normal[0] = dl->normal[1] = 0;
-                    dl->normal[2] = -1;
-                }
-                else
-                {
-                    // if we don't have a specific "angle" use the "angles" YAW
-                    if (!angle)
-                    {
-                        angle = vAngles[1];
-                    }
+				angle = float_for_key(*e, u8"angle");
+				if (angle == ANGLE_UP) {
+					dl->normal[0] = dl->normal[1] = 0;
+					dl->normal[2] = 1;
+				} else if (angle == ANGLE_DOWN) {
+					dl->normal[0] = dl->normal[1] = 0;
+					dl->normal[2] = -1;
+				} else {
+					// if we don't have a specific "angle" use the "angles"
+					// YAW
+					if (!angle) {
+						angle = vAngles[1];
+					}
 
-                    dl->normal[2] = 0;
-                    dl->normal[0] = (float)cos(angle / 180 * std::numbers::pi_v<double>);
-                    dl->normal[1] = (float)sin(angle / 180 * std::numbers::pi_v<double>);
-                }
+					dl->normal[2] = 0;
+					dl->normal[0] = (float
+					) cos(angle / 180 * std::numbers::pi_v<double>);
+					dl->normal[1] = (float
+					) sin(angle / 180 * std::numbers::pi_v<double>);
+				}
 
-                angle = float_for_key(*e, u8"pitch");
-                if (!angle)
-                {
-                    // if we don't have a specific "pitch" use the "angles" PITCH
-                    angle = vAngles[0];
-                }
+				angle = float_for_key(*e, u8"pitch");
+				if (!angle) {
+					// if we don't have a specific "pitch" use the "angles"
+					// PITCH
+					angle = vAngles[0];
+				}
 
-                dl->normal[2] = (float)sin(angle / 180 * std::numbers::pi_v<double>);
-                dl->normal[0] *= (float)cos(angle / 180 * std::numbers::pi_v<double>);
-                dl->normal[1] *= (float)cos(angle / 180 * std::numbers::pi_v<double>);
-            }
+				dl->normal[2]
+					= (float) sin(angle / 180 * std::numbers::pi_v<double>);
+				dl->normal[0] *= (float
+				) cos(angle / 180 * std::numbers::pi_v<double>);
+				dl->normal[1] *= (float
+				) cos(angle / 180 * std::numbers::pi_v<double>);
+			}
 
-            if (float_for_key(*e, u8"_sky") || !strcmp(name, "light_environment"))
-            {
+			if (float_for_key(*e, u8"_sky")
+				|| !strcmp(name, "light_environment")) {
 				// -----------------------------------------------------------------------------------
 				// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-				// diffuse lighting hack - most of the following code nicked from earlier
-				// need to get diffuse intensity from new _diffuse_light key
+				// diffuse lighting hack - most of the following code nicked
+				// from earlier need to get diffuse intensity from new
+				// _diffuse_light key
 				//
 				// What does _sky do for spotlights, anyway?
 				// -----------------------------------------------------------------------------------
-				pLight =(const char*)  ValueForKey(e, u8"_diffuse_light");
-        		r = g = b = scaler = 0;
-        		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
-        		dl->diffuse_intensity[0] = (float)r;
-        		if (argCnt == 1)
-        		{
-            		// The R,G,B values are all equal.
-            		dl->diffuse_intensity[1] = dl->diffuse_intensity[2] = (float)r;
-        		}
-        		else if (argCnt == 3 || argCnt == 4)
-        		{
-            		// Save the other two G,B values.
-            		dl->diffuse_intensity[1] = (float)g;
-            		dl->diffuse_intensity[2] = (float)b;
+				pLight = (char const *) ValueForKey(e, u8"_diffuse_light");
+				r = g = b = scaler = 0;
+				argCnt = sscanf(
+					pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler
+				);
+				dl->diffuse_intensity[0] = (float) r;
+				if (argCnt == 1) {
+					// The R,G,B values are all equal.
+					dl->diffuse_intensity[1] = dl->diffuse_intensity[2]
+						= (float) r;
+				} else if (argCnt == 3 || argCnt == 4) {
+					// Save the other two G,B values.
+					dl->diffuse_intensity[1] = (float) g;
+					dl->diffuse_intensity[2] = (float) b;
 
-            		// Did we also get an "intensity" scaler value too?
-      		    	if (argCnt == 4)
-     	       		{
-                		// Scale the normalized 0-255 R,G,B values by the intensity scaler
-                		dl->diffuse_intensity[0] = dl->diffuse_intensity[0] / 255 * (float)scaler;
-                		dl->diffuse_intensity[1] = dl->diffuse_intensity[1] / 255 * (float)scaler;
-                		dl->diffuse_intensity[2] = dl->diffuse_intensity[2] / 255 * (float)scaler;
-            		}
-        		}
-				else
-        		{
-					// backwards compatibility with maps without _diffuse_light
+					// Did we also get an "intensity" scaler value too?
+					if (argCnt == 4) {
+						// Scale the normalized 0-255 R,G,B values by the
+						// intensity scaler
+						dl->diffuse_intensity[0] = dl->diffuse_intensity[0]
+							/ 255 * (float) scaler;
+						dl->diffuse_intensity[1] = dl->diffuse_intensity[1]
+							/ 255 * (float) scaler;
+						dl->diffuse_intensity[2] = dl->diffuse_intensity[2]
+							/ 255 * (float) scaler;
+					}
+				} else {
+					// backwards compatibility with maps without
+					// _diffuse_light
 
 					dl->diffuse_intensity[0] = dl->intensity[0];
 					dl->diffuse_intensity[1] = dl->intensity[1];
 					dl->diffuse_intensity[2] = dl->intensity[2];
-        		}
+				}
 				// -----------------------------------------------------------------------------------
-				pLight = (const char*) ValueForKey(e, u8"_diffuse_light2");
-        		r = g = b = scaler = 0;
-        		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
-        		dl->diffuse_intensity2[0] = (float)r;
-        		if (argCnt == 1)
-        		{
-            		// The R,G,B values are all equal.
-            		dl->diffuse_intensity2[1] = dl->diffuse_intensity2[2] = (float)r;
-        		}
-        		else if (argCnt == 3 || argCnt == 4)
-        		{
-            		// Save the other two G,B values.
-            		dl->diffuse_intensity2[1] = (float)g;
-            		dl->diffuse_intensity2[2] = (float)b;
+				pLight = (char const *) ValueForKey(e, u8"_diffuse_light2");
+				r = g = b = scaler = 0;
+				argCnt = sscanf(
+					pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler
+				);
+				dl->diffuse_intensity2[0] = (float) r;
+				if (argCnt == 1) {
+					// The R,G,B values are all equal.
+					dl->diffuse_intensity2[1] = dl->diffuse_intensity2[2]
+						= (float) r;
+				} else if (argCnt == 3 || argCnt == 4) {
+					// Save the other two G,B values.
+					dl->diffuse_intensity2[1] = (float) g;
+					dl->diffuse_intensity2[2] = (float) b;
 
-            		// Did we also get an "intensity" scaler value too?
-      		    	if (argCnt == 4)
-     	       		{
-                		// Scale the normalized 0-255 R,G,B values by the intensity scaler
-                		dl->diffuse_intensity2[0] = dl->diffuse_intensity2[0] / 255 * (float)scaler;
-                		dl->diffuse_intensity2[1] = dl->diffuse_intensity2[1] / 255 * (float)scaler;
-                		dl->diffuse_intensity2[2] = dl->diffuse_intensity2[2] / 255 * (float)scaler;
-            		}
-        		}
-				else
-        		{
+					// Did we also get an "intensity" scaler value too?
+					if (argCnt == 4) {
+						// Scale the normalized 0-255 R,G,B values by the
+						// intensity scaler
+						dl->diffuse_intensity2[0]
+							= dl->diffuse_intensity2[0] / 255
+							* (float) scaler;
+						dl->diffuse_intensity2[1]
+							= dl->diffuse_intensity2[1] / 255
+							* (float) scaler;
+						dl->diffuse_intensity2[2]
+							= dl->diffuse_intensity2[2] / 255
+							* (float) scaler;
+					}
+				} else {
 					dl->diffuse_intensity2[0] = dl->diffuse_intensity[0];
 					dl->diffuse_intensity2[1] = dl->diffuse_intensity[1];
 					dl->diffuse_intensity2[2] = dl->diffuse_intensity[2];
-        		}
+				}
 
-                dl->type = emit_skylight;
-                dl->stopdot2 = float_for_key(*e, u8"_sky");     // hack stopdot2 to a sky key number
+				dl->type = emit_skylight;
+				dl->stopdot2 = float_for_key(
+					*e, u8"_sky"
+				); // hack stopdot2 to a sky key number
 				dl->sunspreadangle = float_for_key(*e, u8"_spread");
-				if (!g_allow_spread)
-				{
+				if (!g_allow_spread) {
 					dl->sunspreadangle = 0;
 				}
-				if (dl->sunspreadangle < 0.0 || dl->sunspreadangle > 180)
-				{
-					Error ("Invalid spread angle '%s'. Please use a number between 0 and 180.\n", (const char*) ValueForKey (e, u8"_spread"));
+				if (dl->sunspreadangle < 0.0 || dl->sunspreadangle > 180) {
+					Error(
+						"Invalid spread angle '%s'. Please use a number between 0 and 180.\n",
+						(char const *) ValueForKey(e, u8"_spread")
+					);
 				}
-				if (dl->sunspreadangle > 0.0)
-				{
+				if (dl->sunspreadangle > 0.0) {
 					int i;
 					float testangle = dl->sunspreadangle;
-					if (dl->sunspreadangle < SUNSPREAD_THRESHOLD)
-					{
-						testangle = SUNSPREAD_THRESHOLD; // We will later centralize all the normals we have collected.
+					if (dl->sunspreadangle < SUNSPREAD_THRESHOLD) {
+						testangle = SUNSPREAD_THRESHOLD; // We will later
+														 // centralize all
+														 // the normals we
+														 // have collected.
 					}
 					{
 						float totalweight = 0;
 						int count;
-						float testdot = cos (testangle * (std::numbers::pi_v<double> / 180.0));
-						for (count = 0, i = 0; i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++)
-						{
-							float3_array &testnormal = g_skynormals[SUNSPREAD_SKYLEVEL][i];
-							float dot = DotProduct (dl->normal, testnormal);
-							if (dot >= testdot - NORMAL_EPSILON)
-							{
-								totalweight += std::max((float) 0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i]; // This is not the right formula when dl->sunspreadangle < SUNSPREAD_THRESHOLD, but it gives almost the same result as the right one.
+						float testdot = cos(
+							testangle * (std::numbers::pi_v<double> / 180.0)
+						);
+						for (count = 0, i = 0;
+							 i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++) {
+							float3_array& testnormal
+								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
+							float dot = DotProduct(dl->normal, testnormal);
+							if (dot >= testdot - NORMAL_EPSILON) {
+								totalweight
+									+= std::max((float) 0, dot - testdot)
+									* g_skynormalsizes
+										[SUNSPREAD_SKYLEVEL]
+										[i]; // This is not the right
+											 // formula when
+											 // dl->sunspreadangle <
+											 // SUNSPREAD_THRESHOLD, but it
+											 // gives almost the same result
+											 // as the right one.
 								count++;
 							}
 						}
-						if (count <= 10 || totalweight <= NORMAL_EPSILON)
-						{
-							Error ("collect spread normals: internal error: can not collect enough normals.");
+						if (count <= 10 || totalweight <= NORMAL_EPSILON) {
+							Error(
+								"collect spread normals: internal error: can not collect enough normals."
+							);
 						}
 						dl->numsunnormals = count;
-						dl->sunnormals = (float3_array *)malloc (count * sizeof (float3_array));
-						dl->sunnormalweights = (float *)malloc (count * sizeof (float));
-						hlassume (dl->sunnormals != nullptr, assume_NoMemory);
-						hlassume (dl->sunnormalweights != nullptr, assume_NoMemory);
-						for (count = 0, i = 0; i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++)
-						{
-							float3_array &testnormal = g_skynormals[SUNSPREAD_SKYLEVEL][i];
-							float dot = DotProduct (dl->normal, testnormal);
-							if (dot >= testdot - NORMAL_EPSILON)
-							{
-								if (count >= dl->numsunnormals)
-								{
-									Error ("collect spread normals: internal error.");
+						dl->sunnormals = (float3_array*) malloc(
+							count * sizeof(float3_array)
+						);
+						dl->sunnormalweights
+							= (float*) malloc(count * sizeof(float));
+						hlassume(
+							dl->sunnormals != nullptr, assume_NoMemory
+						);
+						hlassume(
+							dl->sunnormalweights != nullptr, assume_NoMemory
+						);
+						for (count = 0, i = 0;
+							 i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++) {
+							float3_array& testnormal
+								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
+							float dot = DotProduct(dl->normal, testnormal);
+							if (dot >= testdot - NORMAL_EPSILON) {
+								if (count >= dl->numsunnormals) {
+									Error(
+										"collect spread normals: internal error."
+									);
 								}
-								VectorCopy (testnormal, dl->sunnormals[count]);
-								dl->sunnormalweights[count] = std::max((float) 0, dot - testdot) * g_skynormalsizes[SUNSPREAD_SKYLEVEL][i] / totalweight;
+								VectorCopy(
+									testnormal, dl->sunnormals[count]
+								);
+								dl->sunnormalweights[count]
+									= std::max((float) 0, dot - testdot)
+									* g_skynormalsizes[SUNSPREAD_SKYLEVEL]
+													  [i]
+									/ totalweight;
 								count++;
 							}
 						}
-						if (count != dl->numsunnormals)
-						{
-							Error ("collect spread normals: internal error.");
+						if (count != dl->numsunnormals) {
+							Error("collect spread normals: internal error."
+							);
 						}
 					}
-					if (dl->sunspreadangle < SUNSPREAD_THRESHOLD)
-					{
-						for (i = 0; i < dl->numsunnormals; i++)
-						{
+					if (dl->sunspreadangle < SUNSPREAD_THRESHOLD) {
+						for (i = 0; i < dl->numsunnormals; i++) {
 							float3_array tmp;
-							VectorScale (dl->sunnormals[i], 1 / DotProduct (dl->sunnormals[i], dl->normal), tmp);
+							VectorScale(
+								dl->sunnormals[i],
+								1
+									/ DotProduct(
+										dl->sunnormals[i], dl->normal
+									),
+								tmp
+							);
 							VectorSubtract(tmp, dl->normal, tmp);
-							VectorMA (dl->normal, dl->sunspreadangle / SUNSPREAD_THRESHOLD, tmp, dl->sunnormals[i]);
+							VectorMA(
+								dl->normal,
+								dl->sunspreadangle / SUNSPREAD_THRESHOLD,
+								tmp, dl->sunnormals[i]
+							);
 							normalize_vector(dl->sunnormals[i]);
 						}
 					}
-				}
-				else
-				{
+				} else {
 					dl->numsunnormals = 1;
-					dl->sunnormals = (float3_array *)malloc (sizeof (float3_array));
-					dl->sunnormalweights = (float *)malloc (sizeof (float));
-					hlassume (dl->sunnormals != nullptr, assume_NoMemory);
-					hlassume (dl->sunnormalweights != nullptr, assume_NoMemory);
-					VectorCopy (dl->normal, dl->sunnormals[0]);
+					dl->sunnormals
+						= (float3_array*) malloc(sizeof(float3_array));
+					dl->sunnormalweights = (float*) malloc(sizeof(float));
+					hlassume(dl->sunnormals != nullptr, assume_NoMemory);
+					hlassume(
+						dl->sunnormalweights != nullptr, assume_NoMemory
+					);
+					VectorCopy(dl->normal, dl->sunnormals[0]);
 					dl->sunnormalweights[0] = 1.0;
 				}
-            }
-        }
-        else
-        {
-            if (!VectorAvg(dl->intensity))
-			{
 			}
-            dl->type = emit_point;
-        }
+		} else {
+			if (!VectorAvg(dl->intensity)) {
+			}
+			dl->type = emit_point;
+		}
 
-        if (dl->type != emit_skylight)
-        {
-			//why? --vluzacn
-            l1 = std::max(dl->intensity[0], std::max(dl->intensity[1], dl->intensity[2]));
-            l1 = l1 * l1 / 10;
+		if (dl->type != emit_skylight) {
+			// why? --vluzacn
+			l1 = std::max(
+				dl->intensity[0],
+				std::max(dl->intensity[1], dl->intensity[2])
+			);
+			l1 = l1 * l1 / 10;
 
-            dl->intensity[0] *= l1;
-            dl->intensity[1] *= l1;
-            dl->intensity[2] *= l1;
-        }
-    }
+			dl->intensity[0] *= l1;
+			dl->intensity[1] *= l1;
+			dl->intensity[2] *= l1;
+		}
+	}
 
 	int countnormallights = 0, countfastlights = 0;
 	{
 		int l;
-		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++)
-		{
-			for (dl = directlights[l]; dl; dl = dl->next)
-			{
-				switch (dl->type)
-				{
-				case emit_surface:
-				case emit_point:
-				case emit_spotlight:
-					if (!vectors_almost_same(dl->intensity, float3_array{}))
-					{
-						if (dl->topatch)
-						{
-							countfastlights++;
-						}
-						else
-						{
-							countnormallights++;
-						}
-					}
-					break;
-				case emit_skylight:
-					if (!vectors_almost_same(dl->intensity, float3_array{}))
-					{
-						if (dl->topatch)
-						{
-							countfastlights++;
-							if (dl->sunspreadangle > 0.0)
-							{
-								countfastlights--;
-								countfastlights += dl->numsunnormals;
+		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
+			for (dl = directlights[l]; dl; dl = dl->next) {
+				switch (dl->type) {
+					case emit_surface:
+					case emit_point:
+					case emit_spotlight:
+						if (!vectors_almost_same(
+								dl->intensity, float3_array{}
+							)) {
+							if (dl->topatch) {
+								countfastlights++;
+							} else {
+								countnormallights++;
 							}
 						}
-						else
-						{
-							countnormallights++;
-							if (dl->sunspreadangle > 0.0)
-							{
-								countnormallights--;
-								countnormallights += dl->numsunnormals;
+						break;
+					case emit_skylight:
+						if (!vectors_almost_same(
+								dl->intensity, float3_array{}
+							)) {
+							if (dl->topatch) {
+								countfastlights++;
+								if (dl->sunspreadangle > 0.0) {
+									countfastlights--;
+									countfastlights += dl->numsunnormals;
+								}
+							} else {
+								countnormallights++;
+								if (dl->sunspreadangle > 0.0) {
+									countnormallights--;
+									countnormallights += dl->numsunnormals;
+								}
 							}
 						}
-					}
-					if (g_indirect_sun > 0 && !vectors_almost_same(dl->diffuse_intensity, float3_array{}))
-					{
-						if (g_softsky)
-						{
-							countfastlights += g_numskynormals[SKYLEVEL_SOFTSKYON];
+						if (g_indirect_sun > 0
+							&& !vectors_almost_same(
+								dl->diffuse_intensity, float3_array{}
+							)) {
+							if (g_softsky) {
+								countfastlights
+									+= g_numskynormals[SKYLEVEL_SOFTSKYON];
+							} else {
+								countfastlights
+									+= g_numskynormals[SKYLEVEL_SOFTSKYOFF];
+							}
 						}
-						else
-						{
-							countfastlights += g_numskynormals[SKYLEVEL_SOFTSKYOFF];
-						}
-					}
-					break;
-				default:
-					hlassume(false, assume_BadLightType);
-					break;
+						break;
+					default:
+						hlassume(false, assume_BadLightType);
+						break;
 				}
 			}
 		}
 	}
-    Log("%i direct lights and %i fast direct lights\n", countnormallights, countfastlights);
+	Log("%i direct lights and %i fast direct lights\n", countnormallights,
+		countfastlights);
 	Log("%i light styles\n", numstyles);
 	// move all emit_skylight to leaf 0 (the solid leaf)
-	if (g_sky_lighting_fix)
-	{
-		directlight_t *skylights = nullptr;
+	if (g_sky_lighting_fix) {
+		directlight_t* skylights = nullptr;
 		int l;
-		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++)
-		{
-			directlight_t **pdl;
-			for (dl = directlights[l], pdl = &directlights[l]; dl; dl = *pdl)
-			{
-				if (dl->type == emit_skylight)
-				{
+		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
+			directlight_t** pdl;
+			for (dl = directlights[l], pdl = &directlights[l]; dl;
+				 dl = *pdl) {
+				if (dl->type == emit_skylight) {
 					*pdl = dl->next;
 					dl->next = skylights;
 					skylights = dl;
-				}
-				else
-				{
+				} else {
 					pdl = &dl->next;
 				}
 			}
 		}
-        while ((dl = directlights[0]) != nullptr)
-        {
+		while ((dl = directlights[0]) != nullptr) {
 			// since they are in leaf 0, they won't emit a light anyway
-            directlights[0] = dl->next;
-            free(dl);
-        }
+			directlights[0] = dl->next;
+			free(dl);
+		}
 		directlights[0] = skylights;
 	}
-	if (g_sky_lighting_fix)
-	{
+	if (g_sky_lighting_fix) {
 		int countlightenvironment = 0;
 		int countinfosunlight = 0;
-		for (int i = 0; i < g_numentities; i++)
-		{
-			entity_t *e = &g_entities[i];
-			const char *classname = (const char*) ValueForKey (e, u8"classname");
-			if (!strcmp (classname, "light_environment"))
-			{
+		for (int i = 0; i < g_numentities; i++) {
+			entity_t* e = &g_entities[i];
+			char const * classname
+				= (char const *) ValueForKey(e, u8"classname");
+			if (!strcmp(classname, "light_environment")) {
 				countlightenvironment++;
 			}
-			if (!strcmp (classname, "info_sunlight"))
-			{
+			if (!strcmp(classname, "info_sunlight")) {
 				countinfosunlight++;
 			}
 		}
-		if (countlightenvironment > 1 && countinfosunlight == 0)
-		{
-			// because the map is lit by more than one light_environments, but the game can only recognize one of them when setting sv_skycolor and sv_skyvec.
-			Warning ("More than one light_environments are in use. Add entity info_sunlight to clarify the sunlight's brightness for in-game model(.mdl) rendering.");
+		if (countlightenvironment > 1 && countinfosunlight == 0) {
+			// because the map is lit by more than one light_environments,
+			// but the game can only recognize one of them when setting
+			// sv_skycolor and sv_skyvec.
+			Warning(
+				"More than one light_environments are in use. Add entity info_sunlight to clarify the sunlight's brightness for in-game model(.mdl) rendering."
+			);
 		}
 	}
 }
@@ -2225,24 +2374,22 @@ void            CreateDirectLights()
 // =====================================================================================
 //  DeleteDirectLights
 // =====================================================================================
-void            DeleteDirectLights()
-{
-    int             l;
-    directlight_t*  dl;
+void DeleteDirectLights() {
+	int l;
+	directlight_t* dl;
 
-	for (l = 0; l < 1 + g_dmodels[0].visleafs; l++)
-    {
-        dl = directlights[l];
-        while (dl)
-        {
-            directlights[l] = dl->next;
-            free(dl);
-            dl = directlights[l];
-        }
-    }
+	for (l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
+		dl = directlights[l];
+		while (dl) {
+			directlights[l] = dl->next;
+			free(dl);
+			dl = directlights[l];
+		}
+	}
 
-    // AJM: todo: strip light entities out at this point
-	// vluzacn: hlvis and hlrad must not modify entity data, because the following procedures are supposed to produce the same bsp file:
+	// AJM: todo: strip light entities out at this point
+	// vluzacn: hlvis and hlrad must not modify entity data, because the
+	// following procedures are supposed to produce the same bsp file:
 	//  1> hlcsg -> hlbsp -> hlvis -> hlrad  (a normal compile)
 	//  2) hlcsg -> hlbsp -> hlvis -> hlrad -> hlcsg -onlyents
 	//  3) hlcsg -> hlbsp -> hlvis -> hlrad -> hlcsg -onlyents -> hlrad
@@ -2251,48 +2398,57 @@ void            DeleteDirectLights()
 // =====================================================================================
 //  GatherSampleLight
 // =====================================================================================
-int		g_numskynormals[SKYLEVELMAX+1];
-float3_array	*g_skynormals[SKYLEVELMAX+1];
-float	*g_skynormalsizes[SKYLEVELMAX+1];
+int g_numskynormals[SKYLEVELMAX + 1];
+float3_array* g_skynormals[SKYLEVELMAX + 1];
+float* g_skynormalsizes[SKYLEVELMAX + 1];
 typedef double point_t[3];
-typedef struct {int point[2]; bool divided; int child[2];} edge_t;
-typedef struct {int edge[3]; int dir[3];} triangle_t;
-void CopyToSkynormals (int skylevel, int numpoints, point_t *points, int numedges, edge_t *edges, int numtriangles, triangle_t *triangles)
-{
-	hlassume (numpoints == (1 << (2 * skylevel)) + 2, assume_first);
-	hlassume (numedges == (1 << (2 * skylevel)) * 4 - 4 , assume_first);
-	hlassume (numtriangles == (1 << (2 * skylevel)) * 2, assume_first);
+
+typedef struct {
+	int point[2];
+	bool divided;
+	int child[2];
+} edge_t;
+
+typedef struct {
+	int edge[3];
+	int dir[3];
+} triangle_t;
+
+void CopyToSkynormals(
+	int skylevel, int numpoints, point_t* points, int numedges,
+	edge_t* edges, int numtriangles, triangle_t* triangles
+) {
+	hlassume(numpoints == (1 << (2 * skylevel)) + 2, assume_first);
+	hlassume(numedges == (1 << (2 * skylevel)) * 4 - 4, assume_first);
+	hlassume(numtriangles == (1 << (2 * skylevel)) * 2, assume_first);
 	g_numskynormals[skylevel] = numpoints;
-	g_skynormals[skylevel] = (float3_array *)malloc (numpoints * sizeof (float3_array));
-	g_skynormalsizes[skylevel] = (float *)malloc (numpoints * sizeof (float));
-	hlassume (g_skynormals[skylevel] != nullptr, assume_NoMemory);
-	hlassume (g_skynormalsizes[skylevel] != nullptr, assume_NoMemory);
+	g_skynormals[skylevel]
+		= (float3_array*) malloc(numpoints * sizeof(float3_array));
+	g_skynormalsizes[skylevel] = (float*) malloc(numpoints * sizeof(float));
+	hlassume(g_skynormals[skylevel] != nullptr, assume_NoMemory);
+	hlassume(g_skynormalsizes[skylevel] != nullptr, assume_NoMemory);
 	int j, k;
-	for (j = 0; j < numpoints; j++)
-	{
-		VectorCopy (points[j], g_skynormals[skylevel][j]);
+	for (j = 0; j < numpoints; j++) {
+		VectorCopy(points[j], g_skynormals[skylevel][j]);
 		g_skynormalsizes[skylevel][j] = 0;
 	}
 	double totalsize = 0;
-	for (j = 0; j < numtriangles; j++)
-	{
+	for (j = 0; j < numtriangles; j++) {
 		int pt[3];
-		for (k = 0; k < 3; k++)
-		{
+		for (k = 0; k < 3; k++) {
 			pt[k] = edges[triangles[j].edge[k]].point[triangles[j].dir[k]];
 		}
 		double currentsize;
 		double tmp[3];
-		CrossProduct (points[pt[0]], points[pt[1]], tmp);
-		currentsize = DotProduct (tmp, points[pt[2]]);
-		hlassume (currentsize > 0, assume_first);
+		CrossProduct(points[pt[0]], points[pt[1]], tmp);
+		currentsize = DotProduct(tmp, points[pt[2]]);
+		hlassume(currentsize > 0, assume_first);
 		g_skynormalsizes[skylevel][pt[0]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[1]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[2]] += currentsize / 3.0;
 		totalsize += currentsize;
 	}
-	for (j = 0; j < numpoints; j++)
-	{
+	for (j = 0; j < numpoints; j++) {
 		g_skynormalsizes[skylevel][j] /= totalsize;
 	}
 #if 0
@@ -2305,24 +2461,28 @@ void CopyToSkynormals (int skylevel, int numpoints, point_t *points, int numedge
 	}
 #endif
 }
-void BuildDiffuseNormals ()
-{
+
+void BuildDiffuseNormals() {
 	int i, j, k;
 	g_numskynormals[0] = 0;
-	g_skynormals[0] = nullptr; //don't use this
+	g_skynormals[0] = nullptr; // don't use this
 	g_skynormalsizes[0] = nullptr;
 	int numpoints = 6;
-	point_t *points = (point_t *)malloc (((1 << (2 * SKYLEVELMAX)) + 2) * sizeof (point_t));
-	hlassume (points != nullptr, assume_NoMemory);
+	point_t* points = (point_t*) malloc(
+		((1 << (2 * SKYLEVELMAX)) + 2) * sizeof(point_t)
+	);
+	hlassume(points != nullptr, assume_NoMemory);
 	points[0][0] = 1, points[0][1] = 0, points[0][2] = 0;
-	points[1][0] = -1,points[1][1] = 0, points[1][2] = 0;
+	points[1][0] = -1, points[1][1] = 0, points[1][2] = 0;
 	points[2][0] = 0, points[2][1] = 1, points[2][2] = 0;
-	points[3][0] = 0, points[3][1] = -1,points[3][2] = 0;
+	points[3][0] = 0, points[3][1] = -1, points[3][2] = 0;
 	points[4][0] = 0, points[4][1] = 0, points[4][2] = 1;
 	points[5][0] = 0, points[5][1] = 0, points[5][2] = -1;
 	int numedges = 12;
-	edge_t *edges = (edge_t *)malloc (((1 << (2 * SKYLEVELMAX)) * 4 - 4) * sizeof (edge_t));
-	hlassume (edges != nullptr, assume_NoMemory);
+	edge_t* edges = (edge_t*) malloc(
+		((1 << (2 * SKYLEVELMAX)) * 4 - 4) * sizeof(edge_t)
+	);
+	hlassume(edges != nullptr, assume_NoMemory);
 	edges[0].point[0] = 0, edges[0].point[1] = 2, edges[0].divided = false;
 	edges[1].point[0] = 2, edges[1].point[1] = 1, edges[1].divided = false;
 	edges[2].point[0] = 1, edges[2].point[1] = 3, edges[2].divided = false;
@@ -2333,44 +2493,74 @@ void BuildDiffuseNormals ()
 	edges[7].point[0] = 5, edges[7].point[1] = 2, edges[7].divided = false;
 	edges[8].point[0] = 4, edges[8].point[1] = 0, edges[8].divided = false;
 	edges[9].point[0] = 0, edges[9].point[1] = 5, edges[9].divided = false;
-	edges[10].point[0] = 5, edges[10].point[1] = 1, edges[10].divided = false;
-	edges[11].point[0] = 1, edges[11].point[1] = 4, edges[11].divided = false;
+	edges[10].point[0] = 5, edges[10].point[1] = 1,
+	edges[10].divided = false;
+	edges[11].point[0] = 1, edges[11].point[1] = 4,
+	edges[11].divided = false;
 	int numtriangles = 8;
-	triangle_t *triangles = (triangle_t *)malloc (((1 << (2 * SKYLEVELMAX)) * 2) * sizeof (triangle_t));
-	hlassume (triangles != nullptr, assume_NoMemory);
-	triangles[0].edge[0] = 0, triangles[0].dir[0] = 0, triangles[0].edge[1] = 4, triangles[0].dir[1] = 0, triangles[0].edge[2] = 8, triangles[0].dir[2] = 0;
-	triangles[1].edge[0] = 1, triangles[1].dir[0] = 0, triangles[1].edge[1] = 11, triangles[1].dir[1] = 0, triangles[1].edge[2] = 4, triangles[1].dir[2] = 1;
-	triangles[2].edge[0] = 2, triangles[2].dir[0] = 0, triangles[2].edge[1] = 5, triangles[2].dir[1] = 1, triangles[2].edge[2] = 11, triangles[2].dir[2] = 1;
-	triangles[3].edge[0] = 3, triangles[3].dir[0] = 0, triangles[3].edge[1] = 8, triangles[3].dir[1] = 1, triangles[3].edge[2] = 5, triangles[3].dir[2] = 0;
-	triangles[4].edge[0] = 0, triangles[4].dir[0] = 1, triangles[4].edge[1] = 9, triangles[4].dir[1] = 0, triangles[4].edge[2] = 7, triangles[4].dir[2] = 0;
-	triangles[5].edge[0] = 1, triangles[5].dir[0] = 1, triangles[5].edge[1] = 7, triangles[5].dir[1] = 1, triangles[5].edge[2] = 10, triangles[5].dir[2] = 0;
-	triangles[6].edge[0] = 2, triangles[6].dir[0] = 1, triangles[6].edge[1] = 10, triangles[6].dir[1] = 1, triangles[6].edge[2] = 6, triangles[6].dir[2] = 1;
-	triangles[7].edge[0] = 3, triangles[7].dir[0] = 1, triangles[7].edge[1] = 6, triangles[7].dir[1] = 0, triangles[7].edge[2] = 9, triangles[7].dir[2] = 1;
-	CopyToSkynormals (1, numpoints, points, numedges, edges, numtriangles, triangles);
-	for (i = 1; i < SKYLEVELMAX; i++)
-	{
+	triangle_t* triangles = (triangle_t*) malloc(
+		((1 << (2 * SKYLEVELMAX)) * 2) * sizeof(triangle_t)
+	);
+	hlassume(triangles != nullptr, assume_NoMemory);
+	triangles[0].edge[0] = 0, triangles[0].dir[0] = 0,
+	triangles[0].edge[1] = 4, triangles[0].dir[1] = 0,
+	triangles[0].edge[2] = 8, triangles[0].dir[2] = 0;
+	triangles[1].edge[0] = 1, triangles[1].dir[0] = 0,
+	triangles[1].edge[1] = 11, triangles[1].dir[1] = 0,
+	triangles[1].edge[2] = 4, triangles[1].dir[2] = 1;
+	triangles[2].edge[0] = 2, triangles[2].dir[0] = 0,
+	triangles[2].edge[1] = 5, triangles[2].dir[1] = 1,
+	triangles[2].edge[2] = 11, triangles[2].dir[2] = 1;
+	triangles[3].edge[0] = 3, triangles[3].dir[0] = 0,
+	triangles[3].edge[1] = 8, triangles[3].dir[1] = 1,
+	triangles[3].edge[2] = 5, triangles[3].dir[2] = 0;
+	triangles[4].edge[0] = 0, triangles[4].dir[0] = 1,
+	triangles[4].edge[1] = 9, triangles[4].dir[1] = 0,
+	triangles[4].edge[2] = 7, triangles[4].dir[2] = 0;
+	triangles[5].edge[0] = 1, triangles[5].dir[0] = 1,
+	triangles[5].edge[1] = 7, triangles[5].dir[1] = 1,
+	triangles[5].edge[2] = 10, triangles[5].dir[2] = 0;
+	triangles[6].edge[0] = 2, triangles[6].dir[0] = 1,
+	triangles[6].edge[1] = 10, triangles[6].dir[1] = 1,
+	triangles[6].edge[2] = 6, triangles[6].dir[2] = 1;
+	triangles[7].edge[0] = 3, triangles[7].dir[0] = 1,
+	triangles[7].edge[1] = 6, triangles[7].dir[1] = 0,
+	triangles[7].edge[2] = 9, triangles[7].dir[2] = 1;
+	CopyToSkynormals(
+		1, numpoints, points, numedges, edges, numtriangles, triangles
+	);
+	for (i = 1; i < SKYLEVELMAX; i++) {
 		int oldnumedges = numedges;
-		for (j = 0; j < oldnumedges; j++)
-		{
-			if (!edges[j].divided)
-			{
-				hlassume (numpoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first);
+		for (j = 0; j < oldnumedges; j++) {
+			if (!edges[j].divided) {
+				hlassume(
+					numpoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first
+				);
 				point_t mid;
 				double len;
-				VectorAdd (points[edges[j].point[0]], points[edges[j].point[1]], mid);
-				len = sqrt (DotProduct (mid, mid));
-				hlassume (len > 0.2, assume_first);
-				VectorScale (mid, 1 / len, mid);
+				VectorAdd(
+					points[edges[j].point[0]], points[edges[j].point[1]],
+					mid
+				);
+				len = sqrt(DotProduct(mid, mid));
+				hlassume(len > 0.2, assume_first);
+				VectorScale(mid, 1 / len, mid);
 				int p2 = numpoints;
-				VectorCopy (mid, points[numpoints]);
+				VectorCopy(mid, points[numpoints]);
 				numpoints++;
-				hlassume (numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first);
+				hlassume(
+					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+					assume_first
+				);
 				edges[j].child[0] = numedges;
 				edges[numedges].divided = false;
 				edges[numedges].point[0] = edges[j].point[0];
 				edges[numedges].point[1] = p2;
 				numedges++;
-				hlassume (numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first);
+				hlassume(
+					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+					assume_first
+				);
 				edges[j].child[1] = numedges;
 				edges[numedges].divided = false;
 				edges[numedges].point[0] = p2;
@@ -2380,106 +2570,115 @@ void BuildDiffuseNormals ()
 			}
 		}
 		int oldnumtriangles = numtriangles;
-		for (j = 0; j < oldnumtriangles; j++)
-		{
+		for (j = 0; j < oldnumtriangles; j++) {
 			std::array<std::int32_t, 3> mid;
-			for (k = 0; k < 3; k++)
-			{
-				hlassume (numtriangles < (1 << (2 * SKYLEVELMAX)) * 2, assume_first);
-				mid[k] = edges[edges[triangles[j].edge[k]].child[0]].point[1];
-				triangles[numtriangles].edge[0] = edges[triangles[j].edge[k]].child[1 - triangles[j].dir[k]];
+			for (k = 0; k < 3; k++) {
+				hlassume(
+					numtriangles < (1 << (2 * SKYLEVELMAX)) * 2,
+					assume_first
+				);
+				mid[k]
+					= edges[edges[triangles[j].edge[k]].child[0]].point[1];
+				triangles[numtriangles].edge[0]
+					= edges[triangles[j].edge[k]]
+						  .child[1 - triangles[j].dir[k]];
 				triangles[numtriangles].dir[0] = triangles[j].dir[k];
-				triangles[numtriangles].edge[1] = edges[triangles[j].edge[(k+1)%3]].child[triangles[j].dir[(k+1)%3]];
-				triangles[numtriangles].dir[1] = triangles[j].dir[(k+1)%3];
+				triangles[numtriangles].edge[1]
+					= edges[triangles[j].edge[(k + 1) % 3]]
+						  .child[triangles[j].dir[(k + 1) % 3]];
+				triangles[numtriangles].dir[1]
+					= triangles[j].dir[(k + 1) % 3];
 				triangles[numtriangles].edge[2] = numedges + k;
 				triangles[numtriangles].dir[2] = 1;
 				numtriangles++;
 			}
-			for (k = 0; k < 3; k++)
-			{
-				hlassume (numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first);
+			for (k = 0; k < 3; k++) {
+				hlassume(
+					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+					assume_first
+				);
 				triangles[j].edge[k] = numedges;
 				triangles[j].dir[k] = 0;
 				edges[numedges].divided = false;
 				edges[numedges].point[0] = mid[k];
-				edges[numedges].point[1] = mid[(k+1)%3];
+				edges[numedges].point[1] = mid[(k + 1) % 3];
 				numedges++;
 			}
 		}
-		CopyToSkynormals (i + 1, numpoints, points, numedges, edges, numtriangles, triangles);
+		CopyToSkynormals(
+			i + 1, numpoints, points, numedges, edges, numtriangles,
+			triangles
+		);
 	}
-	free (points);
-	free (edges);
-	free (triangles);
+	free(points);
+	free(edges);
+	free(triangles);
 }
-static void     GatherSampleLight(const float3_array& pos, const byte* const pvs, const float3_array& normal, std::array<float3_array, ALLSTYLES>& sample
-								  , std::array<unsigned char, ALLSTYLES>& styles
-								  , int step
-								  , int miptex
-								  , int texlightgap_surfacenum
-								  )
-{
-    int             i;
-    directlight_t*  l;
-    float3_array          delta;
-    float           dot, dot2;
-    float           dist;
-    float           ratio;
+
+static void GatherSampleLight(
+	float3_array const & pos, byte const * const pvs,
+	float3_array const & normal,
+	std::array<float3_array, ALLSTYLES>& sample,
+	std::array<unsigned char, ALLSTYLES>& styles, int step, int miptex,
+	int texlightgap_surfacenum
+) {
+	int i;
+	directlight_t* l;
+	float3_array delta;
+	float dot, dot2;
+	float dist;
+	float ratio;
 #ifdef HLRAD_OPACITY // AJM
-    float           l_opacity;
+	float l_opacity;
 #endif
-    int             style_index;
-	int				step_match;
-	bool			sky_used = false;
-	float3_array			testline_origin;
+	int style_index;
+	int step_match;
+	bool sky_used = false;
+	float3_array testline_origin;
 	std::array<float3_array, ALLSTYLES> adds{};
-	int				style;
-	bool			lighting_diversify;
-	float			lighting_power;
-	float			lighting_scale;
+	int style;
+	bool lighting_diversify;
+	float lighting_power;
+	float lighting_scale;
 	lighting_power = g_lightingconeinfo[miptex].power;
 	lighting_scale = g_lightingconeinfo[miptex].scale;
 	lighting_diversify = (lighting_power != 1.0 || lighting_scale != 1.0);
-	float3_array			texlightgap_textoworld[2];
+	float3_array texlightgap_textoworld[2];
 	// calculates textoworld
 	{
-		dface_t *f = &g_dfaces[texlightgap_surfacenum];
-		const dplane_t *dp = getPlaneFromFace (f);
-		texinfo_t *tex = &g_texinfo[f->texinfo];
+		dface_t* f = &g_dfaces[texlightgap_surfacenum];
+		dplane_t const * dp = getPlaneFromFace(f);
+		texinfo_t* tex = &g_texinfo[f->texinfo];
 		int x;
 		float len;
 
-		for (x = 0; x < 2; x++)
-		{
-			CrossProduct (tex->vecs[1 - x], dp->normal, texlightgap_textoworld[x]);
-			len = DotProduct (texlightgap_textoworld[x], tex->vecs[x]);
-			if (fabs (len) < NORMAL_EPSILON)
-			{
-				VectorClear (texlightgap_textoworld[x]);
-			}
-			else
-			{
-				VectorScale (texlightgap_textoworld[x], 1 / len, texlightgap_textoworld[x]);
+		for (x = 0; x < 2; x++) {
+			CrossProduct(
+				tex->vecs[1 - x], dp->normal, texlightgap_textoworld[x]
+			);
+			len = DotProduct(texlightgap_textoworld[x], tex->vecs[x]);
+			if (fabs(len) < NORMAL_EPSILON) {
+				VectorClear(texlightgap_textoworld[x]);
+			} else {
+				VectorScale(
+					texlightgap_textoworld[x], 1 / len,
+					texlightgap_textoworld[x]
+				);
 			}
 		}
 	}
 
-    for (i = 0; i < 1 + g_dmodels[0].visleafs; i++)
-    {
-        l = directlights[i];
-        if (l)
-		{
-            if (i == 0? g_sky_lighting_fix: pvs[(i - 1) >> 3] & (1 << ((i - 1) & 7)))
-            {
-                for (; l; l = l->next)
-                {
-                    // skylights work fundamentally differently than normal lights
-                    if (l->type == emit_skylight)
-                    {
-						if (!g_sky_lighting_fix)
-						{
-							if (sky_used)
-							{
+	for (i = 0; i < 1 + g_dmodels[0].visleafs; i++) {
+		l = directlights[i];
+		if (l) {
+			if (i == 0 ? g_sky_lighting_fix
+					   : pvs[(i - 1) >> 3] & (1 << ((i - 1) & 7))) {
+				for (; l; l = l->next) {
+					// skylights work fundamentally differently than normal
+					// lights
+					if (l->type == emit_skylight) {
+						if (!g_sky_lighting_fix) {
+							if (sky_used) {
 								continue;
 							}
 							sky_used = true;
@@ -2487,303 +2686,406 @@ static void     GatherSampleLight(const float3_array& pos, const byte* const pvs
 						do // add sun light
 						{
 							// check step
-							step_match = (int)l->topatch;
-							if (step != step_match)
+							step_match = (int) l->topatch;
+							if (step != step_match) {
 								continue;
+							}
 							// check intensity
-							if (!(l->intensity[0] || l->intensity[1] || l->intensity[2]))
-								continue;
-						  // loop over the normals
-						  for (int j = 0; j < l->numsunnormals; j++)
-						  {
-							// make sure the angle is okay
-							dot = -DotProduct (normal, l->sunnormals[j]);
-							if (dot <= NORMAL_EPSILON) //ON_EPSILON / 10 //--vluzacn
-							{
+							if (!(l->intensity[0] || l->intensity[1]
+								  || l->intensity[2])) {
 								continue;
 							}
-
-							// search back to see if we can hit a sky brush
-							VectorScale (l->sunnormals[j], -hlrad_bogus_range, delta);
-							VectorAdd(pos, delta, delta);
-							float3_array skyhit;
-							VectorCopy (delta, skyhit);
-							if (TestLine(pos, delta
-								, skyhit
-								) != CONTENTS_SKY)
-							{
-								continue;                      // occluded
-							}
-
-							float3_array transparency;
-							int opaquestyle;
-							if (TestSegmentAgainstOpaqueList(pos, 
-								skyhit
-								, transparency
-								, opaquestyle
-								))
-							{
-								continue;
-							}
-
-							float3_array add_one;
-							if (lighting_diversify)
-							{
-								dot = lighting_scale * pow (dot, lighting_power);
-							}
-							VectorScale (l->intensity, dot * l->sunnormalweights[j], add_one);
-							VectorMultiply(add_one, transparency, add_one);
-							// add to the total brightness of this sample
-							style = l->style;
-							if (opaquestyle != -1)
-							{
-								if (style == 0 || style == opaquestyle)
-									style = opaquestyle;
-								else
-									continue; // dynamic light of other styles hits this toggleable opaque entity, then it completely vanishes.
-							}
-							VectorAdd (adds[style], add_one, adds[style]);
-						  } // (loop over the normals)
-						}
-						while (0);
-						do // add sky light
-						{
-							// check step
-							step_match = 0;
-							if (g_softsky)
-								step_match = 1;
-							if (g_fastmode)
-								step_match = 1;
-							if (step != step_match)
-								continue;
-							// check intensity
-							if (g_indirect_sun <= 0.0 ||
-								vectors_almost_same (
-									l->diffuse_intensity,
-									float3_array{})
-								&& vectors_almost_same (l->diffuse_intensity2, float3_array{})
-								)
-								continue;
-
-							float3_array sky_intensity;
-
 							// loop over the normals
-							float3_array *skynormals = g_skynormals[g_softsky?SKYLEVEL_SOFTSKYON:SKYLEVEL_SOFTSKYOFF];
-							float *skyweights = g_skynormalsizes[g_softsky?SKYLEVEL_SOFTSKYON:SKYLEVEL_SOFTSKYOFF];
-							for (int j = 0; j < g_numskynormals[g_softsky?SKYLEVEL_SOFTSKYON:SKYLEVEL_SOFTSKYOFF]; j++)
-							{
+							for (int j = 0; j < l->numsunnormals; j++) {
 								// make sure the angle is okay
-								dot = -DotProduct (normal, skynormals[j]);
-								if (dot <= NORMAL_EPSILON) //ON_EPSILON / 10 //--vluzacn
+								dot = -DotProduct(normal, l->sunnormals[j]);
+								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
+														   // 10 //--vluzacn
 								{
 									continue;
 								}
 
-								// search back to see if we can hit a sky brush
-								VectorScale (skynormals[j], -hlrad_bogus_range, delta);
+								// search back to see if we can hit a sky
+								// brush
+								VectorScale(
+									l->sunnormals[j], -hlrad_bogus_range,
+									delta
+								);
 								VectorAdd(pos, delta, delta);
 								float3_array skyhit;
-								VectorCopy (delta, skyhit);
-								if (TestLine(pos, delta
-									, skyhit
-									) != CONTENTS_SKY)
-								{
-									continue;                                  // occluded
+								VectorCopy(delta, skyhit);
+								if (TestLine(pos, delta, skyhit)
+									!= CONTENTS_SKY) {
+									continue; // occluded
 								}
 
 								float3_array transparency;
 								int opaquestyle;
-								if (TestSegmentAgainstOpaqueList(pos, 
-									skyhit
-									, transparency
-									, opaquestyle
-									))
+								if (TestSegmentAgainstOpaqueList(
+										pos, skyhit, transparency,
+										opaquestyle
+									)) {
+									continue;
+								}
+
+								float3_array add_one;
+								if (lighting_diversify) {
+									dot = lighting_scale
+										* pow(dot, lighting_power);
+								}
+								VectorScale(
+									l->intensity,
+									dot * l->sunnormalweights[j], add_one
+								);
+								VectorMultiply(
+									add_one, transparency, add_one
+								);
+								// add to the total brightness of this
+								// sample
+								style = l->style;
+								if (opaquestyle != -1) {
+									if (style == 0
+										|| style == opaquestyle) {
+										style = opaquestyle;
+									} else {
+										continue; // dynamic light of other
+												  // styles hits this
+												  // toggleable opaque
+												  // entity, then it
+												  // completely vanishes.
+									}
+								}
+								VectorAdd(
+									adds[style], add_one, adds[style]
+								);
+							} // (loop over the normals)
+						} while (0);
+						do // add sky light
+						{
+							// check step
+							step_match = 0;
+							if (g_softsky) {
+								step_match = 1;
+							}
+							if (g_fastmode) {
+								step_match = 1;
+							}
+							if (step != step_match) {
+								continue;
+							}
+							// check intensity
+							if (g_indirect_sun <= 0.0
+								|| vectors_almost_same(
+									   l->diffuse_intensity, float3_array{}
+								   )
+									&& vectors_almost_same(
+										l->diffuse_intensity2,
+										float3_array{}
+									)) {
+								continue;
+							}
+
+							float3_array sky_intensity;
+
+							// loop over the normals
+							float3_array* skynormals = g_skynormals
+								[g_softsky ? SKYLEVEL_SOFTSKYON
+										   : SKYLEVEL_SOFTSKYOFF];
+							float* skyweights = g_skynormalsizes
+								[g_softsky ? SKYLEVEL_SOFTSKYON
+										   : SKYLEVEL_SOFTSKYOFF];
+							for (int j = 0;
+								 j < g_numskynormals
+									 [g_softsky ? SKYLEVEL_SOFTSKYON
+												: SKYLEVEL_SOFTSKYOFF];
+								 j++) {
+								// make sure the angle is okay
+								dot = -DotProduct(normal, skynormals[j]);
+								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
+														   // 10 //--vluzacn
 								{
 									continue;
 								}
 
-								float factor = std::min(std::max ((float) 0.0, (1 - DotProduct (l->normal, skynormals[j])) / 2), (float) 1.0); // how far this piece of sky has deviated from the sun
-								VectorScale (l->diffuse_intensity, 1 - factor, sky_intensity);
-								VectorMA (sky_intensity, factor, l->diffuse_intensity2, sky_intensity);
-								VectorScale (sky_intensity, skyweights[j] * g_indirect_sun / 2, sky_intensity);
+								// search back to see if we can hit a sky
+								// brush
+								VectorScale(
+									skynormals[j], -hlrad_bogus_range, delta
+								);
+								VectorAdd(pos, delta, delta);
+								float3_array skyhit;
+								VectorCopy(delta, skyhit);
+								if (TestLine(pos, delta, skyhit)
+									!= CONTENTS_SKY) {
+									continue; // occluded
+								}
+
+								float3_array transparency;
+								int opaquestyle;
+								if (TestSegmentAgainstOpaqueList(
+										pos, skyhit, transparency,
+										opaquestyle
+									)) {
+									continue;
+								}
+
+								float factor = std::min(
+									std::max(
+										(float) 0.0,
+										(1
+										 - DotProduct(
+											 l->normal, skynormals[j]
+										 )) / 2
+									),
+									(float) 1.0
+								); // how far this piece of sky has deviated
+								   // from the sun
+								VectorScale(
+									l->diffuse_intensity, 1 - factor,
+									sky_intensity
+								);
+								VectorMA(
+									sky_intensity, factor,
+									l->diffuse_intensity2, sky_intensity
+								);
+								VectorScale(
+									sky_intensity,
+									skyweights[j] * g_indirect_sun / 2,
+									sky_intensity
+								);
 								float3_array add_one;
-								if (lighting_diversify)
-								{
-									dot = lighting_scale * pow (dot, lighting_power);
+								if (lighting_diversify) {
+									dot = lighting_scale
+										* pow(dot, lighting_power);
 								}
 								VectorScale(sky_intensity, dot, add_one);
-								VectorMultiply(add_one, transparency, add_one);
-								// add to the total brightness of this sample
+								VectorMultiply(
+									add_one, transparency, add_one
+								);
+								// add to the total brightness of this
+								// sample
 								style = l->style;
-								if (opaquestyle != -1)
-								{
-									if (style == 0 || style == opaquestyle)
+								if (opaquestyle != -1) {
+									if (style == 0
+										|| style == opaquestyle) {
 										style = opaquestyle;
-									else
-										continue; // dynamic light of other styles hits this toggleable opaque entity, then it completely vanishes.
+									} else {
+										continue; // dynamic light of other
+												  // styles hits this
+												  // toggleable opaque
+												  // entity, then it
+												  // completely vanishes.
+									}
 								}
-								VectorAdd (adds[style], add_one, adds[style]);
+								VectorAdd(
+									adds[style], add_one, adds[style]
+								);
 							} // (loop over the normals)
 
+						} while (0);
+
+					} else // not emit_skylight
+					{
+						step_match = (int) l->topatch;
+						if (step != step_match) {
+							continue;
 						}
-						while (0);
-
-                    }
-                    else // not emit_skylight
-                    {
-						step_match = (int)l->topatch;
-						if (step != step_match)
+						if (!(l->intensity[0] || l->intensity[1]
+							  || l->intensity[2])) {
 							continue;
-						if (!(l->intensity[0] || l->intensity[1] || l->intensity[2]))
-							continue;
-						VectorCopy (l->origin, testline_origin);
-                        float           denominator;
+						}
+						VectorCopy(l->origin, testline_origin);
+						float denominator;
 
-                        VectorSubtract(l->origin, pos, delta);
-						if (l->type == emit_surface)
-						{
+						VectorSubtract(l->origin, pos, delta);
+						if (l->type == emit_surface) {
 							// move emitter back to its plane
-							VectorMA (delta, -PATCH_HUNT_OFFSET, l->normal, delta);
+							VectorMA(
+								delta, -PATCH_HUNT_OFFSET, l->normal, delta
+							);
 						}
-                        dist = normalize_vector(delta);
-                        dot = DotProduct(delta, normal);
-                        //                        if (dot <= 0.0)
-                        //                            continue;
+						dist = normalize_vector(delta);
+						dot = DotProduct(delta, normal);
+						//                        if (dot <= 0.0)
+						//                            continue;
 
-                        if (dist < 1.0)
-                        {
-                            dist = 1.0;
-                        }
+						if (dist < 1.0) {
+							dist = 1.0;
+						}
 
 						denominator = dist * dist * l->fade;
 
 						float3_array add{};
-                        switch (l->type)
-                        {
-							case emit_point:
-							{
-								if (dot <= NORMAL_EPSILON)
-								{
+						switch (l->type) {
+							case emit_point: {
+								if (dot <= NORMAL_EPSILON) {
 									continue;
 								}
 								float denominator = dist * dist * l->fade;
-								if (lighting_diversify)
-								{
-									dot = lighting_scale * pow (dot, lighting_power);
+								if (lighting_diversify) {
+									dot = lighting_scale
+										* pow(dot, lighting_power);
 								}
 								ratio = dot / denominator;
 								VectorScale(l->intensity, ratio, add);
 								break;
 							}
 
-							case emit_surface:
-							{
+							case emit_surface: {
 								bool light_behind_surface = false;
-								if (dot <= NORMAL_EPSILON)
-								{
+								if (dot <= NORMAL_EPSILON) {
 									light_behind_surface = true;
 								}
 								if (lighting_diversify
-									&& !light_behind_surface
-									)
-								{
-									dot = lighting_scale * pow (dot, lighting_power);
+									&& !light_behind_surface) {
+									dot = lighting_scale
+										* pow(dot, lighting_power);
 								}
 								dot2 = -DotProduct(delta, l->normal);
-								// discard the texlight if the spot is too close to the texlight plane
-								if (l->texlightgap > 0)
-								{
+								// discard the texlight if the spot is too
+								// close to the texlight plane
+								if (l->texlightgap > 0) {
 									float test;
 
-									test = dot2 * dist; // distance from spot to texlight plane;
-									test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[0])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along s axis
-									test -= l->texlightgap * fabs (DotProduct (l->normal, texlightgap_textoworld[1])); // maximum distance reduction if the spot is allowed to shift l->texlightgap pixels along t axis
-									if (test < -ON_EPSILON)
-									{
+									test
+										= dot2 * dist; // distance from spot
+													   // to texlight plane;
+									test -= l->texlightgap
+										* fabs(DotProduct(
+											l->normal,
+											texlightgap_textoworld[0]
+										)); // maximum distance reduction if
+											// the spot is allowed to shift
+											// l->texlightgap pixels along s
+											// axis
+									test -= l->texlightgap
+										* fabs(DotProduct(
+											l->normal,
+											texlightgap_textoworld[1]
+										)); // maximum distance reduction if
+											// the spot is allowed to shift
+											// l->texlightgap pixels along t
+											// axis
+									if (test < -ON_EPSILON) {
 										continue;
 									}
 								}
-								if (dot2 * dist <= MINIMUM_PATCH_DISTANCE)
-								{
+								if (dot2 * dist <= MINIMUM_PATCH_DISTANCE) {
 									continue;
 								}
 								float range = l->patch_emitter_range;
-								if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
+								if (l->stopdot > 0.0) // stopdot2 > 0.0 or
+													  // stopdot > 0.0
 								{
 									float range_scale;
-									range_scale = 1 - l->stopdot2 * l->stopdot2;
-									range_scale = 1 / sqrt (std::max ((float) NORMAL_EPSILON, range_scale));
+									range_scale
+										= 1 - l->stopdot2 * l->stopdot2;
+									range_scale = 1
+										/ sqrt(std::max(
+											(float) NORMAL_EPSILON,
+											range_scale
+										));
 									// range_scale = 1 / sin (cone2)
-									range_scale = std::min(range_scale, (float) 2); // restrict this to 2, because skylevel has limit.
-									range *= range_scale; // because smaller cones are more likely to create the ugly grid effect.
+									range_scale = std::min(
+										range_scale, (float) 2
+									); // restrict this to 2, because
+									   // skylevel has limit.
+									range *= range_scale; // because smaller
+														  // cones are more
+														  // likely to
+														  // create the ugly
+														  // grid effect.
 
-									if (dot2 <= l->stopdot2 + NORMAL_EPSILON)
-									{
-										if (dist >= range) // use the old method, which will merely give 0 in this case
+									if (dot2
+										<= l->stopdot2 + NORMAL_EPSILON) {
+										if (dist
+											>= range) // use the old method,
+													  // which will merely
+													  // give 0 in this case
 										{
 											continue;
 										}
 										ratio = 0.0;
-									}
-									else if (dot2 <= l->stopdot)
-									{
-										ratio = dot * dot2 * (dot2 - l->stopdot2) / (dist * dist * (l->stopdot - l->stopdot2));
-									}
-									else
-									{
+									} else if (dot2 <= l->stopdot) {
+										ratio = dot * dot2
+											* (dot2 - l->stopdot2)
+											/ (dist * dist
+											   * (l->stopdot - l->stopdot2)
+											);
+									} else {
 										ratio = dot * dot2 / (dist * dist);
 									}
-								}
-								else
-								{
+								} else {
 									ratio = dot * dot2 / (dist * dist);
 								}
-								
+
 								// analogous to the one in MakeScales
-								// 0.4f is tested to be able to fully eliminate bright spots
-								if (ratio * l->patch_area > 0.4f)
-								{
+								// 0.4f is tested to be able to fully
+								// eliminate bright spots
+								if (ratio * l->patch_area > 0.4f) {
 									ratio = 0.4f / l->patch_area;
 								}
-								if (dist < range - ON_EPSILON)
-								{ // do things slow
-									if (light_behind_surface)
-									{
+								if (dist < range
+										- ON_EPSILON) { // do things slow
+									if (light_behind_surface) {
 										dot = 0.0;
 										ratio = 0.0;
 									}
-									GetAlternateOrigin (pos, normal, l->patch, testline_origin);
+									GetAlternateOrigin(
+										pos, normal, l->patch,
+										testline_origin
+									);
 									float sightarea;
-									int skylevel = l->patch->emitter_skylevel;
-									if (l->stopdot > 0.0) // stopdot2 > 0.0 or stopdot > 0.0
+									int skylevel
+										= l->patch->emitter_skylevel;
+									if (l->stopdot
+										> 0.0) // stopdot2 > 0.0 or stopdot
+											   // > 0.0
 									{
-										const float3_array& emitnormal = getPlaneFromFaceNumber (l->patch->faceNumber)->normal;
-										if (l->stopdot2 >= 0.8) // about 37deg
+										float3_array const & emitnormal
+											= getPlaneFromFaceNumber(
+												  l->patch->faceNumber
+											)
+												  ->normal;
+										if (l->stopdot2
+											>= 0.8) // about 37deg
 										{
-											skylevel += 1; // because the range is larger
+											skylevel
+												+= 1; // because the range
+													  // is larger
 										}
-										sightarea = CalcSightArea_SpotLight (pos, normal, l->patch->winding, emitnormal, l->stopdot, l->stopdot2, skylevel
-											, lighting_power, lighting_scale
-											); // because we have doubled the range
-									}
-									else
-									{
-										sightarea = CalcSightArea (pos, normal, l->patch->winding, skylevel
-											, lighting_power, lighting_scale
-											);
+										sightarea = CalcSightArea_SpotLight(
+											pos, normal, l->patch->winding,
+											emitnormal, l->stopdot,
+											l->stopdot2, skylevel,
+											lighting_power, lighting_scale
+										); // because we have doubled the
+										   // range
+									} else {
+										sightarea = CalcSightArea(
+											pos, normal, l->patch->winding,
+											skylevel, lighting_power,
+											lighting_scale
+										);
 									}
 
 									float frac = dist / range;
-									frac = (frac - 0.5) * 2; // make a smooth transition between the two methods
-									frac = std::max((float) 0, std::min(frac, (float) 1));
+									frac = (frac - 0.5)
+										* 2; // make a smooth transition
+											 // between the two methods
+									frac = std::max(
+										(float) 0, std::min(frac, (float) 1)
+									);
 
-									float ratio2 = (sightarea / l->patch_area); // because l->patch->area has been multiplied into l->intensity
-									ratio = frac * ratio + (1 - frac) * ratio2;
-								}
-								else
-								{
-									if (light_behind_surface)
-									{
+									float ratio2
+										= (sightarea / l->patch_area
+										); // because l->patch->area has
+										   // been multiplied into
+										   // l->intensity
+									ratio = frac * ratio
+										+ (1 - frac) * ratio2;
+								} else {
+									if (light_behind_surface) {
 										continue;
 									}
 								}
@@ -2791,117 +3093,112 @@ static void     GatherSampleLight(const float3_array& pos, const byte* const pvs
 								break;
 							}
 
-							case emit_spotlight:
-							{
-								if (dot <= NORMAL_EPSILON)
-								{
+							case emit_spotlight: {
+								if (dot <= NORMAL_EPSILON) {
 									continue;
 								}
 								dot2 = -DotProduct(delta, l->normal);
-								if (dot2 <= l->stopdot2)
-								{
-									continue;                  // outside light cone
+								if (dot2 <= l->stopdot2) {
+									continue; // outside light cone
 								}
 
-								// Variable power falloff (1 = inverse linear, 2 = inverse square
-								float           denominator = dist * l->fade;
-								{
-									denominator *= dist;
-								}
-								if (lighting_diversify)
-								{
-									dot = lighting_scale * pow (dot, lighting_power);
+								// Variable power falloff (1 = inverse
+								// linear, 2 = inverse square
+								float denominator = dist * l->fade;
+								{ denominator *= dist; }
+								if (lighting_diversify) {
+									dot = lighting_scale
+										* pow(dot, lighting_power);
 								}
 								ratio = dot * dot2 / denominator;
 
-								if (dot2 <= l->stopdot)
-								{
-									ratio *= (dot2 - l->stopdot2) / (l->stopdot - l->stopdot2);
+								if (dot2 <= l->stopdot) {
+									ratio *= (dot2 - l->stopdot2)
+										/ (l->stopdot - l->stopdot2);
 								}
 								VectorScale(l->intensity, ratio, add);
 								break;
 							}
 
-							default:
-							{
+							default: {
 								hlassume(false, assume_BadLightType);
 								break;
 							}
-                        }
-						if (TestLine (pos, 
-							testline_origin
-							) != CONTENTS_EMPTY)
-						{
+						}
+						if (TestLine(pos, testline_origin)
+							!= CONTENTS_EMPTY) {
 							continue;
 						}
 						float3_array transparency;
 						int opaquestyle;
-						if (TestSegmentAgainstOpaqueList (pos, 
-							testline_origin
-							, transparency
-							, opaquestyle))
-						{
+						if (TestSegmentAgainstOpaqueList(
+								pos, testline_origin, transparency,
+								opaquestyle
+							)) {
 							continue;
 						}
-						VectorMultiply (add, transparency, add);
+						VectorMultiply(add, transparency, add);
 						// add to the total brightness of this sample
 						style = l->style;
-						if (opaquestyle != -1)
-						{
-							if (style == 0 || style == opaquestyle)
+						if (opaquestyle != -1) {
+							if (style == 0 || style == opaquestyle) {
 								style = opaquestyle;
-							else
-								continue; // dynamic light of other styles hits this toggleable opaque entity, then it completely vanishes.
+							} else {
+								continue; // dynamic light of other styles
+										  // hits this toggleable opaque
+										  // entity, then it completely
+										  // vanishes.
+							}
 						}
-						VectorAdd (adds[style], add, adds[style]);
-                    } // end emit_skylight
+						VectorAdd(adds[style], add, adds[style]);
+					} // end emit_skylight
+				}
+			}
+		}
+	}
 
-                }
-            }
-        }
-    }
-
-	for (style = 0; style < ALLSTYLES; ++style)
-	{
-		if (VectorMaximum(adds[style]) > g_corings[style] * 0.1)
-		{
-			for (style_index = 0; style_index < ALLSTYLES; style_index++)
-			{
-				if (styles[style_index] == style || styles[style_index] == 255)
-				{
+	for (style = 0; style < ALLSTYLES; ++style) {
+		if (VectorMaximum(adds[style]) > g_corings[style] * 0.1) {
+			for (style_index = 0; style_index < ALLSTYLES; style_index++) {
+				if (styles[style_index] == style
+					|| styles[style_index] == 255) {
 					break;
 				}
 			}
 
 			if (style_index == ALLSTYLES) // shouldn't happen
 			{
-				if (++stylewarningcount >= stylewarningnext)
-				{
+				if (++stylewarningcount >= stylewarningnext) {
 					stylewarningnext = stylewarningcount * 2;
-					Warning("Too many direct light styles on a face(%f,%f,%f)", pos[0], pos[1], pos[2]);
-					Warning(" total %d warnings for too many styles", stylewarningcount);
+					Warning(
+						"Too many direct light styles on a face(%f,%f,%f)",
+						pos[0], pos[1], pos[2]
+					);
+					Warning(
+						" total %d warnings for too many styles",
+						stylewarningcount
+					);
 				}
 				return;
 			}
 
-			if (styles[style_index] == 255)
-			{
+			if (styles[style_index] == 255) {
 				styles[style_index] = style;
 			}
 
-			VectorAdd(sample[style_index], adds[style], sample[style_index]);
-		}
-		else
-		{
-			if (VectorMaximum (adds[style]) > g_maxdiscardedlight + NORMAL_EPSILON)
-			{
-				ThreadLock ();
-				if (VectorMaximum (adds[style]) > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
-					g_maxdiscardedlight = VectorMaximum (adds[style]);
+			VectorAdd(
+				sample[style_index], adds[style], sample[style_index]
+			);
+		} else {
+			if (VectorMaximum(adds[style])
+				> g_maxdiscardedlight + NORMAL_EPSILON) {
+				ThreadLock();
+				if (VectorMaximum(adds[style])
+					> g_maxdiscardedlight + NORMAL_EPSILON) {
+					g_maxdiscardedlight = VectorMaximum(adds[style]);
 					g_maxdiscardedpos = pos;
 				}
-				ThreadUnlock ();
+				ThreadUnlock();
 			}
 		}
 	}
@@ -2909,274 +3206,284 @@ static void     GatherSampleLight(const float3_array& pos, const byte* const pvs
 
 // =====================================================================================
 //  AddSampleToPatch
-//      Take the sample's collected light and add it back into the apropriate patch for the radiosity pass.
+//      Take the sample's collected light and add it back into the
+//      apropriate patch for the radiosity pass.
 // =====================================================================================
-static void AddSamplesToPatches (const sample_t **samples, const std::array<unsigned char, ALLSTYLES>& styles, int facenum, const lightinfo_t *l)
-{
-	patch_t *patch;
+static void AddSamplesToPatches(
+	sample_t const ** samples,
+	std::array<unsigned char, ALLSTYLES> const & styles, int facenum,
+	lightinfo_t const * l
+) {
+	patch_t* patch;
 	int i, j, m, k;
 	int numtexwindings;
-	fast_winding **texwindings;
+	fast_winding** texwindings;
 
 	numtexwindings = 0;
-	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-	{
+	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		numtexwindings++;
 	}
-	texwindings = (fast_winding **)malloc (numtexwindings * sizeof (fast_winding *));
-	hlassume (texwindings != nullptr, assume_NoMemory);
+	texwindings
+		= (fast_winding**) malloc(numtexwindings * sizeof(fast_winding*));
+	hlassume(texwindings != nullptr, assume_NoMemory);
 
 	// translate world winding into winding in s,t plane
-	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
-	{
-		fast_winding *w = new fast_winding (patch->winding->size());
-		for (int x = 0; x < w->size(); x++)
-		{
+	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings;
+		 j++, patch = patch->next) {
+		fast_winding* w = new fast_winding(patch->winding->size());
+		for (int x = 0; x < w->size(); x++) {
 			float s, t;
-			SetSTFromSurf (l, patch->winding->m_Points[x].data(), s, t);
+			SetSTFromSurf(l, patch->winding->m_Points[x].data(), s, t);
 			w->m_Points[x][0] = s;
 			w->m_Points[x][1] = t;
 			w->m_Points[x][2] = 0.0;
 		}
-		w->RemoveColinearPoints ();
+		w->RemoveColinearPoints();
 		texwindings[j] = w;
 	}
-	
-	for (i = 0; i < l->numsurfpt; i++)
-	{
+
+	for (i = 0; i < l->numsurfpt; i++) {
 		// prepare clip planes
 		float s_vec, t_vec;
-		s_vec = l->texmins[0] * TEXTURE_STEP + (i % (l->texsize[0] + 1)) * TEXTURE_STEP;
-		t_vec = l->texmins[1] * TEXTURE_STEP + (i / (l->texsize[0] + 1)) * TEXTURE_STEP;
+		s_vec = l->texmins[0] * TEXTURE_STEP
+			+ (i % (l->texsize[0] + 1)) * TEXTURE_STEP;
+		t_vec = l->texmins[1] * TEXTURE_STEP
+			+ (i / (l->texsize[0] + 1)) * TEXTURE_STEP;
 
 		dplane_t clipplanes[4];
-		VectorClear (clipplanes[0].normal);
+		VectorClear(clipplanes[0].normal);
 		clipplanes[0].normal[0] = 1;
 		clipplanes[0].dist = s_vec - 0.5 * TEXTURE_STEP;
-		VectorClear (clipplanes[1].normal);
+		VectorClear(clipplanes[1].normal);
 		clipplanes[1].normal[0] = -1;
 		clipplanes[1].dist = -(s_vec + 0.5 * TEXTURE_STEP);
-		VectorClear (clipplanes[2].normal);
+		VectorClear(clipplanes[2].normal);
 		clipplanes[2].normal[1] = 1;
 		clipplanes[2].dist = t_vec - 0.5 * TEXTURE_STEP;
-		VectorClear (clipplanes[3].normal);
+		VectorClear(clipplanes[3].normal);
 		clipplanes[3].normal[1] = -1;
 		clipplanes[3].dist = -(t_vec + 0.5 * TEXTURE_STEP);
 
 		// clip each patch
-		for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings; j++, patch = patch->next)
-		{
-			fast_winding w{*texwindings[j]};
-			for (k = 0; k < 4; k++)
-			{
-				if (w.size())
-				{
-					w.mutating_clip(clipplanes[k].normal, clipplanes[k].dist, false);
+		for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings;
+			 j++, patch = patch->next) {
+			fast_winding w{ *texwindings[j] };
+			for (k = 0; k < 4; k++) {
+				if (w.size()) {
+					w.mutating_clip(
+						clipplanes[k].normal, clipplanes[k].dist, false
+					);
 				}
 			}
-			if (w.size())
-			{
+			if (w.size()) {
 				// add sample to patch
-				float area = w.getArea () / (TEXTURE_STEP * TEXTURE_STEP);
+				float area = w.getArea() / (TEXTURE_STEP * TEXTURE_STEP);
 				patch->samples += area;
-				for (m = 0; m < ALLSTYLES && styles[m] != 255; m++)
-				{
+				for (m = 0; m < ALLSTYLES && styles[m] != 255; m++) {
 					int style = styles[m];
-					const sample_t *s = &samples[m][i];
-					for (k = 0; k < ALLSTYLES && (*patch->totalstyle_all)[k] != 255; k++)
-					{
-						if ((*patch->totalstyle_all)[k] == style)
-						{
+					sample_t const * s = &samples[m][i];
+					for (k = 0; k < ALLSTYLES
+						 && (*patch->totalstyle_all)[k] != 255;
+						 k++) {
+						if ((*patch->totalstyle_all)[k] == style) {
 							break;
 						}
 					}
-					if (k == ALLSTYLES)
-					{
-						if (++stylewarningcount >= stylewarningnext)
-						{
+					if (k == ALLSTYLES) {
+						if (++stylewarningcount >= stylewarningnext) {
 							stylewarningnext = stylewarningcount * 2;
-							Warning("Too many direct light styles on a face(?,?,?)\n");
-							Warning(" total %d warnings for too many styles", stylewarningcount);
+							Warning(
+								"Too many direct light styles on a face(?,?,?)\n"
+							);
+							Warning(
+								" total %d warnings for too many styles",
+								stylewarningcount
+							);
 						}
-					}
-					else
-					{
-						if ((*patch->totalstyle_all)[k] == 255)
-						{
+					} else {
+						if ((*patch->totalstyle_all)[k] == 255) {
 							(*patch->totalstyle_all)[k] = style;
 						}
-						VectorMA ((*patch->samplelight_all)[k], area, s->light, (*patch->samplelight_all)[k]);
+						VectorMA(
+							(*patch->samplelight_all)[k], area, s->light,
+							(*patch->samplelight_all)[k]
+						);
 					}
 				}
 			}
 		}
 	}
 
-	for (j = 0; j < numtexwindings; j++)
-	{
+	for (j = 0; j < numtexwindings; j++) {
 		delete texwindings[j];
 	}
-	free (texwindings);
+	free(texwindings);
 }
 
 // =====================================================================================
 //  GetPhongNormal
 // =====================================================================================
-void            GetPhongNormal(int facenum, const float3_array& spot, float3_array& phongnormal)
-{
-    int             j;
-	int				s; // split every edge into two parts
-    const dface_t*  f = g_dfaces.data() + facenum;
-    const dplane_t* p = getPlaneFromFace(f);
-    float3_array          facenormal;
+void GetPhongNormal(
+	int facenum, float3_array const & spot, float3_array& phongnormal
+) {
+	int j;
+	int s; // split every edge into two parts
+	dface_t const * f = g_dfaces.data() + facenum;
+	dplane_t const * p = getPlaneFromFace(f);
+	float3_array facenormal;
 
-    VectorCopy(p->normal, facenormal);
-    VectorCopy(facenormal, phongnormal);
+	VectorCopy(p->normal, facenormal);
+	VectorCopy(facenormal, phongnormal);
 
-    {
-        // Calculate modified point normal for surface
-        // Use the edge normals iff they are defined.  Bend the surface towards the edge normal(s)
-        // Crude first attempt: find nearest edge normal and do a simple interpolation with facenormal.
-        // Second attempt: find edge points+center that bound the point and do a three-point triangulation(baricentric)
-        // Better third attempt: generate the point normals for all vertices and do baricentric triangulation.
+	{
+		// Calculate modified point normal for surface
+		// Use the edge normals iff they are defined.  Bend the surface
+		// towards the edge normal(s) Crude first attempt: find nearest edge
+		// normal and do a simple interpolation with facenormal. Second
+		// attempt: find edge points+center that bound the point and do a
+		// three-point triangulation(baricentric) Better third attempt:
+		// generate the point normals for all vertices and do baricentric
+		// triangulation.
 
-        for (j = 0; j < f->numedges; j++)
-        {
-            float3_array          p1;
-            float3_array          p2;
-            float3_array          v1;
-            float3_array          v2;
-            float3_array          vspot;
-            unsigned        prev_edge;
-            unsigned        next_edge;
-            int             e;
-            int             e1;
-            int             e2;
-            edgeshare_t*    es;
-            edgeshare_t*    es1;
-            edgeshare_t*    es2;
-            float           a1;
-            float           a2;
-            float           aa;
-            float           bb;
-            float           ab;
+		for (j = 0; j < f->numedges; j++) {
+			float3_array p1;
+			float3_array p2;
+			float3_array v1;
+			float3_array v2;
+			float3_array vspot;
+			unsigned prev_edge;
+			unsigned next_edge;
+			int e;
+			int e1;
+			int e2;
+			edgeshare_t* es;
+			edgeshare_t* es1;
+			edgeshare_t* es2;
+			float a1;
+			float a2;
+			float aa;
+			float bb;
+			float ab;
 
-            if (j)
-            {
-                prev_edge = f->firstedge + ((j + f->numedges - 1) % f->numedges);
-            }
-            else
-            {
-                prev_edge = f->firstedge + f->numedges - 1;
-            }
+			if (j) {
+				prev_edge
+					= f->firstedge + ((j + f->numedges - 1) % f->numedges);
+			} else {
+				prev_edge = f->firstedge + f->numedges - 1;
+			}
 
-            if ((j + 1) != f->numedges)
-            {
-                next_edge = f->firstedge + ((j + 1) % f->numedges);
-            }
-            else
-            {
-                next_edge = f->firstedge;
-            }
+			if ((j + 1) != f->numedges) {
+				next_edge = f->firstedge + ((j + 1) % f->numedges);
+			} else {
+				next_edge = f->firstedge;
+			}
 
-            e = g_dsurfedges[f->firstedge + j];
-            e1 = g_dsurfedges[prev_edge];
-            e2 = g_dsurfedges[next_edge];
+			e = g_dsurfedges[f->firstedge + j];
+			e1 = g_dsurfedges[prev_edge];
+			e2 = g_dsurfedges[next_edge];
 
-            es = &g_edgeshare[abs(e)];
-            es1 = &g_edgeshare[abs(e1)];
-            es2 = &g_edgeshare[abs(e2)];
+			es = &g_edgeshare[abs(e)];
+			es1 = &g_edgeshare[abs(e1)];
+			es2 = &g_edgeshare[abs(e2)];
 
-			if ((!es->smooth || es->coplanar) && (!es1->smooth || es1->coplanar) && (!es2->smooth || es2->coplanar))
-            {
-                continue;
-            }
+			if ((!es->smooth || es->coplanar)
+				&& (!es1->smooth || es1->coplanar)
+				&& (!es2->smooth || es2->coplanar)) {
+				continue;
+			}
 
-            if (e > 0)
-            {
-                VectorCopy(g_dvertexes[g_dedges[e].v[0]].point, p1);
-                VectorCopy(g_dvertexes[g_dedges[e].v[1]].point, p2);
-            }
-            else
-            {
-                VectorCopy(g_dvertexes[g_dedges[-e].v[1]].point, p1);
-                VectorCopy(g_dvertexes[g_dedges[-e].v[0]].point, p2);
-            }
+			if (e > 0) {
+				VectorCopy(g_dvertexes[g_dedges[e].v[0]].point, p1);
+				VectorCopy(g_dvertexes[g_dedges[e].v[1]].point, p2);
+			} else {
+				VectorCopy(g_dvertexes[g_dedges[-e].v[1]].point, p1);
+				VectorCopy(g_dvertexes[g_dedges[-e].v[0]].point, p2);
+			}
 
-            // Adjust for origin-based models
-            VectorAdd(p1, g_face_offset[facenum], p1);
-            VectorAdd(p2, g_face_offset[facenum], p2);
-		for (s = 0; s < 2; s++)
-		{
-			float3_array s1 = s == 0 ? p1 : p2;
-			float3_array s2;
-			VectorAdd(p1,p2,s2); // edge center
-			VectorScale(s2,0.5,s2);
+			// Adjust for origin-based models
+			VectorAdd(p1, g_face_offset[facenum], p1);
+			VectorAdd(p2, g_face_offset[facenum], p2);
+			for (s = 0; s < 2; s++) {
+				float3_array s1 = s == 0 ? p1 : p2;
+				float3_array s2;
+				VectorAdd(p1, p2, s2); // edge center
+				VectorScale(s2, 0.5, s2);
 
-            VectorSubtract(s1, g_face_centroids[facenum], v1);
-            VectorSubtract(s2, g_face_centroids[facenum], v2);
-            VectorSubtract(spot, g_face_centroids[facenum], vspot);
+				VectorSubtract(s1, g_face_centroids[facenum], v1);
+				VectorSubtract(s2, g_face_centroids[facenum], v2);
+				VectorSubtract(spot, g_face_centroids[facenum], vspot);
 
-            aa = DotProduct(v1, v1);
-            bb = DotProduct(v2, v2);
-            ab = DotProduct(v1, v2);
-            a1 = (bb * DotProduct(v1, vspot) - ab * DotProduct(vspot, v2)) / (aa * bb - ab * ab);
-            a2 = (DotProduct(vspot, v2) - a1 * ab) / bb;
+				aa = DotProduct(v1, v1);
+				bb = DotProduct(v2, v2);
+				ab = DotProduct(v1, v2);
+				a1 = (bb * DotProduct(v1, vspot)
+					  - ab * DotProduct(vspot, v2))
+					/ (aa * bb - ab * ab);
+				a2 = (DotProduct(vspot, v2) - a1 * ab) / bb;
 
-            // Test center to sample vector for inclusion between center to vertex vectors (Use dot product of vectors)
-            if (a1 >= -0.01 && a2 >= -0.01)
-            {
-                // calculate distance from edge to pos
-                float3_array n1;
-				float3_array n2;
+				// Test center to sample vector for inclusion between center
+				// to vertex vectors (Use dot product of vectors)
+				if (a1 >= -0.01 && a2 >= -0.01) {
+					// calculate distance from edge to pos
+					float3_array n1;
+					float3_array n2;
 
-				if (es->smooth)
-					if (s == 0)
-					{VectorCopy(es->vertex_normal[e>0?0:1], n1);}
-					else
-					{VectorCopy(es->vertex_normal[e>0?1:0], n1);}
-				else if (s == 0 && es1->smooth)
-				{VectorCopy(es1->vertex_normal[e1>0?1:0], n1);}
-				else if (s == 1 && es2->smooth)
-				{VectorCopy(es2->vertex_normal[e2>0?0:1], n1);}
-				else
-				{VectorCopy(facenormal, n1);}
+					if (es->smooth) {
+						if (s == 0) {
+							VectorCopy(
+								es->vertex_normal[e > 0 ? 0 : 1], n1
+							);
+						} else {
+							VectorCopy(
+								es->vertex_normal[e > 0 ? 1 : 0], n1
+							);
+						}
+					} else if (s == 0 && es1->smooth) {
+						VectorCopy(es1->vertex_normal[e1 > 0 ? 1 : 0], n1);
+					} else if (s == 1 && es2->smooth) {
+						VectorCopy(es2->vertex_normal[e2 > 0 ? 0 : 1], n1);
+					} else {
+						VectorCopy(facenormal, n1);
+					}
 
-				if (es->smooth)
-				{VectorCopy(es->interface_normal, n2);}
-				else
-				{VectorCopy(facenormal, n2);}
+					if (es->smooth) {
+						VectorCopy(es->interface_normal, n2);
+					} else {
+						VectorCopy(facenormal, n2);
+					}
 
-                // Interpolate between the center and edge normals based on sample position
-                VectorScale(facenormal, 1.0 - a1 - a2, phongnormal);
-				float3_array temp;
-                VectorScale(n1, a1, temp);
-                VectorAdd(phongnormal, temp, phongnormal);
-                VectorScale(n2, a2, temp);
-                VectorAdd(phongnormal, temp, phongnormal);
-                normalize_vector(phongnormal);
-                break;
-            }
-		} // s=0,1
-        }
-    }
+					// Interpolate between the center and edge normals based
+					// on sample position
+					VectorScale(facenormal, 1.0 - a1 - a2, phongnormal);
+					float3_array temp;
+					VectorScale(n1, a1, temp);
+					VectorAdd(phongnormal, temp, phongnormal);
+					VectorScale(n2, a2, temp);
+					VectorAdd(phongnormal, temp, phongnormal);
+					normalize_vector(phongnormal);
+					break;
+				}
+			} // s=0,1
+		}
+	}
 }
 
-const auto s_circuscolors = std::array{
-    float3_array{100000.0,  100000.0,   100000.0}, // white
-    float3_array{100000.0,  0.0,        0.0     }, // red
-    float3_array{0.0,       100000.0,   0.0     }, // green
-    float3_array{0.0,       0.0,        100000.0}, // blue
-    float3_array{0.0,       100000.0,   100000.0}, // cyan
-    float3_array{100000.0,  0.0,        100000.0}, // magenta
-    float3_array{100000.0,  100000.0,   0.0     }  // yellow
+auto const s_circuscolors = std::array{
+	float3_array{ 100000.0, 100000.0, 100000.0 }, // white
+	float3_array{ 100000.0,		0.0,		 0.0 }, // red
+	float3_array{	  0.0, 100000.0,		 0.0 }, // green
+	float3_array{	  0.0,	   0.0, 100000.0 }, // blue
+	float3_array{	  0.0, 100000.0, 100000.0 }, // cyan
+	float3_array{ 100000.0,		0.0, 100000.0 }, // magenta
+	float3_array{ 100000.0, 100000.0,	  0.0 }  // yellow
 };
 
 // =====================================================================================
 //  BuildFacelights
 // =====================================================================================
-void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
-{
+void CalcLightmap(
+	lightinfo_t* l, std::array<unsigned char, ALLSTYLES>& styles
+) {
 	int facenum;
 	int i, j;
 	byte pvs[(MAX_MAP_LEAFS + 7) / 8];
@@ -3185,188 +3492,268 @@ void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 	int lastoffset2;
 
 	facenum = l->surfnum;
-	memset (l->lmcache, 0, l->lmcachewidth * l->lmcacheheight * sizeof (std::array<float3_array, ALLSTYLES>));
+	memset(
+		l->lmcache, 0,
+		l->lmcachewidth * l->lmcacheheight
+			* sizeof(std::array<float3_array, ALLSTYLES>)
+	);
 
 	// for each sample whose light we need to calculate
-	for (i = 0; i < l->lmcachewidth * l->lmcacheheight; i++)
-	{
+	for (i = 0; i < l->lmcachewidth * l->lmcacheheight; i++) {
 		float s, t;
 		float s_vec, t_vec;
 		int nearest_s, nearest_t;
 		float3_array spot;
-		float square[2][2];  // the max possible range in which this sample point affects the lighting on a face
-		float3_array surfpt; // the point on the surface (with no HUNT_OFFSET applied), used for getting phong normal and doing patch interpolation
+		float square[2][2];	 // the max possible range in which this sample
+							 // point affects the lighting on a face
+		float3_array surfpt; // the point on the surface (with no
+							 // HUNT_OFFSET applied), used for getting phong
+							 // normal and doing patch interpolation
 		int surface;
 		float3_array pointnormal;
 		bool blocked;
 		float3_array spot2;
 		float3_array pointnormal2;
 		std::array<float3_array, ALLSTYLES>* sampled;
-		float3_array *normal_out;
+		float3_array* normal_out;
 		bool nudged;
-		int *wallflags_out;
+		int* wallflags_out;
 
 		// prepare input parameter and output parameter
 		{
-			s = ((i % l->lmcachewidth) - l->lmcache_offset) / (float)l->lmcache_density;
-			t = ((i / l->lmcachewidth) - l->lmcache_offset) / (float)l->lmcache_density;
+			s = ((i % l->lmcachewidth) - l->lmcache_offset)
+				/ (float) l->lmcache_density;
+			t = ((i / l->lmcachewidth) - l->lmcache_offset)
+				/ (float) l->lmcache_density;
 			s_vec = l->texmins[0] * TEXTURE_STEP + s * TEXTURE_STEP;
 			t_vec = l->texmins[1] * TEXTURE_STEP + t * TEXTURE_STEP;
-			nearest_s = std::max(0, std::min((int)floor (s + 0.5), l->texsize[0]));
-			nearest_t = std::max(0, std::min((int)floor (t + 0.5), l->texsize[1]));
+			nearest_s = std::max(
+				0, std::min((int) floor(s + 0.5), l->texsize[0])
+			);
+			nearest_t = std::max(
+				0, std::min((int) floor(t + 0.5), l->texsize[1])
+			);
 			sampled = &l->lmcache[i];
 			normal_out = &l->lmcache_normal[i];
 			wallflags_out = &l->lmcache_wallflags[i];
-//
-// The following graph illustrates the range in which a sample point can affect the lighting of a face when g_blur = 1.5 and g_extra = on
-//              X : the sample point. They are placed on every TEXTURE_STEP/lmcache_density (=16.0/3) texture pixels. We calculate light for each sample point, which is the main time sink.
-//              + : the lightmap pixel. They are placed on every TEXTURE_STEP (=16.0) texture pixels, which is hard coded inside the GoldSrc engine. Their brightness are averaged from the sample points in a square with size g_blur*TEXTURE_STEP.
-//              o : indicates that this lightmap pixel is affected by the sample point 'X'. The higher g_blur, the more 'o'.
-//       |/ / / | : indicates that the brightness of this area is affected by the lightmap pixels 'o' and hence by the sample point 'X'. This is because the engine uses bilinear interpolation to display the lightmap.
-//
-//    ==============================================================================================================================================
-//    || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    || +     +-----+-----+     +     + || +     +-----+-----+-----+     + || +     +-----+-----+-----+     + || +     +     +-----+-----+     + ||
-//    ||       | / / / / / |             ||       | / / / / / / / / |       ||       | / / / / / / / / |       ||             | / / / / / |       ||
-//    ||       |/ / / / / /|             ||       |/ / / / / / / / /|       ||       |/ / / / / / / / /|       ||             |/ / / / / /|       ||
-//    || +     + / / X / / +     +     + || +     + / / o X / o / / +     + || +     + / / o / X o / / +     + || +     +     + / / X / / +     + ||
-//    ||       |/ / / / / /|             ||       |/ / / / / / / / /|       ||       |/ / / / / / / / /|       ||             |/ / / / / /|       ||
-//    ||       | / / / / / |             ||       | / / / / / / / / |       ||       | / / / / / / / / |       ||             | / / / / / |       ||
-//    || +     +-----+-----+     +     + || +     +-----+-----+-----+     + || +     +-----+-----+-----+     + || +     +     +-----+-----+     + ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + ||
-//    ==============================================================================================================================================
-//    || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + || +     +     +     +     +     + ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    ||                                 ||                                 ||                                 ||                                 ||
-//    || +     +-----+-----+     +     + || +     +-----+-----+-----+     + || +     +-----+-----+-----+     + || +     +     +-----+-----+     + ||
-//    ||       | / / / / / |             ||       | / / / / / / / / |       ||       | / / / / / / / / |       ||             | / / / / / |       ||
-//    ||       |/ / / / / /|             ||       |/ / / / / / / / /|       ||       |/ / / / / / / / /|       ||             |/ / / / / /|       ||
-//    || +     + / / o / / +     +     + || +     + / / o / / o / / +     + || +     + / / o / / o / / +     + || +     +     + / / o / / +     + ||
-//    ||       |/ / /X/ / /|             ||       |/ / / /X/ / / / /|       ||       |/ / / / /X/ / / /|       ||             |/ / /X/ / /|       ||
-//    ||       | / / / / / |             ||       | / / / / / / / / |       ||       | / / / / / / / / |       ||             | / / / / / |       ||
-//    || +     +/ / /o/ / /+     +     + || +     +/ / /o/ / /o/ / /+     + || +     +/ / /o/ / /o/ / /+     + || +     +     +/ / /o/ / /+     + ||
-//    ||       | / / / / / |             ||       | / / / / / / / / |       ||       | / / / / / / / / |       ||             | / / / / / |       ||
-//    ||       |/ / / / / /|             ||       |/ / / / / / / / /|       ||       |/ / / / / / / / /|       ||             |/ / / / / /|       ||
-//    || +     +-----+-----+     +     + || +     +-----+-----+-----+     + || +     +-----+-----+-----+     + || +     +     +-----+-----+     + ||
-//    ==============================================================================================================================================
-//
-			square[0][0] = l->texmins[0] * TEXTURE_STEP + ceil (s - (l->lmcache_side + 0.5) / (float)l->lmcache_density) * TEXTURE_STEP - TEXTURE_STEP;
-			square[0][1] = l->texmins[1] * TEXTURE_STEP + ceil (t - (l->lmcache_side + 0.5) / (float)l->lmcache_density) * TEXTURE_STEP - TEXTURE_STEP;
-			square[1][0] = l->texmins[0] * TEXTURE_STEP + floor (s + (l->lmcache_side + 0.5) / (float)l->lmcache_density) * TEXTURE_STEP + TEXTURE_STEP;
-			square[1][1] = l->texmins[1] * TEXTURE_STEP + floor (t + (l->lmcache_side + 0.5) / (float)l->lmcache_density) * TEXTURE_STEP + TEXTURE_STEP;
+			//
+			// The following graph illustrates the range in which a sample
+			// point can affect the lighting of a face when g_blur = 1.5 and
+			// g_extra = on
+			//              X : the sample point. They are placed on every
+			//              TEXTURE_STEP/lmcache_density (=16.0/3) texture
+			//              pixels. We calculate light for each sample
+			//              point, which is the main time sink.
+			//              + : the lightmap pixel. They are placed on every
+			//              TEXTURE_STEP (=16.0) texture pixels, which is
+			//              hard coded inside the GoldSrc engine. Their
+			//              brightness are averaged from the sample points
+			//              in a square with size g_blur*TEXTURE_STEP. o :
+			//              indicates that this lightmap pixel is affected
+			//              by the sample point 'X'. The higher g_blur, the
+			//              more 'o'.
+			//       |/ / / | : indicates that the brightness of this area
+			//       is affected by the lightmap pixels 'o' and hence by the
+			//       sample point 'X'. This is because the engine uses
+			//       bilinear interpolation to display the lightmap.
+			//
+			//    ==============================================================================================================================================
+			//    || +     +     +     +     +     + || +     +     +     +
+			//    +     + || +     +     +     +     +     + || +     + + +
+			//    +     + ||
+			//    ||                                 || || || ||
+			//    ||                                 || || || ||
+			//    || +     +-----+-----+     +     + || +
+			//    +-----+-----+-----+     + || +     +-----+-----+-----+ +
+			//    || +     +     +-----+-----+     + ||
+			//    ||       | / / / / / |             ||       | / / / / / /
+			//    / / |       ||       | / / / / / / / / |       || | / / /
+			//    / / |       ||
+			//    ||       |/ / / / / /|             ||       |/ / / / / / /
+			//    / /|       ||       |/ / / / / / / / /|       || |/ / / /
+			//    / /|       ||
+			//    || +     + / / X / / +     +     + || +     + / / o X / o
+			//    / / +     + || +     + / / o / X o / / +     + || +     +
+			//    + / / X / / +     + ||
+			//    ||       |/ / / / / /|             ||       |/ / / / / / /
+			//    / /|       ||       |/ / / / / / / / /|       || |/ / / /
+			//    / /|       ||
+			//    ||       | / / / / / |             ||       | / / / / / /
+			//    / / |       ||       | / / / / / / / / |       || | / / /
+			//    / / |       ||
+			//    || +     +-----+-----+     +     + || +
+			//    +-----+-----+-----+     + || +     +-----+-----+-----+ +
+			//    || +     +     +-----+-----+     + ||
+			//    ||                                 || || || ||
+			//    ||                                 || || || ||
+			//    || +     +     +     +     +     + || +     +     +     +
+			//    +     + || +     +     +     +     +     + || +     + + +
+			//    +     + ||
+			//    ==============================================================================================================================================
+			//    || +     +     +     +     +     + || +     +     +     +
+			//    +     + || +     +     +     +     +     + || +     + + +
+			//    +     + ||
+			//    ||                                 || || || ||
+			//    ||                                 || || || ||
+			//    || +     +-----+-----+     +     + || +
+			//    +-----+-----+-----+     + || +     +-----+-----+-----+ +
+			//    || +     +     +-----+-----+     + ||
+			//    ||       | / / / / / |             ||       | / / / / / /
+			//    / / |       ||       | / / / / / / / / |       || | / / /
+			//    / / |       ||
+			//    ||       |/ / / / / /|             ||       |/ / / / / / /
+			//    / /|       ||       |/ / / / / / / / /|       || |/ / / /
+			//    / /|       ||
+			//    || +     + / / o / / +     +     + || +     + / / o / / o
+			//    / / +     + || +     + / / o / / o / / +     + || +     +
+			//    + / / o / / +     + ||
+			//    ||       |/ / /X/ / /|             ||       |/ / / /X/ / /
+			//    / /|       ||       |/ / / / /X/ / / /|       || |/ / /X/
+			//    / /|       ||
+			//    ||       | / / / / / |             ||       | / / / / / /
+			//    / / |       ||       | / / / / / / / / |       || | / / /
+			//    / / |       ||
+			//    || +     +/ / /o/ / /+     +     + || +     +/ / /o/ / /o/
+			//    / /+     + || +     +/ / /o/ / /o/ / /+     + || +     +
+			//    +/ / /o/ / /+     + ||
+			//    ||       | / / / / / |             ||       | / / / / / /
+			//    / / |       ||       | / / / / / / / / |       || | / / /
+			//    / / |       ||
+			//    ||       |/ / / / / /|             ||       |/ / / / / / /
+			//    / /|       ||       |/ / / / / / / / /|       || |/ / / /
+			//    / /|       ||
+			//    || +     +-----+-----+     +     + || +
+			//    +-----+-----+-----+     + || +     +-----+-----+-----+ +
+			//    || +     +     +-----+-----+     + ||
+			//    ==============================================================================================================================================
+			//
+			square[0][0] = l->texmins[0] * TEXTURE_STEP
+				+ ceil(
+					  s
+					  - (l->lmcache_side + 0.5) / (float) l->lmcache_density
+				  ) * TEXTURE_STEP
+				- TEXTURE_STEP;
+			square[0][1] = l->texmins[1] * TEXTURE_STEP
+				+ ceil(
+					  t
+					  - (l->lmcache_side + 0.5) / (float) l->lmcache_density
+				  ) * TEXTURE_STEP
+				- TEXTURE_STEP;
+			square[1][0] = l->texmins[0] * TEXTURE_STEP
+				+ floor(
+					  s
+					  + (l->lmcache_side + 0.5) / (float) l->lmcache_density
+				  ) * TEXTURE_STEP
+				+ TEXTURE_STEP;
+			square[1][1] = l->texmins[1] * TEXTURE_STEP
+				+ floor(
+					  t
+					  + (l->lmcache_side + 0.5) / (float) l->lmcache_density
+				  ) * TEXTURE_STEP
+				+ TEXTURE_STEP;
 		}
 		// find world's position for the sample
 		{
 			{
 				blocked = false;
-				if (SetSampleFromST (
-									surfpt.data(), spot.data(), &surface,
-									&nudged,
-									l, s_vec, t_vec,
-									square,
-									g_face_lightmode[facenum]) == LightOutside)
-				{
+				if (SetSampleFromST(
+						surfpt.data(), spot.data(), &surface, &nudged, l,
+						s_vec, t_vec, square, g_face_lightmode[facenum]
+					)
+					== LightOutside) {
 					j = nearest_s + (l->texsize[0] + 1) * nearest_t;
-					if (l->surfpt_lightoutside[j])
-					{
+					if (l->surfpt_lightoutside[j]) {
 						blocked = true;
-					}
-					else
-					{
-						// the area this light sample has effect on is completely covered by solid, so take whatever valid position.
-						VectorCopy (l->surfpt[j], surfpt);
-						VectorCopy (l->surfpt_position[j], spot);
+					} else {
+						// the area this light sample has effect on is
+						// completely covered by solid, so take whatever
+						// valid position.
+						VectorCopy(l->surfpt[j], surfpt);
+						VectorCopy(l->surfpt_position[j], spot);
 						surface = l->surfpt_surface[j];
 					}
 				}
 			}
-			if (l->translucent_b)
-			{
-				const dplane_t *surfaceplane = getPlaneFromFaceNumber (surface);
-				fast_winding surfacewinding{g_dfaces[surface]};
-				
-				VectorCopy (spot, spot2);
-				for (int x = 0; x < surfacewinding.size(); x++)
-				{
-					VectorAdd (surfacewinding.m_Points[x], g_face_offset[surface], surfacewinding.m_Points[x]);
+			if (l->translucent_b) {
+				dplane_t const * surfaceplane
+					= getPlaneFromFaceNumber(surface);
+				fast_winding surfacewinding{ g_dfaces[surface] };
+
+				VectorCopy(spot, spot2);
+				for (int x = 0; x < surfacewinding.size(); x++) {
+					VectorAdd(
+						surfacewinding.m_Points[x], g_face_offset[surface],
+						surfacewinding.m_Points[x]
+					);
 				}
-				if (!point_in_winding_noedge (surfacewinding, *surfaceplane, spot2, 0.2))
-				{
-					snap_to_winding_noedge (surfacewinding, *surfaceplane, spot2.data(), 0.2, 4 * 0.2);
+				if (!point_in_winding_noedge(
+						surfacewinding, *surfaceplane, spot2, 0.2
+					)) {
+					snap_to_winding_noedge(
+						surfacewinding, *surfaceplane, spot2.data(), 0.2,
+						4 * 0.2
+					);
 				}
-				VectorMA (spot2, -(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET), surfaceplane->normal, spot2);
+				VectorMA(
+					spot2, -(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET),
+					surfaceplane->normal, spot2
+				);
 			}
 			*wallflags_out = WALLFLAG_NONE;
-			if (blocked)
-			{
+			if (blocked) {
 				*wallflags_out |= (WALLFLAG_BLOCKED | WALLFLAG_NUDGED);
 			}
-			if (nudged)
-			{
+			if (nudged) {
 				*wallflags_out |= WALLFLAG_NUDGED;
 			}
 		}
 		// calculate normal for the sample
 		{
-			GetPhongNormal (surface, surfpt, pointnormal);
-			if (l->translucent_b)
-			{
+			GetPhongNormal(surface, surfpt, pointnormal);
+			if (l->translucent_b) {
 				pointnormal2 = negate_vector(pointnormal);
 			}
-			VectorCopy (pointnormal, *normal_out);
+			VectorCopy(pointnormal, *normal_out);
 		}
 		// calculate visibility for the sample
 		{
-			if (!g_visdatasize)
-			{
-				if (i == 0)
-				{
-					memset (pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
+			if (!g_visdatasize) {
+				if (i == 0) {
+					memset(pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
 				}
-			}
-			else
-			{
-				dleaf_t *leaf = PointInLeaf(spot);
+			} else {
+				dleaf_t* leaf = PointInLeaf(spot);
 				int thisoffset = leaf->visofs;
-				if (i == 0 || thisoffset != lastoffset)
-				{
-					if (thisoffset == -1)
-					{
-						memset (pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
-					}
-					else
-					{
-						DecompressVis((byte*) &g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
+				if (i == 0 || thisoffset != lastoffset) {
+					if (thisoffset == -1) {
+						memset(pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
+					} else {
+						DecompressVis(
+							(byte*) &g_dvisdata[leaf->visofs], pvs,
+							sizeof(pvs)
+						);
 					}
 				}
 				lastoffset = thisoffset;
 			}
-			if (l->translucent_b)
-			{
-				if (!g_visdatasize)
-				{
-					if (i == 0)
-					{
-						memset (pvs2, 255, (g_dmodels[0].visleafs + 7) / 8);
+			if (l->translucent_b) {
+				if (!g_visdatasize) {
+					if (i == 0) {
+						memset(pvs2, 255, (g_dmodels[0].visleafs + 7) / 8);
 					}
-				}
-				else
-				{
-					dleaf_t *leaf2 = PointInLeaf(spot2);
+				} else {
+					dleaf_t* leaf2 = PointInLeaf(spot2);
 					int thisoffset2 = leaf2->visofs;
-					if (i == 0 || thisoffset2 != lastoffset2)
-					{
-						if (thisoffset2 == -1)
-						{
-							memset (pvs2, 0, (g_dmodels[0].visleafs + 7) / 8);
-						}
-						else
-						{
-							DecompressVis((byte*) &g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
+					if (i == 0 || thisoffset2 != lastoffset2) {
+						if (thisoffset2 == -1) {
+							memset(
+								pvs2, 0, (g_dmodels[0].visleafs + 7) / 8
+							);
+						} else {
+							DecompressVis(
+								(byte*) &g_dvisdata[leaf2->visofs], pvs2,
+								sizeof(pvs2)
+							);
 						}
 					}
 					lastoffset2 = thisoffset2;
@@ -3375,51 +3762,40 @@ void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 		}
 		// gather light
 		{
-			if (!blocked)
-			{
-				GatherSampleLight(spot, pvs, pointnormal, *sampled
-					, styles
-					, 0
-					, l->miptex
-					, surface
-					);
+			if (!blocked) {
+				GatherSampleLight(
+					spot, pvs, pointnormal, *sampled, styles, 0, l->miptex,
+					surface
+				);
 			}
-			if (l->translucent_b)
-			{
+			if (l->translucent_b) {
 				std::array<float3_array, ALLSTYLES> sampled2{};
-				if (!blocked)
-				{
-					GatherSampleLight(spot2, pvs2, pointnormal2, sampled2
-						, styles
-						, 0
-						, l->miptex
-						, surface
-						);
+				if (!blocked) {
+					GatherSampleLight(
+						spot2, pvs2, pointnormal2, sampled2, styles, 0,
+						l->miptex, surface
+					);
 				}
-				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++)
-				{
-					for (int x = 0; x < 3; x++)
-					{
-						(*sampled)[j][x] = (1.0 - l->translucent_v[x]) * (*sampled)[j][x] + l->translucent_v[x] * sampled2[j][x];
+				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++) {
+					for (int x = 0; x < 3; x++) {
+						(*sampled)[j][x]
+							= (1.0 - l->translucent_v[x]) * (*sampled)[j][x]
+							+ l->translucent_v[x] * sampled2[j][x];
 					}
 				}
 			}
-			if (g_drawnudge)
-			{
-				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++)
-				{
-					if (blocked && styles[j] == 0)
-					{
+			if (g_drawnudge) {
+				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++) {
+					if (blocked && styles[j] == 0) {
 						(*sampled)[j][0] = 200;
 						(*sampled)[j][1] = 0;
 						(*sampled)[j][2] = 0;
-					}
-					else if (nudged && styles[j] == 0) // we assume style 0 is always present
+					} else if (nudged
+							   && styles[j] == 0) // we assume style 0 is
+												  // always present
 					{
 						(*sampled)[j].fill(100.0f);
-					}
-					else
-					{
+					} else {
 						(*sampled)[j] = {};
 					}
 				}
@@ -3427,119 +3803,127 @@ void CalcLightmap (lightinfo_t *l, std::array<unsigned char, ALLSTYLES>& styles)
 		}
 	}
 }
-void            BuildFacelights(const int facenum)
-{
-    dface_t*        f;
+
+void BuildFacelights(int const facenum) {
+	dface_t* f;
 	std::array<unsigned char, ALLSTYLES> f_styles;
-	sample_t		*fl_samples[ALLSTYLES];
-    lightinfo_t     l;
-    int             i;
-    int             j;
-    int             k;
-    sample_t*       s;
-    float*          spot;
-    patch_t*        patch;
-    const dplane_t* plane;
-    byte            pvs[(MAX_MAP_LEAFS + 7) / 8];
-    int             thisoffset = -1, lastoffset = -1;
-    int             lightmapwidth;
-    int             lightmapheight;
-    int             size;
-	float3_array			spot2, normal2;
-	float3_array			delta;
-	byte			pvs2[(MAX_MAP_LEAFS + 7) / 8];
-	int				thisoffset2 = -1, lastoffset2 = -1;
+	sample_t* fl_samples[ALLSTYLES];
+	lightinfo_t l;
+	int i;
+	int j;
+	int k;
+	sample_t* s;
+	float* spot;
+	patch_t* patch;
+	dplane_t const * plane;
+	byte pvs[(MAX_MAP_LEAFS + 7) / 8];
+	int thisoffset = -1, lastoffset = -1;
+	int lightmapwidth;
+	int lightmapheight;
+	int size;
+	float3_array spot2, normal2;
+	float3_array delta;
+	byte pvs2[(MAX_MAP_LEAFS + 7) / 8];
+	int thisoffset2 = -1, lastoffset2 = -1;
 
-	int				*sample_wallflags;
+	int* sample_wallflags;
 
-    f = &g_dfaces[facenum];
+	f = &g_dfaces[facenum];
 
-    //
-    // some surfaces don't need lightmaps
-    //
-    f->lightofs = -1;
-    for (j = 0; j < ALLSTYLES; j++)
-    {
-        f_styles[j] = 255;
-    }
+	//
+	// some surfaces don't need lightmaps
+	//
+	f->lightofs = -1;
+	for (j = 0; j < ALLSTYLES; j++) {
+		f_styles[j] = 255;
+	}
 
-    if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-    {
-		for (j = 0; j < MAXLIGHTMAPS; j++)
-		{
+	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		for (j = 0; j < MAXLIGHTMAPS; j++) {
 			f->styles[j] = 255;
 		}
-        return;                                            // non-lit texture
-    }
+		return; // non-lit texture
+	}
 
 	f_styles[0] = 0;
-	if (g_face_patches[facenum] && g_face_patches[facenum]->emitstyle)
-	{
+	if (g_face_patches[facenum] && g_face_patches[facenum]->emitstyle) {
 		f_styles[1] = g_face_patches[facenum]->emitstyle;
 	}
 
-    memset(&l, 0, sizeof(l));
+	memset(&l, 0, sizeof(l));
 
-    l.surfnum = facenum;
-    l.face = f;
+	l.surfnum = facenum;
+	l.face = f;
 
-	VectorCopy (g_translucenttextures[g_texinfo[f->texinfo].miptex], l.translucent_v);
-	l.translucent_b = !vectors_almost_same (l.translucent_v, float3_array{});
+	VectorCopy(
+		g_translucenttextures[g_texinfo[f->texinfo].miptex], l.translucent_v
+	);
+	l.translucent_b = !vectors_almost_same(l.translucent_v, float3_array{});
 	l.miptex = g_texinfo[f->texinfo].miptex;
 
-    //
-    // rotate plane
-    //
-    plane = getPlaneFromFace(f);
-    VectorCopy(plane->normal, l.facenormal);
-    l.facedist = plane->dist;
+	//
+	// rotate plane
+	//
+	plane = getPlaneFromFace(f);
+	VectorCopy(plane->normal, l.facenormal);
+	l.facedist = plane->dist;
 
-    CalcFaceVectors(&l);
-    CalcFaceExtents(&l);
-    CalcPoints(&l);
-	CalcLightmap (&l
-		, f_styles
-		);
+	CalcFaceVectors(&l);
+	CalcFaceExtents(&l);
+	CalcPoints(&l);
+	CalcLightmap(&l, f_styles);
 
-    lightmapwidth = l.texsize[0] + 1;
-    lightmapheight = l.texsize[1] + 1;
+	lightmapwidth = l.texsize[0] + 1;
+	lightmapheight = l.texsize[1] + 1;
 
-    size = lightmapwidth * lightmapheight;
-    hlassume(size <= MAX_SINGLEMAP, assume_MAX_SINGLEMAP);
+	size = lightmapwidth * lightmapheight;
+	hlassume(size <= MAX_SINGLEMAP, assume_MAX_SINGLEMAP);
 
-    facelight[facenum].numsamples = l.numsurfpt;
+	facelight[facenum].numsamples = l.numsurfpt;
 
-	for (k = 0; k < ALLSTYLES; k++)
-	{
-		fl_samples[k] = (sample_t *)calloc (l.numsurfpt, sizeof(sample_t));
-		hlassume (fl_samples[k] != nullptr, assume_NoMemory);
+	for (k = 0; k < ALLSTYLES; k++) {
+		fl_samples[k] = (sample_t*) calloc(l.numsurfpt, sizeof(sample_t));
+		hlassume(fl_samples[k] != nullptr, assume_NoMemory);
 	}
-	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-	{
-		hlassume (patch->totalstyle_all = (std::array<unsigned char, ALLSTYLES> *)malloc (sizeof(std::array<unsigned char, ALLSTYLES>)), assume_NoMemory);
-		hlassume (patch->samplelight_all = (std::array<float3_array, ALLSTYLES> *)malloc (sizeof (std::array<float3_array, ALLSTYLES>)), assume_NoMemory);
-		hlassume (patch->totallight_all = (std::array<float3_array, ALLSTYLES> *)malloc (sizeof (std::array<float3_array, ALLSTYLES>)), assume_NoMemory);
-		hlassume (patch->directlight_all = (std::array<float3_array, ALLSTYLES> *)malloc (sizeof (std::array<float3_array, ALLSTYLES>)), assume_NoMemory);
-		for (j = 0; j < ALLSTYLES; j++)
-		{
+	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
+		hlassume(
+			patch->totalstyle_all = (std::array<unsigned char, ALLSTYLES>*)
+				malloc(sizeof(std::array<unsigned char, ALLSTYLES>)),
+			assume_NoMemory
+		);
+		hlassume(
+			patch->samplelight_all = (std::array<float3_array, ALLSTYLES>*)
+				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
+			assume_NoMemory
+		);
+		hlassume(
+			patch->totallight_all = (std::array<float3_array, ALLSTYLES>*)
+				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
+			assume_NoMemory
+		);
+		hlassume(
+			patch->directlight_all = (std::array<float3_array, ALLSTYLES>*)
+				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
+			assume_NoMemory
+		);
+		for (j = 0; j < ALLSTYLES; j++) {
 			(*patch->totalstyle_all)[j] = 255;
-			VectorClear ((*patch->samplelight_all)[j]);
-			VectorClear ((*patch->totallight_all)[j]);
-			VectorClear ((*patch->directlight_all)[j]);
+			VectorClear((*patch->samplelight_all)[j]);
+			VectorClear((*patch->totallight_all)[j]);
+			VectorClear((*patch->directlight_all)[j]);
 		}
 		(*patch->totalstyle_all)[0] = 0;
 	}
 
-	sample_wallflags = (int *)malloc ((2 * l.lmcache_side + 1) * (2 * l.lmcache_side + 1) * sizeof (int));
-    spot = l.surfpt[0].data();
-    for (i = 0; i < l.numsurfpt; i++, spot += 3)
-    {
-
-        for (k = 0; k < ALLSTYLES; k++)
-        {
-            VectorCopy(spot, fl_samples[k][i].pos);
+	sample_wallflags = (int*) malloc(
+		(2 * l.lmcache_side + 1) * (2 * l.lmcache_side + 1) * sizeof(int)
+	);
+	spot = l.surfpt[0].data();
+	for (i = 0; i < l.numsurfpt; i++, spot += 3) {
+		for (k = 0; k < ALLSTYLES; k++) {
+			VectorCopy(spot, fl_samples[k][i].pos);
 			fl_samples[k][i].surface = l.surfpt_surface[i];
-        }
+		}
 
 		int s, t, pos;
 		int s_center, t_center;
@@ -3548,197 +3932,239 @@ void            BuildFacelights(const int facenum)
 		float3_array centernormal;
 		float weighting_correction;
 		int pass;
-		s_center = (i % lightmapwidth) * l.lmcache_density + l.lmcache_offset;
-		t_center = (i / lightmapwidth) * l.lmcache_density + l.lmcache_offset;
+		s_center
+			= (i % lightmapwidth) * l.lmcache_density + l.lmcache_offset;
+		t_center
+			= (i / lightmapwidth) * l.lmcache_density + l.lmcache_offset;
 		sizehalf = 0.5 * g_blur * l.lmcache_density;
 		subsamples = 0.0;
-		VectorCopy (l.lmcache_normal[s_center + l.lmcachewidth * t_center], centernormal);
-		if (g_bleedfix && !g_drawnudge)
-		{
+		VectorCopy(
+			l.lmcache_normal[s_center + l.lmcachewidth * t_center],
+			centernormal
+		);
+		if (g_bleedfix && !g_drawnudge) {
 			int s_origin = s_center;
 			int t_origin = t_center;
-			for (s = s_center - l.lmcache_side; s <= s_center + l.lmcache_side; s++)
-			{
-				for (t = t_center - l.lmcache_side; t <= t_center + l.lmcache_side; t++)
-				{
-					int *pwallflags = &sample_wallflags[(s - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (t - t_center + l.lmcache_side)];
-					*pwallflags = l.lmcache_wallflags[s + l.lmcachewidth * t];
+			for (s = s_center - l.lmcache_side;
+				 s <= s_center + l.lmcache_side; s++) {
+				for (t = t_center - l.lmcache_side;
+					 t <= t_center + l.lmcache_side; t++) {
+					int* pwallflags
+						= &sample_wallflags
+							  [(s - s_center + l.lmcache_side)
+							   + (2 * l.lmcache_side + 1)
+								   * (t - t_center + l.lmcache_side)];
+					*pwallflags
+						= l.lmcache_wallflags[s + l.lmcachewidth * t];
 				}
 			}
 			// project the "shadow" from the origin point
-			for (s = s_center - l.lmcache_side; s <= s_center + l.lmcache_side; s++)
-			{
-				for (t = t_center - l.lmcache_side; t <= t_center + l.lmcache_side; t++)
-				{
-					int *pwallflags = &sample_wallflags[(s - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (t - t_center + l.lmcache_side)];
-					int coord[2] = {s - s_origin, t - t_origin};
-					int axis = abs(coord[0]) >= abs(coord[1])? 0: 1;
-					int sign = coord[axis] >= 0? 1: -1;
+			for (s = s_center - l.lmcache_side;
+				 s <= s_center + l.lmcache_side; s++) {
+				for (t = t_center - l.lmcache_side;
+					 t <= t_center + l.lmcache_side; t++) {
+					int* pwallflags
+						= &sample_wallflags
+							  [(s - s_center + l.lmcache_side)
+							   + (2 * l.lmcache_side + 1)
+								   * (t - t_center + l.lmcache_side)];
+					int coord[2] = { s - s_origin, t - t_origin };
+					int axis = abs(coord[0]) >= abs(coord[1]) ? 0 : 1;
+					int sign = coord[axis] >= 0 ? 1 : -1;
 					bool blocked1 = false;
 					bool blocked2 = false;
-					for (int dist = 1; dist < abs (coord[axis]); dist++)
-					{
+					for (int dist = 1; dist < abs(coord[axis]); dist++) {
 						int test1[2];
 						int test2[2];
 						test1[axis] = test2[axis] = sign * dist;
-						double intercept = (double)coord[1-axis] * (double)test1[axis] / (double)coord[axis];
-						test1[1-axis] = (int)floor (intercept + 0.01);
-						test2[1-axis] = (int)ceil (intercept - 0.01);
-						if (abs (test1[0] + s_origin - s_center) > l.lmcache_side || abs (test1[1] + t_origin - t_center) > l.lmcache_side ||
-							abs (test2[0] + s_origin - s_center) > l.lmcache_side || abs (test2[1] + t_origin - t_center) > l.lmcache_side )
-						{
-							Warning ("HLRAD_AVOIDWALLBLEED: internal error. Contact vluzacn@163.com concerning this issue.");
+						double intercept = (double) coord[1 - axis]
+							* (double) test1[axis] / (double) coord[axis];
+						test1[1 - axis] = (int) floor(intercept + 0.01);
+						test2[1 - axis] = (int) ceil(intercept - 0.01);
+						if (abs(test1[0] + s_origin - s_center)
+								> l.lmcache_side
+							|| abs(test1[1] + t_origin - t_center)
+								> l.lmcache_side
+							|| abs(test2[0] + s_origin - s_center)
+								> l.lmcache_side
+							|| abs(test2[1] + t_origin - t_center)
+								> l.lmcache_side) {
+							Warning(
+								"HLRAD_AVOIDWALLBLEED: internal error. Contact vluzacn@163.com concerning this issue."
+							);
 							continue;
 						}
-						int wallflags1 = sample_wallflags[(test1[0] + s_origin - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (test1[1] + t_origin - t_center + l.lmcache_side)];
-						int wallflags2 = sample_wallflags[(test2[0] + s_origin - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (test2[1] + t_origin - t_center + l.lmcache_side)];
-						if (wallflags1 & WALLFLAG_NUDGED)
-						{
+						int wallflags1 = sample_wallflags
+							[(test1[0] + s_origin - s_center
+							  + l.lmcache_side)
+							 + (2 * l.lmcache_side + 1)
+								 * (test1[1] + t_origin - t_center
+									+ l.lmcache_side)];
+						int wallflags2 = sample_wallflags
+							[(test2[0] + s_origin - s_center
+							  + l.lmcache_side)
+							 + (2 * l.lmcache_side + 1)
+								 * (test2[1] + t_origin - t_center
+									+ l.lmcache_side)];
+						if (wallflags1 & WALLFLAG_NUDGED) {
 							blocked1 = true;
 						}
-						if (wallflags2 & WALLFLAG_NUDGED)
-						{
+						if (wallflags2 & WALLFLAG_NUDGED) {
 							blocked2 = true;
 						}
 					}
-					if (blocked1 && blocked2)
-					{
+					if (blocked1 && blocked2) {
 						*pwallflags |= WALLFLAG_SHADOWED;
 					}
 				}
 			}
 		}
-	  for (pass = 0; pass < 2; pass++)
-	  {
-		for (s = s_center - l.lmcache_side; s <= s_center + l.lmcache_side; s++)
-		{
-			for (t = t_center - l.lmcache_side; t <= t_center + l.lmcache_side; t++)
-			{
-				weighting = (std::min ((float) 0.5, sizehalf - (s - s_center)) - std::max((float) -0.5, -sizehalf - (s - s_center)))
-					* (std::min ((float) 0.5, sizehalf - (t - t_center)) - std::max((float) -0.5, -sizehalf - (t - t_center)));
-				if (g_bleedfix && !g_drawnudge)
-				{
-					int wallflags = sample_wallflags[(s - s_center + l.lmcache_side) + (2 * l.lmcache_side + 1) * (t - t_center + l.lmcache_side)];
-					if (wallflags & (WALLFLAG_BLOCKED | WALLFLAG_SHADOWED))
-					{
-						continue;
-					}
-					if (wallflags & WALLFLAG_NUDGED)
-					{
-						if (pass == 0)
-						{
+		for (pass = 0; pass < 2; pass++) {
+			for (s = s_center - l.lmcache_side;
+				 s <= s_center + l.lmcache_side; s++) {
+				for (t = t_center - l.lmcache_side;
+					 t <= t_center + l.lmcache_side; t++) {
+					weighting
+						= (std::min((float) 0.5, sizehalf - (s - s_center))
+						   - std::max(
+							   (float) -0.5, -sizehalf - (s - s_center)
+						   ))
+						* (std::min((float) 0.5, sizehalf - (t - t_center))
+						   - std::max(
+							   (float) -0.5, -sizehalf - (t - t_center)
+						   ));
+					if (g_bleedfix && !g_drawnudge) {
+						int wallflags = sample_wallflags
+							[(s - s_center + l.lmcache_side)
+							 + (2 * l.lmcache_side + 1)
+								 * (t - t_center + l.lmcache_side)];
+						if (wallflags
+							& (WALLFLAG_BLOCKED | WALLFLAG_SHADOWED)) {
 							continue;
 						}
+						if (wallflags & WALLFLAG_NUDGED) {
+							if (pass == 0) {
+								continue;
+							}
+						}
 					}
+					pos = s + l.lmcachewidth * t;
+					// when blur distance (g_blur) is large, the subsample
+					// can be very far from the original lightmap sample
+					// (aligned with interval TEXTURE_STEP (16.0)) in some
+					// cases such as a thin cylinder, the subsample can even
+					// grow into the opposite side as a result, when exposed
+					// to a directional light, the light on the cylinder may
+					// "leak" into the opposite dark side this correction
+					// limits the effect of blur distance when the normal
+					// changes very fast this correction will not break the
+					// smoothness that HLRAD_GROWSAMPLE ensures
+					weighting_correction
+						= DotProduct(l.lmcache_normal[pos], centernormal);
+					weighting_correction = (weighting_correction > 0)
+						? weighting_correction * weighting_correction
+						: 0;
+					weighting = weighting * weighting_correction;
+					for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+						VectorMA(
+							fl_samples[j][i].light, weighting,
+							l.lmcache[pos][j], fl_samples[j][i].light
+						);
+					}
+					subsamples += weighting;
 				}
-				pos = s + l.lmcachewidth * t;
-				// when blur distance (g_blur) is large, the subsample can be very far from the original lightmap sample (aligned with interval TEXTURE_STEP (16.0))
-				// in some cases such as a thin cylinder, the subsample can even grow into the opposite side
-				// as a result, when exposed to a directional light, the light on the cylinder may "leak" into the opposite dark side
-				// this correction limits the effect of blur distance when the normal changes very fast
-				// this correction will not break the smoothness that HLRAD_GROWSAMPLE ensures
-				weighting_correction = DotProduct (l.lmcache_normal[pos], centernormal);
-				weighting_correction = (weighting_correction > 0)? weighting_correction * weighting_correction: 0;
-				weighting = weighting * weighting_correction;
-				for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-				{
-					VectorMA (fl_samples[j][i].light, weighting, l.lmcache[pos][j], fl_samples[j][i].light);
+			}
+			if (subsamples > NORMAL_EPSILON) {
+				break;
+			} else {
+				subsamples = 0.0;
+				for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+					VectorClear(fl_samples[j][i].light);
 				}
-				subsamples += weighting;
 			}
 		}
-		if (subsamples > NORMAL_EPSILON)
-		{
-			break;
-		}
-		else
-		{
-			subsamples = 0.0;
-			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-			{
-				VectorClear (fl_samples[j][i].light);
+		if (subsamples > 0) {
+			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+				VectorScale(
+					fl_samples[j][i].light, 1.0 / subsamples,
+					fl_samples[j][i].light
+				);
 			}
 		}
-	  }
-		if (subsamples > 0)
-		{
-			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-			{
-				VectorScale (fl_samples[j][i].light, 1.0 / subsamples, fl_samples[j][i].light);
-			}
-		}
-    } // end of i loop
-	free (sample_wallflags);
+	} // end of i loop
+	free(sample_wallflags);
 
-    // average up the direct light on each patch for radiosity
-	AddSamplesToPatches ((const sample_t **)fl_samples, f_styles, facenum, &l);
-    {
-        for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-        {
-            //LRC:
+	// average up the direct light on each patch for radiosity
+	AddSamplesToPatches(
+		(sample_t const **) fl_samples, f_styles, facenum, &l
+	);
+	{
+		for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
+			// LRC:
 			unsigned istyle;
-			if (patch->samples <= ON_EPSILON * ON_EPSILON)
+			if (patch->samples <= ON_EPSILON * ON_EPSILON) {
 				patch->samples = 0.0;
-			if (patch->samples)
-			{
-				for (istyle = 0; istyle < ALLSTYLES && (*patch->totalstyle_all)[istyle] != 255; istyle++)
-				{
+			}
+			if (patch->samples) {
+				for (istyle = 0; istyle < ALLSTYLES
+					 && (*patch->totalstyle_all)[istyle] != 255;
+					 istyle++) {
 					float3_array v;
-					VectorScale ((*patch->samplelight_all)[istyle], 1.0f / patch->samples, v);
-					VectorAdd ((*patch->directlight_all)[istyle], v, (*patch->directlight_all)[istyle]);
+					VectorScale(
+						(*patch->samplelight_all)[istyle],
+						1.0f / patch->samples, v
+					);
+					VectorAdd(
+						(*patch->directlight_all)[istyle], v,
+						(*patch->directlight_all)[istyle]
+					);
 				}
 			}
-            //LRC (ends)
-        }
-    }
-	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-	{
-		// get the PVS for the pos to limit the number of checks
-		if (!g_visdatasize)
-		{
-			memset (pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
-			lastoffset = -1;
+			// LRC (ends)
 		}
-		else
-		{
-			dleaf_t*        leaf = PointInLeaf(patch->origin);
+	}
+	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
+		// get the PVS for the pos to limit the number of checks
+		if (!g_visdatasize) {
+			memset(pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
+			lastoffset = -1;
+		} else {
+			dleaf_t* leaf = PointInLeaf(patch->origin);
 
 			thisoffset = leaf->visofs;
-			if (patch == g_face_patches[facenum] || thisoffset != lastoffset)
-			{
-				if (thisoffset == -1)
-				{
-					memset (pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
-				}
-				else
-				{
-					DecompressVis((byte*) &g_dvisdata[leaf->visofs], pvs, sizeof(pvs));
+			if (patch == g_face_patches[facenum]
+				|| thisoffset != lastoffset) {
+				if (thisoffset == -1) {
+					memset(pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
+				} else {
+					DecompressVis(
+						(byte*) &g_dvisdata[leaf->visofs], pvs, sizeof(pvs)
+					);
 				}
 			}
 			lastoffset = thisoffset;
 		}
-		if (l.translucent_b)
-		{
-			if (!g_visdatasize)
-			{
-				memset (pvs2, 255, (g_dmodels[0].visleafs + 7) / 8);
+		if (l.translucent_b) {
+			if (!g_visdatasize) {
+				memset(pvs2, 255, (g_dmodels[0].visleafs + 7) / 8);
 				lastoffset2 = -1;
-			}
-			else
-			{
-				VectorMA (patch->origin, -(g_translucentdepth+2*PATCH_HUNT_OFFSET), l.facenormal, spot2);
-				dleaf_t*        leaf2 = PointInLeaf(spot2);
+			} else {
+				VectorMA(
+					patch->origin,
+					-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+					l.facenormal, spot2
+				);
+				dleaf_t* leaf2 = PointInLeaf(spot2);
 
 				thisoffset2 = leaf2->visofs;
-				if (l.numsurfpt == 0 || thisoffset2 != lastoffset2)
-				{
-					if (thisoffset2 == -1)
-					{
-						memset (pvs2, 0, (g_dmodels[0].visleafs + 7) / 8);
-					}
-					else
-					{
-						DecompressVis((byte*) &g_dvisdata[leaf2->visofs], pvs2, sizeof(pvs2));
+				if (l.numsurfpt == 0 || thisoffset2 != lastoffset2) {
+					if (thisoffset2 == -1) {
+						memset(pvs2, 0, (g_dmodels[0].visleafs + 7) / 8);
+					} else {
+						DecompressVis(
+							(byte*) &g_dvisdata[leaf2->visofs], pvs2,
+							sizeof(pvs2)
+						);
 					}
 				}
 				lastoffset2 = thisoffset2;
@@ -3746,345 +4172,300 @@ void            BuildFacelights(const int facenum)
 			std::array<float3_array, ALLSTYLES> frontsampled{};
 			std::array<float3_array, ALLSTYLES> backsampled{};
 			normal2 = negate_vector(l.facenormal);
-			GatherSampleLight (patch->origin, pvs, l.facenormal, frontsampled, 
-				(*patch->totalstyle_all)
-				, 1
-				, l.miptex
-				, facenum
-				);
-			GatherSampleLight (spot2, pvs2, normal2, backsampled, 
-				(*patch->totalstyle_all)
-				, 1
-				, l.miptex
-				, facenum
-				);
-			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-			{
-				for (int x = 0; x < 3; x++)
-				{
-					(*patch->totallight_all)[j][x] += (1.0 - l.translucent_v[x]) * frontsampled[j][x] + l.translucent_v[x] * backsampled[j][x];
+			GatherSampleLight(
+				patch->origin, pvs, l.facenormal, frontsampled,
+				(*patch->totalstyle_all), 1, l.miptex, facenum
+			);
+			GatherSampleLight(
+				spot2, pvs2, normal2, backsampled, (*patch->totalstyle_all),
+				1, l.miptex, facenum
+			);
+			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+				 j++) {
+				for (int x = 0; x < 3; x++) {
+					(*patch->totallight_all)[j][x]
+						+= (1.0 - l.translucent_v[x]) * frontsampled[j][x]
+						+ l.translucent_v[x] * backsampled[j][x];
 				}
 			}
-		}
-		else
-		{
-			GatherSampleLight (patch->origin, pvs, l.facenormal, 
-				*patch->totallight_all, 
-				*patch->totalstyle_all
-				, 1
-				, l.miptex
-				, facenum
-				);
+		} else {
+			GatherSampleLight(
+				patch->origin, pvs, l.facenormal, *patch->totallight_all,
+				*patch->totalstyle_all, 1, l.miptex, facenum
+			);
 		}
 	}
 
-    // add an ambient term if desired
-    if (g_ambient[0] || g_ambient[1] || g_ambient[2])
-    {
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-		{
-			if (f_styles[j] == 0)
-			{
+	// add an ambient term if desired
+	if (g_ambient[0] || g_ambient[1] || g_ambient[2]) {
+		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+			if (f_styles[j] == 0) {
 				s = fl_samples[j];
-                for (i = 0; i < l.numsurfpt; i++, s++)
-                {
-                    VectorAdd(s->light, g_ambient, s->light);
-                }
-                break;
-            }
-        }
+				for (i = 0; i < l.numsurfpt; i++, s++) {
+					VectorAdd(s->light, g_ambient, s->light);
+				}
+				break;
+			}
+		}
+	}
 
-    }
-
-    // add circus lighting for finding black lightmaps
-    if (g_circus)
-    {
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-		{
-			if (f_styles[j] == 0)
-			{
-                int             amt = 7;
+	// add circus lighting for finding black lightmaps
+	if (g_circus) {
+		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+			if (f_styles[j] == 0) {
+				int amt = 7;
 
 				s = fl_samples[j];
 
-                while ((l.numsurfpt % amt) == 0)
-                {
-                    amt--;
-                }
-                if (amt < 2)
-                {
-                    amt = 7;
-                }
+				while ((l.numsurfpt % amt) == 0) {
+					amt--;
+				}
+				if (amt < 2) {
+					amt = 7;
+				}
 
-                for (i = 0; i < l.numsurfpt; i++, s++)
-                {
-                    if ((s->light[0] == 0) && (s->light[1] == 0) && (s->light[2] == 0))
-                    {
-                        VectorAdd(s->light, s_circuscolors[i % amt], s->light);
-                    }
-                }
-                break;
-            }
-        }
-    }
+				for (i = 0; i < l.numsurfpt; i++, s++) {
+					if ((s->light[0] == 0) && (s->light[1] == 0)
+						&& (s->light[2] == 0)) {
+						VectorAdd(
+							s->light, s_circuscolors[i % amt], s->light
+						);
+					}
+				}
+				break;
+			}
+		}
+	}
 
-    // light from dlight_threshold and above is sent out, but the
-    // texture itself should still be full bright
+	// light from dlight_threshold and above is sent out, but the
+	// texture itself should still be full bright
 
-    // if( VectorAvg( face_patches[facenum]->baselight ) >= dlight_threshold)       // Now all lighted surfaces glow
-    {
-        //LRC:
-		if (g_face_patches[facenum])
-		{
-			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-			{
-				if (f_styles[j] == g_face_patches[facenum]->emitstyle)
-				{
+	// if( VectorAvg( face_patches[facenum]->baselight ) >=
+	// dlight_threshold)       // Now all lighted surfaces glow
+	{
+		// LRC:
+		if (g_face_patches[facenum]) {
+			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+				if (f_styles[j] == g_face_patches[facenum]->emitstyle) {
 					break;
 				}
 			}
-			if (j == ALLSTYLES)
-			{
-				if (++stylewarningcount >= stylewarningnext)
-				{
+			if (j == ALLSTYLES) {
+				if (++stylewarningcount >= stylewarningnext) {
 					stylewarningnext = stylewarningcount * 2;
-					Warning("Too many direct light styles on a face(?,?,?)");
-					Warning(" total %d warnings for too many styles", stylewarningcount);
+					Warning("Too many direct light styles on a face(?,?,?)"
+					);
+					Warning(
+						" total %d warnings for too many styles",
+						stylewarningcount
+					);
 				}
-			}
-			else
-			{
-				if (f_styles[j] == 255)
-				{
+			} else {
+				if (f_styles[j] == 255) {
 					f_styles[j] = g_face_patches[facenum]->emitstyle;
 				}
 
 				s = fl_samples[j];
-				for (i = 0; i < l.numsurfpt; i++, s++)
-				{
-					VectorAdd(s->light, g_face_patches[facenum]->baselight, s->light);
+				for (i = 0; i < l.numsurfpt; i++, s++) {
+					VectorAdd(
+						s->light, g_face_patches[facenum]->baselight,
+						s->light
+					);
 				}
 			}
 		}
-        //LRC (ends)
-    }
+		// LRC (ends)
+	}
 	// samples
 	{
-		facelight_t *fl = &facelight[facenum];
+		facelight_t* fl = &facelight[facenum];
 		float maxlights[ALLSTYLES];
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++)
-		{
+		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			maxlights[j] = 0;
-			for (i = 0; i < fl->numsamples; i++)
-			{
-				float b = VectorMaximum (fl_samples[j][i].light);
+			for (i = 0; i < fl->numsamples; i++) {
+				float b = VectorMaximum(fl_samples[j][i].light);
 				maxlights[j] = std::max(maxlights[j], b);
 			}
-			if (maxlights[j] <= g_corings[f_styles[j]] * 0.1) // light is too dim, discard this style to reduce RAM usage
+			if (maxlights[j] <= g_corings[f_styles[j]]
+					* 0.1) // light is too dim, discard this style to reduce
+						   // RAM usage
 			{
-				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
-					ThreadLock ();
-					if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-					{
+				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
+					ThreadLock();
+					if (maxlights[j]
+						> g_maxdiscardedlight + NORMAL_EPSILON) {
 						g_maxdiscardedlight = maxlights[j];
 						g_maxdiscardedpos = g_face_centroids[facenum];
 					}
-					ThreadUnlock ();
+					ThreadUnlock();
 				}
 				maxlights[j] = 0;
 			}
 		}
-		for (k = 0; k < MAXLIGHTMAPS; k++)
-		{
+		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			int bestindex = -1;
-			if (k == 0)
-			{
+			if (k == 0) {
 				bestindex = 0;
-			}
-			else
-			{
+			} else {
 				float bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++)
-				{
-					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
-					{
+				for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++) {
+					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
 						bestmaxlight = maxlights[j];
 						bestindex = j;
 					}
 				}
 			}
-			if (bestindex != -1)
-			{
+			if (bestindex != -1) {
 				maxlights[bestindex] = 0;
 				f->styles[k] = f_styles[bestindex];
-				fl->samples[k] = (sample_t *)malloc (fl->numsamples * sizeof (sample_t));
-				hlassume (fl->samples[k] != nullptr, assume_NoMemory);
-				memcpy (fl->samples[k], fl_samples[bestindex], fl->numsamples * sizeof (sample_t));
-			}
-			else
-			{
+				fl->samples[k]
+					= (sample_t*) malloc(fl->numsamples * sizeof(sample_t));
+				hlassume(fl->samples[k] != nullptr, assume_NoMemory);
+				memcpy(
+					fl->samples[k], fl_samples[bestindex],
+					fl->numsamples * sizeof(sample_t)
+				);
+			} else {
 				f->styles[k] = 255;
 				fl->samples[k] = nullptr;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++)
-		{
-			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-			{
-				ThreadLock ();
-				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
+		for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++) {
+			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
+				ThreadLock();
+				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[j];
 					g_maxdiscardedpos = g_face_centroids[facenum];
 				}
-				ThreadUnlock ();
+				ThreadUnlock();
 			}
 		}
-		for (j = 0; j < ALLSTYLES; j++)
-		{
-			free (fl_samples[j]);
+		for (j = 0; j < ALLSTYLES; j++) {
+			free(fl_samples[j]);
 		}
 	}
 	// patches
-	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-	{
+	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		float maxlights[ALLSTYLES];
-		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-		{
-			maxlights[j] = VectorMaximum ((*patch->totallight_all)[j]);
+		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+			 j++) {
+			maxlights[j] = VectorMaximum((*patch->totallight_all)[j]);
 		}
-		for (k = 0; k < MAXLIGHTMAPS; k++)
-		{
+		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			int bestindex = -1;
-			if (k == 0)
-			{
+			if (k == 0) {
 				bestindex = 0;
-			}
-			else
-			{
+			} else {
 				float bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-				{
-					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
-					{
+				for (j = 1;
+					 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+					 j++) {
+					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
 						bestmaxlight = maxlights[j];
 						bestindex = j;
 					}
 				}
 			}
-			if (bestindex != -1)
-			{
+			if (bestindex != -1) {
 				maxlights[bestindex] = 0;
 				patch->totalstyle[k] = (*patch->totalstyle_all)[bestindex];
-				VectorCopy ((*patch->totallight_all)[bestindex], patch->totallight[k]);
-			}
-			else
-			{
+				VectorCopy(
+					(*patch->totallight_all)[bestindex],
+					patch->totallight[k]
+				);
+			} else {
 				patch->totalstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-		{
-			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-			{
-				ThreadLock ();
-				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
+		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+			 j++) {
+			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
+				ThreadLock();
+				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[j];
 					g_maxdiscardedpos = patch->origin;
 				}
-				ThreadUnlock ();
+				ThreadUnlock();
 			}
 		}
-		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-		{
-			maxlights[j] = VectorMaximum ((*patch->directlight_all)[j]);
+		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+			 j++) {
+			maxlights[j] = VectorMaximum((*patch->directlight_all)[j]);
 		}
-		for (k = 0; k < MAXLIGHTMAPS; k++)
-		{
+		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			int bestindex = -1;
-			if (k == 0)
-			{
+			if (k == 0) {
 				bestindex = 0;
-			}
-			else
-			{
+			} else {
 				float bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-				{
-					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
-					{
+				for (j = 1;
+					 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+					 j++) {
+					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
 						bestmaxlight = maxlights[j];
 						bestindex = j;
 					}
 				}
 			}
-			if (bestindex != -1)
-			{
+			if (bestindex != -1) {
 				maxlights[bestindex] = 0;
 				patch->directstyle[k] = (*patch->totalstyle_all)[bestindex];
-				VectorCopy ((*patch->directlight_all)[bestindex], patch->directlight[k]);
-			}
-			else
-			{
+				VectorCopy(
+					(*patch->directlight_all)[bestindex],
+					patch->directlight[k]
+				);
+			} else {
 				patch->directstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255; j++)
-		{
-			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-			{
-				ThreadLock ();
-				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
+		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+			 j++) {
+			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
+				ThreadLock();
+				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[j];
 					g_maxdiscardedpos = patch->origin;
 				}
-				ThreadUnlock ();
+				ThreadUnlock();
 			}
 		}
-		free (patch->totalstyle_all);
+		free(patch->totalstyle_all);
 		patch->totalstyle_all = nullptr;
-		free (patch->samplelight_all);
+		free(patch->samplelight_all);
 		patch->samplelight_all = nullptr;
-		free (patch->totallight_all);
+		free(patch->totallight_all);
 		patch->totallight_all = nullptr;
-		free (patch->directlight_all);
+		free(patch->directlight_all);
 		patch->directlight_all = nullptr;
 	}
-	free (l.lmcache);
-	free (l.lmcache_normal);
-	free (l.lmcache_wallflags);
-	free (l.surfpt_position);
-	free (l.surfpt_surface);
+	free(l.lmcache);
+	free(l.lmcache_normal);
+	free(l.lmcache_wallflags);
+	free(l.surfpt_position);
+	free(l.surfpt_surface);
 }
 
 // =====================================================================================
 //  PrecompLightmapOffsets
 // =====================================================================================
-void            PrecompLightmapOffsets()
-{
-    int             facenum;
-    dface_t*        f;
-    facelight_t*    fl;
-    int             lightstyles;
+void PrecompLightmapOffsets() {
+	int facenum;
+	dface_t* f;
+	facelight_t* fl;
+	int lightstyles;
 
-    int             i; //LRC
-	patch_t*        patch; //LRC
+	int i;			// LRC
+	patch_t* patch; // LRC
 
-    std::size_t newLightDataSize = 0;
+	std::size_t newLightDataSize = 0;
 
-    for (facenum = 0; facenum < g_numfaces; facenum++)
-    {
-        f = &g_dfaces[facenum];
-        fl = &facelight[facenum];
+	for (facenum = 0; facenum < g_numfaces; facenum++) {
+		f = &g_dfaces[facenum];
+		fl = &facelight[facenum];
 
-        if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-        {
-            continue;                                      // non-lit texture
-        }
-
+		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+			continue; // non-lit texture
+		}
 
 		{
 			int i, j, k;
@@ -4092,39 +4473,42 @@ void            PrecompLightmapOffsets()
 			{
 				std::array<float3_array, ALLSTYLES> maxlights1;
 				std::array<float3_array, ALLSTYLES> maxlights2;
-				for (j = 0; j < ALLSTYLES; j++)
-				{
-					VectorClear (maxlights1[j]);
-					VectorClear (maxlights2[j]);
+				for (j = 0; j < ALLSTYLES; j++) {
+					VectorClear(maxlights1[j]);
+					VectorClear(maxlights2[j]);
 				}
-				for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++)
-				{
-					for (i = 0; i < fl->numsamples; i++)
-					{
-						maxlights1[f->styles[k]] = vector_maximums(maxlights1[f->styles[k]], fl->samples[k][i].light);
+				for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
+					for (i = 0; i < fl->numsamples; i++) {
+						maxlights1[f->styles[k]] = vector_maximums(
+							maxlights1[f->styles[k]],
+							fl->samples[k][i].light
+						);
 					}
 				}
 				int numpatches;
-				const int *patches;
-				GetTriangulationPatches (facenum, &numpatches, &patches); // collect patches and their neighbors
+				int const * patches;
+				GetTriangulationPatches(
+					facenum, &numpatches, &patches
+				); // collect patches and their neighbors
 
-				for (i = 0; i < numpatches; i++)
-				{
+				for (i = 0; i < numpatches; i++) {
 					patch = &g_patches[patches[i]];
-					for (k = 0; k < MAXLIGHTMAPS && patch->totalstyle[k] != 255; k++)
-					{
-						maxlights2[patch->totalstyle[k]] = vector_maximums(maxlights2[patch->totalstyle[k]], patch->totallight[k]);
+					for (k = 0;
+						 k < MAXLIGHTMAPS && patch->totalstyle[k] != 255;
+						 k++) {
+						maxlights2[patch->totalstyle[k]] = vector_maximums(
+							maxlights2[patch->totalstyle[k]],
+							patch->totallight[k]
+						);
 					}
 				}
-				for (j = 0; j < ALLSTYLES; j++)
-				{
+				for (j = 0; j < ALLSTYLES; j++) {
 					float3_array v;
-					VectorAdd (maxlights1[j], maxlights2[j], v);
-					maxlights[j] = VectorMaximum (v);
-					if (maxlights[j] <= g_corings[j] * 0.01)
-					{
-						if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-						{
+					VectorAdd(maxlights1[j], maxlights2[j], v);
+					maxlights[j] = VectorMaximum(v);
+					if (maxlights[j] <= g_corings[j] * 0.01) {
+						if (maxlights[j]
+							> g_maxdiscardedlight + NORMAL_EPSILON) {
 							g_maxdiscardedlight = maxlights[j];
 							g_maxdiscardedpos = g_face_centroids[facenum];
 						}
@@ -4133,124 +4517,111 @@ void            PrecompLightmapOffsets()
 				}
 			}
 			unsigned char oldstyles[MAXLIGHTMAPS];
-			sample_t *oldsamples[MAXLIGHTMAPS];
-			for (k = 0; k < MAXLIGHTMAPS; k++)
-			{
+			sample_t* oldsamples[MAXLIGHTMAPS];
+			for (k = 0; k < MAXLIGHTMAPS; k++) {
 				oldstyles[k] = f->styles[k];
 				oldsamples[k] = fl->samples[k];
 			}
-			for (k = 0; k < MAXLIGHTMAPS; k++)
-			{
+			for (k = 0; k < MAXLIGHTMAPS; k++) {
 				unsigned char beststyle = 255;
-				if (k == 0)
-				{
+				if (k == 0) {
 					beststyle = 0;
-				}
-				else
-				{
+				} else {
 					float bestmaxlight = 0;
-					for (j = 1; j < ALLSTYLES; j++)
-					{
-						if (maxlights[j] > bestmaxlight + NORMAL_EPSILON)
-						{
+					for (j = 1; j < ALLSTYLES; j++) {
+						if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
 							bestmaxlight = maxlights[j];
 							beststyle = j;
 						}
 					}
 				}
-				if (beststyle != 255)
-				{
+				if (beststyle != 255) {
 					maxlights[beststyle] = 0;
 					f->styles[k] = beststyle;
-					fl->samples[k] = (sample_t *)malloc (fl->numsamples * sizeof (sample_t));
-					hlassume (fl->samples[k] != nullptr, assume_NoMemory);
-					for (i = 0; i < MAXLIGHTMAPS && oldstyles[i] != 255; i++)
-					{
-						if (oldstyles[i] == f->styles[k])
-						{
+					fl->samples[k] = (sample_t*) malloc(
+						fl->numsamples * sizeof(sample_t)
+					);
+					hlassume(fl->samples[k] != nullptr, assume_NoMemory);
+					for (i = 0; i < MAXLIGHTMAPS && oldstyles[i] != 255;
+						 i++) {
+						if (oldstyles[i] == f->styles[k]) {
 							break;
 						}
 					}
-					if (i < MAXLIGHTMAPS && oldstyles[i] != 255)
-					{
-						memcpy (fl->samples[k], oldsamples[i], fl->numsamples * sizeof (sample_t));
-					}
-					else
-					{
-						memcpy (fl->samples[k], oldsamples[0], fl->numsamples * sizeof (sample_t)); // copy 'sample.pos' from style 0 to the new style - because 'sample.pos' is actually the same for all styles! (why did we decide to store it in many places?)
-						for (j = 0; j < fl->numsamples; j++)
-						{
-							VectorClear (fl->samples[k][j].light);
+					if (i < MAXLIGHTMAPS && oldstyles[i] != 255) {
+						memcpy(
+							fl->samples[k], oldsamples[i],
+							fl->numsamples * sizeof(sample_t)
+						);
+					} else {
+						memcpy(
+							fl->samples[k], oldsamples[0],
+							fl->numsamples * sizeof(sample_t)
+						); // copy 'sample.pos' from style 0 to the new
+						   // style - because 'sample.pos' is actually the
+						   // same for all styles! (why did we decide to
+						   // store it in many places?)
+						for (j = 0; j < fl->numsamples; j++) {
+							VectorClear(fl->samples[k][j].light);
 						}
 					}
-				}
-				else
-				{
+				} else {
 					f->styles[k] = 255;
 					fl->samples[k] = nullptr;
 				}
 			}
-			for (j = 1; j < ALLSTYLES; j++)
-			{
-				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON)
-				{
+			for (j = 1; j < ALLSTYLES; j++) {
+				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[j];
 					g_maxdiscardedpos = g_face_centroids[facenum];
 				}
 			}
-			for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++)
-			{
-				free (oldsamples[k]);
+			for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++) {
+				free(oldsamples[k]);
 			}
 		}
 
-        for (lightstyles = 0; lightstyles < MAXLIGHTMAPS; lightstyles++)
-        {
-            if (f->styles[lightstyles] == 255)
-            {
-                break;
-            }
-        }
+		for (lightstyles = 0; lightstyles < MAXLIGHTMAPS; lightstyles++) {
+			if (f->styles[lightstyles] == 255) {
+				break;
+			}
+		}
 
-        if (!lightstyles)
-        {
-            continue;
-        }
+		if (!lightstyles) {
+			continue;
+		}
 
-        f->lightofs = newLightDataSize;
-        newLightDataSize += fl->numsamples * 3 * lightstyles;
-		hlassume (newLightDataSize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING); //lightdata
-
-    }
+		f->lightofs = newLightDataSize;
+		newLightDataSize += fl->numsamples * 3 * lightstyles;
+		hlassume(
+			newLightDataSize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING
+		); // lightdata
+	}
 	g_dlightdata.resize(newLightDataSize, std::byte(0));
 }
-void ReduceLightmap ()
-{
+
+void ReduceLightmap() {
 	std::vector<std::byte> oldlightdata;
 	using std::swap;
 	swap(oldlightdata, g_dlightdata);
 
 	int facenum;
-	for (facenum = 0; facenum < g_numfaces; facenum++)
-	{
-		dface_t *f = &g_dfaces[facenum];
-		facelight_t *fl = &facelight[facenum];
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-		{
-			continue;                                      // non-lit texture
+	for (facenum = 0; facenum < g_numfaces; facenum++) {
+		dface_t* f = &g_dfaces[facenum];
+		facelight_t* fl = &facelight[facenum];
+		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+			continue; // non-lit texture
 		}
-		// just need to zero the lightmap so that it won't contribute to lightdata size
-		if (IntForKey (g_face_entity[facenum], u8"zhlt_striprad"))
-		{
+		// just need to zero the lightmap so that it won't contribute to
+		// lightdata size
+		if (IntForKey(g_face_entity[facenum], u8"zhlt_striprad")) {
 			f->lightofs = g_dlightdata.size();
-			for (int k = 0; k < MAXLIGHTMAPS; k++)
-			{
+			for (int k = 0; k < MAXLIGHTMAPS; k++) {
 				f->styles[k] = 255;
 			}
 			continue;
 		}
-		if (f->lightofs == -1)
-		{
+		if (f->lightofs == -1) {
 			continue;
 		}
 
@@ -4259,34 +4630,43 @@ void ReduceLightmap ()
 		unsigned char oldstyles[MAXLIGHTMAPS];
 		oldofs = f->lightofs;
 		f->lightofs = g_dlightdata.size();
-		for (k = 0; k < MAXLIGHTMAPS; k++)
-		{
+		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			oldstyles[k] = f->styles[k];
 			f->styles[k] = 255;
 		}
 		int numstyles = 0;
-		for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++)
-		{
+		for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++) {
 			unsigned char maxb = 0;
-			for (i = 0; i < fl->numsamples; i++)
-			{
-				std::byte *v = &oldlightdata[oldofs + fl->numsamples * 3 * k + i * 3];
-				maxb = std::max({maxb, (std::uint8_t) v[0], (std::uint8_t) v[1], (std::uint8_t) v[2]});
+			for (i = 0; i < fl->numsamples; i++) {
+				std::byte* v
+					= &oldlightdata
+						  [oldofs + fl->numsamples * 3 * k + i * 3];
+				maxb = std::max({ maxb, (std::uint8_t) v[0],
+								  (std::uint8_t) v[1], (std::uint8_t) v[2] }
+				);
 			}
 			if (maxb <= 0) // black
 			{
 				continue;
 			}
 			f->styles[numstyles] = oldstyles[k];
-			hlassume (g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1) <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
-			
-			std::span toAppend{&oldlightdata[oldofs + fl->numsamples * 3 * k], std::size_t(fl->numsamples) * 3zu};
-			g_dlightdata.insert(g_dlightdata.end(), toAppend.begin(), toAppend.end());
+			hlassume(
+				g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1)
+					<= g_max_map_lightdata,
+				assume_MAX_MAP_LIGHTING
+			);
+
+			std::span toAppend{
+				&oldlightdata[oldofs + fl->numsamples * 3 * k],
+				std::size_t(fl->numsamples) * 3zu
+			};
+			g_dlightdata.insert(
+				g_dlightdata.end(), toAppend.begin(), toAppend.end()
+			);
 			numstyles++;
 		}
 	}
 }
-
 
 // Change the sample light right under a mdl file entity's origin.
 // Use this when "mdl" in shadow has incorrect brightness.
@@ -4299,299 +4679,306 @@ constexpr float MLH_RIGHT = 1;
 struct mdllight_t {
 	float3_array origin;
 	float3_array floor;
+
 	struct {
 		int num;
-		struct
-		{
+
+		struct {
 			bool exist;
 			int seq;
-		}
-		style[ALLSTYLES];
-		struct
-		{
+		} style[ALLSTYLES];
+
+		struct {
 			int num;
 			float3_array pos;
-			std::byte* (style[ALLSTYLES]);
-		}
-		sample[MLH_MAXSAMPLECOUNT];
+			std::byte*(style[ALLSTYLES]);
+		} sample[MLH_MAXSAMPLECOUNT];
+
 		int samplecount;
 	} face[MLH_MAXFACECOUNT];
+
 	int facecount;
 };
 
-int MLH_AddFace (mdllight_t *ml, int facenum)
-{
-	dface_t *f = &g_dfaces[facenum];
+int MLH_AddFace(mdllight_t* ml, int facenum) {
+	dface_t* f = &g_dfaces[facenum];
 	int i, j;
-	for (i = 0; i < ml->facecount; i++)
-	{
-		if (ml->face[i].num == facenum)
-		{
+	for (i = 0; i < ml->facecount; i++) {
+		if (ml->face[i].num == facenum) {
 			return -1;
 		}
 	}
-	if (ml->facecount >= MLH_MAXFACECOUNT)
-	{
+	if (ml->facecount >= MLH_MAXFACECOUNT) {
 		return -1;
 	}
 	i = ml->facecount;
 	ml->facecount++;
 	ml->face[i].num = facenum;
 	ml->face[i].samplecount = 0;
-	for (j = 0; j < ALLSTYLES; j++)
-	{
+	for (j = 0; j < ALLSTYLES; j++) {
 		ml->face[i].style[j].exist = false;
 	}
-	for (j = 0; j < MAXLIGHTMAPS && f->styles[j] != 255; j++)
-	{
+	for (j = 0; j < MAXLIGHTMAPS && f->styles[j] != 255; j++) {
 		ml->face[i].style[f->styles[j]].exist = true;
 		ml->face[i].style[f->styles[j]].seq = j;
 	}
 	return i;
 }
-void MLH_AddSample (mdllight_t *ml, int facenum, int w, int h, int s, int t, const float3_array& pos)
-{
-	dface_t *f = &g_dfaces[facenum];
+
+void MLH_AddSample(
+	mdllight_t* ml, int facenum, int w, int h, int s, int t,
+	float3_array const & pos
+) {
+	dface_t* f = &g_dfaces[facenum];
 	int i, j;
-	int r = MLH_AddFace (ml, facenum);
-	if (r == -1)
-	{
+	int r = MLH_AddFace(ml, facenum);
+	if (r == -1) {
 		return;
 	}
 	int size = w * h;
 	int num = s + w * t;
-	for (i = 0; i < ml->face[r].samplecount; i++)
-	{
-		if (ml->face[r].sample[i].num == num)
-		{
+	for (i = 0; i < ml->face[r].samplecount; i++) {
+		if (ml->face[r].sample[i].num == num) {
 			return;
 		}
 	}
-	if (ml->face[r].samplecount >= MLH_MAXSAMPLECOUNT)
-	{
+	if (ml->face[r].samplecount >= MLH_MAXSAMPLECOUNT) {
 		return;
 	}
 	i = ml->face[r].samplecount;
 	ml->face[r].samplecount++;
 	ml->face[r].sample[i].num = num;
-	VectorCopy (pos, ml->face[r].sample[i].pos);
-	for (j = 0; j < ALLSTYLES; j++)
-	{
-		if (ml->face[r].style[j].exist)
-		{
-			ml->face[r].sample[i].style[j] = &g_dlightdata[f->lightofs + (num + size * ml->face[r].style[j].seq) * 3];
+	VectorCopy(pos, ml->face[r].sample[i].pos);
+	for (j = 0; j < ALLSTYLES; j++) {
+		if (ml->face[r].style[j].exist) {
+			ml->face[r].sample[i].style[j]
+				= &g_dlightdata
+					  [f->lightofs
+					   + (num + size * ml->face[r].style[j].seq) * 3];
 		}
 	}
 }
-void MLH_CalcExtents (const dface_t *f, int *texturemins, int *extents)
-{
+
+void MLH_CalcExtents(dface_t const * f, int* texturemins, int* extents) {
 	int bmins[2];
 	int bmaxs[2];
 	int i;
 
-	GetFaceExtents (f - g_dfaces.data(), bmins, bmaxs);
-	for (i = 0; i < 2; i++)
-	{
+	GetFaceExtents(f - g_dfaces.data(), bmins, bmaxs);
+	for (i = 0; i < 2; i++) {
 		texturemins[i] = bmins[i] * TEXTURE_STEP;
 		extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
 	}
 }
-void MLH_GetSamples_r (mdllight_t *ml, int nodenum, const float3_array& start, const float3_array& end)
-{
-	if (nodenum < 0)
+
+void MLH_GetSamples_r(
+	mdllight_t* ml, int nodenum, float3_array const & start,
+	float3_array const & end
+) {
+	if (nodenum < 0) {
 		return;
-	dnode_t *node = &g_dnodes[nodenum];
-	dplane_t *plane;
+	}
+	dnode_t* node = &g_dnodes[nodenum];
+	dplane_t* plane;
 	float front, back, frac;
 	int side;
 	plane = &g_dplanes[node->planenum];
-	front = DotProduct (start, plane->normal) - plane->dist;
-	back = DotProduct (end, plane->normal) - plane->dist;
+	front = DotProduct(start, plane->normal) - plane->dist;
+	back = DotProduct(end, plane->normal) - plane->dist;
 	side = front < 0;
-	if ((back < 0) == side)
-	{
-		MLH_GetSamples_r (ml, node->children[side], start, end);
+	if ((back < 0) == side) {
+		MLH_GetSamples_r(ml, node->children[side], start, end);
 		return;
 	}
 	frac = front / (front - back);
-	const float3_array mid {
-		start[0] + (end[0] - start[0]) * frac,
-		start[1] + (end[1] - start[1]) * frac,
-		start[2] + (end[2] - start[2]) * frac
-	};
-	MLH_GetSamples_r (ml, node->children[side], start, mid);
-	if (ml->facecount > 0)
-	{
+	float3_array const mid{ start[0] + (end[0] - start[0]) * frac,
+							start[1] + (end[1] - start[1]) * frac,
+							start[2] + (end[2] - start[2]) * frac };
+	MLH_GetSamples_r(ml, node->children[side], start, mid);
+	if (ml->facecount > 0) {
 		return;
 	}
 	{
 		int i;
-		for (i = 0; i < node->numfaces; i++)
-		{
-			dface_t *f = &g_dfaces[node->firstface + i];
-			texinfo_t *tex = &g_texinfo[f->texinfo];
-			if (get_texture_by_number(f->texinfo).is_ordinary_sky())
-			{
+		for (i = 0; i < node->numfaces; i++) {
+			dface_t* f = &g_dfaces[node->firstface + i];
+			texinfo_t* tex = &g_texinfo[f->texinfo];
+			if (get_texture_by_number(f->texinfo).is_ordinary_sky()) {
 				continue;
 			}
-			if (f->lightofs == -1)
-			{
+			if (f->lightofs == -1) {
 				continue;
 			}
-			int s = (int)(DotProduct (mid, tex->vecs[0]) + tex->vecs[0][3]);
-			int t = (int)(DotProduct (mid, tex->vecs[1]) + tex->vecs[1][3]);
+			int s = (int) (DotProduct(mid, tex->vecs[0]) + tex->vecs[0][3]);
+			int t = (int) (DotProduct(mid, tex->vecs[1]) + tex->vecs[1][3]);
 			int texturemins[2], extents[2];
-			MLH_CalcExtents (f, texturemins, extents);
-			if (s < texturemins[0] || t < texturemins[1])
-			{
+			MLH_CalcExtents(f, texturemins, extents);
+			if (s < texturemins[0] || t < texturemins[1]) {
 				continue;
 			}
 			int ds = s - texturemins[0];
 			int dt = t - texturemins[1];
-			if (ds > extents[0] || dt > extents[1])
-			{
+			if (ds > extents[0] || dt > extents[1]) {
 				continue;
 			}
 			ds >>= 4;
 			dt >>= 4;
-			MLH_AddSample (ml, node->firstface + i, extents[0] / TEXTURE_STEP + 1, extents[1] / TEXTURE_STEP + 1, ds, dt, mid);
+			MLH_AddSample(
+				ml, node->firstface + i, extents[0] / TEXTURE_STEP + 1,
+				extents[1] / TEXTURE_STEP + 1, ds, dt, mid
+			);
 			break;
 		}
 	}
-	if (ml->facecount > 0)
-	{
-		VectorCopy (mid, ml->floor);
+	if (ml->facecount > 0) {
+		VectorCopy(mid, ml->floor);
 		return;
 	}
-	MLH_GetSamples_r (ml, node->children[!side], mid, end);
+	MLH_GetSamples_r(ml, node->children[!side], mid, end);
 }
-void MLH_mdllightCreate (mdllight_t *ml)
-{
+
+void MLH_mdllightCreate(mdllight_t* ml) {
 	// code from Quake
 	ml->facecount = 0;
 	ml->floor = ml->origin;
-	const float3_array p = ml->origin;
+	float3_array const p = ml->origin;
 	float3_array end = ml->origin;
 	end[2] -= 2048;
-	MLH_GetSamples_r (ml, 0, p, end);
+	MLH_GetSamples_r(ml, 0, p, end);
 }
 
-static int MLH_CopyLight (const float3_array& from, const float3_array& to)
-{
+static int
+MLH_CopyLight(float3_array const & from, float3_array const & to) {
 	int i, j, k, count = 0;
 	mdllight_t mlfrom, mlto;
-	VectorCopy (from, mlfrom.origin);
-	VectorCopy (to, mlto.origin);
-	MLH_mdllightCreate (&mlfrom);
-	MLH_mdllightCreate (&mlto);
-	if (mlfrom.facecount == 0 || mlfrom.face[0].samplecount == 0)
+	VectorCopy(from, mlfrom.origin);
+	VectorCopy(to, mlto.origin);
+	MLH_mdllightCreate(&mlfrom);
+	MLH_mdllightCreate(&mlto);
+	if (mlfrom.facecount == 0 || mlfrom.face[0].samplecount == 0) {
 		return -1;
-	for (i = 0; i < mlto.facecount; ++i)
-		for (j = 0; j < mlto.face[i].samplecount; ++j, ++count)
-			for (k = 0; k < ALLSTYLES; ++k)
-				if (mlto.face[i].style[k].exist && mlfrom.face[0].style[k].exist)
-				{
-					VectorCopy (mlfrom.face[0].sample[0].style[k],mlto.face[i].sample[j].style[k]);
-					Developer (developer_level::spam, "Mdl Light Hack: face (%d) sample (%d) style (%d) position (%f,%f,%f)\n",
-						mlto.face[i].num, mlto.face[i].sample[j].num, k, 
-						mlto.face[i].sample[j].pos[0], mlto.face[i].sample[j].pos[1], mlto.face[i].sample[j].pos[2]);
+	}
+	for (i = 0; i < mlto.facecount; ++i) {
+		for (j = 0; j < mlto.face[i].samplecount; ++j, ++count) {
+			for (k = 0; k < ALLSTYLES; ++k) {
+				if (mlto.face[i].style[k].exist
+					&& mlfrom.face[0].style[k].exist) {
+					VectorCopy(
+						mlfrom.face[0].sample[0].style[k],
+						mlto.face[i].sample[j].style[k]
+					);
+					Developer(
+						developer_level::spam,
+						"Mdl Light Hack: face (%d) sample (%d) style (%d) position (%f,%f,%f)\n",
+						mlto.face[i].num, mlto.face[i].sample[j].num, k,
+						mlto.face[i].sample[j].pos[0],
+						mlto.face[i].sample[j].pos[1],
+						mlto.face[i].sample[j].pos[2]
+					);
 				}
-	Developer (developer_level::message, "Mdl Light Hack: %d sample light copied from (%f,%f,%f) to (%f,%f,%f)\n", 
-		count, mlfrom.floor[0], mlfrom.floor[1], mlfrom.floor[2], mlto.floor[0], mlto.floor[1], mlto.floor[2]);
+			}
+		}
+	}
+	Developer(
+		developer_level::message,
+		"Mdl Light Hack: %d sample light copied from (%f,%f,%f) to (%f,%f,%f)\n",
+		count, mlfrom.floor[0], mlfrom.floor[1], mlfrom.floor[2],
+		mlto.floor[0], mlto.floor[1], mlto.floor[2]
+	);
 	return count;
 }
 
-void MdlLightHack ()
-{
+void MdlLightHack() {
 	int ient;
 	float3_array origin1, origin2;
 	int used = 0, countent = 0, countsample = 0, r;
-	for (ient = 0; ient < g_numentities; ++ient)
-	{
-		const entity_t& ent1 = g_entities[ient];
-		std::u8string_view target = value_for_key(&ent1, u8"zhlt_copylight");
-		if (target.empty())
-			continue;
-		used = 1;
-		const auto maybeEnt2 = find_target_entity(target);
-		if (!maybeEnt2) {
-			Warning ("target entity '%s' not found", (const char*) target.data());
+	for (ient = 0; ient < g_numentities; ++ient) {
+		entity_t const & ent1 = g_entities[ient];
+		std::u8string_view target
+			= value_for_key(&ent1, u8"zhlt_copylight");
+		if (target.empty()) {
 			continue;
 		}
-		const entity_t& ent2{maybeEnt2.value().get()};
+		used = 1;
+		auto const maybeEnt2 = find_target_entity(target);
+		if (!maybeEnt2) {
+			Warning(
+				"target entity '%s' not found", (char const *) target.data()
+			);
+			continue;
+		}
+		entity_t const & ent2{ maybeEnt2.value().get() };
 		origin1 = get_float3_for_key(ent1, u8"origin");
 		origin2 = get_float3_for_key(ent2, u8"origin");
-		r = MLH_CopyLight (origin2, origin1);
-		if (r < 0)
-			Warning ("can not copy light from (%f,%f,%f)", origin2[0], origin2[1], origin2[2]);
-		else
-		{
+		r = MLH_CopyLight(origin2, origin1);
+		if (r < 0) {
+			Warning(
+				"can not copy light from (%f,%f,%f)", origin2[0],
+				origin2[1], origin2[2]
+			);
+		} else {
 			countent += 1;
 			countsample += r;
 		}
 	}
-	if (used)
-		Log ("Adjust mdl light: modified %d samples for %d entities\n", countsample, countent);
+	if (used) {
+		Log("Adjust mdl light: modified %d samples for %d entities\n",
+			countsample, countent);
+	}
 }
 
-
-typedef struct facelightlist_s
-{
+typedef struct facelightlist_s {
 	int facenum;
-	facelightlist_s *next;
-}
-facelightlist_t;
+	facelightlist_s* next;
+} facelightlist_t;
 
-static facelightlist_t *g_dependentfacelights[MAX_MAP_FACES];
+static facelightlist_t* g_dependentfacelights[MAX_MAP_FACES];
 
 // =====================================================================================
 //  CreateFacelightDependencyList
 // =====================================================================================
-void CreateFacelightDependencyList ()
-{
+void CreateFacelightDependencyList() {
 	int facenum;
-	dface_t *f;
-	facelight_t *fl;
+	dface_t* f;
+	facelight_t* fl;
 	int i;
 	int k;
 	int surface;
-	facelightlist_t *item;
+	facelightlist_t* item;
 
-	for (i = 0; i < MAX_MAP_FACES; i++)
-	{
+	for (i = 0; i < MAX_MAP_FACES; i++) {
 		g_dependentfacelights[i] = nullptr;
 	}
 
 	// for each face
-	for (facenum = 0; facenum < g_numfaces; facenum++)
-	{
+	for (facenum = 0; facenum < g_numfaces; facenum++) {
 		f = &g_dfaces[facenum];
 		fl = &facelight[facenum];
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-		{
+		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
 			continue;
 		}
 
-		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++)
-		{
-			for (i = 0; i < fl->numsamples; i++)
-			{
-				surface = fl->samples[k][i].surface; // that surface contains at least one sample from this face
-				if (0 <= surface && surface < g_numfaces)
-				{
-					// insert this face into the dependency list of that surface
-					for (item = g_dependentfacelights[surface]; item != nullptr; item = item->next)
-					{
-						if (item->facenum == facenum)
+		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
+			for (i = 0; i < fl->numsamples; i++) {
+				surface = fl->samples[k][i]
+							  .surface; // that surface contains at least
+										// one sample from this face
+				if (0 <= surface && surface < g_numfaces) {
+					// insert this face into the dependency list of that
+					// surface
+					for (item = g_dependentfacelights[surface];
+						 item != nullptr; item = item->next) {
+						if (item->facenum == facenum) {
 							break;
+						}
 					}
-					if (item)
-					{
+					if (item) {
 						continue;
 					}
 
-					item = (facelightlist_t *)malloc (sizeof (facelightlist_t));
-					hlassume (item != nullptr, assume_NoMemory);
+					item = (facelightlist_t*) malloc(sizeof(facelightlist_t)
+					);
+					hlassume(item != nullptr, assume_NoMemory);
 					item->facenum = facenum;
 					item->next = g_dependentfacelights[surface];
 					g_dependentfacelights[surface] = item;
@@ -4604,18 +4991,15 @@ void CreateFacelightDependencyList ()
 // =====================================================================================
 //  FreeFacelightDependencyList
 // =====================================================================================
-void FreeFacelightDependencyList ()
-{
+void FreeFacelightDependencyList() {
 	int i;
-	facelightlist_t *item;
+	facelightlist_t* item;
 
-	for (i = 0; i < MAX_MAP_FACES; i++)
-	{
-		while (g_dependentfacelights[i])
-		{
+	for (i = 0; i < MAX_MAP_FACES; i++) {
+		while (g_dependentfacelights[i]) {
 			item = g_dependentfacelights[i];
 			g_dependentfacelights[i] = item->next;
-			free (item);
+			free(item);
 		}
 	}
 }
@@ -4623,32 +5007,27 @@ void FreeFacelightDependencyList ()
 // =====================================================================================
 //  ScaleDirectLights
 // =====================================================================================
-void ScaleDirectLights ()
-{
+void ScaleDirectLights() {
 	int facenum;
-	dface_t *f;
-	facelight_t *fl;
+	dface_t* f;
+	facelight_t* fl;
 	int i;
 	int k;
-	sample_t *samp;
+	sample_t* samp;
 
-	for (facenum = 0; facenum < g_numfaces; facenum++)
-	{
+	for (facenum = 0; facenum < g_numfaces; facenum++) {
 		f = &g_dfaces[facenum];
 
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-		{
+		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
 			continue;
 		}
 
 		fl = &facelight[facenum];
 
-		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++)
-		{
-			for (i = 0; i < fl->numsamples; i++)
-			{
+		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
+			for (i = 0; i < fl->numsamples; i++) {
 				samp = &fl->samples[k][i];
-				VectorScale (samp->light, g_direct_scale, samp->light);
+				VectorScale(samp->light, g_direct_scale, samp->light);
 			}
 		}
 	}
@@ -4658,35 +5037,30 @@ void ScaleDirectLights ()
 //  AddPatchLights
 //    This function is run multithreaded
 // =====================================================================================
-void AddPatchLights (int facenum)
-{
-	dface_t *f;
-	facelightlist_t *item;
-	dface_t *f_other;
-	facelight_t *fl_other;
+void AddPatchLights(int facenum) {
+	dface_t* f;
+	facelightlist_t* item;
+	dface_t* f_other;
+	facelight_t* fl_other;
 	int k;
 	int i;
-	sample_t *samp;
+	sample_t* samp;
 
 	f = &g_dfaces[facenum];
 
-	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-	{
+	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
 		return;
 	}
 
-	
-	for (item = g_dependentfacelights[facenum]; item != nullptr; item = item->next)
-	{
+	for (item = g_dependentfacelights[facenum]; item != nullptr;
+		 item = item->next) {
 		f_other = &g_dfaces[item->facenum];
 		fl_other = &facelight[item->facenum];
-		for (k = 0; k < MAXLIGHTMAPS && f_other->styles[k] != 255; k++)
-		{
-			for (i = 0; i < fl_other->numsamples; i++)
-			{
+		for (k = 0; k < MAXLIGHTMAPS && f_other->styles[k] != 255; k++) {
+			for (i = 0; i < fl_other->numsamples; i++) {
 				samp = &fl_other->samples[k][i];
-				if (samp->surface != facenum)
-				{ // the sample is not in this surface
+				if (samp->surface
+					!= facenum) { // the sample is not in this surface
 					continue;
 				}
 
@@ -4694,277 +5068,268 @@ void AddPatchLights (int facenum)
 					float3_array v;
 
 					int style = f_other->styles[k];
-					InterpolateSampleLight(samp->pos, samp->surface, style, v);
+					InterpolateSampleLight(
+						samp->pos, samp->surface, style, v
+					);
 
-					VectorAdd (samp->light, v, v);
-					if (VectorMaximum (v) >= g_corings[f_other->styles[k]])
-					{
-						VectorCopy (v, samp->light);
-					}
-					else
-					{
-						if (VectorMaximum (v) > g_maxdiscardedlight + NORMAL_EPSILON)
-						{
-							ThreadLock ();
-							if (VectorMaximum (v) > g_maxdiscardedlight + NORMAL_EPSILON)
-							{
-								g_maxdiscardedlight = VectorMaximum (v);
+					VectorAdd(samp->light, v, v);
+					if (VectorMaximum(v) >= g_corings[f_other->styles[k]]) {
+						VectorCopy(v, samp->light);
+					} else {
+						if (VectorMaximum(v)
+							> g_maxdiscardedlight + NORMAL_EPSILON) {
+							ThreadLock();
+							if (VectorMaximum(v)
+								> g_maxdiscardedlight + NORMAL_EPSILON) {
+								g_maxdiscardedlight = VectorMaximum(v);
 								g_maxdiscardedpos = samp->pos;
 							}
-							ThreadUnlock ();
+							ThreadUnlock();
 						}
 					}
 				}
 			} // loop samples
 		}
 	}
-
 }
 
 // =====================================================================================
 //  FinalLightFace
-//      Add the indirect lighting on top of the direct lighting and save into final map format
+//      Add the indirect lighting on top of the direct lighting and save
+//      into final map format
 // =====================================================================================
-void            FinalLightFace(const int facenum)
-{
-	if (facenum == 0 && g_drawsample)
-	{
-		char name[_MAX_PATH+20];
-		snprintf (name, sizeof(name), "%s_sample.pts", g_Mapname);
-		Log ("Writing '%s' ...\n", name);
-		FILE *f;
+void FinalLightFace(int const facenum) {
+	if (facenum == 0 && g_drawsample) {
+		char name[_MAX_PATH + 20];
+		snprintf(name, sizeof(name), "%s_sample.pts", g_Mapname);
+		Log("Writing '%s' ...\n", name);
+		FILE* f;
 		f = fopen(name, "w");
-		if (f)
-		{
+		if (f) {
 			int i, j;
 			float3_array v, dist;
-			for (i = 0; i < g_numfaces; ++i)
-			{
-				const facelight_t *fl=&facelight[i];
-				for (j = 0; j < fl->numsamples; ++j)
-				{
-					VectorCopy (fl->samples[0][j].pos, v);
+			for (i = 0; i < g_numfaces; ++i) {
+				facelight_t const * fl = &facelight[i];
+				for (j = 0; j < fl->numsamples; ++j) {
+					VectorCopy(fl->samples[0][j].pos, v);
 					VectorSubtract(v, g_drawsample_origin, dist);
-					if (DotProduct (dist, dist) < g_drawsample_radius * g_drawsample_radius)
-					{
-						for(const float3_array& p : pos) {
-							fprintf (f, "%g %g %g\n", v[0]+p[0], v[1]+p[1], v[2]+p[2]);
+					if (DotProduct(dist, dist)
+						< g_drawsample_radius * g_drawsample_radius) {
+						for (float3_array const & p : pos) {
+							fprintf(
+								f, "%g %g %g\n", v[0] + p[0], v[1] + p[1],
+								v[2] + p[2]
+							);
 						}
 					}
 				}
 			}
 			fclose(f);
-			Log ("OK.\n");
+			Log("OK.\n");
+		} else {
+			Log("Error.\n");
 		}
-		else
-			Log ("Error.\n");
 	}
-    int             i, j, k;
-    facelight_t*    fl;
-    sample_t*       samp;
-    float           minlight;
-    int             lightstyles;
-    dface_t*        f;
+	int i, j, k;
+	facelight_t* fl;
+	sample_t* samp;
+	float minlight;
+	int lightstyles;
+	dface_t* f;
 	float3_array* original_basiclight;
-	int				(*final_basiclight)[3];
-	int				lbi[3];
+	int(*final_basiclight)[3];
+	int lbi[3];
 
-    // ------------------------------------------------------------------------
-    // Changes by Adam Foster - afoster@compsoc.man.ac.uk
-    float           temp_rand;
-    // ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
+	float temp_rand;
+	// ------------------------------------------------------------------------
 
-    f = &g_dfaces[facenum];
-    fl = &facelight[facenum];
+	f = &g_dfaces[facenum];
+	fl = &facelight[facenum];
 
-    if (g_texinfo[f->texinfo].flags & TEX_SPECIAL)
-    {
-        return;                                            // non-lit texture
-    }
+	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		return; // non-lit texture
+	}
 
-    for (lightstyles = 0; lightstyles < MAXLIGHTMAPS; lightstyles++)
-    {
-        if (f->styles[lightstyles] == 255)
-        {
-            break;
-        }
-    }
+	for (lightstyles = 0; lightstyles < MAXLIGHTMAPS; lightstyles++) {
+		if (f->styles[lightstyles] == 255) {
+			break;
+		}
+	}
 
-    if (!lightstyles)
-    {
-        return;
-    }
+	if (!lightstyles) {
+		return;
+	}
 
-    //
-    // set up the triangulation
-    //
-    //
-    // sample the triangulation
-    //
-    minlight = float_for_key(*g_face_entity[facenum], u8"_minlight") * 255; //seedee
+	//
+	// set up the triangulation
+	//
+	//
+	// sample the triangulation
+	//
+	minlight = float_for_key(*g_face_entity[facenum], u8"_minlight")
+		* 255; // seedee
 	minlight = (minlight > 255) ? 255 : minlight;
 
-	wad_texture_name texname{get_texture_by_number(f->texinfo)};
+	wad_texture_name texname{ get_texture_by_number(f->texinfo) };
 	minlight = texname.get_minlight().value_or(minlight);
-	
+
 	minlight_i it;
 
-	for (it = s_minlights.begin(); it != s_minlights.end(); it++)
-	{
-		if (texname == it->name)
-		{
+	for (it = s_minlights.begin(); it != s_minlights.end(); it++) {
+		if (texname == it->name) {
 			float minlightValue = it->value * 255.0f;
 			minlight = static_cast<int>(minlightValue);
 			minlight = (minlight > 255) ? 255 : minlight;
 		}
 	}
-	original_basiclight = (float3_array*) calloc (fl->numsamples, sizeof(float3_array));
-	final_basiclight = (int (*)[3])calloc (fl->numsamples, sizeof(int [3]));
-	hlassume (original_basiclight != nullptr, assume_NoMemory);
-	hlassume (final_basiclight != nullptr, assume_NoMemory);
-    for (k = 0; k < lightstyles; k++)
-    {
-        samp = fl->samples[k];
-        for (j = 0; j < fl->numsamples; j++, samp++)
-        {
-			if (f->styles[0] != 0)
-			{
-				Warning ("wrong f->styles[0]");
+	original_basiclight
+		= (float3_array*) calloc(fl->numsamples, sizeof(float3_array));
+	final_basiclight = (int(*)[3]) calloc(fl->numsamples, sizeof(int[3]));
+	hlassume(original_basiclight != nullptr, assume_NoMemory);
+	hlassume(final_basiclight != nullptr, assume_NoMemory);
+	for (k = 0; k < lightstyles; k++) {
+		samp = fl->samples[k];
+		for (j = 0; j < fl->numsamples; j++, samp++) {
+			if (f->styles[0] != 0) {
+				Warning("wrong f->styles[0]");
 			}
 			float3_array lb = vector_maximums(samp->light, float3_array{});
-			if (k == 0)
-			{
-				VectorCopy (lb, original_basiclight[j]);
+			if (k == 0) {
+				VectorCopy(lb, original_basiclight[j]);
+			} else {
+				VectorAdd(lb, original_basiclight[j], lb);
 			}
-			else
-			{
-				VectorAdd (lb, original_basiclight[j], lb);
+			// ------------------------------------------------------------------------
+			// Changes by Adam Foster - afoster@compsoc.man.ac.uk
+			// colour lightscale:
+			lb[0] *= g_colour_lightscale[0];
+			lb[1] *= g_colour_lightscale[1];
+			lb[2] *= g_colour_lightscale[2];
+			// ------------------------------------------------------------------------
+
+			// clip from the bottom first
+			for (i = 0; i < 3; i++) {
+				if (lb[i] < minlight) {
+					lb[i] = minlight;
+				}
 			}
-            // ------------------------------------------------------------------------
-	        // Changes by Adam Foster - afoster@compsoc.man.ac.uk
-	        // colour lightscale:
-	        lb[0] *= g_colour_lightscale[0];
-	        lb[1] *= g_colour_lightscale[1];
-	        lb[2] *= g_colour_lightscale[2];
-            // ------------------------------------------------------------------------
 
-            // clip from the bottom first
-            for (i = 0; i < 3; i++)
-            {
-                if (lb[i] < minlight)
-                {
-                    lb[i] = minlight;
-                }
-            }
+			// ------------------------------------------------------------------------
+			// Changes by Adam Foster - afoster@compsoc.man.ac.uk
 
+			// AJM: your code is formatted really wierd, and i cant
+			// understand a damn thing.
+			//      so i reformatted it into a somewhat readable "normal"
+			//      fashion. :P
 
-	        // ------------------------------------------------------------------------
-	        // Changes by Adam Foster - afoster@compsoc.man.ac.uk
+			if (g_colour_qgamma[0] != 1.0) {
+				lb[0] = (float) pow(lb[0] / 256.0f, g_colour_qgamma[0])
+					* 256.0f;
+			}
 
-            // AJM: your code is formatted really wierd, and i cant understand a damn thing. 
-            //      so i reformatted it into a somewhat readable "normal" fashion. :P
+			if (g_colour_qgamma[1] != 1.0) {
+				lb[1] = (float) pow(lb[1] / 256.0f, g_colour_qgamma[1])
+					* 256.0f;
+			}
 
-	        if ( g_colour_qgamma[0] != 1.0 ) 
-		        lb[0] = (float) pow(lb[0] / 256.0f, g_colour_qgamma[0]) * 256.0f;
+			if (g_colour_qgamma[2] != 1.0) {
+				lb[2] = (float) pow(lb[2] / 256.0f, g_colour_qgamma[2])
+					* 256.0f;
+			}
 
-	        if ( g_colour_qgamma[1] != 1.0 ) 
-		        lb[1] = (float) pow(lb[1] / 256.0f, g_colour_qgamma[1]) * 256.0f;
+			// Two different ways of adding noise to the lightmap - colour
+			// jitter (red, green and blue channels are independent), and
+			// mono jitter (monochromatic noise). For simulating dithering,
+			// on the cheap. :)
 
-	        if ( g_colour_qgamma[2] != 1.0 ) 
-		        lb[2] = (float) pow(lb[2] / 256.0f, g_colour_qgamma[2]) * 256.0f;
+			// Tends to create seams between adjacent polygons, so not
+			// ideal.
 
-	        // Two different ways of adding noise to the lightmap - colour jitter
-	        // (red, green and blue channels are independent), and mono jitter
-	        // (monochromatic noise). For simulating dithering, on the cheap. :)
+			// Got really weird results when it was set to limit values to
+			// 256.0f - it was as if r, g or b could wrap, going close to
+			// zero.
 
-	        // Tends to create seams between adjacent polygons, so not ideal.
-
-	        // Got really weird results when it was set to limit values to 256.0f - it
-	        // was as if r, g or b could wrap, going close to zero.
-
-			
 			// clip from the top
 			{
-				float max = VectorMaximum (lb);
-				if (g_limitthreshold >= 0 && max > g_limitthreshold)
-				{
-					if (!g_drawoverload)
-					{
-						VectorScale (lb, g_limitthreshold / max, lb);
+				float max = VectorMaximum(lb);
+				if (g_limitthreshold >= 0 && max > g_limitthreshold) {
+					if (!g_drawoverload) {
+						VectorScale(lb, g_limitthreshold / max, lb);
 					}
-				}
-				else
-				{
-					if (g_drawoverload)
-					{
-						VectorScale (lb, 0.1, lb); // darken good points
+				} else {
+					if (g_drawoverload) {
+						VectorScale(lb, 0.1, lb); // darken good points
 					}
 				}
 			}
-			for (i = 0; i < 3; ++i)
-				if (lb[i] < g_minlight)
+			for (i = 0; i < 3; ++i) {
+				if (lb[i] < g_minlight) {
 					lb[i] = g_minlight;
-	        // ------------------------------------------------------------------------
-			for (i = 0; i < 3; ++i)
-			{
-				lbi[i] = (int) floor (lb[i] + 0.5);
-				if (lbi[i] < 0) lbi[i] = 0;
+				}
 			}
-			if (k == 0)
-			{
-				VectorCopy (lbi, final_basiclight[j]);
+			// ------------------------------------------------------------------------
+			for (i = 0; i < 3; ++i) {
+				lbi[i] = (int) floor(lb[i] + 0.5);
+				if (lbi[i] < 0) {
+					lbi[i] = 0;
+				}
 			}
-			else
-			{
+			if (k == 0) {
+				VectorCopy(lbi, final_basiclight[j]);
+			} else {
 				VectorSubtract(lbi, final_basiclight[j], lbi);
 			}
-			if (k == 0)
-			{
-				if (g_colour_jitter_hack[0] || g_colour_jitter_hack[1] || g_colour_jitter_hack[2]) 
-					for (i = 0; i < 3; i++) 
-						lbi[i] += g_colour_jitter_hack[i] * ((float)rand() / float(RAND_MAX) - 0.5f);
-				if (g_jitter_hack[0] || g_jitter_hack[1] || g_jitter_hack[2]) 
-				{
-					temp_rand = (float)rand() / float(RAND_MAX) - 0.5f;
-					for (i = 0; i < 3; i++) 
+			if (k == 0) {
+				if (g_colour_jitter_hack[0] || g_colour_jitter_hack[1]
+					|| g_colour_jitter_hack[2]) {
+					for (i = 0; i < 3; i++) {
+						lbi[i] += g_colour_jitter_hack[i]
+							* ((float) rand() / float(RAND_MAX) - 0.5f);
+					}
+				}
+				if (g_jitter_hack[0] || g_jitter_hack[1]
+					|| g_jitter_hack[2]) {
+					temp_rand = (float) rand() / float(RAND_MAX) - 0.5f;
+					for (i = 0; i < 3; i++) {
 						lbi[i] += g_jitter_hack[i] * temp_rand;
+					}
 				}
 			}
-			for (i = 0; i < 3; ++i)
-			{
-				if (lbi[i] < 0) lbi[i] = 0;
-				if (lbi[i] > 255) lbi[i] = 255;
+			for (i = 0; i < 3; ++i) {
+				if (lbi[i] < 0) {
+					lbi[i] = 0;
+				}
+				if (lbi[i] > 255) {
+					lbi[i] = 255;
+				}
 			}
-            {
-                std::byte* colors = &g_dlightdata[f->lightofs + k * fl->numsamples * 3 + j * 3];
+			{
+				std::byte* colors
+					= &g_dlightdata
+						  [f->lightofs + k * fl->numsamples * 3 + j * 3];
 
-                colors[0] = (std::byte) lbi[0];
-                colors[1] = (std::byte) lbi[1];
-                colors[2] = (std::byte) lbi[2];
-            }
-        }
-    }
-	free (original_basiclight);
-	free (final_basiclight);
-
+				colors[0] = (std::byte) lbi[0];
+				colors[1] = (std::byte) lbi[1];
+				colors[2] = (std::byte) lbi[2];
+			}
+		}
+	}
+	free(original_basiclight);
+	free(final_basiclight);
 }
 
+// LRC
+static float3_array totallight_default = { 0, 0, 0 };
 
-//LRC
-static float3_array    totallight_default = { 0, 0, 0 };
-
-//LRC - utility for getting the right totallight value from a patch
-float3_array* GetTotalLight(patch_t* patch, int style
-	)
-{
+// LRC - utility for getting the right totallight value from a patch
+float3_array* GetTotalLight(patch_t* patch, int style) {
 	int i;
-	for (i = 0; i < MAXLIGHTMAPS && patch->totalstyle[i] != 255; i++)
-	{
-		if (patch->totalstyle[i] == style)
-		{
+	for (i = 0; i < MAXLIGHTMAPS && patch->totalstyle[i] != 255; i++) {
+		if (patch->totalstyle[i] == style) {
 			return &(patch->totallight[i]);
 		}
 	}
 	return &totallight_default;
 }
-

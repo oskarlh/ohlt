@@ -1,18 +1,17 @@
-#include "cmdlib.h"
-#include "messages.h"
-#include "win32fix.h"
-#include "log.h"
-#include "hlassert.h"
-#include "mathlib.h"
-#include "scriplib.h"
-#include "winding.h"
-#include "threads.h"
 #include "bspfile.h"
-#include "filelib.h"
+#include "cmdlib.h"
 #include "cmdlinecfg.h"
+#include "filelib.h"
+#include "hlassert.h"
+#include "log.h"
+#include "mathlib.h"
+#include "messages.h"
+#include "scriplib.h"
+#include "threads.h"
+#include "win32fix.h"
+#include "winding.h"
 
-#define DEFAULT_PARSE false
-#define DEFAULT_TEXTUREPARSE false
-#define DEFAULT_WRITEEXTENTFILE false
+#define DEFAULT_PARSE					false
+#define DEFAULT_TEXTUREPARSE			false
+#define DEFAULT_WRITEEXTENTFILE			false
 #define DEFAULT_DELETEEMBEDDEDLIGHTMAPS false
-

@@ -79,8 +79,7 @@ IndentPPDirectives: None
 IndentRequiresClause: false
 IndentWidth: 4
 IndentWrappedFunctionNames: false
-# TODO: Enable
-# InsertBraces: true
+InsertBraces: true
 InsertNewlineAtEOF: true
 InsertTrailingCommas: None
 IntegerLiteralSeparator:
@@ -110,15 +109,12 @@ PenaltyIndentedWhitespace: 0
 PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Left
 PPIndentWidth:   -1
-# TODO: enable
-# QualifierAlignment: Right
+QualifierAlignment: Right
 ReferenceAlignment: Pointer
 ReflowComments: true
 RemoveBracesLLVM: false
-# TODO: enable
-# RemoveParentheses: ReturnStatement
-# TODO: enable
-# RemoveSemicolon: true
+RemoveParentheses: ReturnStatement
+RemoveSemicolon: true
 RequiresClausePosition: SingleLine
 RequiresExpressionIndentation: OuterScope
 SeparateDefinitionBlocks: Always

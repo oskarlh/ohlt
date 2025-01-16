@@ -1,10 +1,10 @@
 {
-    "configurations": [
-        {
-            "name": "CMake Tools",
+	"configurations": [
+		{
+			"name": "CMake Tools",
 
-            "configurationProvider": "ms-vscode.cmake-tools"
-        }
-    ],
-    "version": 4
+			"configurationProvider": "ms-vscode.cmake-tools"
+		}
+	],
+	"version": 4
 }

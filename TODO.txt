@@ -71,3 +71,7 @@ Sort key values (don't worry about the output order being different from the inp
 See if it's possible to compress textures by omitting mipmaps and using 0 (or other short) offsets,
 since modern HL doesn't use the mipmaps in OpenGL mode
 
+
+
+To apply changes in .clang-format:
+find src -iname '*.h' -o -iname '*.cpp' | xargs /opt/homebrew/opt/llvm@18/bin/clang-format -i

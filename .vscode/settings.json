@@ -1,9 +1,9 @@
 {
 	"editor.formatOnSave": true,
-    "editor.defaultFormatter": "ms-vscode.cpptools",
-    "editor.detectIndentation": false,
-    "editor.insertSpaces": false,
-    "editor.tabSize": 4,
+	"editor.defaultFormatter": "ms-vscode.cpptools",
+	"editor.detectIndentation": false,
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
 
 	"[json]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",

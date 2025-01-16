@@ -5,9 +5,8 @@
 #include <array>
 
 struct mapplane_t {
-    double3_array normal;
-    double3_array origin;
-    double dist;
-    planetype type;
+	double3_array normal;
+	double3_array origin;
+	double dist;
+	planetype type;
 };
-

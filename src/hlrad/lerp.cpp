@@ -1,36 +1,32 @@
 #include "qrad.h"
+
 #include <algorithm>
 #include <numbers>
 #include <vector>
 
-int             g_lerp_enabled = DEFAULT_LERP_ENABLED;
+int g_lerp_enabled = DEFAULT_LERP_ENABLED;
 
-struct interpolation_t
-{
-	struct Point
-	{
+struct interpolation_t {
+	struct Point {
 		int patchnum;
 		float weight;
 	};
-	
+
 	bool isbiased;
 	float totalweight;
-	std::vector< Point > points;
+	std::vector<Point> points;
 };
 
-struct localtriangulation_t
-{
-	struct Wedge
-	{
-		enum eShape
-		{
+struct localtriangulation_t {
+	struct Wedge {
+		enum eShape {
 			eTriangular,
 			eConvex,
 			eConcave,
 			eSquareLeft,
 			eSquareRight,
 		};
-		
+
 		eShape shape;
 		int leftpatchnum;
 		float3_array leftspot;
@@ -39,48 +35,52 @@ struct localtriangulation_t
 
 		float3_array wedgenormal; // for custom usage
 	};
-	struct HullPoint
-	{
+
+	struct HullPoint {
 		float3_array spot;
 		float3_array direction;
 	};
-	
+
 	dplane_t plane;
 	fast_winding winding;
 	float3_array center; // center is on the plane
 
 	float3_array normal;
 	int patchnum;
-	std::vector< int > neighborfaces; // including the face itself
+	std::vector<int> neighborfaces; // including the face itself
 
-	std::vector< Wedge > sortedwedges; // in clockwise order (same as fast_winding)
-	std::vector< HullPoint > sortedhullpoints; // in clockwise order (same as fast_winding)
+	std::vector<Wedge>
+		sortedwedges; // in clockwise order (same as fast_winding)
+	std::vector<HullPoint>
+		sortedhullpoints; // in clockwise order (same as fast_winding)
 };
 
-struct facetriangulation_t
-{
-	struct Wall
-	{
+struct facetriangulation_t {
+	struct Wall {
 		float3_array points[2];
 		float3_array direction;
 		float3_array normal;
 	};
 
 	int facenum;
-	std::vector< int > neighbors; // including the face itself
-	std::vector< Wall > walls;
-	std::vector< localtriangulation_t * > localtriangulations;
-	std::vector< int > usedpatches;
+	std::vector<int> neighbors; // including the face itself
+	std::vector<Wall> walls;
+	std::vector<localtriangulation_t*> localtriangulations;
+	std::vector<int> usedpatches;
 };
 
-facetriangulation_t *g_facetriangulations[MAX_MAP_FACES];
+facetriangulation_t* g_facetriangulations[MAX_MAP_FACES];
 
-static bool CalcAdaptedSpot (const localtriangulation_t *lt, const float3_array& position, int surface, float3_array& spot)
-	// If the surface formed by the face and its neighbor faces is not flat, the surface should be unfolded onto the face plane
-	// CalcAdaptedSpot calculates the coordinate of the unfolded spot on the face plane from the original position on the surface
-	// CalcAdaptedSpot(center) = {0,0,0}
-	// CalcAdaptedSpot(position on the face plane) = position - center
-	// Param position: must include g_face_offset
+static bool CalcAdaptedSpot(
+	localtriangulation_t const * lt, float3_array const & position,
+	int surface, float3_array& spot
+)
+// If the surface formed by the face and its neighbor faces is not flat, the
+// surface should be unfolded onto the face plane CalcAdaptedSpot calculates
+// the coordinate of the unfolded spot on the face plane from the original
+// position on the surface CalcAdaptedSpot(center) = {0,0,0}
+// CalcAdaptedSpot(position on the face plane) = position - center
+// Param position: must include g_face_offset
 {
 	int i;
 	float dot;
@@ -91,102 +91,101 @@ static bool CalcAdaptedSpot (const localtriangulation_t *lt, const float3_array&
 	float frac;
 	float3_array middle;
 	float3_array v;
-	
-	for (i = 0; i < (int)lt->neighborfaces.size (); i++)
-	{
-		if (lt->neighborfaces[i] == surface)
-		{
+
+	for (i = 0; i < (int) lt->neighborfaces.size(); i++) {
+		if (lt->neighborfaces[i] == surface) {
 			break;
 		}
 	}
-	if (i == (int)lt->neighborfaces.size ())
-	{
-		VectorClear (spot);
+	if (i == (int) lt->neighborfaces.size()) {
+		VectorClear(spot);
 		return false;
 	}
 
 	VectorSubtract(position, lt->center, surfacespot);
-	dot = DotProduct (surfacespot, lt->normal);
-	VectorMA (surfacespot, -dot, lt->normal, spot);
+	dot = DotProduct(surfacespot, lt->normal);
+	VectorMA(surfacespot, -dot, lt->normal, spot);
 
-	// use phong normal instead of face normal, because phong normal is a continuous function
-	GetPhongNormal (surface, position, phongnormal);
-	dot = DotProduct (spot, phongnormal);
-	if (fabs (dot) > ON_EPSILON)
-	{
-		frac = DotProduct (surfacespot, phongnormal) / dot;
-		frac = std::max(float(0), std::min(frac, float(1))); // to correct some extreme cases
-	}
-	else
-	{
+	// use phong normal instead of face normal, because phong normal is a
+	// continuous function
+	GetPhongNormal(surface, position, phongnormal);
+	dot = DotProduct(spot, phongnormal);
+	if (fabs(dot) > ON_EPSILON) {
+		frac = DotProduct(surfacespot, phongnormal) / dot;
+		frac = std::max(
+			float(0), std::min(frac, float(1))
+		); // to correct some extreme cases
+	} else {
 		frac = 0;
 	}
-	VectorScale (spot, frac, middle);
+	VectorScale(spot, frac, middle);
 
 	dist = vector_length(spot);
 	VectorSubtract(surfacespot, middle, v);
 	dist2 = vector_length(middle) + vector_length(v);
 
-	if (dist > ON_EPSILON && fabs (dist2 - dist) > ON_EPSILON)
-	{
-		VectorScale (spot, dist2 / dist, spot);
+	if (dist > ON_EPSILON && fabs(dist2 - dist) > ON_EPSILON) {
+		VectorScale(spot, dist2 / dist, spot);
 	}
 	return true;
 }
 
-static float GetAngle (const float3_array& leftdirection, const float3_array& rightdirection, const float3_array& normal)
-{
+static float GetAngle(
+	float3_array const & leftdirection, float3_array const & rightdirection,
+	float3_array const & normal
+) {
 	float angle;
 	float3_array v;
-	
-	CrossProduct (rightdirection, leftdirection, v);
-	angle = atan2 (DotProduct (v, normal), DotProduct (rightdirection, leftdirection));
+
+	CrossProduct(rightdirection, leftdirection, v);
+	angle = atan2(
+		DotProduct(v, normal), DotProduct(rightdirection, leftdirection)
+	);
 
 	return angle;
 }
 
-static float GetAngleDiff (float angle, float base)
-{
+static float GetAngleDiff(float angle, float base) {
 	float diff;
 
 	diff = angle - base;
-	if (diff < 0)
-	{
+	if (diff < 0) {
 		diff += 2 * std::numbers::pi_v<double>;
 	}
 	return diff;
 }
 
-static float GetFrac (const float3_array& leftspot, const float3_array& rightspot, const float3_array& direction, const float3_array& normal)
-{
+static float GetFrac(
+	float3_array const & leftspot, float3_array const & rightspot,
+	float3_array const & direction, float3_array const & normal
+) {
 	float3_array v;
 	float dot1;
 	float dot2;
 	float frac;
 
-	CrossProduct (direction, normal, v);
-	dot1 = DotProduct (leftspot, v);
-	dot2 = DotProduct (rightspot, v);
-	
+	CrossProduct(direction, normal, v);
+	dot1 = DotProduct(leftspot, v);
+	dot2 = DotProduct(rightspot, v);
+
 	// dot1 <= 0 < dot2
-	if (dot1 >= -NORMAL_EPSILON)
-	{
-		if (g_drawlerp && dot1 > ON_EPSILON)
-		{
-			Developer (developer_level::spam, "Debug: triangulation: internal error 1.\n");
+	if (dot1 >= -NORMAL_EPSILON) {
+		if (g_drawlerp && dot1 > ON_EPSILON) {
+			Developer(
+				developer_level::spam,
+				"Debug: triangulation: internal error 1.\n"
+			);
 		}
 		frac = 0.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
-		if (g_drawlerp && dot2 < -ON_EPSILON)
-		{
-			Developer (developer_level::spam, "Debug: triangulation: internal error 2.\n");
+	} else if (dot2 <= NORMAL_EPSILON) {
+		if (g_drawlerp && dot2 < -ON_EPSILON) {
+			Developer(
+				developer_level::spam,
+				"Debug: triangulation: internal error 2.\n"
+			);
 		}
 		frac = 1.0;
-	}
-	else
-	{
+	} else {
 		frac = dot1 / (dot1 - dot2);
 		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
@@ -194,77 +193,79 @@ static float GetFrac (const float3_array& leftspot, const float3_array& rightspo
 	return frac;
 }
 
-static float GetDirection (const float3_array& spot, const float3_array& normal, float3_array& direction_out)
-{
+static float GetDirection(
+	float3_array const & spot, float3_array const & normal,
+	float3_array& direction_out
+) {
 	float dot;
 
-	dot = DotProduct (spot, normal);
-	VectorMA (spot, -dot, normal, direction_out);
+	dot = DotProduct(spot, normal);
+	VectorMA(spot, -dot, normal, direction_out);
 	return normalize_vector(direction_out);
 }
 
-static bool CalcWeight (const localtriangulation_t *lt, const float3_array& spot, float *weight_out)
-	// It returns true when the point is inside the hull region (with boundary), even if weight = 0.
+static bool CalcWeight(
+	localtriangulation_t const * lt, float3_array const & spot,
+	float* weight_out
+)
+// It returns true when the point is inside the hull region (with boundary),
+// even if weight = 0.
 {
 	float3_array direction;
-	const localtriangulation_t::HullPoint *hp1;
-	const localtriangulation_t::HullPoint *hp2;
+	localtriangulation_t::HullPoint const * hp1;
+	localtriangulation_t::HullPoint const * hp2;
 	bool istoofar;
 	float ratio;
 
 	int i;
 	int j;
 	float angle;
-	std::vector< float > angles;
+	std::vector<float> angles;
 	float frac;
 	float len;
 	float dist;
 
-	if (GetDirection (spot, lt->normal, direction) <= 2 * ON_EPSILON)
-	{
+	if (GetDirection(spot, lt->normal, direction) <= 2 * ON_EPSILON) {
 		*weight_out = 1.0;
 		return true;
 	}
 
-	if ((int)lt->sortedhullpoints.size () == 0)
-	{
+	if ((int) lt->sortedhullpoints.size() == 0) {
 		*weight_out = 0.0;
 		return false;
 	}
 
-	angles.resize ((int)lt->sortedhullpoints.size ());
-	for (i = 0; i < (int)lt->sortedhullpoints.size (); i++)
-	{
-		angle = GetAngle (lt->sortedhullpoints[i].direction, direction, lt->normal);
-		angles[i] = GetAngleDiff (angle, 0);
+	angles.resize((int) lt->sortedhullpoints.size());
+	for (i = 0; i < (int) lt->sortedhullpoints.size(); i++) {
+		angle = GetAngle(
+			lt->sortedhullpoints[i].direction, direction, lt->normal
+		);
+		angles[i] = GetAngleDiff(angle, 0);
 	}
 	j = 0;
-	for (i = 1; i < (int)lt->sortedhullpoints.size (); i++)
-	{
-		if (angles[i] < angles[j])
-		{
+	for (i = 1; i < (int) lt->sortedhullpoints.size(); i++) {
+		if (angles[i] < angles[j]) {
 			j = i;
 		}
 	}
 	hp1 = &lt->sortedhullpoints[j];
-	hp2 = &lt->sortedhullpoints[(j + 1) % (int)lt->sortedhullpoints.size ()];
+	hp2 = &lt->sortedhullpoints
+			   [(j + 1) % (int) lt->sortedhullpoints.size()];
 
-	frac = GetFrac (hp1->spot, hp2->spot, direction, lt->normal);
-	
-	len = (1 - frac) * DotProduct (hp1->spot, direction) + frac * DotProduct (hp2->spot, direction);
-	dist = DotProduct (spot, direction);
-	if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON)
-	{
+	frac = GetFrac(hp1->spot, hp2->spot, direction, lt->normal);
+
+	len = (1 - frac) * DotProduct(hp1->spot, direction)
+		+ frac * DotProduct(hp2->spot, direction);
+	dist = DotProduct(spot, direction);
+	if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON) {
 		istoofar = true;
 		ratio = 1.0;
-	}
-	else if (dist >= len - ON_EPSILON)
-	{
-		istoofar = false; // if we change this "false" to "true", we will see many places turned "green" in "-drawlerp" mode
+	} else if (dist >= len - ON_EPSILON) {
+		istoofar
+			= false; // if we change this "false" to "true", we will see
+					 // many places turned "green" in "-drawlerp" mode
 		ratio = 1.0; // in order to prevent excessively small weight
-	}
-	else
-	{
+	} else {
 		istoofar = false;
 		ratio = dist / len;
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
@@ -274,11 +275,13 @@ static bool CalcWeight (const localtriangulation_t *lt, const float3_array& spot
 	return !istoofar;
 }
 
-static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, const float3_array& spot, interpolation_t& interp)
-{
-	const localtriangulation_t::Wedge *w1;
-	const localtriangulation_t::Wedge *w2;
-	const localtriangulation_t::Wedge *w3;
+static void CalcInterpolation_Square(
+	localtriangulation_t const * lt, int i, float3_array const & spot,
+	interpolation_t& interp
+) {
+	localtriangulation_t::Wedge const * w1;
+	localtriangulation_t::Wedge const * w2;
+	localtriangulation_t::Wedge const * w3;
 	float weights[4];
 	float dot1;
 	float dot2;
@@ -293,13 +296,13 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	float3_array mid_far;
 	float3_array mid_near;
 	float3_array test;
-	
+
 	w1 = &lt->sortedwedges[i];
-	w2 = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
-	w3 = &lt->sortedwedges[(i + 2) % (int)lt->sortedwedges.size ()];
-	if (w1->shape != localtriangulation_t::Wedge::eSquareLeft || w2->shape != localtriangulation_t::Wedge::eSquareRight)
-	{
-		Error ("CalcInterpolation_Square: internal error: not square.");
+	w2 = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
+	w3 = &lt->sortedwedges[(i + 2) % (int) lt->sortedwedges.size()];
+	if (w1->shape != localtriangulation_t::Wedge::eSquareLeft
+		|| w2->shape != localtriangulation_t::Wedge::eSquareRight) {
+		Error("CalcInterpolation_Square: internal error: not square.");
 	}
 
 	weights[0] = 0.0;
@@ -307,169 +310,139 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	weights[2] = 0.0;
 	weights[3] = 0.0;
 
-	// find mid_near on (o,p3), mid_far on (p1,p2), spot on (mid_near,mid_far)
-	CrossProduct (w1->leftdirection, lt->normal, normal1);
+	// find mid_near on (o,p3), mid_far on (p1,p2), spot on
+	// (mid_near,mid_far)
+	CrossProduct(w1->leftdirection, lt->normal, normal1);
 	normalize_vector(normal1);
-	CrossProduct (w2->wedgenormal, lt->normal, normal2);
+	CrossProduct(w2->wedgenormal, lt->normal, normal2);
 	normalize_vector(normal2);
-	dot1 = DotProduct (spot, normal1) - 0;
-	dot2 = DotProduct (spot, normal2) - DotProduct (w3->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(spot, normal1) - 0;
+	dot2 = DotProduct(spot, normal2) - DotProduct(w3->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac = 0.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac = 1.0;
-	}
-	else
-	{
+	} else {
 		frac = dot1 / (dot1 + dot2);
 		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
-	dot1 = DotProduct (w3->leftspot, normal1) - 0;
-	dot2 = 0 - DotProduct (w3->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(w3->leftspot, normal1) - 0;
+	dot2 = 0 - DotProduct(w3->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac_near = 1.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac_near = 0.0;
-	}
-	else
-	{
+	} else {
 		frac_near = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale (w3->leftspot, frac_near, mid_near);
+	VectorScale(w3->leftspot, frac_near, mid_near);
 
-	dot1 = DotProduct (w2->leftspot, normal1) - 0;
-	dot2 = DotProduct (w1->leftspot, normal2) - DotProduct (w3->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(w2->leftspot, normal1) - 0;
+	dot2 = DotProduct(w1->leftspot, normal2)
+		- DotProduct(w3->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac_far = 1.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac_far = 0.0;
-	}
-	else
-	{
+	} else {
 		frac_far = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale (w1->leftspot, 1 - frac_far, mid_far);
-	VectorMA (mid_far, frac_far, w2->leftspot, mid_far);
+	VectorScale(w1->leftspot, 1 - frac_far, mid_far);
+	VectorMA(mid_far, frac_far, w2->leftspot, mid_far);
 
-	CrossProduct (lt->normal, w3->leftdirection, normal);
+	CrossProduct(lt->normal, w3->leftdirection, normal);
 	normalize_vector(normal);
-	dot = DotProduct (spot, normal) - 0;
-	dot1 = (1 - frac_far) * DotProduct (w1->leftspot, normal) + frac_far * DotProduct (w2->leftspot, normal) - 0;
-	if (dot <= NORMAL_EPSILON)
-	{
+	dot = DotProduct(spot, normal) - 0;
+	dot1 = (1 - frac_far) * DotProduct(w1->leftspot, normal)
+		+ frac_far * DotProduct(w2->leftspot, normal) - 0;
+	if (dot <= NORMAL_EPSILON) {
 		ratio = 0.0;
-	}
-	else if (dot >= dot1)
-	{
+	} else if (dot >= dot1) {
 		ratio = 1.0;
-	}
-	else
-	{
+	} else {
 		ratio = dot / dot1;
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
-	VectorScale (mid_near, 1 - ratio, test);
-	VectorMA (test, ratio, mid_far, test);
+	VectorScale(mid_near, 1 - ratio, test);
+	VectorMA(test, ratio, mid_far, test);
 	VectorSubtract(test, spot, test);
-	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
-	{
-		Developer (developer_level::spam, "Debug: triangulation: internal error 12.\n");
+	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON) {
+		Developer(
+			developer_level::spam,
+			"Debug: triangulation: internal error 12.\n"
+		);
 	}
 
 	weights[0] += 0.5 * (1 - ratio) * (1 - frac_near);
 	weights[3] += 0.5 * (1 - ratio) * frac_near;
 	weights[1] += 0.5 * ratio * (1 - frac_far);
 	weights[2] += 0.5 * ratio * frac_far;
-	
-	// find mid_near on (o,p1), mid_far on (p2,p3), spot on (mid_near,mid_far)
-	CrossProduct (lt->normal, w3->leftdirection, normal1);
+
+	// find mid_near on (o,p1), mid_far on (p2,p3), spot on
+	// (mid_near,mid_far)
+	CrossProduct(lt->normal, w3->leftdirection, normal1);
 	normalize_vector(normal1);
-	CrossProduct (w1->wedgenormal, lt->normal, normal2);
+	CrossProduct(w1->wedgenormal, lt->normal, normal2);
 	normalize_vector(normal2);
-	dot1 = DotProduct (spot, normal1) - 0;
-	dot2 = DotProduct (spot, normal2) - DotProduct (w1->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(spot, normal1) - 0;
+	dot2 = DotProduct(spot, normal2) - DotProduct(w1->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac = 0.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac = 1.0;
-	}
-	else
-	{
+	} else {
 		frac = dot1 / (dot1 + dot2);
 		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
-	dot1 = DotProduct (w1->leftspot, normal1) - 0;
-	dot2 = 0 - DotProduct (w1->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(w1->leftspot, normal1) - 0;
+	dot2 = 0 - DotProduct(w1->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac_near = 1.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac_near = 0.0;
-	}
-	else
-	{
+	} else {
 		frac_near = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale (w1->leftspot, frac_near, mid_near);
+	VectorScale(w1->leftspot, frac_near, mid_near);
 
-	dot1 = DotProduct (w2->leftspot, normal1) - 0;
-	dot2 = DotProduct (w3->leftspot, normal2) - DotProduct (w1->leftspot, normal2);
-	if (dot1 <= NORMAL_EPSILON)
-	{
+	dot1 = DotProduct(w2->leftspot, normal1) - 0;
+	dot2 = DotProduct(w3->leftspot, normal2)
+		- DotProduct(w1->leftspot, normal2);
+	if (dot1 <= NORMAL_EPSILON) {
 		frac_far = 1.0;
-	}
-	else if (dot2 <= NORMAL_EPSILON)
-	{
+	} else if (dot2 <= NORMAL_EPSILON) {
 		frac_far = 0.0;
-	}
-	else
-	{
+	} else {
 		frac_far = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale (w3->leftspot, 1 - frac_far, mid_far);
-	VectorMA (mid_far, frac_far, w2->leftspot, mid_far);
+	VectorScale(w3->leftspot, 1 - frac_far, mid_far);
+	VectorMA(mid_far, frac_far, w2->leftspot, mid_far);
 
-	CrossProduct (w1->leftdirection, lt->normal, normal);
+	CrossProduct(w1->leftdirection, lt->normal, normal);
 	normalize_vector(normal);
-	dot = DotProduct (spot, normal) - 0;
-	dot1 = (1 - frac_far) * DotProduct (w3->leftspot, normal) + frac_far * DotProduct (w2->leftspot, normal) - 0;
-	if (dot <= NORMAL_EPSILON)
-	{
+	dot = DotProduct(spot, normal) - 0;
+	dot1 = (1 - frac_far) * DotProduct(w3->leftspot, normal)
+		+ frac_far * DotProduct(w2->leftspot, normal) - 0;
+	if (dot <= NORMAL_EPSILON) {
 		ratio = 0.0;
-	}
-	else if (dot >= dot1)
-	{
+	} else if (dot >= dot1) {
 		ratio = 1.0;
-	}
-	else
-	{
+	} else {
 		ratio = dot / dot1;
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
-	VectorScale (mid_near, 1 - ratio, test);
-	VectorMA (test, ratio, mid_far, test);
+	VectorScale(mid_near, 1 - ratio, test);
+	VectorMA(test, ratio, mid_far, test);
 	VectorSubtract(test, spot, test);
-	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON)
-	{
-		Developer (developer_level::spam, "Debug: triangulation: internal error 13.\n");
+	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON) {
+		Developer(
+			developer_level::spam,
+			"Debug: triangulation: internal error 13.\n"
+		);
 	}
 
 	weights[0] += 0.5 * (1 - ratio) * (1 - frac_near);
@@ -479,7 +452,7 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 
 	interp.isbiased = false;
 	interp.totalweight = 1.0;
-	interp.points.resize (4);
+	interp.points.resize(4);
 	interp.points[0].patchnum = lt->patchnum;
 	interp.points[0].weight = weights[0];
 	interp.points[1].patchnum = w1->leftpatchnum;
@@ -490,508 +463,484 @@ static void CalcInterpolation_Square (const localtriangulation_t *lt, int i, con
 	interp.points[3].weight = weights[3];
 }
 
-static void CalcInterpolation (const localtriangulation_t *lt, const float3_array& spot, interpolation_t& interp)
-	// The interpolation function is defined over the entire plane, so CalcInterpolation never fails.
+static void CalcInterpolation(
+	localtriangulation_t const * lt, float3_array const & spot,
+	interpolation_t& interp
+)
+// The interpolation function is defined over the entire plane, so
+// CalcInterpolation never fails.
 {
 	float3_array direction;
-	const localtriangulation_t::Wedge *w;
-	const localtriangulation_t::Wedge *wnext;
+	localtriangulation_t::Wedge const * w;
+	localtriangulation_t::Wedge const * wnext;
 
 	int i;
 	int j;
 	float angle;
-	std::vector< float > angles;
+	std::vector<float> angles;
 
-	if (GetDirection (spot, lt->normal, direction) <= 2 * ON_EPSILON)
-	{
+	if (GetDirection(spot, lt->normal, direction) <= 2 * ON_EPSILON) {
 		// spot happens to be at the center
 		interp.isbiased = false;
 		interp.totalweight = 1.0;
-		interp.points.resize (1);
+		interp.points.resize(1);
 		interp.points[0].patchnum = lt->patchnum;
 		interp.points[0].weight = 1.0;
 		return;
 	}
 
-	if ((int)lt->sortedwedges.size () == 0) // this local triangulation only has center patch
+	if ((int) lt->sortedwedges.size()
+		== 0) // this local triangulation only has center patch
 	{
 		interp.isbiased = true;
 		interp.totalweight = 1.0;
-		interp.points.resize (1);
+		interp.points.resize(1);
 		interp.points[0].patchnum = lt->patchnum;
 		interp.points[0].weight = 1.0;
 		return;
 	}
-	
-	// Find the wedge with minimum non-negative angle (counterclockwise) pass the spot
-	angles.resize ((int)lt->sortedwedges.size ());
-	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
-	{
-		angle = GetAngle (lt->sortedwedges[i].leftdirection, direction, lt->normal);
-		angles[i] = GetAngleDiff (angle, 0);
+
+	// Find the wedge with minimum non-negative angle (counterclockwise)
+	// pass the spot
+	angles.resize((int) lt->sortedwedges.size());
+	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
+		angle = GetAngle(
+			lt->sortedwedges[i].leftdirection, direction, lt->normal
+		);
+		angles[i] = GetAngleDiff(angle, 0);
 	}
 	j = 0;
-	for (i = 1; i < (int)lt->sortedwedges.size (); i++)
-	{
-		if (angles[i] < angles[j])
-		{
+	for (i = 1; i < (int) lt->sortedwedges.size(); i++) {
+		if (angles[i] < angles[j]) {
 			j = i;
 		}
 	}
 	w = &lt->sortedwedges[j];
-	wnext = &lt->sortedwedges[(j + 1) % (int)lt->sortedwedges.size ()];
+	wnext = &lt->sortedwedges[(j + 1) % (int) lt->sortedwedges.size()];
 
 	// Different wedge types have different interpolation methods
-	switch (w->shape)
-	{
-	case localtriangulation_t::Wedge::eSquareLeft:
-	case localtriangulation_t::Wedge::eSquareRight:
-	case localtriangulation_t::Wedge::eTriangular:
-		// w->wedgenormal is undefined
-		{
-			float frac;
-			float len;
-			float dist;
-			bool istoofar;
-			float ratio;
+	switch (w->shape) {
+		case localtriangulation_t::Wedge::eSquareLeft:
+		case localtriangulation_t::Wedge::eSquareRight:
+		case localtriangulation_t::Wedge::eTriangular:
+			// w->wedgenormal is undefined
+			{
+				float frac;
+				float len;
+				float dist;
+				bool istoofar;
+				float ratio;
 
-			frac = GetFrac (w->leftspot, wnext->leftspot, direction, lt->normal);
-			
-			len = (1 - frac) * DotProduct (w->leftspot, direction) + frac * DotProduct (wnext->leftspot, direction);
-			dist = DotProduct (spot, direction);
-			if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON)
-			{
-				istoofar = true;
-				ratio = 1.0;
-			}
-			else if (dist >= len - ON_EPSILON)
-			{
-				istoofar = false;
-				ratio = 1.0;
-			}
-			else
-			{
-				istoofar = false;
-				ratio = dist / len;
-				ratio = std::max((float) 0, std::min(ratio, (float) 1));
-			}
+				frac = GetFrac(
+					w->leftspot, wnext->leftspot, direction, lt->normal
+				);
 
-			if (istoofar)
-			{
-				interp.isbiased = true;
-				interp.totalweight = 1.0;
-				interp.points.resize (2);
-				interp.points[0].patchnum = w->leftpatchnum;
-				interp.points[0].weight = 1 - frac;
-				interp.points[1].patchnum = wnext->leftpatchnum;
-				interp.points[1].weight = frac;
-			}
-			else if (w->shape == localtriangulation_t::Wedge::eSquareLeft)
-			{
-				i = w - &lt->sortedwedges[0];
-				CalcInterpolation_Square (lt, i, spot, interp);
-			}
-			else if (w->shape == localtriangulation_t::Wedge::eSquareRight)
-			{
-				i = w - &lt->sortedwedges[0];
-				i = (i - 1 + (int)lt->sortedwedges.size ()) % (int)lt->sortedwedges.size ();
-				CalcInterpolation_Square (lt, i, spot, interp);
-			}
-			else
-			{
-				interp.isbiased = false;
-				interp.totalweight = 1.0;
-				interp.points.resize (3);
-				interp.points[0].patchnum = lt->patchnum;
-				interp.points[0].weight = 1 - ratio;
-				interp.points[1].patchnum = w->leftpatchnum;
-				interp.points[1].weight = ratio * (1 - frac);
-				interp.points[2].patchnum = wnext->leftpatchnum;
-				interp.points[2].weight = ratio * frac;
-			}
-		}
-		break;
-	case localtriangulation_t::Wedge::eConvex:
-		// w->wedgenormal is the unit vector pointing from w->leftspot to wnext->leftspot
-		{
-			float dot;
-			float dot1;
-			float dot2;
-			float frac;
-
-			dot1 = DotProduct (w->leftspot, w->wedgenormal) - DotProduct (spot, w->wedgenormal);
-			dot2 = DotProduct (wnext->leftspot, w->wedgenormal) - DotProduct (spot, w->wedgenormal);
-			dot = 0 - DotProduct (spot, w->wedgenormal);
-			// for eConvex type: dot1 < dot < dot2
-
-			if (g_drawlerp && (dot1 > dot || dot > dot2))
-			{
-				Developer (developer_level::spam, "Debug: triangulation: internal error 3.\n");
-			}
-			if (dot1 >= -NORMAL_EPSILON) // 0 <= dot1 < dot < dot2
-			{
-				interp.isbiased = true;
-				interp.totalweight = 1.0;
-				interp.points.resize (1);
-				interp.points[0].patchnum = w->leftpatchnum;
-				interp.points[0].weight = 1.0;
-			}
-			else if (dot2 <= NORMAL_EPSILON) // dot1 < dot < dot2 <= 0
-			{
-				interp.isbiased = true;
-				interp.totalweight = 1.0;
-				interp.points.resize (1);
-				interp.points[0].patchnum = wnext->leftpatchnum;
-				interp.points[0].weight = 1.0;
-			}
-			else if (dot > 0) // dot1 < 0 < dot < dot2
-			{
-				frac = dot1 / (dot1 - dot);
-				frac = std::max((float) 0, std::min(frac, (float) 1));
-
-				interp.isbiased = true;
-				interp.totalweight = 1.0;
-				interp.points.resize (2);
-				interp.points[0].patchnum = w->leftpatchnum;
-				interp.points[0].weight = 1 - frac;
-				interp.points[1].patchnum = lt->patchnum;
-				interp.points[1].weight = frac;
-			}
-			else // dot1 < dot <= 0 < dot2
-			{
-				frac = dot / (dot - dot2);
-				frac = std::max((float) 0, std::min(frac, (float) 1));
-			
-				interp.isbiased = true;
-				interp.totalweight = 1.0;
-				interp.points.resize (2);
-				interp.points[0].patchnum = lt->patchnum;
-				interp.points[0].weight = 1 - frac;
-				interp.points[1].patchnum = wnext->leftpatchnum;
-				interp.points[1].weight = frac;
-			}
-		}
-		break;
-	case localtriangulation_t::Wedge::eConcave:
-		{
-			float len;
-			float dist;
-			float ratio;
-
-			if (DotProduct (spot, w->wedgenormal) < 0) // the spot is closer to the left edge than the right edge
-			{
-				len = DotProduct (w->leftspot, w->leftdirection);
-				dist = DotProduct (spot, w->leftdirection);
-				if (g_drawlerp && len <= ON_EPSILON)
-				{
-					Developer (developer_level::spam, "Debug: triangulation: internal error 4.\n");
+				len = (1 - frac) * DotProduct(w->leftspot, direction)
+					+ frac * DotProduct(wnext->leftspot, direction);
+				dist = DotProduct(spot, direction);
+				if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON) {
+					istoofar = true;
+					ratio = 1.0;
+				} else if (dist >= len - ON_EPSILON) {
+					istoofar = false;
+					ratio = 1.0;
+				} else {
+					istoofar = false;
+					ratio = dist / len;
+					ratio = std::max((float) 0, std::min(ratio, (float) 1));
 				}
-				if (dist <= NORMAL_EPSILON)
-				{
+
+				if (istoofar) {
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (1);
+					interp.points.resize(2);
+					interp.points[0].patchnum = w->leftpatchnum;
+					interp.points[0].weight = 1 - frac;
+					interp.points[1].patchnum = wnext->leftpatchnum;
+					interp.points[1].weight = frac;
+				} else if (w->shape
+						   == localtriangulation_t::Wedge::eSquareLeft) {
+					i = w - &lt->sortedwedges[0];
+					CalcInterpolation_Square(lt, i, spot, interp);
+				} else if (w->shape
+						   == localtriangulation_t::Wedge::eSquareRight) {
+					i = w - &lt->sortedwedges[0];
+					i = (i - 1 + (int) lt->sortedwedges.size())
+						% (int) lt->sortedwedges.size();
+					CalcInterpolation_Square(lt, i, spot, interp);
+				} else {
+					interp.isbiased = false;
+					interp.totalweight = 1.0;
+					interp.points.resize(3);
 					interp.points[0].patchnum = lt->patchnum;
-					interp.points[0].weight = 1.0;
+					interp.points[0].weight = 1 - ratio;
+					interp.points[1].patchnum = w->leftpatchnum;
+					interp.points[1].weight = ratio * (1 - frac);
+					interp.points[2].patchnum = wnext->leftpatchnum;
+					interp.points[2].weight = ratio * frac;
 				}
-				else if (dist >= len)
+			}
+			break;
+		case localtriangulation_t::Wedge::eConvex:
+			// w->wedgenormal is the unit vector pointing from w->leftspot
+			// to wnext->leftspot
+			{
+				float dot;
+				float dot1;
+				float dot2;
+				float frac;
+
+				dot1 = DotProduct(w->leftspot, w->wedgenormal)
+					- DotProduct(spot, w->wedgenormal);
+				dot2 = DotProduct(wnext->leftspot, w->wedgenormal)
+					- DotProduct(spot, w->wedgenormal);
+				dot = 0 - DotProduct(spot, w->wedgenormal);
+				// for eConvex type: dot1 < dot < dot2
+
+				if (g_drawlerp && (dot1 > dot || dot > dot2)) {
+					Developer(
+						developer_level::spam,
+						"Debug: triangulation: internal error 3.\n"
+					);
+				}
+				if (dot1 >= -NORMAL_EPSILON) // 0 <= dot1 < dot < dot2
 				{
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (1);
+					interp.points.resize(1);
 					interp.points[0].patchnum = w->leftpatchnum;
 					interp.points[0].weight = 1.0;
-				}
-				else
+				} else if (dot2 <= NORMAL_EPSILON) // dot1 < dot < dot2 <= 0
 				{
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize(1);
+					interp.points[0].patchnum = wnext->leftpatchnum;
+					interp.points[0].weight = 1.0;
+				} else if (dot > 0) // dot1 < 0 < dot < dot2
+				{
+					frac = dot1 / (dot1 - dot);
+					frac = std::max((float) 0, std::min(frac, (float) 1));
+
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize(2);
+					interp.points[0].patchnum = w->leftpatchnum;
+					interp.points[0].weight = 1 - frac;
+					interp.points[1].patchnum = lt->patchnum;
+					interp.points[1].weight = frac;
+				} else // dot1 < dot <= 0 < dot2
+				{
+					frac = dot / (dot - dot2);
+					frac = std::max((float) 0, std::min(frac, (float) 1));
+
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize(2);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1 - frac;
+					interp.points[1].patchnum = wnext->leftpatchnum;
+					interp.points[1].weight = frac;
+				}
+			}
+			break;
+		case localtriangulation_t::Wedge::eConcave: {
+			float len;
+			float dist;
+			float ratio;
+
+			if (DotProduct(spot, w->wedgenormal)
+				< 0) // the spot is closer to the left edge than the right
+					 // edge
+			{
+				len = DotProduct(w->leftspot, w->leftdirection);
+				dist = DotProduct(spot, w->leftdirection);
+				if (g_drawlerp && len <= ON_EPSILON) {
+					Developer(
+						developer_level::spam,
+						"Debug: triangulation: internal error 4.\n"
+					);
+				}
+				if (dist <= NORMAL_EPSILON) {
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize(1);
+					interp.points[0].patchnum = lt->patchnum;
+					interp.points[0].weight = 1.0;
+				} else if (dist >= len) {
+					interp.isbiased = true;
+					interp.totalweight = 1.0;
+					interp.points.resize(1);
+					interp.points[0].patchnum = w->leftpatchnum;
+					interp.points[0].weight = 1.0;
+				} else {
 					ratio = dist / len;
 					ratio = std::max((float) 0, std::min(ratio, (float) 1));
 
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (2);
+					interp.points.resize(2);
 					interp.points[0].patchnum = lt->patchnum;
 					interp.points[0].weight = 1 - ratio;
 					interp.points[1].patchnum = w->leftpatchnum;
 					interp.points[1].weight = ratio;
 				}
-			}
-			else // the spot is closer to the right edge than the left edge
+			} else // the spot is closer to the right edge than the left
+				   // edge
 			{
-				len = DotProduct (wnext->leftspot, wnext->leftdirection);
-				dist = DotProduct (spot, wnext->leftdirection);
-				if (g_drawlerp && len <= ON_EPSILON)
-				{
-					Developer (developer_level::spam, "Debug: triangulation: internal error 5.\n");
+				len = DotProduct(wnext->leftspot, wnext->leftdirection);
+				dist = DotProduct(spot, wnext->leftdirection);
+				if (g_drawlerp && len <= ON_EPSILON) {
+					Developer(
+						developer_level::spam,
+						"Debug: triangulation: internal error 5.\n"
+					);
 				}
-				if (dist <= NORMAL_EPSILON)
-				{
+				if (dist <= NORMAL_EPSILON) {
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (1);
+					interp.points.resize(1);
 					interp.points[0].patchnum = lt->patchnum;
 					interp.points[0].weight = 1.0;
-				}
-				else if (dist >= len)
-				{
+				} else if (dist >= len) {
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (1);
+					interp.points.resize(1);
 					interp.points[0].patchnum = wnext->leftpatchnum;
 					interp.points[0].weight = 1.0;
-				}
-				else
-				{
+				} else {
 					ratio = dist / len;
 					ratio = std::max((float) 0, std::min(ratio, (float) 1));
 
 					interp.isbiased = true;
 					interp.totalweight = 1.0;
-					interp.points.resize (2);
+					interp.points.resize(2);
 					interp.points[0].patchnum = lt->patchnum;
 					interp.points[0].weight = 1 - ratio;
 					interp.points[1].patchnum = wnext->leftpatchnum;
 					interp.points[1].weight = ratio;
 				}
 			}
-		}
-		break;
-	default:
-		Error ("CalcInterpolation: internal error: invalid wedge type.");
-		break;
+		} break;
+		default:
+			Error("CalcInterpolation: internal error: invalid wedge type.");
+			break;
 	}
 }
 
-static void ApplyInterpolation (const interpolation_t& interp, int style, float3_array& out)
-{
+static void ApplyInterpolation(
+	interpolation_t const & interp, int style, float3_array& out
+) {
 	out = {};
-	if (interp.totalweight <= 0)
-	{
+	if (interp.totalweight <= 0) {
 		return;
 	}
-	for (const auto& point : interp.points) {
-		const float3_array *b = GetTotalLight(&g_patches[point.patchnum], style);
-		VectorMA (out, point.weight / interp.totalweight, *b, out);
+	for (auto const & point : interp.points) {
+		float3_array const * b
+			= GetTotalLight(&g_patches[point.patchnum], style);
+		VectorMA(out, point.weight / interp.totalweight, *b, out);
 	}
 }
 
 // =====================================================================================
 //  InterpolateSampleLight
 // =====================================================================================
-void InterpolateSampleLight (const float3_array& position, int surface, int style, float3_array &out)
-{
-	try
-	{
-	
-	const facetriangulation_t *ft;
-	std::vector< float > localweights;
-	std::vector< interpolation_t * > localinterps;
+void InterpolateSampleLight(
+	float3_array const & position, int surface, int style, float3_array& out
+) {
+	try {
+		facetriangulation_t const * ft;
+		std::vector<float> localweights;
+		std::vector<interpolation_t*> localinterps;
 
-	int i;
-	int j;
-	int n;
-	const facetriangulation_t *ft2;
-	const localtriangulation_t *lt;
-	float3_array spot;
-	float weight;
-	interpolation_t *interp;
-	const localtriangulation_t *best;
-	float3_array v;
-	float dist;
-	float bestdist;
-	float dot;
+		int i;
+		int j;
+		int n;
+		facetriangulation_t const * ft2;
+		localtriangulation_t const * lt;
+		float3_array spot;
+		float weight;
+		interpolation_t* interp;
+		localtriangulation_t const * best;
+		float3_array v;
+		float dist;
+		float bestdist;
+		float dot;
 
-	if (surface < 0 || surface >= g_numfaces)
-	{
-		Error ("InterpolateSampleLight: internal error: surface number out of range.");
-	}
-	ft = g_facetriangulations[surface];
-	interpolation_t maininterp{};
-	maininterp.points.reserve (64);
+		if (surface < 0 || surface >= g_numfaces) {
+			Error(
+				"InterpolateSampleLight: internal error: surface number out of range."
+			);
+		}
+		ft = g_facetriangulations[surface];
+		interpolation_t maininterp{};
+		maininterp.points.reserve(64);
 
-	// Calculate local interpolations and their weights
-	localweights.resize (0);
-	localinterps.resize (0);
-	if (g_lerp_enabled)
-	{
-		for (i = 0; i < (int)ft->neighbors.size (); i++) // for this face and each of its neighbors
-		{
-			ft2 = g_facetriangulations[ft->neighbors[i]];
-			for (j = 0; j < (int)ft2->localtriangulations.size (); j++) // for each patch on that face
+		// Calculate local interpolations and their weights
+		localweights.resize(0);
+		localinterps.resize(0);
+		if (g_lerp_enabled) {
+			for (i = 0; i < (int) ft->neighbors.size();
+				 i++) // for this face and each of its neighbors
 			{
-				lt = ft2->localtriangulations[j];
-				if (!CalcAdaptedSpot (lt, position, surface, spot))
+				ft2 = g_facetriangulations[ft->neighbors[i]];
+				for (j = 0; j < (int) ft2->localtriangulations.size();
+					 j++) // for each patch on that face
 				{
-					if (g_drawlerp && ft2 == ft)
-					{
-						Developer (developer_level::spam, "Debug: triangulation: internal error 6.\n");
+					lt = ft2->localtriangulations[j];
+					if (!CalcAdaptedSpot(lt, position, surface, spot)) {
+						if (g_drawlerp && ft2 == ft) {
+							Developer(
+								developer_level::spam,
+								"Debug: triangulation: internal error 6.\n"
+							);
+						}
+						continue;
 					}
-					continue;
-				}
-				if (!CalcWeight (lt, spot, &weight))
-				{
-					continue;
-				}
-				interp = new interpolation_t;
-				interp->points.reserve (4);
-				CalcInterpolation (lt, spot, *interp);
+					if (!CalcWeight(lt, spot, &weight)) {
+						continue;
+					}
+					interp = new interpolation_t;
+					interp->points.reserve(4);
+					CalcInterpolation(lt, spot, *interp);
 
-				localweights.push_back (weight);
-				localinterps.push_back (interp);
+					localweights.push_back(weight);
+					localinterps.push_back(interp);
+				}
 			}
 		}
-	}
-	
-	// Combine into one interpolation
-	maininterp.isbiased = false;
-	maininterp.totalweight = 0;
-	maininterp.points.resize (0);
-	for (i = 0; i < (int)localinterps.size (); i++)
-	{
-		if (localinterps[i]->isbiased)
-		{
-			maininterp.isbiased = true;
-		}
-		for (j = 0; j < (int)localinterps[i]->points.size (); j++)
-		{
-			weight = localinterps[i]->points[j].weight * localweights[i];
-			if (g_patches[localinterps[i]->points[j].patchnum].flags == ePatchFlagOutside)
-			{
-				weight *= 0.01;
-			}
-			n = (int)maininterp.points.size ();
-			maininterp.points.resize (n + 1);
-			maininterp.points[n].patchnum = localinterps[i]->points[j].patchnum;
-			maininterp.points[n].weight = weight;
-			maininterp.totalweight += weight;
-		}
-	}
-	if (maininterp.totalweight > 0)
-	{
-		ApplyInterpolation(maininterp, style, out);
-		if (g_drawlerp)
-		{
-			// white or yellow
-			out[0] = 100;
-			out[1] = 100;
-			out[2] = (maininterp.isbiased? 0: 100);
-		}
-	}
-	else
-	{
-		// try again, don't multiply localweights[i] (which equals to 0)
+
+		// Combine into one interpolation
 		maininterp.isbiased = false;
 		maininterp.totalweight = 0;
-		maininterp.points.resize (0);
-		for (i = 0; i < (int)localinterps.size (); i++)
-		{
-			if (localinterps[i]->isbiased)
-			{
+		maininterp.points.resize(0);
+		for (i = 0; i < (int) localinterps.size(); i++) {
+			if (localinterps[i]->isbiased) {
 				maininterp.isbiased = true;
 			}
-			for (j = 0; j < (int)localinterps[i]->points.size (); j++)
-			{
-				weight = localinterps[i]->points[j].weight;
-				if (g_patches[localinterps[i]->points[j].patchnum].flags == ePatchFlagOutside)
-				{
+			for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
+				weight
+					= localinterps[i]->points[j].weight * localweights[i];
+				if (g_patches[localinterps[i]->points[j].patchnum].flags
+					== ePatchFlagOutside) {
 					weight *= 0.01;
 				}
-				n = (int)maininterp.points.size ();
-				maininterp.points.resize (n + 1);
-				maininterp.points[n].patchnum = localinterps[i]->points[j].patchnum;
+				n = (int) maininterp.points.size();
+				maininterp.points.resize(n + 1);
+				maininterp.points[n].patchnum
+					= localinterps[i]->points[j].patchnum;
 				maininterp.points[n].weight = weight;
 				maininterp.totalweight += weight;
 			}
 		}
-		if (maininterp.totalweight > 0)
-		{
+		if (maininterp.totalweight > 0) {
 			ApplyInterpolation(maininterp, style, out);
-			if (g_drawlerp)
-			{
-				// red
+			if (g_drawlerp) {
+				// white or yellow
 				out[0] = 100;
-				out[1] = 0;
-				out[2] = (maininterp.isbiased? 0: 100);
+				out[1] = 100;
+				out[2] = (maininterp.isbiased ? 0 : 100);
 			}
-		}
-		else
-		{
-			// worst case, simply use the nearest patch
-
-			best = nullptr;
-			for (i = 0; i < (int)ft->localtriangulations.size (); i++)
-			{
-				lt = ft->localtriangulations[i];
-				VectorCopy (position, v);
-				snap_to_winding (lt->winding, lt->plane, v.data());
-				VectorSubtract(v, position, v);
-				dist = vector_length(v);
-				if (best == nullptr || dist < bestdist - ON_EPSILON)
-				{
-					best = lt;
-					bestdist = dist;
+		} else {
+			// try again, don't multiply localweights[i] (which equals to 0)
+			maininterp.isbiased = false;
+			maininterp.totalweight = 0;
+			maininterp.points.resize(0);
+			for (i = 0; i < (int) localinterps.size(); i++) {
+				if (localinterps[i]->isbiased) {
+					maininterp.isbiased = true;
 				}
-			}
-
-			if (best)
-			{
-				lt = best;
-				VectorSubtract(position, lt->center, spot);
-				dot = DotProduct (spot, lt->normal);
-				VectorMA (spot, -dot, lt->normal, spot);
-				CalcInterpolation (lt, spot, maininterp);
-
-				maininterp.totalweight = 0;
-				for (j = 0; j < (int)maininterp.points.size (); j++)
-				{
-					if (g_patches[maininterp.points[j].patchnum].flags == ePatchFlagOutside)
-					{
-						maininterp.points[j].weight *= 0.01;
+				for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
+					weight = localinterps[i]->points[j].weight;
+					if (g_patches[localinterps[i]->points[j].patchnum].flags
+						== ePatchFlagOutside) {
+						weight *= 0.01;
 					}
-					maininterp.totalweight += maininterp.points[j].weight;
-				}
-				ApplyInterpolation(maininterp, style, out);
-				if (g_drawlerp)
-				{
-					// green
-					out[0] = 0;
-					out[1] = 100;
-					out[2] = (maininterp.isbiased? 0: 100);
+					n = (int) maininterp.points.size();
+					maininterp.points.resize(n + 1);
+					maininterp.points[n].patchnum
+						= localinterps[i]->points[j].patchnum;
+					maininterp.points[n].weight = weight;
+					maininterp.totalweight += weight;
 				}
 			}
-			else
-			{
-				maininterp.isbiased = true;
-				maininterp.totalweight = 0;
-				maininterp.points.resize(0);
+			if (maininterp.totalweight > 0) {
 				ApplyInterpolation(maininterp, style, out);
-				if (g_drawlerp)
-				{
-					// black
-					out[0] = 0;
+				if (g_drawlerp) {
+					// red
+					out[0] = 100;
 					out[1] = 0;
-					out[2] = 0;
+					out[2] = (maininterp.isbiased ? 0 : 100);
+				}
+			} else {
+				// worst case, simply use the nearest patch
+
+				best = nullptr;
+				for (i = 0; i < (int) ft->localtriangulations.size(); i++) {
+					lt = ft->localtriangulations[i];
+					VectorCopy(position, v);
+					snap_to_winding(lt->winding, lt->plane, v.data());
+					VectorSubtract(v, position, v);
+					dist = vector_length(v);
+					if (best == nullptr || dist < bestdist - ON_EPSILON) {
+						best = lt;
+						bestdist = dist;
+					}
+				}
+
+				if (best) {
+					lt = best;
+					VectorSubtract(position, lt->center, spot);
+					dot = DotProduct(spot, lt->normal);
+					VectorMA(spot, -dot, lt->normal, spot);
+					CalcInterpolation(lt, spot, maininterp);
+
+					maininterp.totalweight = 0;
+					for (j = 0; j < (int) maininterp.points.size(); j++) {
+						if (g_patches[maininterp.points[j].patchnum].flags
+							== ePatchFlagOutside) {
+							maininterp.points[j].weight *= 0.01;
+						}
+						maininterp.totalweight
+							+= maininterp.points[j].weight;
+					}
+					ApplyInterpolation(maininterp, style, out);
+					if (g_drawlerp) {
+						// green
+						out[0] = 0;
+						out[1] = 100;
+						out[2] = (maininterp.isbiased ? 0 : 100);
+					}
+				} else {
+					maininterp.isbiased = true;
+					maininterp.totalweight = 0;
+					maininterp.points.resize(0);
+					ApplyInterpolation(maininterp, style, out);
+					if (g_drawlerp) {
+						// black
+						out[0] = 0;
+						out[1] = 0;
+						out[2] = 0;
+					}
 				}
 			}
 		}
-	}
 
-	for (i = 0; i < (int)localinterps.size (); i++)
-	{
-		delete localinterps[i];
-	}
+		for (i = 0; i < (int) localinterps.size(); i++) {
+			delete localinterps[i];
+		}
 
-	}
-	catch (const std::bad_alloc&)
-	{
-		hlassume (false, assume_NoMemory);
+	} catch (std::bad_alloc const &) {
+		hlassume(false, assume_NoMemory);
 	}
 }
 
-static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, const float3_array& p1, const float3_array& p2)
-{
+static bool TestLineSegmentIntersectWall(
+	facetriangulation_t const * facetrian, float3_array const & p1,
+	float3_array const & p2
+) {
 	int i;
-	const facetriangulation_t::Wall *wall;
+	facetriangulation_t::Wall const * wall;
 	float front;
 	float back;
 	float dot1;
@@ -1001,34 +950,31 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 	float top;
 	float frac;
 
-	for (i = 0; i < (int)facetrian->walls.size (); i++)
-	{
+	for (i = 0; i < (int) facetrian->walls.size(); i++) {
 		wall = &facetrian->walls[i];
-		bottom = DotProduct (wall->points[0], wall->direction);
-		top = DotProduct (wall->points[1], wall->direction);
-		front = DotProduct (p1, wall->normal) - DotProduct (wall->points[0], wall->normal);
-		back = DotProduct (p2, wall->normal) - DotProduct (wall->points[0], wall->normal);
-		if (front > ON_EPSILON && back > ON_EPSILON || front < -ON_EPSILON && back < -ON_EPSILON)
-		{
+		bottom = DotProduct(wall->points[0], wall->direction);
+		top = DotProduct(wall->points[1], wall->direction);
+		front = DotProduct(p1, wall->normal)
+			- DotProduct(wall->points[0], wall->normal);
+		back = DotProduct(p2, wall->normal)
+			- DotProduct(wall->points[0], wall->normal);
+		if (front > ON_EPSILON && back > ON_EPSILON
+			|| front < -ON_EPSILON && back < -ON_EPSILON) {
 			continue;
 		}
-		dot1 = DotProduct (p1, wall->direction);
-		dot2 = DotProduct (p2, wall->direction);
-		if (fabs (front) <= 2 * ON_EPSILON && fabs (back) <= 2 * ON_EPSILON)
-		{
+		dot1 = DotProduct(p1, wall->direction);
+		dot2 = DotProduct(p2, wall->direction);
+		if (fabs(front) <= 2 * ON_EPSILON && fabs(back) <= 2 * ON_EPSILON) {
 			top = std::min(top, std::max(dot1, dot2));
 			bottom = std::max(bottom, std::min(dot1, dot2));
-		}
-		else
-		{
+		} else {
 			frac = front / (front - back);
 			frac = std::max((float) 0, std::min(frac, (float) 1));
 			dot = dot1 + frac * (dot2 - dot1);
 			top = std::min(top, dot);
 			bottom = std::max(bottom, dot);
 		}
-		if (top - bottom >= -ON_EPSILON)
-		{
+		if (top - bottom >= -ON_EPSILON) {
 			return true;
 		}
 	}
@@ -1036,33 +982,31 @@ static bool TestLineSegmentIntersectWall (const facetriangulation_t *facetrian, 
 	return false;
 }
 
-static bool TestFarPatch (const localtriangulation_t *lt, const float3_array& p2, const fast_winding &p2winding)
-{
+static bool TestFarPatch(
+	localtriangulation_t const * lt, float3_array const & p2,
+	fast_winding const & p2winding
+) {
 	int i;
 	float dist;
 	float size1;
 	float size2;
 
 	size1 = 0;
-	for (i = 0; i < lt->winding.size(); i++)
-	{
+	for (i = 0; i < lt->winding.size(); i++) {
 		float3_array v;
 		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
 		dist = vector_length(v);
-		if (dist > size1)
-		{
+		if (dist > size1) {
 			size1 = dist;
 		}
 	}
 
 	size2 = 0;
-	for (i = 0; i < p2winding.size(); i++)
-	{
+	for (i = 0; i < p2winding.size(); i++) {
 		float3_array v;
 		VectorSubtract(p2winding.m_Points[i], p2, v);
 		dist = vector_length(v);
-		if (dist > size2)
-		{
+		if (dist > size2) {
 			size2 = dist;
 		}
 	}
@@ -1074,142 +1018,148 @@ static bool TestFarPatch (const localtriangulation_t *lt, const float3_array& p2
 	return dist > 1.4 * (size1 + size2);
 }
 
-#define TRIANGLE_SHAPE_THRESHOLD (115.0*std::numbers::pi_v<double>/180)
-// If one of the angles in a triangle exceeds this threshold, the most distant point will be removed or the triangle will break into a convex-type wedge.
+#define TRIANGLE_SHAPE_THRESHOLD (115.0 * std::numbers::pi_v<double> / 180)
 
-static void GatherPatches (localtriangulation_t *lt, const facetriangulation_t *facetrian)
-{
+// If one of the angles in a triangle exceeds this threshold, the most
+// distant point will be removed or the triangle will break into a
+// convex-type wedge.
+
+static void GatherPatches(
+	localtriangulation_t* lt, facetriangulation_t const * facetrian
+) {
 	int i;
 	int facenum2;
-	const dplane_t *dp2;
-	const patch_t *patch2;
+	dplane_t const * dp2;
+	patch_t const * patch2;
 	int patchnum2;
 	float3_array v;
 	localtriangulation_t::Wedge point;
-	std::vector< localtriangulation_t::Wedge > points;
-	std::vector< std::pair< float, int > > angles;
+	std::vector<localtriangulation_t::Wedge> points;
+	std::vector<std::pair<float, int>> angles;
 	float angle;
 
-	if (!g_lerp_enabled)
-	{
-		lt->sortedwedges.resize (0);
+	if (!g_lerp_enabled) {
+		lt->sortedwedges.resize(0);
 		return;
 	}
 
-	points.resize (0);
-	for (i = 0; i < (int)lt->neighborfaces.size (); i++)
-	{
+	points.resize(0);
+	for (i = 0; i < (int) lt->neighborfaces.size(); i++) {
 		facenum2 = lt->neighborfaces[i];
-		dp2 = getPlaneFromFaceNumber (facenum2);
-		for (patch2 = g_face_patches[facenum2]; patch2; patch2 = patch2->next)
-		{
+		dp2 = getPlaneFromFaceNumber(facenum2);
+		for (patch2 = g_face_patches[facenum2]; patch2;
+			 patch2 = patch2->next) {
 			patchnum2 = patch2 - g_patches;
-			
+
 			point.leftpatchnum = patchnum2;
-			VectorMA (patch2->origin, -PATCH_HUNT_OFFSET, dp2->normal, v);
+			VectorMA(patch2->origin, -PATCH_HUNT_OFFSET, dp2->normal, v);
 
 			// Do permission tests using the original position of the patch
-			if (patchnum2 == lt->patchnum || point_in_winding (lt->winding, lt->plane, v))
-			{
+			if (patchnum2 == lt->patchnum
+				|| point_in_winding(lt->winding, lt->plane, v)) {
 				continue;
 			}
-			if (facenum2 != facetrian->facenum && TestLineSegmentIntersectWall (facetrian, lt->center, v))
-			{
+			if (facenum2 != facetrian->facenum
+				&& TestLineSegmentIntersectWall(facetrian, lt->center, v)) {
 				continue;
 			}
-			if (TestFarPatch (lt, v, *patch2->winding))
-			{
+			if (TestFarPatch(lt, v, *patch2->winding)) {
 				continue;
 			}
 
 			// Store the adapted position of the patch
-			if (!CalcAdaptedSpot (lt, v, facenum2, point.leftspot))
-			{
+			if (!CalcAdaptedSpot(lt, v, facenum2, point.leftspot)) {
 				continue;
 			}
-			if (GetDirection (point.leftspot, lt->normal, point.leftdirection) <= 2 * ON_EPSILON)
-			{
+			if (GetDirection(
+					point.leftspot, lt->normal, point.leftdirection
+				)
+				<= 2 * ON_EPSILON) {
 				continue;
 			}
-			points.push_back (point);
+			points.push_back(point);
 		}
 	}
 
 	// Sort the patches into clockwise order
-	angles.resize ((int)points.size ());
-	for (i = 0; i < (int)points.size (); i++)
-	{
-		angle = GetAngle (points[0].leftdirection, points[i].leftdirection, lt->normal);
-		if (i == 0)
-		{
-			if (g_drawlerp && fabs (angle) > NORMAL_EPSILON)
-			{
-				Developer (developer_level::spam, "Debug: triangulation: internal error 7.\n");
+	angles.resize((int) points.size());
+	for (i = 0; i < (int) points.size(); i++) {
+		angle = GetAngle(
+			points[0].leftdirection, points[i].leftdirection, lt->normal
+		);
+		if (i == 0) {
+			if (g_drawlerp && fabs(angle) > NORMAL_EPSILON) {
+				Developer(
+					developer_level::spam,
+					"Debug: triangulation: internal error 7.\n"
+				);
 			}
 			angle = 0.0;
 		}
-		angles[i].first = GetAngleDiff (angle, 0);
+		angles[i].first = GetAngleDiff(angle, 0);
 		angles[i].second = i;
 	}
-	std::sort (angles.begin (), angles.end ());
+	std::sort(angles.begin(), angles.end());
 
-	lt->sortedwedges.resize ((int)points.size ());
-	for (i = 0; i < (int)points.size (); i++)
-	{
+	lt->sortedwedges.resize((int) points.size());
+	for (i = 0; i < (int) points.size(); i++) {
 		lt->sortedwedges[i] = points[angles[i].second];
 	}
 }
 
-static void PurgePatches (localtriangulation_t *lt)
-{
-	std::vector< localtriangulation_t::Wedge > points;
+static void PurgePatches(localtriangulation_t* lt) {
+	std::vector<localtriangulation_t::Wedge> points;
 	int i;
 	int cur;
-	std::vector< int > next;
-	std::vector< int > prev;
-	std::vector< int > valid;
-	std::vector< std::pair< float, int > > dists;
+	std::vector<int> next;
+	std::vector<int> prev;
+	std::vector<int> valid;
+	std::vector<std::pair<float, int>> dists;
 	float angle;
 	float3_array normal;
 	float3_array v;
 
-	points.swap (lt->sortedwedges);
-	lt->sortedwedges.resize (0);
+	points.swap(lt->sortedwedges);
+	lt->sortedwedges.resize(0);
 
-	next.resize ((int)points.size ());
-	prev.resize ((int)points.size ());
-	valid.resize ((int)points.size ());
-	dists.resize ((int)points.size ());
-	for (i = 0; i < (int)points.size (); i++)
-	{
-		next[i] = (i + 1) % (int)points.size ();
-		prev[i] = (i - 1 + (int)points.size ()) % (int)points.size ();
+	next.resize((int) points.size());
+	prev.resize((int) points.size());
+	valid.resize((int) points.size());
+	dists.resize((int) points.size());
+	for (i = 0; i < (int) points.size(); i++) {
+		next[i] = (i + 1) % (int) points.size();
+		prev[i] = (i - 1 + (int) points.size()) % (int) points.size();
 		valid[i] = 1;
-		dists[i].first = DotProduct (points[i].leftspot, points[i].leftdirection);
+		dists[i].first
+			= DotProduct(points[i].leftspot, points[i].leftdirection);
 		dists[i].second = i;
 	}
-	std::sort (dists.begin (), dists.end ());
+	std::sort(dists.begin(), dists.end());
 
-	for (i = 0; i < (int)points.size (); i++)
-	{
+	for (i = 0; i < (int) points.size(); i++) {
 		cur = dists[i].second;
-		if (valid[cur] == 0)
-		{
+		if (valid[cur] == 0) {
 			continue;
 		}
 		valid[cur] = 2; // mark current patch as final
-		
-		CrossProduct (points[cur].leftdirection, lt->normal, normal);
+
+		CrossProduct(points[cur].leftdirection, lt->normal, normal);
 		normalize_vector(normal);
-		VectorScale (normal, cos (TRIANGLE_SHAPE_THRESHOLD), v);
-		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
-		while (next[cur] != cur && valid[next[cur]] != 2)
-		{
-			angle = GetAngle (points[cur].leftdirection, points[next[cur]].leftdirection, lt->normal);
-			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
-				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
-				&& DotProduct (points[next[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
-			{
+		VectorScale(normal, cos(TRIANGLE_SHAPE_THRESHOLD), v);
+		VectorMA(
+			v, sin(TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v
+		);
+		while (next[cur] != cur && valid[next[cur]] != 2) {
+			angle = GetAngle(
+				points[cur].leftdirection, points[next[cur]].leftdirection,
+				lt->normal
+			);
+			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
+				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
+							+ NORMAL_EPSILON
+					&& DotProduct(points[next[cur]].leftspot, v)
+						>= DotProduct(points[cur].leftspot, v)
+							- ON_EPSILON / 2) {
 				// remove next patch
 				valid[next[cur]] = 0;
 				next[cur] = next[next[cur]];
@@ -1219,18 +1169,24 @@ static void PurgePatches (localtriangulation_t *lt)
 			// the triangle is good
 			break;
 		}
-		
-		CrossProduct (lt->normal, points[cur].leftdirection, normal);
+
+		CrossProduct(lt->normal, points[cur].leftdirection, normal);
 		normalize_vector(normal);
-		VectorScale (normal, cos (TRIANGLE_SHAPE_THRESHOLD), v);
-		VectorMA (v, sin (TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v);
-		while (prev[cur] != cur && valid[prev[cur]] != 2)
-		{
-			angle = GetAngle (points[prev[cur]].leftdirection, points[cur].leftdirection, lt->normal);
-			if (fabs (angle) <= (1.0*std::numbers::pi_v<double>/180) ||
-				GetAngleDiff (angle, 0) <= std::numbers::pi_v<double> + NORMAL_EPSILON
-				&& DotProduct (points[prev[cur]].leftspot, v) >= DotProduct (points[cur].leftspot, v) - ON_EPSILON / 2)
-			{
+		VectorScale(normal, cos(TRIANGLE_SHAPE_THRESHOLD), v);
+		VectorMA(
+			v, sin(TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v
+		);
+		while (prev[cur] != cur && valid[prev[cur]] != 2) {
+			angle = GetAngle(
+				points[prev[cur]].leftdirection, points[cur].leftdirection,
+				lt->normal
+			);
+			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
+				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
+							+ NORMAL_EPSILON
+					&& DotProduct(points[prev[cur]].leftspot, v)
+						>= DotProduct(points[cur].leftspot, v)
+							- ON_EPSILON / 2) {
 				// remove previous patch
 				valid[prev[cur]] = 0;
 				prev[cur] = prev[prev[cur]];
@@ -1242,115 +1198,107 @@ static void PurgePatches (localtriangulation_t *lt)
 		}
 	}
 
-	for (i = 0; i < (int)points.size (); i++)
-	{
-		if (valid[i] == 2)
-		{
-			lt->sortedwedges.push_back (points[i]);
+	for (i = 0; i < (int) points.size(); i++) {
+		if (valid[i] == 2) {
+			lt->sortedwedges.push_back(points[i]);
 		}
 	}
 }
 
-static void PlaceHullPoints (localtriangulation_t *lt)
-{
+static void PlaceHullPoints(localtriangulation_t* lt) {
 	int i;
 	int j;
 	int n;
 	float dot;
 	float angle;
 	localtriangulation_t::HullPoint hp;
-	std::vector< localtriangulation_t::HullPoint > spots;
-	std::vector< std::pair< float, int > > angles;
-	const localtriangulation_t::Wedge *w;
-	const localtriangulation_t::Wedge *wnext;
-	std::vector< localtriangulation_t::HullPoint > arc_spots;
-	std::vector< float > arc_angles;
-	std::vector< int > next;
-	std::vector< int > prev;
+	std::vector<localtriangulation_t::HullPoint> spots;
+	std::vector<std::pair<float, int>> angles;
+	localtriangulation_t::Wedge const * w;
+	localtriangulation_t::Wedge const * wnext;
+	std::vector<localtriangulation_t::HullPoint> arc_spots;
+	std::vector<float> arc_angles;
+	std::vector<int> next;
+	std::vector<int> prev;
 	float frac;
 	float len;
 	float dist;
 
-	spots.reserve (lt->winding.size());
-	spots.resize (0);
-	for (i = 0; i < (int)lt->winding.size(); i++)
-	{
+	spots.reserve(lt->winding.size());
+	spots.resize(0);
+	for (i = 0; i < (int) lt->winding.size(); i++) {
 		float3_array v;
 		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
-		dot = DotProduct (v, lt->normal);
-		VectorMA (v, -dot, lt->normal, hp.spot);
-		if (!GetDirection (hp.spot, lt->normal, hp.direction))
-		{
+		dot = DotProduct(v, lt->normal);
+		VectorMA(v, -dot, lt->normal, hp.spot);
+		if (!GetDirection(hp.spot, lt->normal, hp.direction)) {
 			continue;
 		}
-		spots.push_back (hp);
+		spots.push_back(hp);
 	}
 
-	if ((int)lt->sortedwedges.size () == 0)
-	{
-		angles.resize ((int)spots.size ());
-		for (i = 0; i < (int)spots.size (); i++)
-		{
-			angle = GetAngle (spots[0].direction, spots[i].direction, lt->normal);
-			if (i == 0)
-			{
+	if ((int) lt->sortedwedges.size() == 0) {
+		angles.resize((int) spots.size());
+		for (i = 0; i < (int) spots.size(); i++) {
+			angle = GetAngle(
+				spots[0].direction, spots[i].direction, lt->normal
+			);
+			if (i == 0) {
 				angle = 0.0;
 			}
-			angles[i].first = GetAngleDiff (angle, 0);
+			angles[i].first = GetAngleDiff(angle, 0);
 			angles[i].second = i;
 		}
-		std::sort (angles.begin (), angles.end ());
-		lt->sortedhullpoints.resize (0);
-		for (i = 0; i < (int)spots.size (); i++)
-		{
-			if (g_drawlerp && angles[i].second != i)
-			{
-				Developer (developer_level::spam, "Debug: triangulation: internal error 8.\n");
+		std::sort(angles.begin(), angles.end());
+		lt->sortedhullpoints.resize(0);
+		for (i = 0; i < (int) spots.size(); i++) {
+			if (g_drawlerp && angles[i].second != i) {
+				Developer(
+					developer_level::spam,
+					"Debug: triangulation: internal error 8.\n"
+				);
 			}
-			lt->sortedhullpoints.push_back (spots[angles[i].second]);
+			lt->sortedhullpoints.push_back(spots[angles[i].second]);
 		}
 		return;
 	}
 
-	lt->sortedhullpoints.resize (0);
-	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
-	{
+	lt->sortedhullpoints.resize(0);
+	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
 		w = &lt->sortedwedges[i];
-		wnext = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
+		wnext = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
 
-		angles.resize ((int)spots.size ());
-		for (j = 0; j < (int)spots.size (); j++)
-		{
-			angle = GetAngle (w->leftdirection, spots[j].direction, lt->normal);
-			angles[j].first = GetAngleDiff (angle, 0);
+		angles.resize((int) spots.size());
+		for (j = 0; j < (int) spots.size(); j++) {
+			angle = GetAngle(
+				w->leftdirection, spots[j].direction, lt->normal
+			);
+			angles[j].first = GetAngleDiff(angle, 0);
 			angles[j].second = j;
 		}
-		std::sort (angles.begin (), angles.end ());
-		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
-		if ((int)lt->sortedwedges.size () == 1)
-		{
+		std::sort(angles.begin(), angles.end());
+		angle
+			= GetAngle(w->leftdirection, wnext->leftdirection, lt->normal);
+		if ((int) lt->sortedwedges.size() == 1) {
 			angle = 2 * std::numbers::pi_v<double>;
-		}
-		else
-		{
-			angle = GetAngleDiff (angle, 0);
+		} else {
+			angle = GetAngleDiff(angle, 0);
 		}
 
-		arc_spots.resize ((int)spots.size () + 2);
-		arc_angles.resize ((int)spots.size () + 2);
-		next.resize ((int)spots.size () + 2);
-		prev.resize ((int)spots.size () + 2);
+		arc_spots.resize((int) spots.size() + 2);
+		arc_angles.resize((int) spots.size() + 2);
+		next.resize((int) spots.size() + 2);
+		prev.resize((int) spots.size() + 2);
 
-		VectorCopy (w->leftspot, arc_spots[0].spot);
-		VectorCopy (w->leftdirection, arc_spots[0].direction);
+		VectorCopy(w->leftspot, arc_spots[0].spot);
+		VectorCopy(w->leftdirection, arc_spots[0].direction);
 		arc_angles[0] = 0;
 		next[0] = 1;
 		prev[0] = -1;
 		n = 1;
-		for (j = 0; j < (int)spots.size (); j++)
-		{
-			if (NORMAL_EPSILON <= angles[j].first && angles[j].first <= angle - NORMAL_EPSILON)
-			{
+		for (j = 0; j < (int) spots.size(); j++) {
+			if (NORMAL_EPSILON <= angles[j].first
+				&& angles[j].first <= angle - NORMAL_EPSILON) {
 				arc_spots[n] = spots[angles[j].second];
 				arc_angles[n] = angles[j].first;
 				next[n] = n + 1;
@@ -1358,25 +1306,35 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 				n++;
 			}
 		}
-		VectorCopy (wnext->leftspot, arc_spots[n].spot);
-		VectorCopy (wnext->leftdirection, arc_spots[n].direction);
+		VectorCopy(wnext->leftspot, arc_spots[n].spot);
+		VectorCopy(wnext->leftdirection, arc_spots[n].direction);
 		arc_angles[n] = angle;
 		next[n] = -1;
 		prev[n] = n - 1;
 		n++;
 
-		for (j = 1; next[j] != -1; j = next[j])
-		{
-			while (prev[j] != -1)
-			{
-				if (arc_angles[next[j]] - arc_angles[prev[j]] <= std::numbers::pi_v<double> + NORMAL_EPSILON)
-				{
-					frac = GetFrac (arc_spots[prev[j]].spot, arc_spots[next[j]].spot, arc_spots[j].direction, lt->normal);
-					len = (1 - frac) * DotProduct (arc_spots[prev[j]].spot, arc_spots[j].direction)
-						+ frac * DotProduct (arc_spots[next[j]].spot, arc_spots[j].direction);
-					dist = DotProduct (arc_spots[j].spot, arc_spots[j].direction);
-					if (dist <= len + NORMAL_EPSILON)
-					{
+		for (j = 1; next[j] != -1; j = next[j]) {
+			while (prev[j] != -1) {
+				if (arc_angles[next[j]] - arc_angles[prev[j]]
+					<= std::numbers::pi_v<double> + NORMAL_EPSILON) {
+					frac = GetFrac(
+						arc_spots[prev[j]].spot, arc_spots[next[j]].spot,
+						arc_spots[j].direction, lt->normal
+					);
+					len = (1 - frac)
+							* DotProduct(
+								arc_spots[prev[j]].spot,
+								arc_spots[j].direction
+							)
+						+ frac
+							* DotProduct(
+								arc_spots[next[j]].spot,
+								arc_spots[j].direction
+							);
+					dist = DotProduct(
+						arc_spots[j].spot, arc_spots[j].direction
+					);
+					if (dist <= len + NORMAL_EPSILON) {
 						j = prev[j];
 						next[j] = next[next[j]];
 						prev[next[j]] = j;
@@ -1387,56 +1345,50 @@ static void PlaceHullPoints (localtriangulation_t *lt)
 			}
 		}
 
-		for (j = 0; next[j] != -1; j = next[j])
-		{
-			lt->sortedhullpoints.push_back (arc_spots[j]);
+		for (j = 0; next[j] != -1; j = next[j]) {
+			lt->sortedhullpoints.push_back(arc_spots[j]);
 		}
 	}
 }
 
-static bool TryMakeSquare (localtriangulation_t *lt, int i)
-{
-	localtriangulation_t::Wedge *w1;
-	localtriangulation_t::Wedge *w2;
-	localtriangulation_t::Wedge *w3;
+static bool TryMakeSquare(localtriangulation_t* lt, int i) {
+	localtriangulation_t::Wedge* w1;
+	localtriangulation_t::Wedge* w2;
+	localtriangulation_t::Wedge* w3;
 	float3_array v;
 	float3_array dir1;
 	float3_array dir2;
 	float angle;
 
 	w1 = &lt->sortedwedges[i];
-	w2 = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
-	w3 = &lt->sortedwedges[(i + 2) % (int)lt->sortedwedges.size ()];
+	w2 = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
+	w3 = &lt->sortedwedges[(i + 2) % (int) lt->sortedwedges.size()];
 
 	// (o, p1, p2) and (o, p2, p3) must be triangles and not in a square
-	if (w1->shape != localtriangulation_t::Wedge::eTriangular || w2->shape != localtriangulation_t::Wedge::eTriangular)
-	{
+	if (w1->shape != localtriangulation_t::Wedge::eTriangular
+		|| w2->shape != localtriangulation_t::Wedge::eTriangular) {
 		return false;
 	}
-	
+
 	// (o, p1, p3) must be a triangle
-	angle = GetAngle (w1->leftdirection, w3->leftdirection, lt->normal);
-	angle = GetAngleDiff (angle, 0);
-	if (angle >= TRIANGLE_SHAPE_THRESHOLD)
-	{
+	angle = GetAngle(w1->leftdirection, w3->leftdirection, lt->normal);
+	angle = GetAngleDiff(angle, 0);
+	if (angle >= TRIANGLE_SHAPE_THRESHOLD) {
 		return false;
 	}
 
 	// (p2, p1, p3) must be a triangle
 	VectorSubtract(w1->leftspot, w2->leftspot, v);
-	if (!GetDirection (v, lt->normal, dir1))
-	{
+	if (!GetDirection(v, lt->normal, dir1)) {
 		return false;
 	}
 	VectorSubtract(w3->leftspot, w2->leftspot, v);
-	if (!GetDirection (v, lt->normal, dir2))
-	{
+	if (!GetDirection(v, lt->normal, dir2)) {
 		return false;
 	}
-	angle = GetAngle (dir2, dir1, lt->normal);
-	angle = GetAngleDiff (angle, 0);
-	if (angle >= TRIANGLE_SHAPE_THRESHOLD)
-	{
+	angle = GetAngle(dir2, dir1, lt->normal);
+	angle = GetAngleDiff(angle, 0);
+	if (angle >= TRIANGLE_SHAPE_THRESHOLD) {
 		return false;
 	}
 
@@ -1447,42 +1399,43 @@ static bool TryMakeSquare (localtriangulation_t *lt, int i)
 	return true;
 }
 
-static void FindSquares (localtriangulation_t *lt)
-{
+static void FindSquares(localtriangulation_t* lt) {
 	int i;
-	localtriangulation_t::Wedge *w;
-	std::vector< std::pair< float, int > > dists;
+	localtriangulation_t::Wedge* w;
+	std::vector<std::pair<float, int>> dists;
 
-	if ((int)lt->sortedwedges.size () <= 2)
-	{
+	if ((int) lt->sortedwedges.size() <= 2) {
 		return;
 	}
 
-	dists.resize ((int)lt->sortedwedges.size ());
-	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
-	{
+	dists.resize((int) lt->sortedwedges.size());
+	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
 		w = &lt->sortedwedges[i];
-		dists[i].first = DotProduct (w->leftspot, w->leftdirection);
+		dists[i].first = DotProduct(w->leftspot, w->leftdirection);
 		dists[i].second = i;
 	}
-	std::sort (dists.begin (), dists.end ());
+	std::sort(dists.begin(), dists.end());
 
-	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
-	{
-		TryMakeSquare (lt, dists[i].second);
-		TryMakeSquare (lt, (dists[i].second - 2 + (int)lt->sortedwedges.size ()) % (int)lt->sortedwedges.size ());
+	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
+		TryMakeSquare(lt, dists[i].second);
+		TryMakeSquare(
+			lt,
+			(dists[i].second - 2 + (int) lt->sortedwedges.size())
+				% (int) lt->sortedwedges.size()
+		);
 	}
 }
 
-static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t *facetrian, int patchnum)
-{
-	localtriangulation_t *lt;
+static localtriangulation_t* CreateLocalTriangulation(
+	facetriangulation_t const * facetrian, int patchnum
+) {
+	localtriangulation_t* lt;
 	int i;
-	const patch_t *patch;
+	patch_t const * patch;
 	float dot;
 	int facenum;
-	localtriangulation_t::Wedge *w;
-	localtriangulation_t::Wedge *wnext;
+	localtriangulation_t::Wedge* w;
+	localtriangulation_t::Wedge* wnext;
 	float angle;
 	float total;
 	float3_array v;
@@ -1493,361 +1446,336 @@ static localtriangulation_t *CreateLocalTriangulation (const facetriangulation_t
 	lt = new localtriangulation_t;
 
 	// Fill basic information for this local triangulation
-	lt->plane = *getPlaneFromFaceNumber (facenum);
-	lt->plane.dist += DotProduct (g_face_offset[facenum], lt->plane.normal);
+	lt->plane = *getPlaneFromFaceNumber(facenum);
+	lt->plane.dist += DotProduct(g_face_offset[facenum], lt->plane.normal);
 	lt->winding = *patch->winding;
-	VectorMA (patch->origin, -PATCH_HUNT_OFFSET, lt->plane.normal, lt->center);
-	dot = DotProduct (lt->center, lt->plane.normal) - lt->plane.dist;
-	VectorMA (lt->center, -dot, lt->plane.normal, lt->center);
-	if (!point_in_winding_noedge (lt->winding, lt->plane, lt->center, DEFAULT_EDGE_WIDTH))
-	{
-		snap_to_winding_noedge (lt->winding, lt->plane, lt->center.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH);
+	VectorMA(
+		patch->origin, -PATCH_HUNT_OFFSET, lt->plane.normal, lt->center
+	);
+	dot = DotProduct(lt->center, lt->plane.normal) - lt->plane.dist;
+	VectorMA(lt->center, -dot, lt->plane.normal, lt->center);
+	if (!point_in_winding_noedge(
+			lt->winding, lt->plane, lt->center, DEFAULT_EDGE_WIDTH
+		)) {
+		snap_to_winding_noedge(
+			lt->winding, lt->plane, lt->center.data(), DEFAULT_EDGE_WIDTH,
+			4 * DEFAULT_EDGE_WIDTH
+		);
 	}
-	VectorCopy (lt->plane.normal, lt->normal);
+	VectorCopy(lt->plane.normal, lt->normal);
 	lt->patchnum = patchnum;
 	lt->neighborfaces = facetrian->neighbors;
 
 	// Gather all patches from nearby faces
-	GatherPatches (lt, facetrian);
-	
+	GatherPatches(lt, facetrian);
+
 	// Remove distant patches
-	PurgePatches (lt);
+	PurgePatches(lt);
 
 	// Calculate wedge types
 	total = 0.0;
-	for (i = 0; i < (int)lt->sortedwedges.size (); i++)
-	{
+	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
 		w = &lt->sortedwedges[i];
-		wnext = &lt->sortedwedges[(i + 1) % (int)lt->sortedwedges.size ()];
+		wnext = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
 
-		angle = GetAngle (w->leftdirection, wnext->leftdirection, lt->normal);
-		if (g_drawlerp && ((int)lt->sortedwedges.size () >= 2 && fabs (angle) <= (0.9*std::numbers::pi_v<double>/180)))
-		{
-			Developer (developer_level::spam, "Debug: triangulation: internal error 9.\n");
+		angle
+			= GetAngle(w->leftdirection, wnext->leftdirection, lt->normal);
+		if (g_drawlerp
+			&& ((int) lt->sortedwedges.size() >= 2
+				&& fabs(angle) <= (0.9 * std::numbers::pi_v<double> / 180)
+			)) {
+			Developer(
+				developer_level::spam,
+				"Debug: triangulation: internal error 9.\n"
+			);
 		}
-		angle = GetAngleDiff (angle, 0);
-		if ((int)lt->sortedwedges.size () == 1)
-		{
+		angle = GetAngleDiff(angle, 0);
+		if ((int) lt->sortedwedges.size() == 1) {
 			angle = 2 * std::numbers::pi_v<double>;
 		}
 		total += angle;
 
-		if (angle <= std::numbers::pi_v<double> + NORMAL_EPSILON)
-		{
-			if (angle < TRIANGLE_SHAPE_THRESHOLD)
-			{
+		if (angle <= std::numbers::pi_v<double> + NORMAL_EPSILON) {
+			if (angle < TRIANGLE_SHAPE_THRESHOLD) {
 				w->shape = localtriangulation_t::Wedge::eTriangular;
-				VectorClear (w->wedgenormal);
-			}
-			else
-			{
+				VectorClear(w->wedgenormal);
+			} else {
 				w->shape = localtriangulation_t::Wedge::eConvex;
 				VectorSubtract(wnext->leftspot, w->leftspot, v);
-				GetDirection (v, lt->normal, w->wedgenormal);
+				GetDirection(v, lt->normal, w->wedgenormal);
 			}
-		}
-		else
-		{
+		} else {
 			w->shape = localtriangulation_t::Wedge::eConcave;
-			VectorAdd (wnext->leftdirection, w->leftdirection, v);
-			CrossProduct (lt->normal, v, normal);
+			VectorAdd(wnext->leftdirection, w->leftdirection, v);
+			CrossProduct(lt->normal, v, normal);
 			VectorSubtract(wnext->leftdirection, w->leftdirection, v);
-			VectorAdd (normal, v, normal);
-			GetDirection (normal, lt->normal, w->wedgenormal);
-			if (g_drawlerp && vector_length(w->wedgenormal) == 0)
-			{
-				Developer (developer_level::spam, "Debug: triangulation: internal error 10.\n");
+			VectorAdd(normal, v, normal);
+			GetDirection(normal, lt->normal, w->wedgenormal);
+			if (g_drawlerp && vector_length(w->wedgenormal) == 0) {
+				Developer(
+					developer_level::spam,
+					"Debug: triangulation: internal error 10.\n"
+				);
 			}
 		}
 	}
-	if (g_drawlerp && ((int)lt->sortedwedges.size () > 0 && fabs (total - 2 * std::numbers::pi_v<double>) > 10 * NORMAL_EPSILON))
-	{
-		Developer (developer_level::spam, "Debug: triangulation: internal error 11.\n");
+	if (g_drawlerp
+		&& ((int) lt->sortedwedges.size() > 0
+			&& fabs(total - 2 * std::numbers::pi_v<double>)
+				> 10 * NORMAL_EPSILON)) {
+		Developer(
+			developer_level::spam,
+			"Debug: triangulation: internal error 11.\n"
+		);
 	}
-	FindSquares (lt);
+	FindSquares(lt);
 
 	// Calculate hull points
-	PlaceHullPoints (lt);
+	PlaceHullPoints(lt);
 
 	return lt;
 }
 
-static void FreeLocalTriangulation (localtriangulation_t *lt)
-{
+static void FreeLocalTriangulation(localtriangulation_t* lt) {
 	delete lt;
 }
 
-static void FindNeighbors (facetriangulation_t *facetrian)
-{
+static void FindNeighbors(facetriangulation_t* facetrian) {
 	int i;
 	int j;
 	int e;
-	const edgeshare_t *es;
+	edgeshare_t const * es;
 	int side;
-	const facelist_t *fl;
+	facelist_t const * fl;
 	int facenum;
 	int facenum2;
-	const dface_t *f;
-	const dface_t *f2;
-	const dplane_t *dp;
-	const dplane_t *dp2;
+	dface_t const * f;
+	dface_t const * f2;
+	dplane_t const * dp;
+	dplane_t const * dp2;
 
 	facenum = facetrian->facenum;
 	f = &g_dfaces[facenum];
-	dp = getPlaneFromFace (f);
+	dp = getPlaneFromFace(f);
 
-	facetrian->neighbors.resize (0);
+	facetrian->neighbors.resize(0);
 
-	facetrian->neighbors.push_back (facenum);
+	facetrian->neighbors.push_back(facenum);
 
-	for (i = 0; i < f->numedges; i++)
-	{
+	for (i = 0; i < f->numedges; i++) {
 		e = g_dsurfedges[f->firstedge + i];
-		es = &g_edgeshare[abs (e)];
-		if (!es->smooth)
-		{
+		es = &g_edgeshare[abs(e)];
+		if (!es->smooth) {
 			continue;
 		}
-		f2 = es->faces[e > 0? 1: 0];
+		f2 = es->faces[e > 0 ? 1 : 0];
 		facenum2 = f2 - g_dfaces.data();
-		dp2 = getPlaneFromFace (f2);
-		if (DotProduct (dp->normal, dp2->normal) < -NORMAL_EPSILON)
-		{
+		dp2 = getPlaneFromFace(f2);
+		if (DotProduct(dp->normal, dp2->normal) < -NORMAL_EPSILON) {
 			continue;
 		}
-		for (j = 0; j < (int)facetrian->neighbors.size (); j++)
-		{
-			if (facetrian->neighbors[j] == facenum2)
-			{
+		for (j = 0; j < (int) facetrian->neighbors.size(); j++) {
+			if (facetrian->neighbors[j] == facenum2) {
 				break;
 			}
 		}
-		if (j == (int)facetrian->neighbors.size ())
-		{
-			facetrian->neighbors.push_back (facenum2);
+		if (j == (int) facetrian->neighbors.size()) {
+			facetrian->neighbors.push_back(facenum2);
 		}
 	}
 
-	for (i = 0; i < f->numedges; i++)
-	{
+	for (i = 0; i < f->numedges; i++) {
 		e = g_dsurfedges[f->firstedge + i];
-		es = &g_edgeshare[abs (e)];
-		if (!es->smooth)
-		{
+		es = &g_edgeshare[abs(e)];
+		if (!es->smooth) {
 			continue;
 		}
-		for (side = 0; side < 2; side++)
-		{
-			for (fl = es->vertex_facelist[side]; fl; fl = fl->next)
-			{
+		for (side = 0; side < 2; side++) {
+			for (fl = es->vertex_facelist[side]; fl; fl = fl->next) {
 				f2 = fl->face;
 				facenum2 = f2 - g_dfaces.data();
-				dp2 = getPlaneFromFace (f2);
-				if (DotProduct (dp->normal, dp2->normal) < -NORMAL_EPSILON)
-				{
+				dp2 = getPlaneFromFace(f2);
+				if (DotProduct(dp->normal, dp2->normal) < -NORMAL_EPSILON) {
 					continue;
 				}
-				for (j = 0; j < (int)facetrian->neighbors.size (); j++)
-				{
-					if (facetrian->neighbors[j] == facenum2)
-					{
+				for (j = 0; j < (int) facetrian->neighbors.size(); j++) {
+					if (facetrian->neighbors[j] == facenum2) {
 						break;
 					}
 				}
-				if (j == (int)facetrian->neighbors.size ())
-				{
-					facetrian->neighbors.push_back (facenum2);
+				if (j == (int) facetrian->neighbors.size()) {
+					facetrian->neighbors.push_back(facenum2);
 				}
 			}
 		}
 	}
 }
 
-static void BuildWalls (facetriangulation_t *facetrian)
-{
+static void BuildWalls(facetriangulation_t* facetrian) {
 	int i;
 	int j;
 	int facenum;
 	int facenum2;
-	const dface_t *f;
-	const dface_t *f2;
-	const dplane_t *dp;
-	const dplane_t *dp2;
+	dface_t const * f;
+	dface_t const * f2;
+	dplane_t const * dp;
+	dplane_t const * dp2;
 	int e;
-	const edgeshare_t *es;
+	edgeshare_t const * es;
 	float dot;
 
 	facenum = facetrian->facenum;
 	f = &g_dfaces[facenum];
-	dp = getPlaneFromFace (f);
+	dp = getPlaneFromFace(f);
 
-	facetrian->walls.resize (0);
+	facetrian->walls.resize(0);
 
-	for (i = 0; i < (int)facetrian->neighbors.size (); i++)
-	{
+	for (i = 0; i < (int) facetrian->neighbors.size(); i++) {
 		facenum2 = facetrian->neighbors[i];
 		f2 = &g_dfaces[facenum2];
-		dp2 = getPlaneFromFace (f2);
-		if (DotProduct (dp->normal, dp2->normal) <= 0.1)
-		{
+		dp2 = getPlaneFromFace(f2);
+		if (DotProduct(dp->normal, dp2->normal) <= 0.1) {
 			continue;
 		}
-		for (j = 0; j < f2->numedges; j++)
-		{
+		for (j = 0; j < f2->numedges; j++) {
 			e = g_dsurfedges[f2->firstedge + j];
-			es = &g_edgeshare[abs (e)];
-			if (!es->smooth)
-			{
+			es = &g_edgeshare[abs(e)];
+			if (!es->smooth) {
 				facetriangulation_t::Wall wall;
 
-				VectorAdd (g_dvertexes[g_dedges[abs(e)].v[0]].point, g_face_offset[facenum], wall.points[0]);
-				VectorAdd (g_dvertexes[g_dedges[abs(e)].v[1]].point, g_face_offset[facenum], wall.points[1]);
-				VectorSubtract(wall.points[1], wall.points[0], wall.direction);
-				dot = DotProduct (wall.direction, dp->normal);
-				VectorMA (wall.direction, -dot, dp->normal, wall.direction);
-				if (normalize_vector(wall.direction))
-				{
-					CrossProduct (wall.direction, dp->normal, wall.normal);
+				VectorAdd(
+					g_dvertexes[g_dedges[abs(e)].v[0]].point,
+					g_face_offset[facenum], wall.points[0]
+				);
+				VectorAdd(
+					g_dvertexes[g_dedges[abs(e)].v[1]].point,
+					g_face_offset[facenum], wall.points[1]
+				);
+				VectorSubtract(
+					wall.points[1], wall.points[0], wall.direction
+				);
+				dot = DotProduct(wall.direction, dp->normal);
+				VectorMA(wall.direction, -dot, dp->normal, wall.direction);
+				if (normalize_vector(wall.direction)) {
+					CrossProduct(wall.direction, dp->normal, wall.normal);
 					normalize_vector(wall.normal);
-					facetrian->walls.push_back (wall);
+					facetrian->walls.push_back(wall);
 				}
 			}
 		}
 	}
 }
 
-static void CollectUsedPatches (facetriangulation_t *facetrian)
-{
+static void CollectUsedPatches(facetriangulation_t* facetrian) {
 	int i;
 	int j;
 	int k;
 	int patchnum;
-	const localtriangulation_t *lt;
-	const localtriangulation_t::Wedge *w;
+	localtriangulation_t const * lt;
+	localtriangulation_t::Wedge const * w;
 
-	facetrian->usedpatches.resize (0);
-	for (i = 0; i < (int)facetrian->localtriangulations.size (); i++)
-	{
+	facetrian->usedpatches.resize(0);
+	for (i = 0; i < (int) facetrian->localtriangulations.size(); i++) {
 		lt = facetrian->localtriangulations[i];
 
 		patchnum = lt->patchnum;
-		for (k = 0; k < (int)facetrian->usedpatches.size (); k++)
-		{
-			if (facetrian->usedpatches[k] == patchnum)
-			{
+		for (k = 0; k < (int) facetrian->usedpatches.size(); k++) {
+			if (facetrian->usedpatches[k] == patchnum) {
 				break;
 			}
 		}
-		if (k == (int)facetrian->usedpatches.size ())
-		{
-			facetrian->usedpatches.push_back (patchnum);
+		if (k == (int) facetrian->usedpatches.size()) {
+			facetrian->usedpatches.push_back(patchnum);
 		}
 
-		for (j = 0; j < (int)lt->sortedwedges.size (); j++)
-		{
+		for (j = 0; j < (int) lt->sortedwedges.size(); j++) {
 			w = &lt->sortedwedges[j];
 
 			patchnum = w->leftpatchnum;
-			for (k = 0; k < (int)facetrian->usedpatches.size (); k++)
-			{
-				if (facetrian->usedpatches[k] == patchnum)
-				{
+			for (k = 0; k < (int) facetrian->usedpatches.size(); k++) {
+				if (facetrian->usedpatches[k] == patchnum) {
 					break;
 				}
 			}
-			if (k == (int)facetrian->usedpatches.size ())
-			{
-				facetrian->usedpatches.push_back (patchnum);
+			if (k == (int) facetrian->usedpatches.size()) {
+				facetrian->usedpatches.push_back(patchnum);
 			}
 		}
 	}
 }
 
-
 // =====================================================================================
 //  CreateTriangulations
 // =====================================================================================
-void CreateTriangulations (int facenum)
-{
-	try
-	{
+void CreateTriangulations(int facenum) {
+	try {
+		facetriangulation_t* facetrian;
+		int patchnum;
+		patch_t const * patch;
+		localtriangulation_t* lt;
 
-	facetriangulation_t *facetrian;
-	int patchnum;
-	const patch_t *patch;
-	localtriangulation_t *lt;
+		g_facetriangulations[facenum] = new facetriangulation_t;
+		facetrian = g_facetriangulations[facenum];
 
-	g_facetriangulations[facenum] = new facetriangulation_t;
-	facetrian = g_facetriangulations[facenum];
+		facetrian->facenum = facenum;
 
-	facetrian->facenum = facenum;
+		// Find neighbors
+		FindNeighbors(facetrian);
 
-	// Find neighbors
-	FindNeighbors (facetrian);
+		// Build walls
+		BuildWalls(facetrian);
 
-	// Build walls
-	BuildWalls (facetrian);
+		// Create local triangulation around each patch
+		facetrian->localtriangulations.resize(0);
+		for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
+			patchnum = patch - g_patches;
+			lt = CreateLocalTriangulation(facetrian, patchnum);
+			facetrian->localtriangulations.push_back(lt);
+		}
 
-	// Create local triangulation around each patch
-	facetrian->localtriangulations.resize (0);
-	for (patch = g_face_patches[facenum]; patch; patch = patch->next)
-	{
-		patchnum = patch - g_patches;
-		lt = CreateLocalTriangulation (facetrian, patchnum);
-		facetrian->localtriangulations.push_back (lt);
-	}
+		// Collect used patches
+		CollectUsedPatches(facetrian);
 
-	// Collect used patches
-	CollectUsedPatches (facetrian);
-
-	}
-	catch (const std::bad_alloc&)
-	{
-		hlassume (false, assume_NoMemory);
+	} catch (std::bad_alloc const &) {
+		hlassume(false, assume_NoMemory);
 	}
 }
 
 // =====================================================================================
 //  GetTriangulationPatches
 // =====================================================================================
-void GetTriangulationPatches (int facenum, int *numpatches, const int **patches)
-{
-	const facetriangulation_t *facetrian;
+void GetTriangulationPatches(
+	int facenum, int* numpatches, int const ** patches
+) {
+	facetriangulation_t const * facetrian;
 
 	facetrian = g_facetriangulations[facenum];
-	*numpatches = (int)facetrian->usedpatches.size ();
-	*patches = facetrian->usedpatches.data ();
+	*numpatches = (int) facetrian->usedpatches.size();
+	*patches = facetrian->usedpatches.data();
 }
 
 // =====================================================================================
 //  FreeTriangulations
 // =====================================================================================
-void FreeTriangulations ()
-{
-	try
-	{
+void FreeTriangulations() {
+	try {
+		int i;
+		int j;
+		facetriangulation_t* facetrian;
 
-	int i;
-	int j;
-	facetriangulation_t *facetrian;
+		for (i = 0; i < g_numfaces; i++) {
+			facetrian = g_facetriangulations[i];
 
-	for (i = 0; i < g_numfaces; i++)
-	{
-		facetrian = g_facetriangulations[i];
+			for (j = 0; j < (int) facetrian->localtriangulations.size();
+				 j++) {
+				FreeLocalTriangulation(facetrian->localtriangulations[j]);
+			}
 
-		for (j = 0; j < (int)facetrian->localtriangulations.size (); j++)
-		{
-			FreeLocalTriangulation (facetrian->localtriangulations[j]);
+			delete facetrian;
+			g_facetriangulations[i] = nullptr;
 		}
 
-		delete facetrian;
-		g_facetriangulations[i] = nullptr;
-	}
-
-	}
-	catch (const std::bad_alloc&)
-	{
-		hlassume (false, assume_NoMemory);
+	} catch (std::bad_alloc const &) {
+		hlassume(false, assume_NoMemory);
 	}
 }
-

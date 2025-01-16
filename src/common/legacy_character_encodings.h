@@ -7,10 +7,15 @@ enum class legacy_encoding {
 	windows_1251 = 0,
 	windows_1252,
 };
-constexpr std::size_t num_legacy_encodings = std::size_t(legacy_encoding::windows_1252) + 1;
+constexpr std::size_t num_legacy_encodings
+	= std::size_t(legacy_encoding::windows_1252) + 1;
 
-std::optional<legacy_encoding> legacy_encoding_by_code_name(std::u8string_view name);
-std::u8string_view code_name_of_legacy_encoding(legacy_encoding encoding) noexcept;
-std::u8string_view human_name_of_legacy_encoding(legacy_encoding encoding) noexcept;
+std::optional<legacy_encoding>
+legacy_encoding_by_code_name(std::u8string_view name);
+std::u8string_view code_name_of_legacy_encoding(legacy_encoding encoding
+) noexcept;
+std::u8string_view human_name_of_legacy_encoding(legacy_encoding encoding
+) noexcept;
 
-std::u8string legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding);
+std::u8string
+legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding);

@@ -1,13 +1,13 @@
 
 cmake_minimum_required(VERSION 3.31)
 
-project("Oskar's HLT"
-    DESCRIPTION "Oskar's Half-Life Compilation Tools"
+project("Oskar's Half-Life Tools"
+    DESCRIPTION "Compilers for maps for Half-Life 1, Counter-Strike 1.6, and other GoldSrc engine games"
     LANGUAGES CXX
     VERSION 0.1.0
 )
 
-message("${CMAKE_PROJECT_NAME} > Starting configuration for ${CMAKE_PROJECT_DESCRIPTION}")
+message("${CMAKE_PROJECT_NAME} > Starting configuration for ${CMAKE_PROJECT_NAME}")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tools)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tools)
@@ -63,6 +63,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h
     ${COMMON_DIR}/planes.h
+    ${COMMON_DIR}/project_constants.h
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
     ${COMMON_DIR}/time_counter.h
@@ -208,7 +209,6 @@ include_directories(
 #================
 
 add_compile_definitions(
-    PROJECT_DESCRIPTION="${CMAKE_PROJECT_DESCRIPTION}"
     PROJECT_ISSUE_TRACKER="https://github.com/oskarlh/ohlt/issues"
     PROJECT_NAME="${CMAKE_PROJECT_NAME}"
     PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"

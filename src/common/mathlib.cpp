@@ -1,23 +1,22 @@
-#include "cmdlib.h"
-#include "messages.h"
-#include "log.h"
-#include "hlassert.h"
-#include "mathtypes.h"
 #include "mathlib.h"
+
+#include "cmdlib.h"
+#include "hlassert.h"
+#include "log.h"
+#include "mathtypes.h"
+#include "messages.h"
 #include "win32fix.h"
-
-
 
 std::uint16_t float_to_half(float v) {
 	static_assert(std::numeric_limits<float>::is_iec559);
 
-	std::uint32_t i = *((std::uint32_t *) &v);
+	std::uint32_t i = *((std::uint32_t*) &v);
 	std::uint32_t e = (i >> 23) & 0x00ff;
-	std::uint32_t m = i & 0x007fffff;
+	std::uint32_t m = i & 0x007f'ffff;
 	std::uint16_t half;
 
-	if(e <= 127 - 15) {
-		half = ((m | 0x00800000) >> (127 - 14 - e)) >> 13;
+	if (e <= 127 - 15) {
+		half = ((m | 0x0080'0000) >> (127 - 14 - e)) >> 13;
 	} else {
 		half = (i >> 13) & 0x3fff;
 	}
@@ -30,18 +29,18 @@ std::uint16_t float_to_half(float v) {
 float half_to_float(std::uint16_t half) {
 	static_assert(std::numeric_limits<float>::is_iec559);
 
-	std::uint32_t f = (half << 16) & 0x80000000;
+	std::uint32_t f = (half << 16) & 0x8000'0000;
 	std::uint32_t em = half & 0x7fff;
 
-	if(em > 0x03ff) {
+	if (em > 0x03ff) {
 		f |= (em << 13) + ((127 - 15) << 23);
 	} else {
 		std::uint32_t m = em & 0x03ff;
 
-		if(m != 0) {
+		if (m != 0) {
 			std::uint32_t e = (em >> 10) & 0x1f;
 
-			while((m & 0x0400) == 0) {
+			while ((m & 0x0400) == 0) {
 				m <<= 1;
 				e--;
 			}
@@ -51,5 +50,5 @@ float half_to_float(std::uint16_t half) {
 		}
 	}
 
-	return *((float *)&f);
+	return *((float*) &f);
 }
