@@ -60,7 +60,7 @@ bool            g_estimate = cli_option_defaults::estimate;          // progress
 bool            g_info = cli_option_defaults::info;                  // "-info" ?
 const char*     g_hullfile = nullptr;                      // external hullfile "-hullfie sdfsd"
 const char*		g_wadcfgfile = nullptr;
-const char*		g_wadconfigname = nullptr;
+std::u8string g_wadconfigname;
 
 bool            g_bUseNullTex = cli_option_defaults::nulltex;        // "-nonulltex"
 
@@ -157,8 +157,8 @@ void            GetParamsFromEnt(entity_t* mapent)
 	// wadconfig(string) : "Custom Wad Configuration" : ""
     if (*ValueForKey(mapent, u8"wadconfig"))
     {
-        g_wadconfigname = c_strdup((const char*) ValueForKey(mapent, u8"wadconfig"));
-        Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name", g_wadconfigname);
+        g_wadconfigname = value_for_key(mapent, u8"wadconfig");
+        Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name", (const char*) g_wadconfigname.c_str());
     }
 	// wadcfgfile(string) : "Custom Wad Configuration File" : ""
     if (*ValueForKey(mapent, u8"wadcfgfile"))
@@ -1642,7 +1642,7 @@ static void     Settings(const bsp_data& bspData, const hlcsg_settings& settings
     Log("skyclip               [ %7s ] [ %7s ]\n", g_skyclip         ? "on" : "off", DEFAULT_SKYCLIP      ? "on" : "off");
     Log("hullfile              [ %7s ] [ %7s ]\n", g_hullfile ? g_hullfile : "None", "None");
 	Log("wad.cfg file          [ %7s ] [ %7s ]\n", g_wadcfgfile? g_wadcfgfile: "None", "None");
-	Log("wad.cfg config name   [ %7s ] [ %7s ]\n", g_wadconfigname? g_wadconfigname: "None", "None");
+	Log("wad.cfg config name   [ %7s ] [ %7s ]\n", g_wadconfigname.empty()?  "None" : (const char*) g_wadconfigname.c_str(), "None");
 	Log("nullfile              [ %7s ] [ %7s ]\n", g_nullfile ? g_nullfile : "None", "None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n", g_nullifytrigger? "on": "off", DEFAULT_NULLIFYTRIGGER? "on": "off");
     // calc min surface area
@@ -1941,7 +1941,7 @@ int             main(const int argc, char** argv)
 		{
 			if (i + 1 < argc)
 			{
-				g_wadconfigname = argv[++i];
+				g_wadconfigname = (const char8_t*) argv[++i];
 			}
 			else
 			{
@@ -2112,7 +2112,7 @@ int             main(const int argc, char** argv)
 
   if (!g_onlyents)
   {
-	if (g_wadconfigname) //If wadconfig had a name provided //seedee
+	if (!g_wadconfigname.empty()) //If wadconfig had a name provided //seedee
 	{
         std::filesystem::path wadCfgPath = get_path_to_directory_with_executable(argv) / u8"wad.cfg";
 

@@ -232,9 +232,9 @@ extern hull_sizes g_hull_size;
 extern void LoadHullfile(const char* filename);
 
 extern const char *g_wadcfgfile;
-extern const char *g_wadconfigname;
+extern std::u8string g_wadconfigname;
 extern void LoadWadcfgfile (const char *filename);
-extern void LoadWadconfig (const char *filename, const char *configname);
+extern void LoadWadconfig (const char *filename, std::u8string_view configname);
 
 //============================================================================
 // autowad.cpp      AJM

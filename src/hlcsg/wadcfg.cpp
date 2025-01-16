@@ -5,7 +5,7 @@
 using namespace std::literals;
 
 
-void LoadWadconfig (const char *filename, const char *configname)
+void LoadWadconfig (const char *filename, std::u8string_view configName)
 {
     char filenameOnly[_MAX_PATH];
     size_t filenameLength = strlen(filename);
@@ -19,7 +19,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 		strncpy(filenameOnly, temp.c_str(), _MAX_PATH);
 		filenameOnly[temp.size()] = '\0';
 	}
-	Log("Loading wadconfig %s from '%s'\n", configname, filenameOnly);
+	Log("Loading wadconfig %s from '%s'\n", (const char*) configName.data(), filenameOnly);
 	Log("--------------------------------------\n");
 	int wadconfigsFound = 0;
 	int wadPathsFound = 0;
@@ -33,20 +33,20 @@ void LoadWadconfig (const char *filename, const char *configname)
 	{
 		bool skip = true; //Skip until the -wadconfig configname is found
 
-		if (strings_equal_with_ascii_case_insensitivity(g_token, (const char8_t*) configname)) //If we find configname line
+		if (strings_equal_with_ascii_case_insensitivity(g_token, configName)) //If we find configname line
 		{
 			skip = false;
 			wadconfigsFound++;
 		}
 		if (!GetToken (true) || !strings_equal_with_ascii_case_insensitivity(g_token, u8"{"sv)) //If next line is not an opening bracket
 		{
-			Error ("Parsing %s (missing '{' opening bracket in '%s' config)\n", filenameOnly, configname);
+			Error ("Parsing %s (missing '{' opening bracket in '%s' config)\n", filenameOnly, (const char*) configName.data());
 		}
 		while (1) //Loop through content of braces
 		{
 			if (!GetToken (true))
 			{
-				Error("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configname);
+				Error("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configName);
 			}
 			if (strings_equal_with_ascii_case_insensitivity(g_token, u8"}"sv)) //If we find closing bracket
 			{
@@ -64,7 +64,7 @@ void LoadWadconfig (const char *filename, const char *configname)
 
 				if (!GetToken (true))
 				{
-					Error ("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, configname);
+					Error ("Parsing '%s': unexpected EOF in '%s'\n", filenameOnly, (const char*) configName.data());
 				}
 			}
 			Log ("%s\n", (const char*) g_token.c_str());
@@ -72,16 +72,16 @@ void LoadWadconfig (const char *filename, const char *configname)
 			PushWadPath (g_token, !include);
 		}
 	}
-	Log("- %d wadpaths found in %s\n", wadPathsFound, configname);
+	Log("- %d wadpaths found in %s\n", wadPathsFound, (const char*) configName.data());
 	Log("--------------------------------------\n\n");
 
 	if (wadconfigsFound < 1)
 	{
-		Error ("Couldn't find wad config %s in '%s'\n", configname, filenameOnly);
+		Error ("Couldn't find wad config %s in '%s'\n", (const char*) configName.data(), filenameOnly);
 	}
 	if (wadconfigsFound > 1)
 	{
-		Error("Found more than one wad config %s in '%s'\n", configname, filenameOnly);
+		Error("Found more than one wad config %s in '%s'\n", (const char*) configName.data(), filenameOnly);
 	}
 	//Log ("Using custom wadfile configuration: '%s' (with %i wad%s)\n", configname, wadPathsFound, wadPathsFound > 1 ? "s" : "");
 }
