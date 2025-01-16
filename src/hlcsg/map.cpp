@@ -31,17 +31,7 @@ brush_t *CopyCurrentBrush (entity_t *entity, const brush_t *brush)
 	newb->entitynum = entity - g_entities.data();
 	newb->brushnum = entity->numbrushes;
 	entity->numbrushes++;
-	for (int h = 0; h < NUM_HULLS; h++)
-	{
-		if (brush->hullshapes[h] != nullptr)
-		{
-			newb->hullshapes[h] = (char8_t*) c_strdup((char*) brush->hullshapes[h]);
-		}
-		else
-		{
-			newb->hullshapes[h] = nullptr;
-		}
-	}
+	newb->hullshapes = brush->hullshapes;
 	return newb;
 }
 void DeleteCurrentEntity (entity_t *entity)
@@ -65,13 +55,7 @@ void DeleteCurrentEntity (entity_t *entity)
 		}
 		memset (&g_brushsides[b->firstside], 0, b->numsides * sizeof (side_t));
 		g_numbrushsides -= b->numsides;
-		for (int h = 0; h < NUM_HULLS; h++)
-		{
-			if (b->hullshapes[h])
-			{
-				free (b->hullshapes[h]);
-			}
-		}
+		b->hullshapes = {};
 	}
 	memset (&g_mapbrushes[entity->firstbrush], 0, entity->numbrushes * sizeof (brush_t));
 	g_nummapbrushes -= entity->numbrushes;
@@ -108,6 +92,7 @@ static void ParseBrush(entity_t* mapent)
 
     b = &g_mapbrushes[g_nummapbrushes]; //Get next brush slot
     g_nummapbrushes++; //Increment the global brush counter, we are adding a new brush
+	*b = {};
     b->firstside = g_numbrushsides; //Set the first side of the brush to current global side count20
 	b->originalentitynum = g_numparsedentities; //Record original entity number brush belongs to
 	b->originalbrushnum = g_numparsedbrushes; //Record original brush number
@@ -163,12 +148,9 @@ static void ParseBrush(entity_t* mapent)
 		key.back() = u8'0' + h;
 		const std::u8string_view value = value_for_key(mapent, std::u8string_view{key.begin(), key.end()});
 
-		if (value.empty()) {
-			// Set brush hull shape for this hull to NULL
-			b->hullshapes[h] = nullptr;
-		} else {
+		if (!value.empty()) {
 			//If we have a value associated with the key from the entity properties copy the value to brush's hull shape for this hull
-			b->hullshapes[h] = (char8_t*) c_strdup((const char*) value.data());
+			b->hullshapes[h] = value;
 		}
 	}
     mapent->numbrushes++;
@@ -395,13 +377,6 @@ static void ParseBrush(entity_t* mapent)
 	{
 		memset (&g_brushsides[b->firstside], 0, b->numsides * sizeof (side_t));
 		g_numbrushsides -= b->numsides;
-		for (int h = 0; h < NUM_HULLS; h++)
-		{
-			if (b->hullshapes[h])
-			{
-				free (b->hullshapes[h]);
-			}
-		}
 		*b = {};
 		g_nummapbrushes--;
 		mapent->numbrushes--;

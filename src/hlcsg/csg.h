@@ -102,10 +102,10 @@ struct brush_t {
 	int				chopup; // allow this brush to be chopped by brushes of higher detail level
 	int				clipnodedetaillevel;
 	int				coplanarpriority;
-	char8_t* hullshapes[NUM_HULLS]; // might be NULL
+	std::array<std::u8string, NUM_HULLS> hullshapes;
 
     std::int32_t contents;
-    brushhull_t hulls[NUM_HULLS];
+    std::array<brushhull_t, NUM_HULLS> hulls;
 };
 
 struct hullbrushface_t {

@@ -1453,7 +1453,7 @@ static void     SetModelCenters(int entitynum)
 			&& g_mapbrushes[i].contents != CONTENTS_BOUNDINGBOX
 			)
         {
-            add_to_bounding_box(bounds, g_mapbrushes[i].hulls->bounds);
+            add_to_bounding_box(bounds, g_mapbrushes[i].hulls[0].bounds);
         }
     }
 

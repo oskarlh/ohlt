@@ -384,8 +384,8 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 {
 	const hullshape_t *hs = &g_defaulthulls[hullnum];
 	{ // look up the name of its hull shape in g_hullshapes[]
-		const char8_t *name = brush->hullshapes[hullnum];
-		if (name && *name)
+		const std::u8string& name = brush->hullshapes[hullnum];
+		if (!name.empty())
 		{
 			bool found = false;
 			for (const hullshape_t& s : g_hullshapes)
@@ -396,7 +396,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 					{
 						Warning ("Entity %i, Brush %i: Found several info_hullshape entities with the same name '%s'.",
 							brush->originalentitynum, brush->originalbrushnum,
-							(const char*) name);
+							(const char*) name.c_str());
 					}
 					hs = &s;
 					found = true;
@@ -406,7 +406,7 @@ void ExpandBrush(brush_t* brush, const int hullnum)
 			{
 				Error ("Entity %i, Brush %i: Couldn't find info_hullshape entity '%s'.",
 					brush->originalentitynum, brush->originalbrushnum,
-					(const char*) name);
+					(const char*) name.c_str());
 			}
 		}
 	}
