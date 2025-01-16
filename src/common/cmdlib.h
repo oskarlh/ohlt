@@ -6,11 +6,6 @@
 #define PROJECT_NAME_AND_VERSION PROJECT_NAME " v" PROJECT_VERSION
 
 
-#if !defined (VERSION_LINUX) && !defined (VERSION_MACOS) && !defined (VERSION_OTHER) && !defined (VERSION_WINDOWS)
-#error "You must define one of these in the settings of each project: VERSION_LINUX, VERSION_MACOS, VERSION_OTHER, VERSION_WINDOWS. The most likely cause is that you didn't use CMake correctly."
-#endif
-
-
 //=====================================================================
 // AJM: Different features of the tools can be undefined here
 //      these are not officially beta tested, but seem to work okay

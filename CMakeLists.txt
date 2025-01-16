@@ -248,7 +248,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
     add_compile_definitions(
         PLATFORM_VERSION="???"
-        VERSION_OTHER
     )
     message("${CMAKE_PROJECT_NAME} > WARNING: Unknown system \"${CMAKE_SYSTEM_NAME}\"")
 endif()

@@ -657,9 +657,8 @@ static bool     PlacePatchInside(patch_t* patch)
 }
 static void		UpdateEmitterInfo (patch_t *patch)
 {
-#if ACCURATEBOUNCE_DEFAULT_SKYLEVEL + 3 > SKYLEVELMAX
-#error "please raise SKYLEVELMAX"
-#endif
+	static_assert(SKYLEVELMAX >= ACCURATEBOUNCE_DEFAULT_SKYLEVEL + 3, "Please raise SKYLEVELMAX");
+
 	const float *origin = patch->origin.data();
 	const fast_winding *winding = patch->winding;
 	float radius = ON_EPSILON;
