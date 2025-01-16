@@ -339,7 +339,7 @@ void LoadTextures() {
 				float3_array reflectivity;
 				if (tex->name.is_transparent_or_decal()
 					&& tex->canvas[j] == 0xFF) {
-					VectorFill(reflectivity, 0.0);
+					reflectivity.fill(0.0);
 				} else {
 					auto const & rgb
 						= tex->palette[(std::size_t) tex->canvas[j]];
@@ -1070,8 +1070,6 @@ void EmbedLightmapInTextures() {
 		// calculate texture size and allocate memory for all miplevels
 
 		int texturesize[2];
-		float(*texture)[5]; // red, green, blue and alpha channel; the last
-							// one is number of samples
 		byte(*texturemips[MIPLEVELS]
 		)[4]; // red, green, blue and alpha channel
 		int s, t;
@@ -1116,8 +1114,12 @@ void EmbedLightmapInTextures() {
 				= (texturesize[k] * resolution - texsize[k] * TEXTURE_STEP)
 				/ 2;
 		}
-		texture = (float(*)[5]
-		) malloc(texturesize[0] * texturesize[1] * sizeof(float[5]));
+
+		// red, green, blue and alpha channel; the last
+		// one is number of samples
+		std::array<float, 5>* texture = (std::array<float, 5>*) malloc(
+			texturesize[0] * texturesize[1] * sizeof(std::array<float, 5>)
+		);
 		hlassume(texture != nullptr, assume_NoMemory);
 		for (miplevel = 0; miplevel < MIPLEVELS; miplevel++) {
 			texturemips[miplevel] = (byte(*)[4]) malloc(
@@ -1131,10 +1133,7 @@ void EmbedLightmapInTextures() {
 
 		for (t = 0; t < texturesize[1]; t++) {
 			for (s = 0; s < texturesize[0]; s++) {
-				float(*dest)[5] = &texture[t * texturesize[0] + s];
-				VectorFill(*dest, 0);
-				(*dest)[3] = 0;
-				(*dest)[4] = 0;
+				texture[t * texturesize[0] + s] = {};
 			}
 		}
 		for (t = -side[1]; t < texsize[1] * TEXTURE_STEP + side[1]; t++) {
@@ -1147,7 +1146,7 @@ void EmbedLightmapInTextures() {
 				std::uint8_t src_color[3];
 				double dest_s, dest_t;
 				std::int32_t dest_is, dest_it;
-				float(*dest)[5];
+				std::array<float, 5>* dest;
 				double light_s, light_t;
 				float3_array light;
 
@@ -1215,17 +1214,22 @@ void EmbedLightmapInTextures() {
 		}
 		for (t = 0; t < texturesize[1]; t++) {
 			for (s = 0; s < texturesize[0]; s++) {
-				float(*src)[5] = &texture[t * texturesize[0] + s];
+				std::array<float, 5>* src
+					= &texture[t * texturesize[0] + s];
 				byte(*dest)[4] = &texturemips[0][t * texturesize[0] + s];
 
 				if ((*src)[4] == 0) // no samples (outside face range?)
 				{
-					VectorFill(*dest, 0);
+					(*dest)[0] = 0;
+					(*dest)[1] = 0;
+					(*dest)[2] = 0;
 					(*dest)[3] = 255;
 				} else {
 					if ((*src)[3] / (*src)[4] <= 0.4 * 255) // transparent
 					{
-						VectorFill(*dest, 0);
+						(*dest)[0] = 0;
+						(*dest)[1] = 0;
+						(*dest)[2] = 0;
 						(*dest)[3] = 0;
 					} else // normal
 					{
