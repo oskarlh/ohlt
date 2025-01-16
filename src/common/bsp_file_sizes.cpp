@@ -184,7 +184,7 @@ static std::optional<std::u8string> find_wad_value (const bsp_data& bspData)
 			{
 				return std::nullopt;
 			}
-			if (quotes[1] - (quotes[0] + 1) == (int) strlen ("wad") && !strncmp ((const char*) &bspData.entityData[quotes[0] + 1], "wad", strlen ("wad")))
+			if (quotes[1] - (quotes[0] + 1) == (int) u8"wad"sv.length() && !strncmp ((const char*) &bspData.entityData[quotes[0] + 1], "wad", u8"wad"sv.length()))
 			{
 				std::size_t len = quotes[3] - (quotes[2] + 1);
 				char *value = (char *)malloc (len + 1);

@@ -879,26 +879,20 @@ unsigned int    CountEngineEntities()
     // for each entity in the map
     for (x=0; x<g_numentities; x++, mapent++)
     {
-        const char* classname = (const char*) ValueForKey(mapent, u8"classname");
+        std::u8string_view classname = get_classname(*mapent);
 
-        // if its a light_spot or light_env, dont include it as an engine entity!
-        if (classname)
-        {
-            if (   !strncasecmp(classname, "light", 5) 
-                || !strncasecmp(classname, "light_spot", 10) 
-                || !strncasecmp(classname, "light_environment", 17)
-               )
-            {
-                const char* style =(const char*)  ValueForKey(mapent, u8"style");
-                const char* targetname =(const char*) ValueForKey(mapent, u8"targetname");
-
-                // lightspots and lightenviroments dont have a targetname or style
-                if (!strlen(targetname) && !atoi(style))
-                {
-                    continue;
-                }
-            }
-        }
+        // If it's a light_spot or light_env, dont include it as an engine entity!
+		if (classname == u8"light"
+			|| classname == u8"light_spot"
+			|| classname == u8"light_environment"
+			)
+		{
+			// light_spots and light_enviroments don't have targetnames or styles
+			if (!has_key_value(mapent, u8"targetname") && !IntForKey(mapent, u8"style"))
+			{
+				continue;
+			}
+		}
 
         num_engine_entities++;
     }
