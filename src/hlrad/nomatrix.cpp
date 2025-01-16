@@ -23,7 +23,7 @@ static bool CheckVisBitNoVismatrix(
 	patch_t* patch = &g_patches[patchnum1];
 	patch_t* patch2 = &g_patches[patchnum2];
 
-	VectorFill(transparency_out, 1.0);
+	transparency_out.fill(1.0);
 
 	// if emitter is behind that face plane, skip all patches
 
@@ -105,7 +105,7 @@ bool CheckVisBitBackwards(
 	patch_t* patch = &g_patches[receiver];
 	patch_t* emitpatch = &g_patches[emitter];
 
-	VectorFill(transparency_out, 1.0);
+	transparency_out.fill(1.0);
 
 	if (emitpatch) {
 		dplane_t const * emitplane

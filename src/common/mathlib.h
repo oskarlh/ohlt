@@ -56,11 +56,6 @@ vector_subtract(VecA const & a, VecB const & b) noexcept {
 	return { a[0] - b[0], a[1] - b[1], a[2] - b[2] };
 }
 
-constexpr void
-vector_fill(any_vec3 auto& vec, any_vec_element auto fillValue) noexcept {
-	vec.fill(fillValue);
-}
-
 #define VectorMidpoint(a, b, c)         \
 	{                                   \
 		(c)[0] = ((a)[0] + (b)[0]) / 2; \
@@ -68,12 +63,6 @@ vector_fill(any_vec3 auto& vec, any_vec_element auto fillValue) noexcept {
 		(c)[2] = ((a)[2] + (b)[2]) / 2; \
 	}
 
-#define VectorFill(a, b) \
-	{                    \
-		(a)[0] = (b);    \
-		(a)[1] = (b);    \
-		(a)[2] = (b);    \
-	}
 #define VectorAvg(a) (((a)[0] + (a)[1] + (a)[2]) / 3)
 
 #define VectorSubtract(a, b, c)   \

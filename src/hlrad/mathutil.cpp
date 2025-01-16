@@ -329,10 +329,9 @@ bool TestSegmentAgainstOpaqueList(
 	float3_array& scaleout,
 	int& opaquestyleout // light must convert to this style. -1 = no convert
 ) {
-	int x;
-	VectorFill(scaleout, 1.0);
+	scaleout = {};
 	opaquestyleout = -1;
-	for (x = 0; x < g_opaque_face_list.size(); x++) {
+	for (int x = 0; x < g_opaque_face_list.size(); x++) {
 		if (!TestLineOpaque(
 				g_opaque_face_list[x].modelnum,
 				g_opaque_face_list[x].origin, p1, p2
@@ -351,13 +350,13 @@ bool TestSegmentAgainstOpaqueList(
 			opaquestyleout = g_opaque_face_list[x].style;
 			continue;
 		}
-		VectorFill(scaleout, 0.0);
+		scaleout = {};
 		opaquestyleout = -1;
 		return true;
 	}
 	if (TestSegmentAgainstStudioList(p1, p2)) // seedee
 	{
-		VectorFill(scaleout, 0.0);
+		scaleout = {};
 		opaquestyleout = -1;
 		return true;
 	}

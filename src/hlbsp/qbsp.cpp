@@ -568,10 +568,10 @@ BrushFromBox(double3_array const & mins, double3_array const & maxs) {
 	brush_t* b = AllocBrush();
 	mapplane_t planes[6];
 	for (int k = 0; k < 3; k++) {
-		VectorFill(planes[k].normal, 0.0);
+		planes[k].normal.fill(0.0);
 		planes[k].normal[k] = 1.0;
 		planes[k].dist = mins[k];
-		VectorFill(planes[k + 3].normal, 0.0);
+		planes[k + 3].normal.fill(0.0);
 		planes[k + 3].normal[k] = -1.0;
 		planes[k + 3].dist = -maxs[k];
 	}
@@ -590,8 +590,8 @@ BrushFromBox(double3_array const & mins, double3_array const & maxs) {
 void CalcBrushBounds(
 	brush_t const * b, double3_array& mins, double3_array& maxs
 ) {
-	VectorFill(mins, hlbsp_bogus_range);
-	VectorFill(maxs, -hlbsp_bogus_range);
+	mins.fill(hlbsp_bogus_range);
+	maxs.fill(-hlbsp_bogus_range);
 	for (side_t* s = b->sides; s; s = s->next) {
 		bounding_box const bounds = s->wind.getBounds();
 		mins = vector_minimums(mins, bounds.mins);
@@ -957,8 +957,8 @@ static bool ProcessModel(bsp_data& bspData) {
 	//    Log("ProcessModel: %i (%i f)\n", modnum, model->numfaces);
 
 	g_hullnum = 0; // vluzacn
-	VectorFill(model->mins, 99999);
-	VectorFill(model->maxs, -99999);
+	model->mins.fill(99999);
+	model->maxs.fill(-99999);
 	{
 		if (surfs->mins[0] > surfs->maxs[0]) {
 			Developer(
@@ -1031,8 +1031,8 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[0]->faces = nullptr;
 		nodes->children[0]->markfaces
 			= (face_t**) calloc(1, sizeof(face_t*));
-		VectorFill(nodes->children[0]->mins, 0);
-		VectorFill(nodes->children[0]->maxs, 0);
+		nodes->children[0]->mins.fill(0);
+		nodes->children[0]->maxs.fill(0);
 		nodes->children[1] = AllocNode();
 		nodes->children[1]->planenum = -1;
 		nodes->children[1]->contents = CONTENTS_EMPTY;
@@ -1042,15 +1042,15 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[1]->faces = nullptr;
 		nodes->children[1]->markfaces
 			= (face_t**) calloc(1, sizeof(face_t*));
-		VectorFill(nodes->children[1]->mins, 0);
-		VectorFill(nodes->children[1]->maxs, 0);
+		nodes->children[1]->mins.fill(0);
+		nodes->children[1]->maxs.fill(0);
 		nodes->contents = 0;
 		nodes->isdetail = false;
 		nodes->isportalleaf = false;
 		nodes->faces = nullptr;
 		nodes->markfaces = nullptr;
-		VectorFill(nodes->mins, 0);
-		VectorFill(nodes->maxs, 0);
+		nodes->mins.fill(0);
+		nodes->maxs.fill(0);
 	}
 	WriteDrawNodes(nodes);
 	model->numfaces = g_numfaces - model->firstface;

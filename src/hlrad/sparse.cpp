@@ -102,7 +102,7 @@ static bool CheckVisBitSparse(
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {
-	VectorFill(transparency_out, 1.0);
+	transparency_out.fill(1.0);
 
 	if (x == y) {
 		return 1;

@@ -163,8 +163,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		return;
 	}
 
-	VectorFill(node->mins, hlbsp_bogus_range);
-	VectorFill(node->maxs, -hlbsp_bogus_range);
+	node->mins.fill(hlbsp_bogus_range);
+	node->maxs.fill(-hlbsp_bogus_range);
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
 		 i != node->leaffaces->end(); ++i) {
 		face_t* f = *i;
@@ -1481,8 +1481,8 @@ static void BuildBspTree_r(node_t* node) {
 			node->boundsbrush, node->loosemins, node->loosemaxs
 		);
 	} else {
-		VectorFill(node->loosemins, hlbsp_bogus_range);
-		VectorFill(node->loosemaxs, -hlbsp_bogus_range);
+		node->loosemins.fill(hlbsp_bogus_range);
+		node->loosemaxs.fill(-hlbsp_bogus_range);
 	}
 
 	int splitdetaillevel = CalcSplitDetaillevel(node);

@@ -415,7 +415,7 @@ void MakeRGBScales(int const threadnum) {
 	float3_array delta;
 	float dist;
 	int count;
-	float trans[3];
+	float3_array trans;
 	float trans_one;
 	patch_t* patch;
 	patch_t* patch2;
@@ -569,7 +569,7 @@ void MakeRGBScales(int const threadnum) {
 				}
 			}
 			trans_one *= patch2->exposure;
-			VectorFill(trans, trans_one);
+			trans.fill(trans_one);
 			VectorMultiply(
 				trans, transparency, trans
 			); // hullu: add transparency effect

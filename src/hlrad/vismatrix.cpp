@@ -255,7 +255,7 @@ static bool CheckVisBitVismatrix(
 	unsigned const a = p1;
 	unsigned const b = p2;
 
-	VectorFill(transparency_out, 1.0);
+	transparency_out.fill(1.0);
 
 	if (p1 > p2) {
 		p1 = b;

@@ -179,7 +179,7 @@ void GetTransparency(
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {
-	VectorFill(trans, 1.0);
+	trans.fill(1.0);
 
 	for (unsigned i = next_index; i < s_sorted_count; i++) {
 		if (s_sorted_list[i].p1 < p1) {

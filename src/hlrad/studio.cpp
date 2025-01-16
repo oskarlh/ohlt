@@ -177,7 +177,7 @@ void LoadStudioModels() {
 		float3_array xform = get_float3_for_key(*e, u8"xform");
 
 		if (vectors_almost_same(xform, float3_array{})) {
-			VectorFill(xform, scale);
+			xform.fill(scale);
 		}
 
 		// check xform values
