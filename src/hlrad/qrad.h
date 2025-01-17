@@ -131,7 +131,7 @@
 
 // DEFAULT_HUNT_OFFSET is how many units in front of the plane to place the
 // samples Unit of '1' causes the 1 unit crate trick to cause extra shadows
-#define DEFAULT_HUNT_OFFSET 0.5
+constexpr float DEFAULT_HUNT_OFFSET = 0.5;
 // DEFAULT_HUNT_SIZE number of iterations (one based) of radial search in
 // HuntForWorld
 #define DEFAULT_HUNT_SIZE 11
@@ -140,7 +140,7 @@
 #define DEFAULT_HUNT_SCALE 0.1
 #define DEFAULT_EDGE_WIDTH 0.8
 
-#define PATCH_HUNT_OFFSET 0.5 //--vluzacn
+constexpr float PATCH_HUNT_OFFSET = 0.5;
 #define HUNT_WALL_EPSILON \
 	(3 * ON_EPSILON) // place sample at least this distance away from any
 					 // wall //--vluzacn

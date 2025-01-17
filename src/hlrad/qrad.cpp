@@ -626,7 +626,7 @@ static bool PlacePatchInside(patch_t* patch) {
 	float3_array center = patch->winding->getCenter();
 	found = false;
 
-	VectorMA(center, PATCH_HUNT_OFFSET, plane->normal, point);
+	point = vector_fma(plane->normal, PATCH_HUNT_OFFSET, center);
 	pointstested++;
 	if (HuntForWorld(point, face_offset, plane, 4, 0.2, PATCH_HUNT_OFFSET)
 		|| HuntForWorld(
@@ -652,7 +652,7 @@ static bool PlacePatchInside(patch_t* patch) {
 			VectorAdd(p1, p2, point);
 			VectorAdd(point, center, point);
 			VectorScale(point, 1.0 / 3.0, point);
-			VectorMA(point, PATCH_HUNT_OFFSET, plane->normal, point);
+			point = vector_fma(plane->normal, PATCH_HUNT_OFFSET, point);
 			pointstested++;
 			if (HuntForWorld(
 					point, face_offset, plane, 4, 0.2, PATCH_HUNT_OFFSET
@@ -679,7 +679,8 @@ static bool PlacePatchInside(patch_t* patch) {
 		patch->flags = ePatchFlagNull;
 		return true;
 	} else {
-		VectorMA(center, PATCH_HUNT_OFFSET, plane->normal, patch->origin);
+		patch->origin
+			= vector_fma(plane->normal, PATCH_HUNT_OFFSET, center);
 		patch->flags = ePatchFlagOutside;
 		Developer(
 			developer_level::fluff,

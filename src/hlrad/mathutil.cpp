@@ -129,7 +129,7 @@ void snap_to_winding(
 		VectorSubtract(p1, point, delta);
 		dist = DotProduct(delta, plane.normal)
 			/ DotProduct(plane.normal, plane.normal);
-		VectorMA(delta, -dist, plane.normal, delta);
+		delta = vector_fma(plane.normal, -dist, delta);
 		dot = DotProduct(delta, delta);
 
 		if (x == 0 || dot < bestdist) {

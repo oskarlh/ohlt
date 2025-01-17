@@ -435,7 +435,7 @@ restart:
 			for (k = superface->numpoints; k > j; k--) {
 				VectorCopy(superface->pts[k - 1], superface->pts[k]);
 			}
-			VectorMA(w->origin, v->t, w->dir, superface->pts[j]);
+			superface->pts[j] = vector_fma(w->dir, v->t, w->origin);
 			superface->numpoints++;
 			hlassume(
 				superface->numpoints < MAX_SUPERFACEEDGES,

@@ -709,7 +709,7 @@ float WindingDist(winding_t const * w[2]) {
 					// p1 or p2 is closest to p
 					continue;
 				}
-				VectorMA(p1, frac, delta, v);
+				v = vector_fma(delta, frac, p1);
 				VectorSubtract(p, v, v);
 				sqrdist = DotProduct(v, v);
 				if (sqrdist < minsqrdist) {
@@ -832,7 +832,7 @@ float WindingDist(winding_t const * w[2]) {
 				|| dist1 < -ON_EPSILON && dist2 > ON_EPSILON) {
 				frac = dist1 / (dist1 - dist2);
 				VectorSubtract(p2, p1, delta);
-				VectorMA(p1, frac, delta, v);
+				v = vector_fma(delta, frac, p1);
 				for (b = 0; b < w[!side]->numpoints; b++) {
 					if (DotProduct(v, boundnormals[b]) - bounddists[b]
 						>= -ON_EPSILON) {

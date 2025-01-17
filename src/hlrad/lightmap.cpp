@@ -572,7 +572,7 @@ void PairEdges() {
 								break;
 							}
 							angles += angle;
-							VectorMA(normals, angle, normal, normals);
+							normals = vector_fma(normal, angle, normals);
 							{
 								bool in = false;
 								if (fcurrent == e->faces[0]
@@ -894,7 +894,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 	// project back to the face plane
 	dist = DotProduct(l->texorg, l->facenormal) - l->facedist;
 	dist *= distscale;
-	VectorMA(l->texorg, -dist, texnormal, l->texorg);
+	l->texorg = vector_fma(texnormal, -dist, l->texorg);
 	VectorCopy(texnormal, l->texnormal);
 }
 
@@ -1150,8 +1150,8 @@ void ChopFrag(samplefrag_t* frag)
 		if (edgelen * (frac2 - frac1) <= ON_EPSILON) {
 			continue;
 		}
-		VectorMA(e->point1, edgelen * frac2, e->direction, e->point2);
-		VectorMA(e->point1, edgelen * frac1, e->direction, e->point1);
+		e->point2 = vector_fma(e->direction, edgelen * frac2, e->point1);
+		e->point1 = vector_fma(e->direction, edgelen * frac1, e->point1);
 
 		// calculate the distance, etc., which are used to determine its
 		// priority
@@ -1160,7 +1160,7 @@ void ChopFrag(samplefrag_t* frag)
 		dot1 = DotProduct(e->point1, e->direction);
 		dot2 = DotProduct(e->point2, e->direction);
 		dot = std::max(dot1, std::min(dot, dot2));
-		VectorMA(e->point1, dot - dot1, e->direction, v);
+		v = vector_fma(e->direction, dot - dot1, e->point1);
 		VectorSubtract(v, frag->origin, v);
 		e->distance = vector_length(v);
 		CrossProduct(e->direction, frag->windingplane.normal, normal);
@@ -1504,14 +1504,13 @@ static void DeleteSampleFrag(samplefraginfo_t* fraginfo) {
 }
 
 static light_flag_t SetSampleFromST(
-	float* const point,
-	float* const position, // a valid world position for light tracing
-	int* const
-		surface, // the face used for phong normal and patch interpolation
+	float3_array& point,
+	float3_array& position, // a valid world position for light tracing
+	int* surface, // the face used for phong normal and patch interpolation
 	bool* nudged,
-	lightinfo_t const * const l,
-	float const original_s,
-	float const original_t,
+	lightinfo_t const * l,
+	float original_s,
+	float original_t,
 	float const square[2][2], // {smin, tmin}, {smax, tmax}
 	eModelLightmodes lightmode
 ) {
@@ -1622,8 +1621,9 @@ static light_flag_t SetSampleFromST(
 		// returned value
 		LuxelFlag = LightNormal;
 	} else {
-		SetSurfFromST(l, point, original_s, original_t);
-		VectorMA(point, DEFAULT_HUNT_OFFSET, faceplane->normal, position);
+		SetSurfFromST(l, point.data(), original_s, original_t);
+		position
+			= vector_fma(faceplane->normal, DEFAULT_HUNT_OFFSET, point);
 		*surface = facenum;
 		*nudged = true;
 		LuxelFlag = LightOutside;
@@ -1646,12 +1646,11 @@ static void CalcPoints(lightinfo_t* l) {
 	light_flag_t LuxelFlags[MAX_SINGLEMAP];
 	light_flag_t* pLuxelFlags;
 	float us, ut;
-	float* surf;
 	int s, t;
 	l->numsurfpt = w * h;
 	for (t = 0; t < h; t++) {
 		for (s = 0; s < w; s++) {
-			surf = l->surfpt[s + w * t].data();
+			float3_array& surf = l->surfpt[s + w * t];
 			pLuxelFlags = &LuxelFlags[s + w * t];
 			us = starts + s * TEXTURE_STEP;
 			ut = startt + t * TEXTURE_STEP;
@@ -1663,7 +1662,7 @@ static void CalcPoints(lightinfo_t* l) {
 			bool nudged;
 			*pLuxelFlags = SetSampleFromST(
 				surf,
-				l->surfpt_position[s + w * t].data(),
+				l->surfpt_position[s + w * t],
 				&l->surfpt_surface[s + w * t],
 				&nudged,
 				l,
@@ -1684,7 +1683,7 @@ static void CalcPoints(lightinfo_t* l) {
 			adjusted = false;
 			for (t = 0; t < h; t++) {
 				for (s = 0; s < w; s++) {
-					surf = l->surfpt[s + w * t].data();
+					float3_array& surf = l->surfpt[s + w * t];
 					pLuxelFlags = &LuxelFlags[s + w * t];
 					if (*pLuxelFlags != LightOutside) {
 						continue;
@@ -1905,7 +1904,7 @@ void CreateDirectLights() {
 				dl2 = (directlight_t*) calloc(1, sizeof(directlight_t));
 				hlassume(dl2 != nullptr, assume_NoMemory);
 				*dl2 = *dl;
-				VectorMA(dl->origin, -2, dl->normal, dl2->origin);
+				dl2->origin = vector_fma(dl->normal, -2.0f, dl->origin);
 				dl2->normal = negate_vector(dl->normal);
 				leaf = PointInLeaf(dl2->origin);
 				leafnum = leaf - g_dleafs.data();
@@ -3778,8 +3777,8 @@ void CalcLightmap(
 			{
 				blocked = false;
 				if (SetSampleFromST(
-						surfpt.data(),
-						spot.data(),
+						surfpt,
+						spot,
 						&surface,
 						&nudged,
 						l,

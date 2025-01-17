@@ -364,8 +364,8 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	VectorScale(texaxis[1], 1 / det, texaxis[1]);
 
 	VectorScale(normalaxis, -faceplane[3], texorg);
-	VectorMA(texorg, -texplanes[0][3], texaxis[0], texorg);
-	VectorMA(texorg, -texplanes[1][3], texaxis[1], texorg);
+	texorg = vector_fma(texaxis[0], -texplanes[0][3], texorg);
+	texorg = vector_fma(texaxis[1], -texplanes[1][3], texorg);
 
 	VectorCopy(texaxis[0], m_inverse.v[0]);
 	VectorCopy(texaxis[1], m_inverse.v[1]);
@@ -430,7 +430,7 @@ static bool IsPositionValid(
 	} else {
 		VectorCopy(map->faceplanewithoffset.normal, pos_normal);
 	}
-	VectorMA(pos, DEFAULT_HUNT_OFFSET, pos_normal, pos);
+	pos = vector_fma(pos_normal, DEFAULT_HUNT_OFFSET, pos);
 
 	hunt_offset = DotProduct(pos, map->faceplanewithoffset.normal)
 		- map->faceplanewithoffset

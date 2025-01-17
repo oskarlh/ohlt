@@ -969,13 +969,13 @@ static void GetLight(
 	float3_array& light
 ) {
 	int ix, iy;
-	double dx, dy;
+	float dx, dy;
 	ix = (int) floor(x);
 	iy = (int) floor(y);
 	dx = x - ix;
-	dx = std::max(0.0, std::min(dx, 1.0));
+	dx = std::max(0.0f, std::min(dx, 1.0f));
 	dy = y - iy;
-	dy = std::max(0.0, std::min(dy, 1.0));
+	dy = std::max(0.0f, std::min(dy, 1.0f));
 
 	// do bilinear interpolation
 	float3_array light00, light10, light01, light11;
@@ -985,11 +985,11 @@ static void GetLight(
 	GetLightInt(face, texsize, ix + 1, iy + 1, light11);
 	float3_array light0, light1;
 	VectorScale(light00, 1 - dy, light0);
-	VectorMA(light0, dy, light01, light0);
+	light0 = vector_fma(light01, dy, light0);
 	VectorScale(light10, 1 - dy, light1);
-	VectorMA(light1, dy, light11, light1);
+	light1 = vector_fma(light11, dy, light1);
 	VectorScale(light0, 1 - dx, light);
-	VectorMA(light, dx, light1, light);
+	light = vector_fma(light1, dx, light);
 }
 
 static std::optional<wad_texture_name>
