@@ -1456,17 +1456,16 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 				mp->dist = dp->dist;
 				mp->type = dp->type;
 			}
-		} else {
-			if (q_filelength(planefile)
-				!= g_numplanes * sizeof(mapplane_t)) {
-				Error("Invalid plane data");
-			}
+		} else if (q_filelength(planefile)
+				   == g_numplanes * sizeof(mapplane_t)) {
 			SafeRead(
 				planefile,
 				g_mapplanes.data(),
 				g_numplanes * sizeof(mapplane_t)
 			);
 			fclose(planefile);
+		} else {
+			Error("Invalid plane data");
 		}
 	}
 	// init the tables to be shared by all models

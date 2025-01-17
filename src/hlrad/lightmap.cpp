@@ -2046,8 +2046,6 @@ void CreateDirectLights() {
 
 		if (!strcmp(name, "light_spot")
 			|| !strcmp(name, "light_environment") || !target.empty()) {
-			if (!VectorAvg(dl->intensity)) {
-			}
 			dl->type = emit_spotlight;
 			dl->stopdot = float_for_key(*e, u8"_cone");
 			if (!dl->stopdot) {
@@ -3210,10 +3208,8 @@ static void GatherSampleLight(
 										   // l->intensity
 									ratio = frac * ratio
 										+ (1 - frac) * ratio2;
-								} else {
-									if (light_behind_surface) {
-										continue;
-									}
+								} else if (light_behind_surface) {
+									continue;
 								}
 								VectorScale(l->intensity, ratio, add);
 								break;
@@ -3231,7 +3227,7 @@ static void GatherSampleLight(
 								// Variable power falloff (1 = inverse
 								// linear, 2 = inverse square
 								float denominator = dist * l->fade;
-								{ denominator *= dist; }
+								denominator *= dist;
 								if (lighting_diversify) {
 									dot = lighting_scale
 										* pow(dot, lighting_power);
@@ -3319,17 +3315,15 @@ static void GatherSampleLight(
 			VectorAdd(
 				sample[style_index], adds[style], sample[style_index]
 			);
-		} else {
+		} else if (VectorMaximum(adds[style])
+				   > g_maxdiscardedlight + NORMAL_EPSILON) {
+			ThreadLock();
 			if (VectorMaximum(adds[style])
 				> g_maxdiscardedlight + NORMAL_EPSILON) {
-				ThreadLock();
-				if (VectorMaximum(adds[style])
-					> g_maxdiscardedlight + NORMAL_EPSILON) {
-					g_maxdiscardedlight = VectorMaximum(adds[style]);
-					g_maxdiscardedpos = pos;
-				}
-				ThreadUnlock();
+				g_maxdiscardedlight = VectorMaximum(adds[style]);
+				g_maxdiscardedpos = pos;
 			}
+			ThreadUnlock();
 		}
 	}
 }
@@ -5301,17 +5295,15 @@ void AddPatchLights(int facenum) {
 					VectorAdd(samp->light, v, v);
 					if (VectorMaximum(v) >= g_corings[f_other->styles[k]]) {
 						VectorCopy(v, samp->light);
-					} else {
+					} else if (VectorMaximum(v)
+							   > g_maxdiscardedlight + NORMAL_EPSILON) {
+						ThreadLock();
 						if (VectorMaximum(v)
 							> g_maxdiscardedlight + NORMAL_EPSILON) {
-							ThreadLock();
-							if (VectorMaximum(v)
-								> g_maxdiscardedlight + NORMAL_EPSILON) {
-								g_maxdiscardedlight = VectorMaximum(v);
-								g_maxdiscardedpos = samp->pos;
-							}
-							ThreadUnlock();
+							g_maxdiscardedlight = VectorMaximum(v);
+							g_maxdiscardedpos = samp->pos;
 						}
+						ThreadUnlock();
 					}
 				}
 			} // loop samples
@@ -5488,10 +5480,8 @@ void FinalLightFace(int const facenum) {
 					if (!g_drawoverload) {
 						VectorScale(lb, g_limitthreshold / max, lb);
 					}
-				} else {
-					if (g_drawoverload) {
-						VectorScale(lb, 0.1, lb); // darken good points
-					}
+				} else if (g_drawoverload) {
+					VectorScale(lb, 0.1, lb); // darken good points
 				}
 			}
 			for (i = 0; i < 3; ++i) {

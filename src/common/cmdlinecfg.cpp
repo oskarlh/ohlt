@@ -181,14 +181,12 @@ void parsecommand(
 			}
 		}
 		e.stack--;
-	} else {
-		if (!e.skip) {
-			if (t == command_t::DEFINE) {
-				addparams(cmdline, pnext(words), n);
-			}
-			if (t == command_t::UNDEF) {
-				delparams(cmdline, pnext(words));
-			}
+	} else if (!e.skip) {
+		if (t == command_t::DEFINE) {
+			addparams(cmdline, pnext(words), n);
+		}
+		if (t == command_t::UNDEF) {
+			delparams(cmdline, pnext(words));
 		}
 	}
 }

@@ -329,10 +329,7 @@ static void WriteLeafCount_r(node_t* node) {
 	if (!node->isportalleaf) {
 		WriteLeafCount_r(node->children[0]);
 		WriteLeafCount_r(node->children[1]);
-	} else {
-		if (node->contents == CONTENTS_SOLID) {
-			return;
-		}
+	} else if (node->contents != CONTENTS_SOLID) {
 		int count = CountChildLeafs_r(node);
 		fprintf(pf, "%i\n", count);
 	}

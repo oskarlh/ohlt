@@ -822,11 +822,9 @@ static void ReadEntities(char const * const name) {
 			if (g_parse) // Added by Nem.
 			{
 				ParseEntityData("", 0, "\n", 1, "\0", 1);
-			} else {
-				if (g_dentdata[g_entdatasize - 1] != u8'\0') {
-					g_dentdata[g_entdatasize] = u8'\0';
-					g_entdatasize++;
-				}
+			} else if (g_dentdata[g_entdatasize - 1] != u8'\0') {
+				g_dentdata[g_entdatasize] = u8'\0';
+				g_entdatasize++;
 			}
 		}
 	}

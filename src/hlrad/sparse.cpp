@@ -271,20 +271,17 @@ static void BuildVisLeafs(int threadnum) {
 				pvs.begin() + (g_dmodels[0].visleafs + 7) / 8,
 				std::byte(0xFF)
 			);
-		} else {
-			if (srcleaf.visofs == -1) {
-				Developer(
-					developer_level::error,
-					"Error: No visdata for leaf %d\n",
-					i
-				);
-				continue;
-			}
+		} else if (srcleaf.visofs != -1) {
 			DecompressVis(
 				(byte*) &g_dvisdata[srcleaf.visofs],
 				(byte*) pvs.data(),
 				sizeof(pvs)
 			);
+		} else {
+			Developer(
+				developer_level::error, "Error: No visdata for leaf %d\n", i
+			);
+			continue;
 		}
 
 		//

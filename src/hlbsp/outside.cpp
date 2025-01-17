@@ -407,10 +407,8 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 						}
 					}
 				gotit:;
-				} else {
-					if (PlaceOccupant(i, origin, node)) {
-						inside = true;
-					}
+				} else if (PlaceOccupant(i, origin, node)) {
+					inside = true;
 				}
 			}
 		}

@@ -573,10 +573,8 @@ void MakeRGBScales(int const threadnum) {
 					+ (1 - frac)
 						* (sightarea / patch2->area
 						); // because later we will multiply this back
-			} else {
-				if (light_behind_surface) {
-					continue;
-				}
+			} else if (light_behind_surface) {
+				continue;
 			}
 			trans_one *= patch2->exposure;
 			trans = vector_scale(

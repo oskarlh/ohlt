@@ -1268,22 +1268,20 @@ void EmbedLightmapInTextures() {
 					(*dest)[1] = 0;
 					(*dest)[2] = 0;
 					(*dest)[3] = 255;
-				} else {
-					if ((*src)[3] / (*src)[4] <= 0.4 * 255) // transparent
-					{
-						(*dest)[0] = 0;
-						(*dest)[1] = 0;
-						(*dest)[2] = 0;
-						(*dest)[3] = 0;
-					} else // normal
-					{
-						for (j = 0; j < 3; j++) {
-							int val = (int
-							) floor((*src)[j] / (*src)[3] + 0.5);
-							(*dest)[j] = std::max(0, std::min(val, 255));
-						}
-						(*dest)[3] = 255;
+				} else if ((*src)[3] / (*src)[4]
+						   <= 0.4 * 255) // transparent
+				{
+					(*dest)[0] = 0;
+					(*dest)[1] = 0;
+					(*dest)[2] = 0;
+					(*dest)[3] = 0;
+				} else // normal
+				{
+					for (j = 0; j < 3; j++) {
+						int val = (int) floor((*src)[j] / (*src)[3] + 0.5);
+						(*dest)[j] = std::max(0, std::min(val, 255));
 					}
+					(*dest)[3] = 255;
 				}
 			}
 		}

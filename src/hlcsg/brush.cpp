@@ -1253,10 +1253,7 @@ void CreateBrush(int const brushnum) //--vluzacn
 		b->contents = CONTENTS_SOLID;
 		// Is this necessary?
 		b->hulls[0].faces.clear();
-	} else {
-		if (b->noclip) {
-			return;
-		}
+	} else if (!b->noclip) {
 		for (h = 1; h < NUM_HULLS; h++) {
 			ExpandBrush(b, h);
 			MakeHullFaces(b, &b->hulls[h]);

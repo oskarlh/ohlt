@@ -98,36 +98,34 @@ int GetThreadWork() {
 				}
 			}
 		}
-	} else {
-		if (f != oldf) {
-			oldf = f;
-			switch (f) {
-				case 10:
-				case 20:
-				case 30:
-				case 40:
-				case 50:
-				case 60:
-				case 70:
-				case 80:
-				case 90:
-				case 100:
-					/*
-								case 5:
-								case 15:
-								case 25:
-								case 35:
-								case 45:
-								case 55:
-								case 65:
-								case 75:
-								case 85:
-								case 95:
-					*/
-					PrintConsole("%d%%...", f);
-				default:
-					break;
-			}
+	} else if (f != oldf) {
+		oldf = f;
+		switch (f) {
+			case 10:
+			case 20:
+			case 30:
+			case 40:
+			case 50:
+			case 60:
+			case 70:
+			case 80:
+			case 90:
+			case 100:
+				/*
+							case 5:
+							case 15:
+							case 25:
+							case 35:
+							case 45:
+							case 55:
+							case 65:
+							case 75:
+							case 85:
+							case 95:
+				*/
+				PrintConsole("%d%%...", f);
+			default:
+				break;
 		}
 	}
 
