@@ -38,7 +38,7 @@ void winding_base<VecElement>::getPlane(dplane_t& plane) const {
 	CrossProduct(v2, v1, plane_normal);
 	normalize_vector(plane_normal);
 	VectorCopy(plane_normal, plane.normal);
-	plane.dist = DotProduct(m_Points[0], plane.normal);
+	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
 template <any_vec_element VecElement>
@@ -57,7 +57,7 @@ void winding_base<VecElement>::getPlane(mapplane_t& plane) const {
 	CrossProduct(v2, v1, plane_normal);
 	normalize_vector(plane_normal);
 	VectorCopy(plane_normal, plane.normal);
-	plane.dist = DotProduct(m_Points[0], plane.normal);
+	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
 template <any_vec_element VecElement>
@@ -145,7 +145,7 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 		j = i + 1 == size() ? 0 : i + 1;
 
 		// check the point is on the face plane
-		d = DotProduct(p1, facenormal) - facedist;
+		d = dot_product(p1, facenormal) - facedist;
 		if (d < -epsilon || d > epsilon) {
 			Error("winding_base::Check : point off plane");
 		}
@@ -160,7 +160,7 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 
 		CrossProduct(facenormal, dir, edgenormal);
 		normalize_vector(edgenormal);
-		edgedist = DotProduct(p1, edgenormal);
+		edgedist = dot_product(p1, edgenormal);
 		edgedist += epsilon;
 
 		// all other points must be on front side
@@ -275,8 +275,8 @@ void winding_base<VecElement>::initFromPlane(
 			break;
 	}
 
-	v = DotProduct(vup, normal);
-	VectorMA(vup, -v, normal, vup);
+	v = dot_product(vup, normal);
+	vup = vector_fma(normal, -v, vup);
 	normalize_vector(vup);
 
 	vec3 org = vector_scale(normal, dist);

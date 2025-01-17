@@ -177,10 +177,10 @@ static wedge_t* FindEdge(
 #endif
 	}
 
-	*t1 = DotProduct(p1, dir);
-	*t2 = DotProduct(p2, dir);
+	*t1 = dot_product(p1, dir);
+	*t2 = dot_product(p2, dir);
 
-	VectorMA(p1, -*t1, dir, origin);
+	origin = vector_fma(dir, -*t1, p1);
 
 	if (*t1 > *t2) {
 		temp = *t1;

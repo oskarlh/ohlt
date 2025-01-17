@@ -15,8 +15,8 @@
 constexpr float NORMAL_EPSILON{ 0.00001f };
 constexpr float ON_EPSILON{
 	0.04f
-}; // We should ensure that (float)BOGUS_RANGE < (float)(BOGUS_RANGE + 0.2 *
-   // ON_EPSILON)
+}; // We should ensure that (float)BOGUS_RANGE <
+   // (float)(BOGUS_RANGE + 0.2 * ON_EPSILON)
 constexpr float EQUAL_EPSILON{ 0.004f };
 
 //
@@ -139,6 +139,34 @@ constexpr auto vec3_min(any_vec3 auto const & v) noexcept {
 		(dest)[1] = (a)[1] + (scale) * (b)[1]; \
 		(dest)[2] = (a)[2] + (scale) * (b)[2]; \
 	}
+
+template <any_vec3 Multiplicand, any_vec_element Multiplier, any_vec3 ToAdd>
+constexpr auto vector_fma(
+	Multiplicand const & multiplicand,
+	Multiplier multiplier,
+	ToAdd const & toAdd
+) noexcept {
+	using result_element = std::common_type_t<
+		typename Multiplicand::value_type, typename ToAdd::value_type,
+		Multiplier>;
+	return to_vec3(
+		std::fma(
+			(result_element) multiplicand[0], (result_element) multiplier,
+			(result_element) toAdd[0]
+
+		),
+		std::fma(
+			(result_element) multiplicand[1], (result_element) multiplier,
+			(result_element) toAdd[1]
+
+		),
+		std::fma(
+			(result_element) multiplicand[2], (result_element) multiplier,
+			(result_element) toAdd[2]
+
+		)
+	);
+}
 
 template <any_vec3 T>
 constexpr T::value_type vector_length(T const & v) noexcept {

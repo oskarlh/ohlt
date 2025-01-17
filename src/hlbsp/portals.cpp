@@ -201,8 +201,10 @@ static void WritePortalFile_r(node_t const * const node) {
 					double3_array center1, center2;
 					double3_array from = { 0.0, 0.0, -65536 };
 					double3_array center = w->getCenter();
-					VectorMA(center, 0.5, p->plane.normal, center1);
-					VectorMA(center, -0.5, p->plane.normal, center2);
+					double3_array const halfOfNormal
+						= vector_scale(p->plane.normal, 0.5);
+					center1 = vector_add(center, halfOfNormal);
+					center2 = vector_subtract(center, halfOfNormal);
 					fprintf(
 						pf_view, "%5.2f %5.2f %5.2f\n", from[0], from[1],
 						from[2]
