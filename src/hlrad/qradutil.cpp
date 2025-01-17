@@ -576,8 +576,7 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 	};
 
 	for (float3_array const & nudge : nudgeList) {
-		test_st = vector_multiply(nudge, map->step);
-		VectorAdd(test_st, original_st, test_st);
+		test_st = vector_fma(nudge, map->step, original_st);
 		snap_to_winding(zone, map->texplane, test_st.data());
 
 		if (IsPositionValid(map, test_st, p.pos)) {

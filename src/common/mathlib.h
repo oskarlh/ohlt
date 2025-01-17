@@ -141,33 +141,44 @@ constexpr auto vec3_min(any_vec3 auto const & v) noexcept {
 		(dest)[2] = (a)[2] + (scale) * (b)[2]; \
 	}
 
-template <any_vec3 Multiplicand, any_vec_element Multiplier, any_vec3 ToAdd>
+template <any_vec3 Multiplicand, any_vec3 Multiplier, any_vec3 ToAdd>
 constexpr auto vector_fma(
 	Multiplicand const & multiplicand,
-	Multiplier multiplier,
+	Multiplier const & multiplier,
 	ToAdd const & toAdd
 ) noexcept {
 	using result_element = std::common_type_t<
 		typename Multiplicand::value_type,
-		typename ToAdd::value_type,
-		Multiplier>;
+		typename Multiplier::value_type,
+		typename ToAdd::value_type>;
 
 	return to_vec3(
 		std::fma(
 			(result_element) multiplicand[0],
-			(result_element) multiplier,
+			(result_element) multiplier[0],
 			(result_element) toAdd[0]
 		),
 		std::fma(
 			(result_element) multiplicand[1],
-			(result_element) multiplier,
+			(result_element) multiplier[1],
 			(result_element) toAdd[1]
 		),
 		std::fma(
 			(result_element) multiplicand[2],
-			(result_element) multiplier,
+			(result_element) multiplier[2],
 			(result_element) toAdd[2]
 		)
+	);
+}
+
+template <any_vec_element Multiplier>
+constexpr auto vector_fma(
+	any_vec3 auto const & multiplicand,
+	Multiplier multiplier,
+	any_vec3 auto const & toAdd
+) noexcept {
+	return vector_fma(
+		multiplicand, to_vec3(multiplier, multiplier, multiplier), toAdd
 	);
 }
 
