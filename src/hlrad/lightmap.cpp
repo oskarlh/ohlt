@@ -3604,12 +3604,12 @@ void GetPhongNormal(
 
 auto const s_circuscolors = std::array{
 	float3_array{ 100000.0, 100000.0, 100000.0 }, // white
-	float3_array{ 100000.0, 0.0,		 0.0		 }, // red
-	float3_array{ 0.0,	   100000.0, 0.0		 }, // green
-	float3_array{ 0.0,	   0.0,		100000.0 }, // blue
-	float3_array{ 0.0,	   100000.0, 100000.0 }, // cyan
-	float3_array{ 100000.0, 0.0,		 100000.0 }, // magenta
-	float3_array{ 100000.0, 100000.0, 0.0	  }  // yellow
+	float3_array{ 100000.0, 0.0, 0.0 },			  // red
+	float3_array{ 0.0, 100000.0, 0.0 },			  // green
+	float3_array{ 0.0, 0.0, 100000.0 },			  // blue
+	float3_array{ 0.0, 100000.0, 100000.0 },	  // cyan
+	float3_array{ 100000.0, 0.0, 100000.0 },	  // magenta
+	float3_array{ 100000.0, 100000.0, 0.0 }		  // yellow
 };
 
 // =====================================================================================

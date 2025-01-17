@@ -449,11 +449,9 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	// Hull construction
 
 	// Non-axial bevel testing results
-	bool axialbevel[std::size_t(last_axial) + 1][2] = {
-		{ false, false },
-		  { false, false },
-		{ false, false }
-	};
+	bool axialbevel[std::size_t(last_axial) + 1][2] = { { false, false },
+														{ false, false },
+														{ false, false } };
 
 	brushhull_t* hull = &brush->hulls[hullnum];
 

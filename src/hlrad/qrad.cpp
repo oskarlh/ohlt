@@ -2634,21 +2634,14 @@ static void ExtendLightmapBuffer() {
 }
 
 std::array<float3_array, 15> const pos{
-	float3_array{ 0,	 0,	0  },
-	  float3_array{ 1,  0,  0	},
-	float3_array{ 0,	 1,	0  },
-	  float3_array{ -1, 0,  0	 },
-	float3_array{ 0,	 -1, 0  },
-	  float3_array{ 1,  0,  0	},
-	float3_array{ 0,	 0,	1  },
-	  float3_array{ -1, 0,  0	 },
-	float3_array{ 0,	 0,	-1 },
-	  float3_array{ 0,  -1, 0	 },
-	float3_array{ 0,	 0,	1  },
-	  float3_array{ 0,  1,  0	},
-	float3_array{ 0,	 0,	-1 },
-	  float3_array{ 1,  0,  0	},
-	float3_array{ 0,	 0,	0  }
+	float3_array{ 0, 0, 0 },  float3_array{ 1, 0, 0 },
+	float3_array{ 0, 1, 0 },  float3_array{ -1, 0, 0 },
+	float3_array{ 0, -1, 0 }, float3_array{ 1, 0, 0 },
+	float3_array{ 0, 0, 1 },  float3_array{ -1, 0, 0 },
+	float3_array{ 0, 0, -1 }, float3_array{ 0, -1, 0 },
+	float3_array{ 0, 0, 1 },  float3_array{ 0, 1, 0 },
+	float3_array{ 0, 0, -1 }, float3_array{ 1, 0, 0 },
+	float3_array{ 0, 0, 0 }
 };
 
 // =====================================================================================

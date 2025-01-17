@@ -236,7 +236,8 @@ get_lump_data(dheader_t const * header) {
 		Error("LoadBSPFile: odd lump size");
 	}
 
-	// Special handling for tex and lightdata to keep things from exploding
+	// Special handling for tex and lightdata to keep things from
+	// exploding
 	if (LumpId == lump_id::textures) {
 		hlassume(g_max_map_miptex > length, assume_MAX_MAP_MIPTEX);
 	} else if (LumpId == lump_id::lighting) {
@@ -484,41 +485,66 @@ float CalculatePointVecsProduct(
 bool CalcFaceExtents_test() {
 	int const numtestcases = 6;
 	float volatile testcases[numtestcases][8] = {
-		{ 1,
-		  1,									  1,
-		  1,												0.375 * std::numeric_limits<double>::epsilon(),
-		  0.375 * std::numeric_limits<double>::epsilon(),
-		  -1,
-		  0											 },
-		{ 1,
-		  1,									  1,
-		  0.375 * std::numeric_limits<double>::epsilon(),
-		  0.375 * std::numeric_limits<double>::epsilon(),
-		  1,																								   -1,
-		  std::numeric_limits<double>::epsilon()		 },
-		{ std::numeric_limits<double>::epsilon(),
-		  std::numeric_limits<double>::epsilon(),
-		  1,										 0.375,
-		  0.375,																							1,
-		  -1,
-		  std::numeric_limits<double>::epsilon()		 },
-		{ 1,
-		  1,									  1,
-		  1,												1,
-		  0.375 * std::numeric_limits<float>::epsilon(),
-		  -2,
-		  0.375 * std::numeric_limits<float>::epsilon() },
-		{ 1,
-		  1,									  1,
-		  1,												0.375 * std::numeric_limits<float>::epsilon(),
-		  1,																								   -2,
-		  0.375 * std::numeric_limits<float>::epsilon() },
-		{ 1,
-		  1,									  1,
-		  0.375 * std::numeric_limits<float>::epsilon(),
-		  1,																								1,
-		  -2,
-		  0.375 * std::numeric_limits<float>::epsilon() }
+		{
+			1,
+			1,
+			1,
+			1,
+			0.375 * std::numeric_limits<double>::epsilon(),
+			0.375 * std::numeric_limits<double>::epsilon(),
+			-1,
+			0,
+		},
+		{
+			1,
+			1,
+			1,
+			0.375 * std::numeric_limits<double>::epsilon(),
+			0.375 * std::numeric_limits<double>::epsilon(),
+			1,
+			-1,
+			std::numeric_limits<double>::epsilon(),
+		},
+		{
+			std::numeric_limits<double>::epsilon(),
+			std::numeric_limits<double>::epsilon(),
+			1,
+			0.375,
+			0.375,
+			1,
+			-1,
+			std::numeric_limits<double>::epsilon(),
+		},
+		{
+			1,
+			1,
+			1,
+			1,
+			1,
+			0.375 * std::numeric_limits<float>::epsilon(),
+			-2,
+			0.375 * std::numeric_limits<float>::epsilon(),
+		},
+		{
+			1,
+			1,
+			1,
+			1,
+			0.375 * std::numeric_limits<float>::epsilon(),
+			1,
+			-2,
+			0.375 * std::numeric_limits<float>::epsilon(),
+		},
+		{
+			1,
+			1,
+			1,
+			0.375 * std::numeric_limits<float>::epsilon(),
+			1,
+			1,
+			-2,
+			0.375 * std::numeric_limits<float>::epsilon(),
+		}
 	};
 	bool ok;
 
@@ -570,22 +596,24 @@ void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]) {
 		}
 		for (j = 0; j < 2; j++) {
 			// The old code: val = v->point[0] * tex->vecs[j][0] +
-			// v->point[1] * tex->vecs[j][1] + v->point[2] * tex->vecs[j][2]
+			// v->point[1] * tex->vecs[j][1] + v->point[2] *
+			// tex->vecs[j][2]
 			// + tex->vecs[j][3];
-			//   was meant to be compiled for x86 under MSVC (prior to VS
-			//   11), so the intermediate values were stored as 64-bit
-			//   double by default.
-			// The new code will produce the same result as the old code,
-			// but it's portable for different platforms. See this article
-			// for details: Intermediate Floating-Point Precision by
-			// Bruce-Dawson
+			//   was meant to be compiled for x86 under MSVC (prior
+			//   to VS 11), so the intermediate values were stored
+			//   as 64-bit double by default.
+			// The new code will produce the same result as the old
+			// code, but it's portable for different platforms. See
+			// this article for details: Intermediate Floating-Point
+			// Precision by Bruce-Dawson
 			// http://www.altdevblogaday.com/2012/03/22/intermediate-floating-point-precision/
 
-			// The essential reason for having this ugly code is to get
-			// exactly the same value as the counterpart of game engine. The
-			// counterpart of game engine is the function CalcFaceExtents in
-			// HLSDK. So we must also know how Valve compiles HLSDK. I think
-			// Valve compiles HLSDK with VC6.0 in the past.
+			// The essential reason for having this ugly code is to
+			// get exactly the same value as the counterpart of game
+			// engine. The counterpart of game engine is the
+			// function CalcFaceExtents in HLSDK. So we must also
+			// know how Valve compiles HLSDK. I think Valve compiles
+			// HLSDK with VC6.0 in the past.
 			val = CalculatePointVecsProduct(
 				v->point.data(), tex->vecs[j].data()
 			);
@@ -748,14 +776,15 @@ void DeleteEmbeddedLightmaps() {
 			auto const miptex = g_texinfo[i].miptex;
 
 			if (texinfoused[i]) {
-				break; // still used by a face; should not remove this
-					   // texinfo
+				break; // still used by a face; should not remove
+					   // this texinfo
 			}
 			if (miptex < 0 || miptex >= numtextures) {
 				break; // invalid; should not remove this texinfo
 			}
 			if (ParseImplicitTexinfoFromTexture(miptex) == -1) {
-				break; // not added by hlrad; should not remove this texinfo
+				break; // not added by hlrad; should not remove this
+					   // texinfo
 			}
 			countremovedtexinfos++;
 		}

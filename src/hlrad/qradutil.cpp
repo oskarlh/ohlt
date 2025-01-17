@@ -561,18 +561,12 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 
 	constexpr std::size_t numNudges = 12;
 	std::array<float3_array, 12> const nudgeList{
-		float3_array{ 0.1,  0,	  0 },
-		   float3_array{ -0.1, 0,	  0 },
-		float3_array{ 0,	 0.1,  0 },
-		   float3_array{ 0,	-0.1, 0 },
-		float3_array{ 0.3,  0,	  0 },
-		   float3_array{ -0.3, 0,	  0 },
-		float3_array{ 0,	 0.3,  0 },
-		   float3_array{ 0,	-0.3, 0 },
-		float3_array{ 0.3,  0.3,	0 },
-		   float3_array{ -0.3, 0.3,	0 },
-		float3_array{ -0.3, -0.3, 0 },
-		   float3_array{ 0.3,  -0.3, 0 }
+		float3_array{ 0.1, 0, 0 },	   float3_array{ -0.1, 0, 0 },
+		float3_array{ 0, 0.1, 0 },	   float3_array{ 0, -0.1, 0 },
+		float3_array{ 0.3, 0, 0 },	   float3_array{ -0.3, 0, 0 },
+		float3_array{ 0, 0.3, 0 },	   float3_array{ 0, -0.3, 0 },
+		float3_array{ 0.3, 0.3, 0 },   float3_array{ -0.3, 0.3, 0 },
+		float3_array{ -0.3, -0.3, 0 }, float3_array{ 0.3, -0.3, 0 }
 	};
 
 	for (float3_array const & nudge : nudgeList) {

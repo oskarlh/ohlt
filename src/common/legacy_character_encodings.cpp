@@ -44,7 +44,7 @@ std::u8string_view human_name_of_legacy_encoding(legacy_encoding encoding
 }
 
 static std::array<char16_t, 0xBF - 0x80 + 1> const
-	windows_1251_unicode_equivalents_for_0x80_to_0xbf_inclusive
+	windows_1251_unicode_equivalents
 	= { 0x0402, // 0x80 in windows-1251 equals the code point U+0402,
 		0x0403, // 0x81 in windows-1251 equals the code point U+0403,
 		0x201A, // and so on...
@@ -58,7 +58,7 @@ static std::array<char16_t, 0xBF - 0x80 + 1> const
 		0x00BB, 0x0458, 0x0405, 0x0455, 0x0457 };
 
 static std::array<char16_t, 0x9F - 0x80 + 1> const
-	windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
+	windows_1252_unicode_equivalents
 	= { 0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
 		0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
 		0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
@@ -74,23 +74,24 @@ constexpr unsigned char first_non_ascii_character = 0x80;
 
 static std::array<conversion_data, num_legacy_encodings> const
 	conversion_data_by_encoding
-	= {
-		  conversion_data{
-						  windows_1251_unicode_equivalents_for_0x80_to_0xbf_inclusive
-				  .data(),
-						  0x0410 - 0xC0,
-						  windows_1251_unicode_equivalents_for_0x80_to_0xbf_inclusive
-					  .size()
-				  + first_non_ascii_character,
-						  },
-		  conversion_data{
-						  windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
-				  .data(),
-						  0,										windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
-					  .size()
-				  + first_non_ascii_character,
-						  }
-};
+	= { conversion_data{
+			.table = windows_1251_unicode_equivalents.data(),
+
+			.add_to_characters_past_the_table = 0x0410 - 0xC0,
+
+			.last_character_to_use_table_for
+			= windows_1252_unicode_equivalents.size()
+				+ first_non_ascii_character,
+		},
+		conversion_data{
+			.table = windows_1252_unicode_equivalents.data(),
+
+			.add_to_characters_past_the_table = 0,
+
+			.last_character_to_use_table_for
+			= windows_1252_unicode_equivalents.size()
+				+ first_non_ascii_character,
+		} };
 
 std::u8string
 legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding) {
