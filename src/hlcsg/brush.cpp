@@ -331,7 +331,7 @@ void ExpandBrushWithHullBrush(
 			if (!normalize_vector(brushedge.delta)) {
 				continue;
 			}
-			VectorScale(brushedge.delta, len, brushedge.delta);
+			brushedge.delta = vector_scale(brushedge.delta, len);
 
 			// check for each edge in the hullbrush
 			for (hbe = hb->edges; hbe < hb->edges + hb->numedges; hbe++) {

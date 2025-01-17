@@ -1166,7 +1166,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 	for (side = 0; side < 2; side++) {
 		double3_array facing;
 		CrossProduct(c->basenormal, c->axis, facing);
-		VectorScale(facing, side ? -1 : 1, facing);
+		facing = vector_scale(facing, side ? -1.0 : 1.0);
 		if (normalize_vector(facing) < 1 - 0.01) {
 			return false;
 		}
@@ -1231,8 +1231,8 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 		for (i = 0; i < c->numwedges[side]; i++) {
 			bsurface_t* s = &c->surfaces[side][i];
 			bbrinknode_t* node = &b->nodes[s->nodenum];
-			VectorScale(
-				node->plane->normal, s->nodeside ? -1 : 1, s->normal
+			s->normal = vector_scale(
+				node->plane->normal, s->nodeside ? -1.0 : 1.0
 			);
 		}
 	}
@@ -1435,10 +1435,9 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 		{
 			isfloor = false;
 			for (int side2 = 0; side2 < 2; side2++) {
-				double3_array normal;
-				VectorScale(
+				double3_array normal = vector_scale(
 					transitionpos[side2]->normal,
-					transitionside[side2] ? -1 : 1, normal
+					transitionside[side2] ? -1.0 : 1.0
 				); // pointing from SOLID to EMPTY
 				if (DotProduct(normal, vup) > BRINK_FLOOR_THRESHOLD) {
 					isfloor = true;
@@ -1465,11 +1464,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 							hlassume(false, assume_first);
 						}
 						for (int side3 = 0; side3 < 2; side3++) {
-							double3_array normal;
-							VectorScale(
+							double3_array normal = vector_scale(
 								fi->f->plane->normal,
-								(fi->f->planeside != (bool) side3) ? -1 : 1,
-								normal
+								(fi->f->planeside != (bool) side3) ? -1.0
+																   : 1.0
 							);
 							if (DotProduct(normal, vup)
 									> BRINK_FLOOR_THRESHOLD

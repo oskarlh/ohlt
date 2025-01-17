@@ -110,9 +110,9 @@ vector_subtract(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 #define VectorClear(a) \
 	{ (a)[0] = (a)[1] = (a)[2] = 0.0; }
 
-template <any_vec3 Vec3>
-constexpr Vec3 vector_scale(Vec3& v, any_vec_element auto scale) noexcept {
-	return Vec3{ v[0] * scale, v[1] * scale, v[2] * scale };
+constexpr auto
+vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
+	return to_vec3(v[0] * scale, v[1] * scale, v[2] * scale);
 }
 
 constexpr auto vec3_max(any_vec3 auto const & v) noexcept {

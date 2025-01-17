@@ -1474,9 +1474,8 @@ static void SetModelCenters(int entitynum) {
 		}
 	}
 
-	double3_array center;
-	VectorAdd(bounds.mins, bounds.maxs, center);
-	VectorScale(center, 0.5, center);
+	double3_array center
+		= vector_scale(vector_add(bounds.mins, bounds.maxs), 0.5);
 
 	safe_snprintf(
 		string, MAXTOKEN, "%i %i %i", (int) center[0], (int) center[1],

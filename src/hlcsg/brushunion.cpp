@@ -112,7 +112,7 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 
 	inverse = 1.0 / x;
 
-	VectorScale(midpoint, inverse, midpoint);
+	midpoint = vector_scale(midpoint, inverse);
 
 	Developer(
 		developer_level::message, "Midpoint for hull is %f %f %f\n",

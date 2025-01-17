@@ -279,29 +279,19 @@ void winding_base<VecElement>::initFromPlane(
 	VectorMA(vup, -v, normal, vup);
 	normalize_vector(vup);
 
-	vec3 org;
-	VectorScale(normal, dist, org);
+	vec3 org = vector_scale(normal, dist);
 
-	vec3 vright;
-	CrossProduct(vup, normal, vright);
+	vec3 vright = cross_product(vup, normal);
 
-	VectorScale(vup, bogus_range, vup);
-	VectorScale(vright, bogus_range, vright);
+	vup = vector_scale(vup, bogus_range);
+	vright = vector_scale(vright, bogus_range);
 
 	// Project a really big axis-aligned box onto the plane
 	m_Points.resize(4);
-
-	VectorSubtract(org, vright, m_Points[0]);
-	VectorAdd(m_Points[0], vup, m_Points[0]);
-
-	VectorAdd(org, vright, m_Points[1]);
-	VectorAdd(m_Points[1], vup, m_Points[1]);
-
-	VectorAdd(org, vright, m_Points[2]);
-	VectorSubtract(m_Points[2], vup, m_Points[2]);
-
-	VectorSubtract(org, vright, m_Points[3]);
-	VectorSubtract(m_Points[3], vup, m_Points[3]);
+	m_Points[0] = vector_add(vector_subtract(org, vright), vup);
+	m_Points[1] = vector_add(vector_add(org, vright), vup);
+	m_Points[2] = vector_subtract(vector_add(org, vright), vup);
+	m_Points[3] = vector_subtract(vector_subtract(org, vright), vup);
 }
 
 template <any_vec_element VecElement>

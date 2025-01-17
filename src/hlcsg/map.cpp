@@ -758,15 +758,21 @@ bool ParseMapEntity() {
 					for (int i = 0; i < 2; i++) {
 						double3_array& point = b[i];
 						if (ent_scale_b) {
-							VectorSubtract(point, ent_scale_origin, point);
-							VectorScale(point, ent_scale, point);
-							VectorAdd(point, ent_scale_origin, point);
+							point = vector_add(
+								vector_scale(
+									vector_subtract(
+										point, ent_scale_origin
+									),
+									ent_scale
+								),
+								ent_scale_origin
+							);
 						}
 						if (ent_move_b) {
-							VectorAdd(point, ent_move, point);
+							point = vector_add(point, ent_move);
 						}
 						if (ent_gscale_b) {
-							VectorScale(point, ent_gscale, point);
+							point = vector_scale(point, ent_gscale);
 						}
 					}
 					char string[MAXTOKEN];
