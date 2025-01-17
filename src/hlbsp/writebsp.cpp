@@ -500,26 +500,31 @@ void FinishBSPFile(bsp_data const & bspData) {
 	if (g_dmodels[0].visleafs > MAX_MAP_LEAFS_ENGINE) {
 		Warning(
 			"Number of world leaves(%d) exceeded MAX_MAP_LEAFS(%zd)\nIf you encounter problems when running your map, consider this the most likely cause.\n",
-			g_dmodels[0].visleafs, MAX_MAP_LEAFS_ENGINE
+			g_dmodels[0].visleafs,
+			MAX_MAP_LEAFS_ENGINE
 		);
 	}
 	if (g_dmodels[0].numfaces > MAX_MAP_WORLDFACES) {
 		Warning(
 			"Number of world faces(%d) exceeded %zd. Some faces will disappear in game.\nTo reduce world faces, change some world brushes (including func_details) to func_walls.\n",
-			g_dmodels[0].numfaces, MAX_MAP_WORLDFACES
+			g_dmodels[0].numfaces,
+			MAX_MAP_WORLDFACES
 		);
 	}
 	Developer(
-		developer_level::message, "count_mergedclipnodes = %d\n",
+		developer_level::message,
+		"count_mergedclipnodes = %d\n",
 		count_mergedclipnodes
 	);
 	if (!g_noclipnodemerge) {
 		Log("Reduced %d clipnodes to %d\n",
-			g_numclipnodes + count_mergedclipnodes, g_numclipnodes);
+			g_numclipnodes + count_mergedclipnodes,
+			g_numclipnodes);
 	}
 	if (!g_noopt) {
 		{
-			Log("Reduced %d texinfos to %d\n", g_numtexinfo,
+			Log("Reduced %d texinfos to %d\n",
+				g_numtexinfo,
 				g_nummappedtexinfo);
 			for (int i = 0; i < g_nummappedtexinfo; i++) {
 				g_texinfo[i] = g_mappedtexinfo[i];
@@ -629,7 +634,8 @@ void FinishBSPFile(bsp_data const & bspData) {
 					} else {
 						std::memcpy(
 							(byte*) newdata + newdatasize,
-							(byte*) l + l->dataofs[i], lumpsizes[i]
+							(byte*) l + l->dataofs[i],
+							lumpsizes[i]
 						);
 						l->dataofs[Map[i]] = Size;
 						newdatasize += lumpsizes[i];
@@ -638,8 +644,11 @@ void FinishBSPFile(bsp_data const & bspData) {
 				}
 			}
 			std::memcpy(&l->dataofs[Num], newdata, newdatasize);
-			Log("Reduced %d texdatas to %d (%d bytes to %d)\n", g_nummiptex,
-				Num, g_texdatasize, Size);
+			Log("Reduced %d texdatas to %d (%d bytes to %d)\n",
+				g_nummiptex,
+				Num,
+				g_texdatasize,
+				Size);
 			g_nummiptex = Num;
 			g_texdatasize = Size;
 		skipReduceTexdata:;
@@ -693,9 +702,13 @@ void FinishBSPFile(bsp_data const & bspData) {
 			for (i = 0; i < g_nummodels; i++) {
 				for (j = 1; j < NUM_HULLS; j++) {
 					if (!FixBrinks(
-							brinkinfo[i][j], (bbrinklevel_e) level,
-							headnode[i][j], clipnodes, MAX_MAP_CLIPNODES,
-							numclipnodes, numclipnodes
+							brinkinfo[i][j],
+							(bbrinklevel_e) level,
+							headnode[i][j],
+							clipnodes,
+							MAX_MAP_CLIPNODES,
+							numclipnodes,
+							numclipnodes
 						)) {
 						break;
 					}
@@ -724,14 +737,17 @@ void FinishBSPFile(bsp_data const & bspData) {
 				);
 			}
 			Developer(
-				developer_level::message, "count_mergedclipnodes = %d\n",
+				developer_level::message,
+				"count_mergedclipnodes = %d\n",
 				count_mergedclipnodes
 			);
-			Log("Increased %d clipnodes to %d.\n", g_numclipnodes,
+			Log("Increased %d clipnodes to %d.\n",
+				g_numclipnodes,
 				numclipnodes);
 			g_numclipnodes = numclipnodes;
 			std::memcpy(
-				g_dclipnodes.data(), clipnodes,
+				g_dclipnodes.data(),
+				clipnodes,
 				numclipnodes * sizeof(dclipnode_t)
 			);
 			for (i = 0; i < g_nummodels; i++) {

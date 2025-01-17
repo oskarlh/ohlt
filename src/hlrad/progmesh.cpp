@@ -329,7 +329,8 @@ static void AddVertex(List<float3_array>& vert) {
 static void AddFaces(List<triset>& tri) {
 	for (int i = 0; i < tri.num; i++) {
 		CTriangle* t = new CTriangle(
-			vertices[tri[i].v[0]], vertices[tri[i].v[1]],
+			vertices[tri[i].v[0]],
+			vertices[tri[i].v[1]],
 			vertices[tri[i].v[2]]
 		);
 	}

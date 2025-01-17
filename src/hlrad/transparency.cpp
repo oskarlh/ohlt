@@ -71,7 +71,8 @@ void AddTransparencyToRawArray(
 		hlassume(s_raw_list != nullptr, assume_NoMemory);
 
 		memset(
-			&s_raw_list[old_max_count], 0,
+			&s_raw_list[old_max_count],
+			0,
 			sizeof(transList_t) * (s_max_raw_count - old_max_count)
 		);
 	}
@@ -127,7 +128,8 @@ void CreateFinalTransparencyArrays(
 	}
 	// Second half have p1<p2
 	memcpy(
-		&s_sorted_list[s_raw_count], s_raw_list,
+		&s_sorted_list[s_raw_count],
+		s_raw_list,
 		sizeof(transList_t) * s_raw_count
 	);
 
@@ -142,7 +144,8 @@ void CreateFinalTransparencyArrays(
 	size_t size = s_sorted_count * sizeof(transList_t)
 		+ transparencyList.size() * sizeof(float3_array);
 	if (size > 1024 * 1024) {
-		Log("%-20s: %5.1f megs \n", print_name,
+		Log("%-20s: %5.1f megs \n",
+			print_name,
 			(double) size / (1024.0 * 1024.0));
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);
@@ -151,7 +154,8 @@ void CreateFinalTransparencyArrays(
 	}
 	Developer(
 		developer_level::message,
-		"\ts_trans_count=%zu\ts_sorted_count=%d\n", transparencyList.size(),
+		"\ts_trans_count=%zu\ts_sorted_count=%d\n",
+		transparencyList.size(),
 		s_sorted_count
 	); //--vluzacn
 }
@@ -248,7 +252,8 @@ void AddStyleToStyleArray(
 		hlassume(s_style_list != nullptr, assume_NoMemory);
 
 		memset(
-			&s_style_list[old_max_count], 0,
+			&s_style_list[old_max_count],
+			0,
 			sizeof(styleList_t) * (s_max_style_count - old_max_count)
 		);
 	}
@@ -283,7 +288,8 @@ void CreateFinalStyleArrays(char const * print_name) {
 
 	size_t size = s_max_style_count * sizeof(styleList_t);
 	if (size > 1024 * 1024) {
-		Log("%-20s: %5.1f megs \n", print_name,
+		Log("%-20s: %5.1f megs \n",
+			print_name,
 			(double) size / (1024.0 * 1024.0));
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);

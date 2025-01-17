@@ -82,7 +82,8 @@ std::optional<std::u8string> read_utf8_file(
 	if (windowsLineEndingsToUnix) {
 		std::size_t outIndex = 0;
 		for (std::u8string_view remainingCharactersToCopy{ text };
-			 !remainingCharactersToCopy.empty(); remainingCharactersToCopy
+			 !remainingCharactersToCopy.empty();
+			 remainingCharactersToCopy
 			 = remainingCharactersToCopy.substr(1)) {
 			if (remainingCharactersToCopy.starts_with(u8"\r\n")) {
 				remainingCharactersToCopy

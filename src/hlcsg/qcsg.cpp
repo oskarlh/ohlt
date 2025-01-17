@@ -99,7 +99,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_verbose = false;
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
-	Log("%30s [ %-9s ]\n", "Verbose Compile Messages",
+	Log("%30s [ %-9s ]\n",
+		"Verbose Compile Messages",
 		g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
@@ -109,7 +110,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_estimate = false;
 	}
-	Log("%30s [ %-9s ]\n", "Estimate Compile Times",
+	Log("%30s [ %-9s ]\n",
+		"Estimate Compile Times",
 		g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
@@ -151,13 +153,15 @@ void GetParamsFromEnt(entity_t* mapent) {
 		= (char const *) ValueForKey(mapent, u8"wadautodetect"); // seedee
 	g_bWadAutoDetect
 		= (wadautodetectValue && atoi(wadautodetectValue) >= 1);
-	Log("%30s [ %-9s ]\n", "Wad Auto Detect",
+	Log("%30s [ %-9s ]\n",
+		"Wad Auto Detect",
 		g_bWadAutoDetect ? "on" : "off");
 
 	// wadconfig(string) : "Custom Wad Configuration" : ""
 	if (*ValueForKey(mapent, u8"wadconfig")) {
 		g_wadconfigname = value_for_key(mapent, u8"wadconfig");
-		Log("%30s [ %-9s ]\n", "Custom Wad Configuration Name",
+		Log("%30s [ %-9s ]\n",
+			"Custom Wad Configuration Name",
 			(char const *) g_wadconfigname.c_str());
 	}
 
@@ -169,7 +173,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else if (noclipeconomyValue == 0) {
 		g_bClipNazi = false;
 	}
-	Log("%30s [ %-9s ]\n", "Clipnode Economy Mode",
+	Log("%30s [ %-9s ]\n",
+		"Clipnode Economy Mode",
 		g_bClipNazi ? "on" : "off");
 
 	/*
@@ -206,7 +211,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_noclip = false;
 	}
-	Log("%30s [ %-9s ]\n", "Clipping Hull Generation",
+	Log("%30s [ %-9s ]\n",
+		"Clipping Hull Generation",
 		g_noclip ? "off" : "on");
 	// cliptype(choices) : "Clip Hull Type" : 4 = [ 0 : "Smallest" 1 :
 	// "Normalized" 2: "Simple" 3 : "Precise" 4 : "Legacy" ]
@@ -241,7 +247,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_skyclip = true;
 	}
-	Log("%30s [ %-9s ]\n", "Sky brush clip generation",
+	Log("%30s [ %-9s ]\n",
+		"Sky brush clip generation",
 		g_skyclip ? "on" : "off");
 
 	///////////////
@@ -279,16 +286,24 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 
 	// plane summary
 	fprintf(
-		out[hull], "%i %i %i %i %zu\n", detaillevel, f->planenum,
-		f->texinfo, f->contents, w.size()
+		out[hull],
+		"%i %i %i %i %zu\n",
+		detaillevel,
+		f->planenum,
+		f->texinfo,
+		f->contents,
+		w.size()
 	);
 
 	// for each of the points on the face
 	for (i = 0; i < w.size(); i++) {
 		// write the co-ords
 		fprintf(
-			out[hull], "%5.8f %5.8f %5.8f\n", w.m_Points[i][0],
-			w.m_Points[i][1], w.m_Points[i][2]
+			out[hull],
+			"%5.8f %5.8f %5.8f\n",
+			w.m_Points[i][0],
+			w.m_Points[i][1],
+			w.m_Points[i][2]
 		);
 	}
 
@@ -302,33 +317,51 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 			double3_array center2;
 			VectorAdd(center, f->plane->normal, center2);
 			fprintf(
-				out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0],
-				center2[1], center2[2]
+				out_view[hull],
+				"%5.2f %5.2f %5.2f\n",
+				center2[0],
+				center2[1],
+				center2[2]
 			);
 			for (i = 0; i < w.size(); i++) {
 				double3_array const & p1{ w.m_Points[i] };
 				double3_array const & p2{ w.m_Points[(i + 1) % w.size()] };
 
 				fprintf(
-					out_view[hull], "%5.2f %5.2f %5.2f\n", center[0],
-					center[1], center[2]
+					out_view[hull],
+					"%5.2f %5.2f %5.2f\n",
+					center[0],
+					center[1],
+					center[2]
 				);
 				fprintf(
-					out_view[hull], "%5.2f %5.2f %5.2f\n", p1[0], p1[1],
+					out_view[hull],
+					"%5.2f %5.2f %5.2f\n",
+					p1[0],
+					p1[1],
 					p1[2]
 				);
 				fprintf(
-					out_view[hull], "%5.2f %5.2f %5.2f\n", p2[0], p2[1],
+					out_view[hull],
+					"%5.2f %5.2f %5.2f\n",
+					p2[0],
+					p2[1],
 					p2[2]
 				);
 			}
 			fprintf(
-				out_view[hull], "%5.2f %5.2f %5.2f\n", center[0], center[1],
+				out_view[hull],
+				"%5.2f %5.2f %5.2f\n",
+				center[0],
+				center[1],
 				center[2]
 			);
 			fprintf(
-				out_view[hull], "%5.2f %5.2f %5.2f\n", center2[0],
-				center2[1], center2[2]
+				out_view[hull],
+				"%5.2f %5.2f %5.2f\n",
+				center2[0],
+				center2[1],
+				center2[2]
 			);
 		}
 	}
@@ -344,8 +377,11 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 		fprintf(out_detailbrush[hull], "%i %zu\n", f.planenum, w.size());
 		for (int i = 0; i < w.size(); i++) {
 			fprintf(
-				out_detailbrush[hull], "%5.8f %5.8f %5.8f\n",
-				w.m_Points[i][0], w.m_Points[i][1], w.m_Points[i][2]
+				out_detailbrush[hull],
+				"%5.8f %5.8f %5.8f\n",
+				w.m_Points[i][0],
+				w.m_Points[i][1],
+				w.m_Points[i][2]
 			);
 		}
 	}
@@ -408,7 +444,8 @@ static void SaveOutside(
 		if (f.w.getArea() < g_tiny_threshold) {
 			c_tiny++;
 			Verbose(
-				"Entity %i, Brush %i: tiny fragment\n", b.originalentitynum,
+				"Entity %i, Brush %i: tiny fragment\n",
+				b.originalentitynum,
 				b.originalbrushnum
 			);
 			continue;
@@ -450,7 +487,8 @@ static void SaveOutside(
 					<= NORMAL_EPSILON) {
 					Warning(
 						"Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
-						b.originalentitynum, b.originalbrushnum,
+						b.originalentitynum,
+						b.originalbrushnum,
 						texname.c_str()
 					);
 				}
@@ -472,7 +510,8 @@ static void SaveOutside(
 				if (bad) {
 					Warning(
 						"Entity %i, Brush %i: Malformed texture alignment (texture %s): Bad surface extents.",
-						b.originalentitynum, b.originalbrushnum,
+						b.originalentitynum,
+						b.originalbrushnum,
 						texname.c_str()
 					);
 				}
@@ -572,7 +611,8 @@ static void CSGBrush(int brushnum) {
 				default:
 					Error(
 						"Entity %i, Brush %i: %s brushes not allowed in detail\n",
-						b1.originalentitynum, b1.originalbrushnum,
+						b1.originalentitynum,
+						b1.originalbrushnum,
 						ContentsToString((contents_t) b1.contents)
 					);
 					break;
@@ -715,7 +755,9 @@ static void CSGBrush(int brushnum) {
 							accurate_winding frontw;
 							accurate_winding backw;
 							f.w.Clip(
-								f2.plane->normal, f2.plane->dist, frontw,
+								f2.plane->normal,
+								f2.plane->dist,
+								frontw,
 								backw
 							);
 							if (frontw) {
@@ -746,7 +788,8 @@ static void CSGBrush(int brushnum) {
 				if (area < g_tiny_threshold) {
 					Verbose(
 						"Entity %i, Brush %i: tiny penetration\n",
-						b1.originalentitynum, b1.originalbrushnum
+						b1.originalentitynum,
+						b1.originalbrushnum
 					);
 					c_tiny_clip++;
 					continue;
@@ -838,7 +881,8 @@ static void EmitPlanes() {
 			Error("Couldn't open %s", name);
 		}
 		SafeWrite(
-			planeout, g_mapplanes.data(),
+			planeout,
+			g_mapplanes.data(),
 			g_nummapplanes * sizeof(mapplane_t)
 		);
 		fclose(planeout);
@@ -914,7 +958,8 @@ void ReuseModel() {
 			);
 		}
 		SetKeyValue(
-			&g_entities[i], u8"model",
+			&g_entities[i],
+			u8"model",
 			ValueForKey(&g_entities[j], u8"model")
 		);
 		if (j > i) {
@@ -924,7 +969,8 @@ void ReuseModel() {
 			entity_t tmp{ std::move(g_entities[i]) };
 			std::move(
 				&g_entities[i + 1],
-				&g_entities[i + 1] + ((j + 1) - (i + 1)), &g_entities[i]
+				&g_entities[i + 1] + ((j + 1) - (i + 1)),
+				&g_entities[i]
 			);
 			g_entities[j] = std::move(tmp);
 		}
@@ -1117,7 +1163,8 @@ static void UnparseEntities() {
 				mapent, u8"convertfrom", ValueForKey(mapent, u8"classname")
 			);
 			SetKeyValue(
-				mapent, u8"classname",
+				mapent,
+				u8"classname",
 				(*ValueForKey(mapent, u8"convertto")
 					 ? ValueForKey(mapent, u8"convertto")
 					 : u8"light")
@@ -1206,7 +1253,9 @@ static void UnparseEntities() {
 
 		for (entity_key_value const & kv : g_entities[i].keyValues) {
 			snprintf(
-				line, sizeof(line), "\"%s\" \"%s\"\n",
+				line,
+				sizeof(line),
+				"\"%s\" \"%s\"\n",
 				(char const *) kv.key().data(),
 				(char const *) kv.value().data()
 			);
@@ -1478,7 +1527,11 @@ static void SetModelCenters(int entitynum) {
 		= vector_scale(vector_add(bounds.mins, bounds.maxs), 0.5);
 
 	safe_snprintf(
-		string, MAXTOKEN, "%i %i %i", (int) center[0], (int) center[1],
+		string,
+		MAXTOKEN,
+		"%i %i %i",
+		(int) center[0],
+		(int) center[1],
 		(int) center[2]
 	);
 	SetKeyValue(e, u8"model_center", (char8_t const *) string);
@@ -1507,9 +1560,12 @@ static void BoundWorld() {
 
 	Verbose(
 		"World bounds: (%i %i %i) to (%i %i %i)\n",
-		(int) world_bounds.mins[0], (int) world_bounds.mins[1],
-		(int) world_bounds.mins[2], (int) world_bounds.maxs[0],
-		(int) world_bounds.maxs[1], (int) world_bounds.maxs[2]
+		(int) world_bounds.mins[0],
+		(int) world_bounds.mins[1],
+		(int) world_bounds.mins[2],
+		(int) world_bounds.maxs[0],
+		(int) world_bounds.maxs[1],
+		(int) world_bounds.maxs[2]
 	);
 }
 
@@ -1623,21 +1679,27 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
-	Log("verbose               [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off",
+	Log("verbose               [ %7s ] [ %7s ]\n",
+		g_verbose ? "on" : "off",
 		cli_option_defaults::verbose ? "on" : "off");
-	Log("log                   [ %7s ] [ %7s ]\n", g_log ? "on" : "off",
+	Log("log                   [ %7s ] [ %7s ]\n",
+		g_log ? "on" : "off",
 		cli_option_defaults::log ? "on" : "off");
 	Log("reset logfile         [ %7s ] [ %7s ]\n",
-		g_resetlog ? "on" : "off", DEFAULT_RESETLOG ? "on" : "off");
+		g_resetlog ? "on" : "off",
+		DEFAULT_RESETLOG ? "on" : "off");
 
-	Log("developer             [ %7d ] [ %7d ]\n", (int) g_developer,
+	Log("developer             [ %7d ] [ %7d ]\n",
+		(int) g_developer,
 		(int) cli_option_defaults::developer);
-	Log("chart                 [ %7s ] [ %7s ]\n", g_chart ? "on" : "off",
+	Log("chart                 [ %7s ] [ %7s ]\n",
+		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
 	Log("estimate              [ %7s ] [ %7s ]\n",
 		g_estimate ? "on" : "off",
 		cli_option_defaults::estimate ? "on" : "off");
-	Log("max texture memory    [ %7td ] [ %7td ]\n", g_max_map_miptex,
+	Log("max texture memory    [ %7td ] [ %7td ]\n",
+		g_max_map_miptex,
 		cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
@@ -1667,7 +1729,8 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 	Log("force .map legacy enc.[ %7s ] [ %7s ]\n",
 		settings.forceLegacyMapEncoding ? "on" : "off",
 		defaultSettings.forceLegacyMapEncoding ? "on" : "off");
-	Log("noclip                [ %7s ] [ %7s ]\n", g_noclip ? "on" : "off",
+	Log("noclip                [ %7s ] [ %7s ]\n",
+		g_noclip ? "on" : "off",
 		DEFAULT_NOCLIP ? "on" : "off");
 
 	Log("null texture stripping[ %7s ] [ %7s ]\n",
@@ -1675,27 +1738,35 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		cli_option_defaults::nulltex ? "on" : "off");
 
 	Log("clipnode economy mode [ %7s ] [ %7s ]\n",
-		g_bClipNazi ? "on" : "off", DEFAULT_CLIPNAZI ? "on" : "off");
+		g_bClipNazi ? "on" : "off",
+		DEFAULT_CLIPNAZI ? "on" : "off");
 
 	Log("clip hull type        [ %7s ] [ %7s ]\n",
-		GetClipTypeString(g_cliptype), GetClipTypeString(DEFAULT_CLIPTYPE));
+		GetClipTypeString(g_cliptype),
+		GetClipTypeString(DEFAULT_CLIPTYPE));
 
 	Log("onlyents              [ %7s ] [ %7s ]\n",
-		g_onlyents ? "on" : "off", DEFAULT_ONLYENTS ? "on" : "off");
+		g_onlyents ? "on" : "off",
+		DEFAULT_ONLYENTS ? "on" : "off");
 	Log("wadtextures           [ %7s ] [ %7s ]\n",
-		g_wadtextures ? "on" : "off", DEFAULT_WADTEXTURES ? "on" : "off");
-	Log("skyclip               [ %7s ] [ %7s ]\n", g_skyclip ? "on" : "off",
+		g_wadtextures ? "on" : "off",
+		DEFAULT_WADTEXTURES ? "on" : "off");
+	Log("skyclip               [ %7s ] [ %7s ]\n",
+		g_skyclip ? "on" : "off",
 		DEFAULT_SKYCLIP ? "on" : "off");
 	Log("hullfile              [ %7s ] [ %7s ]\n",
-		g_hullfile ? g_hullfile : "None", "None");
+		g_hullfile ? g_hullfile : "None",
+		"None");
 	Log("wad.cfg file          [ %7s ] [ %7s ]\n",
-		g_wadcfgfile.empty() ? "None" : g_wadcfgfile.c_str(), "None");
+		g_wadcfgfile.empty() ? "None" : g_wadcfgfile.c_str(),
+		"None");
 	Log("wad.cfg config name   [ %7s ] [ %7s ]\n",
 		g_wadconfigname.empty() ? "None"
 								: (char const *) g_wadconfigname.c_str(),
 		"None");
 	Log("nullfile              [ %7s ] [ %7s ]\n",
-		g_nullfile ? g_nullfile : "None", "None");
+		g_nullfile ? g_nullfile : "None",
+		"None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n",
 		g_nullifytrigger ? "on" : "off",
 		DEFAULT_NULLIFYTRIGGER ? "on" : "off");
@@ -1705,14 +1776,19 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		char default_tiny_penetration[10];
 
 		safe_snprintf(
-			tiny_penetration, sizeof(tiny_penetration), "%3.3f",
+			tiny_penetration,
+			sizeof(tiny_penetration),
+			"%3.3f",
 			g_tiny_threshold
 		);
 		safe_snprintf(
-			default_tiny_penetration, sizeof(default_tiny_penetration),
-			"%3.3f", DEFAULT_TINY_THRESHOLD
+			default_tiny_penetration,
+			sizeof(default_tiny_penetration),
+			"%3.3f",
+			DEFAULT_TINY_THRESHOLD
 		);
-		Log("min surface area      [ %7s ] [ %7s ]\n", tiny_penetration,
+		Log("min surface area      [ %7s ] [ %7s ]\n",
+			tiny_penetration,
 			default_tiny_penetration);
 	}
 
@@ -1725,10 +1801,13 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 			brush_union, sizeof(brush_union), "%3.3f", g_BrushUnionThreshold
 		);
 		safe_snprintf(
-			default_brush_union, sizeof(default_brush_union), "%3.3f",
+			default_brush_union,
+			sizeof(default_brush_union),
+			"%3.3f",
 			DEFAULT_BRUSH_UNION_THRESHOLD
 		);
-		Log("brush union threshold [ %7s ] [ %7s ]\n", brush_union,
+		Log("brush union threshold [ %7s ] [ %7s ]\n",
+			brush_union,
 			default_brush_union);
 	}
 	{
@@ -1748,8 +1827,10 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		Log("map scaling           [ %7s ] [ %7s ]\n", buf1, buf2);
 	}
 	Log("light name optimize   [ %7s ] [ %7s ]\n",
-		!g_nolightopt ? "on" : "off", !DEFAULT_NOLIGHTOPT ? "on" : "off");
-	Log("world extent          [ %7d ] [ %7d ]\n", bspData.worldExtent,
+		!g_nolightopt ? "on" : "off",
+		!DEFAULT_NOLIGHTOPT ? "on" : "off");
+	Log("world extent          [ %7d ] [ %7d ]\n",
+		bspData.worldExtent,
 		65536);
 
 	Log("\n");
@@ -2331,8 +2412,14 @@ int main(int const argc, char** argv) {
 					mapplane_t* p = &g_mapplanes[i];
 
 					Log("%3i (%4.0f, %4.0f, %4.0f) (%4.0f, %4.0f, %4.0f) (%5.0f) %i\n",
-						i, p->normal[1], p->normal[2], p->normal[3],
-						p->origin[1], p->origin[2], p->origin[3], p->dist,
+						i,
+						p->normal[1],
+						p->normal[2],
+						p->normal[3],
+						p->origin[1],
+						p->origin[2],
+						p->origin[3],
+						p->dist,
 						(int) p->type);
 				}
 				Log("---------------------------------------\n\n");

@@ -86,7 +86,10 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 				Developer(
 					developer_level::spam,
 					"SubdivideFace: didn't split the %d-sided polygon @(%.0f,%.0f,%.0f)",
-					f->numpoints, f->pts[0][0], f->pts[0][1], f->pts[0][2]
+					f->numpoints,
+					f->pts[0][0],
+					f->pts[0][1],
+					f->pts[0][2]
 				);
 			}
 			f = next;

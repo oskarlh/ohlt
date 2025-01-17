@@ -40,7 +40,9 @@ void writetransfers(
 
 			if (patch->iIndex) {
 				amtwritten = fwrite(
-					patch->tIndex, sizeof(transfer_index_t), patch->iIndex,
+					patch->tIndex,
+					sizeof(transfer_index_t),
+					patch->iIndex,
 					file
 				);
 				if (amtwritten != patch->iIndex) {
@@ -59,13 +61,15 @@ void writetransfers(
 						patch->tRGBData,
 						vector_size[(std::size_t
 						) g_rgbtransfer_compress_type],
-						patch->iData, file
+						patch->iData,
+						file
 					);
 				} else {
 					amtwritten = fwrite(
 						patch->tData,
 						float_size[(std::size_t) g_transfer_compress_type],
-						patch->iData, file
+						patch->iData,
+						file
 					);
 				}
 				if (amtwritten != patch->iData) {
@@ -129,7 +133,9 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 				patch->tIndex = new transfer_index_t[patch->iIndex]();
 				hlassume(patch->tIndex != nullptr, assume_NoMemory);
 				amtread = fread(
-					patch->tIndex, sizeof(transfer_index_t), patch->iIndex,
+					patch->tIndex,
+					sizeof(transfer_index_t),
+					patch->iIndex,
 					file
 				);
 				if (amtread != patch->iIndex) {
@@ -153,7 +159,8 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 						patch->tRGBData,
 						vector_size[(std::size_t
 						) g_rgbtransfer_compress_type],
-						patch->iData, file
+						patch->iData,
+						file
 					);
 				} else {
 					patch->tData = (transfer_data_t*) new std::byte
@@ -165,7 +172,8 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 					amtread = fread(
 						patch->tData,
 						float_size[(std::size_t) g_transfer_compress_type],
-						patch->iData, file
+						patch->iData,
+						file
 					);
 				}
 				if (amtread != patch->iData) {

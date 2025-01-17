@@ -334,7 +334,9 @@ bool TestSegmentAgainstOpaqueList(
 	for (int x = 0; x < g_opaque_face_list.size(); x++) {
 		if (!TestLineOpaque(
 				g_opaque_face_list[x].modelnum,
-				g_opaque_face_list[x].origin, p1, p2
+				g_opaque_face_list[x].origin,
+				p1,
+				p2
 			)) {
 			continue;
 		}
@@ -403,7 +405,8 @@ float CalcSightArea(
 		float3_array v1, v2, normal;
 		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract(
-			emitter_winding->m_Points[(x + 1) % numedges], receiver_origin,
+			emitter_winding->m_Points[(x + 1) % numedges],
+			receiver_origin,
 			v2
 		);
 		CrossProduct(v1, v2, normal); // pointing inward
@@ -418,9 +421,11 @@ float CalcSightArea(
 		float* psize;
 		float dot;
 		float3_array* pedge;
-		for (i = 0, pnormal = g_skynormals[skylevel],
+		for (i = 0,
+			pnormal = g_skynormals[skylevel],
 			psize = g_skynormalsizes[skylevel];
-			 i < g_numskynormals[skylevel]; i++, pnormal++, psize++) {
+			 i < g_numskynormals[skylevel];
+			 i++, pnormal++, psize++) {
 			dot = DotProduct(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
@@ -474,7 +479,8 @@ float CalcSightArea_SpotLight(
 		float3_array v1, v2, normal;
 		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
 		VectorSubtract(
-			emitter_winding->m_Points[(x + 1) % numedges], receiver_origin,
+			emitter_winding->m_Points[(x + 1) % numedges],
+			receiver_origin,
 			v2
 		);
 		CrossProduct(v1, v2, normal); // pointing inward
@@ -490,9 +496,11 @@ float CalcSightArea_SpotLight(
 		float dot;
 		float dot2;
 		float3_array* pedge;
-		for (i = 0, pnormal = g_skynormals[skylevel],
+		for (i = 0,
+			pnormal = g_skynormals[skylevel],
 			psize = g_skynormalsizes[skylevel];
-			 i < g_numskynormals[skylevel]; i++, pnormal++, psize++) {
+			 i < g_numskynormals[skylevel];
+			 i++, pnormal++, psize++) {
 			dot = DotProduct(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
@@ -566,7 +574,11 @@ void GetAlternateOrigin(
 
 			VectorMA(center, PATCH_HUNT_OFFSET, facenormal, point);
 			if (HuntForWorld(
-					point, faceplaneoffset, faceplane, 2, 1.0,
+					point,
+					faceplaneoffset,
+					faceplane,
+					2,
+					1.0,
 					PATCH_HUNT_OFFSET
 				)) {
 				VectorSubtract(point, center, v);
@@ -588,7 +600,11 @@ void GetAlternateOrigin(
 					VectorScale(point, 1.0 / 3.0, point);
 					VectorMA(point, PATCH_HUNT_OFFSET, facenormal, point);
 					if (HuntForWorld(
-							point, faceplaneoffset, faceplane, 1, 0.0,
+							point,
+							faceplaneoffset,
+							faceplane,
+							1,
+							0.0,
 							PATCH_HUNT_OFFSET
 						)) {
 						VectorSubtract(point, center, v);

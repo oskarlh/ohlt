@@ -40,7 +40,8 @@ dot_product(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 template <any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB>
 cross_product(VecA const & a, VecB const & b) noexcept {
-	return { a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+	return { a[1] * b[2] - a[2] * b[1],
+			 a[2] * b[0] - a[0] * b[2],
 			 a[0] * b[1] - a[1] * b[0] };
 }
 
@@ -147,23 +148,25 @@ constexpr auto vector_fma(
 	ToAdd const & toAdd
 ) noexcept {
 	using result_element = std::common_type_t<
-		typename Multiplicand::value_type, typename ToAdd::value_type,
+		typename Multiplicand::value_type,
+		typename ToAdd::value_type,
 		Multiplier>;
+
 	return to_vec3(
 		std::fma(
-			(result_element) multiplicand[0], (result_element) multiplier,
+			(result_element) multiplicand[0],
+			(result_element) multiplier,
 			(result_element) toAdd[0]
-
 		),
 		std::fma(
-			(result_element) multiplicand[1], (result_element) multiplier,
+			(result_element) multiplicand[1],
+			(result_element) multiplier,
 			(result_element) toAdd[1]
-
 		),
 		std::fma(
-			(result_element) multiplicand[2], (result_element) multiplier,
+			(result_element) multiplicand[2],
+			(result_element) multiplier,
 			(result_element) toAdd[2]
-
 		)
 	);
 }

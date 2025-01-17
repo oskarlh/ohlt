@@ -29,13 +29,21 @@ void LoadHullfile(char const * filename) {
 
 		for (i = 0; i < NUM_HULLS; i++) {
 			count = fscanf(
-				file, "( %f %f %f ) ( %f %f %f )\n", &x1, &y1, &z1, &x2,
-				&y2, &z2
+				file,
+				"( %f %f %f ) ( %f %f %f )\n",
+				&x1,
+				&y1,
+				&z1,
+				&x2,
+				&y2,
+				&z2
 			);
 			if (count != 6) {
 				Error(
 					"Could not parse old hull definition file '%s' (%d, %d)\n",
-					filename, i, count
+					filename,
+					i,
+					count
 				);
 			}
 
@@ -55,7 +63,9 @@ void LoadHullfile(char const * filename) {
 			if (count != 3) {
 				Error(
 					"Could not parse new hull definition file '%s' (%d, %d)\n",
-					filename, i, count
+					filename,
+					i,
+					count
 				);
 			}
 			x1 *= 0.5;

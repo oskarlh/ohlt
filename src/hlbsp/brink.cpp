@@ -61,18 +61,30 @@ CreateBrink(double3_array const & start, double3_array const & stop) {
 }
 
 void PrintBrink(bbrink_t const & b) {
-	Log("direction %f %f %f start %f %f %f stop %f %f %f\n", b.direction[0],
-		b.direction[1], b.direction[2], b.start[0], b.start[1], b.start[2],
-		b.stop[0], b.stop[1], b.stop[2]);
+	Log("direction %f %f %f start %f %f %f stop %f %f %f\n",
+		b.direction[0],
+		b.direction[1],
+		b.direction[2],
+		b.start[0],
+		b.start[1],
+		b.start[2],
+		b.stop[0],
+		b.stop[1],
+		b.stop[2]);
 	Log("numnodes %d\n", b.numnodes);
 	for (int i = 0; i < b.numnodes; i++) {
 		bbrinknode_t const * n = &b.nodes[i];
 		if (n->isleaf) {
 			Log("leaf[%d] content %d\n", i, n->content);
 		} else {
-			Log("node[%d]-[%d:%d] plane %f %f %f %f\n", i, n->children[0],
-				n->children[1], n->plane->normal[0], n->plane->normal[1],
-				n->plane->normal[2], n->plane->dist);
+			Log("node[%d]-[%d:%d] plane %f %f %f %f\n",
+				i,
+				n->children[0],
+				n->children[1],
+				n->plane->normal[0],
+				n->plane->normal[1],
+				n->plane->normal[2],
+				n->plane->dist);
 		}
 	}
 }
@@ -191,8 +203,8 @@ struct btreeface_t {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+				   // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -689,7 +701,8 @@ void SplitTreeLeaf(
 				frontface->planeside = tf->planeside;
 			}
 			SetFaceLeafs(
-				frontface, GetLeafFromFace(tf, false),
+				frontface,
+				GetLeafFromFace(tf, false),
 				GetLeafFromFace(tf, true)
 			);
 			frontface->tmp_tested = true;
@@ -701,7 +714,8 @@ void SplitTreeLeaf(
 				backface->planeside = tf->planeside;
 			}
 			SetFaceLeafs(
-				backface, GetLeafFromFace(tf, false),
+				backface,
+				GetLeafFromFace(tf, false),
 				GetLeafFromFace(tf, true)
 			);
 			backface->tmp_tested = true;
@@ -787,7 +801,10 @@ void SplitTreeLeaf(
 						hlassume(false, assume_first);
 					}
 					BrinkSplitClipnode(
-						te->brink, tf->plane, tf->planenum, nullptr,
+						te->brink,
+						tf->plane,
+						tf->planenum,
+						nullptr,
 						GetLeafFromFace(tf, tf->planeside)->clipnode,
 						GetLeafFromFace(tf, !tf->planeside)->clipnode
 					);
@@ -895,7 +912,8 @@ void SplitTreeLeaf(
 		btreeleaf_t* frontback[2]{ front, back };
 		for (int side = 0; side < 2; side++) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end(); fi++) {
+				 fi != frontback[side]->faces->end();
+				 fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
 					 ei++) {
 					ei->e->tmp_onleaf[0] = ei->e->tmp_onleaf[1] = false;
@@ -905,7 +923,8 @@ void SplitTreeLeaf(
 		}
 		for (int side = 0; side < 2; side++) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end(); fi++) {
+				 fi != frontback[side]->faces->end();
+				 fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
 					 ei++) {
 					ei->e->tmp_onleaf[side] = true;
@@ -914,7 +933,8 @@ void SplitTreeLeaf(
 		}
 		for (int side = 0; side < 2; side++) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end(); fi++) {
+				 fi != frontback[side]->faces->end();
+				 fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
 					 ei++) {
 					if (ei->e->tmp_tested) {
@@ -928,8 +948,12 @@ void SplitTreeLeaf(
 								hlassume(false, assume_first);
 							}
 							BrinkSplitClipnode(
-								ei->e->brink, plane, planenum, tl->clipnode,
-								c0, c1
+								ei->e->brink,
+								plane,
+								planenum,
+								tl->clipnode,
+								c0,
+								c1
 							);
 						} else if (ei->e->tmp_onleaf[0]) {
 							if (ei->e->tmp_side == face_side::back) {
@@ -963,8 +987,15 @@ void BuildTreeCells_r(int& numobjects, bclipnode_t* c) {
 	btreeleaf_t *tl, *front, *back;
 	tl = c->treeleaf;
 	SplitTreeLeaf(
-		numobjects, tl, c->plane, c->planenum, ON_EPSILON, front, back,
-		c->children[0], c->children[1]
+		numobjects,
+		tl,
+		c->plane,
+		c->planenum,
+		ON_EPSILON,
+		front,
+		back,
+		c->children[0],
+		c->children[1]
 	);
 	c->treeleaf = nullptr;
 	c->children[0]->treeleaf = front;
@@ -996,7 +1027,9 @@ bclipnode_t* ExpandClipnodes_r(
 		c->plane = &g_mapplanes[c->planenum];
 		for (int k = 0; k < 2; k++) {
 			c->children[k] = ExpandClipnodes_r(
-				bclipnodes, numbclipnodes, clipnodes,
+				bclipnodes,
+				numbclipnodes,
+				clipnodes,
 				clipnodes[headnode].children[k]
 			);
 		}
@@ -1015,7 +1048,8 @@ void ExpandClipnodes(
 	info->clipnodes = new bclipnode_t[info->numclipnodes];
 	hlassume(info->clipnodes != nullptr, assume_NoMemory);
 	std::memcpy(
-		info->clipnodes, bclipnodes,
+		info->clipnodes,
+		bclipnodes,
 		info->numclipnodes * sizeof(bclipnode_t)
 	);
 	for (int i = 0; i < info->numclipnodes; i++) {
@@ -1031,7 +1065,9 @@ void BuildTreeCells(bbrinkinfo_t* info) {
 	info->numobjects = 0;
 	info->leaf_outside = BuildOutside(info->numobjects);
 	info->clipnodes[0].treeleaf = BuildBaseCell(
-		info->numobjects, &info->clipnodes[0], hlbsp_bogus_range,
+		info->numobjects,
+		&info->clipnodes[0],
+		hlbsp_bogus_range,
 		info->leaf_outside
 	);
 	BuildTreeCells_r(info->numobjects, &info->clipnodes[0]);
@@ -1063,7 +1099,8 @@ void ClearMarks_r(bclipnode_t* node) {
 		btreeface_l::iterator fi;
 		btreeedge_l::iterator ei;
 		for (fi = node->treeleaf->faces->begin();
-			 fi != node->treeleaf->faces->end(); fi++) {
+			 fi != node->treeleaf->faces->end();
+			 fi++) {
 			for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
 				 ei++) {
 				ei->e->tmp_tested = false;
@@ -1080,7 +1117,8 @@ void CollectBrinks_r(bclipnode_t* node, int& numbrinks, bbrink_t** brinks) {
 		btreeface_l::iterator fi;
 		btreeedge_l::iterator ei;
 		for (fi = node->treeleaf->faces->begin();
-			 fi != node->treeleaf->faces->end(); fi++) {
+			 fi != node->treeleaf->faces->end();
+			 fi++) {
 			for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
 				 ei++) {
 				if (ei->e->tmp_tested) {
@@ -1182,7 +1220,8 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 				bbrinknode_t* node = &b->nodes[nodenum];
 				if (!node->isleaf) {
 					std::memmove(
-						&c->wedges[side][i + 1], &c->wedges[side][i],
+						&c->wedges[side][i + 1],
+						&c->wedges[side][i],
 						(c->numwedges[side] - i) * sizeof(bwedge_t)
 					);
 					std::memmove(
@@ -1257,7 +1296,9 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 
 void PrintCircle(bcircle_t const * c) {
 	Log("axis %f %f %f\n", c->axis[0], c->axis[1], c->axis[2]);
-	Log("basenormal %f %f %f\n", c->basenormal[0], c->basenormal[1],
+	Log("basenormal %f %f %f\n",
+		c->basenormal[0],
+		c->basenormal[1],
 		c->basenormal[2]);
 	Log("numwedges %d %d\n", c->numwedges[0], c->numwedges[1]);
 	for (int side = 0; side < 2; side++) {
@@ -1265,10 +1306,18 @@ void PrintCircle(bcircle_t const * c) {
 			bwedge_t const * w = &c->wedges[side][i];
 			bsurface_t const * s = &c->surfaces[side][i];
 			Log("surface[%d][%d] nodenum %d nodeside %d normal %f %f %f\n",
-				side, i, s->nodenum, s->nodeside, s->normal[0],
-				s->normal[1], s->normal[2]);
-			Log("wedge[%d][%d] nodenum %d content %d\n", side, i,
-				w->nodenum, w->content);
+				side,
+				i,
+				s->nodenum,
+				s->nodeside,
+				s->normal[0],
+				s->normal[1],
+				s->normal[2]);
+			Log("wedge[%d][%d] nodenum %d content %d\n",
+				side,
+				i,
+				w->nodenum,
+				w->content);
 		}
 	}
 }
@@ -1289,7 +1338,8 @@ bool AddPartition(
 	}
 	bool onback = false;
 	for (fi = clipnode->treeleaf->faces->begin();
-		 fi != clipnode->treeleaf->faces->end(); fi++) {
+		 fi != clipnode->treeleaf->faces->end();
+		 fi++) {
 		for (ei = fi->f->edges->begin(); ei != fi->f->edges->end(); ei++) {
 			for (side = 0; side < 2; side++) {
 				btreepoint_t* tp = GetPointFromEdge(ei->e, side);
@@ -1452,9 +1502,11 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					continue;
 				}
 				for (btreeedge_l::iterator ei = tp->edges->begin();
-					 ei != tp->edges->end(); ei++) {
+					 ei != tp->edges->end();
+					 ei++) {
 					for (btreeface_l::iterator fi = ei->e->faces->begin();
-						 fi != ei->e->faces->end(); fi++) {
+						 fi != ei->e->faces->end();
+						 fi++) {
 						if (fi->f->infinite
 							|| GetLeafFromFace(fi->f, false)->infinite
 							|| GetLeafFromFace(fi->f, true)->infinite) {
@@ -1491,7 +1543,8 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 			bsurface_t* s;
 			for (s = transitionside[!side] ? &c.surfaces[!side][0]
 										   : &c.surfaces[side][0];
-				 ; s
+				 ;
+				 s
 				 = transitionside[!side] ? s->next->next : s->prev->prev) {
 				bwedge_t* w = transitionside[!side] ? s->next : s->prev;
 				bsurface_t* snext
@@ -1534,7 +1587,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					: onfloor ? (blocking ? BrinkWallBlocking : BrinkWall)
 							  : BrinkAny;
 				if (!AddPartition(
-						clipnode, planenum, planeside, CONTENTS_EMPTY,
+						clipnode,
+						planenum,
+						planeside,
+						CONTENTS_EMPTY,
 						brinktype
 					)) {
 					berror = true;
@@ -1559,7 +1615,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 	Developer(
 		developer_level::message,
 		"brinks: good = %d skipped = %d fixed = %d invalid = %d\n",
-		countgood, countskipped, countfixed, countinvalid
+		countgood,
+		countskipped,
+		countfixed,
+		countinvalid
 	);
 }
 
@@ -1648,7 +1707,10 @@ void SortPartitions(bbrinkinfo_t* info
 	Developer(
 		developer_level::message,
 		"partitions: floorblocking = %d floor = %d wallblocking = %d wall = %d any = %d\n",
-		countfloorblocking, countfloor, countwallblocking, countwall,
+		countfloorblocking,
+		countfloor,
+		countwallblocking,
+		countwall,
 		countany
 	);
 }
@@ -1741,8 +1803,14 @@ bool FixBrinks_r(
 ) {
 	if (clipnode->isleaf) {
 		return FixBrinks_r_r(
-			clipnode, clipnode->partitions, level, headnode_out, begin, end,
-			current, outputmap
+			clipnode,
+			clipnode->partitions,
+			level,
+			headnode_out,
+			begin,
+			end,
+			current,
+			outputmap
 		);
 	} else {
 		dclipnode_t* cn;
@@ -1754,7 +1822,12 @@ bool FixBrinks_r(
 		for (int k = 0; k < 2; k++) {
 			int r;
 			if (!FixBrinks_r(
-					clipnode->children[k], level, r, begin, end, current,
+					clipnode->children[k],
+					level,
+					r,
+					begin,
+					end,
+					current,
 					outputmap
 				)) {
 				return false;

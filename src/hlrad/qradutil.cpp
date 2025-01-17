@@ -195,7 +195,9 @@ dleaf_t* HuntForWorld(
 							g_opaque_face_list,
 							[&current_point](opaqueList_t const & of) {
 								return TestPointOpaque(
-									of.modelnum, of.origin, of.block,
+									of.modelnum,
+									of.origin,
+									of.block,
 									current_point
 								);
 							}
@@ -436,15 +438,21 @@ static bool IsPositionValid(
 
 	// push the point 0.2 units around to avoid walls
 	if (!HuntForWorld(
-			pos, float3_array{}, &map->faceplanewithoffset, hunt_size,
-			hunt_scale, hunt_offset
+			pos,
+			float3_array{},
+			&map->faceplanewithoffset,
+			hunt_size,
+			hunt_scale,
+			hunt_offset
 		)) {
 		return false;
 	}
 
 	if (doedgetest
 		&& !point_in_winding_noedge(
-			*map->facewindingwithoffset, map->faceplanewithoffset, pos,
+			*map->facewindingwithoffset,
+			map->faceplanewithoffset,
+			pos,
 			DEFAULT_EDGE_WIDTH
 		)) {
 		// if the sample has gone beyond face boundaries, be careful that it
@@ -455,13 +463,20 @@ static bool IsPositionValid(
 
 		VectorCopy(pos, test);
 		snap_to_winding_noedge(
-			*map->facewindingwithoffset, map->faceplanewithoffset,
-			test.data(), DEFAULT_EDGE_WIDTH, 4 * DEFAULT_EDGE_WIDTH
+			*map->facewindingwithoffset,
+			map->faceplanewithoffset,
+			test.data(),
+			DEFAULT_EDGE_WIDTH,
+			4 * DEFAULT_EDGE_WIDTH
 		);
 
 		if (!HuntForWorld(
-				test, float3_array{}, &map->faceplanewithoffset, hunt_size,
-				hunt_scale, hunt_offset
+				test,
+				float3_array{},
+				&map->faceplanewithoffset,
+				hunt_size,
+				hunt_scale,
+				hunt_offset
 			)) {
 			return false;
 		}
@@ -618,7 +633,8 @@ void FindFacePositions(int facenum)
 	map->facewindingwithoffset = new fast_winding(map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++) {
 		VectorAdd(
-			map->facewinding->m_Points[x], map->face_offset,
+			map->facewinding->m_Points[x],
+			map->face_offset,
 			map->facewindingwithoffset->m_Points[x]
 		);
 	}
@@ -629,7 +645,8 @@ void FindFacePositions(int facenum)
 	map->texwinding = new fast_winding(map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++) {
 		ApplyMatrix(
-			map->worldtotex, map->facewinding->m_Points[x],
+			map->worldtotex,
+			map->facewinding->m_Points[x],
 			map->texwinding->m_Points[x]
 		);
 		map->texwinding->m_Points[x][2] = 0.0;
@@ -730,7 +747,10 @@ void FreePositionMaps() {
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
 							fprintf(
-								f, "%g %g %g\n", v[0] + p[0], v[1] + p[1],
+								f,
+								"%g %g %g\n",
+								v[0] + p[0],
+								v[1] + p[1],
 								v[2] + p[2]
 							);
 						}

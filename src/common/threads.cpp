@@ -86,7 +86,9 @@ int GetThreadWork() {
 				if (finish > 1.0) {
 					PrintConsole(
 						"  (%d%%: est. time to completion %ld/%ld/%ld secs)   ",
-						f, (long) (finish), (long) (finish2),
+						f,
+						(long) (finish),
+						(long) (finish2),
 						(long) (finish3)
 					);
 				} else {
@@ -286,7 +288,9 @@ void RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction func) {
 
 	for (i = 0; i < g_numthreads; i++) {
 		if (pthread_create(
-				&work_threads[i], &attrib, ThreadEntryStub,
+				&work_threads[i],
+				&attrib,
+				ThreadEntryStub,
 				(void*) (intptr_t) i
 			)
 			== -1) {

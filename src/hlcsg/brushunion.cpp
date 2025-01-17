@@ -104,8 +104,12 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 		double3_array facemid = face.w.getCenter();
 		VectorAdd(midpoint, facemid, midpoint);
 		Developer(
-			developer_level::message, "Midpoint for face %d is %f %f %f\n",
-			x, facemid[0], facemid[1], facemid[2]
+			developer_level::message,
+			"Midpoint for face %d is %f %f %f\n",
+			x,
+			facemid[0],
+			facemid[1],
+			facemid[2]
 		);
 		++x;
 	}
@@ -115,8 +119,11 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 	midpoint = vector_scale(midpoint, inverse);
 
 	Developer(
-		developer_level::message, "Midpoint for hull is %f %f %f\n",
-		midpoint[0], midpoint[1], midpoint[2]
+		developer_level::message,
+		"Midpoint for hull is %f %f %f\n",
+		midpoint[0],
+		midpoint[1],
+		midpoint[2]
 	);
 
 	for (bface_t const & face : hull->faces) {
@@ -199,8 +206,10 @@ void CalculateBrushUnions(int const brushnum) {
 
 			Developer(
 				developer_level::spam,
-				"Processing hull %d brush %d and brush %d\n", hull,
-				brushnum, bn
+				"Processing hull %d brush %d and brush %d\n",
+				hull,
+				brushnum,
+				bn
 			);
 
 			{
@@ -254,8 +263,10 @@ void CalculateBrushUnions(int const brushnum) {
 						volume_ratio_1 *= 100.0;
 						Warning(
 							"Entity %d : Brush %d intersects with brush %d by %2.3f percent",
-							b1->originalentitynum, b1->originalbrushnum,
-							b2->originalbrushnum, volume_ratio_1
+							b1->originalentitynum,
+							b1->originalbrushnum,
+							b2->originalbrushnum,
+							volume_ratio_1
 						);
 					}
 					if ((volume_ratio_2 > g_BrushUnionThreshold)
@@ -263,8 +274,10 @@ void CalculateBrushUnions(int const brushnum) {
 						volume_ratio_2 *= 100.0;
 						Warning(
 							"Entity %d : Brush %d intersects with brush %d by %2.3f percent",
-							b1->originalentitynum, b2->originalbrushnum,
-							b1->originalbrushnum, volume_ratio_2
+							b1->originalentitynum,
+							b2->originalbrushnum,
+							b1->originalbrushnum,
+							volume_ratio_2
 						);
 					}
 				}

@@ -199,7 +199,8 @@ nextword(char8_t const * s, char8_t* token, unsigned int n) {
 	char8_t const * c;
 	bool quote, comment, content;
 	for (c = s, i = 0, quote = false, comment = false, content = false;
-		 c[0] != '\0'; c++) {
+		 c[0] != '\0';
+		 c++) {
 		if (c[0] == u8'\"') {
 			quote = !quote;
 		}

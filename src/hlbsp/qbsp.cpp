@@ -83,7 +83,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_verbose = false;
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
-	Log("%30s [ %-9s ]\n", "Verbose Compile Messages",
+	Log("%30s [ %-9s ]\n",
+		"Verbose Compile Messages",
 		g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
@@ -93,7 +94,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_estimate = false;
 	}
-	Log("%30s [ %-9s ]\n", "Estimate Compile Times",
+	Log("%30s [ %-9s ]\n",
+		"Estimate Compile Times",
 		g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
@@ -120,7 +122,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		Fatal(
 			assume_TOOL_CANCEL,
 			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program, g_Program
+			g_Program,
+			g_Program
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -150,7 +153,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else if (iTmp == 1) {
 		g_noclip = true;
 	}
-	Log("%30s [ %-9s ]\n", "Clipping Hull Generation",
+	Log("%30s [ %-9s ]\n",
+		"Clipping Hull Generation",
 		g_noclip ? "off" : "on");
 
 	//////////////////
@@ -778,8 +782,13 @@ static surfchain_t* ReadSurfs(FILE* file) {
 		}
 		line++;
 		r = fscanf(
-			file, "%i %i %i %i %i\n", &detaillevel, &planenum, &g_texinfo,
-			&contents, &numpoints
+			file,
+			"%i %i %i %i %i\n",
+			&detaillevel,
+			&planenum,
+			&g_texinfo,
+			&contents,
+			&numpoints
 		);
 		if (r == 0 || r == -1) {
 			return nullptr;
@@ -789,7 +798,8 @@ static surfchain_t* ReadSurfs(FILE* file) {
 			Developer(
 				developer_level::megaspam,
 				"inaccuracy: average %.8f max %.8f\n",
-				inaccuracy_total / inaccuracy_count, inaccuracy_max
+				inaccuracy_total / inaccuracy_count,
+				inaccuracy_max
 			);
 			break;
 		}
@@ -799,7 +809,8 @@ static surfchain_t* ReadSurfs(FILE* file) {
 		if (numpoints > MAXPOINTS) {
 			Error(
 				"ReadSurfs (line %i): %i > MAXPOINTS\nThis is caused by a face with too many verticies (typically found on end-caps of high-poly cylinders)\n",
-				line, numpoints
+				line,
+				numpoints
 			);
 		}
 		if (planenum > g_numplanes) {
@@ -962,7 +973,9 @@ static bool ProcessModel(bsp_data& bspData) {
 	{
 		if (surfs->mins[0] > surfs->maxs[0]) {
 			Developer(
-				developer_level::fluff, "model %d hull %d empty\n", modnum,
+				developer_level::fluff,
+				"model %d hull %d empty\n",
+				modnum,
 				g_hullnum
 			);
 		} else {
@@ -1076,8 +1089,10 @@ static bool ProcessModel(bsp_data& bspData) {
 			int hullnum = g_hullnum;
 			if (surfs->mins[0] > surfs->maxs[0]) {
 				Developer(
-					developer_level::message, "model %d hull %d empty\n",
-					modnum, hullnum
+					developer_level::message,
+					"model %d hull %d empty\n",
+					modnum,
+					hullnum
 				);
 			} else {
 				double3_array mins;
@@ -1131,13 +1146,21 @@ skipclip:
 		double origin[3], mins[3], maxs[3];
 		VectorClear(origin);
 		sscanf(
-			(char const *) ValueForKey(ent, u8"origin"), "%lf %lf %lf",
-			&origin[0], &origin[1], &origin[2]
+			(char const *) ValueForKey(ent, u8"origin"),
+			"%lf %lf %lf",
+			&origin[0],
+			&origin[1],
+			&origin[2]
 		);
 		if (sscanf(
 				(char const *) ValueForKey(ent, u8"zhlt_minsmaxs"),
-				"%lf %lf %lf %lf %lf %lf", &mins[0], &mins[1], &mins[2],
-				&maxs[0], &maxs[1], &maxs[2]
+				"%lf %lf %lf %lf %lf %lf",
+				&mins[0],
+				&mins[1],
+				&mins[2],
+				&maxs[0],
+				&maxs[1],
+				&maxs[2]
 			)
 			== 6) {
 			VectorSubtract(mins, origin, model->mins);
@@ -1147,9 +1170,14 @@ skipclip:
 }
 	Developer(
 		developer_level::message,
-		"model %d - mins=(%g,%g,%g) maxs=(%g,%g,%g)\n", modnum,
-		model->mins[0], model->mins[1], model->mins[2], model->maxs[0],
-		model->maxs[1], model->maxs[2]
+		"model %d - mins=(%g,%g,%g) maxs=(%g,%g,%g)\n",
+		modnum,
+		model->mins[0],
+		model->mins[1],
+		model->mins[2],
+		model->maxs[0],
+		model->maxs[1],
+		model->maxs[2]
 	);
 	if (model->mins[0] > model->maxs[0]) {
 		entity_t* ent = EntityForModel(g_nummodels - 1);
@@ -1180,8 +1208,12 @@ skipclip:
 				 : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"targetname").data()
 				 : "unknown"),
-			model->mins[0], model->mins[1], model->mins[2], model->maxs[0],
-			model->maxs[1], model->maxs[2]
+			model->mins[0],
+			model->mins[1],
+			model->mins[2],
+			model->maxs[0],
+			model->maxs[1],
+			model->maxs[2]
 		);
 	}
 	return true;
@@ -1257,17 +1289,23 @@ static void Settings() {
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
-	Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off",
+	Log("verbose             [ %7s ] [ %7s ]\n",
+		g_verbose ? "on" : "off",
 		cli_option_defaults::verbose ? "on" : "off");
-	Log("log                 [ %7s ] [ %7s ]\n", g_log ? "on" : "off",
+	Log("log                 [ %7s ] [ %7s ]\n",
+		g_log ? "on" : "off",
 		cli_option_defaults::log ? "on" : "off");
-	Log("developer           [ %7d ] [ %7d ]\n", (int) g_developer,
+	Log("developer           [ %7d ] [ %7d ]\n",
+		(int) g_developer,
 		(int) cli_option_defaults::developer);
-	Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off",
+	Log("chart               [ %7s ] [ %7s ]\n",
+		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
-	Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off",
+	Log("estimate            [ %7s ] [ %7s ]\n",
+		g_estimate ? "on" : "off",
 		cli_option_defaults::estimate ? "on" : "off");
-	Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex,
+	Log("max texture memory  [ %7td ] [ %7td ]\n",
+		g_max_map_miptex,
 		cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
@@ -1286,13 +1324,17 @@ static void Settings() {
 	Log("\n");
 
 	// HLBSP Specific Settings
-	Log("noclip              [ %7s ] [ %7s ]\n", g_noclip ? "on" : "off",
+	Log("noclip              [ %7s ] [ %7s ]\n",
+		g_noclip ? "on" : "off",
 		DEFAULT_NOCLIP ? "on" : "off");
-	Log("nofill              [ %7s ] [ %7s ]\n", g_nofill ? "on" : "off",
+	Log("nofill              [ %7s ] [ %7s ]\n",
+		g_nofill ? "on" : "off",
 		DEFAULT_NOFILL ? "on" : "off");
 	Log("noinsidefill        [ %7s ] [ %7s ]\n",
-		g_noinsidefill ? "on" : "off", DEFAULT_NOINSIDEFILL ? "on" : "off");
-	Log("noopt               [ %7s ] [ %7s ]\n", g_noopt ? "on" : "off",
+		g_noinsidefill ? "on" : "off",
+		DEFAULT_NOINSIDEFILL ? "on" : "off");
+	Log("noopt               [ %7s ] [ %7s ]\n",
+		g_noopt ? "on" : "off",
 		DEFAULT_NOOPT ? "on" : "off");
 	Log("no clipnode merging [ %7s ] [ %7s ]\n",
 		g_noclipnodemerge ? "on" : "off",
@@ -1300,17 +1342,24 @@ static void Settings() {
 	Log("null tex. stripping [ %7s ] [ %7s ]\n",
 		g_bUseNullTex ? "on" : "off",
 		cli_option_defaults::nulltex ? "on" : "off");
-	Log("notjunc             [ %7s ] [ %7s ]\n", g_notjunc ? "on" : "off",
+	Log("notjunc             [ %7s ] [ %7s ]\n",
+		g_notjunc ? "on" : "off",
 		DEFAULT_NOTJUNC ? "on" : "off");
-	Log("nobrink             [ %7s ] [ %7s ]\n", g_nobrink ? "on" : "off",
+	Log("nobrink             [ %7s ] [ %7s ]\n",
+		g_nobrink ? "on" : "off",
 		DEFAULT_NOBRINK ? "on" : "off");
 	Log("subdivide size      [ %7d ] [ %7zd ] (Min %d) (Max %d)\n",
-		g_subdivide_size, DEFAULT_SUBDIVIDE_SIZE, MIN_SUBDIVIDE_SIZE,
+		g_subdivide_size,
+		DEFAULT_SUBDIVIDE_SIZE,
+		MIN_SUBDIVIDE_SIZE,
 		MAX_SUBDIVIDE_SIZE);
 	Log("max node size       [ %7d ] [ %7d ] (Min %d) (Max %d)\n",
-		g_maxnode_size, DEFAULT_MAXNODE_SIZE, MIN_MAXNODE_SIZE,
+		g_maxnode_size,
+		DEFAULT_MAXNODE_SIZE,
+		MIN_MAXNODE_SIZE,
 		MAX_MAXNODE_SIZE);
-	Log("remove hull 2       [ %7s ] [ %7s ]\n", g_nohull2 ? "on" : "off",
+	Log("remove hull 2       [ %7s ] [ %7s ]\n",
+		g_nohull2 ? "on" : "off",
 		"off");
 	Log("\n\n");
 }
@@ -1409,7 +1458,8 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 				Error("Invalid plane data");
 			}
 			SafeRead(
-				planefile, g_mapplanes.data(),
+				planefile,
+				g_mapplanes.data(),
 				g_numplanes * sizeof(mapplane_t)
 			);
 			fclose(planefile);
@@ -1580,13 +1630,15 @@ int main(int const argc, char** argv) {
 						if (g_subdivide_size > MAX_SUBDIVIDE_SIZE) {
 							Warning(
 								"Maximum value for subdivide size is %i, '-subdivide %i' ignored",
-								MAX_SUBDIVIDE_SIZE, g_subdivide_size
+								MAX_SUBDIVIDE_SIZE,
+								g_subdivide_size
 							);
 							g_subdivide_size = MAX_SUBDIVIDE_SIZE;
 						} else if (g_subdivide_size < MIN_SUBDIVIDE_SIZE) {
 							Warning(
 								"Mininum value for subdivide size is %i, '-subdivide %i' ignored",
-								MIN_SUBDIVIDE_SIZE, g_subdivide_size
+								MIN_SUBDIVIDE_SIZE,
+								g_subdivide_size
 							);
 							g_subdivide_size
 								= MIN_SUBDIVIDE_SIZE; // MAX_SUBDIVIDE_SIZE;
@@ -1604,13 +1656,15 @@ int main(int const argc, char** argv) {
 						if (g_maxnode_size > MAX_MAXNODE_SIZE) {
 							Warning(
 								"Maximum value for max node size is %i, '-maxnodesize %i' ignored",
-								MAX_MAXNODE_SIZE, g_maxnode_size
+								MAX_MAXNODE_SIZE,
+								g_maxnode_size
 							);
 							g_maxnode_size = MAX_MAXNODE_SIZE;
 						} else if (g_maxnode_size < MIN_MAXNODE_SIZE) {
 							Warning(
 								"Mininimum value for max node size is %i, '-maxnodesize %i' ignored",
-								MIN_MAXNODE_SIZE, g_maxnode_size
+								MIN_MAXNODE_SIZE,
+								g_maxnode_size
 							);
 							g_maxnode_size
 								= MIN_MAXNODE_SIZE; // MAX_MAXNODE_SIZE;
@@ -1685,8 +1739,10 @@ int main(int const argc, char** argv) {
 
 				// Set the optional level specific lights filename
 				safe_snprintf(
-					strMapEntitiesVoidFile, _MAX_PATH,
-					"%s" ENTITIES_VOID_EXT, g_Mapname
+					strMapEntitiesVoidFile,
+					_MAX_PATH,
+					"%s" ENTITIES_VOID_EXT,
+					g_Mapname
 				);
 
 				LoadAllowableOutsideList(strSystemEntitiesVoidFile.c_str()

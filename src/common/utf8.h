@@ -30,7 +30,8 @@ inline bool validate_utf8(Range&& string) noexcept {
 	bool allAscii = true;
 	for (unsigned char const * eightsEnd
 		 = it + (std::size_t(end - it) / 8) * 8;
-		 allAscii && it != eightsEnd; it += 8) {
+		 allAscii && it != eightsEnd;
+		 it += 8) {
 		using eight_units = char8_t[8];
 		static_assert(
 			std::numeric_limits<unsigned char>::digits * 8

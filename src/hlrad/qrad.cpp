@@ -59,7 +59,8 @@ unsigned g_numbounce = DEFAULT_BOUNCE; // 3; /* Originally this was 8 */
 
 static bool g_dumppatches = DEFAULT_DUMPPATCHES;
 
-float3_array g_ambient{ DEFAULT_AMBIENT_RED, DEFAULT_AMBIENT_GREEN,
+float3_array g_ambient{ DEFAULT_AMBIENT_RED,
+						DEFAULT_AMBIENT_GREEN,
 						DEFAULT_AMBIENT_BLUE };
 float g_limitthreshold = DEFAULT_LIMITTHRESHOLD;
 bool g_drawoverload = false;
@@ -85,18 +86,18 @@ bool g_circus = DEFAULT_CIRCUS;
 bool g_allow_opaques = DEFAULT_ALLOW_OPAQUES;
 bool g_allow_spread = DEFAULT_ALLOW_SPREAD;
 
-float3_array g_colour_qgamma
-	= { DEFAULT_COLOUR_GAMMA_RED, DEFAULT_COLOUR_GAMMA_GREEN,
-		DEFAULT_COLOUR_GAMMA_BLUE };
-float3_array g_colour_lightscale
-	= { DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN,
-		DEFAULT_COLOUR_LIGHTSCALE_BLUE };
-float3_array g_colour_jitter_hack
-	= { DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN,
-		DEFAULT_COLOUR_JITTER_HACK_BLUE };
-float3_array g_jitter_hack
-	= { DEFAULT_JITTER_HACK_RED, DEFAULT_JITTER_HACK_GREEN,
-		DEFAULT_JITTER_HACK_BLUE };
+float3_array g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED,
+								 DEFAULT_COLOUR_GAMMA_GREEN,
+								 DEFAULT_COLOUR_GAMMA_BLUE };
+float3_array g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED,
+									 DEFAULT_COLOUR_LIGHTSCALE_GREEN,
+									 DEFAULT_COLOUR_LIGHTSCALE_BLUE };
+float3_array g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED,
+									  DEFAULT_COLOUR_JITTER_HACK_GREEN,
+									  DEFAULT_COLOUR_JITTER_HACK_BLUE };
+float3_array g_jitter_hack = { DEFAULT_JITTER_HACK_RED,
+							   DEFAULT_JITTER_HACK_GREEN,
+							   DEFAULT_JITTER_HACK_BLUE };
 
 bool g_customshadow_with_bouncelight
 	= DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT;
@@ -176,7 +177,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_verbose = false;
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
-	Log("%30s [ %-9s ]\n", "Verbose Compile Messages",
+	Log("%30s [ %-9s ]\n",
+		"Verbose Compile Messages",
 		g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
@@ -186,7 +188,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_estimate = false;
 	}
-	Log("%30s [ %-9s ]\n", "Estimate Compile Times",
+	Log("%30s [ %-9s ]\n",
+		"Estimate Compile Times",
 		g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
@@ -204,20 +207,23 @@ void GetParamsFromEnt(entity_t* mapent) {
 	iTmp = IntForKey(mapent, u8"bounce");
 	if (iTmp) {
 		g_numbounce = abs(iTmp);
-		Log("%30s [ %-9s ]\n", "Number of radiosity bounces",
+		Log("%30s [ %-9s ]\n",
+			"Number of radiosity bounces",
 			(char const *) ValueForKey(mapent, u8"bounce"));
 	}
 
 	iTmp = IntForKey(mapent, u8"customshadowwithbounce");
 	if (iTmp) {
 		g_customshadow_with_bouncelight = true;
-		Log("%30s [ %-9s ]\n", "Custom Shadow with Bounce Light",
+		Log("%30s [ %-9s ]\n",
+			"Custom Shadow with Bounce Light",
 			(char const *) ValueForKey(mapent, u8"customshadowwithbounce"));
 	}
 	iTmp = IntForKey(mapent, u8"rgbtransfers");
 	if (iTmp) {
 		g_rgb_transfers = true;
-		Log("%30s [ %-9s ]\n", "RGB Transfers",
+		Log("%30s [ %-9s ]\n",
+			"RGB Transfers",
 			(char const *) ValueForKey(mapent, u8"rgbtransfers"));
 	}
 
@@ -234,8 +240,11 @@ void GetParamsFromEnt(entity_t* mapent) {
 					"    red [ %1.3f ] %s\n"
 					"  green [ %1.3f ] %s\n"
 					"   blue [ %1.3f ] %s\n",
-					red, (red < 0 || red > 1) ? "OUT OF RANGE" : "", green,
-					(green < 0 || green > 1) ? "OUT OF RANGE" : "", blue,
+					red,
+					(red < 0 || red > 1) ? "OUT OF RANGE" : "",
+					green,
+					(green < 0 || green > 1) ? "OUT OF RANGE" : "",
+					blue,
 					(blue < 0 || blue > 1) ? "OUT OF RANGE" : ""
 				);
 			}
@@ -247,7 +256,10 @@ void GetParamsFromEnt(entity_t* mapent) {
 				g_ambient[1] = green * 128;
 				g_ambient[2] = blue * 128;
 				Log("%30s [ %1.3f %1.3f %1.3f ]\n",
-					"Ambient world light (R G B)", red, green, blue);
+					"Ambient world light (R G B)",
+					red,
+					green,
+					blue);
 			}
 		} else {
 			Error(
@@ -264,7 +276,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_smoothing_threshold = cos(
 			g_smoothing_value * (std::numbers::pi_v<double> / 180.0)
 		); // --vluzacn
-		Log("%30s [ %-9s ]\n", "Smoothing threshold",
+		Log("%30s [ %-9s ]\n",
+			"Smoothing threshold",
 			(char const *) ValueForKey(mapent, u8"smooth"));
 	}
 
@@ -272,7 +285,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	flTmp = float_for_key(*mapent, u8"dscale");
 	if (flTmp) {
 		g_direct_scale = flTmp;
-		Log("%30s [ %-9s ]\n", "Direct Lighting Scale",
+		Log("%30s [ %-9s ]\n",
+			"Direct Lighting Scale",
 			(char const *) ValueForKey(mapent, u8"dscale"));
 	}
 
@@ -280,7 +294,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	iTmp = IntForKey(mapent, u8"chop");
 	if (iTmp) {
 		g_chop = iTmp;
-		Log("%30s [ %-9s ]\n", "Chop Size",
+		Log("%30s [ %-9s ]\n",
+			"Chop Size",
 			(char const *) ValueForKey(mapent, u8"chop"));
 	}
 
@@ -288,7 +303,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	flTmp = float_for_key(*mapent, u8"texchop");
 	if (flTmp) {
 		g_texchop = flTmp;
-		Log("%30s [ %-9s ]\n", "Texture Light Chop Size",
+		Log("%30s [ %-9s ]\n",
+			"Texture Light Chop Size",
 			(char const *) ValueForKey(mapent, u8"texchop"));
 	}
 
@@ -305,7 +321,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		Fatal(
 			assume_TOOL_CANCEL,
 			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program, g_Program
+			g_Program,
+			g_Program
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -331,9 +348,11 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else if (iTmp == 2) {
 		g_method = vis_method::vismatrix;
 	}
-	Log("%30s [ %-9s ]\n", "Sparse Vismatrix",
+	Log("%30s [ %-9s ]\n",
+		"Sparse Vismatrix",
 		g_method == vis_method::sparse_vismatrix ? "on" : "off");
-	Log("%30s [ %-9s ]\n", "NoVismatrix",
+	Log("%30s [ %-9s ]\n",
+		"NoVismatrix",
 		g_method == vis_method::no_vismatrix ? "on" : "off");
 
 	/*
@@ -457,18 +476,23 @@ static void ReadLightFile(char const * const filename) {
 			if (strcmp(it->filename, filename) == 0) {
 				Warning(
 					"Duplication of texlight '%s' in file '%s'!",
-					it->name.c_str(), it->filename
+					it->name.c_str(),
+					it->filename
 				);
 			} else if (it->value[0] != r || it->value[1] != g
 					   || it->value[2] != b) {
 				Warning(
 					"Overriding '%s' from '%s' with '%s'!",
-					it->name.c_str(), it->filename, filename
+					it->name.c_str(),
+					it->filename,
+					filename
 				);
 			} else {
 				Warning(
 					"Redundant '%s' def in '%s' AND '%s'!",
-					it->name.c_str(), it->filename, filename
+					it->name.c_str(),
+					it->filename,
+					filename
 				);
 			}
 			s_texlights.erase(it);
@@ -493,7 +517,8 @@ static void ReadLightFile(char const * const filename) {
 		s_texlights.push_back(texlight);
 	}
 	fclose(f); //--vluzacn
-	Log("%u texlights parsed (%s)\n", file_texlights,
+	Log("%u texlights parsed (%s)\n",
+		file_texlights,
 		filename); // readded //seedee
 }
 
@@ -521,7 +546,11 @@ static float3_array BaseLightForFace(dface_t const * const f) {
 		double r, g, b, scaler;
 		switch (sscanf(
 			(char const *) ValueForKey(g_face_texlights[fn], u8"_light"),
-			"%lf %lf %lf %lf", &r, &g, &b, &scaler
+			"%lf %lf %lf %lf",
+			&r,
+			&g,
+			&b,
+			&scaler
 		)) {
 			case -1:
 			case 0:
@@ -540,7 +569,9 @@ static float3_array BaseLightForFace(dface_t const * const f) {
 					get_float3_for_key(*g_face_texlights[fn], u8"origin")
 				};
 				Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
-					origin[0], origin[1], origin[2],
+					origin[0],
+					origin[1],
+					origin[2],
 					(char const *)
 						ValueForKey(g_face_texlights[fn], u8"_light"));
 				r = g = b = 0;
@@ -652,8 +683,10 @@ static bool PlacePatchInside(patch_t* patch) {
 		patch->flags = ePatchFlagOutside;
 		Developer(
 			developer_level::fluff,
-			"Patch @ (%4.3f %4.3f %4.3f) outside world\n", patch->origin[0],
-			patch->origin[1], patch->origin[2]
+			"Patch @ (%4.3f %4.3f %4.3f) outside world\n",
+			patch->origin[0],
+			patch->origin[1],
+			patch->origin[2]
 		);
 		return false;
 	}
@@ -986,8 +1019,10 @@ void ReadCustomChopValue() {
 			}
 			chopscales[i] = atof((char const *) value.data());
 			Developer(
-				developer_level::message, "info_chopscale: %s = %f\n",
-				texname.c_str(), chopscales[i]
+				developer_level::message,
+				"info_chopscale: %s = %f\n",
+				texname.c_str(),
+				chopscales[i]
 			);
 		}
 	}
@@ -1039,8 +1074,10 @@ void ReadCustomSmoothValue() {
 				* (std::numbers::pi_v<double> / 180.0)
 			);
 			Developer(
-				developer_level::message, "info_smoothvalue: %s = %f\n",
-				texname.c_str(), atof((char const *) value.data())
+				developer_level::message,
+				"info_smoothvalue: %s = %f\n",
+				texname.c_str(),
+				atof((char const *) value.data())
 			);
 		}
 	}
@@ -1102,7 +1139,10 @@ void ReadTranslucentTextures() {
 			g_translucenttextures[i][2] = b;
 			Developer(
 				developer_level::message,
-				"info_translucent: %s = %f %f %f\n", texname.c_str(), r, g,
+				"info_translucent: %s = %f %f %f\n",
+				texname.c_str(),
+				r,
+				g,
 				b
 			);
 		}
@@ -1177,8 +1217,11 @@ void ReadLightingCone() {
 			g_lightingconeinfo[i].power = power;
 			g_lightingconeinfo[i].scale = scale;
 			Developer(
-				developer_level::message, "info_angularfade: %s = %f %f\n",
-				texname.c_str(), power, scale
+				developer_level::message,
+				"info_angularfade: %s = %f %f\n",
+				texname.c_str(),
+				power,
+				scale
 			);
 		}
 	}
@@ -1296,7 +1339,8 @@ static void MakePatchForFace(
 		style = (unsigned char) style;
 		if (style >= ALLSTYLES) {
 			Error(
-				"invalid light style: style (%d) >= ALLSTYLES (%d)", style,
+				"invalid light style: style (%d) >= ALLSTYLES (%d)",
+				style,
 				ALLSTYLES
 			);
 		}
@@ -1308,7 +1352,9 @@ static void MakePatchForFace(
 	{
 		Developer(
 			developer_level::warning,
-			"Face %d only has %d points on winding\n", fn, numpoints
+			"Face %d only has %d points on winding\n",
+			fn,
+			numpoints
 		);
 		return;
 	}
@@ -1353,8 +1399,12 @@ static void MakePatchForFace(
 			};
 			Error(
 				"light_surface entity at (%g,%g,%g): texture color (%g,%g,%g) must be numbers between 0 and 255.",
-				origin[0], origin[1], origin[2], texturecolor[0],
-				texturecolor[1], texturecolor[2]
+				origin[0],
+				origin[1],
+				origin[2],
+				texturecolor[0],
+				texturecolor[1],
+				texturecolor[2]
 			);
 		}
 		VectorScale(texturecolor, 1.0 / 255.0, texturereflectivity);
@@ -1369,7 +1419,8 @@ static void MakePatchForFace(
 			Warning(
 				"Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.",
 				g_textures[g_texinfo[f->texinfo].miptex].name.c_str(),
-				texturereflectivity[0], texturereflectivity[1],
+				texturereflectivity[0],
+				texturereflectivity[1],
 				texturereflectivity[2]
 			);
 		}
@@ -1440,20 +1491,24 @@ static void MakePatchForFace(
 
 			if (edge > 0) {
 				VectorAdd(
-					g_dvertexes[g_dedges[edge].v[0]].point, centroid,
+					g_dvertexes[g_dedges[edge].v[0]].point,
+					centroid,
 					centroid
 				);
 				VectorAdd(
-					g_dvertexes[g_dedges[edge].v[1]].point, centroid,
+					g_dvertexes[g_dedges[edge].v[1]].point,
+					centroid,
 					centroid
 				);
 			} else {
 				VectorAdd(
-					g_dvertexes[g_dedges[-edge].v[1]].point, centroid,
+					g_dvertexes[g_dedges[-edge].v[1]].point,
+					centroid,
 					centroid
 				);
 				VectorAdd(
-					g_dvertexes[g_dedges[-edge].v[0]].point, centroid,
+					g_dvertexes[g_dedges[-edge].v[0]].point,
+					centroid,
 					centroid
 				);
 			}
@@ -1484,8 +1539,11 @@ static void MakePatchForFace(
 					Developer(
 						developer_level::warning,
 						"Patch at (%4.3f %4.3f %4.3f) (face %d) tiny area (%4.3f) not subdividing \n",
-						patch->origin[0], patch->origin[1],
-						patch->origin[2], patch->faceNumber, patch->area
+						patch->origin[0],
+						patch->origin[1],
+						patch->origin[2],
+						patch->faceNumber,
+						patch->area
 					);
 				} else {
 					SubdividePatch(patch);
@@ -1601,7 +1659,10 @@ static void LoadOpaqueEntities() {
 					// Try to read RGB values
 					if (sscanf(
 							(char const *) transparencyString.data(),
-							"%f %f %f", &r, &g, &b
+							"%f %f %f",
+							&r,
+							&g,
+							&b
 						)
 						== 3) {
 						r = std::max(0.0f, r);
@@ -1610,7 +1671,8 @@ static void LoadOpaqueEntities() {
 						transparency = { r, g, b };
 					} else if (sscanf(
 								   (char const *) transparencyString.data(),
-								   "%f", &r
+								   "%f",
+								   &r
 							   )
 							   == 1) {
 						// Greyscale version
@@ -1639,7 +1701,8 @@ static void LoadOpaqueEntities() {
 						) // If light_shadow targeting the current entity
 						&& has_key_value(lightent, u8"target")
 						&& key_value_is(
-							lightent, u8"target",
+							lightent,
+							u8"target",
 							value_for_key(&ent, u8"targetname")
 						)) {
 						opaquestyle = IntForKey(
@@ -1654,7 +1717,8 @@ static void LoadOpaqueEntities() {
 						if (opaquestyle >= ALLSTYLES) {
 							Error(
 								"invalid light style: style (%d) >= ALLSTYLES (%d)",
-								opaquestyle, ALLSTYLES
+								opaquestyle,
+								ALLSTYLES
 							);
 						}
 						break;
@@ -1687,7 +1751,11 @@ static void LoadOpaqueEntities() {
 						// properties
 			{
 				AddFaceToOpaqueList(
-					entnum, modelnum, origin, transparency, opaquestyle,
+					entnum,
+					modelnum,
+					origin,
+					transparency,
+					opaquestyle,
 					block
 				);
 			}
@@ -1799,8 +1867,11 @@ static void MakePatches() {
 			double v1, v2, v3;
 
 			if (sscanf(
-					(char const *) originString.data(), "%lf %lf %lf", &v1,
-					&v2, &v3
+					(char const *) originString.data(),
+					"%lf %lf %lf",
+					&v1,
+					&v2,
+					&v3
 				)
 				== 3) {
 				origin[0] = v1;
@@ -1823,7 +1894,10 @@ static void MakePatches() {
 					float v1, v2, v3;
 					if (sscanf(
 							(char const *) targetOriginString.data(),
-							"%f %f %f", &v1, &v2, &v3
+							"%f %f %f",
+							&v1,
+							&v2,
+							&v3
 						)
 						== 3) {
 						lightOrigin = { v1, v2, v3 };
@@ -1839,8 +1913,11 @@ static void MakePatches() {
 		if (!modelCenterString.empty()) {
 			float v1, v2, v3;
 			if (sscanf(
-					(char const *) modelCenterString.data(), "%f %f %f",
-					&v1, &v2, &v3
+					(char const *) modelCenterString.data(),
+					"%f %f %f",
+					&v1,
+					&v2,
+					&v3
 				)
 				== 3) {
 				modelCenter = { v1, v2, v3 };
@@ -1868,7 +1945,8 @@ static void MakePatches() {
 		style = (unsigned char) style;
 		if (style >= ALLSTYLES) {
 			Error(
-				"invalid light style: style (%d) >= ALLSTYLES (%d)", style,
+				"invalid light style: style (%d) >= ALLSTYLES (%d)",
+				style,
 				ALLSTYLES
 			);
 		}
@@ -1880,7 +1958,8 @@ static void MakePatches() {
 				if (classname_is(lightent, u8"light_bounce")
 					&& has_key_value(lightent, u8"target")
 					&& key_value_is(
-						lightent, u8"target",
+						lightent,
+						u8"target",
 						value_for_key(ent, u8"targetname")
 					)) {
 					bouncestyle = IntForKey(lightent, u8"style");
@@ -1891,7 +1970,8 @@ static void MakePatches() {
 					if (bouncestyle >= ALLSTYLES) {
 						Error(
 							"invalid light style: style (%d) >= ALLSTYLES (%d)",
-							bouncestyle, ALLSTYLES
+							bouncestyle,
+							ALLSTYLES
 						);
 					}
 					break;
@@ -1915,7 +1995,8 @@ static void MakePatches() {
 	}
 
 	Log("%i base patches\n", g_num_patches);
-	Log("%i square feet [%.2f square inches]\n", (int) (totalarea / 144),
+	Log("%i square feet [%.2f square inches]\n",
+		(int) (totalarea / 144),
 		totalarea);
 }
 
@@ -1950,7 +2031,9 @@ static void SortPatches() {
 	memcpy(g_patches, old_patches, g_num_patches * sizeof(patch_t));
 	delete[] old_patches;
 	qsort(
-		(void*) g_patches, (size_t) g_num_patches, sizeof(patch_t),
+		(void*) g_patches,
+		(size_t) g_num_patches,
+		sizeof(patch_t),
 		patch_sorter
 	);
 
@@ -2020,8 +2103,10 @@ static void WriteWorld(char const * const name) {
 		w = patch->winding;
 		Log("%zu\n", w->size());
 		for (i = 0; i < w->size(); i++) {
-			Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n", w->m_Points[i][0],
-				w->m_Points[i][1], w->m_Points[i][2],
+			Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n",
+				w->m_Points[i][0],
+				w->m_Points[i][1],
+				w->m_Points[i][2],
 				patch->totallight[0][0] / 256,
 				patch->totallight[0][1] / 256,
 				patch->totallight[0][2] / 256); // LRC
@@ -2098,7 +2183,8 @@ static void GatherLight(int threadnum) {
 
 		for (m = 0; m < MAXLIGHTMAPS && patch->totalstyle[m] != 255; m++) {
 			VectorAdd(
-				adds[patch->totalstyle[m]], patch->totallight[m],
+				adds[patch->totalstyle[m]],
+				patch->totallight[m],
 				adds[patch->totalstyle[m]]
 			);
 		}
@@ -2176,8 +2262,12 @@ static void GatherLight(int threadnum) {
 					} else {
 						Verbose(
 							"GatherLight, v (%4.3f %4.3f %4.3f)@(%4.3f %4.3f %4.3f)\n",
-							v[0], v[1], v[2], patch->origin[0],
-							patch->origin[1], patch->origin[2]
+							v[0],
+							v[1],
+							v[2],
+							patch->origin[0],
+							patch->origin[1],
+							patch->origin[2]
 						);
 					}
 				}
@@ -2254,7 +2344,8 @@ static void GatherRGBLight(int threadnum) {
 
 		for (m = 0; m < MAXLIGHTMAPS && patch->totalstyle[m] != 255; m++) {
 			VectorAdd(
-				adds[patch->totalstyle[m]], patch->totallight[m],
+				adds[patch->totalstyle[m]],
+				patch->totallight[m],
 				adds[patch->totalstyle[m]]
 			);
 		}
@@ -2274,7 +2365,10 @@ static void GatherRGBLight(int threadnum) {
 				int opaquestyle = -1;
 				GetStyle(j, patchnum, opaquestyle, fastfind_index);
 				vector_decompress(
-					g_rgbtransfer_compress_type, tRGBData, &f[0], &f[1],
+					g_rgbtransfer_compress_type,
+					tRGBData,
+					&f[0],
+					&f[1],
 					&f[2]
 				);
 
@@ -2334,8 +2428,12 @@ static void GatherRGBLight(int threadnum) {
 					} else {
 						Verbose(
 							"GatherLight, v (%4.3f %4.3f %4.3f)@(%4.3f %4.3f %4.3f)\n",
-							v[0], v[1], v[2], patch->origin[0],
-							patch->origin[1], patch->origin[2]
+							v[0],
+							v[1],
+							v[2],
+							patch->origin[0],
+							patch->origin[1],
+							patch->origin[2]
 						);
 					}
 				}
@@ -2570,7 +2668,10 @@ static void RadWorld() {
 				float3_array const v{ patch->origin };
 				for (float3_array const & p : pos) {
 					fprintf(
-						f, "%g %g %g\n", v[0] + p[0], v[1] + p[1],
+						f,
+						"%g %g %g\n",
+						v[0] + p[0],
+						v[1] + p[1],
 						v[2] + p[2]
 					);
 				}
@@ -2607,7 +2708,10 @@ static void RadWorld() {
 					);
 					for (float3_array const & p : pos) {
 						fprintf(
-							f, "%g %g %g\n", v[0] + p[0], v[1] + p[1],
+							f,
+							"%g %g %g\n",
+							v[0] + p[0],
+							v[1] + p[1],
 							v[2] + p[2]
 						);
 					}
@@ -2671,7 +2775,9 @@ static void RadWorld() {
 	if (g_maxdiscardedlight > 0.01) {
 		Verbose(
 			"Maximum brightness loss (too many light styles on a face) = %f @(%f, %f, %f)\n",
-			g_maxdiscardedlight, g_maxdiscardedpos[0], g_maxdiscardedpos[1],
+			g_maxdiscardedlight,
+			g_maxdiscardedpos[0],
+			g_maxdiscardedpos[1],
 			g_maxdiscardedpos[2]
 		);
 	}
@@ -2847,16 +2953,20 @@ static void Settings() {
 	Log("verbose              [ %17s ] [ %17s ]\n",
 		g_verbose ? "on" : "off",
 		cli_option_defaults::verbose ? "on" : "off");
-	Log("log                  [ %17s ] [ %17s ]\n", g_log ? "on" : "off",
+	Log("log                  [ %17s ] [ %17s ]\n",
+		g_log ? "on" : "off",
 		cli_option_defaults::log ? "on" : "off");
-	Log("developer            [ %17d ] [ %17d ]\n", (int) g_developer,
+	Log("developer            [ %17d ] [ %17d ]\n",
+		(int) g_developer,
 		(int) cli_option_defaults::developer);
-	Log("chart                [ %17s ] [ %17s ]\n", g_chart ? "on" : "off",
+	Log("chart                [ %17s ] [ %17s ]\n",
+		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
 	Log("estimate             [ %17s ] [ %17s ]\n",
 		g_estimate ? "on" : "off",
 		cli_option_defaults::estimate ? "on" : "off");
-	Log("max texture memory   [ %17td ] [ %17td ]\n", g_max_map_miptex,
+	Log("max texture memory   [ %17td ] [ %17td ]\n",
+		g_max_map_miptex,
 		cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
@@ -2875,7 +2985,8 @@ static void Settings() {
 	Log("\n");
 
 	Log("fast rad             [ %17s ] [ %17s ]\n",
-		g_fastmode ? "on" : "off", DEFAULT_FASTMODE ? "on" : "off");
+		g_fastmode ? "on" : "off",
+		DEFAULT_FASTMODE ? "on" : "off");
 	Log("vismatrix algorithm  [ %17s ] [ %17s ]\n",
 		g_method == vis_method::vismatrix			   ? "Original"
 			: g_method == vis_method::sparse_vismatrix ? "Sparse"
@@ -2888,26 +2999,39 @@ static void Settings() {
 			? "NoMatrix"
 			: "Unknown");
 	Log("pre-25th anniversary [ %17s ] [ %17s ]\n",
-		g_pre25update ? "on" : "off", DEFAULT_PRE25UPDATE ? "on" : "off");
-	Log("oversampling (-extra)[ %17s ] [ %17s ]\n", g_extra ? "on" : "off",
+		g_pre25update ? "on" : "off",
+		DEFAULT_PRE25UPDATE ? "on" : "off");
+	Log("oversampling (-extra)[ %17s ] [ %17s ]\n",
+		g_extra ? "on" : "off",
 		DEFAULT_EXTRA ? "on" : "off");
-	Log("bounces              [ %17d ] [ %17d ]\n", g_numbounce,
+	Log("bounces              [ %17d ] [ %17d ]\n",
+		g_numbounce,
 		DEFAULT_BOUNCE);
 
 	safe_snprintf(
-		buf1, sizeof(buf1), "%1.3f %1.3f %1.3f", g_ambient[0], g_ambient[1],
+		buf1,
+		sizeof(buf1),
+		"%1.3f %1.3f %1.3f",
+		g_ambient[0],
+		g_ambient[1],
 		g_ambient[2]
 	);
 	safe_snprintf(
-		buf2, sizeof(buf2), "%1.3f %1.3f %1.3f", DEFAULT_AMBIENT_RED,
-		DEFAULT_AMBIENT_GREEN, DEFAULT_AMBIENT_BLUE
+		buf2,
+		sizeof(buf2),
+		"%1.3f %1.3f %1.3f",
+		DEFAULT_AMBIENT_RED,
+		DEFAULT_AMBIENT_GREEN,
+		DEFAULT_AMBIENT_BLUE
 	);
 	Log("ambient light        [ %17s ] [ %17s ]\n", buf1, buf2);
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_limitthreshold);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_LIMITTHRESHOLD);
 	Log("light limit threshold[ %17s ] [ %17s ]\n",
-		g_limitthreshold >= 0 ? buf1 : "None", buf2);
-	Log("circus mode          [ %17s ] [ %17s ]\n", g_circus ? "on" : "off",
+		g_limitthreshold >= 0 ? buf1 : "None",
+		buf2);
+	Log("circus mode          [ %17s ] [ %17s ]\n",
+		g_circus ? "on" : "off",
 		DEFAULT_CIRCUS ? "on" : "off");
 
 	Log("\n");
@@ -2916,7 +3040,9 @@ static void Settings() {
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_SMOOTHING_VALUE);
 	Log("smoothing threshold  [ %17s ] [ %17s ]\n", buf1, buf2);
 	safe_snprintf(
-		buf1, sizeof(buf1), g_smoothing_value_2 < 0 ? "no change" : "%3.3f",
+		buf1,
+		sizeof(buf1),
+		g_smoothing_value_2 < 0 ? "no change" : "%3.3f",
 		g_smoothing_value_2
 	);
 #if DEFAULT_SMOOTHING2_VALUE
@@ -2935,14 +3061,17 @@ static void Settings() {
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_CORING);
 	Log("coring threshold     [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("patch interpolation  [ %17s ] [ %17s ]\n",
-		g_lerp_enabled ? "on" : "off", DEFAULT_LERP_ENABLED ? "on" : "off");
+		g_lerp_enabled ? "on" : "off",
+		DEFAULT_LERP_ENABLED ? "on" : "off");
 
 	Log("\n");
 
 	Log("texscale             [ %17s ] [ %17s ]\n",
-		g_texscale ? "on" : "off", DEFAULT_TEXSCALE ? "on" : "off");
+		g_texscale ? "on" : "off",
+		DEFAULT_TEXSCALE ? "on" : "off");
 	Log("patch subdividing    [ %17s ] [ %17s ]\n",
-		g_subdivide ? "on" : "off", DEFAULT_SUBDIVIDE ? "on" : "off");
+		g_subdivide ? "on" : "off",
+		DEFAULT_SUBDIVIDE ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_chop);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_CHOP);
 	Log("chop value           [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -2963,23 +3092,38 @@ static void Settings() {
 	// replaces the old stuff for displaying current values for gamma and
 	// lightscale
 	safe_snprintf(
-		buf1, sizeof(buf1), "%1.3f %1.3f %1.3f", g_colour_lightscale[0],
-		g_colour_lightscale[1], g_colour_lightscale[2]
+		buf1,
+		sizeof(buf1),
+		"%1.3f %1.3f %1.3f",
+		g_colour_lightscale[0],
+		g_colour_lightscale[1],
+		g_colour_lightscale[2]
 	);
 	safe_snprintf(
-		buf2, sizeof(buf2), "%1.3f %1.3f %1.3f",
-		DEFAULT_COLOUR_LIGHTSCALE_RED, DEFAULT_COLOUR_LIGHTSCALE_GREEN,
+		buf2,
+		sizeof(buf2),
+		"%1.3f %1.3f %1.3f",
+		DEFAULT_COLOUR_LIGHTSCALE_RED,
+		DEFAULT_COLOUR_LIGHTSCALE_GREEN,
 		DEFAULT_COLOUR_LIGHTSCALE_BLUE
 	);
 	Log("global light scale   [ %17s ] [ %17s ]\n", buf1, buf2);
 
 	safe_snprintf(
-		buf1, sizeof(buf1), "%1.3f %1.3f %1.3f", g_colour_qgamma[0],
-		g_colour_qgamma[1], g_colour_qgamma[2]
+		buf1,
+		sizeof(buf1),
+		"%1.3f %1.3f %1.3f",
+		g_colour_qgamma[0],
+		g_colour_qgamma[1],
+		g_colour_qgamma[2]
 	);
 	safe_snprintf(
-		buf2, sizeof(buf2), "%1.3f %1.3f %1.3f", DEFAULT_COLOUR_GAMMA_RED,
-		DEFAULT_COLOUR_GAMMA_GREEN, DEFAULT_COLOUR_GAMMA_BLUE
+		buf2,
+		sizeof(buf2),
+		"%1.3f %1.3f %1.3f",
+		DEFAULT_COLOUR_GAMMA_RED,
+		DEFAULT_COLOUR_GAMMA_GREEN,
+		DEFAULT_COLOUR_GAMMA_BLUE
 	);
 	Log("global gamma         [ %17s ] [ %17s ]\n", buf1, buf2);
 	// ------------------------------------------------------------------------
@@ -2994,19 +3138,23 @@ static void Settings() {
 
 	Log("\n");
 	Log("spread angles        [ %17s ] [ %17s ]\n",
-		g_allow_spread ? "on" : "off", DEFAULT_ALLOW_SPREAD ? "on" : "off");
+		g_allow_spread ? "on" : "off",
+		DEFAULT_ALLOW_SPREAD ? "on" : "off");
 	Log("opaque brush models  [ %17s ] [ %17s ]\n",
 		g_allow_opaques ? "on" : "off",
 		DEFAULT_ALLOW_OPAQUES ? "on" : "off");
 	Log("opaque studio models [ %17s ] [ %17s ]\n",
-		g_studioshadow ? "on" : "off", DEFAULT_STUDIOSHADOW ? "on" : "off");
+		g_studioshadow ? "on" : "off",
+		DEFAULT_STUDIOSHADOW ? "on" : "off");
 	Log("sky lighting fix     [ %17s ] [ %17s ]\n",
 		g_sky_lighting_fix ? "on" : "off",
 		DEFAULT_SKY_LIGHTING_FIX ? "on" : "off");
 	Log("incremental          [ %17s ] [ %17s ]\n",
-		g_incremental ? "on" : "off", DEFAULT_INCREMENTAL ? "on" : "off");
+		g_incremental ? "on" : "off",
+		DEFAULT_INCREMENTAL ? "on" : "off");
 	Log("dump                 [ %17s ] [ %17s ]\n",
-		g_dumppatches ? "on" : "off", DEFAULT_DUMPPATCHES ? "on" : "off");
+		g_dumppatches ? "on" : "off",
+		DEFAULT_DUMPPATCHES ? "on" : "off");
 
 	// ------------------------------------------------------------------------
 	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
@@ -3014,22 +3162,37 @@ static void Settings() {
 
 	Log("\n");
 	safe_snprintf(
-		buf1, sizeof(buf1), "%3.1f %3.1f %3.1f", g_colour_jitter_hack[0],
-		g_colour_jitter_hack[1], g_colour_jitter_hack[2]
+		buf1,
+		sizeof(buf1),
+		"%3.1f %3.1f %3.1f",
+		g_colour_jitter_hack[0],
+		g_colour_jitter_hack[1],
+		g_colour_jitter_hack[2]
 	);
 	safe_snprintf(
-		buf2, sizeof(buf2), "%3.1f %3.1f %3.1f",
-		DEFAULT_COLOUR_JITTER_HACK_RED, DEFAULT_COLOUR_JITTER_HACK_GREEN,
+		buf2,
+		sizeof(buf2),
+		"%3.1f %3.1f %3.1f",
+		DEFAULT_COLOUR_JITTER_HACK_RED,
+		DEFAULT_COLOUR_JITTER_HACK_GREEN,
 		DEFAULT_COLOUR_JITTER_HACK_BLUE
 	);
 	Log("colour jitter        [ %17s ] [ %17s ]\n", buf1, buf2);
 	safe_snprintf(
-		buf1, sizeof(buf1), "%3.1f %3.1f %3.1f", g_jitter_hack[0],
-		g_jitter_hack[1], g_jitter_hack[2]
+		buf1,
+		sizeof(buf1),
+		"%3.1f %3.1f %3.1f",
+		g_jitter_hack[0],
+		g_jitter_hack[1],
+		g_jitter_hack[2]
 	);
 	safe_snprintf(
-		buf2, sizeof(buf2), "%3.1f %3.1f %3.1f", DEFAULT_JITTER_HACK_RED,
-		DEFAULT_JITTER_HACK_GREEN, DEFAULT_JITTER_HACK_BLUE
+		buf2,
+		sizeof(buf2),
+		"%3.1f %3.1f %3.1f",
+		DEFAULT_JITTER_HACK_RED,
+		DEFAULT_JITTER_HACK_GREEN,
+		DEFAULT_JITTER_HACK_BLUE
 	);
 	Log("monochromatic jitter [ %17s ] [ %17s ]\n", buf1, buf2);
 
@@ -3044,17 +3207,22 @@ static void Settings() {
 		g_rgb_transfers ? "on" : "off",
 		DEFAULT_RGB_TRANSFERS ? "on" : "off");
 
-	Log("minimum final light  [ %17d ] [ %17d ]\n", (int) g_minlight,
+	Log("minimum final light  [ %17d ] [ %17d ]\n",
+		(int) g_minlight,
 		(int) cli_option_defaults::minLight);
 	snprintf(
-		buf1, sizeof(buf1), "%zu (%s)",
+		buf1,
+		sizeof(buf1),
+		"%zu (%s)",
 		(std::size_t) g_transfer_compress_type,
 		(char const *)
 			float_type_string[(std::size_t) g_transfer_compress_type]
 				.data()
 	);
 	snprintf(
-		buf2, sizeof(buf2), "%zu (%s)",
+		buf2,
+		sizeof(buf2),
+		"%zu (%s)",
 		(std::size_t) cli_option_defaults::transferCompressType,
 		(char const *)
 			float_type_string[(std::size_t
@@ -3063,19 +3231,24 @@ static void Settings() {
 	);
 	Log("size of transfer     [ %17s ] [ %17s ]\n", buf1, buf2);
 	snprintf(
-		buf1, sizeof(buf1), "%zu (%s)",
+		buf1,
+		sizeof(buf1),
+		"%zu (%s)",
 		(std::size_t) g_rgbtransfer_compress_type,
 		vector_type_string[(std::size_t) g_rgbtransfer_compress_type]
 	);
 	snprintf(
-		buf2, sizeof(buf2), "%zu (%s)",
+		buf2,
+		sizeof(buf2),
+		"%zu (%s)",
 		(std::size_t) cli_option_defaults::rgbTransferCompressType,
 		vector_type_string[(std::size_t
 		) cli_option_defaults::rgbTransferCompressType]
 	);
 	Log("size of rgbtransfer  [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("soft sky             [ %17s ] [ %17s ]\n",
-		g_softsky ? "on" : "off", DEFAULT_SOFTSKY ? "on" : "off");
+		g_softsky ? "on" : "off",
+		DEFAULT_SOFTSKY ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_translucentdepth);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TRANSLUCENTDEPTH);
 	Log("translucent depth    [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -3083,7 +3256,8 @@ static void Settings() {
 		g_blockopaque ? "on" : "off",
 		cli_option_defaults::blockOpaque ? "on" : "off");
 	Log("ignore textures      [ %17s ] [ %17s ]\n",
-		g_notextures ? "on" : "off", DEFAULT_NOTEXTURES ? "on" : "off");
+		g_notextures ? "on" : "off",
+		DEFAULT_NOTEXTURES ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_texreflectgamma);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TEXREFLECTGAMMA);
 	Log("reflectivity gamma   [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -3097,7 +3271,8 @@ static void Settings() {
 		g_noemitterrange ? "on" : "off",
 		DEFAULT_NOEMITTERRANGE ? "on" : "off");
 	Log("wall bleeding fix    [ %17s ] [ %17s ]\n",
-		g_bleedfix ? "on" : "off", DEFAULT_BLEEDFIX ? "on" : "off");
+		g_bleedfix ? "on" : "off",
+		DEFAULT_BLEEDFIX ? "on" : "off");
 
 	Log("\n\n");
 }
@@ -3158,8 +3333,12 @@ void ReadInfoTexAndMinlights() {
 				}
 
 				values = sscanf(
-					(char const *) kv.value().data(), "%f %f %f %f", &r, &g,
-					&b, &i
+					(char const *) kv.value().data(),
+					"%f %f %f %f",
+					&r,
+					&g,
+					&b,
+					&i
 				);
 
 				if (values == 1) {

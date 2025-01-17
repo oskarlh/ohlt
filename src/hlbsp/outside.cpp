@@ -83,8 +83,14 @@ static void MarkLeakTrail(portal_t* n2) {
 
 	// Linefile
 	fprintf(
-		linefile, "%f %f %f - %f %f %f\n", p1[0], p1[1], p1[2], p2[0],
-		p2[1], p2[2]
+		linefile,
+		"%f %f %f - %f %f %f\n",
+		p1[0],
+		p1[1],
+		p1[2],
+		p2[0],
+		p2[1],
+		p2[2]
 	);
 
 	// Pointfile
@@ -461,7 +467,9 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 				hullnum,
 				(char const *) get_classname(g_entities[hit_occupied])
 					.data(),
-				origin[0], origin[1], origin[2]
+				origin[0],
+				origin[1],
+				origin[2]
 			);
 			PrintOnce(
 				"\n  A LEAK is a hole in the map, where the inside of it is exposed to the\n"

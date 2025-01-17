@@ -12,7 +12,8 @@ static std::array<std::u8string_view, num_legacy_encodings> const
 	encoding_code_names
 	= {
 		  // All lower-case, for the sake of case-insensitive comparisons
-		  u8"windows-1251"sv, u8"windows-1252"sv
+		  u8"windows-1251"sv,
+		  u8"windows-1252"sv
 	  };
 
 static std::array<std::u8string_view, num_legacy_encodings> const

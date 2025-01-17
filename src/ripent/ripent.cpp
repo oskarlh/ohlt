@@ -136,8 +136,11 @@ void ParseEntityData(
 					break;
 				} else {
 					snprintf(
-						cError, sizeof(cError),
-						"expected token %s on line %d.", "{", iLine
+						cError,
+						sizeof(cError),
+						"expected token %s on line %d.",
+						"{",
+						iLine
 					);
 					throw cError;
 				}
@@ -155,8 +158,11 @@ void ParseEntityData(
 							'\"', iIndex, iLine, false, false, &iStart
 						)) {
 						snprintf(
-							cError, sizeof(cError),
-							"expected token %s on line %d.", "\"", iLine
+							cError,
+							sizeof(cError),
+							"expected token %s on line %d.",
+							"\"",
+							iLine
 						);
 						throw cError;
 					}
@@ -167,8 +173,11 @@ void ParseEntityData(
 							'\"', iIndex, iLine, true, true, &iEnd
 						)) {
 						snprintf(
-							cError, sizeof(cError),
-							"expected token %s on line %d.", "\"", iLine
+							cError,
+							sizeof(cError),
+							"expected token %s on line %d.",
+							"\"",
+							iLine
 						);
 						throw cError;
 					}
@@ -190,8 +199,11 @@ void ParseEntityData(
 						continue;
 					} else {
 						snprintf(
-							cError, sizeof(cError),
-							"expected token %s on line %d.", "}", iLine
+							cError,
+							sizeof(cError),
+							"expected token %s on line %d.",
+							"}",
+							iLine
 						);
 						throw cError;
 					}
@@ -212,7 +224,8 @@ void ParseEntityData(
 		int iNewLength = 0;
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end(); ++i) {
+			 i != EntityList.end();
+			 ++i) {
 			// Opening brace.
 			iNewLength += 1;
 
@@ -222,7 +235,8 @@ void ParseEntityData(
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end(); ++j) {
+				 j != EntityPairList->end();
+				 ++j) {
 				// Tab.
 				iNewLength += iTabLength;
 
@@ -278,7 +292,8 @@ void ParseEntityData(
 		Log("Formating entity data.\n\n");
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end(); ++i) {
+			 i != EntityList.end();
+			 ++i) {
 			// Opening brace.
 			g_dentdata[g_entdatasize] = u8'{';
 			g_entdatasize += 1;
@@ -292,7 +307,8 @@ void ParseEntityData(
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end(); ++j) {
+				 j != EntityPairList->end();
+				 ++j) {
 				// Tab.
 				std::memcpy(&g_dentdata[g_entdatasize], cTab, iTabLength);
 				g_entdatasize += iTabLength;
@@ -348,11 +364,13 @@ void ParseEntityData(
 		//
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end(); ++i) {
+			 i != EntityList.end();
+			 ++i) {
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end(); ++j) {
+				 j != EntityPairList->end();
+				 ++j) {
 				delete[] *j;
 			}
 
@@ -366,11 +384,13 @@ void ParseEntityData(
 		//
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end(); ++i) {
+			 i != EntityList.end();
+			 ++i) {
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end(); ++j) {
+				 j != EntityPairList->end();
+				 ++j) {
 				delete[] *j;
 			}
 
@@ -478,7 +498,8 @@ static void WriteTextures(char const * const name) {
 		SafeWrite(wadfile, &header, wadofs);
 
 		SafeWrite(
-			wadfile, (byte*) g_dtexdata.data() + dataofs,
+			wadfile,
+			(byte*) g_dtexdata.data() + dataofs,
 			g_texdatasize - dataofs
 		);
 
@@ -545,7 +566,8 @@ static void WriteTextures(char const * const name) {
 		hlassume(info != nullptr, assume_NoMemory);
 
 		fprintf(
-			texfile, "%d\r\n",
+			texfile,
+			"%d\r\n",
 			((dmiptexlump_t*) g_dtexdata.data())->nummiptex
 		);
 		fseek(wadfile, sizeof(wadinfo_t), SEEK_SET);
@@ -636,7 +658,8 @@ static void ReadTextures(char const * name) {
 		g_texdatasize = header.infotableofs - wadofs + dataofs;
 
 		SafeRead(
-			wadfile, (byte*) g_dtexdata.data() + dataofs,
+			wadfile,
+			(byte*) g_dtexdata.data() + dataofs,
 			g_texdatasize - dataofs
 		);
 
@@ -851,9 +874,11 @@ static void Settings() {
 		"-------------------|-----------|-------------------------\n");
 
 	// ZHLT Common Settings
-	Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off",
+	Log("chart               [ %7s ] [ %7s ]\n",
+		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
-	Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex,
+	Log("max texture memory  [ %7td ] [ %7td ]\n",
+		g_max_map_miptex,
 		cli_option_defaults::max_map_miptex);
 
 	switch (g_mode) {
@@ -873,7 +898,8 @@ static void Settings() {
 
 	// RipEnt Specific Settings
 	Log("mode                [ %7s ] [ %7s ]\n", tmp, "N/A");
-	Log("parse               [ %7s ] [ %7s ]\n", g_parse ? "on" : "off",
+	Log("parse               [ %7s ] [ %7s ]\n",
+		g_parse ? "on" : "off",
 		DEFAULT_PARSE ? "on" : "off");
 	switch (g_texturemode) {
 		case hl_import:
@@ -889,7 +915,8 @@ static void Settings() {
 	}
 	Log("texture mode        [ %7s ] [ %7s ]\n", tmp, "N/A");
 	Log("texture parse       [ %7s ] [ %7s ]\n",
-		g_textureparse ? "on" : "off", DEFAULT_TEXTUREPARSE ? "on" : "off");
+		g_textureparse ? "on" : "off",
+		DEFAULT_TEXTUREPARSE ? "on" : "off");
 	Log("write extent file   [ %7s ] [ %7s ]\n",
 		g_writeextentfile ? "on" : "off",
 		DEFAULT_WRITEEXTENTFILE ? "on" : "off");

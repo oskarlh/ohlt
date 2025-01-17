@@ -76,7 +76,8 @@ static face_side FaceSide(
 		double const * p;
 		// TODO: This pointer logic is ugly, with the p += 3
 		for (i = 0, p = &in->pts[0][(std::size_t) split->type];
-			 i < in->numpoints; i++, p += 3) {
+			 i < in->numpoints;
+			 i++, p += 3) {
 			dot = *p - split->dist;
 			if (dot > d_front) {
 				d_front = dot;
@@ -166,7 +167,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 	node->mins.fill(hlbsp_bogus_range);
 	node->maxs.fill(-hlbsp_bogus_range);
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-		 i != node->leaffaces->end(); ++i) {
+		 i != node->leaffaces->end();
+		 ++i) {
 		face_t* f = *i;
 		for (int x = 0; x < f->numpoints; x++) {
 			node->mins = vector_minimums(node->mins, f->pts[x]);
@@ -210,7 +212,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		= (surfacetreenode_t*) malloc(sizeof(surfacetreenode_t));
 	node->children[1]->leaffaces = new std::vector<face_t*>;
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-		 i != node->leaffaces->end(); ++i) {
+		 i != node->leaffaces->end();
+		 ++i) {
 		face_t* f = *i;
 		double low = hlbsp_bogus_range;
 		double high = -hlbsp_bogus_range;
@@ -240,8 +243,12 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 			== node->leaffaces->size()) {
 		Warning(
 			"BuildSurfaceTree_r: didn't split node with bound (%f,%f,%f)-(%f,%f,%f)",
-			node->mins[0], node->mins[1], node->mins[2], node->maxs[0],
-			node->maxs[1], node->maxs[2]
+			node->mins[0],
+			node->mins[1],
+			node->mins[2],
+			node->maxs[0],
+			node->maxs[1],
+			node->maxs[2]
 		);
 		delete node->children[0]->leaffaces;
 		delete node->children[1]->leaffaces;
@@ -316,12 +323,14 @@ void TestSurfaceTree_r(
 	}
 	if (node->isleaf) {
 		for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-			 i != node->leaffaces->end(); ++i) {
+			 i != node->leaffaces->end();
+			 ++i) {
 			tree->result.middle->push_back(*i);
 		}
 	} else {
 		for (std::vector<face_t*>::iterator i = node->nodefaces->begin();
-			 i != node->nodefaces->end(); ++i) {
+			 i != node->nodefaces->end();
+			 ++i) {
 			tree->result.middle->push_back(*i);
 		}
 		TestSurfaceTree_r(tree, node->children[0], split);
@@ -429,7 +438,8 @@ static surface_t* ChooseMidPlaneFromList(
 		frontcount += surfacetree->result.frontsize;
 		backcount += surfacetree->result.backsize;
 		for (it = surfacetree->result.middle->begin();
-			 it != surfacetree->result.middle->end(); ++it) {
+			 it != surfacetree->result.middle->end();
+			 ++it) {
 			f = *it;
 			if (f->facestyle == face_discardable) {
 				continue;
@@ -556,7 +566,8 @@ static surface_t* ChoosePlaneFromList(
 			frontcount += surfacetree->result.frontsize;
 			backcount += surfacetree->result.backsize;
 			for (it = surfacetree->result.middle->begin();
-				 it != surfacetree->result.middle->end(); ++it) {
+				 it != surfacetree->result.middle->end();
+				 ++it) {
 				f = *it;
 				if (f->planenum == p->planenum
 					|| f->planenum == (p->planenum ^ 1)) {
@@ -1136,9 +1147,14 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 		Warning(
 			"Ambiguous leafnode content ( %s and %s ) at (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f) in hull %d of model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\")",
 			ContentsToString(ContentsForRank(r)),
-			ContentsToString(ContentsForRank(rank)), leafnode->mins[0],
-			leafnode->mins[1], leafnode->mins[2], leafnode->maxs[0],
-			leafnode->maxs[1], leafnode->maxs[2], g_hullnum,
+			ContentsToString(ContentsForRank(rank)),
+			leafnode->mins[0],
+			leafnode->mins[1],
+			leafnode->mins[2],
+			leafnode->maxs[0],
+			leafnode->maxs[1],
+			leafnode->maxs[2],
+			g_hullnum,
 			g_nummodels - 1,
 			(ent ? (char const *) get_classname(*ent).data() : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"origin").data()
@@ -1151,15 +1167,19 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 				Developer(
 					developer_level::spam,
 					"content = %d plane = %d normal = (%g,%g,%g)\n",
-					f2->contents, f2->planenum,
+					f2->contents,
+					f2->planenum,
 					g_mapplanes[f2->planenum].normal[0],
 					g_mapplanes[f2->planenum].normal[1],
 					g_mapplanes[f2->planenum].normal[2]
 				);
 				for (int i = 0; i < f2->numpoints; i++) {
 					Developer(
-						developer_level::spam, "(%g,%g,%g)\n",
-						f2->pts[i][0], f2->pts[i][1], f2->pts[i][2]
+						developer_level::spam,
+						"(%g,%g,%g)\n",
+						f2->pts[i][0],
+						f2->pts[i][1],
+						f2->pts[i][2]
 					);
 				}
 			}
@@ -1216,7 +1236,8 @@ static void MakeLeaf(node_t* leafnode) {
 			nummarkfaces * sizeof(*leafnode->markfaces)
 		);
 		std::memcpy(
-			leafnode->markfaces, markfaces,
+			leafnode->markfaces,
+			markfaces,
 			nummarkfaces * sizeof(*leafnode->markfaces)
 		);
 	}
@@ -1264,8 +1285,12 @@ static void MakeNodePortal(node_t* node) {
 			Developer(
 				developer_level::warning,
 				"MakeNodePortal:new portal was clipped away from node@(%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
-				node->mins[0], node->mins[1], node->mins[2], node->maxs[0],
-				node->maxs[1], node->maxs[2]
+				node->mins[0],
+				node->mins[1],
+				node->mins[2],
+				node->maxs[0],
+				node->maxs[1],
+				node->maxs[2]
 			);
 			FreePortal(new_portal);
 			return;
@@ -1314,8 +1339,8 @@ static void SplitNodePortals(node_t* node) {
 
 		visit_with(
 			pWinding.Divide(*plane),
-			[&b, &f, &other_node, &p,
-			 &side](accurate_winding::one_sided_division_result backOrFront
+			[&b, &f, &other_node, &p, &side](
+				accurate_winding::one_sided_division_result backOrFront
 			) {
 				node_t* nodeToPush
 					= (backOrFront
@@ -1330,8 +1355,9 @@ static void SplitNodePortals(node_t* node) {
 					AddPortalToNodes(p, other_node, nodeToPush);
 				}
 			},
-			[&b, &f, &other_node, &p,
-			 &side](accurate_winding::split_division_result& arg) {
+			[&b, &f, &other_node, &p, &side](
+				accurate_winding::split_division_result& arg
+			) {
 				// The winding is split
 				using std::swap;
 				portal_t* new_portal = AllocPortal();
@@ -1488,7 +1514,11 @@ static void BuildBspTree_r(node_t* node) {
 	int splitdetaillevel = CalcSplitDetaillevel(node);
 	FixDetaillevelForDiscardable(node, splitdetaillevel);
 	split = SelectPartition(
-		node->surfaces, node, midsplit, splitdetaillevel, validmins,
+		node->surfaces,
+		node,
+		midsplit,
+		splitdetaillevel,
+		validmins,
 		validmaxs
 	);
 	if (!node->isdetail && (!split || split->detaillevel > 0)) {
@@ -1543,9 +1573,12 @@ static void BuildBspTree_r(node_t* node) {
 			if (!front) {
 				Warning(
 					"BuildBspTree_r: bounds was clipped away at (%f,%f,%f)-(%f,%f,%f).",
-					node->loosemins[0], node->loosemins[1],
-					node->loosemins[2], node->loosemaxs[0],
-					node->loosemaxs[1], node->loosemaxs[2]
+					node->loosemins[0],
+					node->loosemins[1],
+					node->loosemins[2],
+					node->loosemaxs[0],
+					node->loosemaxs[1],
+					node->loosemaxs[2]
 				);
 			}
 			node->children[k]->boundsbrush = front;
@@ -1603,8 +1636,8 @@ node_t* SolidBSP(
 
 	double end_time = I_FloatTime();
 	if (report_progress) {
-		Log("%d (%.2f seconds)\n", ++g_numProcessed,
-			(end_time - start_time));
+		Log("%d (%.2f seconds)\n", ++g_numProcessed, (end_time - start_time)
+		);
 	}
 
 	return headnode;

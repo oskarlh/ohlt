@@ -171,8 +171,10 @@ static wedge_t* FindEdge(
 	if (!CanonicalVector(dir)) {
 #if _DEBUG
 		Warning(
-			"CanonicalVector: degenerate @ (%4.3f %4.3f %4.3f )\n", p1[0],
-			p1[1], p1[2]
+			"CanonicalVector: degenerate @ (%4.3f %4.3f %4.3f )\n",
+			p1[0],
+			p1[1],
+			p1[2]
 		);
 #endif
 	}

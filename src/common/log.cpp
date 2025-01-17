@@ -138,7 +138,8 @@ void LogError(char const * const message) {
 			ErrorLog = nullptr;
 		} else {
 			fprintf(
-				stderr, "ERROR: Could not open error logfile %s",
+				stderr,
+				"ERROR: Could not open error logfile %s",
 				logfilename
 			);
 			fflush(stderr);
@@ -266,8 +267,14 @@ void FORMAT_PRINTF(2, 3)
 		MessageTable_t const * msg = GetAssume(msgid);
 
 		safe_snprintf(
-			message, MAX_MESSAGE, "%s\n%s%s\n%s%s\n", msg->title,
-			"Description: ", msg->text, "Howto Fix: ", msg->howto
+			message,
+			MAX_MESSAGE,
+			"%s\n%s%s\n%s%s\n",
+			msg->title,
+			"Description: ",
+			msg->text,
+			"Howto Fix: ",
+			msg->howto
 		);
 		PrintOnce("%s", message);
 	}
@@ -435,7 +442,8 @@ static void LogCommandLine(int argc, char** argv) {
 //  Banner
 // =====================================================================================
 void Banner() {
-	Log((char const *) u8"%s %s %s\n", g_Program,
+	Log((char const *) u8"%s %s %s\n",
+		g_Program,
 		(char const *) projectVersionString.data(),
 		(char const *) projectPlatformVersion.data());
 	// Log("BUGGY %s (built: %s)\nUse at own risk.\n", g_Program, __DATE__);
@@ -475,8 +483,14 @@ void hlassume(bool exp, assume_msgs msgid) {
 		MessageTable_t const * msg = GetAssume(msgid);
 
 		safe_snprintf(
-			message, MAX_MESSAGE, "%s\n%s%s\n%s%s\n", msg->title,
-			"Description: ", msg->text, "Howto Fix: ", msg->howto
+			message,
+			MAX_MESSAGE,
+			"%s\n%s%s\n%s%s\n",
+			msg->title,
+			"Description: ",
+			msg->text,
+			"Howto Fix: ",
+			msg->howto
 		);
 		Error("%s", message);
 	}
@@ -516,13 +530,22 @@ void LogTimeElapsed(float elapsed_time) {
 	seconds_to_hhmm(elapsed_time, days, hours, minutes, seconds);
 
 	if (days) {
-		Log("%.2f seconds elapsed [%ud %uh %um %us]\n", elapsed_time, days,
-			hours, minutes, seconds);
+		Log("%.2f seconds elapsed [%ud %uh %um %us]\n",
+			elapsed_time,
+			days,
+			hours,
+			minutes,
+			seconds);
 	} else if (hours) {
-		Log("%.2f seconds elapsed [%uh %um %us]\n", elapsed_time, hours,
-			minutes, seconds);
+		Log("%.2f seconds elapsed [%uh %um %us]\n",
+			elapsed_time,
+			hours,
+			minutes,
+			seconds);
 	} else if (minutes) {
-		Log("%.2f seconds elapsed [%um %us]\n", elapsed_time, minutes,
+		Log("%.2f seconds elapsed [%um %us]\n",
+			elapsed_time,
+			minutes,
 			seconds);
 	} else {
 		Log("%.2f seconds elapsed\n", elapsed_time);

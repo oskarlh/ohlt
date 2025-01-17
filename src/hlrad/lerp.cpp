@@ -1163,7 +1163,8 @@ static void PurgePatches(localtriangulation_t* lt) {
 		);
 		while (next[cur] != cur && valid[next[cur]] != 2) {
 			angle = GetAngle(
-				points[cur].leftdirection, points[next[cur]].leftdirection,
+				points[cur].leftdirection,
+				points[next[cur]].leftdirection,
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
@@ -1190,7 +1191,8 @@ static void PurgePatches(localtriangulation_t* lt) {
 		);
 		while (prev[cur] != cur && valid[prev[cur]] != 2) {
 			angle = GetAngle(
-				points[prev[cur]].leftdirection, points[cur].leftdirection,
+				points[prev[cur]].leftdirection,
+				points[cur].leftdirection,
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
@@ -1330,8 +1332,10 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 				if (arc_angles[next[j]] - arc_angles[prev[j]]
 					<= std::numbers::pi_v<double> + NORMAL_EPSILON) {
 					frac = GetFrac(
-						arc_spots[prev[j]].spot, arc_spots[next[j]].spot,
-						arc_spots[j].direction, lt->normal
+						arc_spots[prev[j]].spot,
+						arc_spots[next[j]].spot,
+						arc_spots[j].direction,
+						lt->normal
 					);
 					len = (1 - frac)
 							* DotProduct(
@@ -1470,7 +1474,10 @@ static localtriangulation_t* CreateLocalTriangulation(
 			lt->winding, lt->plane, lt->center, DEFAULT_EDGE_WIDTH
 		)) {
 		snap_to_winding_noedge(
-			lt->winding, lt->plane, lt->center.data(), DEFAULT_EDGE_WIDTH,
+			lt->winding,
+			lt->plane,
+			lt->center.data(),
+			DEFAULT_EDGE_WIDTH,
 			4 * DEFAULT_EDGE_WIDTH
 		);
 	}
@@ -1657,11 +1664,13 @@ static void BuildWalls(facetriangulation_t* facetrian) {
 
 				VectorAdd(
 					g_dvertexes[g_dedges[abs(e)].v[0]].point,
-					g_face_offset[facenum], wall.points[0]
+					g_face_offset[facenum],
+					wall.points[0]
 				);
 				VectorAdd(
 					g_dvertexes[g_dedges[abs(e)].v[1]].point,
-					g_face_offset[facenum], wall.points[1]
+					g_face_offset[facenum],
+					wall.points[1]
 				);
 				VectorSubtract(
 					wall.points[1], wall.points[0], wall.direction

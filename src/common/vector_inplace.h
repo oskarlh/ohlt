@@ -104,12 +104,14 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 		requires(!std::is_trivially_copyable_v<T> && std::is_copy_assignable_v<T> && std::is_copy_constructible_v<T>)
 	{
 		std::copy(
-			other.begin(), other.begin() + std::min(size(), other.size()),
+			other.begin(),
+			other.begin() + std::min(size(), other.size()),
 			begin()
 		);
 		if (other.size() > size()) {
 			std::uninitialized_copy_n(
-				other.begin() + size(), other.size() - size(),
+				other.begin() + size(),
+				other.size() - size(),
 				begin() + other.size()
 			);
 		} else {
@@ -128,12 +130,14 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 			= call_finally{ [&other]() { other.clear(); } };
 
 		std::move(
-			other.begin(), other.begin() + std::min(size(), other.size()),
+			other.begin(),
+			other.begin() + std::min(size(), other.size()),
 			begin()
 		);
 		if (other.size() > size()) {
 			std::uninitialized_move_n(
-				other.begin() + size(), other.size() - size(),
+				other.begin() + size(),
+				other.size() - size(),
 				begin() + other.size()
 			);
 		} else {

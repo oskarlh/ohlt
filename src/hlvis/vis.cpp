@@ -97,7 +97,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_verbose = false;
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
-	Log("%30s [ %-9s ]\n", "Verbose Compile Messages",
+	Log("%30s [ %-9s ]\n",
+		"Verbose Compile Messages",
 		g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
@@ -107,7 +108,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	} else {
 		g_estimate = false;
 	}
-	Log("%30s [ %-9s ]\n", "Estimate Compile Times",
+	Log("%30s [ %-9s ]\n",
+		"Estimate Compile Times",
 		g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
@@ -135,7 +137,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		Fatal(
 			assume_TOOL_CANCEL,
 			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program, g_Program
+			g_Program,
+			g_Program
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -242,8 +245,10 @@ static void LeafThread(int unused) {
 		PortalFlow(p);
 
 		Verbose(
-			"portal:%4i  mightsee:%4i  cansee:%4i\n", (int) (p - g_portals),
-			p->nummightsee, p->numcansee
+			"portal:%4i  mightsee:%4i  cansee:%4i\n",
+			(int) (p - g_portals),
+			p->nummightsee,
+			p->numcansee
 		);
 	}
 }
@@ -322,10 +327,13 @@ static void LeafFlow(int const leafnum) {
 			tmp = 1;
 			Warning("Leaf portals saw into leaf");
 			Log("    Problem at portal between leaves %i and %i:\n   ",
-				leafnum, p->leaf);
+				leafnum,
+				p->leaf);
 			for (k = 0; k < p->winding->numpoints; k++) {
-				Log("    (%4.3f %4.3f %4.3f)\n", p->winding->points[k][0],
-					p->winding->points[k][1], p->winding->points[k][2]);
+				Log("    (%4.3f %4.3f %4.3f)\n",
+					p->winding->points[k][0],
+					p->winding->points[k][1],
+					p->winding->points[k][2]);
 			}
 			Log("\n");
 		}
@@ -552,7 +560,8 @@ static void LoadPortals(char* portal_image) {
 						   // in some special cases
 		Error(
 			"Too many portalleafs (g_portalleafs(%d) > MAX_MAP_LEAFS(%zd)).",
-			g_portalleafs, MAX_MAP_LEAFS
+			g_portalleafs,
+			MAX_MAP_LEAFS
 		);
 	}
 	g_leafcount_all = 0;
@@ -572,7 +581,8 @@ static void LoadPortals(char* portal_image) {
 			   .visleafs) { // internal error (this should never happen)
 		Error(
 			"Corrupted leaf mapping (g_leafcount_all(%d) != g_dmodels[0].visleafs(%d)).",
-			g_leafcount_all, g_dmodels[0].visleafs
+			g_leafcount_all,
+			g_dmodels[0].visleafs
 		);
 	}
 	for (i = 0; i < g_portalleafs; i++) {
@@ -761,20 +771,27 @@ static void Settings() {
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
-	Log("verbose             [ %7s ] [ %7s ]\n", g_verbose ? "on" : "off",
+	Log("verbose             [ %7s ] [ %7s ]\n",
+		g_verbose ? "on" : "off",
 		cli_option_defaults::verbose ? "on" : "off");
-	Log("log                 [ %7s ] [ %7s ]\n", g_log ? "on" : "off",
+	Log("log                 [ %7s ] [ %7s ]\n",
+		g_log ? "on" : "off",
 		cli_option_defaults::log ? "on" : "off");
-	Log("developer           [ %7d ] [ %7d ]\n", (int) g_developer,
+	Log("developer           [ %7d ] [ %7d ]\n",
+		(int) g_developer,
 		(int) cli_option_defaults::developer);
-	Log("chart               [ %7s ] [ %7s ]\n", g_chart ? "on" : "off",
+	Log("chart               [ %7s ] [ %7s ]\n",
+		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
-	Log("estimate            [ %7s ] [ %7s ]\n", g_estimate ? "on" : "off",
+	Log("estimate            [ %7s ] [ %7s ]\n",
+		g_estimate ? "on" : "off",
 		cli_option_defaults::estimate ? "on" : "off");
-	Log("max texture memory  [ %7td ] [ %7td ]\n", g_max_map_miptex,
+	Log("max texture memory  [ %7td ] [ %7td ]\n",
+		g_max_map_miptex,
 		cli_option_defaults::max_map_miptex);
 
-	Log("max vis distance    [ %7d ] [ %7d ]\n", g_maxdistance,
+	Log("max vis distance    [ %7d ] [ %7d ]\n",
+		g_maxdistance,
 		DEFAULT_MAXDISTANCE_RANGE);
 
 	switch (g_threadpriority) {
@@ -793,11 +810,14 @@ static void Settings() {
 	Log("\n");
 
 	// HLVIS Specific Settings
-	Log("fast vis            [ %7s ] [ %7s ]\n", g_fastvis ? "on" : "off",
+	Log("fast vis            [ %7s ] [ %7s ]\n",
+		g_fastvis ? "on" : "off",
 		DEFAULT_FASTVIS ? "on" : "off");
-	Log("full vis            [ %7s ] [ %7s ]\n", g_fullvis ? "on" : "off",
+	Log("full vis            [ %7s ] [ %7s ]\n",
+		g_fullvis ? "on" : "off",
 		DEFAULT_FULLVIS ? "on" : "off");
-	Log("nofixprt            [ %7s ] [ %7s ]\n", g_nofixprt ? "on" : "off",
+	Log("nofixprt            [ %7s ] [ %7s ]\n",
+		g_nofixprt ? "on" : "off",
 		DEFAULT_NOFIXPRT ? "on" : "off");
 
 	Log("\n\n");
@@ -858,7 +878,8 @@ void FixPrt(char const * portalfile) {
 		= prtVector.size(); // Count lines before optimization
 
 	auto itPortalCoords = std::find_if(
-		prtVector.begin(), prtVector.end(),
+		prtVector.begin(),
+		prtVector.end(),
 		[](std::string const & s) {
 			return s.find('(')
 				!= std::string::npos; // Point iterator to the first string
@@ -894,13 +915,15 @@ void FixPrt(char const * portalfile) {
 	}
 	prtVector.erase( // Deletes from string 3 until string before portal
 					 // coordinates
-		prtVector.begin() + 2, itPortalCoords
+		prtVector.begin() + 2,
+		itPortalCoords
 	);
 
 	std::size_t optimizedPortalFileLines
 		= prtVector.size(); // Count lines after optimization
 
-	Log("Reduced %zu lines to %zu\n", portalFileLines,
+	Log("Reduced %zu lines to %zu\n",
+		portalFileLines,
 		optimizedPortalFileLines);
 
 	// Print contents of vector
@@ -1094,7 +1117,8 @@ int main(int const argc, char** argv) {
 							g_room[g_room_count].visleafnum
 								= VisLeafnumForPoint(room_origin);
 							g_room[g_room_count].neighbor = std::clamp(
-								IntForKey(&g_entities[i], u8"neighbor"), 0,
+								IntForKey(&g_entities[i], u8"neighbor"),
+								0,
 								MAX_ROOM_NEIGHBOR
 							);
 
@@ -1113,11 +1137,13 @@ int main(int const argc, char** argv) {
 								// Find a `info_leaf` and check if its
 								// targetname matches our target
 								if (key_value_is(
-										&g_entities[j], u8"classname",
+										&g_entities[j],
+										u8"classname",
 										u8"info_leaf"
 									)
 									&& key_value_is(
-										&g_entities[j], u8"targetname",
+										&g_entities[j],
+										u8"targetname",
 										target
 									)) {
 									float3_array const room_target_origin{
@@ -1154,7 +1180,8 @@ int main(int const argc, char** argv) {
 			CalcVis();
 
 			g_visdatasize = vismap_p - (byte*) g_dvisdata.data();
-			Log("g_visdatasize:%i  compressed from %i\n", g_visdatasize,
+			Log("g_visdatasize:%i  compressed from %i\n",
+				g_visdatasize,
 				originalvismapsize);
 
 			if (!g_nofixprt) // seedee

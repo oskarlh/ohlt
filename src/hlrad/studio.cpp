@@ -24,7 +24,10 @@ static void LoadStudioModel(
 	}
 	model_t* m = &models.emplace_back();
 	snprintf(
-		m->name, sizeof(m->name), "%s%s", g_Wadpath,
+		m->name,
+		sizeof(m->name),
+		"%s%s",
+		g_Wadpath,
 		(char const *) modelname.data()
 	);
 	FlipSlashes(m->name);

@@ -71,7 +71,8 @@ find_plane:
 	p->type = plane_type_for_normal(p->normal);
 	if (p->type <= last_axial) {
 		for (std::size_t i{ std::size_t(first_axial) };
-			 i <= std::size_t(last_axial); ++i) {
+			 i <= std::size_t(last_axial);
+			 ++i) {
 			if (i == std::size_t(p->type)) {
 				p->normal[i] = p->normal[i] > 0 ? 1 : -1;
 			} else {
@@ -236,7 +237,8 @@ void ExpandBrushWithHullBrush(
 			dotmax = -g_iWorldExtent;
 			hlassume(hbf->numvertexes >= 1, assume_first);
 			for (double3_array* v = hbf->vertexes;
-				 v < hbf->vertexes + hbf->numvertexes; v++) {
+				 v < hbf->vertexes + hbf->numvertexes;
+				 v++) {
 				double dot;
 				dot = DotProduct(*v, brushface.normal);
 				dotmin = std::min(dotmin, dot);
@@ -291,7 +293,8 @@ void ExpandBrushWithHullBrush(
 			VectorCopy(f.w.m_Points[i], brushedge.vertexes[1]);
 			VectorCopy(brushedge.vertexes[0], brushedge.point);
 			VectorSubtract(
-				brushedge.vertexes[1], brushedge.vertexes[0],
+				brushedge.vertexes[1],
+				brushedge.vertexes[0],
 				brushedge.delta
 			);
 
@@ -315,7 +318,8 @@ void ExpandBrushWithHullBrush(
 				if (!warned) {
 					Warning(
 						"ExpandBrushWithHullBrush: Illegal Brush (edge without opposite face): Entity %i, Brush %i\n",
-						brush->originalentitynum, brush->originalbrushnum
+						brush->originalentitynum,
+						brush->originalbrushnum
 					);
 					warned = true;
 				}
@@ -369,7 +373,8 @@ void ExpandBrushWithHullBrush(
 	// check for vertex-face type. edge-face type and face-face type are
 	// permitted.
 	for (hullbrushface_t const * hbf = hb->faces;
-		 hbf < hb->faces + hb->numfaces; hbf++) {
+		 hbf < hb->faces + hb->numfaces;
+		 hbf++) {
 		// find the impact point
 		double3_array bestvertex;
 		double bestdist = g_iWorldExtent;
@@ -422,7 +427,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 			if (!found) {
 				Error(
 					"Entity %i, Brush %i: Couldn't find info_hullshape entity '%s'.",
-					brush->originalentitynum, brush->originalbrushnum,
+					brush->originalentitynum,
+					brush->originalbrushnum,
 					(char const *) name.c_str()
 				);
 			}
@@ -721,7 +727,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	VectorAdd(brush->hulls[0].bounds.mins, g_hull_size[hullnum][0], origin);
 	double3_array normal{ -1, 0, 0 };
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_x)][0]
 			 ? brush->hulls[0].bounds.mins.data()
 			 : origin.data()),
@@ -730,7 +737,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	normal[0] = 0;
 	normal[1] = -1;
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_y)][0]
 			 ? brush->hulls[0].bounds.mins.data()
 			 : origin.data()),
@@ -739,7 +747,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	normal[1] = 0;
 	normal[2] = -1;
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_z)][0]
 			 ? brush->hulls[0].bounds.mins.data()
 			 : origin.data()),
@@ -752,7 +761,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	VectorAdd(brush->hulls[0].bounds.maxs, g_hull_size[hullnum][1], origin);
 	normal[0] = 1;
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_x)][1]
 			 ? brush->hulls[0].bounds.maxs.data()
 			 : origin.data()),
@@ -761,7 +771,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	normal[0] = 0;
 	normal[1] = 1;
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_y)][1]
 			 ? brush->hulls[0].bounds.maxs.data()
 			 : origin.data()),
@@ -770,7 +781,8 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	normal[1] = 0;
 	normal[2] = 1;
 	AddHullPlane(
-		hull, normal.data(),
+		hull,
+		normal.data(),
 		(axialbevel[std::size_t(planetype::plane_z)][1]
 			 ? brush->hulls[0].bounds.maxs.data()
 			 : origin.data()),
@@ -785,7 +797,8 @@ void SortSides(brushhull_t* h) {
 	// The only reason it's a stable sort is so we get identical .bsp files
 	// no matter which implementation of the C++ standard library is used
 	std::stable_sort(
-		h->faces.begin(), h->faces.end(),
+		h->faces.begin(),
+		h->faces.end(),
 		[](bface_t const & a, bface_t const & b) {
 			double3_array const normalsA = g_mapplanes[a.planenum].normal;
 			int axialA = (fabs(normalsA[0]) < NORMAL_EPSILON)
@@ -815,7 +828,8 @@ restart:
 			}
 			mapplane_t const * p = &g_mapplanes[f2.planenum ^ 1];
 			if (!w.Chop(
-					p->normal, p->dist,
+					p->normal,
+					p->dist,
 					NORMAL_EPSILON // fix "invalid brush" in ExpandBrush
 				)) // Nothing left to chop (getArea will return 0 for us in
 				   // this case for below)
@@ -845,9 +859,14 @@ restart:
 			Fatal(
 				assume_BRUSH_OUTSIDE_WORLD,
 				"Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
-				b->originalentitynum, b->originalbrushnum,
-				g_iWorldExtent / 2, h->bounds.mins[0], h->bounds.mins[1],
-				h->bounds.mins[2], h->bounds.maxs[0], h->bounds.maxs[1],
+				b->originalentitynum,
+				b->originalbrushnum,
+				g_iWorldExtent / 2,
+				h->bounds.mins[0],
+				h->bounds.mins[1],
+				h->bounds.mins[2],
+				h->bounds.maxs[0],
+				h->bounds.maxs[1],
 				h->bounds.maxs[2]
 			);
 		}
@@ -886,7 +905,9 @@ bool MakeBrushPlanes(brush_t* b) {
 			Fatal(
 				assume_PLANE_WITH_NO_NORMAL,
 				"Entity %i, Brush %i, Side %i: plane with no normal",
-				b->originalentitynum, b->originalbrushnum, i
+				b->originalentitynum,
+				b->originalbrushnum,
+				i
 			);
 		}
 
@@ -898,10 +919,13 @@ bool MakeBrushPlanes(brush_t* b) {
 				Fatal(
 					assume_BRUSH_WITH_COPLANAR_FACES,
 					"Entity %i, Brush %i, Side %i: has a coplanar plane at (%.0f, %.0f, %.0f), texture %s",
-					b->originalentitynum, b->originalbrushnum, i,
+					b->originalentitynum,
+					b->originalbrushnum,
+					i,
 					s->planepts[0][0] + origin[0],
 					s->planepts[0][1] + origin[1],
-					s->planepts[0][2] + origin[2], s->td.name.c_str()
+					s->planepts[0][2] + origin[2],
+					s->td.name.c_str()
 				);
 			}
 		}
@@ -1068,7 +1092,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 	if (b->numsides == 0) {
 		Error(
 			"Entity %i, Brush %i: Brush with no sides.\n",
-			b->originalentitynum, b->originalbrushnum
+			b->originalentitynum,
+			b->originalbrushnum
 		);
 	}
 	best_i = 0;
@@ -1126,7 +1151,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 			Fatal(
 				assume_MIXED_FACE_CONTENTS,
 				"Entity %i, Brush %i: mixed face contents\n    Texture %s and %s",
-				b->originalentitynum, b->originalbrushnum,
+				b->originalentitynum,
+				b->originalbrushnum,
 				g_brushsides[b->firstside + best_i].td.name.c_str(),
 				s->td.name.c_str()
 			);
@@ -1144,7 +1170,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 			Fatal(
 				assume_BRUSH_NOT_ALLOWED_IN_WORLD,
 				"Entity %i, Brush %i: %s brushes not allowed in world\n(did you forget to tie this origin brush to a rotating entity?)",
-				b->originalentitynum, b->originalbrushnum,
+				b->originalentitynum,
+				b->originalbrushnum,
 				ContentsToString(contents)
 			);
 		}
@@ -1166,7 +1193,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 				Fatal(
 					assume_BRUSH_NOT_ALLOWED_IN_ENTITY,
 					"Entity %i, Brush %i: %s brushes not allowed in entity",
-					b->originalentitynum, b->originalbrushnum,
+					b->originalentitynum,
+					b->originalbrushnum,
 					ContentsToString(contents)
 				);
 				break;
@@ -1277,8 +1305,11 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 					&& p[j][k] != floor(p[j][k] + 0.5)) {
 					Warning(
 						"Entity %i, Brush %i: vertex (%4.8f %4.8f %4.8f) of an info_hullshape entity is slightly off-grid.",
-						b->originalentitynum, b->originalbrushnum, p[j][0],
-						p[j][1], p[j][2]
+						b->originalentitynum,
+						b->originalbrushnum,
+						p[j][0],
+						p[j][1],
+						p[j][2]
 					);
 				}
 			}
@@ -1473,21 +1504,27 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 		);
 		hlassume(hb->vertexes != nullptr, assume_NoMemory);
 		memcpy(
-			hb->vertexes, vertexes,
+			hb->vertexes,
+			vertexes,
 			hb->numvertexes * sizeof(hullbrushvertex_t)
 		);
 
 		Developer(
 			developer_level::message,
 			"info_hullshape @ (%.0f,%.0f,%.0f): %d faces, %d edges, %d vertexes.\n",
-			origin[0], origin[1], origin[2], hb->numfaces, hb->numedges,
+			origin[0],
+			origin[1],
+			origin[2],
+			hb->numfaces,
+			hb->numedges,
 			hb->numvertexes
 		);
 	} else {
 		hb = nullptr;
 		Error(
 			"Entity %i, Brush %i: invalid brush. This brush cannot be used for info_hullshape.",
-			b->originalentitynum, b->originalbrushnum
+			b->originalentitynum,
+			b->originalbrushnum
 		);
 	}
 
@@ -1516,7 +1553,8 @@ hullbrush_t* CopyHullBrush(hullbrush_t const * hb) {
 	);
 	hlassume(hb2->vertexes != nullptr, assume_NoMemory);
 	memcpy(
-		hb2->vertexes, hb->vertexes,
+		hb2->vertexes,
+		hb->vertexes,
 		hb->numvertexes * sizeof(hullbrushvertex_t)
 	);
 	for (int i = 0; i < hb->numfaces; i++) {
@@ -1527,7 +1565,8 @@ hullbrush_t* CopyHullBrush(hullbrush_t const * hb) {
 		);
 		hlassume(f2->vertexes != nullptr, assume_NoMemory);
 		memcpy(
-			f2->vertexes, f->vertexes,
+			f2->vertexes,
+			f->vertexes,
 			f->numvertexes * sizeof(double3_array)
 		);
 	}
@@ -1588,7 +1627,8 @@ void CreateHullShape(
 		brush_t* b = &g_mapbrushes[entity->firstbrush];
 		Error(
 			"Entity %i, Brush %i: Too many brushes in info_hullshape.",
-			b->originalentitynum, b->originalbrushnum
+			b->originalentitynum,
+			b->originalbrushnum
 		);
 	}
 

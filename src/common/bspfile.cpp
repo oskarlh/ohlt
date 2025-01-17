@@ -271,7 +271,8 @@ void LoadBSPImage(dheader_t* const header) {
 
 	auto modelData = get_lump_data<lump_id::models>(header);
 	memcpy(
-		g_dmodels.data(), modelData.data(),
+		g_dmodels.data(),
+		modelData.data(),
 		modelData.size() * sizeof(modelData[0])
 	);
 	g_nummodels = modelData.size();
@@ -294,8 +295,10 @@ void LoadBSPImage(dheader_t* const header) {
 	g_numfaces
 		= CopyLump(LUMP_FACES, g_dfaces.data(), sizeof(dface_t), header);
 	g_nummarksurfaces = CopyLump(
-		LUMP_MARKSURFACES, g_dmarksurfaces.data(),
-		sizeof(g_dmarksurfaces[0]), header
+		LUMP_MARKSURFACES,
+		g_dmarksurfaces.data(),
+		sizeof(g_dmarksurfaces[0]),
+		header
 	);
 	g_numsurfedges = CopyLump(
 		LUMP_SURFEDGES, g_dsurfedges.data(), sizeof(g_dsurfedges[0]), header
@@ -305,7 +308,8 @@ void LoadBSPImage(dheader_t* const header) {
 
 	auto textureData = get_lump_data<lump_id::textures>(header);
 	memcpy(
-		g_dtexdata.data(), textureData.data(),
+		g_dtexdata.data(),
+		textureData.data(),
 		textureData.size() * sizeof(textureData[0])
 	);
 	g_texdatasize = textureData.size();
@@ -419,7 +423,8 @@ void WriteBSPFile(std::filesystem::path const & filename) {
 	);
 
 	add_lump<lump_id::marksurfaces>(
-		std::span(g_dmarksurfaces.data(), g_nummarksurfaces), header,
+		std::span(g_dmarksurfaces.data(), g_nummarksurfaces),
+		header,
 		bspfile
 	);
 	add_lump<lump_id::surfedges>(
@@ -474,19 +479,40 @@ float CalculatePointVecsProduct(
 bool CalcFaceExtents_test() {
 	int const numtestcases = 6;
 	float volatile testcases[numtestcases][8] = {
-		{									  1,1, 1,											  1,0.375 * std::numeric_limits<double>::epsilon(),
-		  0.375 * std::numeric_limits<double>::epsilon(), -1,0													},
-		{									  1, 1, 1, 0.375 * std::numeric_limits<double>::epsilon(),
-		  0.375 * std::numeric_limits<double>::epsilon(),											  1, -1,
+		{									  1,
+		  1,1,
+		  1,0.375 * std::numeric_limits<double>::epsilon(),
+		  0.375 * std::numeric_limits<double>::epsilon(),
+		  -1,
+		  0											},
+		{									  1,
+		  1, 1,
+		  0.375 * std::numeric_limits<double>::epsilon(),
+		  0.375 * std::numeric_limits<double>::epsilon(),
+		  1, -1,
 		  std::numeric_limits<double>::epsilon()		 },
 		{ std::numeric_limits<double>::epsilon(),
-		  std::numeric_limits<double>::epsilon(), 1,											 0.375,											0.375,											   1, -1,
+		  std::numeric_limits<double>::epsilon(),
+		  1,											   0.375,
+		  0.375,	  1,
+		  -1,
 		  std::numeric_limits<double>::epsilon()		 },
-		{									  1, 1, 1,											  1,											  1, 0.375 * std::numeric_limits<float>::epsilon(), -2,
+		{									  1,
+		  1, 1,
+		  1,											  1,
+		  0.375 * std::numeric_limits<float>::epsilon(),
+		  -2,
 		  0.375 * std::numeric_limits<float>::epsilon() },
-		{									  1, 1, 1,											  1,  0.375 * std::numeric_limits<float>::epsilon(),											 1, -2,
+		{									  1,
+		  1, 1,
+		  1,  0.375 * std::numeric_limits<float>::epsilon(),
+		  1, -2,
 		  0.375 * std::numeric_limits<float>::epsilon() },
-		{									  1, 1, 1,  0.375 * std::numeric_limits<float>::epsilon(),											  1,											 1, -2,
+		{									  1,
+		  1, 1,
+		  0.375 * std::numeric_limits<float>::epsilon(),
+		  1,	  1,
+		  -2,
 		  0.375 * std::numeric_limits<float>::epsilon() }
 	};
 	bool ok;
@@ -502,7 +528,9 @@ bool CalcFaceExtents_test() {
 		if (val != testcases[i][7]) {
 			Warning(
 				"internal error: CalcFaceExtents_test failed on case %d (%.20f != %.20f).",
-				i, val, testcases[i][7]
+				i,
+				val,
+				testcases[i][7]
 			);
 			ok = false;
 		}
@@ -633,7 +661,8 @@ int ParseImplicitTexinfoFromTexture(int miptex) {
 	if (maybeTexinfoIndex.value() >= g_numtexinfo) {
 		Warning(
 			"Invalid index of original texinfo: %d parsed from texture name '%s'.",
-			maybeTexinfoIndex.value(), mt.name.c_str()
+			maybeTexinfoIndex.value(),
+			mt.name.c_str()
 		);
 		return -1;
 	}
@@ -777,7 +806,9 @@ void DeleteEmbeddedLightmaps() {
 	if (countrestoredfaces > 0 || countremovedtexinfos > 0
 		|| countremovedtextures > 0) {
 		Log("DeleteEmbeddedLightmaps: restored %d faces, removed %d texinfos and %d textures.\n",
-			countrestoredfaces, countremovedtexinfos, countremovedtextures);
+			countrestoredfaces,
+			countremovedtexinfos,
+			countremovedtextures);
 	}
 }
 
@@ -978,7 +1009,8 @@ std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key) {
 	std::int32_t result{};
 	std::from_chars(
 		(char const *) valueString.begin(),
-		(char const *) valueString.end(), result
+		(char const *) valueString.end(),
+		result
 	);
 	return result;
 }
@@ -991,8 +1023,11 @@ double3_array
 get_double3_for_key(entity_t const & ent, std::u8string_view key) {
 	double3_array result{};
 	sscanf(
-		(char const *) value_for_key(&ent, key).data(), "%lf %lf %lf",
-		&result[0], &result[1], &result[2]
+		(char const *) value_for_key(&ent, key).data(),
+		"%lf %lf %lf",
+		&result[0],
+		&result[1],
+		&result[2]
 	);
 	return result;
 }
@@ -1001,8 +1036,11 @@ float3_array
 get_float3_for_key(entity_t const & ent, std::u8string_view key) {
 	float3_array result{};
 	sscanf(
-		(char const *) value_for_key(&ent, key).data(), "%f %f %f",
-		&result[0], &result[1], &result[2]
+		(char const *) value_for_key(&ent, key).data(),
+		"%f %f %f",
+		&result[0],
+		&result[1],
+		&result[2]
 	);
 	return result;
 }

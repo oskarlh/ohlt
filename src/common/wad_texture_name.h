@@ -43,7 +43,9 @@ class wad_texture_name final {
 #ifdef __cpp_lib_execution
 			std::execution::unseq,
 #endif
-			units.begin(), units.begin() + StringSize, cString
+			units.begin(),
+			units.begin() + StringSize,
+			cString
 		);
 	}
 
@@ -60,7 +62,9 @@ class wad_texture_name final {
 #ifdef __cpp_lib_execution
 			std::execution::unseq,
 #endif
-			units.begin(), units.begin() + PrefixSize - 1, prefixCString
+			units.begin(),
+			units.begin() + PrefixSize - 1,
+			prefixCString
 		);
 	}
 
@@ -205,7 +209,9 @@ class wad_texture_name final {
 #ifdef __cpp_lib_execution
 				   std::execution::unseq,
 #endif
-				   units.begin(), units.end(), u8'\0'
+				   units.begin(),
+				   units.end(),
+				   u8'\0'
 			);
 	}
 

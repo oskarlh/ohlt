@@ -207,7 +207,8 @@ void MakeScales(int const threadnum) {
 		if (patch->translucent_b) {
 			VectorMA(
 				patch->origin,
-				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET), normal1,
+				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+				normal1,
 				backorigin
 			);
 			backnormal = negate_vector(normal1);
@@ -298,8 +299,12 @@ void MakeScales(int const threadnum) {
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea(
-					receiver_origin, receiver_normal, emitter_winding,
-					patch2->emitter_skylevel, lighting_power, lighting_scale
+					receiver_origin,
+					receiver_normal,
+					emitter_winding,
+					patch2->emitter_skylevel,
+					lighting_power,
+					lighting_scale
 				);
 
 				float frac;
@@ -460,7 +465,8 @@ void MakeRGBScales(int const threadnum) {
 		if (patch->translucent_b) {
 			VectorMA(
 				patch->origin,
-				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET), normal1,
+				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+				normal1,
 				backorigin
 			);
 			backnormal = negate_vector(normal1);
@@ -550,8 +556,12 @@ void MakeRGBScales(int const threadnum) {
 				}
 				emitter_winding = patch2->winding;
 				sightarea = CalcSightArea(
-					receiver_origin, receiver_normal, emitter_winding,
-					patch2->emitter_skylevel, lighting_power, lighting_scale
+					receiver_origin,
+					receiver_normal,
+					emitter_winding,
+					patch2->emitter_skylevel,
+					lighting_power,
+					lighting_scale
 				);
 
 				float frac;
@@ -666,7 +676,8 @@ void DumpTransfersMemoryUsage() {
 			(double) g_total_transfer / (1000.0f * 1000.0f));
 	} else if (g_total_transfer > 1000) {
 		Log("Transfer Lists : %11.0f : %8.2fk transfers\n",
-			(double) g_total_transfer, (double) g_total_transfer / 1000.0f);
+			(double) g_total_transfer,
+			(double) g_total_transfer / 1000.0f);
 	} else {
 		Log("Transfer Lists : %11.0f transfers\n",
 			(double) g_total_transfer);

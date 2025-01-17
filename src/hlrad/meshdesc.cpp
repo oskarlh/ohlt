@@ -117,7 +117,8 @@ bool CMeshDesc ::InitMeshBuild(char const * debug_name, int numTriangles) {
 	// perfomance warning
 	if (numTriangles >= 65536) {
 		Log("Error: %s have too many triangles (%i). Mesh cannot be build\n",
-			m_debugName, numTriangles);
+			m_debugName,
+			numTriangles);
 		return false; // failed to build (too many triangles)
 	} else if (numTriangles >= 32768) {
 		Warning(
@@ -125,8 +126,10 @@ bool CMeshDesc ::InitMeshBuild(char const * debug_name, int numTriangles) {
 		);
 	} else if (numTriangles >= 16384) {
 		Developer(
-			developer_level::warning, "%s have too many triangles (%i)\n",
-			m_debugName, numTriangles
+			developer_level::warning,
+			"%s have too many triangles (%i)\n",
+			m_debugName,
+			numTriangles
 		);
 	}
 
@@ -192,7 +195,8 @@ std::uint32_t CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
 	if (m_mesh.numplanes >= MAX_PLANES) {
 		Error(
 			"AddPlaneToPool: plane limit exceeded: planes %i, maxplanes %i\n",
-			m_mesh.numplanes, MAX_PLANES
+			m_mesh.numplanes,
+			MAX_PLANES
 		);
 		return 0; // index of our bad plane
 	}
@@ -680,7 +684,8 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		Developer(
 			developer_level::error,
 			"StudioConstructMesh: mismatch triangle count (%i should be %i)\n",
-			(numElems / 3), numTris
+			(numElems / 3),
+			numTris
 		);
 	}
 
@@ -764,7 +769,11 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			Developer(
 				developer_level::message,
 				"Model %s simplified ( verts %i -> %i, tris %i -> %i )\n",
-				mdlname, numVerts, verts_reduced, numTris, tris_reduced
+				mdlname,
+				numVerts,
+				verts_reduced,
+				numTris,
+				tris_reduced
 			);
 		}
 	} else {
@@ -800,8 +809,10 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 
 	// g-cont. i'm leave this for debug
 	Verbose(
-		"%s: build time %g secs, size %zuB\n", m_debugName,
-		profile.getTotal(), mesh_size
+		"%s: build time %g secs, size %zuB\n",
+		m_debugName,
+		profile.getTotal(),
+		mesh_size
 	);
 
 	// done
@@ -820,8 +831,10 @@ bool CMeshDesc ::AddMeshTrinagle(
 	if (m_mesh.numfacets >= m_iNumTris) {
 		Developer(
 			developer_level::error,
-			"AddMeshTriangle: %s overflow (%i >= %i)\n", m_debugName,
-			m_mesh.numfacets, m_iNumTris
+			"AddMeshTriangle: %s overflow (%i >= %i)\n",
+			m_debugName,
+			m_mesh.numfacets,
+			m_iNumTris
 		);
 		return false;
 	}
@@ -1058,7 +1071,8 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 		Developer(
 			developer_level::error,
 			"FinishMeshBuild: memory representation error! %p != %p\n",
-			buffer, bufend
+			buffer,
+			bufend
 		);
 	}
 

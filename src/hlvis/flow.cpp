@@ -930,7 +930,8 @@ void MaxDistVis(int unused) {
 				}
 				for (int side = 0; side < 2; side++) {
 					VectorScale(
-						center[side], 1.0 / (float) count[side],
+						center[side],
+						1.0 / (float) count[side],
 						center[side]
 					);
 					radius[side] = 0;

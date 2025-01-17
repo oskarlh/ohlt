@@ -156,19 +156,22 @@ static void BuildVisLeafs(int threadnum) {
 		srcleaf = &g_dleafs[i];
 		if (!g_visdatasize) {
 			std::fill(
-				pvs.begin(), pvs.begin() + (g_dmodels[0].visleafs + 7) / 8,
+				pvs.begin(),
+				pvs.begin() + (g_dmodels[0].visleafs + 7) / 8,
 				std::byte(0xFF)
 			);
 		} else {
 			if (srcleaf->visofs == -1) {
 				Developer(
 					developer_level::error,
-					"Error: No visdata for leaf %d\n", i
+					"Error: No visdata for leaf %d\n",
+					i
 				);
 				continue;
 			}
 			DecompressVis(
-				(byte*) &g_dvisdata[srcleaf->visofs], (byte*) pvs.data(),
+				(byte*) &g_dvisdata[srcleaf->visofs],
+				(byte*) pvs.data(),
 				sizeof(pvs)
 			);
 		}
@@ -195,8 +198,12 @@ static void BuildVisLeafs(int threadnum) {
 				for (facenum2 = facenum + 1; facenum2 < g_numfaces;
 					 facenum2++) {
 					TestPatchToFace(
-						patchnum, facenum2, head, bitpos,
-						(byte*) pvs.data(), g_transparencyList
+						patchnum,
+						facenum2,
+						head,
+						bitpos,
+						(byte*) pvs.data(),
+						g_transparencyList
 					);
 				}
 			}

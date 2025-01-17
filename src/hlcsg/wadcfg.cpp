@@ -19,7 +19,8 @@ void LoadWadconfig(char const * filename, std::u8string_view configName) {
 		filenameOnly[temp.size()] = '\0';
 	}
 	Log("Loading wadconfig %s from '%s'\n",
-		(char const *) configName.data(), filenameOnly);
+		(char const *) configName.data(),
+		filenameOnly);
 	Log("--------------------------------------\n");
 	int wadconfigsFound = 0;
 	int wadPathsFound = 0;
@@ -48,14 +49,16 @@ void LoadWadconfig(char const * filename, std::u8string_view configName) {
 		{
 			Error(
 				"Parsing %s (missing '{' opening bracket in '%s' config)\n",
-				filenameOnly, (char const *) configName.data()
+				filenameOnly,
+				(char const *) configName.data()
 			);
 		}
 		while (1) // Loop through content of braces
 		{
 			if (!GetToken(true)) {
 				Error(
-					"Parsing '%s': unexpected EOF in '%s'\n", filenameOnly,
+					"Parsing '%s': unexpected EOF in '%s'\n",
+					filenameOnly,
 					(char const *) configName.data()
 				);
 			}
@@ -78,7 +81,8 @@ void LoadWadconfig(char const * filename, std::u8string_view configName) {
 				if (!GetToken(true)) {
 					Error(
 						"Parsing '%s': unexpected EOF in '%s'\n",
-						filenameOnly, (char const *) configName.data()
+						filenameOnly,
+						(char const *) configName.data()
 					);
 				}
 			}
@@ -87,20 +91,23 @@ void LoadWadconfig(char const * filename, std::u8string_view configName) {
 			PushWadPath(g_token, !include);
 		}
 	}
-	Log("- %d wadpaths found in %s\n", wadPathsFound,
+	Log("- %d wadpaths found in %s\n",
+		wadPathsFound,
 		(char const *) configName.data());
 	Log("--------------------------------------\n\n");
 
 	if (wadconfigsFound < 1) {
 		Error(
 			"Couldn't find wad config %s in '%s'\n",
-			(char const *) configName.data(), filenameOnly
+			(char const *) configName.data(),
+			filenameOnly
 		);
 	}
 	if (wadconfigsFound > 1) {
 		Error(
 			"Found more than one wad config %s in '%s'\n",
-			(char const *) configName.data(), filenameOnly
+			(char const *) configName.data(),
+			filenameOnly
 		);
 	}
 	// Log ("Using custom wadfile configuration: '%s' (with %i wad%s)\n",

@@ -30,7 +30,9 @@ bool TestFaceIntersect(intersecttest_t* t, int facenum) {
 	}
 	for (k = 0; k < t->numclipplanes; k++) {
 		if (!w->mutating_clip(
-				t->clipplanes[k].normal, t->clipplanes[k].dist, false,
+				t->clipplanes[k].normal,
+				t->clipplanes[k].dist,
+				false,
 				ON_EPSILON * 4
 			)) {
 			break;
@@ -95,9 +97,15 @@ void AddFaceForVertexNormal_printerror(
 			edgeshare_t* es = &g_edgeshare[abs(e)];
 			int v0 = g_dedges[abs(e)].v[0], v1 = g_dedges[abs(e)].v[1];
 			Log(" e=%d v0=%d(%f,%f,%f) v1=%d(%f,%f,%f) share0=%li share1=%li\n",
-				e, v0, g_dvertexes[v0].point[0], g_dvertexes[v0].point[1],
-				g_dvertexes[v0].point[2], v1, g_dvertexes[v1].point[0],
-				g_dvertexes[v1].point[1], g_dvertexes[v1].point[2],
+				e,
+				v0,
+				g_dvertexes[v0].point[0],
+				g_dvertexes[v0].point[1],
+				g_dvertexes[v0].point[2],
+				v1,
+				g_dvertexes[v1].point[0],
+				g_dvertexes[v1].point[1],
+				g_dvertexes[v1].point[2],
 				(es->faces[0] == nullptr ? -1
 										 : es->faces[0] - g_dfaces.data()),
 				(es->faces[1] == nullptr ? -1
@@ -401,8 +409,10 @@ void PairEdges() {
 				if (e->smooth) {
 					// compute the matrix in advance
 					if (!TranslateTexToTex(
-							e->faces[0] - g_dfaces.data(), abs(k),
-							e->faces[1] - g_dfaces.data(), e->textotex[0],
+							e->faces[0] - g_dfaces.data(),
+							abs(k),
+							e->faces[1] - g_dfaces.data(),
+							e->textotex[0],
 							e->textotex[1]
 						)) {
 						e->smooth = false;
@@ -415,7 +425,9 @@ void PairEdges() {
 							"TranslateTexToTex failed on face %d and %d @(%f,%f,%f)",
 							(int) (e->faces[0] - g_dfaces.data()),
 							(int) (e->faces[1] - g_dfaces.data()),
-							dv->point[0], dv->point[1], dv->point[2]
+							dv->point[0],
+							dv->point[1],
+							dv->point[2]
 						);
 					}
 				}
@@ -443,13 +455,16 @@ void PairEdges() {
 					g_dvertexes[g_dedges[edgeabs].v[0]].point, errorpos
 				);
 				VectorAdd(
-					errorpos, g_face_offset[e->faces[0] - g_dfaces.data()],
+					errorpos,
+					g_face_offset[e->faces[0] - g_dfaces.data()],
 					errorpos
 				);
 				Developer(
 					developer_level::warning,
-					"PairEdges: invalid edge at (%f,%f,%f)", errorpos[0],
-					errorpos[1], errorpos[2]
+					"PairEdges: invalid edge at (%f,%f,%f)",
+					errorpos[0],
+					errorpos[1],
+					errorpos[2]
 				);
 				VectorCopy(edgenormal, e->vertex_normal[0]);
 				VectorCopy(edgenormal, e->vertex_normal[1]);
@@ -483,15 +498,23 @@ void PairEdges() {
 						while (1) {
 							fcurrent = fnext;
 							r = AddFaceForVertexNormal(
-								edgeabsnext, edgeabsnext, edgeendnext,
-								edgeendnext, fcurrent, fnext, angle, normal
+								edgeabsnext,
+								edgeabsnext,
+								edgeendnext,
+								edgeendnext,
+								fcurrent,
+								fnext,
+								angle,
+								normal
 							);
 							count++;
 							if (r == -1) {
 								Developer(
 									developer_level::warning,
 									"PairEdges: face edges mislink at (%f,%f,%f)",
-									errorpos[0], errorpos[1], errorpos[2]
+									errorpos[0],
+									errorpos[1],
+									errorpos[2]
 								);
 								break;
 							}
@@ -499,7 +522,9 @@ void PairEdges() {
 								Developer(
 									developer_level::warning,
 									"PairEdges: faces mislink at (%f,%f,%f)",
-									errorpos[0], errorpos[1], errorpos[2]
+									errorpos[0],
+									errorpos[1],
+									errorpos[2]
 								);
 								break;
 							}
@@ -540,7 +565,9 @@ void PairEdges() {
 								Developer(
 									developer_level::warning,
 									"Overlapping faces around corner (%f,%f,%f)\n",
-									errorpos[0], errorpos[1], errorpos[2]
+									errorpos[0],
+									errorpos[1],
+									errorpos[2]
 								);
 								break;
 							}
@@ -554,7 +581,8 @@ void PairEdges() {
 								}
 								for (facelist_t* l
 									 = e->vertex_facelist[edgeend];
-									 l; l = l->next) {
+									 l;
+									 l = l->next) {
 									if (fcurrent == l->face) {
 										in = true;
 									}
@@ -580,7 +608,9 @@ void PairEdges() {
 						Developer(
 							developer_level::warning,
 							"PairEdges: no valid faces at (%f,%f,%f)",
-							errorpos[0], errorpos[1], errorpos[2]
+							errorpos[0],
+							errorpos[1],
+							errorpos[2]
 						);
 					} else {
 						normalize_vector(normals);
@@ -728,7 +758,8 @@ static void CalcFaceExtents(lightinfo_t* l) {
 		) {
 			ThreadLock();
 			PrintOnce(
-				"\nfor Face %li (texture %s) at ", s - g_dfaces.data(),
+				"\nfor Face %li (texture %s) at ",
+				s - g_dfaces.data(),
 				TextureNameFromFace(s).c_str()
 			);
 
@@ -747,7 +778,8 @@ static void CalcFaceExtents(lightinfo_t* l) {
 
 			Error(
 				"Bad surface extents (%d x %d)\nCheck the file ZHLTProblems.html for a detailed explanation of this problem",
-				l->texsize[0], l->texsize[1]
+				l->texsize[0],
+				l->texsize[1]
 			);
 		}
 	}
@@ -995,7 +1027,8 @@ void ChopFrag(samplefrag_t* frag)
 	frag->mywinding = new fast_winding(facewinding->size());
 	for (int x = 0; x < facewinding->size(); x++) {
 		ApplyMatrix(
-			worldtotex, facewinding->m_Points[x],
+			worldtotex,
+			facewinding->m_Points[x],
 			frag->mywinding->m_Points[x]
 		);
 		frag->mywinding->m_Points[x][2] = 0.0;
@@ -1012,7 +1045,8 @@ void ChopFrag(samplefrag_t* frag)
 
 	for (int x = 0; x < 4 && frag->mywinding->size() > 0; x++) {
 		frag->mywinding->mutating_clip(
-			frag->myrect.planes[x].normal, frag->myrect.planes[x].dist,
+			frag->myrect.planes[x].normal,
+			frag->myrect.planes[x].dist,
 			false
 		);
 	}
@@ -1020,7 +1054,8 @@ void ChopFrag(samplefrag_t* frag)
 	frag->winding = new fast_winding(frag->mywinding->size());
 	for (int x = 0; x < frag->mywinding->size(); x++) {
 		ApplyMatrix(
-			frag->mycoordtocoord, frag->mywinding->m_Points[x],
+			frag->mycoordtocoord,
+			frag->mywinding->m_Points[x],
 			frag->winding->m_Points[x]
 		);
 	}
@@ -1141,7 +1176,10 @@ void ChopFrag(samplefrag_t* frag)
 			Developer(
 				developer_level::spam,
 				"TranslateTexToTex failed on face %d and %d @(%f,%f,%f)",
-				frag->facenum, e->nextfacenum, dv1->point[0], dv1->point[1],
+				frag->facenum,
+				e->nextfacenum,
+				dv1->point[0],
+				dv1->point[1],
 				dv1->point[2]
 			);
 			continue;
@@ -1199,8 +1237,10 @@ static samplefrag_t* GrowSingleFrag(
 		// translate the original absolute plane into this relative plane by
 		// multiplying the inverse matrix
 		ApplyMatrixOnPlane(
-			frag->mycoordtocoord, frag->rect.planes[x].normal,
-			frag->rect.planes[x].dist, frag->myrect.planes[x].normal,
+			frag->mycoordtocoord,
+			frag->rect.planes[x].normal,
+			frag->rect.planes[x].dist,
+			frag->myrect.planes[x].normal,
 			frag->myrect.planes[x].dist
 		);
 		double len = vector_length(frag->myrect.planes[x].normal);
@@ -1214,7 +1254,8 @@ static samplefrag_t* GrowSingleFrag(
 			return nullptr;
 		}
 		VectorScale(
-			frag->myrect.planes[x].normal, 1 / len,
+			frag->myrect.planes[x].normal,
+			1 / len,
 			frag->myrect.planes[x].normal
 		);
 		frag->myrect.planes[x].dist /= len;
@@ -1243,7 +1284,8 @@ static samplefrag_t* GrowSingleFrag(
 		float3_array v;
 		VectorSubtract(
 			frag->winding->m_Points[(x + 1) % frag->winding->size()],
-			frag->winding->m_Points[x], v
+			frag->winding->m_Points[x],
+			v
 		);
 		CrossProduct(
 			v, frag->windingplane.normal, clipplanes[numclipplanes].normal
@@ -1260,7 +1302,9 @@ static samplefrag_t* GrowSingleFrag(
 		fast_winding* w = new fast_winding(*f2->winding);
 		for (int x = 0; x < numclipplanes && w->size() > 0; x++) {
 			w->mutating_clip(
-				clipplanes[x].normal, clipplanes[x].dist, false,
+				clipplanes[x].normal,
+				clipplanes[x].dist,
+				false,
 				4 * ON_EPSILON
 			);
 		}
@@ -1396,7 +1440,8 @@ static samplefraginfo_t* CreateSampleFrag(
 	} else {
 		// prune edges
 		for (samplefragedge_t* e = info->head->edges;
-			 e < info->head->edges + info->head->numedges; e++) {
+			 e < info->head->edges + info->head->numedges;
+			 e++) {
 			if (e->nextfacenum == info->head->facenum) {
 				e->tried = true;
 			}
@@ -1422,7 +1467,8 @@ static samplefraginfo_t* CreateSampleFrag(
 
 			for (samplefrag_t* f = info->head; f; f = f->next) {
 				for (samplefragedge_t* e = newfrag->edges;
-					 e < newfrag->edges + newfrag->numedges; e++) {
+					 e < newfrag->edges + newfrag->numedges;
+					 e++) {
 					if (e->nextfacenum == f->facenum) {
 						e->tried = true;
 					}
@@ -1430,7 +1476,8 @@ static samplefraginfo_t* CreateSampleFrag(
 			}
 			for (samplefrag_t* f = info->head; f; f = f->next) {
 				for (samplefragedge_t* e = f->edges;
-					 e < f->edges + f->numedges; e++) {
+					 e < f->edges + f->numedges;
+					 e++) {
 					if (e->nextfacenum == newfrag->facenum) {
 						e->tried = true;
 					}
@@ -1497,8 +1544,16 @@ static light_flag_t SetSampleFromST(
 
 		bool nudged_one;
 		if (!FindNearestPosition(
-				f->facenum, f->mywinding, f->mywindingplane, f->myorigin[0],
-				f->myorigin[1], pos, &s, &t, &dist, &nudged_one
+				f->facenum,
+				f->mywinding,
+				f->mywindingplane,
+				f->myorigin[0],
+				f->myorigin[1],
+				pos,
+				&s,
+				&t,
+				&dist,
+				&nudged_one
 			)) {
 			continue;
 		}
@@ -1607,8 +1662,14 @@ static void CalcPoints(lightinfo_t* l) {
 			square[1][1] = ut + TEXTURE_STEP;
 			bool nudged;
 			*pLuxelFlags = SetSampleFromST(
-				surf, l->surfpt_position[s + w * t].data(),
-				&l->surfpt_surface[s + w * t], &nudged, l, us, ut, square,
+				surf,
+				l->surfpt_position[s + w * t].data(),
+				&l->surfpt_surface[s + w * t],
+				&nudged,
+				l,
+				us,
+				ut,
+				square,
 				lightmode
 			);
 		}
@@ -1829,7 +1890,8 @@ void CreateDirectLights() {
 			VectorScale(dl->intensity, p->area, dl->intensity);
 			VectorScale(dl->intensity, p->exposure, dl->intensity);
 			VectorScale(
-				dl->intensity, 1.0 / std::numbers::pi_v<double>,
+				dl->intensity,
+				1.0 / std::numbers::pi_v<double>,
 				dl->intensity
 			);
 			dl->intensity
@@ -1920,7 +1982,8 @@ void CreateDirectLights() {
 		if (dl->style >= ALLSTYLES) {
 			Error(
 				"invalid light style: style (%d) >= ALLSTYLES (%d)",
-				dl->style, ALLSTYLES
+				dl->style,
+				ALLSTYLES
 			);
 		}
 		if (dl->style >= 0 && dl->style < ALLSTYLES) {
@@ -1959,7 +2022,10 @@ void CreateDirectLights() {
 			}
 		} else {
 			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
-				dl->origin[0], dl->origin[1], dl->origin[2], pLight);
+				dl->origin[0],
+				dl->origin[1],
+				dl->origin[2],
+				pLight);
 			continue;
 		}
 
@@ -1995,7 +2061,8 @@ void CreateDirectLights() {
 			if (!target.empty() && !maybeE2) {
 				Warning(
 					"light at (%i %i %i) has missing target",
-					(int) dl->origin[0], (int) dl->origin[1],
+					(int) dl->origin[0],
+					(int) dl->origin[1],
 					(int) dl->origin[2]
 				);
 				target = u8"";
@@ -2155,7 +2222,8 @@ void CreateDirectLights() {
 							testangle * (std::numbers::pi_v<double> / 180.0)
 						);
 						for (count = 0, i = 0;
-							 i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++) {
+							 i < g_numskynormals[SUNSPREAD_SKYLEVEL];
+							 i++) {
 							float3_array& testnormal
 								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
 							float dot = DotProduct(dl->normal, testnormal);
@@ -2191,7 +2259,8 @@ void CreateDirectLights() {
 							dl->sunnormalweights != nullptr, assume_NoMemory
 						);
 						for (count = 0, i = 0;
-							 i < g_numskynormals[SUNSPREAD_SKYLEVEL]; i++) {
+							 i < g_numskynormals[SUNSPREAD_SKYLEVEL];
+							 i++) {
 							float3_array& testnormal
 								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
 							float dot = DotProduct(dl->normal, testnormal);
@@ -2232,7 +2301,8 @@ void CreateDirectLights() {
 							VectorMA(
 								dl->normal,
 								dl->sunspreadangle / SUNSPREAD_THRESHOLD,
-								tmp, dl->sunnormals[i]
+								tmp,
+								dl->sunnormals[i]
 							);
 							normalize_vector(dl->sunnormals[i]);
 						}
@@ -2327,7 +2397,8 @@ void CreateDirectLights() {
 			}
 		}
 	}
-	Log("%i direct lights and %i fast direct lights\n", countnormallights,
+	Log("%i direct lights and %i fast direct lights\n",
+		countnormallights,
 		countfastlights);
 	Log("%i light styles\n", numstyles);
 	// move all emit_skylight to leaf 0 (the solid leaf)
@@ -2552,7 +2623,8 @@ void BuildDiffuseNormals() {
 				point_t mid;
 				double len;
 				VectorAdd(
-					points[edges[j].point[0]], points[edges[j].point[1]],
+					points[edges[j].point[0]],
+					points[edges[j].point[1]],
 					mid
 				);
 				len = sqrt(DotProduct(mid, mid));
@@ -2619,7 +2691,12 @@ void BuildDiffuseNormals() {
 			}
 		}
 		CopyToSkynormals(
-			i + 1, numpoints, points, numedges, edges, numtriangles,
+			i + 1,
+			numpoints,
+			points,
+			numedges,
+			edges,
+			numtriangles,
 			triangles
 		);
 	}
@@ -2677,7 +2754,8 @@ static void GatherSampleLight(
 				VectorClear(texlightgap_textoworld[x]);
 			} else {
 				VectorScale(
-					texlightgap_textoworld[x], 1 / len,
+					texlightgap_textoworld[x],
+					1 / len,
 					texlightgap_textoworld[x]
 				);
 			}
@@ -2724,7 +2802,8 @@ static void GatherSampleLight(
 								// search back to see if we can hit a sky
 								// brush
 								VectorScale(
-									l->sunnormals[j], -hlrad_bogus_range,
+									l->sunnormals[j],
+									-hlrad_bogus_range,
 									delta
 								);
 								VectorAdd(pos, delta, delta);
@@ -2738,7 +2817,9 @@ static void GatherSampleLight(
 								float3_array transparency;
 								int opaquestyle;
 								if (TestSegmentAgainstOpaqueList(
-										pos, skyhit, transparency,
+										pos,
+										skyhit,
+										transparency,
 										opaquestyle
 									)) {
 									continue;
@@ -2751,7 +2832,8 @@ static void GatherSampleLight(
 								}
 								VectorScale(
 									l->intensity,
-									dot * l->sunnormalweights[j], add_one
+									dot * l->sunnormalweights[j],
+									add_one
 								);
 								add_one = vector_multiply(
 									add_one, transparency
@@ -2839,7 +2921,9 @@ static void GatherSampleLight(
 								float3_array transparency;
 								int opaquestyle;
 								if (TestSegmentAgainstOpaqueList(
-										pos, skyhit, transparency,
+										pos,
+										skyhit,
+										transparency,
 										opaquestyle
 									)) {
 									continue;
@@ -2857,12 +2941,15 @@ static void GatherSampleLight(
 								); // how far this piece of sky has deviated
 								   // from the sun
 								VectorScale(
-									l->diffuse_intensity, 1 - factor,
+									l->diffuse_intensity,
+									1 - factor,
 									sky_intensity
 								);
 								VectorMA(
-									sky_intensity, factor,
-									l->diffuse_intensity2, sky_intensity
+									sky_intensity,
+									factor,
+									l->diffuse_intensity2,
+									sky_intensity
 								);
 								VectorScale(
 									sky_intensity,
@@ -3048,7 +3135,9 @@ static void GatherSampleLight(
 										ratio = 0.0;
 									}
 									GetAlternateOrigin(
-										pos, normal, l->patch,
+										pos,
+										normal,
+										l->patch,
 										testline_origin
 									);
 									float sightarea;
@@ -3071,16 +3160,24 @@ static void GatherSampleLight(
 													  // is larger
 										}
 										sightarea = CalcSightArea_SpotLight(
-											pos, normal, l->patch->winding,
-											emitnormal, l->stopdot,
-											l->stopdot2, skylevel,
-											lighting_power, lighting_scale
+											pos,
+											normal,
+											l->patch->winding,
+											emitnormal,
+											l->stopdot,
+											l->stopdot2,
+											skylevel,
+											lighting_power,
+											lighting_scale
 										); // because we have doubled the
 										   // range
 									} else {
 										sightarea = CalcSightArea(
-											pos, normal, l->patch->winding,
-											skylevel, lighting_power,
+											pos,
+											normal,
+											l->patch->winding,
+											skylevel,
+											lighting_power,
 											lighting_scale
 										);
 									}
@@ -3148,7 +3245,9 @@ static void GatherSampleLight(
 						float3_array transparency;
 						int opaquestyle;
 						if (TestSegmentAgainstOpaqueList(
-								pos, testline_origin, transparency,
+								pos,
+								testline_origin,
+								transparency,
 								opaquestyle
 							)) {
 							continue;
@@ -3188,7 +3287,9 @@ static void GatherSampleLight(
 					stylewarningnext = stylewarningcount * 2;
 					Warning(
 						"Too many direct light styles on a face(%f,%f,%f)",
-						pos[0], pos[1], pos[2]
+						pos[0],
+						pos[1],
+						pos[2]
 					);
 					Warning(
 						" total %d warnings for too many styles",
@@ -3322,7 +3423,9 @@ static void AddSamplesToPatches(
 							(*patch->totalstyle_all)[k] = style;
 						}
 						VectorMA(
-							(*patch->samplelight_all)[k], area, s->light,
+							(*patch->samplelight_all)[k],
+							area,
+							s->light,
 							(*patch->samplelight_all)[k]
 						);
 					}
@@ -3510,7 +3613,8 @@ void CalcLightmap(
 
 	facenum = l->surfnum;
 	memset(
-		l->lmcache, 0,
+		l->lmcache,
+		0,
 		l->lmcachewidth * l->lmcacheheight
 			* sizeof(std::array<float3_array, ALLSTYLES>)
 	);
@@ -3674,8 +3778,15 @@ void CalcLightmap(
 			{
 				blocked = false;
 				if (SetSampleFromST(
-						surfpt.data(), spot.data(), &surface, &nudged, l,
-						s_vec, t_vec, square, g_face_lightmode[facenum]
+						surfpt.data(),
+						spot.data(),
+						&surface,
+						&nudged,
+						l,
+						s_vec,
+						t_vec,
+						square,
+						g_face_lightmode[facenum]
 					)
 					== LightOutside) {
 					j = nearest_s + (l->texsize[0] + 1) * nearest_t;
@@ -3699,7 +3810,8 @@ void CalcLightmap(
 				VectorCopy(spot, spot2);
 				for (int x = 0; x < surfacewinding.size(); x++) {
 					VectorAdd(
-						surfacewinding.m_Points[x], g_face_offset[surface],
+						surfacewinding.m_Points[x],
+						g_face_offset[surface],
 						surfacewinding.m_Points[x]
 					);
 				}
@@ -3707,13 +3819,18 @@ void CalcLightmap(
 						surfacewinding, *surfaceplane, spot2, 0.2
 					)) {
 					snap_to_winding_noedge(
-						surfacewinding, *surfaceplane, spot2.data(), 0.2,
+						surfacewinding,
+						*surfaceplane,
+						spot2.data(),
+						0.2,
 						4 * 0.2
 					);
 				}
 				VectorMA(
-					spot2, -(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET),
-					surfaceplane->normal, spot2
+					spot2,
+					-(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET),
+					surfaceplane->normal,
+					spot2
 				);
 			}
 			*wallflags_out = WALLFLAG_NONE;
@@ -3746,7 +3863,8 @@ void CalcLightmap(
 						memset(pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
 					} else {
 						DecompressVis(
-							(byte*) &g_dvisdata[leaf->visofs], pvs,
+							(byte*) &g_dvisdata[leaf->visofs],
+							pvs,
 							sizeof(pvs)
 						);
 					}
@@ -3768,7 +3886,8 @@ void CalcLightmap(
 							);
 						} else {
 							DecompressVis(
-								(byte*) &g_dvisdata[leaf2->visofs], pvs2,
+								(byte*) &g_dvisdata[leaf2->visofs],
+								pvs2,
 								sizeof(pvs2)
 							);
 						}
@@ -3781,7 +3900,13 @@ void CalcLightmap(
 		{
 			if (!blocked) {
 				GatherSampleLight(
-					spot, pvs, pointnormal, *sampled, styles, 0, l->miptex,
+					spot,
+					pvs,
+					pointnormal,
+					*sampled,
+					styles,
+					0,
+					l->miptex,
 					surface
 				);
 			}
@@ -3789,8 +3914,14 @@ void CalcLightmap(
 				std::array<float3_array, ALLSTYLES> sampled2{};
 				if (!blocked) {
 					GatherSampleLight(
-						spot2, pvs2, pointnormal2, sampled2, styles, 0,
-						l->miptex, surface
+						spot2,
+						pvs2,
+						pointnormal2,
+						sampled2,
+						styles,
+						0,
+						l->miptex,
+						surface
 					);
 				}
 				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++) {
@@ -3963,9 +4094,11 @@ void BuildFacelights(int const facenum) {
 			int s_origin = s_center;
 			int t_origin = t_center;
 			for (s = s_center - l.lmcache_side;
-				 s <= s_center + l.lmcache_side; s++) {
+				 s <= s_center + l.lmcache_side;
+				 s++) {
 				for (t = t_center - l.lmcache_side;
-					 t <= t_center + l.lmcache_side; t++) {
+					 t <= t_center + l.lmcache_side;
+					 t++) {
 					int* pwallflags
 						= &sample_wallflags
 							  [(s - s_center + l.lmcache_side)
@@ -3977,9 +4110,11 @@ void BuildFacelights(int const facenum) {
 			}
 			// project the "shadow" from the origin point
 			for (s = s_center - l.lmcache_side;
-				 s <= s_center + l.lmcache_side; s++) {
+				 s <= s_center + l.lmcache_side;
+				 s++) {
 				for (t = t_center - l.lmcache_side;
-					 t <= t_center + l.lmcache_side; t++) {
+					 t <= t_center + l.lmcache_side;
+					 t++) {
 					int* pwallflags
 						= &sample_wallflags
 							  [(s - s_center + l.lmcache_side)
@@ -4038,9 +4173,11 @@ void BuildFacelights(int const facenum) {
 		}
 		for (pass = 0; pass < 2; pass++) {
 			for (s = s_center - l.lmcache_side;
-				 s <= s_center + l.lmcache_side; s++) {
+				 s <= s_center + l.lmcache_side;
+				 s++) {
 				for (t = t_center - l.lmcache_side;
-					 t <= t_center + l.lmcache_side; t++) {
+					 t <= t_center + l.lmcache_side;
+					 t++) {
 					weighting
 						= (std::min((float) 0.5, sizehalf - (s - s_center))
 						   - std::max(
@@ -4084,8 +4221,10 @@ void BuildFacelights(int const facenum) {
 					weighting = weighting * weighting_correction;
 					for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 						VectorMA(
-							fl_samples[j][i].light, weighting,
-							l.lmcache[pos][j], fl_samples[j][i].light
+							fl_samples[j][i].light,
+							weighting,
+							l.lmcache[pos][j],
+							fl_samples[j][i].light
 						);
 					}
 					subsamples += weighting;
@@ -4103,7 +4242,8 @@ void BuildFacelights(int const facenum) {
 		if (subsamples > 0) {
 			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 				VectorScale(
-					fl_samples[j][i].light, 1.0 / subsamples,
+					fl_samples[j][i].light,
+					1.0 / subsamples,
 					fl_samples[j][i].light
 				);
 			}
@@ -4129,10 +4269,12 @@ void BuildFacelights(int const facenum) {
 					float3_array v;
 					VectorScale(
 						(*patch->samplelight_all)[istyle],
-						1.0f / patch->samples, v
+						1.0f / patch->samples,
+						v
 					);
 					VectorAdd(
-						(*patch->directlight_all)[istyle], v,
+						(*patch->directlight_all)[istyle],
+						v,
 						(*patch->directlight_all)[istyle]
 					);
 				}
@@ -4169,7 +4311,8 @@ void BuildFacelights(int const facenum) {
 				VectorMA(
 					patch->origin,
 					-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
-					l.facenormal, spot2
+					l.facenormal,
+					spot2
 				);
 				dleaf_t* leaf2 = PointInLeaf(spot2);
 
@@ -4179,7 +4322,8 @@ void BuildFacelights(int const facenum) {
 						memset(pvs2, 0, (g_dmodels[0].visleafs + 7) / 8);
 					} else {
 						DecompressVis(
-							(byte*) &g_dvisdata[leaf2->visofs], pvs2,
+							(byte*) &g_dvisdata[leaf2->visofs],
+							pvs2,
 							sizeof(pvs2)
 						);
 					}
@@ -4190,12 +4334,24 @@ void BuildFacelights(int const facenum) {
 			std::array<float3_array, ALLSTYLES> backsampled{};
 			normal2 = negate_vector(l.facenormal);
 			GatherSampleLight(
-				patch->origin, pvs, l.facenormal, frontsampled,
-				(*patch->totalstyle_all), 1, l.miptex, facenum
+				patch->origin,
+				pvs,
+				l.facenormal,
+				frontsampled,
+				(*patch->totalstyle_all),
+				1,
+				l.miptex,
+				facenum
 			);
 			GatherSampleLight(
-				spot2, pvs2, normal2, backsampled, (*patch->totalstyle_all),
-				1, l.miptex, facenum
+				spot2,
+				pvs2,
+				normal2,
+				backsampled,
+				(*patch->totalstyle_all),
+				1,
+				l.miptex,
+				facenum
 			);
 			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 				 j++) {
@@ -4207,8 +4363,14 @@ void BuildFacelights(int const facenum) {
 			}
 		} else {
 			GatherSampleLight(
-				patch->origin, pvs, l.facenormal, *patch->totallight_all,
-				*patch->totalstyle_all, 1, l.miptex, facenum
+				patch->origin,
+				pvs,
+				l.facenormal,
+				*patch->totallight_all,
+				*patch->totalstyle_all,
+				1,
+				l.miptex,
+				facenum
 			);
 		}
 	}
@@ -4285,7 +4447,8 @@ void BuildFacelights(int const facenum) {
 				s = fl_samples[j];
 				for (i = 0; i < l.numsurfpt; i++, s++) {
 					VectorAdd(
-						s->light, g_face_patches[facenum]->baselight,
+						s->light,
+						g_face_patches[facenum]->baselight,
 						s->light
 					);
 				}
@@ -4339,7 +4502,8 @@ void BuildFacelights(int const facenum) {
 					= (sample_t*) malloc(fl->numsamples * sizeof(sample_t));
 				hlassume(fl->samples[k] != nullptr, assume_NoMemory);
 				memcpy(
-					fl->samples[k], fl_samples[bestindex],
+					fl->samples[k],
+					fl_samples[bestindex],
 					fl->numsamples * sizeof(sample_t)
 				);
 			} else {
@@ -4567,12 +4731,14 @@ void PrecompLightmapOffsets() {
 					}
 					if (i < MAXLIGHTMAPS && oldstyles[i] != 255) {
 						memcpy(
-							fl->samples[k], oldsamples[i],
+							fl->samples[k],
+							oldsamples[i],
 							fl->numsamples * sizeof(sample_t)
 						);
 					} else {
 						memcpy(
-							fl->samples[k], oldsamples[0],
+							fl->samples[k],
+							oldsamples[0],
 							fl->numsamples * sizeof(sample_t)
 						); // copy 'sample.pos' from style 0 to the new
 						   // style - because 'sample.pos' is actually the
@@ -4658,9 +4824,10 @@ void ReduceLightmap() {
 				std::byte* v
 					= &oldlightdata
 						  [oldofs + fl->numsamples * 3 * k + i * 3];
-				maxb = std::max({ maxb, (std::uint8_t) v[0],
-								  (std::uint8_t) v[1], (std::uint8_t) v[2] }
-				);
+				maxb = std::max({ maxb,
+								  (std::uint8_t) v[0],
+								  (std::uint8_t) v[1],
+								  (std::uint8_t) v[2] });
 			}
 			if (maxb <= 0) // black
 			{
@@ -4848,8 +5015,13 @@ void MLH_GetSamples_r(
 			ds >>= 4;
 			dt >>= 4;
 			MLH_AddSample(
-				ml, node->firstface + i, extents[0] / TEXTURE_STEP + 1,
-				extents[1] / TEXTURE_STEP + 1, ds, dt, mid
+				ml,
+				node->firstface + i,
+				extents[0] / TEXTURE_STEP + 1,
+				extents[1] / TEXTURE_STEP + 1,
+				ds,
+				dt,
+				mid
 			);
 			break;
 		}
@@ -4894,7 +5066,9 @@ MLH_CopyLight(float3_array const & from, float3_array const & to) {
 					Developer(
 						developer_level::spam,
 						"Mdl Light Hack: face (%d) sample (%d) style (%d) position (%f,%f,%f)\n",
-						mlto.face[i].num, mlto.face[i].sample[j].num, k,
+						mlto.face[i].num,
+						mlto.face[i].sample[j].num,
+						k,
 						mlto.face[i].sample[j].pos[0],
 						mlto.face[i].sample[j].pos[1],
 						mlto.face[i].sample[j].pos[2]
@@ -4906,8 +5080,13 @@ MLH_CopyLight(float3_array const & from, float3_array const & to) {
 	Developer(
 		developer_level::message,
 		"Mdl Light Hack: %d sample light copied from (%f,%f,%f) to (%f,%f,%f)\n",
-		count, mlfrom.floor[0], mlfrom.floor[1], mlfrom.floor[2],
-		mlto.floor[0], mlto.floor[1], mlto.floor[2]
+		count,
+		mlfrom.floor[0],
+		mlfrom.floor[1],
+		mlfrom.floor[2],
+		mlto.floor[0],
+		mlto.floor[1],
+		mlto.floor[2]
 	);
 	return count;
 }
@@ -4937,8 +5116,10 @@ void MdlLightHack() {
 		r = MLH_CopyLight(origin2, origin1);
 		if (r < 0) {
 			Warning(
-				"can not copy light from (%f,%f,%f)", origin2[0],
-				origin2[1], origin2[2]
+				"can not copy light from (%f,%f,%f)",
+				origin2[0],
+				origin2[1],
+				origin2[2]
 			);
 		} else {
 			countent += 1;
@@ -4947,7 +5128,8 @@ void MdlLightHack() {
 	}
 	if (used) {
 		Log("Adjust mdl light: modified %d samples for %d entities\n",
-			countsample, countent);
+			countsample,
+			countent);
 	}
 }
 
@@ -4991,7 +5173,8 @@ void CreateFacelightDependencyList() {
 					// insert this face into the dependency list of that
 					// surface
 					for (item = g_dependentfacelights[surface];
-						 item != nullptr; item = item->next) {
+						 item != nullptr;
+						 item = item->next) {
 						if (item->facenum == facenum) {
 							break;
 						}
@@ -5141,7 +5324,10 @@ void FinalLightFace(int const facenum) {
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
 							fprintf(
-								f, "%g %g %g\n", v[0] + p[0], v[1] + p[1],
+								f,
+								"%g %g %g\n",
+								v[0] + p[0],
+								v[1] + p[1],
 								v[2] + p[2]
 							);
 						}

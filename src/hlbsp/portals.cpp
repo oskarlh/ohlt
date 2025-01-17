@@ -180,20 +180,29 @@ static void WritePortalFile_r(node_t const * const node) {
 						w->Print();
 					}
 					fprintf(
-						pf, "%zu %i %i ", w->size(),
-						p->nodes[1]->visleafnum, p->nodes[0]->visleafnum
+						pf,
+						"%zu %i %i ",
+						w->size(),
+						p->nodes[1]->visleafnum,
+						p->nodes[0]->visleafnum
 					);
 				} else {
 					fprintf(
-						pf, "%zu %i %i ", w->size(),
-						p->nodes[0]->visleafnum, p->nodes[1]->visleafnum
+						pf,
+						"%zu %i %i ",
+						w->size(),
+						p->nodes[0]->visleafnum,
+						p->nodes[1]->visleafnum
 					);
 				}
 
 				for (i = 0; i < w->size(); i++) {
 					fprintf(
-						pf, "(%f %f %f) ", w->m_Points[i][0],
-						w->m_Points[i][1], w->m_Points[i][2]
+						pf,
+						"(%f %f %f) ",
+						w->m_Points[i][0],
+						w->m_Points[i][1],
+						w->m_Points[i][2]
 					);
 				}
 				fprintf(pf, "\n");
@@ -206,32 +215,50 @@ static void WritePortalFile_r(node_t const * const node) {
 					center1 = vector_add(center, halfOfNormal);
 					center2 = vector_subtract(center, halfOfNormal);
 					fprintf(
-						pf_view, "%5.2f %5.2f %5.2f\n", from[0], from[1],
+						pf_view,
+						"%5.2f %5.2f %5.2f\n",
+						from[0],
+						from[1],
 						from[2]
 					);
 					fprintf(
-						pf_view, "%5.2f %5.2f %5.2f\n", center1[0],
-						center1[1], center1[2]
+						pf_view,
+						"%5.2f %5.2f %5.2f\n",
+						center1[0],
+						center1[1],
+						center1[2]
 					);
 					for (i = 0; i < w->size(); i++) {
 						double *p1, *p2;
 						p1 = w->m_Points[i].data();
 						p2 = w->m_Points[(i + 1) % w->size()].data();
 						fprintf(
-							pf_view, "%5.2f %5.2f %5.2f\n", p1[0], p1[1],
+							pf_view,
+							"%5.2f %5.2f %5.2f\n",
+							p1[0],
+							p1[1],
 							p1[2]
 						);
 						fprintf(
-							pf_view, "%5.2f %5.2f %5.2f\n", p2[0], p2[1],
+							pf_view,
+							"%5.2f %5.2f %5.2f\n",
+							p2[0],
+							p2[1],
 							p2[2]
 						);
 						fprintf(
-							pf_view, "%5.2f %5.2f %5.2f\n", center2[0],
-							center2[1], center2[2]
+							pf_view,
+							"%5.2f %5.2f %5.2f\n",
+							center2[0],
+							center2[1],
+							center2[2]
 						);
 						fprintf(
-							pf_view, "%5.2f %5.2f %5.2f\n", center1[0],
-							center1[1], center1[2]
+							pf_view,
+							"%5.2f %5.2f %5.2f\n",
+							center1[0],
+							center1[1],
+							center1[2]
 						);
 					}
 				}

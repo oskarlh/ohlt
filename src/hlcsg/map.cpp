@@ -27,7 +27,8 @@ brush_t* CopyCurrentBrush(entity_t* entity, brush_t const * brush) {
 	g_numbrushsides += brush->numsides;
 	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
 	memcpy(
-		&g_brushsides[newb->firstside], &g_brushsides[brush->firstside],
+		&g_brushsides[newb->firstside],
+		&g_brushsides[brush->firstside],
 		brush->numsides * sizeof(side_t)
 	);
 	newb->entitynum = entity - g_entities.data();
@@ -49,7 +50,8 @@ void DeleteCurrentEntity(entity_t* entity) {
 		if (b->firstside + b->numsides != g_numbrushsides) {
 			Error(
 				"DeleteCurrentEntity: internal error. (Entity %i, Brush %i)",
-				b->originalentitynum, b->originalbrushnum
+				b->originalentitynum,
+				b->originalbrushnum
 			);
 		}
 		memset(
@@ -59,7 +61,8 @@ void DeleteCurrentEntity(entity_t* entity) {
 		b->hullshapes = {};
 	}
 	memset(
-		&g_mapbrushes[entity->firstbrush], 0,
+		&g_mapbrushes[entity->firstbrush],
+		0,
 		entity->numbrushes * sizeof(brush_t)
 	);
 	g_nummapbrushes -= entity->numbrushes;
@@ -147,7 +150,8 @@ static void ParseBrush(entity_t* mapent) {
 		if (wrong) {
 			Warning(
 				"Entity %i, Brush %i: incorrect settings for detail brush.",
-				b->originalentitynum, b->originalbrushnum
+				b->originalentitynum,
+				b->originalbrushnum
 			);
 		}
 	}
@@ -197,7 +201,9 @@ static void ParseBrush(entity_t* mapent) {
 			{
 				Error(
 					"Parsing Entity %i, Brush %i, Side %i: Expecting '(' got '%s'",
-					b->originalentitynum, b->originalbrushnum, b->numsides,
+					b->originalentitynum,
+					b->originalbrushnum,
+					b->numsides,
 					(char const *) g_token.c_str()
 				);
 			}
@@ -212,7 +218,9 @@ static void ParseBrush(entity_t* mapent) {
 			if (g_token != u8")"sv) {
 				Error(
 					"Parsing Entity %i, Brush %i, Side %i: Expecting ')' got '%s'",
-					b->originalentitynum, b->originalbrushnum, b->numsides,
+					b->originalentitynum,
+					b->originalbrushnum,
+					b->numsides,
 					(char const *) g_token.c_str()
 				);
 			}
@@ -226,7 +234,9 @@ static void ParseBrush(entity_t* mapent) {
 		if (!maybeTextureName) {
 			Error(
 				"Parsing Entity %i, Brush %i, Side %i: Bad texture name '%s'",
-				b->originalentitynum, b->originalbrushnum, b->numsides,
+				b->originalentitynum,
+				b->originalbrushnum,
+				b->numsides,
 				(char const *) g_token.c_str()
 			);
 		}
@@ -360,7 +370,8 @@ static void ParseBrush(entity_t* mapent) {
 		if (has_key_value(mapent, u8"origin")) {
 			Error(
 				"Entity %i, Brush %i: Only one ORIGIN brush allowed.",
-				b->originalentitynum, b->originalbrushnum
+				b->originalentitynum,
+				b->originalbrushnum
 			);
 		}
 		char string[MAXTOKEN];
@@ -383,11 +394,16 @@ static void ParseBrush(entity_t* mapent) {
 			VectorScale(origin, 0.5, origin);
 
 			safe_snprintf(
-				string, MAXTOKEN, "%i %i %i", (int) origin[0],
-				(int) origin[1], (int) origin[2]
+				string,
+				MAXTOKEN,
+				"%i %i %i",
+				(int) origin[0],
+				(int) origin[1],
+				(int) origin[2]
 			);
 			SetKeyValue(
-				&g_entities[b->entitynum], u8"origin",
+				&g_entities[b->entitynum],
+				u8"origin",
 				(char8_t const *) string
 			);
 		}
@@ -414,7 +430,8 @@ static void ParseBrush(entity_t* mapent) {
 		if (has_key_value(mapent, u8"zhlt_minsmaxs")) {
 			Error(
 				"Entity %i, Brush %i: Only one BoundingBox brush allowed.",
-				b->originalentitynum, b->originalbrushnum
+				b->originalentitynum,
+				b->originalbrushnum
 			);
 		}
 		std::u8string origin{ value_for_key(mapent, u8"origin") };
@@ -438,11 +455,19 @@ static void ParseBrush(entity_t* mapent) {
 
 			char string[MAXTOKEN];
 			safe_snprintf(
-				string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f", mins[0],
-				mins[1], mins[2], maxs[0], maxs[1], maxs[2]
+				string,
+				MAXTOKEN,
+				"%.0f %.0f %.0f %.0f %.0f %.0f",
+				mins[0],
+				mins[1],
+				mins[2],
+				maxs[0],
+				maxs[1],
+				maxs[2]
 			);
 			SetKeyValue(
-				&g_entities[b->entitynum], u8"zhlt_minsmaxs",
+				&g_entities[b->entitynum],
+				u8"zhlt_minsmaxs",
 				(char8_t const *) string
 			);
 		}
@@ -503,7 +528,8 @@ bool ParseMapEntity() {
 
 	if (g_token != u8"{") {
 		Error(
-			"Parsing Entity %i, expected '{' got '%s'", g_numparsedentities,
+			"Parsing Entity %i, expected '{' got '%s'",
+			g_numparsedentities,
 			(char const *) g_token.c_str()
 		);
 	}
@@ -583,7 +609,11 @@ bool ParseMapEntity() {
 		if (*ValueForKey(mapent, u8"zhlt_transform")) {
 			switch (sscanf(
 				(char const *) ValueForKey(mapent, u8"zhlt_transform"),
-				"%lf %lf %lf %lf", v, v + 1, v + 2, v + 3
+				"%lf %lf %lf %lf",
+				v,
+				v + 1,
+				v + 2,
+				v + 3
 			)) {
 				case 1:
 					ent_scale_b = true;
@@ -618,9 +648,11 @@ bool ParseMapEntity() {
 			side_t* side;
 			double* point;
 			for (ibrush = 0, brush = g_mapbrushes + mapent->firstbrush;
-				 ibrush < mapent->numbrushes; ++ibrush, ++brush) {
+				 ibrush < mapent->numbrushes;
+				 ++ibrush, ++brush) {
 				for (iside = 0, side = g_brushsides + brush->firstside;
-					 iside < brush->numsides; ++iside, ++side) {
+					 iside < brush->numsides;
+					 ++iside, ++side) {
 					for (ipoint = 0; ipoint < 3; ++ipoint) {
 						point = side->planepts[ipoint];
 						if (ent_scale_b) {
@@ -740,8 +772,12 @@ bool ParseMapEntity() {
 							= (int) (v[i] >= 0 ? v[i] + 0.5 : v[i] - 0.5);
 					}
 					safe_snprintf(
-						(char*) string, MAXTOKEN, "%d %d %d", origin[0],
-						origin[1], origin[2]
+						(char*) string,
+						MAXTOKEN,
+						"%d %d %d",
+						origin[0],
+						origin[1],
+						origin[2]
 					);
 					SetKeyValue(mapent, u8"origin", string);
 				}
@@ -751,8 +787,13 @@ bool ParseMapEntity() {
 				if (sscanf(
 						(char const *)
 							ValueForKey(mapent, u8"zhlt_minsmaxs"),
-						"%lf %lf %lf %lf %lf %lf", &b[0][0], &b[0][1],
-						&b[0][2], &b[1][0], &b[1][1], &b[1][2]
+						"%lf %lf %lf %lf %lf %lf",
+						&b[0][0],
+						&b[0][1],
+						&b[0][2],
+						&b[1][0],
+						&b[1][1],
+						&b[1][2]
 					)
 					== 6) {
 					for (int i = 0; i < 2; i++) {
@@ -777,8 +818,15 @@ bool ParseMapEntity() {
 					}
 					char string[MAXTOKEN];
 					safe_snprintf(
-						string, MAXTOKEN, "%.0f %.0f %.0f %.0f %.0f %.0f",
-						b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2]
+						string,
+						MAXTOKEN,
+						"%.0f %.0f %.0f %.0f %.0f %.0f",
+						b[0][0],
+						b[0][1],
+						b[0][2],
+						b[1][0],
+						b[1][1],
+						b[1][2]
 					);
 					SetKeyValue(
 						mapent, u8"zhlt_minsmaxs", (char8_t const *) string
@@ -821,7 +869,8 @@ bool ParseMapEntity() {
 		auto temp = std::make_unique_for_overwrite<brush_t[]>(newbrushes);
 		std::copy(
 			g_mapbrushes + mapent->firstbrush,
-			g_mapbrushes + mapent->firstbrush + newbrushes, temp.get()
+			g_mapbrushes + mapent->firstbrush + newbrushes,
+			temp.get()
 		);
 
 		for (int i = 0; i < newbrushes; i++) {
@@ -873,9 +922,12 @@ bool ParseMapEntity() {
 		if (strncmp(classname, "light", 5)) {
 			Warning(
 				"Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)",
-				g_numparsedentities, classname,
-				(double) ENGINE_ENTITY_RANGE, mapent->origin[0],
-				mapent->origin[1], mapent->origin[2]
+				g_numparsedentities,
+				classname,
+				(double) ENGINE_ENTITY_RANGE,
+				mapent->origin[0],
+				mapent->origin[1],
+				mapent->origin[2]
 			);
 		}
 	}
@@ -925,7 +977,8 @@ void LoadMapFile(
 	unsigned num_engine_entities;
 
 	LoadScriptFile(
-		filename, settings.legacyMapEncoding,
+		filename,
+		settings.legacyMapEncoding,
 		settings.forceLegacyMapEncoding
 	);
 

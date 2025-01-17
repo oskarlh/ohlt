@@ -108,12 +108,17 @@ std::size_t count_blocks(bsp_data const & bspData) {
 		{
 			Warning(
 				"Bad surface extents %d/%d at position (%.0f,%.0f,%.0f)",
-				extents[0], extents[1], point[0], point[1], point[2]
+				extents[0],
+				extents[1],
+				point[0],
+				point[1],
+				point[2]
 			);
 			continue;
 		}
 		do_alloc_block(
-			blocks, (extents[0] / TEXTURE_STEP) + 1,
+			blocks,
+			(extents[0] / TEXTURE_STEP) + 1,
 			(extents[1] / TEXTURE_STEP) + 1
 		);
 	}
@@ -197,7 +202,8 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 			if (quotes[1] - (quotes[0] + 1) == (int) u8"wad"sv.length()
 				&& !strncmp(
 					(char const *) &bspData.entityData[quotes[0] + 1],
-					"wad", u8"wad"sv.length()
+					"wad",
+					u8"wad"sv.length()
 				)) {
 				std::size_t len = quotes[3] - (quotes[2] + 1);
 				char* value = (char*) malloc(len + 1);
@@ -225,8 +231,13 @@ static int array_usage(
 ) {
 	float percentage = maxitems ? items * 100.0 / maxitems : 0.0;
 
-	Log("%-13s %7i/%-7i %8i/%-8i (%4.1f%%)\n", szItem, items, maxitems,
-		items * itemsize, maxitems * itemsize, percentage);
+	Log("%-13s %7i/%-7i %8i/%-8i (%4.1f%%)\n",
+		szItem,
+		items,
+		maxitems,
+		items * itemsize,
+		maxitems * itemsize,
+		percentage);
 
 	return items * itemsize;
 }
@@ -236,8 +247,11 @@ static int global_usage(
 ) {
 	float percentage = maxstorage ? itemstorage * 100.0 / maxstorage : 0.0;
 
-	Log("%-13s    [variable]   %8i/%-8i (%4.1f%%)\n", szItem, itemstorage,
-		maxstorage, percentage);
+	Log("%-13s    [variable]   %8i/%-8i (%4.1f%%)\n",
+		szItem,
+		itemstorage,
+		maxstorage,
+		percentage);
 
 	return itemstorage;
 }
@@ -262,57 +276,81 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 	Log("------------  ---------------  ---------------  --------\n");
 
 	totalmemory += array_usage(
-		"models", bspData.mapModelsLength, bspData.mapModels.size(),
+		"models",
+		bspData.mapModelsLength,
+		bspData.mapModels.size(),
 		sizeof(bspData.mapModels[0])
 	);
 	totalmemory += array_usage(
-		"planes", bspData.planesLength, MAX_MAP_PLANES,
+		"planes",
+		bspData.planesLength,
+		MAX_MAP_PLANES,
 		sizeof(bspData.planes[0])
 	);
 	totalmemory += array_usage(
-		"vertexes", bspData.vertexesLength, bspData.vertexes.size(),
+		"vertexes",
+		bspData.vertexesLength,
+		bspData.vertexes.size(),
 		sizeof(bspData.vertexes[0])
 	);
 	totalmemory += array_usage(
-		"nodes", bspData.nodesLength, bspData.nodes.size(),
+		"nodes",
+		bspData.nodesLength,
+		bspData.nodes.size(),
 		sizeof(bspData.nodes[0])
 	);
 	totalmemory += array_usage(
-		"texinfos", bspData.texInfosLength, MAX_MAP_TEXINFO,
+		"texinfos",
+		bspData.texInfosLength,
+		MAX_MAP_TEXINFO,
 		sizeof(bspData.texInfos[0])
 	);
 	totalmemory += array_usage(
-		"faces", bspData.facesLength, bspData.faces.size(),
+		"faces",
+		bspData.facesLength,
+		bspData.faces.size(),
 		sizeof(bspData.faces[0])
 	);
 	totalmemory += array_usage(
 		"* worldfaces",
 		(bspData.mapModelsLength > 0 ? bspData.mapModels[0].numfaces : 0),
-		MAX_MAP_WORLDFACES, 0
+		MAX_MAP_WORLDFACES,
+		0
 	);
 	totalmemory += array_usage(
-		"clipnodes", bspData.clipNodesLength, bspData.clipNodes.size(),
+		"clipnodes",
+		bspData.clipNodesLength,
+		bspData.clipNodes.size(),
 		sizeof(bspData.clipNodes[0])
 	);
 	totalmemory += array_usage(
-		"leaves", bspData.leafsLength, MAX_MAP_LEAFS,
+		"leaves",
+		bspData.leafsLength,
+		MAX_MAP_LEAFS,
 		sizeof(bspData.leafs[0])
 	);
 	totalmemory += array_usage(
 		"* worldleaves",
 		(bspData.mapModelsLength > 0 ? bspData.mapModels[0].visleafs : 0),
-		MAX_MAP_LEAFS_ENGINE, 0
+		MAX_MAP_LEAFS_ENGINE,
+		0
 	);
 	totalmemory += array_usage(
-		"marksurfaces", bspData.markSurfacesLength,
-		bspData.markSurfaces.size(), sizeof(bspData.markSurfaces[0])
+		"marksurfaces",
+		bspData.markSurfacesLength,
+		bspData.markSurfaces.size(),
+		sizeof(bspData.markSurfaces[0])
 	);
 	totalmemory += array_usage(
-		"surfedges", bspData.surfEdgesLength, bspData.surfEdges.size(),
+		"surfedges",
+		bspData.surfEdgesLength,
+		bspData.surfEdges.size(),
 		sizeof(bspData.surfEdges[0])
 	);
 	totalmemory += array_usage(
-		"edges", bspData.edgesLength, bspData.edges.size(),
+		"edges",
+		bspData.edgesLength,
+		bspData.edges.size(),
 		sizeof(bspData.edges[0])
 	);
 
@@ -326,7 +364,8 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 		"visdata", bspGlobals.visDataByteSize, bspData.mapModels.size()
 	);
 	totalmemory += global_usage(
-		"entdata", bspGlobals.entityDataLength,
+		"entdata",
+		bspGlobals.entityDataLength,
 		bspData.entityData.size() * sizeof(bspData.entityData[0])
 	);
 	if (numallocblocks == -1) {
