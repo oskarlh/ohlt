@@ -1442,7 +1442,8 @@ static void MakePatchForFace(
 				if (&g_entities[op->entitynum] == g_face_entity[fn]) {
 					opacity = 1.0;
 					if (op->transparency) {
-						opacity = 1.0 - VectorAvg(op->transparency_scale);
+						opacity = 1.0
+							- vector_average(op->transparency_scale);
 						opacity = opacity > 1.0 ? 1.0
 							: opacity < 0.0		? 0.0
 												: opacity;

@@ -323,13 +323,13 @@ void MakeScales(int const threadnum) {
 			}
 
 			trans *= patch2->exposure;
-			trans = trans
-				* VectorAvg(transparency); // hullu: add transparency effect
+			// hullu: add transparency effect
+			trans = trans * vector_average(transparency);
 			if (patch->translucent_b) {
 				if (useback) {
-					trans *= VectorAvg(patch->translucent_v);
+					trans *= vector_average(patch->translucent_v);
 				} else {
-					trans *= 1 - VectorAvg(patch->translucent_v);
+					trans *= 1 - vector_average(patch->translucent_v);
 				}
 			}
 

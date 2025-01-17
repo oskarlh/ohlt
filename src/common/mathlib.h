@@ -67,7 +67,9 @@ vector_subtract(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 		(c)[2] = ((a)[2] + (b)[2]) / 2; \
 	}
 
-#define VectorAvg(a) (((a)[0] + (a)[1] + (a)[2]) / 3)
+constexpr auto vector_average(any_vec3 auto const & v) {
+	return (v[0] + v[1] + v[2]) / 3;
+}
 
 #define VectorSubtract(a, b, c)   \
 	{                             \

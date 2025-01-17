@@ -2330,8 +2330,6 @@ void CreateDirectLights() {
 				}
 			}
 		} else {
-			if (!VectorAvg(dl->intensity)) {
-			}
 			dl->type = emit_point;
 		}
 
@@ -4430,43 +4428,38 @@ void BuildFacelights(int const facenum) {
 	// light from dlight_threshold and above is sent out, but the
 	// texture itself should still be full bright
 
-	// if( VectorAvg( face_patches[facenum]->baselight ) >=
+	// if( vector_average( face_patches[facenum]->baselight ) >=
 	// dlight_threshold)       // Now all lighted surfaces glow
-	{
-		// LRC:
-		if (g_face_patches[facenum]) {
-			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
-				if (f_styles[j] == g_face_patches[facenum]->emitstyle) {
-					break;
-				}
-			}
-			if (j == ALLSTYLES) {
-				if (++stylewarningcount >= stylewarningnext) {
-					stylewarningnext = stylewarningcount * 2;
-					Warning("Too many direct light styles on a face(?,?,?)"
-					);
-					Warning(
-						" total %d warnings for too many styles",
-						stylewarningcount
-					);
-				}
-			} else {
-				if (f_styles[j] == 255) {
-					f_styles[j] = g_face_patches[facenum]->emitstyle;
-				}
-
-				s = fl_samples[j];
-				for (i = 0; i < l.numsurfpt; i++, s++) {
-					VectorAdd(
-						s->light,
-						g_face_patches[facenum]->baselight,
-						s->light
-					);
-				}
+	// Texlights
+	if (g_face_patches[facenum]) {
+		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+			if (f_styles[j] == g_face_patches[facenum]->emitstyle) {
+				break;
 			}
 		}
-		// LRC (ends)
+		if (j == ALLSTYLES) {
+			if (++stylewarningcount >= stylewarningnext) {
+				stylewarningnext = stylewarningcount * 2;
+				Warning("Too many direct light styles on a face(?,?,?)");
+				Warning(
+					" total %d warnings for too many styles",
+					stylewarningcount
+				);
+			}
+		} else {
+			if (f_styles[j] == 255) {
+				f_styles[j] = g_face_patches[facenum]->emitstyle;
+			}
+
+			s = fl_samples[j];
+			for (i = 0; i < l.numsurfpt; i++, s++) {
+				VectorAdd(
+					s->light, g_face_patches[facenum]->baselight, s->light
+				);
+			}
+		}
 	}
+
 	// samples
 	{
 		facelight_t* fl = &facelight[facenum];
@@ -4478,8 +4471,8 @@ void BuildFacelights(int const facenum) {
 				maxlights[j] = std::max(maxlights[j], b);
 			}
 			if (maxlights[j] <= g_corings[f_styles[j]]
-					* 0.1) // light is too dim, discard this style to reduce
-						   // RAM usage
+					* 0.1) // light is too dim, discard this style to
+						   // reduce RAM usage
 			{
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 					ThreadLock();
@@ -4753,9 +4746,9 @@ void PrecompLightmapOffsets() {
 							oldsamples[0],
 							fl->numsamples * sizeof(sample_t)
 						); // copy 'sample.pos' from style 0 to the new
-						   // style - because 'sample.pos' is actually the
-						   // same for all styles! (why did we decide to
-						   // store it in many places?)
+						   // style - because 'sample.pos' is actually
+						   // the same for all styles! (why did we
+						   // decide to store it in many places?)
 						for (j = 0; j < fl->numsamples; j++) {
 							VectorClear(fl->samples[k][j].light);
 						}
@@ -4789,7 +4782,8 @@ void PrecompLightmapOffsets() {
 		f->lightofs = newLightDataSize;
 		newLightDataSize += fl->numsamples * 3 * lightstyles;
 		hlassume(
-			newLightDataSize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING
+			newLightDataSize <= g_max_map_lightdata,
+			assume_MAX_MAP_LIGHTING
 		); // lightdata
 	}
 	g_dlightdata.resize(newLightDataSize, std::byte(0));
@@ -5443,8 +5437,8 @@ void FinalLightFace(int const facenum) {
 
 			// AJM: your code is formatted really wierd, and i cant
 			// understand a damn thing.
-			//      so i reformatted it into a somewhat readable "normal"
-			//      fashion. :P
+			//      so i reformatted it into a somewhat readable
+			//      "normal" fashion. :P
 
 			if (g_colour_qgamma[0] != 1.0) {
 				lb[0] = (float) pow(lb[0] / 256.0f, g_colour_qgamma[0])
@@ -5461,17 +5455,17 @@ void FinalLightFace(int const facenum) {
 					* 256.0f;
 			}
 
-			// Two different ways of adding noise to the lightmap - colour
-			// jitter (red, green and blue channels are independent), and
-			// mono jitter (monochromatic noise). For simulating dithering,
-			// on the cheap. :)
+			// Two different ways of adding noise to the lightmap -
+			// colour jitter (red, green and blue channels are
+			// independent), and mono jitter (monochromatic noise). For
+			// simulating dithering, on the cheap. :)
 
 			// Tends to create seams between adjacent polygons, so not
 			// ideal.
 
-			// Got really weird results when it was set to limit values to
-			// 256.0f - it was as if r, g or b could wrap, going close to
-			// zero.
+			// Got really weird results when it was set to limit values
+			// to 256.0f - it was as if r, g or b could wrap, going
+			// close to zero.
 
 			// clip from the top
 			{
