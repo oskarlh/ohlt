@@ -32,8 +32,9 @@ static void LoadStudioModel(
 	);
 	FlipSlashes(m->name);
 
-	auto [readSuccessfully, fileSize, fileContents]
-		= read_binary_file(m->name);
+	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(
+		m->name
+	);
 	if (!readSuccessfully) {
 		Warning("LoadStudioModel: couldn't load %s\n", m->name);
 		return;
@@ -53,8 +54,9 @@ static void LoadStudioModel(
 		snprintf(texpath, sizeof(texpath), "%s%sT.mdl", g_Wadpath, texname);
 		FlipSlashes(texpath);
 
-		auto [readTFileSuccessfully, tFileSize, texdata]
-			= read_binary_file(texpath);
+		auto [readTFileSuccessfully, tFileSize, texdata] = read_binary_file(
+			texpath
+		);
 		if (!readTFileSuccessfully) {
 			Error(
 				"LoadStudioModel: couldn't load T.mdl file %s\n", texpath

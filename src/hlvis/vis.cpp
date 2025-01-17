@@ -707,8 +707,9 @@ static void LoadPortals(char* portal_image) {
 //  LoadPortalsByFilename
 // =====================================================================================
 static void LoadPortalsByFilename(char const * const filename) {
-	std::optional<std::u8string> maybeContents
-		= read_utf8_file(filename, true);
+	std::optional<std::u8string> maybeContents = read_utf8_file(
+		filename, true
+	);
 	if (!maybeContents) {
 		Error(
 			"Portal file '%s' could not be read, cannot VIS the map\n",
@@ -874,8 +875,8 @@ void FixPrt(char const * portalfile) {
 	}
 	inputFileStream.close();
 
-	std::size_t portalFileLines
-		= prtVector.size(); // Count lines before optimization
+	std::size_t portalFileLines = prtVector.size(
+	); // Count lines before optimization
 
 	auto itPortalCoords = std::find_if(
 		prtVector.begin(),
@@ -919,8 +920,8 @@ void FixPrt(char const * portalfile) {
 		itPortalCoords
 	);
 
-	std::size_t optimizedPortalFileLines
-		= prtVector.size(); // Count lines after optimization
+	std::size_t optimizedPortalFileLines = prtVector.size(
+	); // Count lines after optimization
 
 	Log("Reduced %zu lines to %zu\n",
 		portalFileLines,
@@ -1122,8 +1123,9 @@ int main(int const argc, char** argv) {
 								MAX_ROOM_NEIGHBOR
 							);
 
-							std::u8string_view target
-								= value_for_key(&g_entities[i], u8"target");
+							std::u8string_view target = value_for_key(
+								&g_entities[i], u8"target"
+							);
 
 							if (target.empty()) {
 								continue;

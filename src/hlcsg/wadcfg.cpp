@@ -24,8 +24,9 @@ void LoadWadconfig(char const * filename, std::u8string_view configName) {
 	Log("--------------------------------------\n");
 	int wadconfigsFound = 0;
 	int wadPathsFound = 0;
-	std::optional<std::u8string> maybeContent
-		= read_utf8_file(filename, true);
+	std::optional<std::u8string> maybeContent = read_utf8_file(
+		filename, true
+	);
 	if (!maybeContent) {
 		Error("Failed to read the WAD config");
 	}
@@ -118,8 +119,9 @@ void LoadWadcfgfile(std::filesystem::path wadCfgPath) {
 	Log("Loading %s\n", wadCfgPath.c_str());
 	Log("------------\n");
 	int wadPathsCount = 0;
-	std::optional<std::u8string> maybeContent
-		= read_utf8_file(wadCfgPath, true);
+	std::optional<std::u8string> maybeContent = read_utf8_file(
+		wadCfgPath, true
+	);
 	if (!maybeContent) {
 		Error("Failed to read the WAD config");
 	}

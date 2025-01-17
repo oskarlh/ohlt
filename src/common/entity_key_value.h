@@ -75,8 +75,8 @@ class entity_key_value {
 
 			// TODO: Eventually we'll be able to get rid of the nulls
 			// when we've stopped using C string functions
-			std::size_t totalLengthWithNulls
-				= key.length() + value.length() + 2;
+			std::size_t totalLengthWithNulls = key.length() + value.length()
+				+ 2;
 			if (totalLengthWithNulls <= inplace_storage_size) [[likely]] {
 				keyAndValue.shortKeyAndValue = short_data();
 				shortKeyLength = key.length();

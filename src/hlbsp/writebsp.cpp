@@ -118,8 +118,9 @@ static int WriteClipNodes_r(
 	}
 	cn->planenum = WritePlane(node->planenum);
 	for (i = 0; i < 2; i++) {
-		cn->children[i]
-			= WriteClipNodes_r(node->children[i], portalleaf, outputmap);
+		cn->children[i] = WriteClipNodes_r(
+			node->children[i], portalleaf, outputmap
+		);
 	}
 	clipnodemap_t::iterator output;
 	output = outputmap->find(MakeKey(*cn));
@@ -182,10 +183,10 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 		VectorCopy(node->maxs, maxs);
 	}
 	for (int k = 0; k < 3; k++) {
-		leaf_p->mins[k]
-			= (short) std::max(-32767, std::min((int) mins[k], 32767));
-		leaf_p->maxs[k]
-			= (short) std::max(-32767, std::min((int) maxs[k], 32767));
+		leaf_p->mins[k] = (short
+		) std::max(-32767, std::min((int) mins[k], 32767));
+		leaf_p->maxs[k] = (short
+		) std::max(-32767, std::min((int) maxs[k], 32767));
 	}
 
 	leaf_p->visofs = -1; // no vis info yet
@@ -316,10 +317,10 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 		VectorCopy(node->maxs, maxs);
 	}
 	for (int k = 0; k < 3; k++) {
-		n->mins[k]
-			= (short) std::max(-32767, std::min((int) mins[k], 32767));
-		n->maxs[k]
-			= (short) std::max(-32767, std::min((int) maxs[k], 32767));
+		n->mins[k] = (short
+		) std::max(-32767, std::min((int) mins[k], 32767));
+		n->maxs[k] = (short
+		) std::max(-32767, std::min((int) maxs[k], 32767));
 	}
 
 	if (node->planenum & 1) {
@@ -583,8 +584,8 @@ void FinishBSPFile(bsp_data const & bspData) {
 					continue;
 				}
 				if (Used[i] == true) {
-					miptex_t* m
-						= (miptex_t*) ((std::byte*) l + l->dataofs[i]);
+					miptex_t* m = (miptex_t*) ((std::byte*) l
+											   + l->dataofs[i]);
 					wad_texture_name name{ m->name };
 					if (!name.is_animation_frame() && !name.is_tile()) {
 						continue;
@@ -692,8 +693,9 @@ void FinishBSPFile(bsp_data const & bspData) {
 			dmodel_t* m = &g_dmodels[i];
 			Developer(developer_level::message, " model %d\n", i);
 			for (j = 1; j < NUM_HULLS; j++) {
-				brinkinfo[i][j]
-					= CreateBrinkinfo(g_dclipnodes.data(), m->headnode[j]);
+				brinkinfo[i][j] = CreateBrinkinfo(
+					g_dclipnodes.data(), m->headnode[j]
+				);
 			}
 		}
 		for (level = BrinkAny; level > BrinkNone; level--) {

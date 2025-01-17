@@ -126,8 +126,9 @@ static void ParseBrush(entity_t* mapent) {
 		b->detaillevel = IntForKey(mapent, u8"zhlt_detaillevel");
 		b->chopdown = IntForKey(mapent, u8"zhlt_chopdown");
 		b->chopup = IntForKey(mapent, u8"zhlt_chopup");
-		b->clipnodedetaillevel
-			= IntForKey(mapent, u8"zhlt_clipnodedetaillevel");
+		b->clipnodedetaillevel = IntForKey(
+			mapent, u8"zhlt_clipnodedetaillevel"
+		);
 		b->coplanarpriority = IntForKey(mapent, u8"zhlt_coplanarpriority");
 		bool wrong = false;
 
@@ -683,10 +684,11 @@ bool ParseMapEntity() {
 						double coord[2];
 						if (fabs(side->td.vects.scale[0])
 							> NORMAL_EPSILON) {
-							coord[0]
-								= DotProduct(
-									  ent_scale_origin, side->td.vects.UAxis
-								  ) / side->td.vects.scale[0]
+							coord[0] = DotProduct(
+										   ent_scale_origin,
+										   side->td.vects.UAxis
+									   )
+									/ side->td.vects.scale[0]
 								+ side->td.vects.shift[0];
 							side->td.vects.scale[0] *= ent_scale;
 							if (fabs(side->td.vects.scale[0])
@@ -704,10 +706,11 @@ bool ParseMapEntity() {
 						}
 						if (fabs(side->td.vects.scale[1])
 							> NORMAL_EPSILON) {
-							coord[1]
-								= DotProduct(
-									  ent_scale_origin, side->td.vects.VAxis
-								  ) / side->td.vects.scale[1]
+							coord[1] = DotProduct(
+										   ent_scale_origin,
+										   side->td.vects.VAxis
+									   )
+									/ side->td.vects.scale[1]
 								+ side->td.vects.shift[1];
 							side->td.vects.scale[1] *= ent_scale;
 							if (fabs(side->td.vects.scale[1])
@@ -768,8 +771,8 @@ bool ParseMapEntity() {
 					v = get_double3_for_key(*mapent, u8"origin");
 					VectorScale(v, ent_gscale, v);
 					for (i = 0; i < 3; ++i) {
-						origin[i]
-							= (int) (v[i] >= 0 ? v[i] + 0.5 : v[i] - 0.5);
+						origin[i] = (int) (v[i] >= 0 ? v[i] + 0.5
+													 : v[i] - 0.5);
 					}
 					safe_snprintf(
 						(char*) string,
@@ -917,8 +920,9 @@ bool ParseMapEntity() {
 	if (fabs(mapent->origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON
 		|| fabs(mapent->origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON
 		|| fabs(mapent->origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON) {
-		char const * classname
-			= (char const *) ValueForKey(mapent, u8"classname");
+		char const * classname = (char const *) ValueForKey(
+			mapent, u8"classname"
+		);
 		if (strncmp(classname, "light", 5)) {
 			Warning(
 				"Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)",

@@ -229,12 +229,12 @@ negate_vector(std::array<T, 3> const & v) noexcept {
 
 constexpr bool
 vectors_almost_same(any_vec3 auto const & v1, any_vec3 auto const & v2) {
-	bool const significantDifference0
-		= std::fabs(v1[0] - v2[0]) > EQUAL_EPSILON;
-	bool const significantDifference1
-		= std::fabs(v1[1] - v2[1]) > EQUAL_EPSILON;
-	bool const significantDifference2
-		= std::fabs(v1[2] - v2[2]) > EQUAL_EPSILON;
+	bool const significantDifference0 = std::fabs(v1[0] - v2[0])
+		> EQUAL_EPSILON;
+	bool const significantDifference1 = std::fabs(v1[1] - v2[1])
+		> EQUAL_EPSILON;
+	bool const significantDifference2 = std::fabs(v1[2] - v2[2])
+		> EQUAL_EPSILON;
 	return !significantDifference0 && !significantDifference1
 		&& !significantDifference2;
 }

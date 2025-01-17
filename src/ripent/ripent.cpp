@@ -601,14 +601,15 @@ static void WriteTextures(char const * const name) {
 					memset(&info[header.numlumps], 0, sizeof(wad_lumpinfo));
 					info[header.numlumps].filepos = ftell(wadfile);
 					SafeWrite(wadfile, tex, size);
-					info[header.numlumps].disksize
-						= ftell(wadfile) - info[header.numlumps].filepos;
+					info[header.numlumps].disksize = ftell(wadfile)
+						- info[header.numlumps].filepos;
 					info[header.numlumps].size
 						= info[header.numlumps].disksize;
 					info[header.numlumps].type = 67;
 					info[header.numlumps].compression = 0;
-					info[header.numlumps].name
-						= wad_texture_name{ tex->name };
+					info[header.numlumps].name = wad_texture_name{
+						tex->name
+					};
 
 					header.numlumps++;
 				}
@@ -717,8 +718,8 @@ static void ReadTextures(char const * name) {
 
 				((dmiptexlump_t*) g_dtexdata.data())->dataofs[itex]
 					= g_texdatasize;
-				miptex_t* tex
-					= (miptex_t*) (g_dtexdata.data() + g_texdatasize);
+				miptex_t* tex = (miptex_t*) (g_dtexdata.data()
+											 + g_texdatasize);
 				int j;
 				for (j = 0; j < header.numlumps; ++j) {
 					if (name == info[j].name) {

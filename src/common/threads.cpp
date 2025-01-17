@@ -76,8 +76,8 @@ int GetThreadWork() {
 			oldf = f;
 
 			if (f > 10) {
-				finish
-					= (ct - threadtimes[0]) * (THREADTIMES_SIZEf - f) / f;
+				finish = (ct - threadtimes[0]) * (THREADTIMES_SIZEf - f)
+					/ f;
 				finish2 = 10.0 * (ct - threadtimes[f - 10])
 					* (THREADTIMES_SIZEf - f) / THREADTIMES_SIZEf;
 				finish3 = THREADTIMES_SIZEf * (ct - threadtimes[f - 1])

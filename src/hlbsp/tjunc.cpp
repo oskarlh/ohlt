@@ -293,8 +293,8 @@ static void AddFaceEdges(face_t const * const f) {
 
 static byte superfacebuf[1024 * 16];
 static face_t* superface = (face_t*) superfacebuf;
-static int MAX_SUPERFACEEDGES
-	= (sizeof(superfacebuf) - sizeof(face_t) + sizeof(superface->pts))
+static int MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t)
+								 + sizeof(superface->pts))
 	/ sizeof(double3_array);
 static face_t* newlist;
 

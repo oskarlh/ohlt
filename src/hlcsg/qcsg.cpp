@@ -149,8 +149,9 @@ void GetParamsFromEnt(entity_t* mapent) {
 	{
 		g_bWadAutoDetect = false;
 	}*/
-	char const * wadautodetectValue
-		= (char const *) ValueForKey(mapent, u8"wadautodetect"); // seedee
+	char const * wadautodetectValue = (char const *) ValueForKey(
+		mapent, u8"wadautodetect"
+	); // seedee
 	g_bWadAutoDetect
 		= (wadautodetectValue && atoi(wadautodetectValue) >= 1);
 	Log("%30s [ %-9s ]\n",
@@ -425,8 +426,8 @@ static void SaveOutside(
 		if (mirrorcontents == CONTENTS_TOEMPTY) {
 			// SKIP and HINT are special textures for hlbsp so they should
 			// be kept
-			bool const specialTextureForHlbsp
-				= texname.is_skip() || texname.is_any_hint();
+			bool const specialTextureForHlbsp = texname.is_skip()
+				|| texname.is_any_hint();
 			backnull = !specialTextureForHlbsp;
 		}
 		if (texname.marks_discardable_faces()
@@ -741,10 +742,10 @@ static void CSGBrush(int brushnum) {
 						}
 						int valid = 0;
 						for (int x = 0; x < w.size(); x++) {
-							double dist
-								= DotProduct(
-									  w.m_Points[x], f2.plane->normal
-								  )
+							double dist = DotProduct(
+											  w.m_Points[x],
+											  f2.plane->normal
+										  )
 								- f2.plane->dist;
 							if (dist >= -ON_EPSILON * 4) // only estimate
 							{
@@ -927,8 +928,9 @@ void ReuseModel() {
 		 i--) // so it won't affect the remaining entities in the loop when
 			  // we move this entity backward
 	{
-		char const * name
-			= (char const *) ValueForKey(&g_entities[i], u8"zhlt_usemodel");
+		char const * name = (char const *) ValueForKey(
+			&g_entities[i], u8"zhlt_usemodel"
+		);
 		if (!*name) {
 			continue;
 		}
@@ -1118,14 +1120,16 @@ static void UnparseEntities() {
 					vec[0] = pitch;
 				}
 
-				std::u8string_view target
-					= value_for_key(mapent, u8"target");
+				std::u8string_view target = value_for_key(
+					mapent, u8"target"
+				);
 				if (!target.empty()) {
 					std::optional<std::reference_wrapper<entity_t>>
 						maybeTargetEnt = find_target_entity(target);
 					if (maybeTargetEnt) {
-						float3_array originA
-							= get_float3_for_key(*mapent, u8"origin");
+						float3_array originA = get_float3_for_key(
+							*mapent, u8"origin"
+						);
 						float3_array originB = get_float3_for_key(
 							maybeTargetEnt.value().get(), u8"origin"
 						);
@@ -1179,8 +1183,9 @@ static void UnparseEntities() {
 			if (key_value_is_empty(mapent, u8"_tex")) {
 				SetKeyValue(mapent, u8"_tex", u8"                ");
 			}
-			std::u8string_view newclassname
-				= value_for_key(mapent, u8"convertto");
+			std::u8string_view newclassname = value_for_key(
+				mapent, u8"convertto"
+			);
 			if (newclassname.empty()) {
 				SetKeyValue(mapent, u8"classname", u8"light");
 			} else if (!newclassname.starts_with(u8"light")) {
@@ -1197,8 +1202,9 @@ static void UnparseEntities() {
 	if (!g_nolightopt) {
 		int i, j;
 		int count = 0;
-		bool* lightneedcompare
-			= (bool*) malloc(g_numentities * sizeof(bool));
+		bool* lightneedcompare = (bool*) malloc(
+			g_numentities * sizeof(bool)
+		);
 		hlassume(lightneedcompare != nullptr, assume_NoMemory);
 		memset(lightneedcompare, 0, g_numentities * sizeof(bool));
 		for (i = g_numentities - 1; i > -1; i--) {
@@ -1219,8 +1225,9 @@ static void UnparseEntities() {
 					continue;
 				}
 				entity_t* ent2 = &g_entities[j];
-				char8_t const * targetname2
-					= ValueForKey(ent2, u8"targetname");
+				char8_t const * targetname2 = ValueForKey(
+					ent2, u8"targetname"
+				);
 				int style2 = IntForKey(ent2, u8"style");
 				if (style == style2
 					&& !strcmp(
@@ -1523,8 +1530,9 @@ static void SetModelCenters(int entitynum) {
 		}
 	}
 
-	double3_array center
-		= vector_scale(vector_add(bounds.mins, bounds.maxs), 0.5);
+	double3_array center = vector_scale(
+		vector_add(bounds.mins, bounds.maxs), 0.5
+	);
 
 	safe_snprintf(
 		string,

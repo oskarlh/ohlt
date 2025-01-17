@@ -78,8 +78,9 @@ void OpenWadFile(std::filesystem::path name, bool fullpath = false) {
 			> wad.filesize) {
 		Error("Invalid wad file '%s'.", wad.path.c_str());
 	}
-	wad.lumpinfos
-		= (wad_lumpinfo*) malloc(wad.numlumps * sizeof(wad_lumpinfo));
+	wad.lumpinfos = (wad_lumpinfo*) malloc(
+		wad.numlumps * sizeof(wad_lumpinfo)
+	);
 	hlassume(wad.lumpinfos != nullptr, assume_NoMemory);
 	if (fseek(wad.file, wadinfo.infotableofs, SEEK_SET)) {
 		Error("File read failure: %s", wad.path.c_str());
@@ -127,15 +128,17 @@ void TryOpenWadFiles() {
 				Log("  %s\n", dirPath.c_str());
 			}
 		}
-		std::u8string_view wadValue
-			= value_for_key(&g_entities[0], u8"wad");
+		std::u8string_view wadValue = value_for_key(
+			&g_entities[0], u8"wad"
+		);
 		for (std::u8string_view wadFilename :
 			 worldspawn_wad_value_parser(wadValue)) {
 			OpenWadFile((char const *) std::u8string(wadFilename).c_str());
 		}
 		while (!wadValue.empty()) {
-			char8_t const * nextSeparator
-				= std::ranges::find(wadValue, u8';');
+			char8_t const * nextSeparator = std::ranges::find(
+				wadValue, u8';'
+			);
 			std::u8string_view pathString{ wadValue.data(), nextSeparator };
 
 			if (!pathString.empty()) {
@@ -171,8 +174,9 @@ static void DefaultTexture(radtexture_t* tex, wad_texture_name name) {
 	tex->width = 16;
 	tex->height = 16;
 	tex->name = name;
-	tex->canvas
-		= std::make_unique<std::uint8_t[]>(tex->width * tex->height);
+	tex->canvas = std::make_unique<std::uint8_t[]>(
+		tex->width * tex->height
+	);
 	for (i = 0; i < 256; i++) {
 		tex->palette[i].fill(0x80);
 	}
@@ -368,8 +372,9 @@ void LoadTextures() {
 									 rgb[1] * float(1.0 / 255.0),
 									 rgb[2] * float(1.0 / 255.0) };
 					for (int k = 0; k < 3; k++) {
-						reflectivity[k]
-							= pow(reflectivity[k], g_texreflectgamma);
+						reflectivity[k] = pow(
+							reflectivity[k], g_texreflectgamma
+						);
 					}
 					VectorScale(
 						reflectivity, g_texreflectscale, reflectivity
@@ -692,8 +697,8 @@ static void CQ_CreatePalette(
 				Error("CQ_CreatePalette: internal error");
 			}
 
-			bestnode->childrennode[0]->numpoints
-				= left - bestnode->refpoints;
+			bestnode->childrennode[0]->numpoints = left
+				- bestnode->refpoints;
 			bestnode->childrennode[0]->refpoints = bestnode->refpoints;
 			bestnode->childrennode[1]->numpoints
 				= &bestnode->refpoints[bestnode->numpoints] - left;
@@ -831,8 +836,8 @@ static int CQ_MapPoint(
 	best = node->result;
 	bestdist = 0;
 	for (int k = 0; k < CQ_DIMENSIONS; k++) {
-		bestdist
-			+= (colors[best][k] - point[k]) * (colors[best][k] - point[k]);
+		bestdist += (colors[best][k] - point[k])
+			* (colors[best][k] - point[k]);
 	}
 
 	searchradius = (int) ceil(sqrt((double) bestdist) + 0.1);
@@ -1147,8 +1152,8 @@ void EmbedLightmapInTextures() {
 					}
 				}
 			}
-			side[k]
-				= (texturesize[k] * resolution - texsize[k] * TEXTURE_STEP)
+			side[k] = (texturesize[k] * resolution
+					   - texsize[k] * TEXTURE_STEP)
 				/ 2;
 		}
 
@@ -1208,10 +1213,12 @@ void EmbedLightmapInTextures() {
 				); // dest_is = dest_s % texturesize[0]
 				dest_it = (std::int32_t) floor(dest_t
 				); // dest_it = dest_t % texturesize[1]
-				dest_is
-					= std::max(0, std::min(dest_is, texturesize[0] - 1));
-				dest_it
-					= std::max(0, std::min(dest_it, texturesize[1] - 1));
+				dest_is = std::max(
+					0, std::min(dest_is, texturesize[0] - 1)
+				);
+				dest_it = std::max(
+					0, std::min(dest_it, texturesize[1] - 1)
+				);
 				dest = &texture[dest_it * texturesize[0] + dest_is];
 
 				src_s = s_vec;
@@ -1242,8 +1249,8 @@ void EmbedLightmapInTextures() {
 					for (k = 0; k < 3; k++) {
 						float v = src_color[k]
 							* pow(light[k] / denominator, gamma);
-						(*dest)[k]
-							+= 255 * std::max(0.0f, std::min(v, 255.0f));
+						(*dest)[k] += 255
+							* std::max(0.0f, std::min(v, 255.0f));
 					}
 					(*dest)[3] += 255;
 				}
@@ -1271,8 +1278,8 @@ void EmbedLightmapInTextures() {
 					} else // normal
 					{
 						for (j = 0; j < 3; j++) {
-							int val
-								= (int) floor((*src)[j] / (*src)[3] + 0.5);
+							int val = (int
+							) floor((*src)[j] / (*src)[3] + 0.5);
 							(*dest)[j] = std::max(0, std::min(val, 255));
 						}
 						(*dest)[3] = 255;
@@ -1436,10 +1443,10 @@ void EmbedLightmapInTextures() {
 			miptex->offsets[miplevel] = p - (byte*) miptex;
 			for (int t = 0; t < (texturesize[1] >> miplevel); t++) {
 				for (int s = 0; s < (texturesize[0] >> miplevel); s++) {
-					byte(*src)[4]
-						= &texturemips[miplevel]
-									  [t * (texturesize[0] >> miplevel)
-									   + s];
+					byte(*src
+					)[4] = &texturemips[miplevel]
+									   [t * (texturesize[0] >> miplevel)
+										+ s];
 					if ((*src)[3] > 0) {
 						if (palettenumcolors) {
 							unsigned char point[3];

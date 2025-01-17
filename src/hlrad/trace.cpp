@@ -129,9 +129,9 @@ static int TestLine_r(
 			back = stop[2] - tnode->dist;
 			break;
 		default:
-			front
-				= (start[0] * tnode->normal[0] + start[1] * tnode->normal[1]
-				   + start[2] * tnode->normal[2])
+			front = (start[0] * tnode->normal[0]
+					 + start[1] * tnode->normal[1]
+					 + start[2] * tnode->normal[2])
 				- tnode->dist;
 			back = (stop[0] * tnode->normal[0] + stop[1] * tnode->normal[1]
 					+ stop[2] * tnode->normal[2])
@@ -301,8 +301,9 @@ bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 	}
 	side2 = (DotProduct(*p2B, pl2.normal) - pl2.dist > ON_EPSILON) ? 1 : 0;
 
-	fast_winding* neww
-		= new fast_winding(w->size() + w2->size() - 4 + side1 + side2);
+	fast_winding* neww = new fast_winding(
+		w->size() + w2->size() - 4 + side1 + side2
+	);
 	int j, k;
 	k = 0;
 	for (j = (i + 2) % w->size(); j != i; j = (j + 1) % w->size()) {
@@ -391,8 +392,9 @@ void BuildFaceEdges(opaqueface_t* f) {
 }
 
 void CreateOpaqueNodes() {
-	opaquemodels
-		= (opaquemodel_t*) calloc(g_nummodels, sizeof(opaquemodel_t));
+	opaquemodels = (opaquemodel_t*) calloc(
+		g_nummodels, sizeof(opaquemodel_t)
+	);
 	opaquenodes = (opaquenode_t*) calloc(g_numnodes, sizeof(opaquenode_t));
 	opaquefaces = (opaqueface_t*) calloc(g_numfaces, sizeof(opaqueface_t));
 	for (std::size_t i = 0; i < g_numfaces; ++i) {

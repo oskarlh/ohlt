@@ -8,7 +8,7 @@ struct bounding_box {
 };
 
 constexpr bounding_box empty_bounding_box{
-	.mins = double3_array{  999999999.999,  999999999.999,	 999999999.999 },
+	.mins = double3_array{ 999999999.999,  999999999.999,	 999999999.999  },
 	.maxs = double3_array{ -999999999.999, -999999999.999, -999999999.999 }
 };
 

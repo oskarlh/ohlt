@@ -68,10 +68,10 @@ static face_side FaceSide(
 
 	// axial planes are fast
 	if (split->type <= last_axial) {
-		double splitGtEp
-			= split->dist + ON_EPSILON; // Invariant moved out of loop
-		double splitLtEp
-			= split->dist - ON_EPSILON; // Invariant moved out of loop
+		double splitGtEp = split->dist
+			+ ON_EPSILON; // Invariant moved out of loop
+		double splitLtEp = split->dist
+			- ON_EPSILON; // Invariant moved out of loop
 
 		double const * p;
 		// TODO: This pointer logic is ugly, with the p += 3
@@ -205,11 +205,11 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 	// to the dimension of the parent node.
 	node->nodefaces = new std::vector<face_t*>;
 	node->nodefaces_discardablesize = 0;
-	node->children[0]
-		= (surfacetreenode_t*) malloc(sizeof(surfacetreenode_t));
+	node->children[0] = (surfacetreenode_t*) malloc(sizeof(surfacetreenode_t
+	));
 	node->children[0]->leaffaces = new std::vector<face_t*>;
-	node->children[1]
-		= (surfacetreenode_t*) malloc(sizeof(surfacetreenode_t));
+	node->children[1] = (surfacetreenode_t*) malloc(sizeof(surfacetreenode_t
+	));
 	node->children[1]->leaffaces = new std::vector<face_t*>;
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
 		 i != node->leaffaces->end();
@@ -465,12 +465,12 @@ static surface_t* ChooseMidPlaneFromList(
 			}
 		}
 
-		double frontsize
-			= frontcount + 0.5 * coplanarcount + 0.5 * crosscount;
+		double frontsize = frontcount + 0.5 * coplanarcount
+			+ 0.5 * crosscount;
 		double frontfrac = (maxs[std::size_t(l)] - dist)
 			/ (maxs[std::size_t(l)] - mins[std::size_t(l)]);
-		double backsize
-			= backcount + 0.5 * coplanarcount + 0.5 * crosscount;
+		double backsize = backcount + 0.5 * coplanarcount
+			+ 0.5 * crosscount;
 		double backfrac = (dist - mins[std::size_t(l)])
 			/ (maxs[std::size_t(l)] - mins[std::size_t(l)]);
 		value = crosscount
@@ -595,8 +595,8 @@ static surface_t* ChoosePlaneFromList(
 			}
 		}
 
-		value
-			= crosscount - sqrt(coplanarcount); // Not optimized. --vluzacn
+		value = crosscount
+			- sqrt(coplanarcount); // Not optimized. --vluzacn
 		if (coplanarcount == 0) {
 			crosscount += 1;
 		}
@@ -1432,8 +1432,9 @@ static bool CalcNodeBounds(
 		validmins[i] = std::max(
 			node->mins[i], -(ENGINE_ENTITY_RANGE + g_maxnode_size)
 		);
-		validmaxs[i]
-			= std::min(node->maxs[i], ENGINE_ENTITY_RANGE + g_maxnode_size);
+		validmaxs[i] = std::min(
+			node->maxs[i], ENGINE_ENTITY_RANGE + g_maxnode_size
+		);
 	}
 	for (i = 0; i < 3; i++) {
 		if (validmaxs[i] - validmins[i] <= ON_EPSILON) {
@@ -1556,14 +1557,14 @@ static void BuildBspTree_r(node_t* node) {
 			brush_t *copy, *front, *back;
 			if (k == 0) { // front child
 				VectorCopy(g_mapplanes[split->planenum].normal, p.normal);
-				p.dist
-					= g_mapplanes[split->planenum].dist - BOUNDS_EXPANSION;
+				p.dist = g_mapplanes[split->planenum].dist
+					- BOUNDS_EXPANSION;
 			} else { // back child
 				VecSubtractVector(
 					0, g_mapplanes[split->planenum].normal, p.normal
 				);
-				p.dist
-					= -g_mapplanes[split->planenum].dist - BOUNDS_EXPANSION;
+				p.dist = -g_mapplanes[split->planenum].dist
+					- BOUNDS_EXPANSION;
 			}
 			copy = NewBrushFromBrush(node->boundsbrush);
 			SplitBrush(copy, &p, &front, &back);

@@ -588,8 +588,8 @@ void SplitTreeLeaf(
 					continue;
 				}
 				tp->tmp_tested = true;
-				double dist
-					= DotProduct(tp->v, plane->normal) - plane->dist;
+				double dist = DotProduct(tp->v, plane->normal)
+					- plane->dist;
 				tp->tmp_dist = dist;
 				if (dist > epsilon) {
 					tp->tmp_side = face_side::front;
@@ -634,16 +634,17 @@ void SplitTreeLeaf(
 			if (te->tmp_side == face_side::cross) {
 				btreepoint_t* tp0 = GetPointFromEdge(te, false);
 				btreepoint_t* tp1 = GetPointFromEdge(te, true);
-				btreepoint_t* tpmid
-					= AllocTreepoint(numobjects, te->infinite);
+				btreepoint_t* tpmid = AllocTreepoint(
+					numobjects, te->infinite
+				);
 				tpmid->tmp_tested = true;
 				tpmid->tmp_dist = 0;
 				tpmid->tmp_side = face_side::on;
-				double frac
-					= tp0->tmp_dist / (tp0->tmp_dist - tp1->tmp_dist);
+				double frac = tp0->tmp_dist
+					/ (tp0->tmp_dist - tp1->tmp_dist);
 				for (int k = 0; k < 3; k++) {
-					tpmid->v[k]
-						= tp0->v[k] + frac * (tp1->v[k] - tp0->v[k]);
+					tpmid->v[k] = tp0->v[k]
+						+ frac * (tp1->v[k] - tp0->v[k]);
 				}
 				btreeedge_t* te0 = AllocTreeedge(numobjects, te->infinite);
 				SetEdgePoints(te0, tp0, tpmid);
@@ -1344,8 +1345,8 @@ bool AddPartition(
 			for (side = 0; side < 2; side++) {
 				btreepoint_t* tp = GetPointFromEdge(ei->e, side);
 				mapplane_t const * plane = &g_mapplanes[planenum];
-				double dist
-					= DotProduct(tp->v, plane->normal) - plane->dist;
+				double dist = DotProduct(tp->v, plane->normal)
+					- plane->dist;
 				if (planeside ? dist < -ON_EPSILON : dist > ON_EPSILON) {
 					return false;
 				}
@@ -1544,11 +1545,11 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 			for (s = transitionside[!side] ? &c.surfaces[!side][0]
 										   : &c.surfaces[side][0];
 				 ;
-				 s
-				 = transitionside[!side] ? s->next->next : s->prev->prev) {
+				 s = transitionside[!side] ? s->next->next
+										   : s->prev->prev) {
 				bwedge_t* w = transitionside[!side] ? s->next : s->prev;
-				bsurface_t* snext
-					= transitionside[!side] ? w->next : w->prev;
+				bsurface_t* snext = transitionside[!side] ? w->next
+														  : w->prev;
 				double3_array tmp;
 				double dot;
 				CrossProduct(smovement->normal, snext->normal, tmp);

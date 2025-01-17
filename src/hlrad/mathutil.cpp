@@ -23,8 +23,8 @@ bool point_in_winding(
 		);
 		float3_array normal;
 		CrossProduct(delta, plane.normal, normal);
-		float const dist
-			= DotProduct(point, normal) - DotProduct(w.m_Points[x], normal);
+		float const dist = DotProduct(point, normal)
+			- DotProduct(w.m_Points[x], normal);
 
 		if (dist < 0.0
 			&& (epsilon == 0.0
@@ -63,8 +63,8 @@ bool point_in_winding_noedge(
 			w.m_Points[(x + 1) % numpoints], w.m_Points[x], delta
 		);
 		CrossProduct(delta, plane.normal, normal);
-		dist
-			= DotProduct(point, normal) - DotProduct(w.m_Points[x], normal);
+		dist = DotProduct(point, normal)
+			- DotProduct(w.m_Points[x], normal);
 
 		if (dist < 0.0
 			|| dist * dist <= width * width * DotProduct(normal, normal)) {
@@ -181,8 +181,9 @@ float snap_to_winding_noedge(
 		if (!normalize_vector(planes[numplanes].normal)) {
 			continue;
 		}
-		planes[numplanes].dist
-			= DotProduct(w.m_Points[x], planes[numplanes].normal);
+		planes[numplanes].dist = DotProduct(
+			w.m_Points[x], planes[numplanes].normal
+		);
 		numplanes++;
 	}
 
@@ -397,8 +398,9 @@ float CalcSightArea(
 	float area = 0.0;
 
 	int numedges = emitter_winding->size();
-	float3_array* edges
-		= (float3_array*) malloc(numedges * sizeof(float3_array));
+	float3_array* edges = (float3_array*) malloc(
+		numedges * sizeof(float3_array)
+	);
 	hlassume(edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++) {
@@ -471,8 +473,9 @@ float CalcSightArea_SpotLight(
 	float area = 0.0;
 
 	int numedges = emitter_winding->size();
-	float3_array* edges
-		= (float3_array*) malloc(numedges * sizeof(float3_array));
+	float3_array* edges = (float3_array*) malloc(
+		numedges * sizeof(float3_array)
+	);
 	hlassume(edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++) {

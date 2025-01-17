@@ -11,8 +11,8 @@ enum class float_type {
 	float16,
 	float8
 };
-constexpr std::size_t float_type_count
-	= std::size_t(float_type::float8) + 1;
+constexpr std::size_t float_type_count = std::size_t(float_type::float8)
+	+ 1;
 
 template <class Num>
 constexpr bool is_valid_float_type(Num num) {
@@ -31,8 +31,8 @@ enum class vector_type {
 	vector32,
 	vector24,
 };
-constexpr std::size_t vector_type_count
-	= std::size_t(vector_type::vector24) + 1;
+constexpr std::size_t vector_type_count = std::size_t(vector_type::vector24)
+	+ 1;
 
 template <class Num>
 constexpr bool is_valid_vector_type(Num num) {

@@ -38,8 +38,9 @@ static void TestPatchToFace(
 		if (DotProduct(patch->origin, plane2->normal)
 			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
-			dplane_t const * plane
-				= getPlaneFromFaceNumber(patch->faceNumber);
+			dplane_t const * plane = getPlaneFromFaceNumber(
+				patch->faceNumber
+			);
 
 			for (; patch2; patch2 = patch2->next) {
 				unsigned m = patch2 - g_patches;

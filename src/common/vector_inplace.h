@@ -76,8 +76,9 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 			std::move_backward(position, end(), end() + 1);
 			std::destroy_at(position);
 		}
-		T* elementPointer
-			= std::construct_at(position, std::forward<Args>(args)...);
+		T* elementPointer = std::construct_at(
+			position, std::forward<Args>(args)...
+		);
 		return *elementPointer;
 	}
 
@@ -126,8 +127,9 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 	constexpr vector_inplace& operator=(vector_inplace&& other)
 		// TODO: noexcept(()()()()())
 		noexcept requires(!std::is_trivially_copyable_v<T>) {
-		[[maybe_unused]] auto clearsOther
-			= call_finally{ [&other]() { other.clear(); } };
+		[[maybe_unused]] auto clearsOther = call_finally{ [&other]() {
+			other.clear();
+		} };
 
 		std::move(
 			other.begin(),
@@ -218,8 +220,9 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 			throw std::bad_alloc();
 		}
 
-		T* elementPointer
-			= std::construct_at(end(), std::forward<Args>(args)...);
+		T* elementPointer = std::construct_at(
+			end(), std::forward<Args>(args)...
+		);
 		++vectorSize;
 		return *elementPointer;
 	}

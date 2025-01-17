@@ -182,8 +182,8 @@ dleaf_t* HuntForWorld(
 					float3_array delta;
 					float dist;
 
-					current_point[2]
-						= original_point[2] + (scales[z % 3] * a);
+					current_point[2] = original_point[2]
+						+ (scales[z % 3] * a);
 
 					SnapToPlane(
 						&new_plane, current_point.data(), hunt_offset
@@ -561,18 +561,18 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 
 	constexpr std::size_t numNudges = 12;
 	std::array<float3_array, 12> const nudgeList{
-		float3_array{  0.1,	   0, 0 },
-		   float3_array{ -0.1,	   0, 0 },
-		float3_array{	  0,	 0.1, 0 },
-		   float3_array{	 0, -0.1, 0 },
-		float3_array{  0.3,	   0, 0 },
-		   float3_array{ -0.3,	   0, 0 },
-		float3_array{	  0,	 0.3, 0 },
-		   float3_array{	 0, -0.3, 0 },
-		float3_array{  0.3,  0.3, 0 },
-		   float3_array{ -0.3,  0.3, 0 },
+		float3_array{ 0.1,  0,	  0 },
+		   float3_array{ -0.1, 0,	  0 },
+		float3_array{ 0,	 0.1,  0 },
+		   float3_array{ 0,	-0.1, 0 },
+		float3_array{ 0.3,  0,	  0 },
+		   float3_array{ -0.3, 0,	  0 },
+		float3_array{ 0,	 0.3,  0 },
+		   float3_array{ 0,	-0.3, 0 },
+		float3_array{ 0.3,  0.3,	0 },
+		   float3_array{ -0.3, 0.3,	0 },
 		float3_array{ -0.3, -0.3, 0 },
-		   float3_array{	 0.3, -0.3, 0 }
+		   float3_array{ 0.3,  -0.3, 0 }
 	};
 
 	for (float3_array const & nudge : nudgeList) {
@@ -689,8 +689,8 @@ void FindFacePositions(int facenum)
 	map->step[1] = (float) TEXTURE_STEP / density;
 	map->step[2] = 1.0;
 	for (k = 0; k < 2; k++) {
-		imins[k]
-			= (int) floor(texmins[k] / map->step[k] + 0.5 - ON_EPSILON);
+		imins[k] = (int
+		) floor(texmins[k] / map->step[k] + 0.5 - ON_EPSILON);
 		imaxs[k] = (int) ceil(texmaxs[k] / map->step[k] - 0.5 + ON_EPSILON);
 	}
 	map->start[0] = (imins[0] - 0.5) * map->step[0];

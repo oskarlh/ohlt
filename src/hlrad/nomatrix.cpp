@@ -28,15 +28,16 @@ static bool CheckVisBitNoVismatrix(
 	// if emitter is behind that face plane, skip all patches
 
 	if (patch2) {
-		dplane_t const * plane2
-			= getPlaneFromFaceNumber(patch2->faceNumber);
+		dplane_t const * plane2 = getPlaneFromFaceNumber(patch2->faceNumber
+		);
 
 		if (DotProduct(patch->origin, plane2->normal)
 			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 
-			dplane_t const * plane
-				= getPlaneFromFaceNumber(patch->faceNumber);
+			dplane_t const * plane = getPlaneFromFaceNumber(
+				patch->faceNumber
+			);
 
 			float3_array transparency = { 1.0, 1.0, 1.0 };
 			int opaquestyle = -1;
@@ -108,8 +109,9 @@ bool CheckVisBitBackwards(
 	transparency_out.fill(1.0);
 
 	if (emitpatch) {
-		dplane_t const * emitplane
-			= getPlaneFromFaceNumber(emitpatch->faceNumber);
+		dplane_t const * emitplane = getPlaneFromFaceNumber(
+			emitpatch->faceNumber
+		);
 
 		if (DotProduct(backorigin, emitplane->normal)
 			> (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE)) {

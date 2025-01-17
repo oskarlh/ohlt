@@ -337,8 +337,8 @@ void LoadAllowableOutsideList(char const * const filename) {
 		std::u8string_view line{ remainingText.data(), nextEol };
 
 		if (!line.empty()) {
-			bool const isComment
-				= line.starts_with(u8'#') || line.starts_with(u8"//");
+			bool const isComment = line.starts_with(u8'#')
+				|| line.starts_with(u8"//");
 			if (!isComment) {
 				Verbose(
 					"- %s can be placed in the void\n",

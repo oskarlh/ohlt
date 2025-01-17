@@ -51,8 +51,9 @@ void AddTransparencyToRawArray(
 	// Make thread safe
 	ThreadLock();
 
-	std::size_t data_index
-		= AddTransparencyToDataList(trans, transparencyList);
+	std::size_t data_index = AddTransparencyToDataList(
+		trans, transparencyList
+	);
 
 	// Realloc if needed
 	while (s_raw_count >= s_max_raw_count) {
@@ -115,8 +116,9 @@ void CreateFinalTransparencyArrays(
 
 	// double sized (faster find function for sorted list)
 	s_sorted_count = s_raw_count * 2;
-	s_sorted_list
-		= (transList_t*) malloc(sizeof(transList_t) * s_sorted_count);
+	s_sorted_list = (transList_t*) malloc(
+		sizeof(transList_t) * s_sorted_count
+	);
 
 	hlassume(s_sorted_list != nullptr, assume_NoMemory);
 

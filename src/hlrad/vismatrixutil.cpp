@@ -114,8 +114,8 @@ static transfer_index_t* CompressTransferIndicies(
 		}
 
 		ThreadLock();
-		g_transfer_index_bytes
-			+= sizeof(transfer_index_t) * compressed_count;
+		g_transfer_index_bytes += sizeof(transfer_index_t)
+			* compressed_count;
 		ThreadUnlock();
 
 	} else {

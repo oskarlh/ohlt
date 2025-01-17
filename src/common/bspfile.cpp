@@ -280,20 +280,24 @@ void LoadBSPImage(dheader_t* const header) {
 	g_numvertexes = CopyLump(
 		LUMP_VERTEXES, g_dvertexes.data(), sizeof(dvertex_t), header
 	);
-	g_numplanes
-		= CopyLump(LUMP_PLANES, g_dplanes.data(), sizeof(dplane_t), header);
-	g_numleafs
-		= CopyLump(LUMP_LEAFS, g_dleafs.data(), sizeof(dleaf_t), header);
-	g_numnodes
-		= CopyLump(LUMP_NODES, g_dnodes.data(), sizeof(dnode_t), header);
+	g_numplanes = CopyLump(
+		LUMP_PLANES, g_dplanes.data(), sizeof(dplane_t), header
+	);
+	g_numleafs = CopyLump(
+		LUMP_LEAFS, g_dleafs.data(), sizeof(dleaf_t), header
+	);
+	g_numnodes = CopyLump(
+		LUMP_NODES, g_dnodes.data(), sizeof(dnode_t), header
+	);
 	g_numtexinfo = CopyLump(
 		LUMP_TEXINFO, g_texinfo.data(), sizeof(texinfo_t), header
 	);
 	g_numclipnodes = CopyLump(
 		LUMP_CLIPNODES, g_dclipnodes.data(), sizeof(dclipnode_t), header
 	);
-	g_numfaces
-		= CopyLump(LUMP_FACES, g_dfaces.data(), sizeof(dface_t), header);
+	g_numfaces = CopyLump(
+		LUMP_FACES, g_dfaces.data(), sizeof(dface_t), header
+	);
 	g_nummarksurfaces = CopyLump(
 		LUMP_MARKSURFACES,
 		g_dmarksurfaces.data(),
@@ -303,8 +307,9 @@ void LoadBSPImage(dheader_t* const header) {
 	g_numsurfedges = CopyLump(
 		LUMP_SURFEDGES, g_dsurfedges.data(), sizeof(g_dsurfedges[0]), header
 	);
-	g_numedges
-		= CopyLump(LUMP_EDGES, g_dedges.data(), sizeof(dedge_t), header);
+	g_numedges = CopyLump(
+		LUMP_EDGES, g_dedges.data(), sizeof(dedge_t), header
+	);
 
 	auto textureData = get_lump_data<lump_id::textures>(header);
 	memcpy(
@@ -479,39 +484,39 @@ float CalculatePointVecsProduct(
 bool CalcFaceExtents_test() {
 	int const numtestcases = 6;
 	float volatile testcases[numtestcases][8] = {
-		{									  1,
-		  1,1,
-		  1,0.375 * std::numeric_limits<double>::epsilon(),
+		{ 1,
+		  1,									  1,
+		  1,												0.375 * std::numeric_limits<double>::epsilon(),
 		  0.375 * std::numeric_limits<double>::epsilon(),
 		  -1,
-		  0											},
-		{									  1,
-		  1, 1,
+		  0											 },
+		{ 1,
+		  1,									  1,
 		  0.375 * std::numeric_limits<double>::epsilon(),
 		  0.375 * std::numeric_limits<double>::epsilon(),
-		  1, -1,
+		  1,																								   -1,
 		  std::numeric_limits<double>::epsilon()		 },
 		{ std::numeric_limits<double>::epsilon(),
 		  std::numeric_limits<double>::epsilon(),
-		  1,											   0.375,
-		  0.375,	  1,
+		  1,										 0.375,
+		  0.375,																							1,
 		  -1,
 		  std::numeric_limits<double>::epsilon()		 },
-		{									  1,
-		  1, 1,
-		  1,											  1,
+		{ 1,
+		  1,									  1,
+		  1,												1,
 		  0.375 * std::numeric_limits<float>::epsilon(),
 		  -2,
 		  0.375 * std::numeric_limits<float>::epsilon() },
-		{									  1,
-		  1, 1,
-		  1,  0.375 * std::numeric_limits<float>::epsilon(),
-		  1, -2,
+		{ 1,
+		  1,									  1,
+		  1,												0.375 * std::numeric_limits<float>::epsilon(),
+		  1,																								   -2,
 		  0.375 * std::numeric_limits<float>::epsilon() },
-		{									  1,
-		  1, 1,
+		{ 1,
+		  1,									  1,
 		  0.375 * std::numeric_limits<float>::epsilon(),
-		  1,	  1,
+		  1,																								1,
 		  -2,
 		  0.375 * std::numeric_limits<float>::epsilon() }
 	};
@@ -523,11 +528,14 @@ bool CalcFaceExtents_test() {
 
 	ok = true;
 	for (int i = 0; i < 6; i++) {
-		float val
-			= CalculatePointVecsProduct(&testcases[i][0], &testcases[i][3]);
+		float val = CalculatePointVecsProduct(
+			&testcases[i][0], &testcases[i][3]
+		);
 		if (val != testcases[i][7]) {
 			Warning(
-				"internal error: CalcFaceExtents_test failed on case %d (%.20f != %.20f).",
+				"internal error: CalcFaceExtents_test failed on case %d "
+				"(%.20f "
+				"!= %.20f).",
 				i,
 				val,
 				testcases[i][7]
@@ -634,7 +642,9 @@ int ParseImplicitTexinfoFromTexture(int miptex) {
 
 	if (miptex < 0 || miptex >= numtextures) {
 		Warning(
-			"ParseImplicitTexinfoFromTexture: internal error: invalid texture number %d.",
+			"ParseImplicitTexinfoFromTexture: internal error: invalid "
+			"texture "
+			"number %d.",
 			miptex
 		);
 		return -1;
@@ -660,7 +670,9 @@ int ParseImplicitTexinfoFromTexture(int miptex) {
 
 	if (maybeTexinfoIndex.value() >= g_numtexinfo) {
 		Warning(
-			"Invalid index of original texinfo: %d parsed from texture name '%s'.",
+			"Invalid index of original texinfo: %d parsed from texture "
+			"name "
+			"'%s'.",
 			maybeTexinfoIndex.value(),
 			mt.name.c_str()
 		);
@@ -783,8 +795,8 @@ void DeleteEmbeddedLightmaps() {
 			dmiptexlump_t* texdata = (dmiptexlump_t*) g_dtexdata.data();
 			std::byte* dataaddr
 				= (std::byte*) &texdata->dataofs[texdata->nummiptex];
-			int datasize
-				= (g_dtexdata.data() + texdata->dataofs[numremaining])
+			int datasize = (g_dtexdata.data()
+							+ texdata->dataofs[numremaining])
 				- dataaddr;
 			std::byte* newdataaddr
 				= (std::byte*) &texdata->dataofs[numremaining];
@@ -805,7 +817,9 @@ void DeleteEmbeddedLightmaps() {
 
 	if (countrestoredfaces > 0 || countremovedtexinfos > 0
 		|| countremovedtextures > 0) {
-		Log("DeleteEmbeddedLightmaps: restored %d faces, removed %d texinfos and %d textures.\n",
+		Log("DeleteEmbeddedLightmaps: restored %d faces, removed %d "
+			"texinfos "
+			"and %d textures.\n",
 			countrestoredfaces,
 			countremovedtexinfos,
 			countremovedtextures);
@@ -856,8 +870,8 @@ bool ParseEntity() {
 	}
 
 	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
-		Log("Map entity info_compile_parameters detected, using compile settings\n"
-		);
+		Log("Map entity info_compile_parameters detected, using compile "
+			"settings\n");
 		GetParamsFromEnt(mapent);
 	}
 	// ugly code

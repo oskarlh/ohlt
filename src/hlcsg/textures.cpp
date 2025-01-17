@@ -80,10 +80,10 @@ constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
 
 static int
 lump_sorter_by_wad_and_name(void const * lump1, void const * lump2) {
-	lumpinfo_with_wadfileindex* plump1
-		= (lumpinfo_with_wadfileindex*) lump1;
-	lumpinfo_with_wadfileindex* plump2
-		= (lumpinfo_with_wadfileindex*) lump2;
+	lumpinfo_with_wadfileindex* plump1 = (lumpinfo_with_wadfileindex*)
+		lump1;
+	lumpinfo_with_wadfileindex* plump2 = (lumpinfo_with_wadfileindex*)
+		lump2;
 
 	std::strong_ordering comparisonResult{
 		std::tie(plump1->iTexFile, plump1->lump_info.name)
@@ -94,10 +94,10 @@ lump_sorter_by_wad_and_name(void const * lump1, void const * lump2) {
 }
 
 static int lump_sorter_by_name(void const * lump1, void const * lump2) {
-	lumpinfo_with_wadfileindex* plump1
-		= (lumpinfo_with_wadfileindex*) lump1;
-	lumpinfo_with_wadfileindex* plump2
-		= (lumpinfo_with_wadfileindex*) lump2;
+	lumpinfo_with_wadfileindex* plump1 = (lumpinfo_with_wadfileindex*)
+		lump1;
+	lumpinfo_with_wadfileindex* plump2 = (lumpinfo_with_wadfileindex*)
+		lump2;
 
 	std::strong_ordering comparisonResult{ plump1->lump_info.name
 										   <=> plump2->lump_info.name };
@@ -195,8 +195,9 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 					= ascii_characters_to_lowercase_in_utf8_string(
 						(char8_t const *) szTmp
 					);
-				texfiles[nTexFiles]
-					= fopen((char const *) lowercase.c_str(), "rb");
+				texfiles[nTexFiles] = fopen(
+					(char const *) lowercase.c_str(), "rb"
+				);
 			}
 #endif
 		}
@@ -208,8 +209,9 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 			std::filesystem::path const wadFilename
 				= filename_in_file_path_string(pszWadFile);
 			auto wadInModDir = modDir / wadFilename;
-			texfiles[nTexFiles]
-				= fopen((char const *) wadInModDir.c_str(), "rb");
+			texfiles[nTexFiles] = fopen(
+				(char const *) wadInModDir.c_str(), "rb"
+			);
 		}
 
 		if (!texfiles[nTexFiles]) {
@@ -619,8 +621,8 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 			Log("Additional wad files included\n");
 			Log("-----------------------------\n");
 
-			for (std::vector<wadpath_t*>::iterator it
-				 = includedWads.begin();
+			for (std::vector<wadpath_t*>::iterator it = includedWads.begin(
+				 );
 				 it != includedWads.end();
 				 ++it) {
 				wadpath_t* currentwad = *it;
@@ -777,8 +779,8 @@ void LogWadUsage(wadpath_t* currentwad, int nummiptex) {
 	}
 	char currentwadName[_MAX_PATH];
 	ExtractFile((char const *) currentwad->path.c_str(), currentwadName);
-	double percentUsed
-		= (double) currentwad->usedtextures / (double) nummiptex * 100;
+	double percentUsed = (double) currentwad->usedtextures
+		/ (double) nummiptex * 100;
 
 	Log("[%s] %i/%i texture%s (%2.2f%%)\n - %s\n",
 		currentwadName,

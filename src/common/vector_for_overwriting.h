@@ -32,8 +32,8 @@ class vector_for_overwriting {
 	}
 
 	constexpr vector_for_overwriting() noexcept = default;
-	constexpr vector_for_overwriting(vector_for_overwriting const & other)
-		= default;
+	constexpr vector_for_overwriting(vector_for_overwriting const & other
+	) = default;
 
 	constexpr vector_for_overwriting(vector_for_overwriting&& other
 	) noexcept {
@@ -43,8 +43,8 @@ class vector_for_overwriting {
 	constexpr ~vector_for_overwriting() = default;
 
 	constexpr vector_for_overwriting&
-	operator=(vector_for_overwriting const & other)
-		= default;
+	operator=(vector_for_overwriting const & other
+	) = default;
 
 	constexpr vector_for_overwriting&
 	operator=(vector_for_overwriting&& other) noexcept {
@@ -102,8 +102,9 @@ class vector_for_overwriting {
 			// Since this container is meant for temporary data that will
 			// soon be deallocated, we can afford to splurge and avoid
 			// having to do too many allocations.
-			allocated
-				= std::max(newRequestedSize, newRequestedSize * 2 + 32);
+			allocated = std::max(
+				newRequestedSize, newRequestedSize * 2 + 32
+			);
 			dataPtr = std::make_unique_for_overwrite<T[]>(allocated);
 		}
 		lastRequestedSize = newRequestedSize;

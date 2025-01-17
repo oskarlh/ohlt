@@ -645,8 +645,9 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 						// pick direction of bevel edge by looking at normal
 						// of existing planes
 						VectorClear(bevel_edge);
-						bevel_edge[dir]
-							= (current_plane->normal[dir] > 0) ? -1 : 1;
+						bevel_edge[dir] = (current_plane->normal[dir] > 0)
+							? -1
+							: 1;
 
 						// find normal by taking normalized cross of the
 						// edge vector and the bevel edge
@@ -1540,12 +1541,14 @@ hullbrush_t* CopyHullBrush(hullbrush_t const * hb) {
 	hb2 = (hullbrush_t*) malloc(sizeof(hullbrush_t));
 	hlassume(hb2 != nullptr, assume_NoMemory);
 	memcpy(hb2, hb, sizeof(hullbrush_t));
-	hb2->faces
-		= (hullbrushface_t*) malloc(hb->numfaces * sizeof(hullbrushface_t));
+	hb2->faces = (hullbrushface_t*) malloc(
+		hb->numfaces * sizeof(hullbrushface_t)
+	);
 	hlassume(hb2->faces != nullptr, assume_NoMemory);
 	memcpy(hb2->faces, hb->faces, hb->numfaces * sizeof(hullbrushface_t));
-	hb2->edges
-		= (hullbrushedge_t*) malloc(hb->numedges * sizeof(hullbrushedge_t));
+	hb2->edges = (hullbrushedge_t*) malloc(
+		hb->numedges * sizeof(hullbrushedge_t)
+	);
 	hlassume(hb2->edges != nullptr, assume_NoMemory);
 	memcpy(hb2->edges, hb->edges, hb->numedges * sizeof(hullbrushedge_t));
 	hb2->vertexes = (hullbrushvertex_t*) malloc(
@@ -1609,8 +1612,8 @@ void CreateHullShape(
 	}
 	hs = &g_hullshapes.emplace_back(hullshape_t{
 		.id = std::u8string{ id },
-		.brushes
-		= (hullbrush_t**) malloc(entity->numbrushes * sizeof(hullbrush_t*)),
+		.brushes = (hullbrush_t**)
+			malloc(entity->numbrushes * sizeof(hullbrush_t*)),
 		.numbrushes = 0,
 		.disabled = disabled,
 	});

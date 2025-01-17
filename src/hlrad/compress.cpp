@@ -11,13 +11,14 @@
 
 using namespace std::literals;
 
-std::array<std::u8string_view, float_type_count> const float_type_string
-	= { u8"32bit"sv, u8"16bit"sv, u8"8bit"sv };
+std::array<std::u8string_view, float_type_count> const float_type_string = {
+	u8"32bit"sv, u8"16bit"sv, u8"8bit"sv
+};
 
 size_t const float_size[float_type_count] = { 4u, 2u, 1u };
 
-char const *(vector_type_string[vector_type_count])
-	= { "96bit", "48bit", "32bit", "24bit" };
+char const *(vector_type_string[vector_type_count]
+) = { "96bit", "48bit", "32bit", "24bit" };
 
 size_t const vector_size[vector_type_count] = { 12u, 6u, 4u, 3u };
 
@@ -53,8 +54,9 @@ void compress_compatability_test() {
 	f[3] = float_decompress(float_type::float16, &v[6]);
 	f[4] = float_decompress(float_type::float16, &v[4]);
 	vector_decompress(vector_type::vector24, v.data(), &f[0], &f[1], &f[2]);
-	constexpr float ans[5]
-		= { 0.109375f, 1.015625f, 0.015625f, 0.123001f, 0.000000f };
+	constexpr float ans[5] = {
+		0.109375f, 1.015625f, 0.015625f, 0.123001f, 0.000000f
+	};
 	for (std::size_t i = 0; i < 5; ++i) {
 		if (f[i] - ans[i] > 0.00001f || f[i] - ans[i] < -0.00001f) {
 			fail();
@@ -272,8 +274,8 @@ void vector_decompress(
 					| bitput(bitget(m[0], 27, 32), 23) | bitput(3, 28);
 				*p3 = bitput(1, 13) | bitput(bitget(m[0], 18, 27), 14)
 					| bitput(bitget(m[0], 27, 32), 23) | bitput(3, 28);
-				*((unsigned int*) &f)
-					= bitput(bitget(m[0], 27, 32), 23) | bitput(3, 28);
+				*((unsigned int*) &f) = bitput(bitget(m[0], 27, 32), 23)
+					| bitput(3, 28);
 			} else {
 				*p1 = bitput(1, 16) | bitput(bitget(m[0], 0, 6), 17)
 					| bitput(bitget(m[0], 18, 23), 23) | bitput(3, 28);
@@ -281,8 +283,8 @@ void vector_decompress(
 					| bitput(bitget(m[0], 18, 23), 23) | bitput(3, 28);
 				*p3 = bitput(1, 16) | bitput(bitget(m[0], 12, 18), 17)
 					| bitput(bitget(m[0], 18, 23), 23) | bitput(3, 28);
-				*((unsigned int*) &f)
-					= bitput(bitget(m[0], 18, 23), 23) | bitput(3, 28);
+				*((unsigned int*) &f) = bitput(bitget(m[0], 18, 23), 23)
+					| bitput(3, 28);
 			}
 			*f1 = (*f1 - f) * 2.f;
 			*f2 = (*f2 - f) * 2.f;

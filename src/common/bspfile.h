@@ -27,8 +27,7 @@ constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384;	  // 2048 //vluzacn
 // hard limit, in actuallity it is too much, as temporary entities in the
 // game plus static map entities can overflow
 
-constexpr std::ptrdiff_t MAX_MAP_ENTSTRING
-	= 2048 * 1024; //(512*1024) //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_ENTSTRING = 2048 * 1024; //(512*1024)
 // abitrary, 512Kb of string data should be plenty even with TFC FGD's
 
 constexpr std::ptrdiff_t MAX_MAP_PLANES
@@ -153,10 +152,11 @@ class miptex_header_and_data final {
 
 	constexpr miptex_header_and_data(std::size_t dataSize) {
 		std::size_t totalSize = sizeof(miptex_t) + dataSize;
-		headerAndData
-			= std::make_unique_for_overwrite<std::byte[]>(totalSize);
-		[[maybe_unused]] miptex_t& header
-			= *new (headerAndData.get()) miptex_t{};
+		headerAndData = std::make_unique_for_overwrite<std::byte[]>(
+			totalSize
+		);
+		[[maybe_unused]] miptex_t& header = *new (headerAndData.get())
+												miptex_t{};
 	}
 
 	constexpr ~miptex_header_and_data() {

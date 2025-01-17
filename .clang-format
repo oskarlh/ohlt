@@ -8,7 +8,7 @@ BasedOnStyle:  LLVM
 
 AccessModifierOffset: -2
 AlignAfterOpenBracket: BlockIndent
-AlignArrayOfStructures: Right
+AlignArrayOfStructures: Left
 AlignConsecutiveAssignments: None
 AlignConsecutiveBitFields: None
 AlignConsecutiveDeclarations: None
@@ -96,7 +96,7 @@ LineEnding: LF
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PackConstructorInitializers: NextLine
-PenaltyBreakAssignment: 2
+PenaltyBreakAssignment: 120
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120

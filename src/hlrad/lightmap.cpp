@@ -341,14 +341,16 @@ void PairEdges() {
 						getPlaneFromFace(e->faces[1])->normal, normals[1]
 					);
 
-					e->cos_normals_angle
-						= DotProduct(normals[0], normals[1]);
+					e->cos_normals_angle = DotProduct(
+						normals[0], normals[1]
+					);
 
 					float smoothvalue;
 					int m0 = g_texinfo[e->faces[0]->texinfo].miptex;
 					int m1 = g_texinfo[e->faces[1]->texinfo].miptex;
-					smoothvalue
-						= std::max(g_smoothvalues[m0], g_smoothvalues[m1]);
+					smoothvalue = std::max(
+						g_smoothvalues[m0], g_smoothvalues[m1]
+					);
 					if (m0 != m1) {
 						smoothvalue = std::max(
 							smoothvalue, g_smoothing_threshold_2
@@ -641,9 +643,9 @@ void PairEdges() {
 typedef enum {
 	WALLFLAG_NONE = 0,
 	WALLFLAG_NUDGED = 0x1,
-	WALLFLAG_BLOCKED
-		= 0x2, // this only happens when the entire face and its
-			   // surroundings are covered by solid or opaque entities
+	WALLFLAG_BLOCKED = 0x2, // this only happens when the entire face and
+							// its surroundings are covered by solid or
+							// opaque entities
 	WALLFLAG_SHADOWED = 0x4,
 } wallflag_t;
 
@@ -794,10 +796,10 @@ static void CalcFaceExtents(lightinfo_t* l) {
 			(0.5 * g_blur * l->lmcache_density - 0.5) * (1 - NORMAL_EPSILON)
 		);
 		l->lmcache_offset = l->lmcache_side;
-		l->lmcachewidth
-			= l->texsize[0] * l->lmcache_density + 1 + 2 * l->lmcache_side;
-		l->lmcacheheight
-			= l->texsize[1] * l->lmcache_density + 1 + 2 * l->lmcache_side;
+		l->lmcachewidth = l->texsize[0] * l->lmcache_density + 1
+			+ 2 * l->lmcache_side;
+		l->lmcacheheight = l->texsize[1] * l->lmcache_density + 1
+			+ 2 * l->lmcache_side;
 		l->lmcache = (std::array<float3_array, ALLSTYLES>*) malloc(
 			l->lmcachewidth * l->lmcacheheight
 			* sizeof(std::array<float3_array, ALLSTYLES>)
@@ -811,8 +813,9 @@ static void CalcFaceExtents(lightinfo_t* l) {
 			l->lmcachewidth * l->lmcacheheight * sizeof(int)
 		);
 		hlassume(l->lmcache_wallflags != nullptr, assume_NoMemory);
-		l->surfpt_position
-			= (float3_array*) malloc(MAX_SINGLEMAP * sizeof(float3_array));
+		l->surfpt_position = (float3_array*) malloc(
+			MAX_SINGLEMAP * sizeof(float3_array)
+		);
 		l->surfpt_surface = (int*) malloc(MAX_SINGLEMAP * sizeof(int));
 		hlassume(
 			l->surfpt_position != nullptr && l->surfpt_surface != nullptr,
@@ -1221,10 +1224,12 @@ static samplefrag_t* GrowSingleFrag(
 	frag->noseam = edge->noseam;
 
 	// calculate the matrix
-	frag->coordtomycoord
-		= MultiplyMatrix(edge->prevtonext, parent->coordtomycoord);
-	frag->mycoordtocoord
-		= MultiplyMatrix(parent->mycoordtocoord, edge->nexttoprev);
+	frag->coordtomycoord = MultiplyMatrix(
+		edge->prevtonext, parent->coordtomycoord
+	);
+	frag->mycoordtocoord = MultiplyMatrix(
+		parent->mycoordtocoord, edge->nexttoprev
+	);
 
 	// fill in origin
 	VectorCopy(parent->origin, frag->origin);
@@ -1276,8 +1281,9 @@ static samplefrag_t* GrowSingleFrag(
 	// do overlap test
 
 	overlap = false;
-	clipplanes
-		= (dplane_t*) malloc(frag->winding->size() * sizeof(dplane_t));
+	clipplanes = (dplane_t*) malloc(
+		frag->winding->size() * sizeof(dplane_t)
+	);
 	hlassume(clipplanes != nullptr, assume_NoMemory);
 	numclipplanes = 0;
 	for (int x = 0; x < frag->winding->size(); x++) {
@@ -1525,8 +1531,9 @@ static light_flag_t SetSampleFromST(
 	face = l->face;
 	faceplane = getPlaneFromFace(face);
 
-	fraginfo
-		= CreateSampleFrag(facenum, original_s, original_t, square, 100);
+	fraginfo = CreateSampleFrag(
+		facenum, original_s, original_t, square, 100
+	);
 
 	bool found;
 	samplefrag_t* bestfrag;
@@ -1622,8 +1629,9 @@ static light_flag_t SetSampleFromST(
 		LuxelFlag = LightNormal;
 	} else {
 		SetSurfFromST(l, point.data(), original_s, original_t);
-		position
-			= vector_fma(faceplane->normal, DEFAULT_HUNT_OFFSET, point);
+		position = vector_fma(
+			faceplane->normal, DEFAULT_HUNT_OFFSET, point
+		);
 		*surface = facenum;
 		*nudged = true;
 		LuxelFlag = LightOutside;
@@ -1711,8 +1719,8 @@ static void CalcPoints(lightinfo_t* l) {
 							|| s_other >= w) {
 							continue;
 						}
-						surf_other
-							= l->surfpt[s_other + w * t_other].data();
+						surf_other = l->surfpt[s_other + w * t_other].data(
+						);
 						pLuxelFlags_other
 							= &LuxelFlags[s_other + w * t_other];
 						if (*pLuxelFlags_other != LightOutside
@@ -1893,8 +1901,9 @@ void CreateDirectLights() {
 				1.0 / std::numbers::pi_v<double>,
 				dl->intensity
 			);
-			dl->intensity
-				= vector_multiply(dl->intensity, p->texturereflectivity);
+			dl->intensity = vector_multiply(
+				dl->intensity, p->texturereflectivity
+			);
 
 			dface_t* f = &g_dfaces[p->faceNumber];
 			if (g_face_entity[p->faceNumber] != g_entities.data()
@@ -2103,8 +2112,8 @@ void CreateDirectLights() {
 					angle = vAngles[0];
 				}
 
-				dl->normal[2]
-					= (float) sin(angle / 180 * std::numbers::pi_v<double>);
+				dl->normal[2] = (float
+				) sin(angle / 180 * std::numbers::pi_v<double>);
 				dl->normal[0] *= (float
 				) cos(angle / 180 * std::numbers::pi_v<double>);
 				dl->normal[1] *= (float
@@ -2227,8 +2236,9 @@ void CreateDirectLights() {
 								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
 							float dot = DotProduct(dl->normal, testnormal);
 							if (dot >= testdot - NORMAL_EPSILON) {
-								totalweight
-									+= std::max((float) 0, dot - testdot)
+								totalweight += std::max(
+												   (float) 0, dot - testdot
+											   )
 									* g_skynormalsizes
 										[SUNSPREAD_SKYLEVEL]
 										[i]; // This is not the right
@@ -2249,8 +2259,9 @@ void CreateDirectLights() {
 						dl->sunnormals = (float3_array*) malloc(
 							count * sizeof(float3_array)
 						);
-						dl->sunnormalweights
-							= (float*) malloc(count * sizeof(float));
+						dl->sunnormalweights = (float*) malloc(
+							count * sizeof(float)
+						);
 						hlassume(
 							dl->sunnormals != nullptr, assume_NoMemory
 						);
@@ -2308,8 +2319,9 @@ void CreateDirectLights() {
 					}
 				} else {
 					dl->numsunnormals = 1;
-					dl->sunnormals
-						= (float3_array*) malloc(sizeof(float3_array));
+					dl->sunnormals = (float3_array*) malloc(
+						sizeof(float3_array)
+					);
 					dl->sunnormalweights = (float*) malloc(sizeof(float));
 					hlassume(dl->sunnormals != nullptr, assume_NoMemory);
 					hlassume(
@@ -2429,8 +2441,9 @@ void CreateDirectLights() {
 		int countinfosunlight = 0;
 		for (int i = 0; i < g_numentities; i++) {
 			entity_t* e = &g_entities[i];
-			char const * classname
-				= (char const *) ValueForKey(e, u8"classname");
+			char const * classname = (char const *) ValueForKey(
+				e, u8"classname"
+			);
 			if (!strcmp(classname, "light_environment")) {
 				countlightenvironment++;
 			}
@@ -2505,8 +2518,9 @@ void CopyToSkynormals(
 	hlassume(numedges == (1 << (2 * skylevel)) * 4 - 4, assume_first);
 	hlassume(numtriangles == (1 << (2 * skylevel)) * 2, assume_first);
 	g_numskynormals[skylevel] = numpoints;
-	g_skynormals[skylevel]
-		= (float3_array*) malloc(numpoints * sizeof(float3_array));
+	g_skynormals[skylevel] = (float3_array*) malloc(
+		numpoints * sizeof(float3_array)
+	);
 	g_skynormalsizes[skylevel] = (float*) malloc(numpoints * sizeof(float));
 	hlassume(g_skynormals[skylevel] != nullptr, assume_NoMemory);
 	hlassume(g_skynormalsizes[skylevel] != nullptr, assume_NoMemory);
@@ -3049,9 +3063,9 @@ static void GatherSampleLight(
 								if (l->texlightgap > 0) {
 									float test;
 
-									test
-										= dot2 * dist; // distance from spot
-													   // to texlight plane;
+									test = dot2
+										* dist; // distance from spot
+												// to texlight plane;
 									test -= l->texlightgap
 										* fabs(DotProduct(
 											l->normal,
@@ -3080,8 +3094,8 @@ static void GatherSampleLight(
 													  // stopdot > 0.0
 								{
 									float range_scale;
-									range_scale
-										= 1 - l->stopdot2 * l->stopdot2;
+									range_scale = 1
+										- l->stopdot2 * l->stopdot2;
 									range_scale = 1
 										/ sqrt(std::max(
 											(float) NORMAL_EPSILON,
@@ -3154,9 +3168,9 @@ static void GatherSampleLight(
 										if (l->stopdot2
 											>= 0.8) // about 37deg
 										{
-											skylevel
-												+= 1; // because the range
-													  // is larger
+											skylevel += 1; // because the
+														   // range is
+														   // larger
 										}
 										sightarea = CalcSightArea_SpotLight(
 											pos,
@@ -3340,8 +3354,9 @@ static void AddSamplesToPatches(
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		numtexwindings++;
 	}
-	texwindings
-		= (fast_winding**) malloc(numtexwindings * sizeof(fast_winding*));
+	texwindings = (fast_winding**) malloc(
+		numtexwindings * sizeof(fast_winding*)
+	);
 	hlassume(texwindings != nullptr, assume_NoMemory);
 
 	// translate world winding into winding in s,t plane
@@ -3485,8 +3500,8 @@ void GetPhongNormal(
 			float ab;
 
 			if (j) {
-				prev_edge
-					= f->firstedge + ((j + f->numedges - 1) % f->numedges);
+				prev_edge = f->firstedge
+					+ ((j + f->numedges - 1) % f->numedges);
 			} else {
 				prev_edge = f->firstedge + f->numedges - 1;
 			}
@@ -3589,12 +3604,12 @@ void GetPhongNormal(
 
 auto const s_circuscolors = std::array{
 	float3_array{ 100000.0, 100000.0, 100000.0 }, // white
-	float3_array{ 100000.0,		0.0,		 0.0 }, // red
-	float3_array{	  0.0, 100000.0,		 0.0 }, // green
-	float3_array{	  0.0,	   0.0, 100000.0 }, // blue
-	float3_array{	  0.0, 100000.0, 100000.0 }, // cyan
-	float3_array{ 100000.0,		0.0, 100000.0 }, // magenta
-	float3_array{ 100000.0, 100000.0,	  0.0 }  // yellow
+	float3_array{ 100000.0, 0.0,		 0.0		 }, // red
+	float3_array{ 0.0,	   100000.0, 0.0		 }, // green
+	float3_array{ 0.0,	   0.0,		100000.0 }, // blue
+	float3_array{ 0.0,	   100000.0, 100000.0 }, // cyan
+	float3_array{ 100000.0, 0.0,		 100000.0 }, // magenta
+	float3_array{ 100000.0, 100000.0, 0.0	  }  // yellow
 };
 
 // =====================================================================================
@@ -3802,8 +3817,9 @@ void CalcLightmap(
 				}
 			}
 			if (l->translucent_b) {
-				dplane_t const * surfaceplane
-					= getPlaneFromFaceNumber(surface);
+				dplane_t const * surfaceplane = getPlaneFromFaceNumber(
+					surface
+				);
 				fast_winding surfacewinding{ g_dfaces[surface] };
 
 				VectorCopy(spot, spot2);
@@ -3925,8 +3941,8 @@ void CalcLightmap(
 				}
 				for (j = 0; j < ALLSTYLES && styles[j] != 255; j++) {
 					for (int x = 0; x < 3; x++) {
-						(*sampled)[j][x]
-							= (1.0 - l->translucent_v[x]) * (*sampled)[j][x]
+						(*sampled)[j][x] = (1.0 - l->translucent_v[x])
+								* (*sampled)[j][x]
 							+ l->translucent_v[x] * sampled2[j][x];
 					}
 				}
@@ -4079,10 +4095,10 @@ void BuildFacelights(int const facenum) {
 		float3_array centernormal;
 		float weighting_correction;
 		int pass;
-		s_center
-			= (i % lightmapwidth) * l.lmcache_density + l.lmcache_offset;
-		t_center
-			= (i / lightmapwidth) * l.lmcache_density + l.lmcache_offset;
+		s_center = (i % lightmapwidth) * l.lmcache_density
+			+ l.lmcache_offset;
+		t_center = (i / lightmapwidth) * l.lmcache_density
+			+ l.lmcache_offset;
 		sizehalf = 0.5 * g_blur * l.lmcache_density;
 		subsamples = 0.0;
 		VectorCopy(
@@ -4212,8 +4228,9 @@ void BuildFacelights(int const facenum) {
 					// limits the effect of blur distance when the normal
 					// changes very fast this correction will not break the
 					// smoothness that HLRAD_GROWSAMPLE ensures
-					weighting_correction
-						= DotProduct(l.lmcache_normal[pos], centernormal);
+					weighting_correction = DotProduct(
+						l.lmcache_normal[pos], centernormal
+					);
 					weighting_correction = (weighting_correction > 0)
 						? weighting_correction * weighting_correction
 						: 0;
@@ -4355,8 +4372,9 @@ void BuildFacelights(int const facenum) {
 			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 				 j++) {
 				for (int x = 0; x < 3; x++) {
-					(*patch->totallight_all)[j][x]
-						+= (1.0 - l.translucent_v[x]) * frontsampled[j][x]
+					(*patch->totallight_all)[j][x] += (1.0
+													   - l.translucent_v[x])
+							* frontsampled[j][x]
 						+ l.translucent_v[x] * backsampled[j][x];
 				}
 			}
@@ -4497,8 +4515,9 @@ void BuildFacelights(int const facenum) {
 			if (bestindex != -1) {
 				maxlights[bestindex] = 0;
 				f->styles[k] = f_styles[bestindex];
-				fl->samples[k]
-					= (sample_t*) malloc(fl->numsamples * sizeof(sample_t));
+				fl->samples[k] = (sample_t*) malloc(
+					fl->numsamples * sizeof(sample_t)
+				);
 				hlassume(fl->samples[k] != nullptr, assume_NoMemory);
 				memcpy(
 					fl->samples[k],
@@ -5096,8 +5115,9 @@ void MdlLightHack() {
 	int used = 0, countent = 0, countsample = 0, r;
 	for (ient = 0; ient < g_numentities; ++ient) {
 		entity_t const & ent1 = g_entities[ient];
-		std::u8string_view target
-			= value_for_key(&ent1, u8"zhlt_copylight");
+		std::u8string_view target = value_for_key(
+			&ent1, u8"zhlt_copylight"
+		);
 		if (target.empty()) {
 			continue;
 		}
@@ -5393,8 +5413,9 @@ void FinalLightFace(int const facenum) {
 			minlight = (minlight > 255) ? 255 : minlight;
 		}
 	}
-	original_basiclight
-		= (float3_array*) calloc(fl->numsamples, sizeof(float3_array));
+	original_basiclight = (float3_array*) calloc(
+		fl->numsamples, sizeof(float3_array)
+	);
 	final_basiclight = (int(*)[3]) calloc(fl->numsamples, sizeof(int[3]));
 	hlassume(original_basiclight != nullptr, assume_NoMemory);
 	hlassume(final_basiclight != nullptr, assume_NoMemory);

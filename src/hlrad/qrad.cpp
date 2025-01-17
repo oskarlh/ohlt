@@ -679,8 +679,9 @@ static bool PlacePatchInside(patch_t* patch) {
 		patch->flags = ePatchFlagNull;
 		return true;
 	} else {
-		patch->origin
-			= vector_fma(plane->normal, PATCH_HUNT_OFFSET, center);
+		patch->origin = vector_fma(
+			plane->normal, PATCH_HUNT_OFFSET, center
+		);
 		patch->flags = ePatchFlagOutside;
 		Developer(
 			developer_level::fluff,
@@ -883,8 +884,9 @@ static void cutWindingWithGrid(
 				}
 
 				*strip = std::move(front);
-				windingArray[g_numwindings]
-					= new fast_winding(std::move(back));
+				windingArray[g_numwindings] = new fast_winding(
+					std::move(back)
+				);
 				g_numwindings++;
 			}
 
@@ -1167,8 +1169,9 @@ void ReadLightingCone() {
 	entity_t* mapent;
 
 	num = ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
-	g_lightingconeinfo
-		= std::make_unique<lighting_cone_power_and_scale[]>(num);
+	g_lightingconeinfo = std::make_unique<lighting_cone_power_and_scale[]>(
+		num
+	);
 	for (k = 0; k < g_numentities; k++) {
 		mapent = &g_entities[k];
 		if (!classname_is(mapent, u8"info_angularfade")) {
@@ -1269,8 +1272,8 @@ static float getScale(patch_t const * const patch) {
 //  getChop
 // =====================================================================================
 static bool getEmitMode(patch_t const * patch) {
-	float value
-		= DotProduct(patch->baselight, patch->texturereflectivity) / 3;
+	float value = DotProduct(patch->baselight, patch->texturereflectivity)
+		/ 3;
 	if (g_face_texlights[patch->faceNumber]) {
 		if (has_key_value(
 				g_face_texlights[patch->faceNumber], u8"_scale"
@@ -1410,8 +1413,9 @@ static void MakePatchForFace(
 		}
 		VectorScale(texturecolor, 1.0 / 255.0, texturereflectivity);
 		for (int k = 0; k < 3; k++) {
-			texturereflectivity[k]
-				= pow(texturereflectivity[k], g_texreflectgamma);
+			texturereflectivity[k] = pow(
+				texturereflectivity[k], g_texreflectgamma
+			);
 		}
 		VectorScale(
 			texturereflectivity, g_texreflectscale, texturereflectivity
@@ -1472,8 +1476,9 @@ static void MakePatchForFace(
 		g_translucenttextures[g_texinfo[f->texinfo].miptex],
 		patch->translucent_v
 	);
-	patch->translucent_b
-		= !vectors_almost_same(patch->translucent_v, float3_array{});
+	patch->translucent_b = !vectors_almost_same(
+		patch->translucent_v, float3_array{}
+	);
 	PlacePatchInside(patch);
 	UpdateEmitterInfo(patch);
 
@@ -1631,8 +1636,9 @@ static void LoadOpaqueEntities() {
 						float3_array light_origin = get_float3_for_key(
 							maybeEnt2.value(), u8"origin"
 						);
-						float3_array model_center
-							= get_float3_for_key(ent, u8"model_center");
+						float3_array model_center = get_float3_for_key(
+							ent, u8"model_center"
+						);
 						VectorSubtract(
 							light_origin, model_center, origin
 						); // New origin
@@ -1653,8 +1659,9 @@ static void LoadOpaqueEntities() {
 			std::optional<float3_array> transparency;
 			{
 				// If the entity has a custom shadow (transparency) value
-				std::u8string_view transparencyString
-					= value_for_key(&ent, u8"zhlt_customshadow");
+				std::u8string_view transparencyString = value_for_key(
+					&ent, u8"zhlt_customshadow"
+				);
 				if (!transparencyString.empty()) {
 					float r, g, b;
 					// Try to read RGB values
@@ -1853,8 +1860,9 @@ static void MakePatches() {
 		mod = g_dmodels.data() + i;
 		ent = EntityForModel(i);
 
-		std::u8string_view zhltLightFlagsString
-			= value_for_key(ent, u8"zhlt_lightflags");
+		std::u8string_view zhltLightFlagsString = value_for_key(
+			ent, u8"zhlt_lightflags"
+		);
 		if (!zhltLightFlagsString.empty()) {
 			lightmode = (eModelLightmodes
 			) atoi((char const *) zhltLightFlagsString.data());
@@ -1882,8 +1890,9 @@ static void MakePatches() {
 		}
 
 		std::optional<float3_array> lightOrigin;
-		std::u8string_view lightOriginString
-			= value_for_key(ent, u8"light_origin");
+		std::u8string_view lightOriginString = value_for_key(
+			ent, u8"light_origin"
+		);
 		// Allow models to be lit in an alternate location (pt1)
 		if (!lightOriginString.empty()) {
 			auto maybeE = find_target_entity(lightOriginString);
@@ -1908,8 +1917,9 @@ static void MakePatches() {
 		}
 
 		std::optional<float3_array> modelCenter;
-		std::u8string_view modelCenterString
-			= value_for_key(ent, u8"model_center");
+		std::u8string_view modelCenterString = value_for_key(
+			ent, u8"model_center"
+		);
 		// Allow models to be lit in an alternate location (pt2)
 		if (!modelCenterString.empty()) {
 			float v1, v2, v3;
@@ -2624,21 +2634,21 @@ static void ExtendLightmapBuffer() {
 }
 
 std::array<float3_array, 15> const pos{
-	float3_array{  0,	 0,	0 },
-	  float3_array{	1,  0,  0 },
-	float3_array{  0,	 1,	0 },
-	  float3_array{ -1,	0,  0 },
-	float3_array{  0, -1,	 0 },
-	  float3_array{	1,  0,  0 },
-	float3_array{  0,	 0,	1 },
-	  float3_array{ -1,	0,  0 },
-	float3_array{  0,	 0, -1 },
-	  float3_array{	0, -1,  0 },
-	float3_array{  0,	 0,	1 },
-	  float3_array{	0,  1,  0 },
-	float3_array{  0,	 0, -1 },
-	  float3_array{	1,  0,  0 },
-	float3_array{  0,	 0,	0 }
+	float3_array{ 0,	 0,	0  },
+	  float3_array{ 1,  0,  0	},
+	float3_array{ 0,	 1,	0  },
+	  float3_array{ -1, 0,  0	 },
+	float3_array{ 0,	 -1, 0  },
+	  float3_array{ 1,  0,  0	},
+	float3_array{ 0,	 0,	1  },
+	  float3_array{ -1, 0,  0	 },
+	float3_array{ 0,	 0,	-1 },
+	  float3_array{ 0,  -1, 0	 },
+	float3_array{ 0,	 0,	1  },
+	  float3_array{ 0,  1,  0	},
+	float3_array{ 0,	 0,	-1 },
+	  float3_array{ 1,  0,  0	},
+	float3_array{ 0,	 0,	0  }
 };
 
 // =====================================================================================
@@ -3396,8 +3406,9 @@ void LoadRadFiles(
 
 	// Get application directory. Try looking in the directory we were run
 	// from
-	std::filesystem::path appDir
-		= get_path_to_directory_with_executable(&argv0);
+	std::filesystem::path appDir = get_path_to_directory_with_executable(
+		&argv0
+	);
 
 	// Get map directory
 	std::filesystem::path mapDir

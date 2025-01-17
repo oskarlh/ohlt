@@ -1042,8 +1042,9 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[0]->isportalleaf = true;
 		nodes->children[0]->iscontentsdetail = false;
 		nodes->children[0]->faces = nullptr;
-		nodes->children[0]->markfaces
-			= (face_t**) calloc(1, sizeof(face_t*));
+		nodes->children[0]->markfaces = (face_t**) calloc(
+			1, sizeof(face_t*)
+		);
 		nodes->children[0]->mins = {};
 		nodes->children[0]->maxs = {};
 		nodes->children[1] = AllocNode();
@@ -1053,8 +1054,9 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[1]->isportalleaf = true;
 		nodes->children[1]->iscontentsdetail = false;
 		nodes->children[1]->faces = nullptr;
-		nodes->children[1]->markfaces
-			= (face_t**) calloc(1, sizeof(face_t*));
+		nodes->children[1]->markfaces = (face_t**) calloc(
+			1, sizeof(face_t*)
+		);
 		nodes->children[1]->mins = {};
 		nodes->children[1]->maxs = {};
 		nodes->contents = 0;
@@ -1108,10 +1110,12 @@ static bool ProcessModel(bsp_data& bspData) {
 					}
 				}
 				for (std::size_t i = 0; i < 3; ++i) {
-					model->maxs[i]
-						= std::max(model->maxs[i], (float) maxs[i]);
-					model->mins[i]
-						= std::min(model->mins[i], (float) mins[i]);
+					model->maxs[i] = std::max(
+						model->maxs[i], (float) maxs[i]
+					);
+					model->mins[i] = std::min(
+						model->mins[i], (float) mins[i]
+					);
 				}
 			}
 		}

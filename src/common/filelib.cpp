@@ -36,8 +36,9 @@ read_binary_file(std::filesystem::path const & filePath) {
 		// The file shrunk between tellg() and the read
 		fileSize = file.gcount();
 
-		auto smallerBuffer
-			= std::make_unique_for_overwrite<std::byte[]>(fileSize);
+		auto smallerBuffer = std::make_unique_for_overwrite<std::byte[]>(
+			fileSize
+		);
 		std::move(
 			buffer.get(), buffer.get() + fileSize, smallerBuffer.get()
 		);
@@ -83,8 +84,8 @@ std::optional<std::u8string> read_utf8_file(
 		std::size_t outIndex = 0;
 		for (std::u8string_view remainingCharactersToCopy{ text };
 			 !remainingCharactersToCopy.empty();
-			 remainingCharactersToCopy
-			 = remainingCharactersToCopy.substr(1)) {
+			 remainingCharactersToCopy = remainingCharactersToCopy.substr(1
+			 )) {
 			if (remainingCharactersToCopy.starts_with(u8"\r\n")) {
 				remainingCharactersToCopy
 					= remainingCharactersToCopy.substr(1);
@@ -94,8 +95,8 @@ std::optional<std::u8string> read_utf8_file(
 		text.resize(outIndex);
 	}
 
-	bool const needToConvert
-		= (legacyEncoding && forceLegacyEncoding) || !validate_utf8(text);
+	bool const needToConvert = (legacyEncoding && forceLegacyEncoding)
+		|| !validate_utf8(text);
 	if (needToConvert) [[unlikely]] {
 		if (!legacyEncoding) {
 			return std::nullopt;
@@ -119,8 +120,9 @@ std::optional<std::u8string> read_utf8_file(
 std::optional<std::filesystem::path>
 try_to_get_canonical_path(std::filesystem::path const & path) {
 	std::error_code canonicalErrorCode;
-	std::filesystem::path const canonicalPath
-		= std::filesystem::canonical(path, canonicalErrorCode);
+	std::filesystem::path const canonicalPath = std::filesystem::canonical(
+		path, canonicalErrorCode
+	);
 	if (canonicalErrorCode) {
 		return std::nullopt;
 	}

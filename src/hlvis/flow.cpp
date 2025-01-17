@@ -431,8 +431,9 @@ inline static void RecursiveLeafFlow(
 			continue;
 		}
 
-		stack.pass
-			= ChopWinding(stack.pass, &stack, prevstack->portalplane);
+		stack.pass = ChopWinding(
+			stack.pass, &stack, prevstack->portalplane
+		);
 		if (!stack.pass) {
 			continue;
 		}
@@ -784,8 +785,8 @@ float WindingDist(winding_t const * w[2]) {
 			assume_NoMemory
 		);
 		hlassume(
-			bounddists
-			= (float*) malloc(w[!side]->numpoints * sizeof(float)),
+			bounddists = (float*)
+				malloc(w[!side]->numpoints * sizeof(float)),
 			assume_NoMemory
 		);
 		// build boundaries

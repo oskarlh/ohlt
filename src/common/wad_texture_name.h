@@ -19,8 +19,8 @@ constexpr std::size_t
 	= 5;
 
 constexpr std::size_t wad_texture_name_max_length_without_last_null = 15;
-constexpr std::size_t wad_texture_name_max_length_with_last_null
-	= 1 + wad_texture_name_max_length_without_last_null;
+constexpr std::size_t wad_texture_name_max_length_with_last_null = 1
+	+ wad_texture_name_max_length_without_last_null;
 
 // WAD texture names are case-insensitive.
 // Usuaully stored in lower-case, though often presented in upper-case.
@@ -381,8 +381,8 @@ class wad_texture_name final {
 	get_animation_frame_or_tile_number() const noexcept {
 		if (is_animation_frame() || is_tile()) {
 			bool const alternateAnimation = units[1] >= 'a';
-			std::uint8_t frameNumber
-				= units[1] - (alternateAnimation ? u8'a' : u8'0');
+			std::uint8_t frameNumber = units[1]
+				- (alternateAnimation ? u8'a' : u8'0');
 			return std::make_pair(frameNumber, alternateAnimation);
 		}
 		return std::nullopt;

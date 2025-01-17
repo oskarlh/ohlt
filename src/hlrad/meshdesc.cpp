@@ -466,8 +466,8 @@ void CMeshDesc ::StudioCalcBonePosition(
 		pos[j] = pbone->value[j]; // default;
 
 		if (panim->offset[j] != 0) {
-			panimvalue
-				= (mstudioanimvalue_t*) ((byte*) panim + panim->offset[j]);
+			panimvalue = (mstudioanimvalue_t*) ((byte*) panim
+												+ panim->offset[j]);
 			pos[j] += panimvalue[1].value * pbone->scale[j];
 		}
 	}
@@ -491,8 +491,8 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	}; // trying to reduce polycount and the speedup compilation
 
 	// compute default pose for building mesh from
-	mstudioseqdesc_t* pseqdesc
-		= (mstudioseqdesc_t*) ((byte*) phdr + phdr->seqindex);
+	mstudioseqdesc_t* pseqdesc = (mstudioseqdesc_t*) ((byte*) phdr
+													  + phdr->seqindex);
 
 	// Sanity check
 	if (pseqdesc->seqgroup != 0) {
@@ -512,8 +512,8 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	mstudioanim_t* panim = (mstudioanim_t*) ((byte*) phdr + pseqgroup->data
 											 + pseqdesc->animindex);
 
-	mstudiobone_t* pbone
-		= (mstudiobone_t*) ((byte*) phdr + phdr->boneindex);
+	mstudiobone_t* pbone = (mstudiobone_t*) ((byte*) phdr + phdr->boneindex
+	);
 	std::array<float3_array, MAXSTUDIOBONES> pos;
 	std::array<vec4_t, MAXSTUDIOBONES> q;
 
@@ -568,8 +568,9 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	mstudiotexture_t** textures = (mstudiotexture_t**) malloc(
 		sizeof(mstudiotexture_t*) * totalVertSize * 8
 	); // lame way...
-	unsigned int* indices
-		= (unsigned int*) malloc(sizeof(int) * totalVertSize * 24);
+	unsigned int* indices = (unsigned int*) malloc(
+		sizeof(int) * totalVertSize * 24
+	);
 	std::uint32_t numVerts = 0, numElems = 0, numTris = 0;
 	mvert_t triangle[3];
 
@@ -588,8 +589,9 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		mstudiomodel_t* psubmodel
 			= (mstudiomodel_t*) ((byte*) phdr + pbodypart->modelindex)
 			+ index;
-		float3_array* pstudioverts
-			= (float3_array*) ((byte*) phdr + psubmodel->vertindex);
+		float3_array* pstudioverts = (float3_array*) ((byte*) phdr
+													  + psubmodel->vertindex
+		);
 		byte* pvertbone = ((byte*) phdr + psubmodel->vertinfoindex);
 
 		// setup all the vertices
@@ -607,16 +609,16 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		}
 
 		for (std::int32_t j = 0; j < psubmodel->nummesh; ++j) {
-			mstudiomesh_t* pmesh
-				= (mstudiomesh_t*) ((byte*) phdr + psubmodel->meshindex)
+			mstudiomesh_t* pmesh = (mstudiomesh_t*) ((byte*) phdr
+													 + psubmodel->meshindex)
 				+ j;
-			std::int16_t* ptricmds
-				= (std::int16_t*) ((byte*) phdr + pmesh->triindex);
+			std::int16_t* ptricmds = (std::int16_t*) ((byte*) phdr
+													  + pmesh->triindex);
 			int flags = ptexture[pskinref[pmesh->skinref]].flags;
-			float s
-				= 1.0f / (float) ptexture[pskinref[pmesh->skinref]].width;
-			float t
-				= 1.0f / (float) ptexture[pskinref[pmesh->skinref]].height;
+			float s = 1.0f
+				/ (float) ptexture[pskinref[pmesh->skinref]].width;
+			float t = 1.0f
+				/ (float) ptexture[pskinref[pmesh->skinref]].height;
 
 			std::int16_t i;
 			while ((i = *(ptricmds++))) {
@@ -666,10 +668,10 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 						coords[numVerts * 2 + 0] = s;
 						coords[numVerts * 2 + 1] = t;
 					} else if (flags & STUDIO_NF_UV_COORDS) {
-						coords[numVerts * 2 + 0]
-							= half_to_float(ptricmds[2]);
-						coords[numVerts * 2 + 1]
-							= half_to_float(ptricmds[3]);
+						coords[numVerts * 2 + 0] = half_to_float(ptricmds[2]
+						);
+						coords[numVerts * 2 + 1] = half_to_float(ptricmds[3]
+						);
 					} else {
 						coords[numVerts * 2 + 0] = ptricmds[2] * s;
 						coords[numVerts * 2 + 1] = ptricmds[3] * t;
@@ -962,8 +964,8 @@ bool CMeshDesc ::AddMeshTrinagle(
 				// edge bevel
 				for (j = 0; j < 3; j++) {
 					if (j != i) {
-						float d
-							= DotProduct(triangle[j].point, normal) - dist;
+						float d = DotProduct(triangle[j].point, normal)
+							- dist;
 						// point in front: this plane isn't part of the
 						// outer hull
 						if (d > 0.1f) {

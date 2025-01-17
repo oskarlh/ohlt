@@ -77,18 +77,18 @@ static std::array<conversion_data, num_legacy_encodings> const
 	= {
 		  conversion_data{
 						  windows_1251_unicode_equivalents_for_0x80_to_0xbf_inclusive
-						  .data(),
+				  .data(),
 						  0x0410 - 0xC0,
 						  windows_1251_unicode_equivalents_for_0x80_to_0xbf_inclusive
-						  .size()
-						  + first_non_ascii_character,
+					  .size()
+				  + first_non_ascii_character,
 						  },
 		  conversion_data{
 						  windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
-						  .data(),
-						  0, windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
- .size()
- + first_non_ascii_character,
+				  .data(),
+						  0,										windows_1252_unicode_equivalents_for_0x80_to_0x9f_inclusive
+					  .size()
+				  + first_non_ascii_character,
 						  }
 };
 
@@ -106,8 +106,8 @@ legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding) {
 			output += (char8_t) c;
 		} else {
 			// Find the equivalent code point
-			char16_t codePoint
-				= c + conversionData.add_to_characters_past_the_table;
+			char16_t codePoint = c
+				+ conversionData.add_to_characters_past_the_table;
 			if (c <= conversionData.last_character_to_use_table_for) {
 				std::size_t const index = std::size_t(c) - 0x80;
 				codePoint = conversionData.table[index];

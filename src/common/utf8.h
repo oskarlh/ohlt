@@ -21,15 +21,17 @@ namespace utf8_internal {
 
 template <std::ranges::contiguous_range Range>
 inline bool validate_utf8(Range&& string) noexcept {
-	unsigned char const * it
-		= (unsigned char const *) std::ranges::data(string);
-	unsigned char const * end
-		= (unsigned char const *) std::to_address(std::ranges::end(string));
+	unsigned char const * it = (unsigned char const *) std::ranges::data(
+		string
+	);
+	unsigned char const * end = (unsigned char const *) std::to_address(
+		std::ranges::end(string)
+	);
 
 	// Skip past ASCII code units, eight at a time
 	bool allAscii = true;
-	for (unsigned char const * eightsEnd
-		 = it + (std::size_t(end - it) / 8) * 8;
+	for (unsigned char const * eightsEnd = it
+			 + (std::size_t(end - it) / 8) * 8;
 		 allAscii && it != eightsEnd;
 		 it += 8) {
 		using eight_units = char8_t[8];
@@ -63,14 +65,14 @@ constexpr bool is_ascii_whitespace(char8_t c) noexcept {
 }
 
 constexpr char8_t ascii_character_to_lowercase(char8_t c) noexcept {
-	char8_t const add
-		= (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A') : u8'\0';
+	char8_t const add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A')
+												   : u8'\0';
 	return c + add;
 }
 
 constexpr char8_t ascii_character_to_uppercase(char8_t c) noexcept {
-	char8_t const subtract
-		= (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A') : u8'\0';
+	char8_t const subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A')
+														: u8'\0';
 	return c - subtract;
 }
 

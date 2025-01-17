@@ -96,8 +96,8 @@ class compilation_context {
 	compilation_context(compilation_root_data& r) : root(&r) { }
 
 	compilation_context(compilation_context const & other) = default;
-	compilation_context& operator=(compilation_context const & other)
-		= default;
+	compilation_context& operator=(compilation_context const & other
+	) = default;
 
 	template <class... Args>
 	void

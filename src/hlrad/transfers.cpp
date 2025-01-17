@@ -32,8 +32,9 @@ void writetransfers(
 
 		long patchcount = total_patches;
 		for (patch = g_patches; patchcount-- > 0; patch++) {
-			amtwritten
-				= fwrite(&patch->iIndex, sizeof(patch->iIndex), 1, file);
+			amtwritten = fwrite(
+				&patch->iIndex, sizeof(patch->iIndex), 1, file
+			);
 			if (amtwritten != 1) {
 				goto FailedWrite;
 			}
@@ -50,8 +51,9 @@ void writetransfers(
 				}
 			}
 
-			amtwritten
-				= fwrite(&patch->iData, sizeof(patch->iData), 1, file);
+			amtwritten = fwrite(
+				&patch->iData, sizeof(patch->iData), 1, file
+			);
 			if (amtwritten != 1) {
 				goto FailedWrite;
 			}

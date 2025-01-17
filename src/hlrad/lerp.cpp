@@ -268,10 +268,10 @@ static bool CalcWeight(
 		istoofar = true;
 		ratio = 1.0;
 	} else if (dist >= len - ON_EPSILON) {
-		istoofar
-			= false; // if we change this "false" to "true", we will see
-					 // many places turned "green" in "-drawlerp" mode
-		ratio = 1.0; // in order to prevent excessively small weight
+		istoofar = false; // if we change this "false" to "true", we will
+						  // see many places turned "green" in "-drawlerp"
+						  // mode
+		ratio = 1.0;	  // in order to prevent excessively small weight
 	} else {
 		istoofar = false;
 		ratio = dist / len;
@@ -746,8 +746,9 @@ static void ApplyInterpolation(
 		return;
 	}
 	for (auto const & point : interp.points) {
-		float3_array const * b
-			= GetTotalLight(&g_patches[point.patchnum], style);
+		float3_array const * b = GetTotalLight(
+			&g_patches[point.patchnum], style
+		);
 		VectorMA(out, point.weight / interp.totalweight, *b, out);
 	}
 }
@@ -829,8 +830,8 @@ void InterpolateSampleLight(
 				maininterp.isbiased = true;
 			}
 			for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
-				weight
-					= localinterps[i]->points[j].weight * localweights[i];
+				weight = localinterps[i]->points[j].weight
+					* localweights[i];
 				if (g_patches[localinterps[i]->points[j].patchnum].flags
 					== ePatchFlagOutside) {
 					weight *= 0.01;
@@ -1142,8 +1143,9 @@ static void PurgePatches(localtriangulation_t* lt) {
 		next[i] = (i + 1) % (int) points.size();
 		prev[i] = (i - 1 + (int) points.size()) % (int) points.size();
 		valid[i] = 1;
-		dists[i].first
-			= DotProduct(points[i].leftspot, points[i].leftdirection);
+		dists[i].first = DotProduct(
+			points[i].leftspot, points[i].leftdirection
+		);
 		dists[i].second = i;
 	}
 	std::sort(dists.begin(), dists.end());
@@ -1291,8 +1293,9 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 			angles[j].second = j;
 		}
 		std::sort(angles.begin(), angles.end());
-		angle
-			= GetAngle(w->leftdirection, wnext->leftdirection, lt->normal);
+		angle = GetAngle(
+			w->leftdirection, wnext->leftdirection, lt->normal
+		);
 		if ((int) lt->sortedwedges.size() == 1) {
 			angle = 2 * std::numbers::pi_v<double>;
 		} else {
@@ -1497,8 +1500,9 @@ static localtriangulation_t* CreateLocalTriangulation(
 		w = &lt->sortedwedges[i];
 		wnext = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
 
-		angle
-			= GetAngle(w->leftdirection, wnext->leftdirection, lt->normal);
+		angle = GetAngle(
+			w->leftdirection, wnext->leftdirection, lt->normal
+		);
 		if (g_drawlerp
 			&& ((int) lt->sortedwedges.size() >= 2
 				&& fabs(angle) <= (0.9 * std::numbers::pi_v<double> / 180)

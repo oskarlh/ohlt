@@ -132,9 +132,9 @@ bool no_wad_textures(bsp_data const & bspData) {
 		? ((dmiptexlump_t const *) bspData.textureData.data())->nummiptex
 		: 0;
 	for (int i = 0; i < numtextures; i++) {
-		int const offset
-			= ((dmiptexlump_t const *) bspData.textureData.data())
-				  ->dataofs[i];
+		int const offset = ((dmiptexlump_t const *)
+								bspData.textureData.data())
+							   ->dataofs[i];
 		std::size_t size = bspGlobals.textureDataByteSize - offset;
 		if (offset < 0 || size < sizeof(miptex_t)) {
 			// Missing textures have offset = -1
