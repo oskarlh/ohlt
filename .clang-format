@@ -47,7 +47,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: false
-ColumnLimit:     76
+ColumnLimit: 76
 # TODO: Is this something we'll need if we use something like Doxygen or Standardese for documentation comments?
 # CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: false

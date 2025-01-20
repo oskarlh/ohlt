@@ -66,7 +66,9 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/project_constants.h
     ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
+    ${COMMON_DIR}/threads2.h
     ${COMMON_DIR}/time_counter.h
+    ${COMMON_DIR}/usually_short_vector.h
     ${COMMON_DIR}/utf8.h
     ${COMMON_DIR}/util.h
     ${COMMON_DIR}/vector_for_overwriting.h
@@ -255,8 +257,11 @@ else()
 endif()
 
 # Tell MSVC the source files are in UTF-8
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
+# Enable experimental standard library features in Clang.
+# We need this for std::jthread in Clang < v20.
+add_compile_options("$<$<CXX_COMPILER_ID:Clang>:-fexperimental-library>")
 
 #================
 # Targets

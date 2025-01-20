@@ -59,36 +59,51 @@ inline bool validate_utf8(Range&& string) noexcept {
 	return true;
 }
 
+constexpr std::u8string_view ascii_whitespace{ u8" \f\n\r\t\v" };
+
 constexpr bool is_ascii_whitespace(char8_t c) noexcept {
-	return c == u8' ' || c == u8'\n' || c == u8'\r' || c == u8'\t'
-		|| c == u8'\v';
+	return ascii_whitespace.contains(c);
 }
 
-constexpr char8_t ascii_character_to_lowercase(char8_t c) noexcept {
+[[nodiscard]] constexpr std::u8string_view
+skip_ascii_whitespace(std::u8string_view str) noexcept {
+	std::size_t skipTo = str.find_first_not_of(ascii_whitespace);
+	if (skipTo == std::u8string_view::npos) {
+		skipTo = 0;
+	}
+
+	return str.substr(skipTo);
+}
+
+[[nodiscard]] constexpr char8_t ascii_character_to_lowercase(char8_t c
+) noexcept {
 	char8_t const add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A')
 												   : u8'\0';
 	return c + add;
 }
 
-constexpr char8_t ascii_character_to_uppercase(char8_t c) noexcept {
+[[nodiscard]] constexpr char8_t ascii_character_to_uppercase(char8_t c
+) noexcept {
 	char8_t const subtract = (c >= u8'a' && c <= u8'z') ? (u8'a' - u8'A')
 														: u8'\0';
 	return c - subtract;
 }
 
-constexpr auto ascii_characters_to_lowercase_in_utf8_string_as_view(
+[[nodiscard]] constexpr auto
+ascii_characters_to_lowercase_in_utf8_string_as_view(
 	std::u8string_view input
 ) noexcept {
 	return std::ranges::transform_view(input, ascii_character_to_lowercase);
 }
 
-constexpr auto ascii_characters_to_uppercase_in_utf8_string_as_view(
+[[nodiscard]] constexpr auto
+ascii_characters_to_uppercase_in_utf8_string_as_view(
 	std::u8string_view input
 ) noexcept {
 	return std::ranges::transform_view(input, ascii_character_to_uppercase);
 }
 
-constexpr std::u8string
+[[nodiscard]] constexpr std::u8string
 ascii_characters_to_lowercase_in_utf8_string(std::u8string_view input
 ) noexcept {
 	auto lowercaseView
@@ -96,7 +111,7 @@ ascii_characters_to_lowercase_in_utf8_string(std::u8string_view input
 	return std::u8string{ lowercaseView.begin(), lowercaseView.end() };
 }
 
-constexpr std::u8string
+[[nodiscard]] constexpr std::u8string
 ascii_characters_to_uppercase_in_utf8_string(std::u8string_view input
 ) noexcept {
 	auto uppercaseView
