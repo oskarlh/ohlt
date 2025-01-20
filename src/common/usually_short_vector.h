@@ -47,7 +47,7 @@ class with_extra_data {
 
 	template <class OtherExtraData>
 	constexpr void
-	move_extra_from(with_extra_data<OtherExtraData>&& otherWrapper
+	move_extra_from(with_extra_data<OtherExtraData>& otherWrapper
 	) noexcept {
 		extraData = std::move(otherWrapper.extraData);
 	}
@@ -70,7 +70,7 @@ requires(is_void<ExtraData>) struct with_extra_data<ExtraData> {
 
 	template <class OtherExtraData>
 	constexpr void
-	move_extra_from(with_extra_data<OtherExtraData>&& otherWrapper
+	move_extra_from(with_extra_data<OtherExtraData>& otherWrapper
 	) noexcept { }
 
 	constexpr void_dummy_type extra_data_ref() const noexcept {
@@ -282,21 +282,24 @@ requires(
 						std::move(longHeader.storageVector)
 					};
 
-					short_header_type newHeader;
-					newHeader.move_extra_from(longHeader);
+					with_extra_data<short_extra_type> extraHolder;
+					extraHolder.move_extra_from(longHeader);
 					longHeader.~long_header_type();
-					new (&shortHeader)
-						short_header_type{ std::move(newHeader) };
-
+					new (&shortHeader) short_header_type{};
+					shortHeader.move_extra_from(extraHolder);
 					shortHeader.sizeOrLongHeaderMark = oldValues.size();
-					std::ranges::move(oldValues, short_header_begin());
+					std::uninitialized_move(
+						oldValues.begin(),
+						oldValues.end(),
+						short_header_begin()
+					);
 				} else {
 					longHeader.storageVector.shrink_to_fit();
 				}
 			}
 		}
 
-		constexpr void reserve(std::size_t newCapacity) noexcept {
+		constexpr void reserve(std::size_t newCapacity) {
 			if (newCapacity <= inplace_capacity) [[likely]] {
 				return;
 			}
@@ -356,11 +359,15 @@ requires(
 		return size() == 0;
 	}
 
+	constexpr void reserve(std::size_t newCapacity) {
+		return header.reserve(newCapacity);
+	}
+
 	constexpr std::size_t capacity() const noexcept {
 		return header.capacity();
 	}
 
-	constexpr std::size_t shrink_to_fit() {
+	constexpr void shrink_to_fit() {
 		return header.shrink_to_fit();
 	}
 
