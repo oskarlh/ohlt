@@ -5505,6 +5505,9 @@ void FinalLightFace(int const facenum) {
 				}
 				if (g_jitter_hack[0] || g_jitter_hack[1]
 					|| g_jitter_hack[2]) {
+					// TODO: Consider using std::philox_engine or a similar
+					// RNG here instead, one that's built for
+					// multithreading.
 					temp_rand = (float) rand() / float(RAND_MAX) - 0.5f;
 					for (i = 0; i < 3; i++) {
 						lbi[i] += g_jitter_hack[i] * temp_rand;

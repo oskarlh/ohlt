@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 #include <span>
+#include <vector>
 
 template <std::size_t NumElements>
 using short_size_for_num_elements = std::conditional_t<
@@ -15,30 +16,12 @@ using short_size_for_num_elements = std::conditional_t<
 		std::uint16_t,
 		std::size_t>>;
 
-// This file contains the compact version of
-// usually_short_vector_storage with only a std::uint8_t used for
-// inplace storage size
-
-// constexpr void
-// delete_aligned_bytes(std::byte* bytes, std::size_t alignment) noexcept {
-//	::operator delete[](bytes, std::align_val_t(alignment));
-// }
-// template<std::size_t Alignment>
-// struct aligned_bytes_deleter {
-//	constexpr void operator()(std::byte* bytes) noexcept {
-//		::operator delete[](bytes, std::align_val_t(Alignment));
-//	}
-// };
-// template <std::size_t Alignment>
-// using unique_aligned_bytes_ptr
-//	= std::unique_ptr<std::byte[], aligned_bytes_deleter<Alignment>>
-
 template <class ShortSize>
 struct header_base {
 	ShortSize sizeOrLongHeaderMark; // -1 == this is a long_header
 };
 
-template <class ShortSize, class LongExtraData>
+template <class Value, class ShortSize, class LongExtraData>
 struct long_header : header_base<ShortSize> {
 	using header_base<ShortSize>::sizeOrLongHeaderMark;
 
@@ -47,36 +30,29 @@ struct long_header : header_base<ShortSize> {
 	}
 
 	LongExtraData longExtraData;
-	std::size_t size;
-	std::size_t allocated;
-	std::unique_ptr<std::max_align_t[]> storagePtr;
+	std::vector<Value> storageVector;
 };
 
-template <class ShortSize, std::same_as<void> LongExtraData>
+template <class Value, class ShortSize, std::same_as<void> LongExtraData>
 // Version without longExtraData
-struct long_header<ShortSize, LongExtraData> : header_base<ShortSize> {
+struct long_header<Value, ShortSize, LongExtraData>
+	: header_base<ShortSize> {
 	using header_base<ShortSize>::sizeOrLongHeaderMark;
 
 	constexpr long_header() {
 		sizeOrLongHeaderMark = -1;
 	}
 
-	std::size_t size;
-	std::size_t allocated;
-	std::unique_ptr<std::max_align_t[]> storagePtr;
+	std::vector<Value> storageVector;
 };
 
 template <
+	class Value,
 	class ShortSize,
 	class ShortExtraData,
-	class Value,
 	std::size_t InplaceCapacity>
 struct short_header : header_base<ShortSize> {
 	using header_base<ShortSize>::sizeOrLongHeaderMark;
-
-	constexpr short_header() {
-		sizeOrLongHeaderMark = 0;
-	}
 
 	ShortExtraData shortExtraData;
 	alignas(Value
@@ -84,17 +60,13 @@ struct short_header : header_base<ShortSize> {
 };
 
 template <
+	class Value,
 	class ShortSize,
 	std::same_as<void> ShortExtraData,
-	class Value,
 	std::size_t InplaceCapacity>
-struct short_header<ShortSize, ShortExtraData, Value, InplaceCapacity>
+struct short_header<Value, ShortSize, ShortExtraData, InplaceCapacity>
 	: header_base<ShortSize> {
 	using header_base<ShortSize>::sizeOrLongHeaderMark;
-
-	constexpr short_header() {
-		sizeOrLongHeaderMark = 0;
-	}
 
 	alignas(Value
 	) std::array<std::byte, InplaceCapacity * sizeof(Value)> storageArray;
@@ -147,11 +119,12 @@ requires(
 	using short_size = short_size_for_num_elements<InplaceCapacity>;
 	using header_base_type = header_base<short_size>;
 	using short_header_type = short_header<
+		value_type,
 		short_size,
 		short_extra_type,
-		value_type,
 		inplace_capacity>;
-	using long_header_type = long_header<short_size, short_extra_type>;
+	using long_header_type
+		= long_header<value_type, short_size, short_extra_type>;
 
 	union header_union {
 		header_base_type headerBase;
@@ -169,7 +142,11 @@ requires(
 		}
 
 		constexpr std::size_t long_header_size() const noexcept {
-			return longHeader.size;
+			return longHeader.storageVector.size();
+		}
+
+		constexpr std::size_t long_header_capacity() const noexcept {
+			return longHeader.storageVector.capacity();
 		}
 
 		constexpr std::span<value_type> short_header_span() noexcept {
@@ -178,8 +155,24 @@ requires(
 		}
 
 		constexpr std::span<value_type> long_header_span() noexcept {
-			return { (Value*) longHeader.storagePtr.get(),
-					 longHeader.size };
+			return { (Value*) longHeader.storageVector.data(),
+					 longHeader.storageVector.size() };
+		}
+
+		constexpr std::size_t capacity() const noexcept {
+			if (stored_inplace()) [[likely]] {
+				return inplace_capacity;
+			}
+			return long_header_capacity();
+		}
+
+		constexpr void shrink_to_fit() {
+			if (!stored_inplace()) [[unlikely]] {
+				return longHeader.storageVector.shrink_to_fit();
+				/// ////// / // //  TODO:
+				// If size() is <= inplace_capacity, just move things
+				// inplace!!!!!!
+			}
 		}
 
 		constexpr std::size_t size() const noexcept {
@@ -222,6 +215,14 @@ requires(
 
 	constexpr bool empty() const noexcept {
 		return size() == 0;
+	}
+
+	constexpr std::size_t capacity() const noexcept {
+		return header.capacity();
+	}
+
+	constexpr std::size_t shrink_to_fit() {
+		return header.shrink_to_fit();
 	}
 
 	constexpr std::span<value_type> span() noexcept {
