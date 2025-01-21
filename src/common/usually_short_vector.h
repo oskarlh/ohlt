@@ -4,6 +4,7 @@
 #include <array>
 #include <limits>
 #include <memory>
+#include <ranges>
 #include <span>
 #include <vector>
 
@@ -152,6 +153,13 @@ requires(
 ) class usually_short_vector final {
   public:
 	using value_type = Value;
+	using reference = value_type&;
+	using const_reference = value_type const &;
+	using size_type = std::size_t;
+	using difference_type = std::ptrdiff_t;
+	using iterator = value_type*;
+	using const_iterator = value_type const *;
+
 	using short_extra_type = ShortExtraData;
 	using long_extra_type = LongExtraData;
 	static constexpr bool stores_extra_data = !is_void<ShortExtraData>;
@@ -181,7 +189,7 @@ requires(
 		long_header_type longHeader;
 
 		constexpr bool stored_inplace() const noexcept {
-			return headerBase.sizeOrLongHeaderMark != -1;
+			return headerBase.sizeOrLongHeaderMark != short_size(-1);
 		}
 
 		constexpr header_union() noexcept : shortHeader{} { }
@@ -198,16 +206,50 @@ requires(
 			return longHeader.storageVector.capacity();
 		}
 
-		constexpr Value* short_header_begin() noexcept {
-			return (Value*) shortHeader.storageArray.begin();
+		constexpr const_iterator short_header_begin() const noexcept {
+			return (const_iterator) shortHeader.storageArray.data();
 		}
 
-		constexpr Value* long_header_begin() noexcept {
+		constexpr iterator short_header_begin() noexcept {
+			return (iterator) shortHeader.storageArray.data();
+		}
+
+		constexpr const_iterator long_header_begin() const noexcept {
 			return longHeader.storageVector.data();
+		}
+
+		constexpr iterator long_header_begin() noexcept {
+			return longHeader.storageVector.data();
+		}
+
+		constexpr const_iterator long_header_end() const noexcept {
+			return long_header_begin() + long_header_size();
+		}
+
+		constexpr iterator long_header_end() noexcept {
+			return long_header_begin() + long_header_size();
+		}
+
+		constexpr const_iterator short_header_end() const noexcept {
+			return short_header_begin() + short_header_size();
+		}
+
+		constexpr iterator short_header_end() noexcept {
+			return short_header_begin() + short_header_size();
+		}
+
+		constexpr std::span<value_type const>
+		short_header_span() const noexcept {
+			return { short_header_begin(), short_header_size() };
 		}
 
 		constexpr std::span<value_type> short_header_span() noexcept {
 			return { short_header_begin(), short_header_size() };
+		}
+
+		constexpr std::span<value_type const>
+		long_header_span() const noexcept {
+			return { long_header_begin(), long_header_size() };
 		}
 
 		constexpr std::span<value_type> long_header_span() noexcept {
@@ -226,6 +268,41 @@ requires(
 				return short_header_size();
 			}
 			return long_header_size();
+		}
+
+		constexpr const_iterator begin() const noexcept {
+			if (stored_inplace()) [[likely]] {
+				return short_header_begin();
+			}
+			return long_header_begin();
+		}
+
+		constexpr iterator begin() noexcept {
+			if (stored_inplace()) [[likely]] {
+				return short_header_begin();
+			}
+			return long_header_begin();
+		}
+
+		constexpr const_iterator end() const noexcept {
+			if (stored_inplace()) [[likely]] {
+				return short_header_end();
+			}
+			return long_header_end();
+		}
+
+		constexpr iterator end() noexcept {
+			if (stored_inplace()) [[likely]] {
+				return short_header_end();
+			}
+			return long_header_end();
+		}
+
+		constexpr std::span<value_type const> span() const noexcept {
+			if (stored_inplace()) [[likely]] {
+				return short_header_span();
+			}
+			return long_header_span();
 		}
 
 		constexpr std::span<value_type> span() noexcept {
@@ -303,33 +380,96 @@ requires(
 			if (newCapacity <= inplace_capacity) [[likely]] {
 				return;
 			}
-			if (stored_inplace()) {
-				std::span<value_type> dataInOldLocation = short_header_span(
-				);
-				long_header_type newHeader{};
-				newHeader.storageVector.reserve(newCapacity);
-				newHeader.storageVector.insert(
-					newHeader.storageVector.end(),
-					std::make_move_iterator(dataInOldLocation.begin()),
-					std::make_move_iterator(dataInOldLocation.end())
-				);
-				std::destroy(
-					dataInOldLocation.begin(), dataInOldLocation.end()
-				);
-				newHeader.move_extra_from(shortHeader);
-				shortHeader.~short_header_type();
-				new (&longHeader) long_header_type{ std::move(newHeader) };
-			} else {
+			if (!stored_inplace()) {
 				longHeader.storageVector.reserve(newCapacity);
+				return;
 			}
+			// Move from inplace storage to external storage
+
+			std::span<value_type> dataInOldLocation = short_header_span();
+			long_header_type newHeader{};
+			newHeader.storageVector.reserve(newCapacity);
+			newHeader.storageVector.insert(
+				newHeader.storageVector.end(),
+				std::make_move_iterator(dataInOldLocation.begin()),
+				std::make_move_iterator(dataInOldLocation.end())
+			);
+			std::destroy(
+				dataInOldLocation.begin(), dataInOldLocation.end()
+			);
+			newHeader.move_extra_from(shortHeader);
+			shortHeader.~short_header_type();
+			new (&longHeader) long_header_type{ std::move(newHeader) };
+		}
+
+		template <std::ranges::sized_range Range>
+		constexpr void append_range(Range&& range) {
+			auto inBegin = std::begin(range);
+			auto inEnd = std::end(range);
+			std::size_t inCount = std::ranges::distance(inBegin, inEnd);
+
+			std::size_t const oldSize = size();
+			std::size_t const newSize = oldSize + inCount;
+			if (newSize <= inplace_capacity) [[likely]] {
+				shortHeader.sizeOrLongHeaderMark = newSize;
+				std::uninitialized_copy(
+					inBegin, inEnd, short_header_begin() + oldSize
+				);
+				return;
+			}
+			reserve(newSize);
+			// TODO: Use C++23's vector::insert_range instead when it's
+			// available
+			longHeader.storageVector.insert(
+				longHeader.storageVector.end(), inBegin, inEnd
+			);
+		}
+
+		template <class... Args>
+		constexpr reference emplace_back(Args&&... args) {
+			if (headerBase.sizeOrLongHeaderMark < inplace_capacity)
+				[[likely]] {
+				iterator locationOfNewObject = short_header_end();
+
+				new (locationOfNewObject)
+					value_type(std::forward<Args>(args)...);
+				++headerBase.sizeOrLongHeaderMark;
+				return *locationOfNewObject;
+			}
+			reserve(size() + 1);
+			return longHeader.storageVector.emplace_back(
+				std::forward<Args>(args)...
+			);
+		}
+
+		constexpr void pop_back() noexcept {
+			if (stored_inplace()) [[likely]] {
+				std::size_t const oldSize = short_header_size();
+				if (oldSize == 0) [[unlikely]] {
+					return;
+				}
+				(short_header_begin() + oldSize)->~value_type();
+				--shortHeader.sizeOrLongHeaderMark;
+				return;
+			}
+			if (!longHeader.storageVector.empty()) [[likely]] {
+				longHeader.storageVector.pop_back();
+			}
+		}
+
+		constexpr void clear() noexcept {
+			if (stored_inplace()) [[likely]] {
+				std::ranges::destroy(short_header_span());
+				shortHeader.sizeOrLongHeaderMark = 0;
+				return;
+			}
+			longHeader.storageVector.clear();
 		}
 
 		constexpr void swap(header_union&& other) {
 			//////////////////////////////////////////////
 			// WE NEED SWAP
 			// AND DESTRUCTIVE MOVE CONSTRUCTOR
-			// AND RESIZE
-			// AND INSERT
 			//
 		}
 
@@ -355,7 +495,7 @@ requires(
 		return header.size();
 	}
 
-	constexpr bool empty() const noexcept {
+	[[nodiscard]] constexpr bool empty() const noexcept {
 		return size() == 0;
 	}
 
@@ -371,8 +511,82 @@ requires(
 		return header.shrink_to_fit();
 	}
 
+	constexpr const_iterator cbegin() const noexcept {
+		return header.begin();
+	}
+
+	constexpr const_iterator begin() const noexcept {
+		return header.begin();
+	}
+
+	constexpr iterator begin() noexcept {
+		return header.begin();
+	}
+
+	constexpr const_iterator cend() const noexcept {
+		return header.end();
+	}
+
+	constexpr const_iterator end() const noexcept {
+		return header.end();
+	}
+
+	constexpr iterator end() noexcept {
+		return header.end();
+	}
+
+	constexpr std::span<value_type const> span() const noexcept {
+		return header.span();
+	}
+
 	constexpr std::span<value_type> span() noexcept {
 		return header.span();
+	}
+
+	template <std::ranges::sized_range Range>
+	constexpr void append_range(Range&& range) {
+		header.append_range(std::forward(range));
+	}
+
+	template <class... Args>
+	constexpr reference emplace_back(Args&&... args) {
+		return header.emplace_back(std::forward<Args>(args)...);
+	}
+
+	constexpr const_reference operator[](std::size_t index) const noexcept {
+		return header.begin()[index];
+	}
+
+	constexpr reference operator[](std::size_t index) noexcept {
+		return header.begin()[index];
+	}
+
+	constexpr const_reference front() const noexcept {
+		return *header.begin();
+	}
+
+	constexpr reference front() noexcept {
+		return *header.begin();
+	}
+
+	constexpr const_reference back() const noexcept {
+		return *(header.end() - 1);
+	}
+
+	constexpr reference back() noexcept {
+		return *(header.end() - 1);
+	}
+
+	constexpr void fill(const_reference value) noexcept {
+		std::ranges::fill(span(), value);
+	}
+
+	constexpr void pop_back() noexcept {
+		header.pop_back();
+	}
+
+	constexpr void clear() noexcept {
+		header.clear();
 	}
 
 	constexpr auto extra_ref() const noexcept requires(stores_extra_data) {

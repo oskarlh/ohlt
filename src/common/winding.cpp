@@ -741,15 +741,6 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 
 // Unused??
 template <any_vec_element VecElement>
-void winding_base<VecElement>::insertPoint(
-	vec3 const & newpoint, std::size_t offset
-) {
-	grow_capacity();
-	m_Points.insert(m_Points.begin() + offset, newpoint);
-}
-
-// Unused??
-template <any_vec_element VecElement>
 void winding_base<VecElement>::pushPoint(vec3 const & newpoint) {
 	grow_capacity();
 	m_Points.emplace_back(newpoint);

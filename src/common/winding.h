@@ -58,7 +58,6 @@ class winding_base {
 	void clear(bool shrinkToFit = false);
 
 	void pushPoint(vec3 const & newpoint);
-	void insertPoint(vec3 const & newpoint, std::size_t offset);
 	std::size_t size() const;
 
 	// Specialized Functions
