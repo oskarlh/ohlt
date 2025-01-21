@@ -150,7 +150,7 @@ requires(
 	&& std::is_nothrow_move_assignable_v<Value>
 	&& std::is_nothrow_move_constructible_v<Value>
 
-) class usually_short_vector final {
+) class usually_inplace_vector final {
   public:
 	using value_type = Value;
 	using reference = value_type&;
@@ -607,17 +607,20 @@ requires(
 		return header.extra();
 	}
 
-	constexpr bool operator==(usually_short_vector& other) const noexcept {
+	constexpr bool operator==(usually_inplace_vector& other
+	) const noexcept {
 		std::span<Value> valuesA = span();
 		std::span<Value> valuesB = other.span();
 		return std::ranges::equal(valuesA, valuesB);
 	}
 
-	constexpr bool operator!=(usually_short_vector& other) const noexcept {
+	constexpr bool operator!=(usually_inplace_vector& other
+	) const noexcept {
 		return !operator==(other);
 	}
 
-	constexpr auto operator<=>(usually_short_vector& other) const noexcept {
+	constexpr auto operator<=>(usually_inplace_vector& other
+	) const noexcept {
 		std::span<Value> valuesA = span();
 		std::span<Value> valuesB = other.span();
 		return std::lexicographical_compare_three_way(
@@ -625,7 +628,7 @@ requires(
 		);
 	}
 
-	constexpr usually_short_vector() noexcept = default;
+	constexpr usually_inplace_vector() noexcept = default;
 
-	constexpr ~usually_short_vector() noexcept = default;
+	constexpr ~usually_inplace_vector() noexcept = default;
 };

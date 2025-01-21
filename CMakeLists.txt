@@ -68,7 +68,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/threads.h
     ${COMMON_DIR}/threads2.h
     ${COMMON_DIR}/time_counter.h
-    ${COMMON_DIR}/usually_short_vector.h
+    ${COMMON_DIR}/usually_inplace_vector.h
     ${COMMON_DIR}/utf8.h
     ${COMMON_DIR}/util.h
     ${COMMON_DIR}/vector_for_overwriting.h
