@@ -8,17 +8,8 @@
 #include <span>
 #include <vector>
 
-template <class Type>
-constexpr bool is_void = std::is_same_v<Type, void>;
-
-struct void_dummy_type { };
-
-template <class Type>
-using replace_void_with_dummy
-	= std::conditional_t<std::is_same_v<Type, void>, void_dummy_type, Type>;
-
 template <std::size_t NumElements>
-using short_size_for_num_elements = std::conditional_t<
+using inplace_size_type_for_num_elements = std::conditional_t<
 	(NumElements <= std::numeric_limits<std::uint8_t>::max() - 1),
 	std::uint8_t,
 	std::conditional_t<
@@ -26,129 +17,305 @@ using short_size_for_num_elements = std::conditional_t<
 		std::uint16_t,
 		std::size_t>>;
 
-template <class ShortSize>
-struct header_base {
-	ShortSize sizeOrLongHeaderMark; // -1 == this is a long_header
+template <class InplaceSizeType>
+struct common_to_both_storage_types {
+	using inplace_size_type = InplaceSizeType;
+
+	inplace_size_type sizeOrExternalStorageMark; // -1 means this is an
+												 // external_storage object
 };
 
-template <class ExtraData>
-class with_extra_data {
-  private:
-	ExtraData extraData;
+template <class Value, class InplaceSizeType>
+struct external_storage final {
+	using inplace_size_type = InplaceSizeType;
 
-	constexpr with_extra_data(ExtraData&& ed) noexcept : extraData(ed) {};
+	inplace_size_type sizeOrExternalStorageMark
+		= -1; // Always -1 for external_storage
 
-  public:
-	constexpr with_extra_data() noexcept = default;
-	constexpr with_extra_data(with_extra_data const & otherExtraData
-	) noexcept
-		= default;
-	constexpr with_extra_data(with_extra_data&& otherExtraData) noexcept
-		= default;
+	using value_type = Value;
 
-	template <class OtherExtraData>
-	constexpr void
-	move_extra_from(with_extra_data<OtherExtraData>& otherWrapper
+	std::size_t elementCount = 0;
+	std::byte* bytes = nullptr;
+	std::size_t elementCapacity = 0;
+
+	constexpr void swap(external_storage& other) noexcept {
+		using std::swap;
+		swap(elementCount, other.elementCount);
+		swap(bytes, other.bytes);
+		swap(elementCapacity, other.elementCapacity);
+	}
+
+	constexpr external_storage() noexcept {};
+	constexpr external_storage(std::size_t initialCapacity) :
+		bytes(new(std::align_val_t(alignof(value_type)))
+				  std::byte[initialCapacity * sizeof(value_type)]),
+		elementCapacity(initialCapacity) {};
+
+	constexpr std::size_t size() const noexcept {
+		return elementCount;
+	}
+
+	constexpr std::size_t capacity() const noexcept {
+		return elementCapacity;
+	}
+
+	constexpr value_type const * begin() const noexcept {
+		return (value_type const *) bytes;
+	}
+
+	constexpr value_type* begin() noexcept {
+		return (value_type*) bytes;
+	}
+
+	constexpr value_type const * end() const noexcept {
+		return begin() + size();
+	}
+
+	constexpr value_type* end() noexcept {
+		return begin() + size();
+	}
+
+	constexpr std::span<value_type const> span() const noexcept {
+		return { begin(), size() };
+	}
+
+	constexpr std::span<value_type> span() noexcept {
+		return { begin(), size() };
+	}
+
+	constexpr void reserve(std::size_t newCapacity) {
+		if (newCapacity <= elementCapacity) [[unlikely]] {
+			return;
+		}
+		external_storage withHigherCapacity{ newCapacity };
+		withHigherCapacity.append_range(span() | std::views::as_rvalue);
+		swap(withHigherCapacity);
+	}
+
+	constexpr void shrink_to_fit() {
+		if (size() != capacity()) {
+			external_storage withLowerCapacity{ size() };
+			withLowerCapacity.append_range(span() | std::views::as_rvalue);
+			swap(withLowerCapacity);
+		}
+	}
+
+	constexpr external_storage(external_storage&& other) noexcept {
+		swap(other);
+	}
+
+	constexpr ~external_storage() {
+		std::destroy_n(begin(), size());
+		::operator delete[](begin(), std::align_val_t(alignof(value_type)));
+	}
+
+	constexpr void append_range(std::ranges::sized_range auto&& range) {
+		auto rangeBegin = std::ranges::begin(range);
+		std::size_t rangeSize = std::ranges::size(range);
+		reserve(
+			size() + rangeSize
+		); // TODO: Increase it more to avoid many small allocations
+		std::uninitialized_copy_n(rangeBegin, rangeSize, end());
+		elementCount += rangeSize;
+	}
+
+	template <class... Args>
+	constexpr value_type& emplace_back(Args&&... args) {
+		reserve(
+			size() + 1
+		); // TODO: Increase it more to avoid many small allocations
+		value_type* locationOfNewObject = end();
+		new (locationOfNewObject) value_type(std::forward<Args>(args)...);
+		++elementCount;
+		return *locationOfNewObject;
+	}
+
+	constexpr external_storage(external_storage const & other) {
+		append_range(other.span());
+	}
+
+	constexpr void reduce_size_to(std::size_t newSize) noexcept {
+		if (newSize < size()) [[unlikely]] {
+			return;
+		}
+
+		std::destroy(begin() + newSize, end());
+		elementCount = newSize;
+	}
+
+	constexpr void clear() noexcept {
+		reduce_size_to(0);
+	}
+
+	// Precondition: size() != 0
+	constexpr void pop_back() noexcept {
+		begin()->~value_type();
+		--elementCount;
+	}
+
+	external_storage& operator=(external_storage const & other) {
+		clear();
+		append_range(other.span());
+	}
+
+	constexpr external_storage& operator=(external_storage&& other
 	) noexcept {
-		extraData = std::move(otherWrapper.extraData);
-	}
-
-	constexpr ExtraData& extra_data_ref() noexcept {
-		return extraData;
-	}
-
-	constexpr ExtraData const & extra_data_ref() const noexcept {
-		return extraData;
+		swap(other);
 	}
 };
 
-template <class ExtraData>
-requires(is_void<ExtraData>) struct with_extra_data<ExtraData> {
-	constexpr with_extra_data() = default;
-	constexpr with_extra_data(with_extra_data const & otherExtraData
-	) = default;
-	constexpr with_extra_data(with_extra_data&& otherExtraData) = default;
+template <class Value, class InplaceSizeType, std::size_t InplaceCapacity>
+struct inplace_storage final {
+	using inplace_size_type = InplaceSizeType;
 
-	template <class OtherExtraData>
-	constexpr void
-	move_extra_from(with_extra_data<OtherExtraData>& otherWrapper
-	) noexcept { }
+	inplace_size_type sizeOrExternalStorageMark = 0;
 
-	constexpr void_dummy_type extra_data_ref() const noexcept {
-		return {};
+	using value_type = Value;
+
+	alignas(value_type
+	) std::array<std::byte, InplaceCapacity * sizeof(value_type)> bytes;
+
+	constexpr std::size_t size() const noexcept {
+		return sizeOrExternalStorageMark;
 	}
-};
 
-template <class Value, class ShortSize, class LongExtraData>
-struct long_header final : header_base<ShortSize>,
-						   with_extra_data<LongExtraData> {
-	using header_base<ShortSize>::sizeOrLongHeaderMark;
-
-	std::vector<Value> storageVector{};
-
-	constexpr long_header() noexcept {
-		sizeOrLongHeaderMark = -1;
+	constexpr value_type const * begin() const noexcept {
+		return (value_type const *) bytes.data();
 	}
-};
 
-template <
-	class Value,
-	class ShortSize,
-	class ShortExtraData,
-	std::size_t InplaceCapacity>
-struct short_header final : header_base<ShortSize>,
-							with_extra_data<ShortExtraData> {
-	using header_base<ShortSize>::sizeOrLongHeaderMark;
+	constexpr value_type* begin() noexcept {
+		return (value_type*) bytes.data();
+	}
 
-	alignas(Value
-	) std::array<std::byte, InplaceCapacity * sizeof(Value)> storageArray;
+	constexpr value_type const * end() const noexcept {
+		return begin() + size();
+	}
 
-	constexpr short_header() = default;
-	short_header(short_header const & other) = delete;			  // TODO?
-	short_header(short_header&& other) = delete;				  // TODO?
-	short_header& operator=(short_header const & other) = delete; // TODO?
-	short_header& operator=(short_header&& other) = delete;		  // TODO?
+	constexpr value_type* end() noexcept {
+		return begin() + size();
+	}
 
-	constexpr ~short_header() {
-		std::ranges::destroy(
-			(Value*) storageArray.begin(),
-			((Value*) storageArray.begin()) + sizeOrLongHeaderMark
+	constexpr std::span<value_type const> span() const noexcept {
+		return { begin(), size() };
+	}
+
+	constexpr std::span<value_type> span() noexcept {
+		return { begin(), size() };
+	}
+
+	constexpr void swap(inplace_storage& other) noexcept {
+		swap_values<value_type>(
+			bytes.data(), size(), other.bytes.data(), other.size()
 		);
+		using std::swap;
+		swap(sizeOrExternalStorageMark, other.sizeOrExternalStorageMark);
+	}
+
+	constexpr inplace_storage() noexcept { }
+
+	constexpr void append_range(std::ranges::sized_range auto&& range) {
+		auto rangeBegin = std::ranges::begin(range);
+		std::size_t rangeSize = std::ranges::size(range);
+		std::uninitialized_copy_n(rangeBegin, rangeSize, end());
+		sizeOrExternalStorageMark += rangeSize;
+	}
+
+	// Precondtion: size() < InplaceCapacity
+	template <class... Args>
+	constexpr value_type& emplace_back(Args&&... args) {
+		value_type* locationOfNewObject = end();
+		new (locationOfNewObject) value_type(std::forward<Args>(args)...);
+		++sizeOrExternalStorageMark;
+		return *locationOfNewObject;
+	}
+
+	constexpr inplace_storage(inplace_storage&& other) noexcept {
+		move_to_uninitialized_then_destroy(
+			other.begin(), other.size(), bytes.start()
+		);
+		sizeOrExternalStorageMark = other.sizeOrExternalStorageMark;
+		other.sizeOrExternalStorageMark = 0;
+	}
+
+	constexpr inplace_storage(inplace_storage const & other) {
+		append_range(other);
+	}
+
+	constexpr void reduce_size_to(std::size_t newSize) noexcept {
+		if (newSize < size()) [[unlikely]] {
+			return;
+		}
+
+		std::destroy(begin() + newSize, end());
+		sizeOrExternalStorageMark = newSize;
+	}
+
+	constexpr void clear() {
+		reduce_size_to(0);
+	}
+
+	// Precondition: size() != 0
+	constexpr void pop_back() noexcept {
+		begin()->~value_type();
+		--sizeOrExternalStorageMark;
+	}
+
+	constexpr inplace_storage& operator=(inplace_storage const & other) {
+		clear();
+		append_range(other.span());
+	}
+
+	constexpr inplace_storage& operator=(inplace_storage&& other) {
+		clear();
+		std::uninitialized_move_n(other.begin(), other.size(), begin());
+		sizeOrExternalStorageMark = other.size();
+		other.clear();
+	}
+
+	constexpr ~inplace_storage() {
+		std::destroy_n(begin(), size());
 	}
 };
 
-template <
-	class Value,
-	// Recommendation: Experiment with different InplaceCapacity so you use
-	// one that leads to as little wasted overhead as possible. Sometimes if
-	// it's a low value, you can increase it without increasing the size of
-	// the container.
-	std::size_t InplaceCapacity,
-	// Optional extra data. Just here to fit small data in the space between
-	// values and size info, which could otherwise be wasted for padding due
-	// to alignment requirements. `ShortExtraData` will be used when
-	// `capacity() <= InplaceCapacity`, otherwise `LongExtraData`
-	class ShortExtraData = void,
-	class LongExtraData = ShortExtraData>
+// Note: requires manually updating the size integers afterwards
+template <class Value>
+void move_to_uninitialized_then_destroy(
+	Value* source, std::size_t numValues, std::byte* destination
+) {
+	std::uninitialized_move_n(source, numValues, (Value*) destination);
+	std::destroy_n(source, numValues);
+}
+
+// Note: requires manually swapping the size integers afterwards
+template <class Value>
+void swap_values(
+	std::byte* storageA,
+	std::size_t numValuesA,
+	std::byte* storageB,
+	std::size_t numValuesB
+) {
+	if (numValuesA > numValuesB) {
+		swap_values<Value>(storageB, numValuesB, storageA, numValuesA);
+		return;
+	}
+	Value* beginA = (Value*) storageA;
+	Value* oldEndA = (Value*) storageA + numValuesA;
+	Value* newEndA = (Value*) storageA + numValuesB;
+
+	Value* beginB = (Value*) storageB;
+	Value* oldEndB = (Value*) storageB + numValuesB;
+	Value* newEndB = (Value*) storageB + numValuesA;
+	std::swap_ranges(beginA, oldEndA, beginB);
+	std::uninitialized_move(newEndB, oldEndB, oldEndA);
+	std::destroy(newEndB, oldEndB);
+}
+
+template <class Value, std::size_t InplaceCapacity>
 requires(
-	(is_void<ShortExtraData> == is_void<LongExtraData>)
-	&& (is_void<ShortExtraData>
-		|| (std::is_nothrow_destructible_v<ShortExtraData>
-			&& std::is_nothrow_move_assignable_v<ShortExtraData>
-			&& std::is_nothrow_move_constructible_v<ShortExtraData>
-			&& std::is_nothrow_default_constructible_v<ShortExtraData>
-			&& std::
-				is_nothrow_constructible_v<ShortExtraData, LongExtraData &&>
-			&& std::is_nothrow_destructible_v<LongExtraData>
-			&& std::is_nothrow_move_assignable_v<LongExtraData>
-			&& std::is_nothrow_move_constructible_v<LongExtraData>
-			&& std::is_nothrow_default_constructible_v<LongExtraData>
-			&& std::is_nothrow_constructible_v<
-				LongExtraData,
-				ShortExtraData &&>) )
-	&& std::is_nothrow_destructible_v<Value>
+	std::is_nothrow_destructible_v<Value>
 	&& std::is_nothrow_move_assignable_v<Value>
 	&& std::is_nothrow_move_constructible_v<Value>
+	&& std::is_nothrow_swappable_v<Value>
 
 ) class usually_inplace_vector final {
   public:
@@ -159,220 +326,57 @@ requires(
 	using difference_type = std::ptrdiff_t;
 	using iterator = value_type*;
 	using const_iterator = value_type const *;
-
-	using short_extra_type = ShortExtraData;
-	using long_extra_type = LongExtraData;
-	static constexpr bool stores_extra_data = !is_void<ShortExtraData>;
-	static constexpr bool stores_one_kind_of_extra_data
-		= std::is_same_v<ShortExtraData, LongExtraData>;
+	// TODO: Round up
 	static constexpr std::size_t inplace_capacity = InplaceCapacity;
 
   private:
-	using short_size = short_size_for_num_elements<InplaceCapacity>;
-	using header_base_type = header_base<short_size>;
-	using short_header_type = short_header<
-		value_type,
-		short_size,
-		short_extra_type,
-		inplace_capacity>;
-	using long_header_type
-		= long_header<value_type, short_size, short_extra_type>;
+	using inplace_size_type
+		= inplace_size_type_for_num_elements<InplaceCapacity>;
 
-	using short_extra_or_dummy_type
-		= replace_void_with_dummy<short_extra_type>;
-	using long_extra_or_dummy_type
-		= replace_void_with_dummy<long_extra_type>;
+	using inplace_storage_type
+		= inplace_storage<value_type, inplace_size_type, inplace_capacity>;
+	using external_storage_type
+		= external_storage<value_type, inplace_size_type>;
+	using common_to_both_storage_types_type
+		= common_to_both_storage_types<inplace_size_type>;
 
-	union header_union {
-		header_base_type headerBase;
-		short_header_type shortHeader;
-		long_header_type longHeader;
+	union storage_union {
+		inplace_storage_type inplaceStorage;
+		external_storage_type externalStorage;
+		common_to_both_storage_types_type commonToBothStorageTypes;
 
 		constexpr bool stored_inplace() const noexcept {
-			return headerBase.sizeOrLongHeaderMark != short_size(-1);
+			return commonToBothStorageTypes.sizeOrExternalStorageMark
+				!= inplace_size_type(-1);
 		}
 
-		constexpr header_union() noexcept : shortHeader{} { }
+		constexpr storage_union() noexcept : inplaceStorage{} { }
 
-		constexpr std::size_t short_header_size() const noexcept {
-			return shortHeader.sizeOrLongHeaderMark;
-		}
-
-		constexpr std::size_t long_header_size() const noexcept {
-			return longHeader.storageVector.size();
-		}
-
-		constexpr std::size_t long_header_capacity() const noexcept {
-			return longHeader.storageVector.capacity();
-		}
-
-		constexpr const_iterator short_header_begin() const noexcept {
-			return (const_iterator) shortHeader.storageArray.data();
-		}
-
-		constexpr iterator short_header_begin() noexcept {
-			return (iterator) shortHeader.storageArray.data();
-		}
-
-		constexpr const_iterator long_header_begin() const noexcept {
-			return longHeader.storageVector.data();
-		}
-
-		constexpr iterator long_header_begin() noexcept {
-			return longHeader.storageVector.data();
-		}
-
-		constexpr const_iterator long_header_end() const noexcept {
-			return long_header_begin() + long_header_size();
-		}
-
-		constexpr iterator long_header_end() noexcept {
-			return long_header_begin() + long_header_size();
-		}
-
-		constexpr const_iterator short_header_end() const noexcept {
-			return short_header_begin() + short_header_size();
-		}
-
-		constexpr iterator short_header_end() noexcept {
-			return short_header_begin() + short_header_size();
-		}
-
-		constexpr std::span<value_type const>
-		short_header_span() const noexcept {
-			return { short_header_begin(), short_header_size() };
-		}
-
-		constexpr std::span<value_type> short_header_span() noexcept {
-			return { short_header_begin(), short_header_size() };
-		}
-
-		constexpr std::span<value_type const>
-		long_header_span() const noexcept {
-			return { long_header_begin(), long_header_size() };
-		}
-
-		constexpr std::span<value_type> long_header_span() noexcept {
-			return { long_header_begin(), long_header_size() };
-		}
-
-		constexpr std::size_t capacity() const noexcept {
-			if (stored_inplace()) [[likely]] {
-				return inplace_capacity;
+		constexpr storage_union(storage_union const & other) {
+			if (other.stored_inplace()) [[likely]] {
+				new (&inplaceStorage)
+					inplace_storage_type{ other.inplaceStorage };
+			} else {
+				new (&externalStorage)
+					external_storage_type{ other.externalStorage };
 			}
-			return long_header_capacity();
 		}
 
-		constexpr std::size_t size() const noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_size();
+		constexpr storage_union(storage_union&& other) noexcept {
+			if (other.stored_inplace()) [[likely]] {
+				new (&inplaceStorage)
+					inplace_storage_type{ std::move(other.inplaceStorage) };
+			} else {
+				new (&externalStorage
+				) external_storage_type{ std::move(other.externalStorage) };
 			}
-			return long_header_size();
 		}
 
-		constexpr const_iterator begin() const noexcept {
+		constexpr ~storage_union() noexcept {
 			if (stored_inplace()) [[likely]] {
-				return short_header_begin();
-			}
-			return long_header_begin();
-		}
-
-		constexpr iterator begin() noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_begin();
-			}
-			return long_header_begin();
-		}
-
-		constexpr const_iterator end() const noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_end();
-			}
-			return long_header_end();
-		}
-
-		constexpr iterator end() noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_end();
-			}
-			return long_header_end();
-		}
-
-		constexpr std::span<value_type const> span() const noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_span();
-			}
-			return long_header_span();
-		}
-
-		constexpr std::span<value_type> span() noexcept {
-			if (stored_inplace()) [[likely]] {
-				return short_header_span();
-			}
-			return long_header_span();
-		}
-
-		constexpr std::variant<
-			std::reference_wrapper<short_extra_or_dummy_type>,
-			std::reference_wrapper<long_extra_or_dummy_type>>
-		extra_ref() noexcept requires(stores_extra_data) {
-			if (stored_inplace()) [[likely]] {
-				return { std::in_place_index<0>,
-						 shortHeader.extraDataRef() };
-			}
-			return { std::in_place_index<1>, longHeader.extraDataRef() };
-		}
-
-		constexpr std::variant<
-			std::reference_wrapper<short_extra_or_dummy_type const>,
-			std::reference_wrapper<long_extra_or_dummy_type const>>
-		extra_ref() const noexcept requires(stores_extra_data) {
-			if (stored_inplace()) [[likely]] {
-				return { std::in_place_index<0>,
-						 shortHeader.extraDataRef() };
-			}
-			return { std::in_place_index<1>, longHeader.extraDataRef() };
-		}
-
-		constexpr short_extra_or_dummy_type& extra() noexcept
-			requires(stores_extra_data && stores_one_kind_of_extra_data) {
-			if (stored_inplace()) [[likely]] {
-				return shortHeader.extra_data_ref();
-			}
-			return longHeader.extra_data_ref();
-		}
-
-		constexpr short_extra_or_dummy_type const & extra() const noexcept
-			requires(stores_extra_data && stores_one_kind_of_extra_data) {
-			if (stored_inplace()) [[likely]] {
-				return shortHeader.extra_data_ref();
-			}
-			return longHeader.extra_data_ref();
-		}
-
-		constexpr void shrink_to_fit() {
-			if (!stored_inplace()) [[unlikely]] {
-				bool const willFitInplace = long_header_size()
-					<= inplace_capacity;
-				if (willFitInplace) {
-					std::vector<value_type> oldValues{
-						std::move(longHeader.storageVector)
-					};
-
-					with_extra_data<short_extra_type> extraHolder;
-					extraHolder.move_extra_from(longHeader);
-					longHeader.~long_header_type();
-					new (&shortHeader) short_header_type{};
-					shortHeader.move_extra_from(extraHolder);
-					shortHeader.sizeOrLongHeaderMark = oldValues.size();
-					std::uninitialized_move(
-						oldValues.begin(),
-						oldValues.end(),
-						short_header_begin()
-					);
-				} else {
-					longHeader.storageVector.shrink_to_fit();
-				}
+				inplaceStorage.~inplace_storage_type();
+			} else {
+				externalStorage.~external_storage_type();
 			}
 		}
 
@@ -380,201 +384,196 @@ requires(
 			if (newCapacity <= inplace_capacity) [[likely]] {
 				return;
 			}
-			if (!stored_inplace()) {
-				longHeader.storageVector.reserve(newCapacity);
+
+			if (stored_inplace()) {
+				external_storage_type ls{ newCapacity };
+				ls.append_range(
+					inplaceStorage.span() | std::views::as_rvalue
+				);
+				inplaceStorage.~inplace_storage_type();
+				new (&externalStorage) external_storage_type{};
 				return;
 			}
-			// Move from inplace storage to external storage
-
-			std::span<value_type> dataInOldLocation = short_header_span();
-			long_header_type newHeader{};
-			newHeader.storageVector.reserve(newCapacity);
-			newHeader.storageVector.insert(
-				newHeader.storageVector.end(),
-				std::make_move_iterator(dataInOldLocation.begin()),
-				std::make_move_iterator(dataInOldLocation.end())
-			);
-			std::destroy(
-				dataInOldLocation.begin(), dataInOldLocation.end()
-			);
-			newHeader.move_extra_from(shortHeader);
-			shortHeader.~short_header_type();
-			new (&longHeader) long_header_type{ std::move(newHeader) };
+			externalStorage.reserve(newCapacity);
 		}
 
-		template <std::ranges::sized_range Range>
-		constexpr void append_range(Range&& range) {
-			auto inBegin = std::begin(range);
-			auto inEnd = std::end(range);
-			std::size_t inCount = std::ranges::distance(inBegin, inEnd);
-
-			std::size_t const oldSize = size();
-			std::size_t const newSize = oldSize + inCount;
-			if (newSize <= inplace_capacity) [[likely]] {
-				shortHeader.sizeOrLongHeaderMark = newSize;
-				std::uninitialized_copy(
-					inBegin, inEnd, short_header_begin() + oldSize
+		constexpr void shrink_to_fit() {
+			if (stored_inplace()) [[likely]] {
+				return;
+			}
+			std::size_t newCapacity = externalStorage.size();
+			if (newCapacity <= inplace_capacity) {
+				external_storage_type ls{ std::move(externalStorage) };
+				externalStorage.~external_storage_type();
+				new (&inplaceStorage) inplace_storage_type{};
+				inplaceStorage.append_range(
+					ls.span() | std::views::as_rvalue
 				);
 				return;
 			}
-			reserve(newSize);
-			// TODO: Use C++23's vector::insert_range instead when it's
-			// available
-			longHeader.storageVector.insert(
-				longHeader.storageVector.end(), inBegin, inEnd
-			);
+			externalStorage.shrink_to_fit();
 		}
 
-		template <class... Args>
-		constexpr reference emplace_back(Args&&... args) {
-			if (headerBase.sizeOrLongHeaderMark < inplace_capacity)
-				[[likely]] {
-				iterator locationOfNewObject = short_header_end();
-
-				new (locationOfNewObject)
-					value_type(std::forward<Args>(args)...);
-				++headerBase.sizeOrLongHeaderMark;
-				return *locationOfNewObject;
-			}
-			reserve(size() + 1);
-			return longHeader.storageVector.emplace_back(
-				std::forward<Args>(args)...
-			);
-		}
-
-		constexpr void pop_back() noexcept {
-			if (stored_inplace()) [[likely]] {
-				std::size_t const oldSize = short_header_size();
-				if (oldSize == 0) [[unlikely]] {
-					return;
-				}
-				(short_header_begin() + oldSize)->~value_type();
-				--shortHeader.sizeOrLongHeaderMark;
+		constexpr void swap(storage_union& other) noexcept {
+			bool const inplaceA = stored_inplace();
+			bool const inplaceB = other.stored_inplace();
+			if (inplaceA && inplaceB) [[likely]] {
+				inplaceStorage.swap(other.inplaceStorage);
 				return;
 			}
-			if (!longHeader.storageVector.empty()) [[likely]] {
-				longHeader.storageVector.pop_back();
-			}
-		}
-
-		constexpr void clear() noexcept {
-			if (stored_inplace()) [[likely]] {
-				std::ranges::destroy(short_header_span());
-				shortHeader.sizeOrLongHeaderMark = 0;
+			if (inplaceB) {
+				other.swap(*this);
 				return;
 			}
-			longHeader.storageVector.clear();
-		}
+			if (inplaceA) {
+				external_storage_type ls{ std::move(other.externalStorage
+				) };
 
-		constexpr void swap(header_union&& other) {
-			//////////////////////////////////////////////
-			// WE NEED SWAP
-			// AND DESTRUCTIVE MOVE CONSTRUCTOR
-			//
-		}
+				other.externalStorage.~external_storage_type();
+				new (&other.inplaceStorage)
+					inplace_storage_type{ std::move(inplaceStorage) };
 
-		constexpr header_union(header_union& other) { }
-
-		constexpr ~header_union() noexcept {
-			if (stored_inplace()) [[likely]] {
-				shortHeader.~short_header_type();
-			} else {
-				longHeader.~long_header_type();
+				inplaceStorage.~internal_storage_type();
+				new (&externalStorage)
+					external_storage_type{ std::move(ls) };
+				return;
 			}
+			externalStorage.swap(other.externalStorage);
 		}
 	};
 
-	header_union header{};
+	storage_union storage;
 
   public:
 	constexpr bool stored_inplace() const noexcept {
-		return header.stored_inplace();
+		return storage.stored_inplace();
 	}
 
 	constexpr std::size_t size() const noexcept {
-		return header.size();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.size();
+		}
+		return storage.externalStorage.size();
 	}
 
 	[[nodiscard]] constexpr bool empty() const noexcept {
 		return size() == 0;
 	}
 
+	constexpr void clear() const noexcept {
+		if (stored_inplace()) [[likely]] {
+			storage.inplaceStorage.clear();
+			return;
+		}
+		storage.externalStorage.clear();
+	}
+
 	constexpr void reserve(std::size_t newCapacity) {
-		return header.reserve(newCapacity);
+		return storage.reserve(newCapacity);
 	}
 
 	constexpr std::size_t capacity() const noexcept {
-		return header.capacity();
+		if (stored_inplace()) [[likely]] {
+			return InplaceCapacity;
+		}
+		return storage.externalStorage.capacity();
 	}
 
 	constexpr void shrink_to_fit() {
-		return header.shrink_to_fit();
-	}
-
-	constexpr const_iterator cbegin() const noexcept {
-		return header.begin();
+		return storage.shrink_to_fit();
 	}
 
 	constexpr const_iterator begin() const noexcept {
-		return header.begin();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.begin();
+		}
+		return storage.externalStorage.begin();
 	}
 
 	constexpr iterator begin() noexcept {
-		return header.begin();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.begin();
+		}
+		return storage.externalStorage.begin();
 	}
 
-	constexpr const_iterator cend() const noexcept {
-		return header.end();
+	constexpr const_iterator cbegin() const noexcept {
+		return begin();
 	}
 
 	constexpr const_iterator end() const noexcept {
-		return header.end();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.end();
+		}
+		return storage.externalStorage.end();
 	}
 
 	constexpr iterator end() noexcept {
-		return header.end();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.end();
+		}
+		return storage.externalStorage.end();
+	}
+
+	constexpr const_iterator cend() const noexcept {
+		return end();
 	}
 
 	constexpr std::span<value_type const> span() const noexcept {
-		return header.span();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.span();
+		}
+		return storage.externalStorage.span();
 	}
 
 	constexpr std::span<value_type> span() noexcept {
-		return header.span();
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.span();
+		}
+		return storage.externalStorage.span();
 	}
 
-	template <std::ranges::sized_range Range>
-	constexpr void append_range(Range&& range) {
-		header.append_range(std::forward(range));
+	constexpr void append_range(std::ranges::sized_range auto&& range) {
+		if (stored_inplace()) [[likely]] {
+			storage.inplaceStorage.append_range(std::forward(range));
+			return;
+		}
+		storage.externalStorage.append_range(std::forward(range));
 	}
 
 	template <class... Args>
 	constexpr reference emplace_back(Args&&... args) {
-		return header.emplace_back(std::forward<Args>(args)...);
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.emplace_back(
+				std::forward<Args>(args)...
+			);
+		}
+		return storage.externalStorage.emplace_back(std::forward<Args>(args
+		)...);
 	}
 
 	constexpr const_reference operator[](std::size_t index) const noexcept {
-		return header.begin()[index];
+		return begin()[index];
 	}
 
 	constexpr reference operator[](std::size_t index) noexcept {
-		return header.begin()[index];
+		return begin()[index];
 	}
 
 	constexpr const_reference front() const noexcept {
-		return *header.begin();
+		return *begin();
 	}
 
 	constexpr reference front() noexcept {
-		return *header.begin();
+		return *begin();
 	}
 
 	constexpr const_reference back() const noexcept {
-		return *(header.end() - 1);
+		return *(end() - 1);
 	}
 
 	constexpr reference back() noexcept {
-		return *(header.end() - 1);
+		return *(end() - 1);
 	}
 
 	constexpr void fill(const_reference value) noexcept {
@@ -582,44 +581,40 @@ requires(
 	}
 
 	constexpr void pop_back() noexcept {
-		header.pop_back();
+		if (stored_inplace()) [[likely]] {
+			storage.inplaceStorage.pop_back();
+			return;
+		}
+		storage.externalStorage.pop_back();
 	}
 
 	constexpr void clear() noexcept {
-		header.clear();
+		if (stored_inplace()) [[likely]] {
+			storage.inplaceStorage.clear();
+			return;
+		}
+		storage.externalStorage.clear();
 	}
 
-	constexpr auto extra_ref() const noexcept requires(stores_extra_data) {
-		return header.extra_ref();
+	constexpr void reduce_size_to(std::size_t newSize) noexcept {
+		if (stored_inplace()) [[likely]] {
+			storage.inplaceStorage.reduce_size_to(newSize);
+			return;
+		}
+		storage.externalStorage.reduce_size_to(newSize);
 	}
 
-	constexpr auto extra_ref() noexcept requires(stores_extra_data) {
-		return header.extra_ref();
-	}
-
-	constexpr short_extra_or_dummy_type const & extra() const noexcept
-		requires(stores_extra_data && stores_one_kind_of_extra_data) {
-		return header.extra();
-	}
-
-	constexpr short_extra_or_dummy_type& extra() noexcept
-		requires(stores_extra_data && stores_one_kind_of_extra_data) {
-		return header.extra();
-	}
-
-	constexpr bool operator==(usually_inplace_vector& other
+	constexpr bool operator==(usually_inplace_vector const & other
 	) const noexcept {
-		std::span<Value> valuesA = span();
-		std::span<Value> valuesB = other.span();
-		return std::ranges::equal(valuesA, valuesB);
+		return std::ranges::equal(span(), other.span());
 	}
 
-	constexpr bool operator!=(usually_inplace_vector& other
+	constexpr bool operator!=(usually_inplace_vector const & other
 	) const noexcept {
 		return !operator==(other);
 	}
 
-	constexpr auto operator<=>(usually_inplace_vector& other
+	constexpr auto operator<=>(usually_inplace_vector const & other
 	) const noexcept {
 		std::span<Value> valuesA = span();
 		std::span<Value> valuesB = other.span();
