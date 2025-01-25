@@ -1178,22 +1178,20 @@ static void UnparseEntities() {
 	if (!g_nolightopt) {
 		int i, j;
 		int count = 0;
-		bool* lightneedcompare = (bool*) malloc(
-			g_numentities * sizeof(bool)
+		std::unique_ptr<bool[]> lightneedcompare = std::make_unique<bool[]>(
+			g_numentities
 		);
 		hlassume(lightneedcompare != nullptr, assume_NoMemory);
-		memset(lightneedcompare, 0, g_numentities * sizeof(bool));
 		for (i = g_numentities - 1; i > -1; i--) {
 			entity_t* ent = &g_entities[i];
-			char8_t const * classname = ValueForKey(ent, u8"classname");
-			char8_t const * targetname = ValueForKey(ent, u8"targetname");
+			std::u8string_view const classname = get_classname(*ent);
+			std::u8string_view const targetname = value_for_key(
+				ent, u8"targetname"
+			);
 			int style = IntForKey(ent, u8"style");
 			if (!targetname[0]
-				|| strcmp((char const *) classname, "light")
-					&& strcmp((char const *) classname, "light_spot")
-					&& strcmp(
-						(char const *) classname, "light_environment"
-					)) {
+				|| classname != u8"light" && classname != u8"light_spot"
+					&& classname != u8"light_environment") {
 				continue;
 			}
 			for (j = i + 1; j < g_numentities; j++) {
@@ -1201,15 +1199,11 @@ static void UnparseEntities() {
 					continue;
 				}
 				entity_t* ent2 = &g_entities[j];
-				char8_t const * targetname2 = ValueForKey(
+				std::u8string_view const targetname2 = value_for_key(
 					ent2, u8"targetname"
 				);
 				int style2 = IntForKey(ent2, u8"style");
-				if (style == style2
-					&& !strcmp(
-						(char const *) targetname,
-						(char const *) targetname2
-					)) {
+				if (style == style2 && targetname == targetname2) {
 					break;
 				}
 			}
@@ -1223,7 +1217,6 @@ static void UnparseEntities() {
 		if (count > 0) {
 			Log("%d redundant named lights optimized.\n", count);
 		}
-		free(lightneedcompare);
 	}
 	for (i = 0; i < g_numentities; i++) {
 		if (g_entities[i].keyValues.empty()) {

@@ -2437,13 +2437,10 @@ void CreateDirectLights() {
 		int countinfosunlight = 0;
 		for (int i = 0; i < g_numentities; i++) {
 			entity_t* e = &g_entities[i];
-			char const * classname = (char const *) ValueForKey(
-				e, u8"classname"
-			);
-			if (!strcmp(classname, "light_environment")) {
+			if (classname_is(e, u8"light_environment")) {
 				countlightenvironment++;
 			}
-			if (!strcmp(classname, "info_sunlight")) {
+			if (classname_is(e, u8"info_sunlight")) {
 				countinfosunlight++;
 			}
 		}

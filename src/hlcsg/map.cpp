@@ -419,10 +419,8 @@ static void ParseBrush(entity_t* mapent) {
 		mapent->numbrushes--;
 		return;
 	}
-	if (!strcmp(
-			(char const *)
-				ValueForKey(&g_entities[b->entitynum], u8"classname"),
-			"info_hullshape"
+	if (key_value_is(
+			&g_entities[b->entitynum], u8"classname", u8"info_hullshape"
 		)) {
 		// all brushes should be erased, but not now.
 		return;
@@ -634,7 +632,8 @@ bool ParseMapEntity() {
 					Warning(
 						"bad value '%s' for key 'zhlt_transform'",
 						(char const *)
-							ValueForKey(mapent, u8"zhlt_transform")
+							value_for_key(mapent, u8"zhlt_transform")
+								.data()
 					);
 			}
 			DeleteKey(mapent, u8"zhlt_transform");
@@ -846,21 +845,14 @@ bool ParseMapEntity() {
 		set_key_value(mapent, u8"compiler", projectName);
 	}
 
-	if (!strcmp(
-			(char const *) ValueForKey(mapent, u8"classname"),
-			"info_compile_parameters"
-		)) {
+	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
 		GetParamsFromEnt(mapent);
 	}
 
 	mapent->origin = get_float3_for_key(*mapent, u8"origin");
 
-	if (!strcmp(
-			"func_group", (char const *) ValueForKey(mapent, u8"classname")
-		)
-		|| !strcmp(
-			"func_detail", (char const *) ValueForKey(mapent, u8"classname")
-		)) {
+	if (classname_is(mapent, u8"func_group")
+		|| classname_is(mapent, u8"func_detail")) {
 		// this is pretty gross, because the brushes are expected to be
 		// in linear order for each entity
 		int newbrushes;
@@ -904,10 +896,7 @@ bool ParseMapEntity() {
 		return true;
 	}
 
-	if (!strcmp(
-			(char const *) ValueForKey(mapent, u8"classname"),
-			"info_hullshape"
-		)) {
+	if (classname_is(mapent, u8"info_hullshape")) {
 		bool disabled;
 		int defaulthulls;
 		disabled = IntForKey(mapent, u8"disabled");
@@ -920,14 +909,12 @@ bool ParseMapEntity() {
 	if (fabs(mapent->origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON
 		|| fabs(mapent->origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON
 		|| fabs(mapent->origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON) {
-		char const * classname = (char const *) ValueForKey(
-			mapent, u8"classname"
-		);
-		if (strncmp(classname, "light", 5)) {
+		std::u8string_view const classname{ get_classname(*mapent) };
+		if (!classname.starts_with(u8"light")) {
 			Warning(
 				"Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)",
 				g_numparsedentities,
-				classname,
+				(char const *) classname.data(),
 				(double) ENGINE_ENTITY_RANGE,
 				mapent->origin[0],
 				mapent->origin[1],
