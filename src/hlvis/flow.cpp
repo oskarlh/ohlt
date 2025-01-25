@@ -88,7 +88,7 @@ inline winding_t* ChopWinding(
 	neww->numpoints = 0;
 
 	for (i = 0; i < in->numpoints; i++) {
-		float* p1 = in->points[i].data();
+		float3_array& p1 = in->points[i];
 
 		if (neww->numpoints == MAX_POINTS_ON_FIXED_WINDING) {
 			Warning("ChopWinding : rejected(1) due to too many points\n");
@@ -97,11 +97,11 @@ inline winding_t* ChopWinding(
 		}
 
 		if (sides[i] == face_side::on) {
-			VectorCopy(p1, neww->points[neww->numpoints]);
+			neww->points[neww->numpoints] = p1;
 			neww->numpoints++;
 			continue;
 		} else if (sides[i] == face_side::front) {
-			VectorCopy(p1, neww->points[neww->numpoints]);
+			neww->points[neww->numpoints] = p1;
 			neww->numpoints++;
 		}
 
@@ -124,7 +124,7 @@ inline winding_t* ChopWinding(
 			if (tmp >= in->numpoints) {
 				tmp = 0;
 			}
-			float const * p2 = in->points[tmp].data();
+			float3_array const & p2 = in->points[tmp];
 
 			dot = dists[i] / (dists[i] - dists[i + 1]);
 
@@ -144,7 +144,7 @@ inline winding_t* ChopWinding(
 			}
 		}
 
-		VectorCopy(mid, neww->points[neww->numpoints]);
+		neww->points[neww->numpoints] = mid;
 		neww->numpoints++;
 	}
 
@@ -668,7 +668,7 @@ static bool BestNormalFromWinding(
 	if (pt3 < pt2) {
 		VectorScale(normal, -1, normal);
 	}
-	VectorCopy(normal, normal_out);
+	normal_out = normal;
 	return true;
 }
 

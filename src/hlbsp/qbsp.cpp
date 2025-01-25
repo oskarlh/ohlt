@@ -333,24 +333,20 @@ static void SplitFaceTmp(
 		wd.RemoveColinearPoints();
 		newf->numpoints = wd.size();
 		for (int x = 0; x < newf->numpoints; x++) {
-			VectorCopy(wd.m_Points[x], newf->pts[x]);
+			newf->pts[x] = wd.point(x);
 		}
 		if (newf->numpoints == 0) {
 			*back = nullptr;
 		}
 	}
 	{
-		accurate_winding* wd = new accurate_winding(new2->numpoints);
-		int x;
-		for (x = 0; x < new2->numpoints; x++) {
-			VectorCopy(new2->pts[x], wd->m_Points[x]);
+		accurate_winding wd{ new2->pts, std::size_t(new2->numpoints) };
+
+		wd.RemoveColinearPoints();
+		new2->numpoints = wd.size();
+		for (int x = 0; x < new2->numpoints; x++) {
+			new2->pts[x] = wd.point(x);
 		}
-		wd->RemoveColinearPoints();
-		new2->numpoints = wd->size();
-		for (x = 0; x < new2->numpoints; x++) {
-			VectorCopy(wd->m_Points[x], new2->pts[x]);
-		}
-		delete wd;
 		if (new2->numpoints == 0) {
 			*front = nullptr;
 		}
@@ -871,7 +867,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 			if (developer_level::megaspam <= g_developer) {
 				mapplane_t const * plane = &g_mapplanes[f->planenum];
 				inaccuracy = fabs(
-					DotProduct(f->pts[i], plane->normal) - plane->dist
+					dot_product(f->pts[i], plane->normal) - plane->dist
 				);
 				inaccuracy_count++;
 				inaccuracy_total += inaccuracy;
@@ -921,16 +917,17 @@ static brush_t* ReadBrushes(FILE* file) {
 			}
 			side_t* s = new side_t{};
 			s->plane = g_mapplanes[planenum ^ 1];
-			s->wind = accurate_winding(numpoints);
-			int x;
-			for (x = 0; x < numpoints; x++) {
+			s->wind = accurate_winding{};
+			s->wind.reserve_point_storage(numpoints);
+			for (int x = 0; x < numpoints; x++) {
 				double3_array v;
 				r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 				if (r != 3) {
 					Error("ReadBrushes: get point failed");
 				}
-				s->wind.m_Points[numpoints - 1 - x] = v;
+				s->wind.push_point(v);
 			}
+			s->wind.reverse_points(); // Why?
 			s->next = nullptr;
 			*psn = s;
 			psn = &s->next;

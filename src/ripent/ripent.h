@@ -9,7 +9,6 @@
 #include "scriplib.h"
 #include "threads.h"
 #include "win32fix.h"
-#include "winding.h"
 
 #define DEFAULT_PARSE					false
 #define DEFAULT_TEXTUREPARSE			false

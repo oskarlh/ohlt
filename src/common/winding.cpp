@@ -30,14 +30,12 @@ void winding_base<VecElement>::getPlane(dplane_t& plane) const {
 		return;
 	}
 
-	vec3 v1, v2;
-	VectorSubtract(m_Points[2], m_Points[1], v1);
-	VectorSubtract(m_Points[0], m_Points[1], v2);
-
-	vec3 plane_normal;
-	CrossProduct(v2, v1, plane_normal);
+	vec3 plane_normal = cross_product(
+		vector_subtract(m_Points[0], m_Points[1]),
+		vector_subtract(m_Points[2], m_Points[1])
+	);
 	normalize_vector(plane_normal);
-	VectorCopy(plane_normal, plane.normal);
+	plane.normal = to_float3(plane_normal);
 	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
@@ -49,14 +47,12 @@ void winding_base<VecElement>::getPlane(mapplane_t& plane) const {
 		return;
 	}
 
-	vec3 v1, v2;
-	VectorSubtract(m_Points[2], m_Points[1], v1);
-	VectorSubtract(m_Points[0], m_Points[1], v2);
-
-	vec3 plane_normal;
-	CrossProduct(v2, v1, plane_normal);
+	vec3 plane_normal = cross_product(
+		vector_subtract(m_Points[0], m_Points[1]),
+		vector_subtract(m_Points[2], m_Points[1])
+	);
 	normalize_vector(plane_normal);
-	VectorCopy(plane_normal, plane.normal);
+	plane.normal = to_double3(plane_normal);
 	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
@@ -85,10 +81,10 @@ auto winding_base<VecElement>::getArea() const -> vec_element {
 
 	vec_element total = 0.0;
 	for (std::size_t i = 2; i < size(); ++i) {
-		vec3 d1, d2, cross;
-		VectorSubtract(m_Points[i - 1], m_Points[0], d1);
-		VectorSubtract(m_Points[i], m_Points[0], d2);
-		CrossProduct(d1, d2, cross);
+		vec3 const cross = cross_product(
+			vector_subtract(m_Points[i - 1], m_Points[0]),
+			vector_subtract(m_Points[i], m_Points[0])
+		);
 		total += 0.5 * vector_length(cross);
 	}
 	return total;
@@ -198,13 +194,10 @@ winding_base<VecElement>::winding_base() { }
 
 template <any_vec_element VecElement>
 winding_base<VecElement>::winding_base(
-	vec3* points, std::size_t numpoints
+	vec3 const * points, std::size_t numpoints
 ) {
 	hlassert(numpoints >= 3);
-	std::size_t capacity = (numpoints + 3) & ~3; // groups of 4
-
-	m_Points.reserve(capacity);
-	m_Points.assign(points, points + numpoints);
+	m_Points.assign_range(std::span(points, numpoints));
 }
 
 template <any_vec_element VecElement>
@@ -222,11 +215,8 @@ auto winding_base<VecElement>::operator=(winding_base&& other
 }
 
 template <any_vec_element VecElement>
-winding_base<VecElement>::winding_base(std::uint_least32_t numpoints) {
+winding_base<VecElement>::winding_base(std::size_t numpoints) {
 	hlassert(numpoints >= 3);
-	std::size_t capacity = (numpoints + 3) & ~3; // groups of 4
-
-	m_Points.reserve(capacity);
 	m_Points.resize(numpoints);
 }
 
@@ -580,7 +570,7 @@ bool winding_base<VecElement>::mutating_clip(
 		return true;
 	}
 
-	std::vector<vec3> newPoints{};
+	points_vector newPoints{};
 	newPoints.reserve(size() + 4);
 
 	for (i = 0; i < size(); i++) {
@@ -742,20 +732,12 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 // Unused??
 template <any_vec_element VecElement>
 void winding_base<VecElement>::pushPoint(vec3 const & newpoint) {
-	grow_capacity();
 	m_Points.emplace_back(newpoint);
 }
 
 template <any_vec_element VecElement>
 std::size_t winding_base<VecElement>::size() const {
 	return m_Points.size();
-}
-
-template <any_vec_element VecElement>
-void winding_base<VecElement>::grow_capacity() {
-	std::size_t newsize = size() + 1;
-	newsize = (newsize + 3) & ~3; // Groups of 4
-	m_Points.resize(newsize);
 }
 
 template class winding_base<float>;

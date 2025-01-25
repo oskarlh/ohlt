@@ -544,6 +544,12 @@ requires(
 		storage.externalStorage.append_range(std::forward<Range>(range));
 	}
 
+	template <std::ranges::sized_range Range>
+	constexpr void assign_range(Range&& range) {
+		clear();
+		append_range(std::forward<Range>(range));
+	}
+
 	template <class... Args>
 	constexpr reference emplace_back(Args&&... args) {
 		reserve(size() + 1, true);
@@ -627,6 +633,16 @@ requires(
 			return;
 		}
 		storage.externalStorage.reduce_size_to(newSize);
+	}
+
+	constexpr void resize(std::size_t newSize) noexcept {
+		std::ptrdiff_t sizeDiff = std::ptrdiff_t(newSize)
+			- std::ptrdiff_t(size());
+		if (sizeDiff > 0) {
+			reduce_size_to(newSize);
+		} else {
+			push_back(value_type{}, -sizeDiff);
+		}
 	}
 
 	constexpr bool operator==(usually_inplace_vector const & other

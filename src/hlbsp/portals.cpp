@@ -200,9 +200,9 @@ static void WritePortalFile_r(node_t const * const node) {
 					fprintf(
 						pf,
 						"(%f %f %f) ",
-						w->m_Points[i][0],
-						w->m_Points[i][1],
-						w->m_Points[i][2]
+						w->point(i)[0],
+						w->point(i)[1],
+						w->point(i)[2]
 					);
 				}
 				fprintf(pf, "\n");
@@ -230,9 +230,10 @@ static void WritePortalFile_r(node_t const * const node) {
 						center1[2]
 					);
 					for (i = 0; i < w->size(); i++) {
-						double *p1, *p2;
-						p1 = w->m_Points[i].data();
-						p2 = w->m_Points[(i + 1) % w->size()].data();
+						double3_array const & p1{ w->point(i) };
+						double3_array const & p2{
+							w->point((i + 1) % w->size())
+						};
 						fprintf(
 							pf_view,
 							"%5.2f %5.2f %5.2f\n",

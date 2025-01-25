@@ -2110,9 +2110,9 @@ static void WriteWorld(char const * const name) {
 		Log("%zu\n", w->size());
 		for (i = 0; i < w->size(); i++) {
 			Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n",
-				w->m_Points[i][0],
-				w->m_Points[i][1],
-				w->m_Points[i][2],
+				w->point(i)[0],
+				w->point(i)[1],
+				w->point(i)[2],
 				patch->totallight[0][0] / 256,
 				patch->totallight[0][1] / 256,
 				patch->totallight[0][2] / 256); // LRC

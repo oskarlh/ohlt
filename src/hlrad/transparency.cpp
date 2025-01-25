@@ -194,9 +194,7 @@ void GetTransparency(
 			if (s_sorted_list[i].p2 < p2) {
 				continue;
 			} else if (s_sorted_list[i].p2 == p2) {
-				VectorCopy(
-					transparencyList[s_sorted_list[i].data_index], trans
-				);
+				trans = transparencyList[s_sorted_list[i].data_index];
 				next_index = i + 1;
 
 				return;

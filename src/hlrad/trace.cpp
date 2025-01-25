@@ -301,37 +301,37 @@ bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 	}
 	side2 = (DotProduct(*p2B, pl2.normal) - pl2.dist > ON_EPSILON) ? 1 : 0;
 
-	fast_winding* neww = new fast_winding(
+	fast_winding neww = fast_winding(
 		w->size() + w2->size() - 4 + side1 + side2
 	);
-	int j, k;
-	k = 0;
+	int j;
+	int k = 0;
 	for (j = (i + 2) % w->size(); j != i; j = (j + 1) % w->size()) {
-		VectorCopy(w->m_Points[j], neww->m_Points[k]);
+		neww.m_Points[k] = w->m_Points[j];
 		k++;
 	}
 	if (side1) {
-		VectorCopy(w->m_Points[j], neww->m_Points[k]);
+		neww.m_Points[k] = w->m_Points[j];
 		k++;
 	}
 	for (j = (i2 + 2) % w2->size(); j != i2; j = (j + 1) % w2->size()) {
-		VectorCopy(w2->m_Points[j], neww->m_Points[k]);
+		neww.m_Points[k] = w2->m_Points[j];
 		k++;
 	}
 	if (side2) {
-		VectorCopy(w2->m_Points[j], neww->m_Points[k]);
+		neww.m_Points[k] = w2->m_Points[j];
 		k++;
 	}
-	neww->RemoveColinearPoints();
-	if (neww->size() < 3) {
+	neww.RemoveColinearPoints();
+	delete f->winding;
+	f->winding = nullptr;
+	if (neww.size() < 3) {
 		Developer(
 			developer_level::warning, "Warning: TryMerge: Empty winding.\n"
 		);
-		delete neww;
-		neww = nullptr;
+	} else {
+		f->winding = new fast_winding(std::move(neww));
 	}
-	delete f->winding;
-	f->winding = neww;
 	return true;
 }
 
@@ -425,7 +425,7 @@ void CreateOpaqueNodes() {
 		opaquenode_t* on = &opaquenodes[i];
 		dnode_t* dn = &g_dnodes[i];
 		on->type = g_dplanes[dn->planenum].type;
-		VectorCopy(g_dplanes[dn->planenum].normal, on->normal);
+		on->normal = g_dplanes[dn->planenum].normal;
 		on->dist = g_dplanes[dn->planenum].dist;
 		on->children[0] = dn->children[0];
 		on->children[1] = dn->children[1];

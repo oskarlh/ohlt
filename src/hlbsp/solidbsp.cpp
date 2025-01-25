@@ -1382,9 +1382,6 @@ static void SplitNodePortals(node_t* node) {
 static bool CalcNodeBounds(
 	node_t* node, double3_array& validmins, double3_array& validmaxs
 ) {
-	int i;
-	int j;
-	double v;
 	portal_t* p;
 	portal_t* next_portal;
 	int side = 0;
@@ -1405,14 +1402,14 @@ static bool CalcNodeBounds(
 		}
 		next_portal = p->next[side];
 
-		for (i = 0; i < p->winding->size(); i++) {
-			for (j = 0; j < 3; j++) {
-				v = p->winding->m_Points[i][j];
-				if (v < node->mins[j]) {
-					node->mins[j] = v;
+		for (double3_array const & point : p->winding->points()) {
+			for (std::size_t i = 0; i < 3; i++) {
+				double const v = point[i];
+				if (v < node->mins[i]) {
+					node->mins[i] = v;
 				}
-				if (v > node->maxs[j]) {
-					node->maxs[j] = v;
+				if (v > node->maxs[i]) {
+					node->maxs[i] = v;
 				}
 			}
 		}
@@ -1421,7 +1418,7 @@ static bool CalcNodeBounds(
 	if (node->isportalleaf) {
 		return false;
 	}
-	for (i = 0; i < 3; i++) {
+	for (std::size_t i = 0; i < 3; ++i) {
 		validmins[i] = std::max(
 			node->mins[i], -(ENGINE_ENTITY_RANGE + g_maxnode_size)
 		);
@@ -1429,12 +1426,12 @@ static bool CalcNodeBounds(
 			node->maxs[i], ENGINE_ENTITY_RANGE + g_maxnode_size
 		);
 	}
-	for (i = 0; i < 3; i++) {
+	for (std::size_t i = 0; i < 3; ++i) {
 		if (validmaxs[i] - validmins[i] <= ON_EPSILON) {
 			return false;
 		}
 	}
-	for (i = 0; i < 3; i++) {
+	for (std::size_t i = 0; i < 3; ++i) {
 		if (validmaxs[i] - validmins[i] > g_maxnode_size + ON_EPSILON) {
 			return true;
 		}

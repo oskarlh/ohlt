@@ -692,9 +692,7 @@ static void LoadPortals(char* portal_image) {
 		p->winding = NewWinding(w->numpoints);
 		p->winding->numpoints = w->numpoints;
 		for (j = 0; j < w->numpoints; j++) {
-			VectorCopy(
-				w->points[w->numpoints - 1 - j], p->winding->points[j]
-			);
+			p->winding->points[j] = w->points[w->numpoints - 1 - j];
 		}
 
 		p->plane = plane;

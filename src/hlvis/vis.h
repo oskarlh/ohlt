@@ -20,7 +20,7 @@
 #define DEFAULT_NOFIXPRT false
 #define DEFAULT_FASTVIS	 false
 
-#define MAX_PORTALS 32768
+constexpr std::size_t MAX_PORTALS = 32768;
 
 #define MAX_POINTS_ON_FIXED_WINDING 32
 

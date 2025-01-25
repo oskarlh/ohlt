@@ -197,7 +197,7 @@ void MakeScales(int const threadnum) {
 		tIndex = tIndex_All;
 		tData = tData_All;
 
-		VectorCopy(patch->origin, origin);
+		origin = patch->origin;
 		float3_array const normal1
 			= getPlaneFromFaceNumber(patch->faceNumber)->normal;
 
@@ -455,7 +455,7 @@ void MakeRGBScales(int const threadnum) {
 		tIndex = tIndex_All;
 		tRGBData = tRGBData_All;
 
-		VectorCopy(patch->origin, origin);
+		origin = patch->origin;
 		float3_array const normal1
 			= getPlaneFromFaceNumber(patch->faceNumber)->normal;
 

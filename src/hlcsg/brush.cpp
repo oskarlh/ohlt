@@ -286,16 +286,12 @@ void ExpandBrushWithHullBrush(
 		for (int i = 0; i < f.w.size(); i++) // for each edge in f
 		{
 			hullbrushedge_t brushedge;
-			VectorCopy(f.plane->normal, brushedge.normals[0]);
-			VectorCopy(
-				f.w.m_Points[(i + 1) % f.w.size()], brushedge.vertexes[0]
-			);
-			VectorCopy(f.w.m_Points[i], brushedge.vertexes[1]);
-			VectorCopy(brushedge.vertexes[0], brushedge.point);
-			VectorSubtract(
-				brushedge.vertexes[1],
-				brushedge.vertexes[0],
-				brushedge.delta
+			brushedge.normals[0] = f.plane->normal;
+			brushedge.vertexes[0] = f.w.point((i + 1) % f.w.size());
+			brushedge.vertexes[1] = f.w.point(i);
+			brushedge.point = brushedge.vertexes[0];
+			brushedge.delta = vector_subtract(
+				brushedge.vertexes[1], brushedge.vertexes[0]
 			);
 
 			// fill brushedge.normals[1]
@@ -303,13 +299,13 @@ void ExpandBrushWithHullBrush(
 			for (bface_t const & f2 : hull0->faces) {
 				for (int j = 0; j < f2.w.size(); j++) {
 					if (vectors_almost_same(
-							f2.w.m_Points[(j + 1) % f2.w.size()],
+							f2.w.point((j + 1) % f2.w.size()),
 							brushedge.vertexes[1]
 						)
 						&& vectors_almost_same(
-							f2.w.m_Points[j], brushedge.vertexes[0]
+							f2.w.point(j), brushedge.vertexes[0]
 						)) {
-						VectorCopy(f2.plane->normal, brushedge.normals[1]);
+						brushedge.normals[1] = f2.plane->normal;
 						found++;
 					}
 				}

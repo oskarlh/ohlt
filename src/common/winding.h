@@ -104,19 +104,18 @@ class winding_base {
 
   private:
 	void getPlane(vec3& normal, vec_element& dist) const;
-	void grow_capacity();
 
   public:
 	// Construction
 	winding_base(); // Do nothing :)
 	winding_base(
-		vec3* points, std::size_t numpoints
+		vec3 const * points, std::size_t numpoints
 	); // Create from raw points
 	winding_base(dface_t const & face, vec_element epsilon = ON_EPSILON);
 	winding_base(dplane_t const & face);
 	winding_base(mapplane_t const & face);
 	winding_base(vec3 const & normal, vec_element const dist);
-	winding_base(std::uint_least32_t points);
+	winding_base(std::size_t points);
 	winding_base(winding_base const & other);
 	winding_base(winding_base&& other);
 	~winding_base();
@@ -130,7 +129,40 @@ class winding_base {
 
   public:
 	// Data
-	std::vector<vec3> m_Points{};
+	// using points_vector = usually_inplace_vector<vec3, 20>;
+	using points_vector = std::vector<vec3>;
+	points_vector m_Points;
+
+	inline std::span<vec3 const> points() const noexcept {
+		return { m_Points };
+	}
+
+	inline std::size_t point_count() const noexcept {
+		return m_Points.size();
+	}
+
+	inline vec3 const & point(std::size_t index) const noexcept {
+		return m_Points[index];
+	}
+
+	// Unused??
+	inline vec3&
+	replace_point(std::size_t index, vec3 const & newPoint) noexcept {
+		m_Points[index] = newPoint;
+		return m_Points[index];
+	}
+
+	inline vec3& push_point(vec3 const & newPoint) noexcept {
+		return m_Points.emplace_back(newPoint);
+	}
+
+	inline void reverse_points() noexcept {
+		std::ranges::reverse(m_Points);
+	}
+
+	inline void reserve_point_storage(std::size_t numPoints) noexcept {
+		m_Points.reserve(numPoints);
+	}
 
   public:
 	friend inline void swap(winding_base& a, winding_base& b) {
