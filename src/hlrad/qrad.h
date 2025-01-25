@@ -172,12 +172,12 @@ struct matrix_t {
 // LIGHTMAP.C STUFF
 //
 
-typedef struct {
-	unsigned size : 12;
-	unsigned index : 20;
-} transfer_index_t;
+struct transfer_index_t {
+	std::uint32_t size : 12;
+	std::uint32_t index : 20;
+};
 
-typedef unsigned transfer_raw_index_t;
+typedef std::uint32_t transfer_raw_index_t;
 typedef unsigned char transfer_data_t;
 
 typedef unsigned char rgb_transfer_data_t;

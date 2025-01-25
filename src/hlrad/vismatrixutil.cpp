@@ -433,12 +433,13 @@ void MakeRGBScales(int const threadnum) {
 	float total;
 
 	transfer_raw_index_t* tIndex;
-	float* tRGBData;
 
-	// Why are the types (and sizes thereof) different?
+	// Why are the types different?
 	transfer_raw_index_t* tIndex_All
 		= (transfer_raw_index_t*) new transfer_index_t[g_num_patches + 1]();
-	float* tRGBData_All = (float*) new float[3 * (g_num_patches + 1)]();
+
+	std::unique_ptr<float3_array[]> tRGBData_All
+		= std::make_unique_for_overwrite<float3_array[]>(g_num_patches + 1);
 
 	count = 0;
 
@@ -453,7 +454,8 @@ void MakeRGBScales(int const threadnum) {
 		patch->iData = 0;
 
 		tIndex = tIndex_All;
-		tRGBData = tRGBData_All;
+
+		float3_array* tRGBData = tRGBData_All.get();
 
 		origin = patch->origin;
 		float3_array const normal1
@@ -595,11 +597,11 @@ void MakeRGBScales(int const threadnum) {
 			if (trans_one <= 0.0) {
 				continue;
 			}
-			VectorScale(trans, patch2->area, trans);
+			trans = vector_scale(trans, patch2->area);
 
-			VectorCopy(trans, tRGBData);
+			*tRGBData = trans;
 			*tIndex = j;
-			tRGBData += 3;
+			++tRGBData;
 			tIndex++;
 			patch->iData++;
 			count++;
@@ -629,14 +631,14 @@ void MakeRGBScales(int const threadnum) {
 			{
 				unsigned x;
 				rgb_transfer_data_t* t1 = patch->tRGBData;
-				float* t2 = tRGBData_All;
+				float3_array const * t2 = tRGBData_All.get();
 
-				float f[3];
+				float3_array f;
 				for (x = 0; x < patch->iData; x++,
 					t1 += vector_size[(std::size_t
 					) g_rgbtransfer_compress_type],
-					t2 += 3) {
-					VectorScale(t2, total, f);
+					++t2) {
+					f = vector_scale(*t2, total);
 					vector_compress(
 						g_rgbtransfer_compress_type, t1, f[0], f[1], f[2]
 					);
@@ -647,8 +649,6 @@ void MakeRGBScales(int const threadnum) {
 
 	delete[] tIndex_All;
 	tIndex_All = nullptr;
-	delete[] tRGBData_All;
-	tRGBData_All = nullptr;
 
 	ThreadLock();
 	g_total_transfer += count;

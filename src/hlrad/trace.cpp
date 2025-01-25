@@ -36,7 +36,7 @@ static void MakeTnode(int const nodenum) {
 	dplane_t const & plane = g_dplanes[node->planenum];
 
 	t->type = plane.type;
-	VectorCopy(plane.normal, t->normal);
+	t->normal = plane.normal;
 	if (plane.normal[std::size_t(plane.type) % 3] < 0) {
 		if (plane.type <= last_axial) {
 			Warning("MakeTnode: negative plane");
@@ -104,7 +104,7 @@ static int TestLine_r(
 			return CONTENTS_SOLID;
 		}
 		if (node == CONTENTS_SKY) {
-			VectorCopy(start, skyhit);
+			skyhit = start;
 			return CONTENTS_SKY;
 		}
 		if (linecontent) {

@@ -285,18 +285,18 @@ static void SplitFaceTmp(
 		double3_array const & p1{ in->pts[i] };
 
 		if (sides[i] == face_side::on) {
-			VectorCopy(p1, newf->pts[newf->numpoints]);
+			newf->pts[newf->numpoints] = p1;
 			newf->numpoints++;
-			VectorCopy(p1, new2->pts[new2->numpoints]);
+			new2->pts[new2->numpoints] = p1;
 			new2->numpoints++;
 			continue;
 		}
 
 		if (sides[i] == face_side::front) {
-			VectorCopy(p1, new2->pts[new2->numpoints]);
+			new2->pts[new2->numpoints] = p1;
 			new2->numpoints++;
 		} else {
-			VectorCopy(p1, newf->pts[newf->numpoints]);
+			newf->pts[newf->numpoints] = p1;
 			newf->numpoints++;
 		}
 
@@ -766,7 +766,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 	int planenum, g_texinfo, contents, numpoints;
 	face_t* f;
 	int i;
-	double v[3];
+	double3_array v;
 	int line = 0;
 	double inaccuracy, inaccuracy_count = 0.0, inaccuracy_total = 0.0,
 					   inaccuracy_max = 0.0;
@@ -863,7 +863,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 					line
 				);
 			}
-			VectorCopy(v, f->pts[i]);
+			f->pts[i] = v;
 			if (developer_level::megaspam <= g_developer) {
 				mapplane_t const * plane = &g_mapplanes[f->planenum];
 				inaccuracy = fabs(
@@ -1449,7 +1449,7 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 			for (i = 0; i < g_numplanes; i++) {
 				mapplane_t* mp = &g_mapplanes[i];
 				dplane_t* dp = &g_dplanes[i];
-				VectorCopy(dp->normal, mp->normal);
+				mp->normal = to_double3(dp->normal);
 				mp->dist = dp->dist;
 				mp->type = dp->type;
 			}

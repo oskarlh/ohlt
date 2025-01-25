@@ -91,7 +91,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	// if the slopes are colinear, the point can be removed
 	//
 	plane = &g_mapplanes[f1->planenum];
-	VectorCopy(plane->normal, planenormal);
+	planenormal = plane->normal;
 
 	back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints].data();
 	VectorSubtract(p1, back, delta);
@@ -135,7 +135,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 			continue;
 		}
 
-		VectorCopy(f1->pts[k], newf->pts[newf->numpoints]);
+		newf->pts[newf->numpoints] = f1->pts[k];
 		newf->numpoints++;
 	}
 
@@ -144,7 +144,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 		if (l == (j + 1) % f2->numpoints && !keep1) {
 			continue;
 		}
-		VectorCopy(f2->pts[l], newf->pts[newf->numpoints]);
+		newf->pts[newf->numpoints] = f2->pts[l];
 		newf->numpoints++;
 	}
 

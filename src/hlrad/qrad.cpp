@@ -526,9 +526,7 @@ static float3_array LightForTexture(wad_texture_name name) {
 	for (texlight_i it = s_texlights.begin(); it != s_texlights.end();
 		 it++) {
 		if (name == it->name) {
-			float3_array result{};
-			VectorCopy(it->value, result);
-			return result;
+			return it->value;
 		}
 	}
 	return float3_array{};
@@ -1576,7 +1574,7 @@ static void AddFaceToOpaqueList(
 	}
 	opaque.entitynum = entitynum;
 	opaque.modelnum = modelnum;
-	VectorCopy(origin, opaque.origin);
+	opaque.origin = origin;
 	opaque.style = style;
 	opaque.block = block;
 	g_opaque_face_list.push_back(std::move(opaque));
@@ -2147,8 +2145,8 @@ static void CollectLight() {
 		for (j = 0; j < MAXLIGHTMAPS; j++) {
 			if (newstyles[i][j] != 255) {
 				patch->totalstyle[j] = newstyles[i][j];
-				VectorCopy(newtotallight[j], patch->totallight[j]);
-				VectorCopy(addlight[i][j], emitlight[i][j]);
+				patch->totallight[j] = newtotallight[j];
+				emitlight[i][j] = addlight[i][j];
 			} else {
 				patch->totalstyle[j] = 255;
 			}

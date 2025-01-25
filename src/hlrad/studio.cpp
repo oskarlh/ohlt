@@ -108,9 +108,9 @@ static void LoadStudioModel(
 		free(moddata);
 	}
 
-	VectorCopy(origin, m->origin);
-	VectorCopy(angles, m->angles);
-	VectorCopy(scale, m->scale);
+	m->origin = origin;
+	m->angles = angles;
+	m->scale = scale;
 
 	m->trace_mode = trace_mode;
 

@@ -922,7 +922,7 @@ bool FindNearestPosition(
 
 	if (found) {
 		position_t const * p = &map->grid[best_is + map->w * best_it];
-		VectorCopy(p->pos, pos);
+		pos = p->pos;
 		*best_s = p->best_s;
 		*best_t = p->best_t;
 		*dist = best_dist;

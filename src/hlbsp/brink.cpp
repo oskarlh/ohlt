@@ -1195,11 +1195,11 @@ typedef struct {
 } bcircle_t;
 
 bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
-	VectorCopy(b->direction, c->axis);
+	c->axis = b->direction;
 	if (!normalize_vector(c->axis)) {
 		return false;
 	}
-	VectorCopy(b->nodes[0].plane->normal, c->basenormal);
+	c->basenormal = b->nodes[0].plane->normal;
 
 	int side, i;
 	for (side = 0; side < 2; side++) {

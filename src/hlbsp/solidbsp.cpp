@@ -1546,7 +1546,7 @@ static void BuildBspTree_r(node_t* node) {
 			mapplane_t p;
 			brush_t *copy, *front, *back;
 			if (k == 0) { // front child
-				VectorCopy(g_mapplanes[split->planenum].normal, p.normal);
+				p.normal = g_mapplanes[split->planenum].normal;
 				p.dist = g_mapplanes[split->planenum].dist
 					- BOUNDS_EXPANSION;
 			} else { // back child

@@ -193,7 +193,7 @@ static void TestPatchToFace(
 							patch->origin, plane->normal, patch2, origin2
 						);
 					} else {
-						VectorCopy(patch2->origin, origin2);
+						origin2 = patch2->origin;
 					}
 					if (DotProduct(origin2, plane->normal)
 						<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
@@ -204,7 +204,7 @@ static void TestPatchToFace(
 							patch2->origin, plane2->normal, patch, origin1
 						);
 					} else {
-						VectorCopy(patch->origin, origin1);
+						origin1 = patch->origin;
 					}
 					if (DotProduct(origin1, plane2->normal)
 						<= PatchPlaneDist(patch2)
