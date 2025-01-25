@@ -1049,10 +1049,7 @@ void ReadCustomSmoothValue() {
 	}
 	for (k = 0; k < g_numentities; k++) {
 		mapent = &g_entities[k];
-		if (strcmp(
-				(char const *) ValueForKey(mapent, u8"classname"),
-				"info_smoothvalue"
-			)) {
+		if (!classname_is(mapent, u8"info_smoothvalue")) {
 			continue;
 		}
 		Developer(

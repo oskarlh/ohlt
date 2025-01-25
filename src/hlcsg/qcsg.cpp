@@ -1337,7 +1337,6 @@ static void CheckForNoClip() {
 	int i;
 	entity_t* ent;
 
-	char entclassname[MAX_KEY];
 	int spawnflags;
 	int count = 0;
 
@@ -1356,37 +1355,33 @@ static void CheckForNoClip() {
 
 		ent = &g_entities[i];
 
-		std::strcpy(
-			entclassname, (char const *) ValueForKey(ent, u8"classname")
-		);
+		std::u8string_view entclassname = get_classname(*ent);
 		spawnflags = atoi((char const *) ValueForKey(ent, u8"spawnflags"));
 		int skin = IntForKey(ent, u8"skin"); // vluzacn
 
 		if ((skin != -16)
-			&& (!strcmp(entclassname, "env_bubbles")
-				|| !strcmp(entclassname, "func_illusionary")
+			&& (entclassname == u8"env_bubbles"
+				|| entclassname == u8"func_illusionary"
 				|| (spawnflags & 8)
 					&& (/* NOTE: func_doors as far as i can tell may need
 						   clipnodes for their player collision detection,
 						   so for now, they stay out of it. */
-						!strcmp(entclassname, "func_train")
-						|| !strcmp(entclassname, "func_door")
-						|| !strcmp(entclassname, "func_water")
-						|| !strcmp(entclassname, "func_door_rotating")
-						|| !strcmp(entclassname, "func_pendulum")
-						|| !strcmp(entclassname, "func_train")
-						|| !strcmp(entclassname, "func_tracktrain")
-						|| !strcmp(entclassname, "func_vehicle")
+						entclassname == u8"func_train"
+						|| entclassname == u8"func_door"
+						|| entclassname == u8"func_water"
+						|| entclassname == u8"func_door_rotating"
+						|| entclassname == u8"func_pendulum"
+						|| entclassname == u8"func_train"
+						|| entclassname == u8"func_tracktrain"
+						|| entclassname == u8"func_vehicle"
 					)
 				|| (skin != 0)
-					&& (!strcmp(entclassname, "func_door")
-						|| !strcmp(entclassname, "func_water"))
-				|| (spawnflags & 2)
-					&& (!strcmp(entclassname, "func_conveyor"))
-				|| (spawnflags & 1)
-					&& (!strcmp(entclassname, "func_rot_button"))
-				|| (spawnflags & 64)
-					&& (!strcmp(entclassname, "func_rotating")))) {
+					&& (entclassname == u8"func_door"
+						|| entclassname == u8"func_water")
+				|| (spawnflags & 2) && (entclassname == u8"func_conveyor")
+				|| (spawnflags & 1) && (entclassname == u8"func_rot_button")
+				|| (spawnflags & 64) && (entclassname == u8"func_rotating")
+			)) {
 			MarkEntForNoclip(ent);
 			count++;
 		}

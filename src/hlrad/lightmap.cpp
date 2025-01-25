@@ -1784,7 +1784,6 @@ void CreateDirectLights() {
 	dleaf_t* leaf;
 	int leafnum;
 	entity_t* e;
-	char const * name;
 	float angle;
 	float3_array dest;
 
@@ -1935,8 +1934,9 @@ void CreateDirectLights() {
 		int argCnt;
 
 		e = &g_entities[i];
-		name = (char const *) ValueForKey(e, u8"classname");
-		if (strncmp(name, "light", 5)) {
+
+		std::u8string_view name = get_classname(*e);
+		if (!name.starts_with(u8"light")) {
 			continue;
 		}
 		{
@@ -1950,8 +1950,7 @@ void CreateDirectLights() {
 				g_corings[style] = float_for_key(*e, u8"zhlt_stylecoring");
 			}
 		}
-		if (!strcmp(name, "light_shadow")
-			|| !strcmp(name, "light_bounce")) {
+		if (name == u8"light_shadow" || name == u8"light_bounce") {
 			int style = IntForKey(e, u8"style");
 			if (style < 0) {
 				style = -style;
@@ -1965,7 +1964,7 @@ void CreateDirectLights() {
 			}
 			continue;
 		}
-		if (!strcmp(name, "light_surface")) {
+		if (name == u8"light_surface") {
 			continue;
 		}
 
@@ -2044,8 +2043,8 @@ void CreateDirectLights() {
 
 		std::u8string_view target = value_for_key(e, u8"target");
 
-		if (!strcmp(name, "light_spot")
-			|| !strcmp(name, "light_environment") || !target.empty()) {
+		if (name == u8"light_spot" || name == u8"light_environment"
+			|| !target.empty()) {
 			dl->type = emit_spotlight;
 			dl->stopdot = float_for_key(*e, u8"_cone");
 			if (!dl->stopdot) {
@@ -2119,7 +2118,7 @@ void CreateDirectLights() {
 			}
 
 			if (float_for_key(*e, u8"_sky")
-				|| !strcmp(name, "light_environment")) {
+				|| name == u8"light_environment") {
 				// -----------------------------------------------------------------------------------
 				// Changes by Adam Foster - afoster@compsoc.man.ac.uk
 				// diffuse lighting hack - most of the following code nicked
