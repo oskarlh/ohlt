@@ -592,9 +592,8 @@ bool ParseMapEntity() {
 		}
 		mapent->numbrushes = 0;
 	}
-	if (strcmp(
-			(char const *) ValueForKey(mapent, u8"classname"),
-			"info_hullshape"
+	if (!classname_is(
+			mapent, u8"info_hullshape"
 		)) // info_hullshape is not affected by '-scale'
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
@@ -607,9 +606,10 @@ bool ParseMapEntity() {
 			ent_gscale = g_scalesize;
 		}
 		double v[4] = { 0, 0, 0, 0 };
-		if (*ValueForKey(mapent, u8"zhlt_transform")) {
+		if (has_key_value(mapent, u8"zhlt_transform")) {
 			switch (sscanf(
-				(char const *) ValueForKey(mapent, u8"zhlt_transform"),
+				(char const *) value_for_key(mapent, u8"zhlt_transform")
+					.data(),
 				"%lf %lf %lf %lf",
 				v,
 				v + 1,

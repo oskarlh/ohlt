@@ -2,11 +2,45 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <limits>
 #include <memory>
 #include <ranges>
 #include <span>
 #include <vector>
+
+// Note: requires manually updating the size integers afterwards
+template <class Value>
+constexpr void move_to_uninitialized_then_destroy(
+	Value* source, std::size_t numValues, std::byte* destination
+) {
+	std::uninitialized_move_n(source, numValues, (Value*) destination);
+	std::destroy_n(source, numValues);
+}
+
+// Note: requires manually swapping the size integers afterwards
+template <class Value>
+constexpr void swap_values(
+	std::byte* storageA,
+	std::size_t numValuesA,
+	std::byte* storageB,
+	std::size_t numValuesB
+) {
+	if (numValuesA > numValuesB) {
+		swap_values<Value>(storageB, numValuesB, storageA, numValuesA);
+		return;
+	}
+	Value* beginA = (Value*) storageA;
+	Value* oldEndA = (Value*) storageA + numValuesA;
+	Value* newEndA = (Value*) storageA + numValuesB;
+
+	Value* beginB = (Value*) storageB;
+	Value* oldEndB = (Value*) storageB + numValuesB;
+	Value* newEndB = (Value*) storageB + numValuesA;
+	std::swap_ranges(beginA, oldEndA, beginB);
+	std::uninitialized_move(newEndB, oldEndB, oldEndA);
+	std::destroy(newEndB, oldEndB);
+}
 
 template <std::size_t NumElements>
 using inplace_size_type_for_num_elements = std::conditional_t<
@@ -16,14 +50,6 @@ using inplace_size_type_for_num_elements = std::conditional_t<
 		(NumElements <= std::numeric_limits<std::uint16_t>::max() - 1),
 		std::uint16_t,
 		std::size_t>>;
-
-template <class InplaceSizeType>
-struct common_to_both_storage_types {
-	using inplace_size_type = InplaceSizeType;
-
-	inplace_size_type sizeOrExternalStorageMark; // -1 means this is an
-												 // external_storage object
-};
 
 template <class Value, class InplaceSizeType>
 struct external_storage final {
@@ -46,10 +72,16 @@ struct external_storage final {
 	}
 
 	constexpr external_storage() noexcept {};
-	constexpr external_storage(std::size_t initialCapacity) :
-		bytes(new(std::align_val_t(alignof(value_type)))
-				  std::byte[initialCapacity * sizeof(value_type)]),
-		elementCapacity(initialCapacity) {};
+
+	constexpr external_storage(std::size_t initialCapacity, bool roundUp) {
+		std::size_t capacityRounded = roundUp
+			? std::bit_ceil(initialCapacity)
+			: initialCapacity;
+
+		bytes = new (std::align_val_t(alignof(value_type)))
+			std::byte[capacityRounded * sizeof(value_type)];
+		elementCapacity = capacityRounded;
+	}
 
 	constexpr std::size_t size() const noexcept {
 		return elementCount;
@@ -83,18 +115,18 @@ struct external_storage final {
 		return { begin(), size() };
 	}
 
-	constexpr void reserve(std::size_t newCapacity) {
-		if (newCapacity <= elementCapacity) [[unlikely]] {
+	constexpr void reserve(std::size_t newCapacity, bool roundUp) {
+		if (newCapacity <= elementCapacity) {
 			return;
 		}
-		external_storage withHigherCapacity{ newCapacity };
+		external_storage withHigherCapacity{ newCapacity, roundUp };
 		withHigherCapacity.append_range(span() | std::views::as_rvalue);
 		swap(withHigherCapacity);
 	}
 
 	constexpr void shrink_to_fit() {
 		if (size() != capacity()) {
-			external_storage withLowerCapacity{ size() };
+			external_storage withLowerCapacity{ size(), false };
 			withLowerCapacity.append_range(span() | std::views::as_rvalue);
 			swap(withLowerCapacity);
 		}
@@ -112,18 +144,14 @@ struct external_storage final {
 	constexpr void append_range(std::ranges::sized_range auto&& range) {
 		auto rangeBegin = std::ranges::begin(range);
 		std::size_t rangeSize = std::ranges::size(range);
-		reserve(
-			size() + rangeSize
-		); // TODO: Increase it more to avoid many small allocations
+		reserve(size() + rangeSize, true);
 		std::uninitialized_copy_n(rangeBegin, rangeSize, end());
 		elementCount += rangeSize;
 	}
 
 	template <class... Args>
 	constexpr value_type& emplace_back(Args&&... args) {
-		reserve(
-			size() + 1
-		); // TODO: Increase it more to avoid many small allocations
+		reserve(size() + 1, true);
 		value_type* locationOfNewObject = end();
 		new (locationOfNewObject) value_type(std::forward<Args>(args)...);
 		++elementCount;
@@ -135,7 +163,7 @@ struct external_storage final {
 	}
 
 	constexpr void reduce_size_to(std::size_t newSize) noexcept {
-		if (newSize < size()) [[unlikely]] {
+		if (newSize > size()) [[unlikely]] {
 			return;
 		}
 
@@ -187,6 +215,14 @@ struct inplace_storage final {
 		return (value_type*) bytes.data();
 	}
 
+	constexpr value_type const * data() const noexcept {
+		return begin();
+	}
+
+	constexpr value_type* data() noexcept {
+		return begin();
+	}
+
 	constexpr value_type const * end() const noexcept {
 		return begin() + size();
 	}
@@ -231,7 +267,7 @@ struct inplace_storage final {
 
 	constexpr inplace_storage(inplace_storage&& other) noexcept {
 		move_to_uninitialized_then_destroy(
-			other.begin(), other.size(), bytes.start()
+			other.begin(), other.size(), bytes.data()
 		);
 		sizeOrExternalStorageMark = other.sizeOrExternalStorageMark;
 		other.sizeOrExternalStorageMark = 0;
@@ -242,7 +278,7 @@ struct inplace_storage final {
 	}
 
 	constexpr void reduce_size_to(std::size_t newSize) noexcept {
-		if (newSize < size()) [[unlikely]] {
+		if (newSize > size()) [[unlikely]] {
 			return;
 		}
 
@@ -277,39 +313,6 @@ struct inplace_storage final {
 	}
 };
 
-// Note: requires manually updating the size integers afterwards
-template <class Value>
-void move_to_uninitialized_then_destroy(
-	Value* source, std::size_t numValues, std::byte* destination
-) {
-	std::uninitialized_move_n(source, numValues, (Value*) destination);
-	std::destroy_n(source, numValues);
-}
-
-// Note: requires manually swapping the size integers afterwards
-template <class Value>
-void swap_values(
-	std::byte* storageA,
-	std::size_t numValuesA,
-	std::byte* storageB,
-	std::size_t numValuesB
-) {
-	if (numValuesA > numValuesB) {
-		swap_values<Value>(storageB, numValuesB, storageA, numValuesA);
-		return;
-	}
-	Value* beginA = (Value*) storageA;
-	Value* oldEndA = (Value*) storageA + numValuesA;
-	Value* newEndA = (Value*) storageA + numValuesB;
-
-	Value* beginB = (Value*) storageB;
-	Value* oldEndB = (Value*) storageB + numValuesB;
-	Value* newEndB = (Value*) storageB + numValuesA;
-	std::swap_ranges(beginA, oldEndA, beginB);
-	std::uninitialized_move(newEndB, oldEndB, oldEndA);
-	std::destroy(newEndB, oldEndB);
-}
-
 template <class Value, std::size_t InplaceCapacity>
 requires(
 	std::is_nothrow_destructible_v<Value>
@@ -337,16 +340,13 @@ requires(
 		= inplace_storage<value_type, inplace_size_type, inplace_capacity>;
 	using external_storage_type
 		= external_storage<value_type, inplace_size_type>;
-	using common_to_both_storage_types_type
-		= common_to_both_storage_types<inplace_size_type>;
 
 	union storage_union {
 		inplace_storage_type inplaceStorage;
 		external_storage_type externalStorage;
-		common_to_both_storage_types_type commonToBothStorageTypes;
 
 		constexpr bool stored_inplace() const noexcept {
-			return commonToBothStorageTypes.sizeOrExternalStorageMark
+			return inplaceStorage.sizeOrExternalStorageMark
 				!= inplace_size_type(-1);
 		}
 
@@ -380,21 +380,23 @@ requires(
 			}
 		}
 
-		constexpr void reserve(std::size_t newCapacity) {
+		constexpr void reserve(std::size_t newCapacity, bool roundUp) {
 			if (newCapacity <= inplace_capacity) [[likely]] {
 				return;
 			}
 
 			if (stored_inplace()) {
-				external_storage_type ls{ newCapacity };
+				external_storage_type ls{ newCapacity, roundUp };
 				ls.append_range(
 					inplaceStorage.span() | std::views::as_rvalue
 				);
 				inplaceStorage.~inplace_storage_type();
-				new (&externalStorage) external_storage_type{};
+				new (&externalStorage)
+					external_storage_type{ std::move(ls) };
 				return;
 			}
-			externalStorage.reserve(newCapacity);
+
+			externalStorage.reserve(newCapacity, roundUp);
 		}
 
 		constexpr void shrink_to_fit() {
@@ -433,7 +435,7 @@ requires(
 				new (&other.inplaceStorage)
 					inplace_storage_type{ std::move(inplaceStorage) };
 
-				inplaceStorage.~internal_storage_type();
+				inplaceStorage.~inplace_storage_type();
 				new (&externalStorage)
 					external_storage_type{ std::move(ls) };
 				return;
@@ -468,8 +470,8 @@ requires(
 		storage.externalStorage.clear();
 	}
 
-	constexpr void reserve(std::size_t newCapacity) {
-		return storage.reserve(newCapacity);
+	constexpr void reserve(std::size_t newCapacity, bool roundUp = false) {
+		return storage.reserve(newCapacity, roundUp);
 	}
 
 	constexpr std::size_t capacity() const noexcept {
@@ -533,16 +535,19 @@ requires(
 		return storage.externalStorage.span();
 	}
 
-	constexpr void append_range(std::ranges::sized_range auto&& range) {
+	template <std::ranges::sized_range Range>
+	constexpr void append_range(Range&& range) {
+		reserve(size() + std::ranges::size(range), true);
 		if (stored_inplace()) [[likely]] {
-			storage.inplaceStorage.append_range(std::forward(range));
+			storage.inplaceStorage.append_range(std::forward<Range>(range));
 			return;
 		}
-		storage.externalStorage.append_range(std::forward(range));
+		storage.externalStorage.append_range(std::forward<Range>(range));
 	}
 
 	template <class... Args>
 	constexpr reference emplace_back(Args&&... args) {
+		reserve(size() + 1, true);
 		if (stored_inplace()) [[likely]] {
 			return storage.inplaceStorage.emplace_back(
 				std::forward<Args>(args)...
@@ -550,6 +555,27 @@ requires(
 		}
 		return storage.externalStorage.emplace_back(std::forward<Args>(args
 		)...);
+	}
+
+	constexpr value_type& push_back(value_type&& val) {
+		return emplace_back(std::move(val));
+	}
+
+	constexpr value_type& push_back(value_type const & val) {
+		return emplace_back(val);
+	}
+
+	constexpr void push_back(value_type const & val, std::size_t n) {
+		reserve(size() + n, true);
+		// TODO: Move code into inplace_storage and external_storage
+		if (stored_inplace()) [[likely]] {
+			std::uninitialized_fill_n(storage.inplaceStorage.end(), n, val);
+			storage.inplaceStorage.sizeOrExternalStorageMark += n;
+			return;
+		}
+
+		std::uninitialized_fill_n(storage.externalStorage.end(), n, val);
+		storage.externalStorage.elementCount += n;
 	}
 
 	constexpr const_reference operator[](std::size_t index) const noexcept {
@@ -624,6 +650,49 @@ requires(
 	}
 
 	constexpr usually_inplace_vector() noexcept = default;
+
+	constexpr usually_inplace_vector(usually_inplace_vector&& other
+	) noexcept :
+		storage(std::move(other.storage)) { }
+
+	constexpr usually_inplace_vector(usually_inplace_vector const & other
+	) noexcept :
+		storage(other.storage) { }
+
+	template <std::ranges::sized_range Range>
+	constexpr usually_inplace_vector(Range&& range) noexcept {
+		append_range(std::forward<Range>(range));
+	}
+
+	constexpr usually_inplace_vector(std::initializer_list<value_type> init
+	) noexcept {
+		append_range(init);
+	}
+
+	constexpr friend void
+	swap(usually_inplace_vector& a, usually_inplace_vector& b) noexcept {
+		a.storage.swap(b.storage);
+	}
+
+	constexpr usually_inplace_vector&
+	operator=(usually_inplace_vector const & other) noexcept {
+		clear();
+		append_range(other);
+		return *this;
+	}
+
+	constexpr usually_inplace_vector&
+	operator=(usually_inplace_vector&& other) noexcept {
+		swap(*this, other);
+		return *this;
+	}
+
+	template <std::ranges::sized_range Range>
+	constexpr usually_inplace_vector& operator=(Range&& range) {
+		clear();
+		append_range(std::forward<Range>(range));
+		return *this;
+	}
 
 	constexpr ~usually_inplace_vector() noexcept = default;
 };
