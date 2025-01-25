@@ -54,17 +54,14 @@ void DeleteCurrentEntity(entity_t* entity) {
 				b->originalbrushnum
 			);
 		}
-		memset(
-			&g_brushsides[b->firstside], 0, b->numsides * sizeof(side_t)
-		);
+		std::fill_n(&g_brushsides[b->firstside], b->numsides, side_t{});
 		g_numbrushsides -= b->numsides;
 		b->hullshapes = {};
 	}
-	memset(
-		&g_mapbrushes[entity->firstbrush],
-		0,
-		entity->numbrushes * sizeof(brush_t)
+	std::fill_n(
+		&g_mapbrushes[entity->firstbrush], entity->numbrushes, brush_t{}
 	);
+
 	g_nummapbrushes -= entity->numbrushes;
 	*entity = entity_t{};
 	g_numentities--;

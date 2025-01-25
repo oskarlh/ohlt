@@ -68,11 +68,6 @@ static face_side FaceSide(
 
 	// axial planes are fast
 	if (split->type <= last_axial) {
-		double splitGtEp = split->dist
-			+ ON_EPSILON; // Invariant moved out of loop
-		double splitLtEp = split->dist
-			- ON_EPSILON; // Invariant moved out of loop
-
 		double const * p;
 		// TODO: This pointer logic is ugly, with the p += 3
 		for (i = 0, p = &in->pts[0][(std::size_t) split->type];
@@ -378,7 +373,6 @@ static surface_t* ChooseMidPlaneFromList(
 	double3_array const & maxs,
 	int detaillevel
 ) {
-	int j;
 	surface_t* p;
 	surface_t* bestsurface;
 	double bestvalue;
@@ -513,7 +507,6 @@ static surface_t* ChoosePlaneFromList(
 	int detaillevel
 ) {
 	surface_t* p;
-	surface_t* p2;
 	surface_t* bestsurface;
 	double bestvalue;
 	double value;

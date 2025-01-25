@@ -32,7 +32,6 @@ constexpr void swap_values(
 	}
 	Value* beginA = (Value*) storageA;
 	Value* oldEndA = (Value*) storageA + numValuesA;
-	Value* newEndA = (Value*) storageA + numValuesB;
 
 	Value* beginB = (Value*) storageB;
 	Value* oldEndB = (Value*) storageB + numValuesB;
