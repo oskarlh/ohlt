@@ -4,129 +4,19 @@
 
 #include <cstdint>
 
-/***
- *
- *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
- *
- *	This product contains software technology licensed from Id
- *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software,
- *Inc. All Rights Reserved.
- *
- *   Use, distribution, and modification of this source code and/or
- *resulting object code is restricted to non-commercial enhancements to
- *products from Valve LLC.  All other use, distribution, or modification is
- *prohibited without written permission from Valve LLC.
- *
- ****/
+// Studio models are position independent, so the cache manager can move
+// them.
 
-/*
-==============================================================================
-
-STUDIO MODELS
-
-Studio models are position independent, so the cache manager can move them.
-==============================================================================
-*/
-
-// header
-#define STUDIO_VERSION 10
-#define IDSTUDIOHEADER \
-	(('T' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDST"
-#define IDSEQGRPHEADER \
-	(('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDSQ"
-
-// studio limits
-#define MAXSTUDIOTRIANGLES 65535 // max triangles per model
-#define MAXSTUDIOVERTS	   32768 // max vertices per submodel
-#define MAXSTUDIOSEQUENCES 256	 // total animation sequences
-#define MAXSTUDIOSKINS	   128	 // total textures
-#define MAXSTUDIOSRCBONES  512	 // bones allowed at source movement
-#define MAXSTUDIOBONES	   128	 // total bones actually used
-#define MAXSTUDIOMODELS	   32	 // sub-models per model
-#define MAXSTUDIOBODYPARTS 32	 // body parts per submodel
-#define MAXSTUDIOGROUPS \
-	16 // sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
-#define MAXSTUDIOANIMATIONS	 512  // max frames per sequence
-#define MAXSTUDIOMESHES		 256  // max textures per model
-#define MAXSTUDIOEVENTS		 1024 // events per model
-#define MAXSTUDIOPIVOTS		 256  // pivot points
-#define MAXSTUDIOBLENDS		 16	  // max anim blends
-#define MAXSTUDIOCONTROLLERS 8	  // max controllers per model
-#define MAXSTUDIOATTACHMENTS 4	  // max attachments per model
-
-// client-side model flags
-#define STUDIO_ROCKET  0x0001 // leave a trail
-#define STUDIO_GRENADE 0x0002 // leave a trail
-#define STUDIO_GIB	   0x0004 // leave a trail
-#define STUDIO_ROTATE  0x0008 // rotate (bonus items)
-#define STUDIO_TRACER  0x0010 // green split trail
-#define STUDIO_ZOMGIB  0x0020 // small blood trail
-#define STUDIO_TRACER2 0x0040 // orange split trail + rotate
-#define STUDIO_TRACER3 0x0080 // purple trail
-#define STUDIO_DYNAMIC_LIGHT \
-	0x0100 // dynamically get lighting from floor or ceil (flying monsters)
-#define STUDIO_TRACE_HITBOX \
-	0x0200 // always use hitbox trace instead of bbox
-
-#define STUDIO_HAS_BUMP (1 << 16) // loadtime set
+// Studio limits
+constexpr std::int32_t MAXSTUDIOSKINS = 128; // Total textures
+constexpr std::size_t MAXSTUDIOBONES = 128;	 // Total bones actually used
 
 // lighting & rendermode options
-#define STUDIO_NF_FLATSHADE	  0x0001
 #define STUDIO_NF_CHROME	  0x0002
-#define STUDIO_NF_FULLBRIGHT  0x0004
-#define STUDIO_NF_COLORMAP	  0x0008 // can changed by colormap command
-#define STUDIO_NF_NOSMOOTH	  0x0010 // rendering as semiblended
 #define STUDIO_NF_ADDITIVE	  0x0020 // rendering with additive mode
 #define STUDIO_NF_TRANSPARENT 0x0040 // use texture with alpha channel
-#define STUDIO_NF_NORMALMAP	  0x0080 // indexed normalmap
-#define STUDIO_NF_GLOSSMAP	  0x0100 // glossmap
-#define STUDIO_NF_GLOSSPOWER  0x0200
-#define STUDIO_NF_LUMA		  0x0400 // self-illuminate parts
-#define STUDIO_NF_ALPHASOLID \
-	0x0800 // use with STUDIO_NF_TRANSPARENT to have solid alphatest
-		   // surfaces for env_static
-#define STUDIO_NF_TWOSIDE 0x1000 // render mesh as twosided
-
-#define STUDIO_NF_NODRAW (1 << 16) // failed to create shader for this mesh
-#define STUDIO_NF_NODLIGHT \
-	(1 << 17) // failed to create dlight shader for this mesh
-#define STUDIO_NF_NOSUNLIGHT \
-	(1 << 18) // failed to create sun light shader for this mesh
-#define STUDIO_DXT5_NORMALMAP (1 << 19) // it's DXT5nm texture
-#define STUDIO_NF_HAS_ALPHA	  (1 << 20) // external texture has alpha-channel
 #define STUDIO_NF_UV_COORDS \
 	(1 << 31) // using half-float coords instead of ST
-
-// motion flags
-#define STUDIO_X	 0x0001
-#define STUDIO_Y	 0x0002
-#define STUDIO_Z	 0x0004
-#define STUDIO_XR	 0x0008
-#define STUDIO_YR	 0x0010
-#define STUDIO_ZR	 0x0020
-#define STUDIO_LX	 0x0040
-#define STUDIO_LY	 0x0080
-#define STUDIO_LZ	 0x0100
-#define STUDIO_AX	 0x0200
-#define STUDIO_AY	 0x0400
-#define STUDIO_AZ	 0x0800
-#define STUDIO_AXR	 0x1000
-#define STUDIO_AYR	 0x2000
-#define STUDIO_AZR	 0x4000
-#define STUDIO_TYPES 0x7FFF
-#define STUDIO_RLOOP 0x8000 // controller that wraps shortest distance
-
-// bonecontroller types
-#define STUDIO_MOUTH 4
-
-// sequence flags
-#define STUDIO_LOOPING 0x0001
-
-// bone flags
-#define BONE_HAS_NORMALS	   0x0001
-#define BONE_HAS_VERTICES	   0x0002
-#define BONE_HAS_BBOX		   0x0004
-#define BONE_JIGGLE_PROCEDURAL 0x0008
 
 // These should match
 // https://github.com/ValveSoftware/halflife/blob/master/engine/studio.h

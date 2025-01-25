@@ -450,7 +450,7 @@ void Banner() {
 
 	Log((char const *) u8"" PROJECT_NAME "\n"
 					   "By Oskar Larsson Högfeldt ( https://oskar.pm/ )\n"
-					   "Based on code modifications by Sean 'Zoner' Cavanaugh, Vluzacn, and seedee.\n"
+					   "Based on code modifications by Sean 'Zoner' Cavanaugh, Vluzacn, Uncle Mike, and seedee.\n"
 					   "Based on Valve's compile tools, modified with permission.\n"
 					   "Submit detailed bug reports to %s\n",
 		(char const *) projectIssueTracker.data());
