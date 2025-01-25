@@ -25,30 +25,23 @@ void properties_initialize(char const * filename) {
 		return;
 	}
 
-	// begin reading list of items
-	char line[MAX_VAL]; // MAX_VALUE //vluzacn
-	std::memset(line, 0, sizeof(char) * 4096);
+	// Begin reading list of items
+	std::string str;
 	while (!file.eof()) {
-		std::string str;
+		str.clear();
 		std::getline(file, str);
-		{ //--vluzacn
-			char* s = c_strdup(str.c_str());
-			int i;
-			for (i = 0; s[i] != '\0'; i++) {
-				if (s[i] == '\n' || s[i] == '\r') {
-					s[i] = '\0';
-				}
+		for (int i = 0; i != str.length(); i++) {
+			if (str[i] == '\n' || str[i] == '\r') {
+				str.resize(i);
+				break;
 			}
-			str.assign(s);
-			free(s);
 		}
-		if (str.size() < 1) {
+		if (str.empty()) {
 			continue;
 		}
-		g_invisible_items.insert(std::u8string(
-			(char8_t const *) str.data(),
-			(char8_t const *) str.data() + str.length()
-		));
+		g_invisible_items.insert(
+			std::u8string((char8_t const *) str.data(), str.size())
+		);
 	}
 	file.close();
 }

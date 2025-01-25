@@ -509,7 +509,7 @@ static void WriteTextures(char const * const name) {
 			* sizeof(wad_lumpinfo)
 		);
 		hlassume(info != nullptr, assume_NoMemory);
-		memset(info, 0, header.numlumps * sizeof(wad_lumpinfo));
+		std::fill_n(info, header.numlumps, wad_lumpinfo{});
 
 		for (int i = 0; i < header.numlumps; i++) {
 			int ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[i];
@@ -598,7 +598,7 @@ static void WriteTextures(char const * const name) {
 					included = true;
 				}
 				if (included) {
-					memset(&info[header.numlumps], 0, sizeof(wad_lumpinfo));
+					info[header.numlumps] = wad_lumpinfo{};
 					info[header.numlumps].filepos = ftell(wadfile);
 					SafeWrite(wadfile, tex, size);
 					info[header.numlumps].disksize = ftell(wadfile)

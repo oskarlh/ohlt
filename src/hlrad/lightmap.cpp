@@ -649,7 +649,7 @@ typedef enum {
 	WALLFLAG_SHADOWED = 0x4,
 } wallflag_t;
 
-typedef struct {
+struct lightinfo_t {
 	float* light;
 	float facedist;
 	float3_array facenormal;
@@ -688,7 +688,7 @@ typedef struct {
 	int* lmcache_wallflags;		  // wallflag_t
 	int lmcachewidth;
 	int lmcacheheight;
-} lightinfo_t;
+};
 
 // =====================================================================================
 //  TextureNameFromFace
@@ -4001,7 +4001,7 @@ void BuildFacelights(int const facenum) {
 		f_styles[1] = g_face_patches[facenum]->emitstyle;
 	}
 
-	memset(&l, 0, sizeof(l));
+	l = lightinfo_t{};
 
 	l.surfnum = facenum;
 	l.face = f;
