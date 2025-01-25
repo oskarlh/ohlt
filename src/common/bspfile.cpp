@@ -895,7 +895,7 @@ bool ParseEntity() {
 		if (g_token == u8"}"sv) {
 			break;
 		}
-		SetKeyValue(mapent, parse_entity_key_value());
+		set_key_value(mapent, parse_entity_key_value());
 	}
 
 	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
@@ -906,15 +906,15 @@ bool ParseEntity() {
 	// ugly code
 	if (key_value_starts_with(mapent, u8"classname", u8"light")
 		&& has_key_value(mapent, u8"_tex")) {
-		SetKeyValue(mapent, u8"convertto", get_classname(*mapent));
-		SetKeyValue(mapent, u8"classname", u8"light_surface");
+		set_key_value(mapent, u8"convertto", get_classname(*mapent));
+		set_key_value(mapent, u8"classname", u8"light_surface");
 	}
 	if (key_value_is(mapent, u8"convertfrom", u8"light_shadow")
 		|| key_value_is(mapent, u8"convertfrom", u8"light_bounce")) {
-		SetKeyValue(
+		set_key_value(
 			mapent, u8"convertto", value_for_key(mapent, u8"classname")
 		);
-		SetKeyValue(
+		set_key_value(
 			mapent, u8"classname", value_for_key(mapent, u8"convertfrom")
 		);
 		DeleteKey(mapent, u8"convertfrom");
@@ -927,7 +927,7 @@ bool ParseEntity() {
 	}
 	if (classname_is(mapent, u8"light_environment")
 		&& IntForKey(mapent, u8"_fake")) {
-		SetKeyValue(mapent, u8"classname", u8"info_sunlight");
+		set_key_value(mapent, u8"classname", u8"info_sunlight");
 	}
 
 	return true;
@@ -970,7 +970,7 @@ void DeleteKey(entity_t* ent, std::u8string_view key) {
 	}
 }
 
-void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue) {
+void set_key_value(entity_t* ent, entity_key_value&& newKeyValue) {
 	entity_key_value* replaceable{ nullptr };
 	for (entity_key_value& kv : ent->keyValues) {
 		if (kv.is_removed()) {
@@ -988,10 +988,10 @@ void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue) {
 	}
 }
 
-void SetKeyValue(
+void set_key_value(
 	entity_t* ent, std::u8string_view key, std::u8string_view value
 ) {
-	SetKeyValue(ent, std::move(entity_key_value{ key, value }));
+	set_key_value(ent, std::move(entity_key_value{ key, value }));
 }
 
 // =====================================================================================

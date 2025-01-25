@@ -1840,7 +1840,7 @@ void CreateDirectLights() {
 			dl->patch = p;
 			dl->texlightgap = g_texlightgap;
 			if (g_face_texlights[p->faceNumber]
-				&& *ValueForKey(
+				&& has_key_value(
 					g_face_texlights[p->faceNumber], u8"_texlightgap"
 				)) {
 				dl->texlightgap = float_for_key(
@@ -1946,7 +1946,7 @@ void CreateDirectLights() {
 			}
 			style = (unsigned char) style;
 			if (style > 0 && style < ALLSTYLES
-				&& *ValueForKey(e, u8"zhlt_stylecoring")) {
+				&& has_key_value(e, u8"zhlt_stylecoring")) {
 				g_corings[style] = float_for_key(*e, u8"zhlt_stylecoring");
 			}
 		}

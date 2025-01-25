@@ -468,8 +468,8 @@ struct entity_t {
 extern void ParseEntities();
 
 extern void DeleteKey(entity_t* ent, std::u8string_view key);
-extern void SetKeyValue(entity_t* ent, entity_key_value&& newKeyValue);
-extern void SetKeyValue(
+extern void set_key_value(entity_t* ent, entity_key_value&& newKeyValue);
+extern void set_key_value(
 	entity_t* ent, std::u8string_view key, std::u8string_view value
 );
 extern char8_t const *

@@ -402,7 +402,7 @@ static void ParseBrush(entity_t* mapent) {
 				(int) origin[1],
 				(int) origin[2]
 			);
-			SetKeyValue(
+			set_key_value(
 				&g_entities[b->entitynum],
 				u8"origin",
 				(char8_t const *) string
@@ -466,7 +466,7 @@ static void ParseBrush(entity_t* mapent) {
 				maxs[1],
 				maxs[2]
 			);
-			SetKeyValue(
+			set_key_value(
 				&g_entities[b->entitynum],
 				u8"zhlt_minsmaxs",
 				(char8_t const *) string
@@ -474,7 +474,7 @@ static void ParseBrush(entity_t* mapent) {
 		}
 
 		if (!origin.empty()) {
-			SetKeyValue(mapent, u8"origin", origin);
+			set_key_value(mapent, u8"origin", origin);
 		}
 	}
 	if (g_skyclip && b->contents == CONTENTS_SKY && !b->noclip) {
@@ -564,7 +564,7 @@ bool ParseMapEntity() {
 				Warning("Error: ParseEntity: Keyvalue comes after brushes."
 				);
 			}
-			SetKeyValue(mapent, std::move(kv));
+			set_key_value(mapent, std::move(kv));
 		}
 	}
 	if (classname_is(mapent, u8"worldspawn")
@@ -782,7 +782,7 @@ bool ParseMapEntity() {
 						origin[1],
 						origin[2]
 					);
-					SetKeyValue(mapent, u8"origin", string);
+					set_key_value(mapent, u8"origin", string);
 				}
 			}
 			{
@@ -831,7 +831,7 @@ bool ParseMapEntity() {
 						b[1][1],
 						b[1][2]
 					);
-					SetKeyValue(
+					set_key_value(
 						mapent, u8"zhlt_minsmaxs", (char8_t const *) string
 					);
 				}
@@ -843,7 +843,7 @@ bool ParseMapEntity() {
 	if (this_entity == 0) {
 		// Let the map tell which version of the compiler it comes from, to
 		// help tracing compiler bugs.
-		SetKeyValue(mapent, u8"compiler", projectName);
+		set_key_value(mapent, u8"compiler", projectName);
 	}
 
 	if (!strcmp(

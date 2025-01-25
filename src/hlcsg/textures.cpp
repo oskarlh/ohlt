@@ -588,8 +588,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 		for (i = 0; i < nTexFiles; i++) {
 			wadpath_t* currentwad = texwadpathes[i];
-			if (currentwad->usedbymap
-				&& (currentwad->usedtextures > 0 || !g_bWadAutoDetect)) {
+			if (currentwad->usedbymap && (currentwad->usedtextures > 0)) {
 				char tmp[_MAX_PATH];
 				ExtractFile((char const *) currentwad->path.c_str(), tmp);
 				safe_strncat(szUsedWads, tmp, MAX_VAL); // Concat wad names
@@ -599,8 +598,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		}
 		for (i = 0; i < nTexFiles; i++) {
 			wadpath_t* currentwad = texwadpathes[i];
-			if (!currentwad->usedbymap
-				&& (currentwad->usedtextures > 0 || !g_bWadAutoDetect)) {
+			if (!currentwad->usedbymap && (currentwad->usedtextures > 0)) {
 				includedWads.push_back(currentwad);
 			}
 		}
@@ -632,7 +630,9 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		} else {
 			Log("No additional wad files included\n\n");
 		}
-		SetKeyValue(&g_entities[0], u8"wad", (char8_t const *) szUsedWads);
+		set_key_value(
+			&g_entities[0], u8"wad", (char8_t const *) szUsedWads
+		);
 	}
 
 	start = I_FloatTime();

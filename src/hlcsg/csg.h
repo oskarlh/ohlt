@@ -33,9 +33,6 @@
 
 #define DEFAULT_CLIPNAZI false
 
-#define DEFAULT_WADAUTODETECT \
-	true // Already true in settings.cfg, why not here? //seedee
-
 #define DEFAULT_SCALESIZE	   -1.0 // dont scale
 #define DEFAULT_RESETLOG	   true
 #define DEFAULT_NOLIGHTOPT	   false
@@ -253,11 +250,6 @@ extern std::u8string g_wadconfigname;
 extern void LoadWadcfgfile(std::filesystem::path wadCfgPath);
 extern void
 LoadWadconfig(char const * filename, std::u8string_view configname);
-
-//============================================================================
-// autowad.cpp      AJM
-
-extern bool g_bWadAutoDetect;
 
 //=============================================================================
 // properties.cpp

@@ -52,5 +52,4 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 - `-extra` RAD parameter now sets `-bounce 12` for a higher quality of lighting simulation.
 - `-worldextent n` CSG parameter. Extends map geometry limits beyond `+/-32768`.
 - Portal file reformatting for J.A.C.K. map editor, allows for importing the prt file into the editor directly after VIS. Use `-nofixprt` VIS parameter to disable.
-- `-nowadautodetect` CSG parameter. Wadautodetect is now true by default regardless of settings.
 - `-nostudioshadow` RAD parameter to ignore `zhlt_studioshadow` on studiomodels.

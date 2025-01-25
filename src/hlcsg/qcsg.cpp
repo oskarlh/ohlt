@@ -72,8 +72,6 @@ char const * g_nullfile = nullptr;
 
 bool g_bClipNazi = DEFAULT_CLIPNAZI; // "-noclipeconomy"
 
-bool g_bWadAutoDetect = DEFAULT_WADAUTODETECT; // "-nowadautodetect"
-
 double g_scalesize = DEFAULT_SCALESIZE;
 bool g_resetlog = DEFAULT_RESETLOG;
 bool g_nolightopt = DEFAULT_NOLIGHTOPT;
@@ -139,27 +137,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile);
 	}
 
-	// wadautodetect(choices) : "Wad Auto Detect" : 0 =	[ 0 : "Off" 1 : "On"
-	// ]
-	/*if (!strcmp(ValueForKey(mapent, "wadautodetect"), "1"))
-	{
-		g_bWadAutoDetect = true;
-	}
-	else
-	{
-		g_bWadAutoDetect = false;
-	}*/
-	char const * wadautodetectValue = (char const *) ValueForKey(
-		mapent, u8"wadautodetect"
-	); // seedee
-	g_bWadAutoDetect
-		= (wadautodetectValue && atoi(wadautodetectValue) >= 1);
-	Log("%30s [ %-9s ]\n",
-		"Wad Auto Detect",
-		g_bWadAutoDetect ? "on" : "off");
-
 	// wadconfig(string) : "Custom Wad Configuration" : ""
-	if (*ValueForKey(mapent, u8"wadconfig")) {
+	if (has_key_value(mapent, u8"wadconfig")) {
 		g_wadconfigname = value_for_key(mapent, u8"wadconfig");
 		Log("%30s [ %-9s ]\n",
 			"Custom Wad Configuration Name",
@@ -917,7 +896,9 @@ static void SetModelNumbers() {
 		if (g_entities[i].numbrushes) {
 			safe_snprintf(value, sizeof(value), "*%i", models);
 			models++;
-			SetKeyValue(&g_entities[i], u8"model", (char8_t const *) value);
+			set_key_value(
+				&g_entities[i], u8"model", (char8_t const *) value
+			);
 		}
 	}
 }
@@ -928,22 +909,18 @@ void ReuseModel() {
 		 i--) // so it won't affect the remaining entities in the loop when
 			  // we move this entity backward
 	{
-		char const * name = (char const *) ValueForKey(
+		std::u8string_view name = value_for_key(
 			&g_entities[i], u8"zhlt_usemodel"
 		);
-		if (!*name) {
+		if (name.empty()) {
 			continue;
 		}
 		int j;
 		for (j = 1; j < g_numentities; j++) {
-			if (*ValueForKey(&g_entities[j], u8"zhlt_usemodel")) {
+			if (has_key_value(&g_entities[j], u8"zhlt_usemodel")) {
 				continue;
 			}
-			if (!strcmp(
-					name,
-					(char const *)
-						ValueForKey(&g_entities[j], u8"targetname")
-				)) {
+			if (key_value_is(&g_entities[j], u8"targetname", name)) {
 				break;
 			}
 		}
@@ -951,18 +928,18 @@ void ReuseModel() {
 			if (strings_equal_with_ascii_case_insensitivity(
 					name, u8"null"
 				)) {
-				SetKeyValue(&g_entities[i], u8"model", u8"");
+				set_key_value(&g_entities[i], u8"model", u8"");
 				continue;
 			}
 			Error(
 				"zhlt_usemodel: can not find target entity '%s', or that entity is also using 'zhlt_usemodel'.\n",
-				name
+				(char const *) name.data()
 			);
 		}
-		SetKeyValue(
+		set_key_value(
 			&g_entities[i],
 			u8"model",
-			ValueForKey(&g_entities[j], u8"model")
+			value_for_key(&g_entities[j], u8"model")
 		);
 		if (j > i) {
 			// move this entity forward
@@ -983,15 +960,14 @@ void ReuseModel() {
 //  SetLightStyles
 // =====================================================================================
 constexpr std::size_t MAX_SWITCHED_LIGHTS = 32;
-constexpr std::size_t MAX_LIGHTTARGETS_NAME = 64;
 
 static void SetLightStyles() {
 	int stylenum;
-	char const * t;
+	std::u8string_view t;
 	entity_t* e;
 	int i, j;
 	char value[10];
-	char lighttargets[MAX_SWITCHED_LIGHTS][MAX_LIGHTTARGETS_NAME];
+	std::array<std::u8string_view, MAX_SWITCHED_LIGHTS> lighttargets;
 
 	bool newtexlight = false;
 
@@ -1002,33 +978,33 @@ static void SetLightStyles() {
 	for (i = 1; i < g_numentities; i++) {
 		e = &g_entities[i];
 
-		t = (char const *) ValueForKey(e, u8"classname");
-		if (strncasecmp(t, "light", 5)) {
+		t = value_for_key(e, u8"classname");
+		if (!t.starts_with(u8"light")) {
 			// LRC:
 			//  if it's not a normal light entity, allocate it a new style
 			//  if necessary.
-			t = (char const *) ValueForKey(e, u8"style");
-			switch (atoi(t)) {
+			t = value_for_key(e, u8"style");
+			switch (atoi((char const *) t.data())) {
 				case 0: // not a light, no style, generally pretty boring
 					continue;
 				case -1: // normal switchable texlight
 					safe_snprintf(
 						value, sizeof(value), "%i", 32 + stylenum
 					);
-					SetKeyValue(e, u8"style", (char8_t const *) value);
+					set_key_value(e, u8"style", (char8_t const *) value);
 					stylenum++;
 					continue;
 				case -2: // backwards switchable texlight
 					safe_snprintf(
 						value, sizeof(value), "%i", -(32 + stylenum)
 					);
-					SetKeyValue(e, u8"style", (char8_t const *) value);
+					set_key_value(e, u8"style", (char8_t const *) value);
 					stylenum++;
 					continue;
 				case -3: // (HACK) a piggyback texlight: switched on and off
 						 // by triggering a real light that has the same
 						 // name
-					SetKeyValue(
+					set_key_value(
 						e, u8"style", u8"0"
 					); // just in case the level designer didn't give it a
 					   // name
@@ -1037,11 +1013,11 @@ static void SetLightStyles() {
 			}
 			// LRC (ends)
 		}
-		t = (char const *) ValueForKey(e, u8"targetname");
-		if (*ValueForKey(e, u8"zhlt_usestyle")) {
-			t = (char const *) ValueForKey(e, u8"zhlt_usestyle");
+		t = value_for_key(e, u8"targetname");
+		if (has_key_value(e, u8"zhlt_usestyle")) {
+			t = value_for_key(e, u8"zhlt_usestyle");
 			if (strings_equal_with_ascii_case_insensitivity(t, u8"null")) {
-				t = "";
+				t = u8"";
 			}
 		}
 		if (!t[0]) {
@@ -1050,7 +1026,7 @@ static void SetLightStyles() {
 
 		// find this targetname
 		for (j = 0; j < stylenum; j++) {
-			if (!strcmp(lighttargets[j], t)) {
+			if (lighttargets[j] == t) {
 				break;
 			}
 		}
@@ -1058,11 +1034,11 @@ static void SetLightStyles() {
 			hlassume(
 				stylenum < MAX_SWITCHED_LIGHTS, assume_MAX_SWITCHED_LIGHTS
 			);
-			safe_strncpy(lighttargets[j], t, MAX_LIGHTTARGETS_NAME);
+			lighttargets[j] = t;
 			stylenum++;
 		}
 		safe_snprintf(value, sizeof(value), "%i", 32 + j);
-		SetKeyValue(e, u8"style", (char8_t const *) value);
+		set_key_value(e, u8"style", (char8_t const *) value);
 	}
 }
 
@@ -1141,7 +1117,7 @@ static void UnparseEntities() {
 			}
 			char stmp[1024];
 			safe_snprintf(stmp, 1024, "%g %g %g", vec[0], vec[1], vec[2]);
-			SetKeyValue(mapent, u8"angles", (char8_t const *) stmp);
+			set_key_value(mapent, u8"angles", (char8_t const *) stmp);
 			DeleteKey(mapent, u8"pitch");
 
 			if (!strcmp(
@@ -1154,8 +1130,8 @@ static void UnparseEntities() {
 				entity_t* newent = &g_entities[g_numentities++];
 				using std::swap;
 				swap(newent->keyValues, mapent->keyValues);
-				SetKeyValue(newent, u8"classname", u8"light_environment");
-				SetKeyValue(newent, u8"_fake", u8"1");
+				set_key_value(newent, u8"classname", u8"light_environment");
+				set_key_value(newent, u8"_fake", u8"1");
 			}
 		}
 	}
@@ -1163,15 +1139,15 @@ static void UnparseEntities() {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"light_shadow")
 			|| classname_is(mapent, u8"light_bounce")) {
-			SetKeyValue(
+			set_key_value(
 				mapent, u8"convertfrom", ValueForKey(mapent, u8"classname")
 			);
-			SetKeyValue(
+			set_key_value(
 				mapent,
 				u8"classname",
-				(*ValueForKey(mapent, u8"convertto")
-					 ? ValueForKey(mapent, u8"convertto")
-					 : u8"light")
+				(has_key_value(mapent, u8"convertto")
+					 ? value_for_key(mapent, u8"convertto")
+					 : u8"light"sv)
 			);
 			DeleteKey(mapent, u8"convertto");
 		}
@@ -1181,20 +1157,20 @@ static void UnparseEntities() {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"light_surface")) {
 			if (key_value_is_empty(mapent, u8"_tex")) {
-				SetKeyValue(mapent, u8"_tex", u8"                ");
+				set_key_value(mapent, u8"_tex", u8"                ");
 			}
 			std::u8string_view newclassname = value_for_key(
 				mapent, u8"convertto"
 			);
 			if (newclassname.empty()) {
-				SetKeyValue(mapent, u8"classname", u8"light");
+				set_key_value(mapent, u8"classname", u8"light");
 			} else if (!newclassname.starts_with(u8"light")) {
 				Error(
 					"New classname for 'light_surface' should begin with 'light' not '%s'.\n",
 					(char const *) newclassname.data()
 				);
 			} else {
-				SetKeyValue(mapent, u8"classname", newclassname);
+				set_key_value(mapent, u8"classname", newclassname);
 			}
 			DeleteKey(mapent, u8"convertto");
 		}
@@ -1310,7 +1286,7 @@ void LoadWadValue() {
 			}
 			entity_key_value kv{ parse_entity_key_value() };
 			if (kv.key() == u8"wad") {
-				SetKeyValue(&g_entities[0], std::move(kv));
+				set_key_value(&g_entities[0], std::move(kv));
 			}
 		}
 	}
@@ -1542,7 +1518,7 @@ static void SetModelCenters(int entitynum) {
 		(int) center[1],
 		(int) center[2]
 	);
-	SetKeyValue(e, u8"model_center", (char8_t const *) string);
+	set_key_value(e, u8"model_center", (char8_t const *) string);
 }
 
 //
@@ -1642,8 +1618,6 @@ static void Usage() {
 	Log("    -nolightopt      : don't optimize engine light entities\n");
 
 	Log("    -dev #           : compile with developer message\n\n");
-
-	Log("    -nowadautodetect : Disable auto-detection of wadfiles\n");
 
 	Log("    -scale #         : Scale the world. Use at your own risk.\n");
 	Log("    -worldextent #   : Extend map geometry limits beyond +/-32768.\n"
@@ -2030,10 +2004,6 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-nowadautodetect"
-						   )) {
-					g_bWadAutoDetect = false;
-				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-nowadtextures"
 						   )) {
 					g_wadtextures = false;
@@ -2286,9 +2256,6 @@ int main(int const argc, char** argv) {
 					GetUsedWads();
 				}
 
-				if (!g_bWadAutoDetect) {
-					Warning("Unused textures will not be excluded\n");
-				}
 				DumpWadinclude();
 				Log("\n");
 			}

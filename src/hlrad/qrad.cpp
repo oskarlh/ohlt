@@ -1095,10 +1095,7 @@ void ReadTranslucentTextures() {
 	g_translucenttextures = std::make_unique<float3_array[]>(num);
 	for (k = 0; k < g_numentities; k++) {
 		mapent = &g_entities[k];
-		if (strcmp(
-				(char const *) ValueForKey(mapent, u8"classname"),
-				"info_translucent"
-			)) {
+		if (!key_value_is(mapent, u8"classname", u8"info_translucent")) {
 			continue;
 		}
 		Developer(

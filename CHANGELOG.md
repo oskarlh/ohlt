@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add *info_minlights* and `%` texture flag
 - Add `-pre25`, increase `-limiter` default to `255`
 - Increase `-bounce` to min `12` if using `-expert`
-- Enable `-wadautodetect` by default
 - Reformatted texture-related logging to look like resgen
 - Add CMake config and Makefile
 
