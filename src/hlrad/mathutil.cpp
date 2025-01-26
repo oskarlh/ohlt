@@ -18,11 +18,11 @@ bool point_in_winding(
 
 	for (int x = 0; x < numpoints; x++) {
 		float3_array const delta = vector_subtract(
-			w.m_Points[(x + 1) % numpoints], w.m_Points[x]
+			w.point((x + 1) % numpoints), w.point(x)
 		);
 		float3_array const normal = cross_product(delta, plane.normal);
 		float const dist = dot_product(point, normal)
-			- dot_product(w.m_Points[x], normal);
+			- dot_product(w.point(x), normal);
 
 		if (dist < 0.0
 			&& (epsilon == 0.0
@@ -50,15 +50,14 @@ bool point_in_winding_noedge(
 ) {
 	int numpoints;
 	int x;
-	float3_array delta;
 	float3_array normal;
 	float dist;
 
 	numpoints = w.size();
 
 	for (x = 0; x < numpoints; x++) {
-		VectorSubtract(
-			w.m_Points[(x + 1) % numpoints], w.m_Points[x], delta
+		float3_array const delta = vector_subtract(
+			w.m_Points[(x + 1) % numpoints], w.m_Points[x]
 		);
 		CrossProduct(delta, plane.normal, normal);
 		dist = DotProduct(point, normal)
@@ -81,13 +80,11 @@ bool point_in_winding_noedge(
 //      can move freely along the plane's normal without changing the result
 // =====================================================================================
 void snap_to_winding(
-	fast_winding const & w, dplane_t const & plane, float* const point
+	fast_winding const & w, dplane_t const & plane, float3_array& point
 ) {
 	int numpoints;
 	int x;
-	float const *p1, *p2;
-	float3_array delta;
-	float3_array normal;
+
 	float dist;
 	float dot1, dot2, dot;
 	float3_array bestpoint;
@@ -98,16 +95,16 @@ void snap_to_winding(
 
 	in = true;
 	for (x = 0; x < numpoints; x++) {
-		p1 = w.m_Points[x].data();
-		p2 = w.m_Points[(x + 1) % numpoints].data();
-		VectorSubtract(p2, p1, delta);
-		CrossProduct(delta, plane.normal, normal);
+		float3_array const & p1 = w.point(x);
+		float3_array const & p2 = w.point((x + 1) % numpoints);
+		float3_array delta = vector_subtract(p2, p1);
+		float3_array const normal = cross_product(delta, plane.normal);
 		dist = DotProduct(point, normal) - DotProduct(p1, normal);
 
 		if (dist < 0.0) {
 			in = false;
 
-			CrossProduct(plane.normal, normal, delta);
+			delta = cross_product(plane.normal, normal);
 			dot = DotProduct(delta, point);
 			dot1 = DotProduct(delta, p1);
 			dot2 = DotProduct(delta, p2);
@@ -121,10 +118,9 @@ void snap_to_winding(
 	if (in) {
 		return;
 	}
-
 	for (x = 0; x < numpoints; x++) {
-		p1 = w.m_Points[x].data();
-		VectorSubtract(p1, point, delta);
+		float3_array const & p1 = w.point(x);
+		float3_array delta = vector_subtract(p1, point);
 		dist = DotProduct(delta, plane.normal)
 			/ DotProduct(plane.normal, plane.normal);
 		delta = vector_fma(plane.normal, -dist, delta);
@@ -155,7 +151,7 @@ void snap_to_winding(
 float snap_to_winding_noedge(
 	fast_winding const & w,
 	dplane_t const & plane,
-	float* const point,
+	float3_array& point,
 	float width,
 	float maxmove
 ) {
@@ -210,8 +206,8 @@ float snap_to_winding_noedge(
 		}
 
 		if (newwinding->size() > 0) {
-			VectorCopy(point, newpoint);
-			snap_to_winding(*newwinding, plane, newpoint.data());
+			newpoint = point;
+			snap_to_winding(*newwinding, plane, newpoint);
 
 			VectorSubtract(newpoint, point, v);
 			if (vector_length(v) <= maxmove + ON_EPSILON) {

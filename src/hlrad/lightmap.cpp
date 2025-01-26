@@ -1021,10 +1021,10 @@ void ChopFrag(samplefrag_t* frag)
 		frag->mywinding->m_Points[x][2] = 0.0;
 	}
 	frag->mywinding->RemoveColinearPoints();
-	VectorCopy(
-		v_up, frag->mywindingplane.normal
-	); // this is the same as applying the worldtotex matrix to the
-	   // faceplane
+
+	// This is the same as applying the worldtotex matrix to the
+	// faceplane
+	frag->mywindingplane.normal = v_up;
 	if (CalcMatrixSign(worldtotex) < 0.0) {
 		frag->mywindingplane.normal[2] *= -1;
 	}
@@ -3783,11 +3783,7 @@ void CalcLightmap(
 						surfacewinding, *surfaceplane, spot2, 0.2
 					)) {
 					snap_to_winding_noedge(
-						surfacewinding,
-						*surfaceplane,
-						spot2.data(),
-						0.2,
-						4 * 0.2
+						surfacewinding, *surfaceplane, spot2, 0.2, 4 * 0.2
 					);
 				}
 				VectorMA(

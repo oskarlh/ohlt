@@ -889,8 +889,8 @@ void InterpolateSampleLight(
 				best = nullptr;
 				for (i = 0; i < (int) ft->localtriangulations.size(); i++) {
 					lt = ft->localtriangulations[i];
-					VectorCopy(position, v);
-					snap_to_winding(lt->winding, lt->plane, v.data());
+					v = position;
+					snap_to_winding(lt->winding, lt->plane, v);
 					VectorSubtract(v, position, v);
 					dist = vector_length(v);
 					if (best == nullptr || dist < bestdist - ON_EPSILON) {
@@ -1479,7 +1479,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 		snap_to_winding_noedge(
 			lt->winding,
 			lt->plane,
-			lt->center.data(),
+			lt->center,
 			DEFAULT_EDGE_WIDTH,
 			4 * DEFAULT_EDGE_WIDTH
 		);

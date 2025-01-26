@@ -296,9 +296,7 @@ matrix_t MatrixForScale(float3_array const & center, float scale) noexcept {
 }
 
 float CalcMatrixSign(matrix_t const & m) {
-	float3_array v;
-	CrossProduct(m.v[0], m.v[1], v);
-	return DotProduct(v, m.v[2]);
+	return dot_product(cross_product(m.v[0], m.v[1]), m.v[2]);
 }
 
 void TranslateWorldToTex(int facenum, matrix_t& m)
@@ -307,18 +305,17 @@ void TranslateWorldToTex(int facenum, matrix_t& m)
 	dface_t* f;
 	texinfo_t* ti;
 	dplane_t const * fp;
-	int i;
 
 	f = &g_dfaces[facenum];
 	ti = &g_texinfo[f->texinfo];
 	fp = getPlaneFromFace(f);
-	for (i = 0; i < 3; i++) {
+	for (std::size_t i = 0; i < 3; ++i) {
 		m.v[i][0] = ti->vecs[0][i];
 		m.v[i][1] = ti->vecs[1][i];
 		m.v[i][2] = fp->normal[i];
 	}
 	m.v[3][0] = ti->vecs[0][3];
-	m.v[3][1] = ti->vecs[1][i];
+	m.v[3][1] = ti->vecs[1][3];
 	m.v[3][2] = -fp->dist;
 }
 
@@ -465,7 +462,7 @@ static bool IsPositionValid(
 		snap_to_winding_noedge(
 			*map->facewindingwithoffset,
 			map->faceplanewithoffset,
-			test.data(),
+			test,
 			DEFAULT_EDGE_WIDTH,
 			4 * DEFAULT_EDGE_WIDTH
 		);
@@ -536,7 +533,7 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 	float3_array test_st;
 
 	VectorCopy(original_st, test_st);
-	snap_to_winding(zone, map->texplane, test_st.data());
+	snap_to_winding(zone, map->texplane, test_st);
 
 	if (IsPositionValid(map, test_st, p.pos)) {
 		p.nudged = false;
@@ -571,7 +568,7 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 
 	for (float3_array const & nudge : nudgeList) {
 		test_st = vector_fma(nudge, map->step, original_st);
-		snap_to_winding(zone, map->texplane, test_st.data());
+		snap_to_winding(zone, map->texplane, test_st);
 
 		if (IsPositionValid(map, test_st, p.pos)) {
 			p.best_s = test_st[0];
@@ -623,17 +620,11 @@ void FindFacePositions(int facenum)
 
 	map->facewinding = new fast_winding(*f);
 	map->faceplane = *getPlaneFromFace(f);
-	map->facewindingwithoffset = new fast_winding(map->facewinding->size());
-	for (x = 0; x < map->facewinding->size(); x++) {
-		VectorAdd(
-			map->facewinding->m_Points[x],
-			map->face_offset,
-			map->facewindingwithoffset->m_Points[x]
-		);
-	}
+	map->facewindingwithoffset = new fast_winding(*map->facewinding);
+	map->facewindingwithoffset->add_offset_to_points(map->face_offset);
 	map->faceplanewithoffset = map->faceplane;
 	map->faceplanewithoffset.dist = map->faceplane.dist
-		+ DotProduct(map->face_offset, map->faceplane.normal);
+		+ dot_product(map->face_offset, map->faceplane.normal);
 
 	map->texwinding = new fast_winding(map->facewinding->size());
 	for (x = 0; x < map->facewinding->size(); x++) {
@@ -645,7 +636,7 @@ void FindFacePositions(int facenum)
 		map->texwinding->m_Points[x][2] = 0.0;
 	}
 	map->texwinding->RemoveColinearPoints();
-	VectorCopy(v_up, map->texplane.normal);
+	map->texplane.normal = v_up;
 	if (CalcMatrixSign(map->worldtotex) < 0.0) {
 		map->texplane.normal[2] *= -1;
 	}

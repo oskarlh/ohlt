@@ -157,7 +157,7 @@ constexpr float PATCH_HUNT_OFFSET = 0.5;
 constexpr float hlrad_bogus_range = 131'072;
 
 struct matrix_t {
-	float v[4][3];
+	std::array<float3_array, 4> v;
 };
 
 // a 4x4 matrix that represents the following transformation (see the
@@ -677,12 +677,12 @@ extern bool point_in_winding_noedge(
 	float width
 );
 extern void snap_to_winding(
-	fast_winding const & w, dplane_t const & plane, float* point
+	fast_winding const & w, dplane_t const & plane, float3_array& point
 );
 extern float snap_to_winding_noedge(
 	fast_winding const & w,
 	dplane_t const & plane,
-	float* point,
+	float3_array& point,
 	float width,
 	float maxmove
 );
