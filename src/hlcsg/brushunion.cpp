@@ -158,7 +158,7 @@ static bool isInvalidHull(brushhull_t const * hull) {
 	double3_array maxs{ -99999.0, -99999.0, -99999.0 };
 
 	for (bface_t const & face : hull->faces) {
-		for (double3_array const & windingPoint : face.w.m_Points) {
+		for (double3_array const & windingPoint : face.w.points()) {
 			mins = vector_minimums(mins, windingPoint);
 			maxs = vector_maximums(maxs, windingPoint);
 		}

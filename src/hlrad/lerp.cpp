@@ -1000,15 +1000,14 @@ static bool TestFarPatch(
 	fast_winding const & p2winding
 ) {
 	int i;
-	float dist;
 	float size1;
 	float size2;
 
 	size1 = 0;
 	for (i = 0; i < lt->winding.size(); i++) {
-		float3_array v;
-		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
-		dist = vector_length(v);
+		float const dist = vector_length(
+			vector_subtract(lt->winding.point(i), lt->center)
+		);
 		if (dist > size1) {
 			size1 = dist;
 		}
@@ -1016,9 +1015,9 @@ static bool TestFarPatch(
 
 	size2 = 0;
 	for (i = 0; i < p2winding.size(); i++) {
-		float3_array v;
-		VectorSubtract(p2winding.m_Points[i], p2, v);
-		dist = vector_length(v);
+		float const dist = vector_length(
+			vector_subtract(p2winding.point(i), p2)
+		);
 		if (dist > size2) {
 			size2 = dist;
 		}
@@ -1026,7 +1025,7 @@ static bool TestFarPatch(
 
 	float3_array v;
 	VectorSubtract(p2, lt->center, v);
-	dist = vector_length(v);
+	float const dist = vector_length(v);
 
 	return dist > 1.4 * (size1 + size2);
 }
@@ -1243,10 +1242,11 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 	spots.reserve(lt->winding.size());
 	spots.resize(0);
 	for (i = 0; i < (int) lt->winding.size(); i++) {
-		float3_array v;
-		VectorSubtract(lt->winding.m_Points[i], lt->center, v);
-		dot = DotProduct(v, lt->normal);
-		VectorMA(v, -dot, lt->normal, hp.spot);
+		float3_array const v = vector_subtract(
+			lt->winding.point(i), lt->center
+		);
+		dot = dot_product(v, lt->normal);
+		hp.spot = vector_fma(lt->normal, -dot, v);
 		if (!GetDirection(hp.spot, lt->normal, hp.direction)) {
 			continue;
 		}

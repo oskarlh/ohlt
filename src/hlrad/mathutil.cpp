@@ -17,19 +17,17 @@ bool point_in_winding(
 	int const numpoints = w.size();
 
 	for (int x = 0; x < numpoints; x++) {
-		float3_array delta;
-		VectorSubtract(
-			w.m_Points[(x + 1) % numpoints], w.m_Points[x], delta
+		float3_array const delta = vector_subtract(
+			w.m_Points[(x + 1) % numpoints], w.m_Points[x]
 		);
-		float3_array normal;
-		CrossProduct(delta, plane.normal, normal);
-		float const dist = DotProduct(point, normal)
-			- DotProduct(w.m_Points[x], normal);
+		float3_array const normal = cross_product(delta, plane.normal);
+		float const dist = dot_product(point, normal)
+			- dot_product(w.m_Points[x], normal);
 
 		if (dist < 0.0
 			&& (epsilon == 0.0
 				|| dist * dist
-					> epsilon * epsilon * DotProduct(normal, normal))) {
+					> epsilon * epsilon * dot_product(normal, normal))) {
 			return false;
 		}
 	}

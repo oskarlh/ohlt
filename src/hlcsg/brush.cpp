@@ -378,11 +378,11 @@ void ExpandBrushWithHullBrush(
 			continue;
 		}
 		for (bface_t const & f : hull0->faces) {
-			for (double3_array const & v : f.w.m_Points) {
-				if (DotProduct(v, hbf->normal)
+			for (double3_array const & v : f.w.points()) {
+				if (dot_product(v, hbf->normal)
 					< bestdist - NORMAL_EPSILON) {
-					bestdist = DotProduct(v, hbf->normal);
-					VectorCopy(v, bestvertex);
+					bestdist = dot_product(v, hbf->normal);
+					bestvertex = v;
 				}
 			}
 		}
@@ -569,14 +569,14 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 			for (counter = 0; counter < (winding.size());
 				 counter++) // for each edge
 			{
-				double3_array const edge_start{ winding.m_Points[counter] };
+				double3_array const edge_start{ winding.point(counter) };
 				double3_array const edge_end{
-					winding.m_Points[(counter + 1) % winding.size()]
+					winding.point((counter + 1) % winding.size())
 				};
 
 				// Grab the edge (find relative length)
-				double3_array edge, bevel_edge;
-				VectorSubtract(edge_end, edge_start, edge);
+				double3_array edge = vector_subtract(edge_end, edge_start);
+				double3_array bevel_edge;
 
 				bface_t const * foundOtherFace{};
 				// brute force - need to check every other winding for
@@ -593,13 +593,13 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 						 counter2++) {
 						if (!start_found
 							&& vectors_almost_same(
-								other_winding.m_Points[counter2], edge_start
+								other_winding.point(counter2), edge_start
 							)) {
 							start_found = true;
 						}
 						if (!end_found
 							&& vectors_almost_same(
-								other_winding.m_Points[counter2], edge_end
+								other_winding.point(counter2), edge_end
 							)) {
 							end_found = true;
 						}
@@ -843,7 +843,7 @@ restart:
 			f.w = w;
 			f.contents = CONTENTS_EMPTY;
 			for (std::size_t i = 0; i < w.size(); ++i) {
-				add_to_bounding_box(h->bounds, w.m_Points[i]);
+				add_to_bounding_box(h->bounds, w.point(i));
 			}
 		}
 	}
@@ -1364,13 +1364,11 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				continue;
 			}
 			edge = &edges[numedges];
-			VectorCopy(
-				w[i]->m_Points[(e + 1) % w[i]->size()], edge->vertexes[0]
-			);
-			VectorCopy(w[i]->m_Points[e], edge->vertexes[1]);
-			VectorCopy(edge->vertexes[0], edge->point);
-			VectorSubtract(
-				edge->vertexes[1], edge->vertexes[0], edge->delta
+			edge->vertexes[0] = w[i]->point((e + 1) % w[i]->size());
+			edge->vertexes[1] = w[i]->point(e);
+			edge->point = edge->vertexes[0];
+			edge->delta = vector_subtract(
+				edge->vertexes[1], edge->vertexes[0]
 			);
 			if (vector_length(edge->delta) < 1 - ON_EPSILON) {
 				failed = true;
@@ -1381,11 +1379,11 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 			for (k = 0; k < numplanes; k++) {
 				for (e2 = 0; e2 < w[k]->size(); e2++) {
 					if (vectors_almost_same(
-							w[k]->m_Points[(e2 + 1) % w[k]->size()],
+							w[k]->point((e2 + 1) % w[k]->size()),
 							edge->vertexes[1]
 						)
 						&& vectors_almost_same(
-							w[k]->m_Points[e2], edge->vertexes[0]
+							w[k]->point(e2), edge->vertexes[0]
 						)) {
 						found++;
 						VectorCopy(planes[k].normal, edge->normals[1]);
@@ -1424,10 +1422,9 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 
 	// vertexes
 	numvertexes = 0;
-	for (i = 0; i < numplanes; i++) {
+	for (i = 0; i < numplanes; ++i) {
 		for (e = 0; e < w[i]->size(); e++) {
-			double3_array v;
-			VectorCopy(w[i]->m_Points[e], v);
+			double3_array const & v = w[i]->point(e);
 			for (j = 0; j < numvertexes; j++) {
 				if (vectors_almost_same(vertexes[j].point, v)) {
 					break;
@@ -1441,14 +1438,15 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				continue;
 			}
 
-			VectorCopy(v, vertexes[numvertexes].point);
+			vertexes[numvertexes].point = v;
 			numvertexes++;
 
 			for (k = 0; k < numplanes; k++) {
-				if (fabs(DotProduct(v, planes[k].normal) - planes[k].dist)
+				if (fabs(dot_product(v, planes[k].normal) - planes[k].dist)
 					< ON_EPSILON) {
 					if (fabs(
-							DotProduct(v, planes[k].normal) - planes[k].dist
+							dot_product(v, planes[k].normal)
+							- planes[k].dist
 						)
 						> NORMAL_EPSILON) {
 						failed = true;
@@ -1471,15 +1469,15 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 		hlassume(hb->faces != nullptr, assume_NoMemory);
 		for (i = 0; i < numplanes; i++) {
 			hullbrushface_t* f = &hb->faces[i];
-			VectorCopy(planes[i].normal, f->normal);
-			VectorCopy(w[i]->m_Points[0], f->point);
+			f->normal = planes[i].normal;
+			f->point = w[i]->point(0);
 			f->numvertexes = w[i]->size();
 			f->vertexes = (double3_array*) malloc(
 				f->numvertexes * sizeof(double3_array)
 			);
 			hlassume(f->vertexes != nullptr, assume_NoMemory);
-			for (k = 0; k < w[i]->size(); k++) {
-				VectorCopy(w[i]->m_Points[k], f->vertexes[k]);
+			for (k = 0; k < w[i]->size(); ++k) {
+				f->vertexes[k] = w[i]->point(k);
 			}
 		}
 

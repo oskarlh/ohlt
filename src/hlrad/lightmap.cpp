@@ -23,13 +23,10 @@ typedef struct {
 
 bool TestFaceIntersect(intersecttest_t* t, int facenum) {
 	dface_t* f2 = &g_dfaces[facenum];
-	fast_winding* w = new fast_winding(*f2);
-	int k;
-	for (k = 0; k < w->size(); k++) {
-		VectorAdd(w->m_Points[k], g_face_offset[facenum], w->m_Points[k]);
-	}
-	for (k = 0; k < t->numclipplanes; k++) {
-		if (!w->mutating_clip(
+	fast_winding w{ fast_winding(*f2) };
+	w.add_offset_to_points(g_face_offset[facenum]);
+	for (int k = 0; k < t->numclipplanes; ++k) {
+		if (!w.mutating_clip(
 				t->clipplanes[k].normal,
 				t->clipplanes[k].dist,
 				false,
@@ -38,8 +35,7 @@ bool TestFaceIntersect(intersecttest_t* t, int facenum) {
 			break;
 		}
 	}
-	bool intersect = w->size() > 0;
-	delete w;
+	bool intersect = w.size() > 0;
 	return intersect;
 }
 
@@ -856,18 +852,9 @@ static void CalcFaceVectors(lightinfo_t* l) {
 
 		ThreadLock();
 		Log("Malformed face (%d) normal @ \n", facenum);
-		fast_winding* w = new fast_winding(*l->face);
-		{
-			unsigned const numpoints = w->size();
-			unsigned x;
-			for (x = 0; x < numpoints; x++) {
-				VectorAdd(
-					w->m_Points[x], g_face_offset[facenum], w->m_Points[x]
-				);
-			}
-		}
-		w->Print();
-		delete w;
+		fast_winding w{ *l->face };
+		w.add_offset_to_points(g_face_offset[w.size()]);
+		w.Print();
 		ThreadUnlock();
 
 		hlassume(false, assume_MalformedTextureFace);
@@ -1019,20 +1006,17 @@ void ChopFrag(samplefrag_t* frag)
 	// get the shape of the fragment by clipping the face using the
 	// boundaries
 	dface_t* f;
-	fast_winding* facewinding;
 	matrix_t worldtotex;
 	float3_array const v_up = { 0, 0, 1 };
 
 	f = &g_dfaces[frag->facenum];
-	facewinding = new fast_winding(*f);
+	fast_winding facewinding{ *f };
 
 	TranslateWorldToTex(frag->facenum, worldtotex);
-	frag->mywinding = new fast_winding(facewinding->size());
-	for (int x = 0; x < facewinding->size(); x++) {
+	frag->mywinding = new fast_winding(facewinding.size());
+	for (int x = 0; x < facewinding.size(); x++) {
 		ApplyMatrix(
-			worldtotex,
-			facewinding->m_Points[x],
-			frag->mywinding->m_Points[x]
+			worldtotex, facewinding.point(x), frag->mywinding->m_Points[x]
 		);
 		frag->mywinding->m_Points[x][2] = 0.0;
 	}
@@ -1058,18 +1042,16 @@ void ChopFrag(samplefrag_t* frag)
 	for (int x = 0; x < frag->mywinding->size(); x++) {
 		ApplyMatrix(
 			frag->mycoordtocoord,
-			frag->mywinding->m_Points[x],
+			frag->mywinding->point(x),
 			frag->winding->m_Points[x]
 		);
 	}
 	frag->winding->RemoveColinearPoints();
-	VectorCopy(frag->mywindingplane.normal, frag->windingplane.normal);
+	frag->windingplane.normal = frag->mywindingplane.normal;
 	if (CalcMatrixSign(frag->mycoordtocoord) < 0.0) {
 		frag->windingplane.normal[2] *= -1;
 	}
 	frag->windingplane.dist = 0.0;
-
-	delete facewinding;
 
 	// find the edges where the fragment can grow in the future
 	frag->numedges = 0;
@@ -1287,20 +1269,18 @@ static samplefrag_t* GrowSingleFrag(
 	hlassume(clipplanes != nullptr, assume_NoMemory);
 	numclipplanes = 0;
 	for (int x = 0; x < frag->winding->size(); x++) {
-		float3_array v;
-		VectorSubtract(
-			frag->winding->m_Points[(x + 1) % frag->winding->size()],
-			frag->winding->m_Points[x],
-			v
-		);
-		CrossProduct(
-			v, frag->windingplane.normal, clipplanes[numclipplanes].normal
+		clipplanes[numclipplanes].normal = cross_product(
+			vector_subtract(
+				frag->winding->point((x + 1) % frag->winding->size()),
+				frag->winding->point(x)
+			),
+			frag->windingplane.normal
 		);
 		if (!normalize_vector(clipplanes[numclipplanes].normal)) {
 			continue;
 		}
-		clipplanes[numclipplanes].dist = DotProduct(
-			frag->winding->m_Points[x], clipplanes[numclipplanes].normal
+		clipplanes[numclipplanes].dist = dot_product(
+			frag->winding->point(x), clipplanes[numclipplanes].normal
 		);
 		numclipplanes++;
 	}
@@ -1599,11 +1579,7 @@ static light_flag_t SetSampleFromST(
 			ThreadLock();
 			Log("Malformed face (%d) normal @ \n", facenum);
 			fast_winding w{ g_dfaces[facenum] };
-			for (float3_array& windingPoint : w.m_Points) {
-				VectorAdd(
-					windingPoint, g_face_offset[facenum], windingPoint
-				);
-			}
+			w.add_offset_to_points(g_face_offset[facenum]);
 			w.Print();
 			ThreadUnlock();
 			hlassume(false, assume_MalformedTextureFace);
@@ -3336,30 +3312,26 @@ static void AddSamplesToPatches(
 	patch_t* patch;
 	int i, j, m, k;
 	int numtexwindings;
-	fast_winding** texwindings;
 
 	numtexwindings = 0;
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		numtexwindings++;
 	}
-	texwindings = (fast_winding**) malloc(
-		numtexwindings * sizeof(fast_winding*)
-	);
+	std::unique_ptr<fast_winding[]> texwindings
+		= std::make_unique<fast_winding[]>(numtexwindings);
 	hlassume(texwindings != nullptr, assume_NoMemory);
 
 	// translate world winding into winding in s,t plane
 	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings;
 		 j++, patch = patch->next) {
-		fast_winding* w = new fast_winding(patch->winding->size());
-		for (int x = 0; x < w->size(); x++) {
+		fast_winding& w{ texwindings[j] };
+		w.reserve_point_storage(patch->winding->size());
+		for (int x = 0; x < patch->winding->size(); x++) {
 			float s, t;
-			SetSTFromSurf(l, patch->winding->m_Points[x].data(), s, t);
-			w->m_Points[x][0] = s;
-			w->m_Points[x][1] = t;
-			w->m_Points[x][2] = 0.0;
+			SetSTFromSurf(l, patch->winding->point(x).data(), s, t);
+			w.push_point({ s, t, 0.0f });
 		}
-		w->RemoveColinearPoints();
-		texwindings[j] = w;
+		w.RemoveColinearPoints();
 	}
 
 	for (i = 0; i < l->numsurfpt; i++) {
@@ -3387,7 +3359,7 @@ static void AddSamplesToPatches(
 		// clip each patch
 		for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings;
 			 j++, patch = patch->next) {
-			fast_winding w{ *texwindings[j] };
+			fast_winding w{ texwindings[j] };
 			for (k = 0; k < 4; k++) {
 				if (w.size()) {
 					w.mutating_clip(
@@ -3435,11 +3407,6 @@ static void AddSamplesToPatches(
 			}
 		}
 	}
-
-	for (j = 0; j < numtexwindings; j++) {
-		delete texwindings[j];
-	}
-	free(texwindings);
 }
 
 // =====================================================================================
@@ -3810,14 +3777,8 @@ void CalcLightmap(
 				);
 				fast_winding surfacewinding{ g_dfaces[surface] };
 
-				VectorCopy(spot, spot2);
-				for (int x = 0; x < surfacewinding.size(); x++) {
-					VectorAdd(
-						surfacewinding.m_Points[x],
-						g_face_offset[surface],
-						surfacewinding.m_Points[x]
-					);
-				}
+				spot2 = spot;
+				surfacewinding.add_offset_to_points(g_face_offset[surface]);
 				if (!point_in_winding_noedge(
 						surfacewinding, *surfaceplane, spot2, 0.2
 					)) {

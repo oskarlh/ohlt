@@ -367,17 +367,15 @@ void BuildFaceEdges(opaqueface_t* f) {
 	}
 	f->numedges = f->winding->size();
 	f->edges = (dplane_t*) calloc(f->numedges, sizeof(dplane_t));
-	float const *p1, *p2;
-	float const * n = f->plane.normal.data();
-	float3_array e;
-	dplane_t* pl;
-	int x;
-	for (x = 0; x < f->winding->size(); x++) {
-		p1 = f->winding->m_Points[x].data();
-		p2 = f->winding->m_Points[(x + 1) % f->winding->size()].data();
-		pl = &f->edges[x];
-		VectorSubtract(p2, p1, e);
-		CrossProduct(n, e, pl->normal);
+
+	float3_array const & n = f->plane.normal;
+	for (std::size_t x = 0; x < f->winding->size(); ++x) {
+		float3_array const & p1 = f->winding->point(x);
+		float3_array const & p2 = f->winding->point(
+			(x + 1) % f->winding->size()
+		);
+		dplane_t* pl = &f->edges[x];
+		pl->normal = cross_product(n, vector_subtract(p2, p1));
 		if (normalize_vector(pl->normal) == 0.0) {
 			Developer(
 				developer_level::warning,

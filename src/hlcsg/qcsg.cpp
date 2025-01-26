@@ -281,9 +281,9 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 		fprintf(
 			out[hull],
 			"%5.8f %5.8f %5.8f\n",
-			w.m_Points[i][0],
-			w.m_Points[i][1],
-			w.m_Points[i][2]
+			w.point(i)[0],
+			w.point(i)[1],
+			w.point(i)[2]
 		);
 	}
 
@@ -304,8 +304,8 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 				center2[2]
 			);
 			for (i = 0; i < w.size(); i++) {
-				double3_array const & p1{ w.m_Points[i] };
-				double3_array const & p2{ w.m_Points[(i + 1) % w.size()] };
+				double3_array const & p1{ w.point(i) };
+				double3_array const & p2{ w.point((i + 1) % w.size()) };
 
 				fprintf(
 					out_view[hull],
@@ -359,9 +359,9 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 			fprintf(
 				out_detailbrush[hull],
 				"%5.8f %5.8f %5.8f\n",
-				w.m_Points[i][0],
-				w.m_Points[i][1],
-				w.m_Points[i][2]
+				w.point(i)[0],
+				w.point(i)[1],
+				w.point(i)[2]
 			);
 		}
 	}
@@ -478,9 +478,9 @@ static void SaveOutside(
 				double val;
 
 				bad = false;
-				for (int i = 0; i < f.w.size(); ++i) {
+				for (double3_array const & point : f.w.points()) {
 					for (int j = 0; j < 2; ++j) {
-						val = DotProduct(f.w.m_Points[i], tex->vecs[j])
+						val = DotProduct(point, tex->vecs[j])
 							+ tex->vecs[j][3];
 						if (val < -99999 || val > 999'999) {
 							bad = true;
@@ -508,12 +508,7 @@ static void SaveOutside(
 			f.texinfo = backnull ? -1 : texinfo;
 
 			// swap point orders
-			for (std::size_t i = 0; i < f.w.size() / 2;
-				 ++i) // Add points backwards
-			{
-				using std::swap;
-				swap(f.w.m_Points[i], f.w.m_Points[f.w.size() - 1 - i]);
-			}
+			f.w.reverse_points();
 			WriteFace(
 				hull, &f, (hull ? b.clipnodedetaillevel : b.detaillevel)
 			);
@@ -721,10 +716,8 @@ static void CSGBrush(int brushnum) {
 						}
 						int valid = 0;
 						for (int x = 0; x < w.size(); x++) {
-							double dist = DotProduct(
-											  w.m_Points[x],
-											  f2.plane->normal
-										  )
+							double const dist
+								= dot_product(w.point(x), f2.plane->normal)
 								- f2.plane->dist;
 							if (dist >= -ON_EPSILON * 4) // only estimate
 							{

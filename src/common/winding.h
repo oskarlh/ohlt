@@ -145,11 +145,16 @@ class winding_base {
 		return m_Points[index];
 	}
 
-	// Unused??
 	inline vec3&
 	replace_point(std::size_t index, vec3 const & newPoint) noexcept {
 		m_Points[index] = newPoint;
 		return m_Points[index];
+	}
+
+	inline void add_offset_to_points(vec3 const & offset) noexcept {
+		for (vec3& p : m_Points) {
+			p = vector_add(p, offset);
+		}
 	}
 
 	inline vec3& push_point(vec3 const & newPoint) noexcept {

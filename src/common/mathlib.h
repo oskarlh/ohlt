@@ -173,10 +173,9 @@ constexpr auto vector_fma(
 	);
 }
 
-template <any_vec_element Multiplier>
 constexpr auto vector_fma(
 	any_vec3 auto const & multiplicand,
-	Multiplier multiplier,
+	any_vec_element auto multiplier,
 	any_vec3 auto const & toAdd
 ) noexcept {
 	return vector_fma(
