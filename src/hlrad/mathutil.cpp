@@ -50,21 +50,19 @@ bool point_in_winding_noedge(
 ) {
 	int numpoints;
 	int x;
-	float3_array normal;
-	float dist;
 
 	numpoints = w.size();
 
 	for (x = 0; x < numpoints; x++) {
 		float3_array const delta = vector_subtract(
-			w.m_Points[(x + 1) % numpoints], w.m_Points[x]
+			w.point_after(x, 1), w.point(x)
 		);
-		CrossProduct(delta, plane.normal, normal);
-		dist = DotProduct(point, normal)
-			- DotProduct(w.m_Points[x], normal);
+		float3_array const normal = cross_product(delta, plane.normal);
+		float const dist = dot_product(point, normal)
+			- dot_product(w.point(x), normal);
 
 		if (dist < 0.0
-			|| dist * dist <= width * width * DotProduct(normal, normal)) {
+			|| dist * dist <= width * width * dot_product(normal, normal)) {
 			return false;
 		}
 	}
@@ -127,12 +125,12 @@ void snap_to_winding(
 		dot = DotProduct(delta, delta);
 
 		if (x == 0 || dot < bestdist) {
-			VectorAdd(point, delta, bestpoint);
+			bestpoint = vector_add(point, delta);
 			bestdist = dot;
 		}
 	}
 	if (numpoints > 0) {
-		VectorCopy(bestpoint, point);
+		point = bestpoint;
 	}
 	return;
 }
@@ -159,7 +157,6 @@ float snap_to_winding_noedge(
 	int numplanes;
 	dplane_t* planes;
 	int x;
-	float3_array v;
 	float newwidth;
 	float bestwidth;
 	float3_array bestpoint;
@@ -170,19 +167,21 @@ float snap_to_winding_noedge(
 	hlassume(planes != nullptr, assume_NoMemory);
 	numplanes = 0;
 	for (x = 0; x < w.size(); x++) {
-		VectorSubtract(w.m_Points[(x + 1) % w.size()], w.m_Points[x], v);
-		CrossProduct(v, plane.normal, planes[numplanes].normal);
+		float3_array const v = vector_subtract(
+			w.point_after(x, 1), w.point(x)
+		);
+		planes[numplanes].normal = cross_product(v, plane.normal);
 		if (!normalize_vector(planes[numplanes].normal)) {
 			continue;
 		}
 		planes[numplanes].dist = DotProduct(
-			w.m_Points[x], planes[numplanes].normal
+			w.point(x), planes[numplanes].normal
 		);
 		numplanes++;
 	}
 
 	bestwidth = 0;
-	VectorCopy(point, bestpoint);
+	bestpoint = point;
 	newwidth = width;
 
 	for (pass = 0; pass < 5;
@@ -209,8 +208,8 @@ float snap_to_winding_noedge(
 			newpoint = point;
 			snap_to_winding(*newwinding, plane, newpoint);
 
-			VectorSubtract(newpoint, point, v);
-			if (vector_length(v) <= maxmove + ON_EPSILON) {
+			if (distance_between_points(newpoint, point)
+				<= maxmove + ON_EPSILON) {
 				failed = false;
 			}
 		}
@@ -219,7 +218,7 @@ float snap_to_winding_noedge(
 
 		if (!failed) {
 			bestwidth = newwidth;
-			VectorCopy(newpoint, bestpoint);
+			bestpoint = newpoint;
 			if (pass == 0) {
 				break;
 			}
@@ -231,7 +230,7 @@ float snap_to_winding_noedge(
 
 	free(planes);
 
-	VectorCopy(bestpoint, point);
+	point = bestpoint;
 	return bestwidth;
 }
 
@@ -387,25 +386,24 @@ float CalcSightArea(
 	// least this way is not bad.
 	float area = 0.0;
 
-	int numedges = emitter_winding->size();
+	std::size_t numedges = emitter_winding->size();
 	float3_array* edges = (float3_array*) malloc(
 		numedges * sizeof(float3_array)
 	);
 	hlassume(edges != nullptr, assume_NoMemory);
 	bool error = false;
-	for (int x = 0; x < numedges; x++) {
-		float3_array v1, v2, normal;
-		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
-		VectorSubtract(
-			emitter_winding->m_Points[(x + 1) % numedges],
-			receiver_origin,
-			v2
+	for (std::size_t x = 0; x < numedges; x++) {
+		float3_array const v1 = vector_subtract(
+			emitter_winding->point(x), receiver_origin
 		);
-		CrossProduct(v1, v2, normal); // pointing inward
+		float3_array const v2 = vector_subtract(
+			emitter_winding->point_after(x, 1), receiver_origin
+		);
+		float3_array normal = cross_product(v1, v2); // pointing inward
 		if (!normalize_vector(normal)) {
 			error = true;
 		}
-		VectorCopy(normal, edges[x]);
+		edges[x] = normal;
 	}
 	if (!error) {
 		int i, j;
@@ -469,18 +467,17 @@ float CalcSightArea_SpotLight(
 	hlassume(edges != nullptr, assume_NoMemory);
 	bool error = false;
 	for (int x = 0; x < numedges; x++) {
-		float3_array v1, v2, normal;
-		VectorSubtract(emitter_winding->m_Points[x], receiver_origin, v1);
-		VectorSubtract(
-			emitter_winding->m_Points[(x + 1) % numedges],
-			receiver_origin,
-			v2
+		float3_array const v1 = vector_subtract(
+			emitter_winding->point(x), receiver_origin
 		);
-		CrossProduct(v1, v2, normal); // pointing inward
+		float3_array const v2 = vector_subtract(
+			emitter_winding->point_after(x, 1), receiver_origin
+		);
+		float3_array normal = cross_product(v1, v2); // Pointing inward
 		if (!normalize_vector(normal)) {
 			error = true;
 		}
-		VectorCopy(normal, edges[x]);
+		edges[x] = normal;
 	}
 	if (!error) {
 		int i, j;
@@ -536,13 +533,12 @@ void GetAlternateOrigin(
 	float3_array& origin
 ) {
 	dplane_t const * faceplane;
-	float const * facenormal;
 	dplane_t clipplane;
 	fast_winding w;
 
 	faceplane = getPlaneFromFaceNumber(patch->faceNumber);
 	float3_array const & faceplaneoffset = g_face_offset[patch->faceNumber];
-	facenormal = faceplane->normal.data();
+	float3_array const & facenormal = faceplane->normal;
 	clipplane.normal = normal;
 	clipplane.dist = DotProduct(pos, clipplane.normal);
 
@@ -563,7 +559,7 @@ void GetAlternateOrigin(
 			float3_array center = w.getCenter();
 			found = false;
 
-			VectorMA(center, PATCH_HUNT_OFFSET, facenormal, point);
+			point = vector_fma(facenormal, PATCH_HUNT_OFFSET, center);
 			if (HuntForWorld(
 					point,
 					faceplaneoffset,
@@ -581,14 +577,14 @@ void GetAlternateOrigin(
 			}
 			if (!found) {
 				for (int i = 0; i < w.size(); i++) {
-					float const * p1;
-					float const * p2;
-					p1 = w.m_Points[i].data();
-					p2 = w.m_Points[(i + 1) % w.size()].data();
-					VectorAdd(p1, p2, point);
-					VectorAdd(point, center, point);
-					VectorScale(point, 1.0 / 3.0, point);
-					VectorMA(point, PATCH_HUNT_OFFSET, facenormal, point);
+					point = vector_add(
+						vector_add(w.point(i), w.point_after(i, 1)), center
+					);
+
+					point = to_float3(vector_scale(point, 1.0 / 3.0));
+					point = vector_fma(
+						facenormal, PATCH_HUNT_OFFSET, point
+					);
 					if (HuntForWorld(
 							point,
 							faceplaneoffset,

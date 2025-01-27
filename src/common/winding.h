@@ -131,8 +131,11 @@ class winding_base {
 	// Data
 	// using points_vector = usually_inplace_vector<vec3, 20>;
 	using points_vector = std::vector<vec3>;
+
+  private:
 	points_vector m_Points;
 
+  public:
 	inline std::span<vec3 const> points() const noexcept {
 		return { m_Points };
 	}
