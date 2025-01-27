@@ -105,12 +105,12 @@ void snap_to_winding(
 			in = false;
 
 			delta = cross_product(plane.normal, normal);
-			dot = DotProduct(delta, point);
-			dot1 = DotProduct(delta, p1);
-			dot2 = DotProduct(delta, p2);
+			dot = dot_product(delta, point);
+			dot1 = dot_product(delta, p1);
+			dot2 = dot_product(delta, p2);
 			if (dot1 < dot && dot < dot2) {
-				dist = dist / DotProduct(normal, normal);
-				VectorMA(point, -dist, normal, point);
+				dist = dist / dot_product(normal, normal);
+				point = vector_fma(normal, -dist, point);
 				return;
 			}
 		}
@@ -364,16 +364,12 @@ bool TestSegmentAgainstOpaqueList(
 	return false;
 }
 
-// =====================================================================================
-//  SnapToPlane
-// =====================================================================================
-void SnapToPlane(
-	dplane_t const * const plane, float* const point, float offset
-) {
-	float dist;
-	dist = DotProduct(point, plane->normal) - plane->dist;
+float3_array snap_point_to_plane(
+	dplane_t const * const plane, float3_array const & point, float offset
+) noexcept {
+	float dist = DotProduct(point, plane->normal) - plane->dist;
 	dist -= offset;
-	VectorMA(point, -dist, plane->normal, point);
+	return vector_fma(plane->normal, -dist, point);
 }
 
 // =====================================================================================
@@ -547,7 +543,7 @@ void GetAlternateOrigin(
 	faceplane = getPlaneFromFaceNumber(patch->faceNumber);
 	float3_array const & faceplaneoffset = g_face_offset[patch->faceNumber];
 	facenormal = faceplane->normal.data();
-	VectorCopy(normal, clipplane.normal);
+	clipplane.normal = normal;
 	clipplane.dist = DotProduct(pos, clipplane.normal);
 
 	w = *patch->winding;

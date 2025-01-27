@@ -694,8 +694,9 @@ extern float snap_to_winding_noedge(
 	float width,
 	float maxmove
 );
-extern void
-SnapToPlane(dplane_t const * const plane, float* const point, float offset);
+extern float3_array snap_point_to_plane(
+	dplane_t const * const plane, float3_array const & point, float offset
+) noexcept;
 extern float CalcSightArea(
 	float3_array const & receiver_origin,
 	float3_array const & receiver_normal,

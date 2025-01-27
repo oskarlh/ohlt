@@ -181,8 +181,8 @@ dleaf_t* HuntForWorld(
 					current_point[2] = original_point[2]
 						+ (scales[z % 3] * a);
 
-					SnapToPlane(
-						&new_plane, current_point.data(), hunt_offset
+					current_point = snap_point_to_plane(
+						&new_plane, current_point, hunt_offset
 					);
 
 					float3_array const delta = vector_subtract(
