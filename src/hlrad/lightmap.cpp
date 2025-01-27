@@ -1013,12 +1013,12 @@ void ChopFrag(samplefrag_t* frag)
 	fast_winding facewinding{ *f };
 
 	TranslateWorldToTex(frag->facenum, worldtotex);
-	frag->mywinding = new fast_winding(facewinding.size());
-	for (int x = 0; x < facewinding.size(); x++) {
-		frag->mywinding->m_Points[x] = apply_matrix(
-			worldtotex, facewinding.point(x)
-		);
-		frag->mywinding->m_Points[x][2] = 0.0;
+	frag->mywinding = new fast_winding();
+	frag->mywinding->reserve_point_storage(facewinding.size());
+	for (float3_array const & fwp : facewinding.points()) {
+		float3_array point{ apply_matrix(worldtotex, fwp) };
+		point[2] = 0.0;
+		frag->mywinding->push_point(point);
 	}
 	frag->mywinding->RemoveColinearPoints();
 

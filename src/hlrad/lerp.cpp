@@ -92,7 +92,6 @@ static bool CalcAdaptedSpot(
 	float3_array phongnormal;
 	float frac;
 	float3_array middle;
-	float3_array v;
 
 	for (i = 0; i < (int) lt->neighborfaces.size(); i++) {
 		if (lt->neighborfaces[i] == surface) {
@@ -123,8 +122,8 @@ static bool CalcAdaptedSpot(
 	VectorScale(spot, frac, middle);
 
 	dist = vector_length(spot);
-	VectorSubtract(surfacespot, middle, v);
-	dist2 = vector_length(middle) + vector_length(v);
+	dist2 = vector_length(middle)
+		+ distance_between_points(surfacespot, middle);
 
 	if (dist > ON_EPSILON && fabs(dist2 - dist) > ON_EPSILON) {
 		VectorScale(spot, dist2 / dist, spot);
@@ -261,9 +260,9 @@ static bool CalcWeight(
 
 	frac = GetFrac(hp1->spot, hp2->spot, direction, lt->normal);
 
-	len = (1 - frac) * DotProduct(hp1->spot, direction)
-		+ frac * DotProduct(hp2->spot, direction);
-	dist = DotProduct(spot, direction);
+	len = (1 - frac) * dot_product(hp1->spot, direction)
+		+ frac * dot_product(hp2->spot, direction);
+	dist = dot_product(spot, direction);
 	if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON) {
 		istoofar = true;
 		ratio = 1.0;
@@ -545,9 +544,9 @@ static void CalcInterpolation(
 					w->leftspot, wnext->leftspot, direction, lt->normal
 				);
 
-				len = (1 - frac) * DotProduct(w->leftspot, direction)
-					+ frac * DotProduct(wnext->leftspot, direction);
-				dist = DotProduct(spot, direction);
+				len = (1 - frac) * dot_product(w->leftspot, direction)
+					+ frac * dot_product(wnext->leftspot, direction);
+				dist = dot_product(spot, direction);
 				if (len <= ON_EPSILON / 4 || dist > len + 2 * ON_EPSILON) {
 					istoofar = true;
 					ratio = 1.0;
@@ -663,8 +662,8 @@ static void CalcInterpolation(
 				< 0) // the spot is closer to the left edge than the right
 					 // edge
 			{
-				len = DotProduct(w->leftspot, w->leftdirection);
-				dist = DotProduct(spot, w->leftdirection);
+				len = dot_product(w->leftspot, w->leftdirection);
+				dist = dot_product(spot, w->leftdirection);
 				if (g_drawlerp && len <= ON_EPSILON) {
 					Developer(
 						developer_level::spam,
@@ -698,8 +697,8 @@ static void CalcInterpolation(
 			} else // the spot is closer to the right edge than the left
 				   // edge
 			{
-				len = DotProduct(wnext->leftspot, wnext->leftdirection);
-				dist = DotProduct(spot, wnext->leftdirection);
+				len = dot_product(wnext->leftspot, wnext->leftdirection);
+				dist = dot_product(spot, wnext->leftdirection);
 				if (g_drawlerp && len <= ON_EPSILON) {
 					Developer(
 						developer_level::spam,
@@ -773,8 +772,6 @@ void InterpolateSampleLight(
 		float weight;
 		interpolation_t* interp;
 		localtriangulation_t const * best;
-		float3_array v;
-		float dist;
 		float bestdist;
 		float dot;
 
@@ -889,10 +886,9 @@ void InterpolateSampleLight(
 				best = nullptr;
 				for (i = 0; i < (int) ft->localtriangulations.size(); i++) {
 					lt = ft->localtriangulations[i];
-					v = position;
+					float3_array v = position;
 					snap_to_winding(lt->winding, lt->plane, v);
-					VectorSubtract(v, position, v);
-					dist = vector_length(v);
+					float const dist = distance_between_points(v, position);
 					if (best == nullptr || dist < bestdist - ON_EPSILON) {
 						best = lt;
 						bestdist = dist;
@@ -1005,8 +1001,8 @@ static bool TestFarPatch(
 
 	size1 = 0;
 	for (i = 0; i < lt->winding.size(); i++) {
-		float const dist = vector_length(
-			vector_subtract(lt->winding.point(i), lt->center)
+		float const dist = distance_between_points(
+			lt->winding.point(i), lt->center
 		);
 		if (dist > size1) {
 			size1 = dist;
@@ -1015,17 +1011,13 @@ static bool TestFarPatch(
 
 	size2 = 0;
 	for (i = 0; i < p2winding.size(); i++) {
-		float const dist = vector_length(
-			vector_subtract(p2winding.point(i), p2)
-		);
+		float const dist = distance_between_points(p2winding.point(i), p2);
 		if (dist > size2) {
 			size2 = dist;
 		}
 	}
 
-	float3_array v;
-	VectorSubtract(p2, lt->center, v);
-	float const dist = vector_length(v);
+	float const dist = distance_between_points(p2, lt->center);
 
 	return dist > 1.4 * (size1 + size2);
 }

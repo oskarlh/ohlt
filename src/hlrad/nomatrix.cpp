@@ -46,10 +46,9 @@ static bool CheckVisBitNoVismatrix(
 			//  if v2 is not behind light plane
 			//  && v2 is visible from v1
 			float3_array origin1, origin2;
-			float3_array delta;
-			float dist;
-			VectorSubtract(patch->origin, patch2->origin, delta);
-			dist = vector_length(delta);
+			float const dist = distance_between_points(
+				patch->origin, patch2->origin
+			);
 			if (dist < patch2->emitter_range - ON_EPSILON) {
 				GetAlternateOrigin(
 					patch->origin, plane->normal, patch2, origin2
@@ -119,10 +118,10 @@ bool CheckVisBitBackwards(
 			int opaquestyle = -1;
 
 			float3_array emitorigin;
-			float3_array delta;
-			float dist;
-			VectorSubtract(backorigin, emitpatch->origin, delta);
-			dist = vector_length(delta);
+
+			float const dist = distance_between_points(
+				backorigin, emitpatch->origin
+			);
 			if (dist < emitpatch->emitter_range - ON_EPSILON) {
 				GetAlternateOrigin(
 					backorigin, backnormal, emitpatch, emitorigin

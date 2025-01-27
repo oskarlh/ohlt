@@ -559,8 +559,6 @@ void GetAlternateOrigin(
 			float3_array bestpoint;
 			float bestdist = -1.0;
 			float3_array point;
-			float dist;
-			float3_array v;
 
 			float3_array center = w.getCenter();
 			found = false;
@@ -574,8 +572,7 @@ void GetAlternateOrigin(
 					1.0,
 					PATCH_HUNT_OFFSET
 				)) {
-				VectorSubtract(point, center, v);
-				dist = vector_length(v);
+				float const dist = distance_between_points(point, center);
 				if (!found || dist < bestdist) {
 					found = true;
 					VectorCopy(point, bestpoint);
@@ -600,8 +597,9 @@ void GetAlternateOrigin(
 							0.0,
 							PATCH_HUNT_OFFSET
 						)) {
-						VectorSubtract(point, center, v);
-						dist = vector_length(v);
+						float const dist = distance_between_points(
+							point, center
+						);
 						if (!found || dist < bestdist) {
 							found = true;
 							VectorCopy(point, bestpoint);

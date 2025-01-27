@@ -184,10 +184,9 @@ static void TestPatchToFace(
 						continue;
 					}
 					float3_array origin1, origin2;
-					float3_array delta;
-					float dist;
-					VectorSubtract(patch->origin, patch2->origin, delta);
-					dist = vector_length(delta);
+					float const dist = distance_between_points(
+						patch->origin, patch2->origin
+					);
 					if (dist < patch2->emitter_range - ON_EPSILON) {
 						GetAlternateOrigin(
 							patch->origin, plane->normal, patch2, origin2

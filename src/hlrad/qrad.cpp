@@ -619,7 +619,6 @@ static bool PlacePatchInside(patch_t* patch) {
 	float3_array bestpoint{};
 	float bestdist = -1.0;
 	float3_array point;
-	float dist;
 
 	float3_array center = patch->winding->getCenter();
 	found = false;
@@ -631,9 +630,8 @@ static bool PlacePatchInside(patch_t* patch) {
 			point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET
 		)) {
 		pointsfound++;
-		float3_array v;
-		VectorSubtract(point, center, v);
-		dist = vector_length(v);
+
+		float const dist = distance_between_points(point, center);
 		if (!found || dist < bestdist) {
 			found = true;
 			bestpoint = point;
@@ -642,10 +640,10 @@ static bool PlacePatchInside(patch_t* patch) {
 	}
 	{
 		for (int i = 0; i < patch->winding->size(); i++) {
-			float3_array const & p1 = patch->winding->m_Points[i];
-			float3_array const & p2
-				= patch->winding
-					  ->m_Points[(i + 1) % patch->winding->size()];
+			float3_array const & p1 = patch->winding->point(i);
+			float3_array const & p2 = patch->winding->point(
+				(i + 1) % patch->winding->size()
+			);
 			point = vector_add(vector_add(p1, p2), center);
 			point = vector_scale(point, 1.0f / 3.0f);
 			point = vector_fma(plane->normal, PATCH_HUNT_OFFSET, point);
@@ -657,7 +655,7 @@ static bool PlacePatchInside(patch_t* patch) {
 					point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET
 				)) {
 				pointsfound++;
-				dist = vector_length(vector_subtract(point, center));
+				float const dist = distance_between_points(point, center);
 				if (!found || dist < bestdist) {
 					found = true;
 					bestpoint = point;
@@ -694,22 +692,23 @@ static void UpdateEmitterInfo(patch_t* patch) {
 		"Please raise SKYLEVELMAX"
 	);
 
-	float const * origin = patch->origin.data();
 	fast_winding const * winding = patch->winding;
-	float radius = ON_EPSILON;
-	for (int x = 0; x < winding->size(); x++) {
-		float3_array delta;
-		float dist;
-		VectorSubtract(winding->m_Points[x], origin, delta);
-		dist = vector_length(delta);
-		if (dist > radius) {
-			radius = dist;
-		}
-	}
+	float3_array const & origin{ patch->origin };
+	float radius = std::max(
+		ON_EPSILON,
+		std::ranges::max(
+			winding->points()
+			| std::views::transform([&origin](float3_array const & point) {
+				  return distance_between_points(point, origin);
+			  }
+
+			)
+		)
+	);
 	int skylevel = ACCURATEBOUNCE_DEFAULT_SKYLEVEL;
 	float area = winding->getArea();
 	float size = 0.8f;
-	if (area < size * radius * radius) // the shape is too thin
+	if (area < size * radius * radius) // The shape is too thin
 	{
 		skylevel++;
 		size *= 0.25f;
@@ -1788,6 +1787,7 @@ static entity_t* FindTexlightEntity(int facenum) {
 		float3_array delta{ get_float3_for_key(ent, u8"origin") };
 		VectorSubtract(delta, centroid, delta);
 		float dist = vector_length(delta);
+
 		if (has_key_value(&ent, u8"_frange")) {
 			if (dist > float_for_key(ent, u8"_frange")) {
 				continue;

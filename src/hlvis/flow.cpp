@@ -906,8 +906,6 @@ void MaxDistVis(int unused) {
 
 			// rough check
 			{
-				float3_array v;
-				float dist;
 				winding_t const * w;
 				leaf_t const * leaf[2] = { l, tl };
 				float3_array center[2];
@@ -930,24 +928,26 @@ void MaxDistVis(int unused) {
 					goto Work;
 				}
 				for (int side = 0; side < 2; side++) {
-					VectorScale(
-						center[side],
-						1.0 / (float) count[side],
-						center[side]
+					center[side] = vector_scale(
+						center[side], 1.0f / float(count[side])
 					);
 					radius[side] = 0;
 					for (a = 0; a < leaf[side]->numportals; a++) {
 						w = leaf[side]->portals[a]->winding;
 						for (b = 0; b < w->numpoints; b++) {
-							VectorSubtract(w->points[b], center[side], v);
-							dist = DotProduct(v, v);
+							float3_array const v = vector_subtract(
+								w->points[b], center[side]
+							);
+							float const dist = dot_product(v, v);
 							radius[side] = std::max(radius[side], dist);
 						}
 					}
 					radius[side] = sqrt(radius[side]);
 				}
-				VectorSubtract(center[0], center[1], v);
-				dist = vector_length(v);
+
+				float const dist = distance_between_points(
+					center[0], center[1]
+				);
 				if (std::max(dist - radius[0] - radius[1], (float) 0)
 					>= g_maxdistance - ON_EPSILON) {
 					goto Work;

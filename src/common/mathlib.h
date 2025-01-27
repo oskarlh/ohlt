@@ -188,6 +188,12 @@ constexpr T::value_type vector_length(T const & v) noexcept {
 	return std::hypot(v[0], v[1], v[2]);
 }
 
+template <any_vec3 T>
+constexpr T::value_type
+distance_between_points(T const & pointA, T const & pointB) noexcept {
+	return vector_length(vector_subtract(pointA, pointB));
+}
+
 template <any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB>
 vector_minimums(VecA const & a, VecB const & b) noexcept {
