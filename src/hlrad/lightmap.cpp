@@ -238,11 +238,11 @@ static bool TranslateTexToTex(
 	e = &g_dedges[edgenum];
 	for (i = 0; i < 2; i++) {
 		vert[i] = &g_dvertexes[e->v[i]];
-		ApplyMatrix(worldtotex, vert[i]->point, face_vert[i]);
+		face_vert[i] = apply_matrix(worldtotex, vert[i]->point);
 		face_vert[i][2] = 0; // this value is naturally close to 0 assuming
 							 // that the edge is on the face plane, but
 							 // let's make this more explicit.
-		ApplyMatrix(worldtotex2, vert[i]->point, face2_vert[i]);
+		face2_vert[i] = apply_matrix(worldtotex2, vert[i]->point);
 		face2_vert[i][2] = 0;
 	}
 
@@ -1015,8 +1015,8 @@ void ChopFrag(samplefrag_t* frag)
 	TranslateWorldToTex(frag->facenum, worldtotex);
 	frag->mywinding = new fast_winding(facewinding.size());
 	for (int x = 0; x < facewinding.size(); x++) {
-		ApplyMatrix(
-			worldtotex, facewinding.point(x), frag->mywinding->m_Points[x]
+		frag->mywinding->m_Points[x] = apply_matrix(
+			worldtotex, facewinding.point(x)
 		);
 		frag->mywinding->m_Points[x][2] = 0.0;
 	}
@@ -1038,13 +1038,10 @@ void ChopFrag(samplefrag_t* frag)
 		);
 	}
 
-	frag->winding = new fast_winding(frag->mywinding->size());
-	for (int x = 0; x < frag->mywinding->size(); x++) {
-		ApplyMatrix(
-			frag->mycoordtocoord,
-			frag->mywinding->point(x),
-			frag->winding->m_Points[x]
-		);
+	frag->winding = new fast_winding();
+	frag->winding->reserve_point_storage(frag->mywinding->size());
+	for (float3_array const & mwp : frag->mywinding->points()) {
+		frag->winding->push_point(apply_matrix(frag->mycoordtocoord, mwp));
 	}
 	frag->winding->RemoveColinearPoints();
 	frag->windingplane.normal = frag->mywindingplane.normal;
@@ -1068,7 +1065,7 @@ void ChopFrag(samplefrag_t* frag)
 		float frac1, frac2;
 		float edgelen;
 		float dot, dot1, dot2;
-		float3_array tmp, v, normal;
+		float3_array v, normal;
 		matrix_t const * m;
 		matrix_t const * m_inverse;
 
@@ -1100,13 +1097,16 @@ void ChopFrag(samplefrag_t* frag)
 		de = &g_dedges[e->edgenum];
 		dv1 = &g_dvertexes[de->v[e->edgeside]];
 		dv2 = &g_dvertexes[de->v[1 - e->edgeside]];
-		ApplyMatrix(worldtotex, dv1->point, tmp);
-		ApplyMatrix(frag->mycoordtocoord, tmp, e->point1);
+
+		e->point1 = apply_matrix(
+			frag->mycoordtocoord, apply_matrix(worldtotex, dv1->point)
+		);
 		e->point1[2] = 0.0;
-		ApplyMatrix(worldtotex, dv2->point, tmp);
-		ApplyMatrix(frag->mycoordtocoord, tmp, e->point2);
+		e->point2 = apply_matrix(
+			frag->mycoordtocoord, apply_matrix(worldtotex, dv2->point)
+		);
 		e->point2[2] = 0.0;
-		VectorSubtract(e->point2, e->point1, e->direction);
+		e->direction = vector_subtract(e->point2, e->point1);
 		edgelen = normalize_vector(e->direction);
 		if (edgelen <= ON_EPSILON) {
 			continue;
@@ -1213,9 +1213,9 @@ static samplefrag_t* GrowSingleFrag(
 		parent->mycoordtocoord, edge->nexttoprev
 	);
 
-	// fill in origin
-	VectorCopy(parent->origin, frag->origin);
-	ApplyMatrix(frag->coordtomycoord, frag->origin, frag->myorigin);
+	// Fill in origin
+	frag->origin = parent->origin;
+	frag->myorigin = apply_matrix(frag->coordtomycoord, frag->origin);
 
 	// fill in boundaries
 	frag->rect = parent->rect;
@@ -1589,14 +1589,11 @@ static light_flag_t SetSampleFromST(
 		tex[0] = bests;
 		tex[1] = bestt;
 		tex[2] = 0.0;
-		{
-			float3_array v;
-			ApplyMatrix(textoworld, tex, v);
-			VectorCopy(v, point);
-		}
-		VectorAdd(point, g_face_offset[bestfrag->facenum], point);
+		point = vector_add(
+			apply_matrix(textoworld, tex), g_face_offset[bestfrag->facenum]
+		);
 		// position
-		VectorCopy(bestpos, position);
+		position = bestpos;
 		// surface
 		*surface = bestfrag->facenum;
 		// whether nudged to fit

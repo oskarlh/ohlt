@@ -152,8 +152,6 @@ dleaf_t* HuntForWorld(
 	float hunt_offset
 ) {
 	dleaf_t* leaf;
-	int x, y, z;
-	int a;
 
 	float3_array current_point;
 	float3_array original_point{ point };
@@ -168,19 +166,17 @@ dleaf_t* HuntForWorld(
 
 	TranslatePlane(&new_plane, plane_offset.data());
 
-	for (a = 0; a < hunt_size; a++) {
-		for (x = 0; x < 3; x++) {
+	for (int a = 0; a < hunt_size; ++a) {
+		for (int x = 0; x < 3; ++x) {
 			current_point[0] = original_point[0] + (scales[x % 3] * a);
-			for (y = 0; y < 3; y++) {
+			for (int y = 0; y < 3; ++y) {
 				current_point[1] = original_point[1] + (scales[y % 3] * a);
-				for (z = 0; z < 3; z++) {
+				for (int z = 0; z < 3; ++z) {
 					if (a == 0) {
 						if (x || y || z) {
 							continue;
 						}
 					}
-					float3_array delta;
-					float dist;
 
 					current_point[2] = original_point[2]
 						+ (scales[z % 3] * a);
@@ -188,8 +184,11 @@ dleaf_t* HuntForWorld(
 					SnapToPlane(
 						&new_plane, current_point.data(), hunt_offset
 					);
-					VectorSubtract(current_point, original_point, delta);
-					dist = DotProduct(delta, delta);
+
+					float3_array const delta = vector_subtract(
+						current_point, original_point
+					);
+					float const dist = DotProduct(delta, delta);
 
 					if (std::ranges::any_of(
 							g_opaque_face_list,
@@ -213,12 +212,11 @@ dleaf_t* HuntForWorld(
 									// dist = best_dist;
 									best_dist = dist;
 									best_leaf = leaf;
-									VectorCopy(current_point, best_point);
+									best_point = current_point;
 									continue;
-								} else {
-									VectorCopy(current_point, point);
-									return leaf;
 								}
+								point = current_point;
+								return leaf;
 							}
 						}
 					}
@@ -234,17 +232,6 @@ dleaf_t* HuntForWorld(
 	return best_leaf;
 }
 
-// ApplyMatrix: (x y z 1)T -> matrix * (x y z 1)T
-void ApplyMatrix(
-	matrix_t const & m, float3_array const & in, float3_array& out
-) {
-	hlassume(&in[0] != &out[0], assume_first);
-	VectorCopy(m.v[3], out);
-	for (std::size_t i = 0; i < 3; ++i) {
-		VectorMA(out, in[i], m.v[i], out);
-	}
-}
-
 // ApplyMatrixOnPlane: (x y z -dist) -> (x y z -dist) * matrix
 void ApplyMatrixOnPlane(
 	matrix_t const & m_inverse,
@@ -255,21 +242,19 @@ void ApplyMatrixOnPlane(
 )
 // out_normal is not normalized
 {
-	int i;
-
 	hlassume(&in_normal[0] != &out_normal[0], assume_first);
-	for (i = 0; i < 3; i++) {
-		out_normal[i] = DotProduct(in_normal, m_inverse.v[i]);
+	for (std::size_t i = 0; i < 3; ++i) {
+		out_normal[i] = dot_product(in_normal, m_inverse.v[i]);
 	}
-	out_dist = -(DotProduct(in_normal, m_inverse.v[3]) - in_dist);
+	out_dist = -(dot_product(in_normal, m_inverse.v[3]) - in_dist);
 }
 
 matrix_t
 MultiplyMatrix(matrix_t const & m_left, matrix_t const & m_right) noexcept {
 	// The following two processes are equivalent:
-	//  A) v_temp = ApplyMatrix(m1, v_in); v_out = ApplyMatrix(m2, v_temp,
-	//  v_temp); B) v_temp = MultiplyMatrix(m2, m1); v_out =
-	//  ApplyMatrix(v_temp, v_in);
+	// A) v_temp = apply_matrix(m1, v_in); v_out = apply_matrix(m2, v_temp);
+	// B) v_temp = MultiplyMatrix(m2, m1); v_out = apply_matrix(v_temp,
+	// v_in);
 
 	matrix_t m;
 	std::array<float, 4> const lastrow = { 0, 0, 0, 1 };
@@ -387,22 +372,22 @@ struct position_t {
 struct positionmap_t {
 	bool valid;
 	int facenum;
-	float3_array face_offset;
-	float3_array face_centroid;
+	int w; // Number of s
+	int h; // Number of t
+	fast_winding* facewinding;
+	fast_winding* facewindingwithoffset;
+	fast_winding* texwinding;
+	position_t* grid; // [h][w]
+	dplane_t faceplane;
+	dplane_t faceplanewithoffset;
+	dplane_t texplane; // (0, 0, 1, 0) or (0, 0, -1, 0)
 	matrix_t worldtotex;
 	matrix_t textoworld;
-	fast_winding* facewinding;
-	dplane_t faceplane;
-	fast_winding* facewindingwithoffset;
-	dplane_t faceplanewithoffset;
-	fast_winding* texwinding;
-	dplane_t texplane; // (0, 0, 1, 0) or (0, 0, -1, 0)
+	float3_array face_offset;
+	float3_array face_centroid;
 	float3_array texcentroid;
 	float3_array start; // s_start, t_start, 0
 	float3_array step;	// s_step, t_step, 0
-	int w;				// number of s
-	int h;				// number of t
-	position_t* grid;	// [h][w]
 };
 
 static positionmap_t g_face_positions[MAX_MAP_FACES];
@@ -420,7 +405,7 @@ static bool IsPositionValid(
 	float3_array pos_normal;
 	float hunt_offset;
 
-	ApplyMatrix(map->textoworld, pos_st, pos);
+	pos = apply_matrix(map->textoworld, pos_st);
 	VectorAdd(pos, map->face_offset, pos);
 	if (usephongnormal) {
 		GetPhongNormal(map->facenum, pos, pos_normal);
@@ -502,15 +487,15 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 	float const tmax = map->start[1] + (it + 1) * map->step[1];
 
 	std::array<dplane_t, 4> clipplanes{};
-	float3_array const v_s = { 1, 0, 0 };
-	float3_array const v_t = { 0, 1, 0 };
-	VectorScale(v_s, 1, clipplanes[0].normal);
+	constexpr float3_array v_s = { 1, 0, 0 };
+	constexpr float3_array v_t = { 0, 1, 0 };
+	clipplanes[0].normal = v_s;
 	clipplanes[0].dist = smin;
-	VectorScale(v_s, -1, clipplanes[1].normal);
+	clipplanes[1].normal = negate_vector(v_s);
 	clipplanes[1].dist = -smax;
-	VectorScale(v_t, 1, clipplanes[2].normal);
+	clipplanes[2].normal = v_t;
 	clipplanes[2].dist = tmin;
-	VectorScale(v_t, -1, clipplanes[3].normal);
+	clipplanes[3].normal = negate_vector(v_t);
 	clipplanes[3].dist = -tmax;
 
 	p.nudged = true; // it's nudged unless it can get its position directly
@@ -589,11 +574,9 @@ void FindFacePositions(int facenum)
 	texinfo_t* ti;
 	float3_array const v_up{ 0, 0, 1 };
 	float density;
-	float texmins[2], texmaxs[2];
 	int imins[2], imaxs[2];
 	int is, it;
 	int x;
-	int k;
 
 	f = &g_dfaces[facenum];
 	map = &g_face_positions[facenum];
@@ -626,14 +609,12 @@ void FindFacePositions(int facenum)
 	map->faceplanewithoffset.dist = map->faceplane.dist
 		+ dot_product(map->face_offset, map->faceplane.normal);
 
-	map->texwinding = new fast_winding(map->facewinding->size());
-	for (x = 0; x < map->facewinding->size(); x++) {
-		ApplyMatrix(
-			map->worldtotex,
-			map->facewinding->m_Points[x],
-			map->texwinding->m_Points[x]
-		);
-		map->texwinding->m_Points[x][2] = 0.0;
+	map->texwinding = new fast_winding();
+	map->texwinding->reserve_point_storage(map->facewinding->size());
+	for (float3_array const & fwp : map->facewinding->points()) {
+		float3_array point{ apply_matrix(map->worldtotex, fwp) };
+		point[2] = 0;
+		map->texwinding->push_point(point);
 	}
 	map->texwinding->RemoveColinearPoints();
 	map->texplane.normal = v_up;
@@ -651,18 +632,25 @@ void FindFacePositions(int facenum)
 		map->valid = false;
 		return;
 	}
-	float3_array v;
-	VectorSubtract(map->face_centroid, map->face_offset, v);
-	ApplyMatrix(map->worldtotex, v, map->texcentroid);
+	map->texcentroid = apply_matrix(
+		map->worldtotex,
+		vector_subtract(map->face_centroid, map->face_offset)
+	);
 	map->texcentroid[2] = 0.0;
 
-	for (x = 0; x < map->texwinding->size(); x++) {
-		for (k = 0; k < 2; k++) {
-			if (x == 0 || map->texwinding->m_Points[x][k] < texmins[k]) {
-				texmins[k] = map->texwinding->m_Points[x][k];
+	std::array<float, 2> texmins;
+	std::array<float, 2> texmaxs;
+
+	texmins[0] = texmaxs[0] = map->texwinding->point(0)[0];
+	texmins[1] = texmaxs[1] = map->texwinding->point(0)[1];
+
+	for (float3_array const & twp : map->texwinding->points()) {
+		for (std::size_t k = 0; k < 2; ++k) {
+			if (twp[k] < texmins[k]) {
+				texmins[k] = twp[k];
 			}
-			if (x == 0 || map->texwinding->m_Points[x][k] > texmaxs[k]) {
-				texmaxs[k] = map->texwinding->m_Points[x][k];
+			if (twp[k] > texmaxs[k]) {
+				texmaxs[k] = twp[k];
 			}
 		}
 	}
@@ -673,6 +661,7 @@ void FindFacePositions(int facenum)
 	map->step[0] = (float) TEXTURE_STEP / density;
 	map->step[1] = (float) TEXTURE_STEP / density;
 	map->step[2] = 1.0;
+	int k;
 	for (k = 0; k < 2; k++) {
 		imins[k] = (int
 		) floor(texmins[k] / map->step[k] + 0.5 - ON_EPSILON);
@@ -775,7 +764,6 @@ bool FindNearestPosition(
 	float* dist,
 	bool* nudged
 ) {
-	int x;
 	int itmin, itmax, ismin, ismax;
 	int is;
 	int it;
@@ -859,27 +847,23 @@ bool FindNearestPosition(
 	itmax = -1;
 	ismin = map->w;
 	ismax = -1;
-	for (x = 0; x < texwinding->size(); x++) {
+	for (float3_array const & twPoint : texwinding->points()) {
 		it = (int) floor(
-			(texwinding->m_Points[x][1] - map->start[1] + 0.5 * ON_EPSILON)
-			/ map->step[1]
+			(twPoint[1] - map->start[1] + 0.5 * ON_EPSILON) / map->step[1]
 		);
 		itmin = std::min(itmin, it);
 		it = (int) ceil(
-				 (texwinding->m_Points[x][1] - map->start[1]
-				  - 0.5 * ON_EPSILON)
+				 (twPoint[1] - map->start[1] - 0.5 * ON_EPSILON)
 				 / map->step[1]
 			 )
 			- 1;
 		itmax = std::max(it, itmax);
 		is = (int) floor(
-			(texwinding->m_Points[x][0] - map->start[0] + 0.5 * ON_EPSILON)
-			/ map->step[0]
+			(twPoint[0] - map->start[0] + 0.5 * ON_EPSILON) / map->step[0]
 		);
 		ismin = std::min(ismin, is);
 		is = (int) ceil(
-				 (texwinding->m_Points[x][0] - map->start[0]
-				  - 0.5 * ON_EPSILON)
+				 (twPoint[0] - map->start[0] - 0.5 * ON_EPSILON)
 				 / map->step[0]
 			 )
 			- 1;

@@ -502,7 +502,6 @@ struct opaquemodel_t {
 	int headnode;
 };
 
-extern opaquemodel_t* opaquemodels;
 extern void CreateOpaqueNodes();
 extern int TestLineOpaque(
 	int modelnum,
@@ -512,7 +511,7 @@ extern int TestLineOpaque(
 );
 extern int CountOpaqueFaces(int modelnum);
 extern void DeleteOpaqueNodes();
-extern int TestPointOpaque(
+extern bool TestPointOpaque(
 	int modelnum,
 	float3_array const & modelorigin,
 	bool solid,
@@ -559,8 +558,17 @@ extern dleaf_t* HuntForWorld(
 	float hunt_scale,
 	float hunt_offset
 );
-extern void
-ApplyMatrix(matrix_t const & m, float3_array const & in, float3_array& out);
+
+// apply_matrix: (x y z 1)T -> matrix * (x y z 1)T
+constexpr float3_array
+apply_matrix(matrix_t const & m, float3_array const & in) noexcept {
+	float3_array out{ m.v[3] };
+	for (std::size_t i = 0; i < 3; ++i) {
+		out = vector_fma(m.v[i], in[i], out);
+	}
+	return out;
+}
+
 extern void ApplyMatrixOnPlane(
 	matrix_t const & m_inverse,
 	float3_array const & in_normal,

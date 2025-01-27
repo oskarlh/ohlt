@@ -207,8 +207,6 @@ struct opaqueface_t {
 	bool tex_alphatest;
 };
 
-opaqueface_t* opaquefaces;
-
 typedef struct opaquenode_s {
 	planetype type;
 	float3_array normal;
@@ -218,9 +216,52 @@ typedef struct opaquenode_s {
 	int numfaces;
 } opaquenode_t;
 
-opaquenode_t* opaquenodes;
+static std::unique_ptr<opaquemodel_t[]> opaquemodels;
+static std::unique_ptr<opaquenode_t[]> opaquenodes;
+static std::unique_ptr<opaqueface_t[]> opaquefaces;
 
-opaquemodel_t* opaquemodels;
+struct try_merge_points {
+	float3_array const & pA;
+	float3_array const & pB;
+	float3_array const & pD;
+	float3_array const & p2A;
+	float3_array const & p2B;
+	float3_array const & p2D;
+
+	int i;
+	int i2;
+};
+
+std::optional<try_merge_points> find_points_for_try_merge(
+	opaqueface_t const & f, opaqueface_t const & f2
+) noexcept {
+	fast_winding const & w = *f.winding;
+	fast_winding const & w2 = *f2.winding;
+	for (int i = 0; i < w.size(); i++) {
+		float3_array const & pA = w.point_before(i, 1);
+		float3_array const & pB = w.point(i);
+		float3_array const & pC = w.point_after(i, 1);
+		float3_array const & pD = w.point_after(i, 2);
+		for (int i2 = 0; i2 < w2.size(); i2++) {
+			float3_array const & p2A = w2.point_before(i2, 1);
+			float3_array const & p2B = w2.point(i2);
+			float3_array const & p2C = w2.point_after(i2, 1);
+			float3_array const & p2D = w2.point_after(i2, 2);
+			if (vectors_almost_same(pB, p2C)
+				&& vectors_almost_same(pC, p2B)) {
+				return try_merge_points{ .pA = pA,
+										 .pB = pB,
+										 .pD = pD,
+										 .p2A = p2A,
+										 .p2B = p2B,
+										 .p2D = p2D,
+										 .i = i,
+										 .i2 = i2 };
+			}
+		}
+	}
+	return std::nullopt;
+}
 
 bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 	if (!f->winding || !f2->winding) {
@@ -238,99 +279,76 @@ bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 		return false;
 	}
 
-	fast_winding* w = f->winding;
-	fast_winding const * w2 = f2->winding;
-	float3_array const *pA, *pB, *pC, *pD, *p2A, *p2B, *p2C, *p2D;
-	int i, i2;
+	fast_winding const & w = *f->winding;
+	fast_winding const & w2 = *f2->winding;
 
-	for (i = 0; i < w->size(); i++) {
-		for (i2 = 0; i2 < w2->size(); i2++) {
-			pA = &w->m_Points[(i + w->size() - 1) % w->size()];
-			pB = &w->m_Points[i];
-			pC = &w->m_Points[(i + 1) % w->size()];
-			pD = &w->m_Points[(i + 2) % w->size()];
-			p2A = &w2->m_Points[(i2 + w2->size() - 1) % w2->size()];
-			p2B = &w2->m_Points[i2];
-			p2C = &w2->m_Points[(i2 + 1) % w2->size()];
-			p2D = &w2->m_Points[(i2 + 2) % w2->size()];
-			if (!vectors_almost_same(*pB, *p2C)
-				|| !vectors_almost_same(*pC, *p2B)) {
-				continue;
-			}
-			break;
-		}
-		if (i2 == w2->size()) {
-			continue;
-		}
-		break;
-	}
-	if (i == w->size()) {
+	float3_array const & normal = f->plane.normal;
+	dplane_t pl1, pl2;
+
+	std::optional<try_merge_points> maybePoints = find_points_for_try_merge(
+		*f, *f2
+	);
+	if (!maybePoints) {
 		return false;
 	}
+	try_merge_points const & points = maybePoints.value();
 
-	float const * normal = f->plane.normal.data();
-	float3_array e1, e2;
-	dplane_t pl1, pl2;
-	int side1, side2;
-
-	VectorSubtract(*p2D, *pA, e1);
-	CrossProduct(normal, e1, pl1.normal); // pointing outward
+	float3_array const e1 = vector_subtract(points.p2D, points.pA);
+	pl1.normal = cross_product(normal, e1); // Pointing outward
 	if (normalize_vector(pl1.normal) == 0.0) {
 		Developer(
 			developer_level::warning, "Warning: TryMerge: Empty edge.\n"
 		);
 		return false;
 	}
-	pl1.dist = DotProduct(*pA, pl1.normal);
-	if (DotProduct(*pB, pl1.normal) - pl1.dist < -ON_EPSILON) {
+	pl1.dist = dot_product(points.pA, pl1.normal);
+	if (dot_product(points.pB, pl1.normal) - pl1.dist < -ON_EPSILON) {
 		return false;
 	}
-	side1 = (DotProduct(*pB, pl1.normal) - pl1.dist > ON_EPSILON) ? 1 : 0;
+	bool const side1 = dot_product(points.pB, pl1.normal) - pl1.dist
+		> ON_EPSILON;
 
-	VectorSubtract(*pD, *p2A, e2);
-	CrossProduct(normal, e2, pl2.normal); // pointing outward
+	float3_array const e2 = vector_subtract(points.pD, points.p2A);
+	pl2.normal = cross_product(normal, e2); // Pointing outward
 	if (normalize_vector(pl2.normal) == 0.0) {
 		Developer(
 			developer_level::warning, "Warning: TryMerge: Empty edge.\n"
 		);
 		return false;
 	}
-	pl2.dist = DotProduct(*p2A, pl2.normal);
-	if (DotProduct(*p2B, pl2.normal) - pl2.dist < -ON_EPSILON) {
+	pl2.dist = dot_product(points.p2A, pl2.normal);
+	if (dot_product(points.p2B, pl2.normal) - pl2.dist < -ON_EPSILON) {
 		return false;
 	}
-	side2 = (DotProduct(*p2B, pl2.normal) - pl2.dist > ON_EPSILON) ? 1 : 0;
+	bool const side2 = dot_product(points.p2B, pl2.normal) - pl2.dist
+		> ON_EPSILON;
 
-	fast_winding neww = fast_winding(
-		w->size() + w2->size() - 4 + side1 + side2
-	);
+	fast_winding neww;
+	neww.reserve_point_storage(w.size() + w2.size() - 4 + side1 + side2);
 	int j;
-	int k = 0;
-	for (j = (i + 2) % w->size(); j != i; j = (j + 1) % w->size()) {
-		neww.m_Points[k] = w->m_Points[j];
-		k++;
+	for (j = (points.i + 2) % w.size(); j != points.i;
+		 j = (j + 1) % w.size()) {
+		neww.push_point(w.point(j));
 	}
 	if (side1) {
-		neww.m_Points[k] = w->m_Points[j];
-		k++;
+		neww.push_point(w.point(j));
 	}
-	for (j = (i2 + 2) % w2->size(); j != i2; j = (j + 1) % w2->size()) {
-		neww.m_Points[k] = w2->m_Points[j];
-		k++;
+	for (j = (points.i2 + 2) % w2.size(); j != points.i2;
+		 j = (j + 1) % w2.size()) {
+		neww.push_point(w2.point(j));
 	}
 	if (side2) {
-		neww.m_Points[k] = w2->m_Points[j];
-		k++;
+		neww.push_point(w2.point(j));
 	}
 	neww.RemoveColinearPoints();
-	delete f->winding;
-	f->winding = nullptr;
-	if (neww.size() < 3) {
+	if (neww.size() < 3) { // This should probably be a fatal error
 		Developer(
 			developer_level::warning, "Warning: TryMerge: Empty winding.\n"
 		);
+		delete f->winding;
+		f->winding = nullptr;
 	} else {
-		f->winding = new fast_winding(std::move(neww));
+		*f->winding = std::move(neww);
 	}
 	return true;
 }
@@ -390,11 +408,9 @@ void BuildFaceEdges(opaqueface_t* f) {
 }
 
 void CreateOpaqueNodes() {
-	opaquemodels = (opaquemodel_t*) calloc(
-		g_nummodels, sizeof(opaquemodel_t)
-	);
-	opaquenodes = (opaquenode_t*) calloc(g_numnodes, sizeof(opaquenode_t));
-	opaquefaces = (opaqueface_t*) calloc(g_numfaces, sizeof(opaqueface_t));
+	opaquemodels = std::make_unique<opaquemodel_t[]>(g_nummodels);
+	opaquenodes = std::make_unique<opaquenode_t[]>(g_numnodes);
+	opaquefaces = std::make_unique<opaqueface_t[]>(g_numfaces);
 	for (std::size_t i = 0; i < g_numfaces; ++i) {
 		opaqueface_t* of = &opaquefaces[i];
 		dface_t* df = &g_dfaces[i];
@@ -405,7 +421,7 @@ void CreateOpaqueNodes() {
 		}
 		of->plane = g_dplanes[df->planenum];
 		if (df->side) {
-			VectorInverse(of->plane.normal);
+			of->plane.normal = negate_vector(of->plane.normal);
 			of->plane.dist = -of->plane.dist;
 		}
 		of->texinfo = df->texinfo;
@@ -456,26 +472,25 @@ void DeleteOpaqueNodes() {
 			free(of->edges);
 		}
 	}
-	free(opaquefaces);
-	free(opaquenodes);
-	free(opaquemodels);
+	opaquefaces.reset();
+	opaquenodes.reset();
+	opaquemodels.reset();
 }
 
-static int TestLineOpaque_face(int facenum, float3_array const & hit) {
+static bool TestLineOpaque_face(int facenum, float3_array const & hit) {
 	opaqueface_t* thisface = &opaquefaces[facenum];
-	int x;
 	if (thisface->numedges == 0) {
 		Developer(
 			developer_level::warning,
 			"Warning: TestLineOpaque: Empty face.\n"
 		);
-		return 0;
+		return false;
 	}
-	for (x = 0; x < thisface->numedges; x++) {
+	for (std::size_t x = 0; x < thisface->numedges; ++x) {
 		if (DotProduct(hit, thisface->edges[x].normal)
 				- thisface->edges[x].dist
 			> ON_EPSILON) {
-			return 0;
+			return false;
 		}
 	}
 	if (thisface->tex_alphatest) {
@@ -489,10 +504,10 @@ static int TestLineOpaque_face(int facenum, float3_array const & hit) {
 		x = x > tex.width - 1 ? tex.width - 1 : x < 0 ? 0 : x;
 		y = y > tex.height - 1 ? tex.height - 1 : y < 0 ? 0 : y;
 		if (tex.canvas[(int) y * tex.width + (int) x] == 0xFF) {
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 static int TestLineOpaque_r(
@@ -627,16 +642,17 @@ int CountOpaqueFaces(int modelnum) {
 	);
 }
 
-int TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
+static bool
+TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 	opaquenode_t* thisnode;
 	float dist;
 	while (1) {
 		if (nodenum < 0) {
 			if (solid
 				&& g_dleafs[-nodenum - 1].contents == CONTENTS_SOLID) {
-				return 1;
+				return true;
 			} else {
-				return 0;
+				return false;
 			}
 		}
 		thisnode = &opaquenodes[nodenum];
@@ -667,7 +683,7 @@ int TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 			 facenum < thisnode->firstface + thisnode->numfaces;
 			 facenum++) {
 			if (TestLineOpaque_face(facenum, point)) {
-				return 1;
+				return true;
 			}
 		}
 	}
@@ -675,7 +691,7 @@ int TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 		|| TestPointOpaque_r(thisnode->children[1], solid, point);
 }
 
-int TestPointOpaque(
+bool TestPointOpaque(
 	int modelnum,
 	float3_array const & modelorigin,
 	bool solid,
@@ -684,13 +700,12 @@ int TestPointOpaque(
 	opaquemodel_t* thismodel = &opaquemodels[modelnum];
 	float3_array newpoint;
 	VectorSubtract(point, modelorigin, newpoint);
-	int axial;
-	for (axial = 0; axial < 3; axial++) {
+	for (std::size_t axial = 0; axial < 3; ++axial) {
 		if (newpoint[axial] > thismodel->maxs[axial]) {
-			return 0;
+			return false;
 		}
 		if (newpoint[axial] < thismodel->mins[axial]) {
-			return 0;
+			return false;
 		}
 	}
 	return TestPointOpaque_r(thismodel->headnode, solid, newpoint);

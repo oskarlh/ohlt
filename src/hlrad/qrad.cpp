@@ -642,14 +642,12 @@ static bool PlacePatchInside(patch_t* patch) {
 	}
 	{
 		for (int i = 0; i < patch->winding->size(); i++) {
-			float const * p1;
-			float const * p2;
-			p1 = patch->winding->m_Points[i].data();
-			p2 = patch->winding->m_Points[(i + 1) % patch->winding->size()]
-					 .data();
-			VectorAdd(p1, p2, point);
-			VectorAdd(point, center, point);
-			VectorScale(point, 1.0 / 3.0, point);
+			float3_array const & p1 = patch->winding->m_Points[i];
+			float3_array const & p2
+				= patch->winding
+					  ->m_Points[(i + 1) % patch->winding->size()];
+			point = vector_add(vector_add(p1, p2), center);
+			point = vector_scale(point, 1.0f / 3.0f);
 			point = vector_fma(plane->normal, PATCH_HUNT_OFFSET, point);
 			pointstested++;
 			if (HuntForWorld(
@@ -659,9 +657,7 @@ static bool PlacePatchInside(patch_t* patch) {
 					point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET
 				)) {
 				pointsfound++;
-				float3_array v;
-				VectorSubtract(point, center, v);
-				dist = vector_length(v);
+				dist = vector_length(vector_subtract(point, center));
 				if (!found || dist < bestdist) {
 					found = true;
 					bestpoint = point;
@@ -779,22 +775,17 @@ static void cutWindingWithGrid(
 
 	// optimize the grid
 	{
-		float minA;
-		float maxA;
-		float minB;
-		float maxB;
+		float minA = hlrad_bogus_range;
+		float maxA = -hlrad_bogus_range;
+		float minB = hlrad_bogus_range;
+		float maxB = -hlrad_bogus_range;
 
-		minA = minB = hlrad_bogus_range;
-		maxA = maxB = -hlrad_bogus_range;
 		for (int x = 0; x < winding->size(); x++) {
-			float* point;
-			float dotA;
-			float dotB;
-			point = winding->m_Points[x].data();
-			dotA = DotProduct(point, plA->normal);
+			float3_array const & point = winding->point(x);
+			float const dotA = dot_product(point, plA->normal);
 			minA = std::min(minA, dotA);
 			maxA = std::max(maxA, dotA);
-			dotB = DotProduct(point, plB->normal);
+			float const dotB = dot_product(point, plB->normal);
 			minB = std::min(minB, dotB);
 			maxB = std::max(maxB, dotB);
 		}
@@ -1991,9 +1982,7 @@ static void MakePatches() {
 			g_face_lightmode[fn] = lightmode;
 			f = &g_dfaces[fn];
 			w = new fast_winding(*f);
-			for (k = 0; k < w->size(); k++) {
-				VectorAdd(w->m_Points[k], origin, w->m_Points[k]);
-			}
+			w->add_offset_to_points(origin);
 			MakePatchForFace(fn, w, style, bouncestyle); // LRC
 		}
 	}

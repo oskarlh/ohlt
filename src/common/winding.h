@@ -141,10 +141,28 @@ class winding_base {
 		return m_Points.size();
 	}
 
+	// Precondition: index < point_count()
 	inline vec3 const & point(std::size_t index) const noexcept {
 		return m_Points[index];
 	}
 
+	// Precondition: index < point_count()
+	inline vec3 const &
+	point_before(std::size_t index, std::size_t nBefore) const noexcept {
+		std::ptrdiff_t i = std::ptrdiff_t(index - nBefore);
+		while (i < 0) {
+			i = point_count();
+		}
+		return m_Points[i];
+	}
+
+	// Precondition: index < point_count()
+	inline vec3 const &
+	point_after(std::size_t index, std::size_t nAfter) const noexcept {
+		return m_Points[(index + nAfter) % point_count()];
+	}
+
+	// Precondition: index < point_count()
 	inline vec3&
 	replace_point(std::size_t index, vec3 const & newPoint) noexcept {
 		m_Points[index] = newPoint;
