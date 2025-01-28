@@ -331,8 +331,6 @@ void LoadBSPImage(dheader_t* const header) {
 
 // For debugging purposes
 std::uint32_t hash_data() {
-	// TODO: WTF???? THESE GLOBALS ARE UNUSED! Remove them
-
 	auto hashes = std::array{
 		fast_checksum(std::span(g_dmodels.data(), g_nummodels)),
 		fast_checksum(std::span(g_dvertexes.data(), g_numvertexes)),

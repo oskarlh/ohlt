@@ -534,6 +534,14 @@ requires(
 		return storage.externalStorage.span();
 	}
 
+	constexpr operator std::span<value_type const>() const noexcept {
+		return span();
+	}
+
+	constexpr operator std::span<value_type>() noexcept {
+		return span();
+	}
+
 	template <std::ranges::sized_range Range>
 	constexpr void append_range(Range&& range) {
 		reserve(size() + std::ranges::size(range), true);
@@ -636,12 +644,15 @@ requires(
 	}
 
 	constexpr void resize(std::size_t newSize) noexcept {
-		std::ptrdiff_t sizeDiff = std::ptrdiff_t(newSize)
-			- std::ptrdiff_t(size());
-		if (sizeDiff > 0) {
+		std::size_t sizeNow = size();
+		if (newSize < sizeNow) {
 			reduce_size_to(newSize);
 		} else {
-			push_back(value_type{}, -sizeDiff);
+			// TODO: Instead of copying value_type{} here,
+			// construct using the default constructor.
+			// Also, adjust the noexcept here in case the constructor
+			// is not noexcept
+			push_back(value_type{}, newSize - sizeNow);
 		}
 	}
 
@@ -660,7 +671,7 @@ requires(
 		std::span<Value> valuesA = span();
 		std::span<Value> valuesB = other.span();
 		return std::lexicographical_compare_three_way(
-			valuesA.begin(), valuesB.end(), valuesB.begin(), valuesB.end()
+			valuesA.begin(), valuesA.end(), valuesB.begin(), valuesB.end()
 		);
 	}
 

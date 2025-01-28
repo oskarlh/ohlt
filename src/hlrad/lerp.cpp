@@ -103,23 +103,22 @@ static bool CalcAdaptedSpot(
 		return false;
 	}
 
-	VectorSubtract(position, lt->center, surfacespot);
-	dot = DotProduct(surfacespot, lt->normal);
-	VectorMA(surfacespot, -dot, lt->normal, spot);
+	surfacespot = vector_subtract(position, lt->center);
+	dot = dot_product(surfacespot, lt->normal);
+	spot = vector_fma(lt->normal, -dot, surfacespot);
 
-	// use phong normal instead of face normal, because phong normal is a
+	// Use phong normal instead of face normal, because phong normal is a
 	// continuous function
 	GetPhongNormal(surface, position, phongnormal);
 	dot = DotProduct(spot, phongnormal);
 	if (fabs(dot) > ON_EPSILON) {
 		frac = DotProduct(surfacespot, phongnormal) / dot;
-		frac = std::max(
-			float(0), std::min(frac, float(1))
-		); // to correct some extreme cases
+		// To correct some extreme cases
+		frac = std::clamp(frac, 0.0f, 1.0f);
 	} else {
 		frac = 0;
 	}
-	VectorScale(spot, frac, middle);
+	middle = vector_scale(spot, frac);
 
 	dist = vector_length(spot);
 	dist2 = vector_length(middle)
@@ -163,15 +162,10 @@ static float GetFrac(
 	float3_array const & direction,
 	float3_array const & normal
 ) {
-	float3_array v;
-	float dot1;
-	float dot2;
+	float3_array const v = cross_product(direction, normal);
+	float const dot1 = dot_product(leftspot, v);
+	float const dot2 = dot_product(rightspot, v);
 	float frac;
-
-	CrossProduct(direction, normal, v);
-	dot1 = DotProduct(leftspot, v);
-	dot2 = DotProduct(rightspot, v);
-
 	// dot1 <= 0 < dot2
 	if (dot1 >= -NORMAL_EPSILON) {
 		if (g_drawlerp && dot1 > ON_EPSILON) {
@@ -202,17 +196,15 @@ static float GetDirection(
 	float3_array const & normal,
 	float3_array& direction_out
 ) {
-	float dot;
-
-	dot = DotProduct(spot, normal);
-	VectorMA(spot, -dot, normal, direction_out);
+	float const dot = dot_product(spot, normal);
+	direction_out = vector_fma(normal, -dot, spot);
 	return normalize_vector(direction_out);
 }
 
 static bool CalcWeight(
 	localtriangulation_t const * lt,
 	float3_array const & spot,
-	float* weight_out
+	float& weight_out
 )
 // It returns true when the point is inside the hull region (with boundary),
 // even if weight = 0.
@@ -232,12 +224,12 @@ static bool CalcWeight(
 	float dist;
 
 	if (GetDirection(spot, lt->normal, direction) <= 2 * ON_EPSILON) {
-		*weight_out = 1.0;
+		weight_out = 1.0;
 		return true;
 	}
 
 	if ((int) lt->sortedhullpoints.size() == 0) {
-		*weight_out = 0.0;
+		weight_out = 0.0;
 		return false;
 	}
 
@@ -277,7 +269,7 @@ static bool CalcWeight(
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
-	*weight_out = 1 - ratio;
+	weight_out = 1 - ratio;
 	return !istoofar;
 }
 
@@ -805,7 +797,7 @@ void InterpolateSampleLight(
 						}
 						continue;
 					}
-					if (!CalcWeight(lt, spot, &weight)) {
+					if (!CalcWeight(lt, spot, weight)) {
 						continue;
 					}
 					interp = new interpolation_t;

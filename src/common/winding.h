@@ -39,6 +39,11 @@ class winding_base {
 	using vec_element = VecElement;
 	using vec3 = std::array<vec_element, 3>;
 
+  private:
+	using points_vector = usually_inplace_vector<vec3, 18>;
+	points_vector m_Points;
+
+  public:
 	// General Functions
 	void Print() const;
 	void getPlane(dplane_t& plane) const;
@@ -126,14 +131,6 @@ class winding_base {
 
   private:
 	void initFromPlane(vec3 const & normal, vec_element const dist);
-
-  public:
-	// Data
-	// using points_vector = usually_inplace_vector<vec3, 20>;
-	using points_vector = std::vector<vec3>;
-
-  private:
-	points_vector m_Points;
 
   public:
 	inline std::span<vec3 const> points() const noexcept {
