@@ -13,7 +13,7 @@ struct bpartition_t {
 	bbrinklevel_e type;
 	bpartition_t* next;
 	int planenum;
-	int content;
+	contents_t content;
 	bool planeside;
 };
 
@@ -25,7 +25,7 @@ struct bclipnode_t {
 	btreeleaf_t* treeleaf;
 
 	int planenum;
-	int content;
+	contents_t content;
 	bool isleaf;
 };
 
@@ -70,7 +70,7 @@ struct bbrinknode_t {
 	mapplane_t const * plane;
 	int children[2];
 
-	int content;
+	contents_t content;
 	bclipnode_t* clipnode;
 };
 

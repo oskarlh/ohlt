@@ -75,7 +75,7 @@ void PrintBrink(bbrink_t const & b) {
 	for (int i = 0; i < b.numnodes; i++) {
 		bbrinknode_t const * n = &b.nodes[i];
 		if (n->isleaf) {
-			Log("leaf[%d] content %d\n", i, n->content);
+			Log("leaf[%d] content %d\n", i, std::to_underlying(n->content));
 		} else {
 			Log("node[%d]-[%d:%d] plane %f %f %f %f\n",
 				i,
@@ -1020,7 +1020,7 @@ bclipnode_t* ExpandClipnodes_r(
 	numbclipnodes++;
 	if (headnode < 0) {
 		c->isleaf = true;
-		c->content = headnode;
+		c->content = contents_t{ headnode };
 		c->partitions = nullptr;
 	} else {
 		c->isleaf = false;
@@ -1169,7 +1169,7 @@ void FreeBrinks(bbrinkinfo_t* info) {
 struct bsurface_t;
 
 struct bwedge_t {
-	int content;
+	contents_t content;
 	int nodenum;
 	bsurface_t* prev;
 	bsurface_t* next;
@@ -1318,7 +1318,7 @@ void PrintCircle(bcircle_t const * c) {
 				side,
 				i,
 				w->nodenum,
-				w->content);
+				std::to_underlying(w->content));
 		}
 	}
 }
@@ -1327,7 +1327,7 @@ bool AddPartition(
 	bclipnode_t* clipnode,
 	int planenum,
 	bool planeside,
-	int content,
+	contents_t content,
 	bbrinklevel_e brinktype
 ) {
 	// make sure we won't do any harm
@@ -1437,12 +1437,12 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					  // split
 			{
 				bsurface_t* s = &c.surfaces[side][j];
-				if ((s->prev->content == CONTENTS_SOLID)
-					!= (s->next->content == CONTENTS_SOLID)) {
+				if ((s->prev->content == contents_t::SOLID)
+					!= (s->next->content == contents_t::SOLID)) {
 					transitionfound[side]++;
 					transitionpos[side] = s;
 					transitionside[side]
-						= (s->prev->content == CONTENTS_SOLID);
+						= (s->prev->content == contents_t::SOLID);
 				}
 			}
 		}
@@ -1455,10 +1455,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 		}
 
 		if (transitionfound[0] > 1 || transitionfound[1] > 1
-			|| (c.surfaces[0][0].prev->content == CONTENTS_SOLID)
-				!= (c.surfaces[0][0].next->content == CONTENTS_SOLID)
-			|| (c.surfaces[1][0].prev->content == CONTENTS_SOLID)
-				!= (c.surfaces[1][0].next->content == CONTENTS_SOLID)) {
+			|| (c.surfaces[0][0].prev->content == contents_t::SOLID)
+				!= (c.surfaces[0][0].next->content == contents_t::SOLID)
+			|| (c.surfaces[1][0].prev->content == contents_t::SOLID)
+				!= (c.surfaces[1][0].next->content == contents_t::SOLID)) {
 			// there must at least 3 transition surfaces now, which is too
 			// complicated. just leave it unfixed
 			if (g_developer >= developer_level::megaspam) {
@@ -1526,10 +1526,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 									> BRINK_FLOOR_THRESHOLD
 								&& GetLeafFromFace(fi->f, side3)
 										->clipnode->content
-									== CONTENTS_SOLID
+									== contents_t::SOLID
 								&& GetLeafFromFace(fi->f, !side3)
 										->clipnode->content
-									!= CONTENTS_SOLID) {
+									!= contents_t::SOLID) {
 								onfloor = true;
 							}
 						}
@@ -1557,7 +1557,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 				if (transitionside[!side] ? dot < 0.01 : dot > -0.01) {
 					break;
 				}
-				if (w->content != CONTENTS_SOLID) {
+				if (w->content != contents_t::SOLID) {
 					break;
 				}
 				if (snext
@@ -1591,7 +1591,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 						clipnode,
 						planenum,
 						planeside,
-						CONTENTS_EMPTY,
+						contents_t::EMPTY,
 						brinktype
 					)) {
 					berror = true;
@@ -1656,7 +1656,7 @@ void SortPartitions(bbrinkinfo_t* info
 		clipnode->partitions = nullptr;
 		while ((current = partitions) != nullptr) {
 			partitions = current->next;
-			if (current->content != CONTENTS_EMPTY) {
+			if (current->content != contents_t::EMPTY) {
 				PrintOnce(
 					"SortPartitions: content of partition was not empty."
 				);
@@ -1756,7 +1756,7 @@ bool FixBrinks_r_r(
 		p = p->next;
 	}
 	if (p == nullptr) {
-		headnode_out = clipnode->content;
+		headnode_out = (int) clipnode->content;
 		return true;
 	}
 	dclipnode_t* cn;
@@ -1765,7 +1765,7 @@ bool FixBrinks_r_r(
 	dclipnode_t* c = current;
 	current++;
 	cn->planenum = p->planenum;
-	cn->children[p->planeside] = p->content;
+	cn->children[p->planeside] = (std::int16_t) p->content;
 	int r;
 	if (!FixBrinks_r_r(
 			clipnode, p->next, level, r, begin, end, current, outputmap

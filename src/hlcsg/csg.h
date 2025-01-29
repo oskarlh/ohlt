@@ -64,10 +64,10 @@ struct bface_t {
 	accurate_winding w;
 	mapplane_t* plane;
 	bounding_box bounds;
-	int planenum;
-	int texinfo;
-	int contents;
-	int backcontents;
+	std::uint16_t planenum;
+	std::int16_t texinfo;
+	contents_t contents;
+	contents_t backcontents;
 	bool used;	// just for face counting
 	bool bevel; // used for ExpandBrush
 };
@@ -102,7 +102,7 @@ struct brush_t {
 	int coplanarpriority;
 	std::array<std::u8string, NUM_HULLS> hullshapes;
 
-	std::int32_t contents;
+	contents_t contents;
 	std::array<brushhull_t, NUM_HULLS> hulls;
 };
 

@@ -71,7 +71,7 @@ static bool CheckVisBitNoVismatrix(
 				<= PatchPlaneDist(patch2) + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
-			if (TestLine(origin1, origin2) != CONTENTS_EMPTY) {
+			if (TestLine(origin1, origin2) != contents_t::EMPTY) {
 				return false;
 			}
 			if (TestSegmentAgainstOpaqueList(
@@ -134,7 +134,7 @@ bool CheckVisBitBackwards(
 					+ MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
-			if (TestLine(backorigin, emitorigin) != CONTENTS_EMPTY) {
+			if (TestLine(backorigin, emitorigin) != contents_t::EMPTY) {
 				return false;
 			}
 			if (TestSegmentAgainstOpaqueList(

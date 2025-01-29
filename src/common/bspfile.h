@@ -231,34 +231,39 @@ struct dplane_t {
 	planetype type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 };
 
-enum contents_t {
-	CONTENTS_EMPTY = -1,
-	CONTENTS_SOLID = -2,
-	CONTENTS_WATER = -3,
-	CONTENTS_SLIME = -4,
-	CONTENTS_LAVA = -5,
-	CONTENTS_SKY = -6,
-	CONTENTS_ORIGIN = -7, // removed at csg time
+enum class contents_t : std::int32_t {
+	// DECISION_NODE is not really a content type and it's only used in
+	// HLBSP's node_t::contents
+	DECISION_NODE = 0,
 
-	CONTENTS_CURRENT_0 = -9,
-	CONTENTS_CURRENT_90 = -10,
-	CONTENTS_CURRENT_180 = -11,
-	CONTENTS_CURRENT_270 = -12,
-	CONTENTS_CURRENT_UP = -13,
-	CONTENTS_CURRENT_DOWN = -14,
+	EMPTY = -1,
+	SOLID = -2,
+	WATER = -3,
+	SLIME = -4,
+	LAVA = -5,
+	SKY = -6,
+	ORIGIN = -7, // Removed at CSG time
 
-	CONTENTS_TRANSLUCENT = -15,
-	CONTENTS_HINT = -16, // Filters down to CONTENTS_EMPTY by bsp, ENGINE
-						 // SHOULD NEVER SEE THIS
+	CURRENT_0 = -9,
+	CURRENT_90 = -10,
+	CURRENT_180 = -11,
+	CURRENT_270 = -12,
+	CURRENT_UP = -13,
+	CURRENT_DOWN = -14,
 
-	CONTENTS_NULL
-		= -17, // AJM  // removed in csg and bsp, VIS or RAD shouldnt have
-			   // to deal with this, only clip planes!
+	TRANSLUCENT = -15,
+	HINT = -16, // Filters down to EMPTY by BSP,
+				// ENGINE SHOULD NEVER SEE THIS
 
-	CONTENTS_BOUNDINGBOX = -19, // similar to CONTENTS_ORIGIN
+	CONTENTS_NULL = -17, // Removed in CSG and BSP, so VIS and RAD shouldn't
+						 // have to deal with this, only clip planes!
 
-	CONTENTS_TOEMPTY = -32,
+	BOUNDINGBOX = -19, // Similar to ORIGIN
+
+	TOEMPTY = -32,
 };
+
+std::u8string_view ContentsToString(contents_t contents) noexcept;
 
 struct dnode_t {
 	std::int32_t planenum;
@@ -297,10 +302,10 @@ constexpr std::size_t MAXLIGHTMAPS = 4;
 
 struct dface_t {
 	std::uint16_t planenum;
-	std::int16_t side;
+	std::uint16_t side;
 
-	std::int32_t firstedge; // We must support > 64k edges
-	std::int16_t numedges;
+	std::uint32_t firstedge; // We must support > 64k edges
+	std::uint16_t numedges;
 	std::int16_t texinfo;
 
 	// lighting info
@@ -308,10 +313,10 @@ struct dface_t {
 	std::int32_t lightofs; // Start of [numstyles*surfsize] samples
 };
 
-// leaf 0 is the generic CONTENTS_SOLID leaf, used for all solid areas
+// leaf 0 is the generic contents_t::SOLID leaf, used for all solid areas
 // all other leafs need visibility info
 struct dleaf_t {
-	std::int32_t contents;
+	contents_t contents;
 	std::int32_t visofs; // -1 = no visibility info
 
 	// For frustum culling

@@ -20,17 +20,17 @@ dleaf_t* PointInLeaf_Worst_r(int nodenum, float3_array const & point) {
 			result[0] = PointInLeaf_Worst_r(node->children[0], point);
 			result[1] = PointInLeaf_Worst_r(node->children[1], point);
 			if (result[0] == g_dleafs.data()
-				|| result[0]->contents == CONTENTS_SOLID) {
+				|| result[0]->contents == contents_t::SOLID) {
 				return result[0];
 			}
 			if (result[1] == g_dleafs.data()
-				|| result[1]->contents == CONTENTS_SOLID) {
+				|| result[1]->contents == contents_t::SOLID) {
 				return result[1];
 			}
-			if (result[0]->contents == CONTENTS_SKY) {
+			if (result[0]->contents == contents_t::SKY) {
 				return result[0];
 			}
-			if (result[1]->contents == CONTENTS_SKY) {
+			if (result[1]->contents == contents_t::SKY) {
 				return result[1];
 			}
 			if (result[0]->contents == result[1]->contents) {
@@ -142,7 +142,7 @@ void TranslatePlane(dplane_t* plane, float const * delta) {
 	plane->dist += DotProduct(plane->normal, delta);
 }
 
-// HuntForWorld will never return CONTENTS_SKY or CONTENTS_SOLID leafs
+// HuntForWorld will never return contents_t::SKY or contents_t::SOLID leafs
 dleaf_t* HuntForWorld(
 	float3_array& point,
 	float3_array const & plane_offset,
@@ -206,8 +206,8 @@ dleaf_t* HuntForWorld(
 					if (dist < best_dist) {
 						if ((leaf = PointInLeaf_Worst(current_point))
 							!= g_dleafs.data()) {
-							if ((leaf->contents != CONTENTS_SKY)
-								&& (leaf->contents != CONTENTS_SOLID)) {
+							if ((leaf->contents != contents_t::SKY)
+								&& (leaf->contents != contents_t::SOLID)) {
 								if (x || y || z) {
 									// dist = best_dist;
 									best_dist = dist;
@@ -463,7 +463,7 @@ static bool IsPositionValid(
 			return false;
 		}
 
-		if (TestLine(pos, test) != CONTENTS_EMPTY) {
+		if (TestLine(pos, test) != contents_t::EMPTY) {
 			return false;
 		}
 

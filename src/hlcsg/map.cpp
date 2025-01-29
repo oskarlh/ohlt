@@ -364,7 +364,7 @@ static void ParseBrush(entity_t* mapent) {
 	// in the entity
 	//
 
-	if (contents == CONTENTS_ORIGIN) {
+	if (contents == contents_t::ORIGIN) {
 		if (has_key_value(mapent, u8"origin")) {
 			Error(
 				"Entity %i, Brush %i: Only one ORIGIN brush allowed.",
@@ -375,7 +375,7 @@ static void ParseBrush(entity_t* mapent) {
 		char string[MAXTOKEN];
 		double3_array origin;
 
-		b->contents = CONTENTS_SOLID;
+		b->contents = contents_t::SOLID;
 		CreateBrush(mapent->firstbrush + b->brushnum); // to get sizes
 		b->contents = contents;
 
@@ -422,7 +422,7 @@ static void ParseBrush(entity_t* mapent) {
 		// all brushes should be erased, but not now.
 		return;
 	}
-	if (contents == CONTENTS_BOUNDINGBOX) {
+	if (contents == contents_t::BOUNDINGBOX) {
 		if (has_key_value(mapent, u8"zhlt_minsmaxs")) {
 			Error(
 				"Entity %i, Brush %i: Only one BoundingBox brush allowed.",
@@ -435,7 +435,7 @@ static void ParseBrush(entity_t* mapent) {
 			DeleteKey(mapent, u8"origin");
 		}
 
-		b->contents = CONTENTS_SOLID;
+		b->contents = contents_t::SOLID;
 		CreateBrush(mapent->firstbrush + b->brushnum); // To get sizes
 		b->contents = contents;
 
@@ -472,16 +472,16 @@ static void ParseBrush(entity_t* mapent) {
 			set_key_value(mapent, u8"origin", origin);
 		}
 	}
-	if (g_skyclip && b->contents == CONTENTS_SKY && !b->noclip) {
+	if (g_skyclip && b->contents == contents_t::SKY && !b->noclip) {
 		brush_t* newb = CopyCurrentBrush(mapent, b);
-		newb->contents = CONTENTS_SOLID;
+		newb->contents = contents_t::SOLID;
 		newb->cliphull = ~0;
 		for (j = 0; j < newb->numsides; j++) {
 			side = &g_brushsides[newb->firstside + j];
 			side->td.name = wad_texture_name{ u8"null" };
 		}
 	}
-	if (b->cliphull != 0 && b->contents == CONTENTS_TOEMPTY) {
+	if (b->cliphull != 0 && b->contents == contents_t::TOEMPTY) {
 		// check for mix of CLIP and normal texture
 		bool mixed = false;
 		for (j = 0; j < b->numsides; j++) {
@@ -499,7 +499,7 @@ static void ParseBrush(entity_t* mapent) {
 			brush_t* newb = CopyCurrentBrush(mapent, b);
 			newb->cliphull = 0;
 		}
-		b->contents = CONTENTS_SOLID;
+		b->contents = contents_t::SOLID;
 		for (j = 0; j < b->numsides; j++) {
 			side = &g_brushsides[b->firstside + j];
 			side->td.name = wad_texture_name{ u8"null" };
@@ -572,8 +572,9 @@ bool ParseMapEntity() {
 		int i;
 		for (i = 0; i < mapent->numbrushes; i++) {
 			brush_t* brush = &g_mapbrushes[mapent->firstbrush + i];
-			if (brush->cliphull == 0 && brush->contents != CONTENTS_ORIGIN
-				&& brush->contents != CONTENTS_BOUNDINGBOX) {
+			if (brush->cliphull == 0
+				&& brush->contents != contents_t::ORIGIN
+				&& brush->contents != contents_t::BOUNDINGBOX) {
 				all_clip = false;
 			}
 		}
@@ -957,7 +958,6 @@ unsigned int CountEngineEntities() {
 //      wrapper for LoadScriptFile
 //      parse in script entities
 // =====================================================================================
-char const * ContentsToString(contents_t const type);
 
 void LoadMapFile(
 	hlcsg_settings const & settings, char const * const filename
@@ -991,7 +991,7 @@ void LoadMapFile(
 	g_entities[0].numbrushes; i++)
 	{
 		Log("worldspawn brush %i: contents %s\n", i,
-	ContentsToString((contents_t)g_mapbrushes[i].contents));
+	ContentsToString((contents_t::t)g_mapbrushes[i].contents));
 	}
 	*/
 

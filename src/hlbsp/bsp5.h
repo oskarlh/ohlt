@@ -70,9 +70,9 @@ typedef struct face_s // This structure is layed out so 'pts' is on a
 	struct face_s* original; // face on node
 	int planenum;
 	int texturenum;
-	int contents;	  // contents in front of face
-	int detaillevel;  // defined by hlcsg
-	int* outputedges; // used in WriteDrawNodes
+	contents_t contents; // contents in front of face
+	int detaillevel;	 // defined by hlcsg
+	int* outputedges;	 // used in WriteDrawNodes
 
 	int outputnumber; // only valid for original faces after write surfaces
 	int numpoints;
@@ -139,8 +139,8 @@ struct node_t {
 	face_t* faces;		 // decision nodes only, list for both sides
 
 	// information for leafs
-	int contents;		// leaf nodes (0 for decision nodes)
-	face_t** markfaces; // leaf nodes only, point to node faces
+	contents_t contents; // leaf nodes (0 for decision nodes)
+	face_t** markfaces;	 // leaf nodes only, point to node faces
 	struct portal_s* portals;
 	int visleafnum; // -1 = solid
 	int valid;		// for flood filling
@@ -237,7 +237,7 @@ extern void CalcBrushBounds(
 extern node_t* AllocNode();
 
 extern bool should_face_have_facestyle_null(
-	wad_texture_name textureName, std::int32_t faceContents
+	wad_texture_name textureName, contents_t faceContents
 ) noexcept;
 #define BRINK_FLOOR_THRESHOLD 0.7
 

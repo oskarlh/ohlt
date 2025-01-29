@@ -478,13 +478,14 @@ extern void ScaleDirectLights();			 // run before AddPatchLights
 extern void CreateFacelightDependencyList(); // run before AddPatchLights
 extern void AddPatchLights(int facenum);
 extern void FreeFacelightDependencyList();
-extern int TestLine(
+extern contents_t TestLine(
 	float3_array const & start,
 	float3_array const & stop,
 	float3_array& skyhitout
 );
 
-inline int TestLine(float3_array const & start, float3_array const & stop) {
+inline contents_t
+TestLine(float3_array const & start, float3_array const & stop) {
 	float3_array skyhitout;
 	return TestLine(start, stop, skyhitout);
 }

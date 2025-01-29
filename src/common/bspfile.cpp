@@ -89,6 +89,48 @@ std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{
 int& g_numentities{ bspGlobals.entitiesLength };
 std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{ bspGlobals.entities };
 
+std::u8string_view ContentsToString(contents_t contents) noexcept {
+	switch (contents) {
+		case contents_t::EMPTY:
+		case contents_t::TOEMPTY:
+			return u8"EMPTY";
+		case contents_t::SOLID:
+			return u8"SOLID";
+		case contents_t::WATER:
+			return u8"WATER";
+		case contents_t::SLIME:
+			return u8"SLIME";
+		case contents_t::LAVA:
+			return u8"LAVA";
+		case contents_t::SKY:
+			return u8"SKY";
+		case contents_t::ORIGIN:
+			return u8"ORIGIN";
+		case contents_t::HINT:
+			return u8"HINT";
+		case contents_t::BOUNDINGBOX:
+			return u8"BOUNDINGBOX";
+		case contents_t::CURRENT_0:
+			return u8"CURRENT_0";
+		case contents_t::CURRENT_90:
+			return u8"CURRENT_90";
+		case contents_t::CURRENT_180:
+			return u8"CURRENT_180";
+		case contents_t::CURRENT_270:
+			return u8"CURRENT_270";
+		case contents_t::CURRENT_UP:
+			return u8"CURRENT_UP";
+		case contents_t::CURRENT_DOWN:
+			return u8"CURRENT_DOWN";
+		case contents_t::TRANSLUCENT:
+			return u8"TRANSLUCENT";
+		case contents_t::CONTENTS_NULL:
+			return u8"NULL";
+		default:
+			return u8"UNKNOWN";
+	}
+}
+
 /*
  * ===============
  * CompressVis

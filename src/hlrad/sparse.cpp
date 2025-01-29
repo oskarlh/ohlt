@@ -210,7 +210,7 @@ static void TestPatchToFace(
 							+ MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
-					if (TestLine(origin1, origin2) != CONTENTS_EMPTY) {
+					if (TestLine(origin1, origin2) != contents_t::EMPTY) {
 						continue;
 					}
 					if (TestSegmentAgainstOpaqueList(

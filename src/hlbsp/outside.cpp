@@ -50,7 +50,7 @@ static bool PlaceOccupant(
 	node_t* n;
 
 	n = PointInLeaf(headnode, point);
-	if (n->contents == CONTENTS_SOLID) {
+	if (n->contents == contents_t::SOLID) {
 		return false;
 	}
 	// Log("PlaceOccupant::n->contents == %i\n", n->contents);
@@ -118,7 +118,7 @@ static void MarkLeakTrail(portal_t* n2) {
 static void FreeDetailNode_r(node_t* n) {
 	int i;
 	if (n->planenum == -1) {
-		if (!(n->isportalleaf && n->contents == CONTENTS_SOLID)) {
+		if (!(n->isportalleaf && n->contents == contents_t::SOLID)) {
 			free(n->markfaces);
 			n->markfaces = nullptr;
 		}
@@ -142,12 +142,12 @@ static void FillLeaf(node_t* l) {
 		Warning("FillLeaf: not leaf");
 		return;
 	}
-	if (l->contents == CONTENTS_SOLID) {
+	if (l->contents == contents_t::SOLID) {
 		Warning("FillLeaf: fill solid");
 		return;
 	}
 	FreeDetailNode_r(l);
-	l->contents = CONTENTS_SOLID;
+	l->contents = contents_t::SOLID;
 	l->planenum = -1;
 }
 
@@ -158,8 +158,9 @@ static bool RecursiveFillOutside(node_t* l, bool const fill) {
 	portal_t* p;
 	int s;
 
-	if ((l->contents == CONTENTS_SOLID) || (l->contents == CONTENTS_SKY)) {
-		/*if (l->contents != CONTENTS_SOLID)
+	if ((l->contents == contents_t::SOLID)
+		|| (l->contents == contents_t::SKY)) {
+		/*if (l->contents != contents_t::SOLID)
 			Log("RecursiveFillOutside::l->contents == %i \n",
 		   l->contents);*/
 
@@ -259,19 +260,19 @@ static node_t* ClearOutFaces_r(node_t* node) {
 			// this node does not touch any interior leafs
 
 			// if both children are solid, just make this node solid
-			if (node->children[0]->contents == CONTENTS_SOLID
-				&& node->children[1]->contents == CONTENTS_SOLID) {
-				node->contents = CONTENTS_SOLID;
+			if (node->children[0]->contents == contents_t::SOLID
+				&& node->children[1]->contents == contents_t::SOLID) {
+				node->contents = contents_t::SOLID;
 				node->planenum = -1;
 				node->isportalleaf = true;
 				return node;
 			}
 
 			// if one child is solid, shortcut down the other side
-			if (node->children[0]->contents == CONTENTS_SOLID) {
+			if (node->children[0]->contents == contents_t::SOLID) {
 				return node->children[1];
 			}
-			if (node->children[1]->contents == CONTENTS_SOLID) {
+			if (node->children[1]->contents == contents_t::SOLID) {
 				return node->children[0];
 			}
 
@@ -283,7 +284,7 @@ static node_t* ClearOutFaces_r(node_t* node) {
 	//
 	// leaf node
 	//
-	if (node->contents != CONTENTS_SOLID) {
+	if (node->contents != contents_t::SOLID) {
 		// this node is still inside
 
 		// mark all the nodes used as portals
@@ -524,8 +525,8 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 
 void ResetMark_r(node_t* node) {
 	if (node->isportalleaf) {
-		if (node->contents == CONTENTS_SOLID
-			|| node->contents == CONTENTS_SKY) {
+		if (node->contents == contents_t::SOLID
+			|| node->contents == contents_t::SKY) {
 			node->empty = 0;
 		} else {
 			node->empty = 1;

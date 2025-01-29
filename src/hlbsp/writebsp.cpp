@@ -90,18 +90,18 @@ static int WriteClipNodes_r(
 	int num;
 
 	if (node->isportalleaf) {
-		if (node->contents == CONTENTS_SOLID) {
+		if (node->contents == contents_t::SOLID) {
 			free(node);
-			return CONTENTS_SOLID;
+			return std::to_underlying(contents_t::SOLID);
 		} else {
 			portalleaf = node;
 		}
 	}
 	if (node->planenum == -1) {
 		if (node->iscontentsdetail) {
-			num = CONTENTS_SOLID;
+			num = std::to_underlying(contents_t::SOLID);
 		} else {
-			num = portalleaf->contents;
+			num = std::to_underlying(portalleaf->contents);
 		}
 		free(node->markfaces);
 		free(node);
@@ -278,7 +278,7 @@ static void WriteFace(face_t* f) {
 // =====================================================================================
 static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 	if (node->isportalleaf) {
-		if (node->contents == CONTENTS_SOLID) {
+		if (node->contents == contents_t::SOLID) {
 			return -1;
 		} else {
 			portalleaf = node;
@@ -421,7 +421,7 @@ int OutputEdges_r(node_t* node, int detaillevel) {
 
 static void RemoveCoveredFaces_r(node_t* node) {
 	if (node->isportalleaf) {
-		if (node->contents == CONTENTS_SOLID) {
+		if (node->contents == contents_t::SOLID) {
 			return; // stop here, don't go deeper into children
 		}
 	}
@@ -489,7 +489,7 @@ void BeginBSPFile() {
 
 	// leaf 0 is common solid with no faces
 	g_numleafs = 1;
-	g_dleafs[0].contents = CONTENTS_SOLID;
+	g_dleafs[0].contents = contents_t::SOLID;
 }
 
 // =====================================================================================

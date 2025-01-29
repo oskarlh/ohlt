@@ -716,9 +716,9 @@ static surfchain_t* SurflistFromValidFaces() {
 
 // Returns true if the passed face should have fasestyle null
 bool should_face_have_facestyle_null(
-	wad_texture_name textureName, std::int32_t faceContents
+	wad_texture_name textureName, contents_t faceContents
 ) noexcept {
-	if (faceContents == CONTENTS_SKY) {
+	if (faceContents == contents_t::SKY) {
 		// An old comment said this is "for env_rain"...
 		// might this be for CZDS, where
 		// "any exterior faces of skybox brushes must be textured
@@ -763,7 +763,8 @@ static facestyle_e set_face_style(face_t* f) {
 static surfchain_t* ReadSurfs(FILE* file) {
 	int r;
 	int detaillevel;
-	int planenum, g_texinfo, contents, numpoints;
+	int planenum, g_texinfo, numpoints;
+	std::underlying_type_t<contents_t> contents;
 	face_t* f;
 	int i;
 	double3_array v;
@@ -847,7 +848,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 		f->detaillevel = detaillevel;
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
-		f->contents = contents;
+		f->contents = contents_t{ contents };
 		f->numpoints = numpoints;
 		f->next = validfaces[planenum];
 		validfaces[planenum] = f;
@@ -1034,7 +1035,7 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->planenum = 0; // arbitrary plane
 		nodes->children[0] = AllocNode();
 		nodes->children[0]->planenum = -1;
-		nodes->children[0]->contents = CONTENTS_EMPTY;
+		nodes->children[0]->contents = contents_t::EMPTY;
 		nodes->children[0]->isdetail = false;
 		nodes->children[0]->isportalleaf = true;
 		nodes->children[0]->iscontentsdetail = false;
@@ -1046,7 +1047,7 @@ static bool ProcessModel(bsp_data& bspData) {
 		nodes->children[0]->maxs = {};
 		nodes->children[1] = AllocNode();
 		nodes->children[1]->planenum = -1;
-		nodes->children[1]->contents = CONTENTS_EMPTY;
+		nodes->children[1]->contents = contents_t::EMPTY;
 		nodes->children[1]->isdetail = false;
 		nodes->children[1]->isportalleaf = true;
 		nodes->children[1]->iscontentsdetail = false;
@@ -1056,7 +1057,7 @@ static bool ProcessModel(bsp_data& bspData) {
 		);
 		nodes->children[1]->mins = {};
 		nodes->children[1]->maxs = {};
-		nodes->contents = 0;
+		nodes->contents = contents_t::DECISION_NODE;
 		nodes->isdetail = false;
 		nodes->isportalleaf = false;
 		nodes->faces = nullptr;
@@ -1069,14 +1070,12 @@ static bool ProcessModel(bsp_data& bspData) {
 	model->visleafs = g_numleafs - startleafs;
 
 	if (g_noclip) {
-		/*
-			KGP 12/31/03 - store empty content type in headnode pointers to
-		   signify lack of clipping information in a way that doesn't crash
-		   the half-life engine at runtime.
-		*/
-		model->headnode[1] = CONTENTS_EMPTY;
-		model->headnode[2] = CONTENTS_EMPTY;
-		model->headnode[3] = CONTENTS_EMPTY;
+		// Store empty content type in headnode pointers to
+		//  signify lack of clipping information in a way that doesn't crash
+		// the game engine at runtime
+		model->headnode[1] = std::to_underlying(contents_t::EMPTY);
+		model->headnode[2] = std::to_underlying(contents_t::EMPTY);
+		model->headnode[3] = std::to_underlying(contents_t::EMPTY);
 		goto skipclip;
 	}
 
@@ -1132,7 +1131,8 @@ static bool ProcessModel(bsp_data& bspData) {
 		*/
 		if (nodes->planenum == -1) // empty!
 		{
-			model->headnode[g_hullnum] = nodes->contents;
+			model->headnode[g_hullnum] = std::to_underlying(nodes->contents
+			);
 		} else {
 			model->headnode[g_hullnum] = g_numclipnodes;
 			WriteClipNodes(nodes);

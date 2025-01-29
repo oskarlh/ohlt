@@ -271,7 +271,7 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 		detaillevel,
 		f->planenum,
 		f->texinfo,
-		f->contents,
+		std::to_underlying(f->contents),
 		w.size()
 	);
 
@@ -377,32 +377,32 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 // =====================================================================================
 static void SaveOutside(
 	brush_t& b,
-	int const hull,
+	int hull,
 	std::vector<bface_t>& outside,
-	int const mirrorcontents
+	contents_t mirrorcontents
 ) {
 	for (bface_t& f : outside) {
-		int frontcontents, backcontents;
+		contents_t frontcontents, backcontents;
 		int texinfo = f.texinfo;
 		wad_texture_name const texname{
 			GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
 		};
 		frontcontents = f.contents;
-		if (mirrorcontents == CONTENTS_TOEMPTY) {
+		if (mirrorcontents == contents_t::TOEMPTY) {
 			backcontents = f.backcontents;
 		} else {
 			backcontents = mirrorcontents;
 		}
-		if (frontcontents == CONTENTS_TOEMPTY) {
-			frontcontents = CONTENTS_EMPTY;
+		if (frontcontents == contents_t::TOEMPTY) {
+			frontcontents = contents_t::EMPTY;
 		}
-		if (backcontents == CONTENTS_TOEMPTY) {
-			backcontents = CONTENTS_EMPTY;
+		if (backcontents == contents_t::TOEMPTY) {
+			backcontents = contents_t::EMPTY;
 		}
 
 		bool backnull = false;
 		bool frontnull = false;
-		if (mirrorcontents == CONTENTS_TOEMPTY) {
+		if (mirrorcontents == contents_t::TOEMPTY) {
 			// SKIP and HINT are special textures for hlbsp so they should
 			// be kept
 			bool const specialTextureForHlbsp = texname.is_skip()
@@ -500,7 +500,7 @@ static void SaveOutside(
 
 		WriteFace(hull, &f, (hull ? b.clipnodedetaillevel : b.detaillevel));
 
-		//              if (mirrorcontents != CONTENTS_SOLID)
+		//              if (mirrorcontents != contents_t::SOLID)
 		{
 			f.planenum ^= 1;
 			f.plane = &g_mapplanes[f.planenum];
@@ -564,7 +564,6 @@ static std::vector<bface_t> CopyFacesToOutside(brushhull_t const * bh) {
 // =====================================================================================
 //  CSGBrush
 // =====================================================================================
-extern char const * ContentsToString(contents_t const type);
 
 static void CSGBrush(int brushnum) {
 	// get entity and brush info from the given brushnum that we can work
@@ -578,20 +577,20 @@ static void CSGBrush(int brushnum) {
 		if (!bh1->faces.empty()
 			&& (hull ? b1.clipnodedetaillevel : b1.detaillevel)) {
 			switch (b1.contents) {
-				case CONTENTS_ORIGIN:
-				case CONTENTS_BOUNDINGBOX:
-				case CONTENTS_HINT:
-				case CONTENTS_TOEMPTY:
+				case contents_t::ORIGIN:
+				case contents_t::BOUNDINGBOX:
+				case contents_t::HINT:
+				case contents_t::TOEMPTY:
 					break;
 				default:
 					Error(
 						"Entity %i, Brush %i: %s brushes not allowed in detail\n",
 						b1.originalentitynum,
 						b1.originalbrushnum,
-						ContentsToString((contents_t) b1.contents)
+						(char const *) ContentsToString(b1.contents).data()
 					);
 					break;
-				case CONTENTS_SOLID:
+				case contents_t::SOLID:
 					WriteDetailBrush(hull, bh1->faces);
 					break;
 			}
@@ -599,10 +598,10 @@ static void CSGBrush(int brushnum) {
 
 		// set outside to a copy of the brush's faces
 		std::vector<bface_t> outside{ CopyFacesToOutside(bh1) };
-		if (b1.contents == CONTENTS_TOEMPTY) {
+		if (b1.contents == contents_t::TOEMPTY) {
 			for (bface_t& f : outside) {
-				f.contents = CONTENTS_TOEMPTY;
-				f.backcontents = CONTENTS_TOEMPTY;
+				f.contents = contents_t::TOEMPTY;
+				f.backcontents = contents_t::TOEMPTY;
 			}
 		}
 		bool overwrite{ false };
@@ -617,7 +616,7 @@ static void CSGBrush(int brushnum) {
 			brush_t const & b2 = g_mapbrushes[e->firstbrush + bn];
 			brushhull_t const & bh2 = b2.hulls[hull];
 
-			if (b2.contents == CONTENTS_TOEMPTY) {
+			if (b2.contents == contents_t::TOEMPTY) {
 				continue;
 			}
 			if (hull ? (b2.clipnodedetaillevel - 0
@@ -779,11 +778,11 @@ static void CSGBrush(int brushnum) {
 				}
 				if ((hull ? b2.clipnodedetaillevel < b1.clipnodedetaillevel
 						  : b2.detaillevel < b1.detaillevel)
-					&& b2.contents == CONTENTS_SOLID) {
+					&& b2.contents == contents_t::SOLID) {
 					// Real solid
 					continue;
 				}
-				if (b1.contents == CONTENTS_TOEMPTY) {
+				if (b1.contents == contents_t::TOEMPTY) {
 					bool onfront = true, onback = true;
 					for (bface_t const & f2 : bh2.faces) {
 						if (f.planenum == (f2.planenum ^ 1)) {
@@ -799,8 +798,8 @@ static void CSGBrush(int brushnum) {
 					if (onback && f.backcontents < b2.contents) {
 						f.backcontents = b2.contents;
 					}
-					if (!(f.contents == CONTENTS_SOLID
-						  && f.backcontents == CONTENTS_SOLID
+					if (!(f.contents == contents_t::SOLID
+						  && f.backcontents == contents_t::SOLID
 						  && !GetTextureByNumber_CSG(f.texinfo)
 								  .value_or(wad_texture_name{})
 								  .is_solid_hint()
@@ -1247,8 +1246,8 @@ static void UnparseEntities() {
 static void ConvertHintToEmpty() {
 	// Convert HINT brushes to EMPTY after they have been carved by csg
 	for (std::size_t i = 0; i < MAX_MAP_BRUSHES; i++) {
-		if (g_mapbrushes[i].contents == CONTENTS_HINT) {
-			g_mapbrushes[i].contents = CONTENTS_EMPTY;
+		if (g_mapbrushes[i].contents == contents_t::HINT) {
+			g_mapbrushes[i].contents = contents_t::EMPTY;
 		}
 	}
 }
@@ -1390,7 +1389,7 @@ static void CheckForNoClip() {
 static void ProcessModels() {
 	int type;
 	int placed;
-	int contents;
+	contents_t contents;
 	brush_t temp;
 
 	std::vector<brush_t> temps;
@@ -1408,7 +1407,7 @@ static void ProcessModels() {
 		for (int j = 0; j < g_entities[i].numbrushes; j++) {
 			temps[j] = g_mapbrushes[first + j];
 		}
-		int placedcontents;
+		contents_t placedcontents;
 		bool b_placedcontents = false;
 		for (placed = 0; placed < g_entities[i].numbrushes;) {
 			bool b_contents = false;
@@ -1481,8 +1480,8 @@ static void SetModelCenters(int entitynum) {
 
 	for (i = e->firstbrush, last = e->firstbrush + e->numbrushes; i < last;
 		 i++) {
-		if (g_mapbrushes[i].contents != CONTENTS_ORIGIN
-			&& g_mapbrushes[i].contents != CONTENTS_BOUNDINGBOX) {
+		if (g_mapbrushes[i].contents != contents_t::ORIGIN
+			&& g_mapbrushes[i].contents != contents_t::BOUNDINGBOX) {
 			add_to_bounding_box(bounds, g_mapbrushes[i].hulls[0].bounds);
 		}
 	}

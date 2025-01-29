@@ -707,7 +707,7 @@ static void CalcSurfaceInfo(surface_t* surf) {
 
 	surf->detaillevel = -1;
 	for (f = surf->faces; f; f = f->next) {
-		if (f->contents >= 0) {
+		if (std::to_underlying(f->contents) >= 0) {
 			Error("Bad contents");
 		}
 		for (i = 0; i < f->numpoints; i++) {
@@ -931,52 +931,54 @@ static void SplitNodeBrushes(brush_t* brushes, node_t const * node) {
 // =====================================================================================
 //  RankForContents
 // =====================================================================================
-static int RankForContents(int const contents) {
-	// Log("SolidBSP::RankForContents - contents type is %i ",contents);
+static std::int32_t RankForContents(contents_t contents) {
 	switch (contents) {
-		case CONTENTS_EMPTY:
+		case contents_t::EMPTY:
 			// Log("(empty)\n");
 			return 0;
-		case CONTENTS_WATER:
+		case contents_t::WATER:
 			// Log("(water)\n");
 			return 1;
-		case CONTENTS_TRANSLUCENT:
+		case contents_t::TRANSLUCENT:
 			// Log("(traslucent)\n");
 			return 2;
-		case CONTENTS_CURRENT_0:
+		case contents_t::CURRENT_0:
 			// Log("(current_0)\n");
 			return 3;
-		case CONTENTS_CURRENT_90:
+		case contents_t::CURRENT_90:
 			// Log("(current_90)\n");
 			return 4;
-		case CONTENTS_CURRENT_180:
+		case contents_t::CURRENT_180:
 			// Log("(current_180)\n");
 			return 5;
-		case CONTENTS_CURRENT_270:
+		case contents_t::CURRENT_270:
 			// Log("(current_270)\n");
 			return 6;
-		case CONTENTS_CURRENT_UP:
+		case contents_t::CURRENT_UP:
 			// Log("(current_up)\n");
 			return 7;
-		case CONTENTS_CURRENT_DOWN:
+		case contents_t::CURRENT_DOWN:
 			// Log("(current_down)\n");
 			return 8;
-		case CONTENTS_SLIME:
+		case contents_t::SLIME:
 			// Log("(slime)\n");
 			return 9;
-		case CONTENTS_LAVA:
+		case contents_t::LAVA:
 			// Log("(lava)\n");
 			return 10;
-		case CONTENTS_SKY:
+		case contents_t::SKY:
 			// Log("(sky)\n");
 			return 11;
-		case CONTENTS_SOLID:
+		case contents_t::SOLID:
 			// Log("(solid)\n");
 			return 12;
 
 		default:
 			hlassert(false);
-			Error("RankForContents: bad contents %i", contents);
+			Error(
+				"RankForContents: bad contents %i",
+				std::to_underlying(contents)
+			);
 	}
 	return -1;
 }
@@ -984,42 +986,42 @@ static int RankForContents(int const contents) {
 // =====================================================================================
 //  ContentsForRank
 // =====================================================================================
-static int ContentsForRank(int const rank) {
+static contents_t ContentsForRank(std::int32_t rank) {
 	switch (rank) {
 		case -1:
-			return CONTENTS_EMPTY;
+			return contents_t::EMPTY;
 		case 0:
-			return CONTENTS_EMPTY;
+			return contents_t::EMPTY;
 		case 1:
-			return CONTENTS_WATER;
+			return contents_t::WATER;
 		case 2:
-			return CONTENTS_TRANSLUCENT;
+			return contents_t::TRANSLUCENT;
 		case 3:
-			return CONTENTS_CURRENT_0;
+			return contents_t::CURRENT_0;
 		case 4:
-			return CONTENTS_CURRENT_90;
+			return contents_t::CURRENT_90;
 		case 5:
-			return CONTENTS_CURRENT_180;
+			return contents_t::CURRENT_180;
 		case 6:
-			return CONTENTS_CURRENT_270;
+			return contents_t::CURRENT_270;
 		case 7:
-			return CONTENTS_CURRENT_UP;
+			return contents_t::CURRENT_UP;
 		case 8:
-			return CONTENTS_CURRENT_DOWN;
+			return contents_t::CURRENT_DOWN;
 		case 9:
-			return CONTENTS_SLIME;
+			return contents_t::SLIME;
 		case 10:
-			return CONTENTS_LAVA;
+			return contents_t::LAVA;
 		case 11:
-			return CONTENTS_SKY;
+			return contents_t::SKY;
 		case 12:
-			return CONTENTS_SOLID;
+			return contents_t::SOLID;
 
 		default:
 			hlassert(false);
 			Error("ContentsForRank: bad rank %i", rank);
 	}
-	return -1;
+	return contents_t::EMPTY;
 }
 
 // =====================================================================================
@@ -1059,39 +1061,6 @@ static void FreeLeafBrushes(node_t* leaf) {
 // =====================================================================================
 #define MAX_LEAF_FACES 16384
 
-char const * ContentsToString(int contents) {
-	switch (contents) {
-		case CONTENTS_EMPTY:
-			return "EMPTY";
-		case CONTENTS_SOLID:
-			return "SOLID";
-		case CONTENTS_WATER:
-			return "WATER";
-		case CONTENTS_SLIME:
-			return "SLIME";
-		case CONTENTS_LAVA:
-			return "LAVA";
-		case CONTENTS_SKY:
-			return "SKY";
-		case CONTENTS_CURRENT_0:
-			return "CURRENT_0";
-		case CONTENTS_CURRENT_90:
-			return "CURRENT_90";
-		case CONTENTS_CURRENT_180:
-			return "CURRENT_180";
-		case CONTENTS_CURRENT_270:
-			return "CURRENT_270";
-		case CONTENTS_CURRENT_UP:
-			return "CURRENT_UP";
-		case CONTENTS_CURRENT_DOWN:
-			return "CURRENT_DOWN";
-		case CONTENTS_TRANSLUCENT:
-			return "TRANSLUCENT";
-		default:
-			return "UNKNOWN";
-	}
-}
-
 static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 	face_t* f;
 	surface_t* surf;
@@ -1103,8 +1072,8 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 			continue;
 		}
 		for (f = surf->faces; f; f = f->next) {
-			if (f->contents == CONTENTS_HINT) {
-				f->contents = CONTENTS_EMPTY;
+			if (f->contents == contents_t::HINT) {
+				f->contents = contents_t::EMPTY;
 			}
 			if (f->detaillevel) {
 				continue;
@@ -1139,8 +1108,8 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 		}
 		Warning(
 			"Ambiguous leafnode content ( %s and %s ) at (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f) in hull %d of model %d (entity: classname \"%s\", origin \"%s\", targetname \"%s\")",
-			ContentsToString(ContentsForRank(r)),
-			ContentsToString(ContentsForRank(rank)),
+			(char const *) ContentsToString(ContentsForRank(r)).data(),
+			(char const *) ContentsToString(ContentsForRank(rank)).data(),
 			leafnode->mins[0],
 			leafnode->mins[1],
 			leafnode->mins[2],
@@ -1160,7 +1129,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 				Developer(
 					developer_level::spam,
 					"content = %d plane = %d normal = (%g,%g,%g)\n",
-					f2->contents,
+					std::to_underlying(f2->contents),
 					f2->planenum,
 					g_mapplanes[f2->planenum].normal[0],
 					g_mapplanes[f2->planenum].normal[1],
@@ -1198,7 +1167,8 @@ static void MakeLeaf(node_t* leafnode) {
 	}
 	leafnode->boundsbrush = nullptr;
 
-	if (!(leafnode->isportalleaf && leafnode->contents == CONTENTS_SOLID)) {
+	if (!(leafnode->isportalleaf && leafnode->contents == contents_t::SOLID
+		)) {
 		nummarkfaces = 0;
 		for (surf = leafnode->surfaces; surf; surf = surf->next) {
 			if (!surf->onnode) {
@@ -1473,7 +1443,7 @@ static void CopyFacesToNode(node_t* node, surface_t* surf) {
 		if (f->facestyle == face_discardable) {
 			continue;
 		}
-		if (f->contents != CONTENTS_SOLID) {
+		if (f->contents != contents_t::SOLID) {
 			newf = AllocFace();
 			*newf = *f;
 			f->original = newf;
@@ -1515,7 +1485,7 @@ static void BuildBspTree_r(node_t* node) {
 	if (!node->isdetail && (!split || split->detaillevel > 0)) {
 		node->isportalleaf = true;
 		LinkLeafFaces(node->surfaces, node); // set contents
-		if (node->contents == CONTENTS_SOLID) {
+		if (node->contents == contents_t::SOLID) {
 			split = nullptr;
 		}
 	} else {

@@ -154,7 +154,7 @@ static void AddHullPlane(
 	bface_t new_face{};
 	new_face.planenum = planenum;
 	new_face.plane = &g_mapplanes[planenum];
-	new_face.contents = CONTENTS_EMPTY;
+	new_face.contents = contents_t::EMPTY;
 	new_face.texinfo = -1;
 	hull->faces.emplace_back(std::move(new_face));
 }
@@ -841,7 +841,7 @@ restart:
 			goto restart;
 		} else {
 			f.w = w;
-			f.contents = CONTENTS_EMPTY;
+			f.contents = contents_t::EMPTY;
 			for (std::size_t i = 0; i < w.size(); ++i) {
 				add_to_bounding_box(h->bounds, w.point(i));
 			}
@@ -944,126 +944,77 @@ bool MakeBrushPlanes(brush_t* b) {
 static contents_t TextureContents(wad_texture_name name) {
 	if (name.is_any_content_type()) {
 		if (name.is_contentsolid()) {
-			return CONTENTS_SOLID;
+			return contents_t::SOLID;
 		}
 		if (name.is_contentwater()) {
-			return CONTENTS_WATER;
+			return contents_t::WATER;
 		}
 		if (name.is_contentempty()) {
-			return CONTENTS_TOEMPTY;
+			return contents_t::TOEMPTY;
 		}
 		if (name.is_contentsky()) {
-			return CONTENTS_SKY;
+			return contents_t::SKY;
 		}
 	}
 	if (name.is_ordinary_sky() || name.is_env_sky()) {
-		return CONTENTS_SKY;
+		return contents_t::SKY;
 	}
 
 	if (name.is_any_liquid()) {
 		if (name.is_lava()) {
-			return CONTENTS_LAVA;
+			return contents_t::LAVA;
 		}
 		if (name.is_slime()) {
-			return CONTENTS_SLIME;
+			return contents_t::SLIME;
 		}
 
 		if (name.is_water_with_current_0()) {
-			return CONTENTS_CURRENT_0;
+			return contents_t::CURRENT_0;
 		}
 		if (name.is_water_with_current_90()) {
-			return CONTENTS_CURRENT_90;
+			return contents_t::CURRENT_90;
 		}
 		if (name.is_water_with_current_180()) {
-			return CONTENTS_CURRENT_180;
+			return contents_t::CURRENT_180;
 		}
 		if (name.is_water_with_current_270()) {
-			return CONTENTS_CURRENT_270;
+			return contents_t::CURRENT_270;
 		}
 		if (name.is_water_with_current_down()) {
-			return CONTENTS_CURRENT_DOWN;
+			return contents_t::CURRENT_DOWN;
 		}
 		if (name.is_water_with_current_up()) {
-			return CONTENTS_CURRENT_UP;
+			return contents_t::CURRENT_UP;
 		}
-		return CONTENTS_WATER;
+		return contents_t::WATER;
 	}
 
 	if (name.is_origin()) {
-		return CONTENTS_ORIGIN;
+		return contents_t::ORIGIN;
 	}
 	if (name.is_bounding_box()) {
-		return CONTENTS_BOUNDINGBOX;
+		return contents_t::BOUNDINGBOX;
 	}
 
 	if (name.is_solid_hint() || name.is_bevel_hint()
 		|| name.is_ordinary_null() || name.is_ordinary_bevel()) {
-		return CONTENTS_NULL;
+		return contents_t::CONTENTS_NULL;
 	}
 	if (name.is_splitface()) {
-		return CONTENTS_HINT;
+		return contents_t::HINT;
 	}
 	if (name.is_ordinary_hint()) {
-		return CONTENTS_TOEMPTY;
+		return contents_t::TOEMPTY;
 	}
 	if (name.is_skip()) {
-		return CONTENTS_TOEMPTY;
+		return contents_t::TOEMPTY;
 	}
 
 	if (name.is_transculent()) {
-		return CONTENTS_TRANSLUCENT;
+		return contents_t::TRANSLUCENT;
 	}
 
-	return CONTENTS_SOLID;
-}
-
-// =====================================================================================
-//  ContentsToString
-// =====================================================================================
-char const * ContentsToString(contents_t const type) {
-	switch (type) {
-		case CONTENTS_EMPTY:
-			return "EMPTY";
-		case CONTENTS_SOLID:
-			return "SOLID";
-		case CONTENTS_WATER:
-			return "WATER";
-		case CONTENTS_SLIME:
-			return "SLIME";
-		case CONTENTS_LAVA:
-			return "LAVA";
-		case CONTENTS_SKY:
-			return "SKY";
-		case CONTENTS_ORIGIN:
-			return "ORIGIN";
-		case CONTENTS_BOUNDINGBOX:
-			return "BOUNDINGBOX";
-		case CONTENTS_CURRENT_0:
-			return "CURRENT_0";
-		case CONTENTS_CURRENT_90:
-			return "CURRENT_90";
-		case CONTENTS_CURRENT_180:
-			return "CURRENT_180";
-		case CONTENTS_CURRENT_270:
-			return "CURRENT_270";
-		case CONTENTS_CURRENT_UP:
-			return "CURRENT_UP";
-		case CONTENTS_CURRENT_DOWN:
-			return "CURRENT_DOWN";
-		case CONTENTS_TRANSLUCENT:
-			return "TRANSLUCENT";
-		case CONTENTS_HINT:
-			return "HINT";
-
-		case CONTENTS_NULL:
-			return "NULL";
-
-		case CONTENTS_TOEMPTY:
-			return "EMPTY";
-
-		default:
-			return "UNKNOWN";
-	}
+	return contents_t::SOLID;
 }
 
 // =====================================================================================
@@ -1127,18 +1078,18 @@ contents_t CheckBrushContents(brush_t const * const b) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t const contents2 = TextureContents(textureNameB);
 		if (assigned && !textureNameB.is_any_content_type()
-			&& !textureNameB.is_skip() && contents2 != CONTENTS_ORIGIN
-			&& contents2 != CONTENTS_HINT
-			&& contents2 != CONTENTS_BOUNDINGBOX) {
+			&& !textureNameB.is_skip() && contents2 != contents_t::ORIGIN
+			&& contents2 != contents_t::HINT
+			&& contents2 != contents_t::BOUNDINGBOX) {
 			continue; // overwrite content for this texture
 		}
 
 		// AJM: sky and null types are not to cause mixed face contents
-		if (contents2 == CONTENTS_SKY) {
+		if (contents2 == contents_t::SKY) {
 			continue;
 		}
 
-		if (contents2 == CONTENTS_NULL) {
+		if (contents2 == contents_t::CONTENTS_NULL) {
 			continue;
 		}
 
@@ -1153,21 +1104,21 @@ contents_t CheckBrushContents(brush_t const * const b) {
 			);
 		}
 	}
-	if (contents == CONTENTS_NULL) {
-		contents = CONTENTS_SOLID;
+	if (contents == contents_t::CONTENTS_NULL) {
+		contents = contents_t::SOLID;
 	}
 
 	// check to make sure we dont have an origin brush as part of worldspawn
 	if ((b->entitynum == 0)
 		|| classname_is(&g_entities[b->entitynum], u8"func_group")) {
-		if (contents == CONTENTS_ORIGIN && b->entitynum == 0
-			|| contents == CONTENTS_BOUNDINGBOX) {
+		if (contents == contents_t::ORIGIN && b->entitynum == 0
+			|| contents == contents_t::BOUNDINGBOX) {
 			Fatal(
 				assume_BRUSH_NOT_ALLOWED_IN_WORLD,
 				"Entity %i, Brush %i: %s brushes not allowed in world\n(did you forget to tie this origin brush to a rotating entity?)",
 				b->originalentitynum,
 				b->originalbrushnum,
-				ContentsToString(contents)
+				(char const *) ContentsToString(contents).data()
 			);
 		}
 	} else {
@@ -1175,14 +1126,14 @@ contents_t CheckBrushContents(brush_t const * const b) {
 		// make sure this brush is allowed
 		//  to be an entity.
 		switch (contents) {
-			case CONTENTS_SOLID:
-			case CONTENTS_WATER:
-			case CONTENTS_SLIME:
-			case CONTENTS_LAVA:
-			case CONTENTS_ORIGIN:
-			case CONTENTS_BOUNDINGBOX:
-			case CONTENTS_HINT:
-			case CONTENTS_TOEMPTY:
+			case contents_t::SOLID:
+			case contents_t::WATER:
+			case contents_t::SLIME:
+			case contents_t::LAVA:
+			case contents_t::ORIGIN:
+			case contents_t::BOUNDINGBOX:
+			case contents_t::HINT:
+			case contents_t::TOEMPTY:
 				break;
 			default:
 				Fatal(
@@ -1190,7 +1141,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 					"Entity %i, Brush %i: %s brushes not allowed in entity",
 					b->originalentitynum,
 					b->originalbrushnum,
-					ContentsToString(contents)
+					(char const *) ContentsToString(contents).data()
 				);
 				break;
 		}
@@ -1206,17 +1157,17 @@ contents_t CheckBrushContents(brush_t const * const b) {
 void CreateBrush(int const brushnum) //--vluzacn
 {
 	brush_t* b;
-	int contents;
+	contents_t contents;
 	int h;
 
 	b = &g_mapbrushes[brushnum];
 
 	contents = b->contents;
 
-	if (contents == CONTENTS_ORIGIN) {
+	if (contents == contents_t::ORIGIN) {
 		return;
 	}
-	if (contents == CONTENTS_BOUNDINGBOX) {
+	if (contents == contents_t::BOUNDINGBOX) {
 		return;
 	}
 
@@ -1224,10 +1175,10 @@ void CreateBrush(int const brushnum) //--vluzacn
 	MakeBrushPlanes(b);
 	MakeHullFaces(b, &b->hulls[0]);
 
-	if (contents == CONTENTS_HINT) {
+	if (contents == contents_t::HINT) {
 		return;
 	}
-	if (contents == CONTENTS_TOEMPTY) {
+	if (contents == contents_t::TOEMPTY) {
 		return;
 	}
 
@@ -1246,7 +1197,7 @@ void CreateBrush(int const brushnum) //--vluzacn
 				MakeHullFaces(b, &b->hulls[h]);
 			}
 		}
-		b->contents = CONTENTS_SOLID;
+		b->contents = contents_t::SOLID;
 		// Is this necessary?
 		b->hulls[0].faces.clear();
 	} else if (!b->noclip) {
@@ -1609,7 +1560,7 @@ void CreateHullShape(
 
 	for (int i = 0; i < entity->numbrushes; i++) {
 		brush_t* b = &g_mapbrushes[entity->firstbrush + i];
-		if (b->contents == CONTENTS_ORIGIN) {
+		if (b->contents == contents_t::ORIGIN) {
 			continue;
 		}
 		hs->brushes[hs->numbrushes] = CreateHullBrush(b);

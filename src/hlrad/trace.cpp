@@ -51,7 +51,9 @@ static void MakeTnode(int const nodenum) {
 
 	for (i = 0; i < 2; i++) {
 		if (node->children[i] < 0) {
-			t->children[i] = g_dleafs[-node->children[i] - 1].contents;
+			t->children[i] = std::to_underlying(
+				g_dleafs[-node->children[i] - 1].contents
+			);
 		} else {
 			t->children[i] = tnode_p - tnodes;
 			MakeTnode(node->children[i]);
@@ -82,11 +84,10 @@ void MakeTnodes(dmodel_t* /*bm*/) {
 
 //==========================================================
 
-static int TestLine_r(
+static contents_t TestLine_r(
 	int const node,
 	float3_array const & start,
 	float3_array const & stop,
-	int& linecontent,
 	float3_array& skyhit
 ) {
 	tnode_t* tnode;
@@ -94,24 +95,20 @@ static int TestLine_r(
 	float3_array mid;
 	float frac;
 	int side;
-	int r;
+	contents_t r;
 
 	if (node < 0) {
-		if (node == linecontent) {
-			return CONTENTS_EMPTY;
+		if (node != 0) {
+			contents_t nodeContents{ node };
+			if (nodeContents == contents_t::SOLID) {
+				return contents_t::SOLID;
+			}
+			if (nodeContents == contents_t::SKY) {
+				skyhit = start;
+				return contents_t::SKY;
+			}
 		}
-		if (node == CONTENTS_SOLID) {
-			return CONTENTS_SOLID;
-		}
-		if (node == CONTENTS_SKY) {
-			skyhit = start;
-			return CONTENTS_SKY;
-		}
-		if (linecontent) {
-			return CONTENTS_SOLID;
-		}
-		linecontent = node;
-		return CONTENTS_EMPTY;
+		return contents_t::EMPTY;
 	}
 
 	tnode = &tnodes[node];
@@ -140,32 +137,24 @@ static int TestLine_r(
 	}
 
 	if (front > ON_EPSILON / 2 && back > ON_EPSILON / 2) {
-		return TestLine_r(
-			tnode->children[0], start, stop, linecontent, skyhit
-		);
+		return TestLine_r(tnode->children[0], start, stop, skyhit);
 	}
 	if (front < -ON_EPSILON / 2 && back < -ON_EPSILON / 2) {
-		return TestLine_r(
-			tnode->children[1], start, stop, linecontent, skyhit
-		);
+		return TestLine_r(tnode->children[1], start, stop, skyhit);
 	}
 	if (fabs(front) <= ON_EPSILON && fabs(back) <= ON_EPSILON) {
-		int r1 = TestLine_r(
-			tnode->children[0], start, stop, linecontent, skyhit
-		);
-		if (r1 == CONTENTS_SOLID) {
-			return CONTENTS_SOLID;
+		contents_t r1 = TestLine_r(tnode->children[0], start, stop, skyhit);
+		if (r1 == contents_t::SOLID) {
+			return contents_t::SOLID;
 		}
-		int r2 = TestLine_r(
-			tnode->children[1], start, stop, linecontent, skyhit
-		);
-		if (r2 == CONTENTS_SOLID) {
-			return CONTENTS_SOLID;
+		contents_t r2 = TestLine_r(tnode->children[1], start, stop, skyhit);
+		if (r2 == contents_t::SOLID) {
+			return contents_t::SOLID;
 		}
-		if (r1 == CONTENTS_SKY || r2 == CONTENTS_SKY) {
-			return CONTENTS_SKY;
+		if (r1 == contents_t::SKY || r2 == contents_t::SKY) {
+			return contents_t::SKY;
 		}
-		return CONTENTS_EMPTY;
+		return contents_t::EMPTY;
 	}
 	side = (front - back) < 0;
 	frac = front / (front - back);
@@ -178,22 +167,19 @@ static int TestLine_r(
 	mid[0] = start[0] + (stop[0] - start[0]) * frac;
 	mid[1] = start[1] + (stop[1] - start[1]) * frac;
 	mid[2] = start[2] + (stop[2] - start[2]) * frac;
-	r = TestLine_r(tnode->children[side], start, mid, linecontent, skyhit);
-	if (r != CONTENTS_EMPTY) {
+	r = TestLine_r(tnode->children[side], start, mid, skyhit);
+	if (r != contents_t::EMPTY) {
 		return r;
 	}
-	return TestLine_r(
-		tnode->children[!side], mid, stop, linecontent, skyhit
-	);
+	return TestLine_r(tnode->children[!side], mid, stop, skyhit);
 }
 
-int TestLine(
+contents_t TestLine(
 	float3_array const & start,
 	float3_array const & stop,
 	float3_array& skyhit
 ) {
-	int linecontent = 0;
-	return TestLine_r(0, start, stop, linecontent, skyhit);
+	return TestLine_r(0, start, stop, skyhit);
 }
 
 struct opaqueface_t {
@@ -649,7 +635,7 @@ TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 	while (1) {
 		if (nodenum < 0) {
 			if (solid
-				&& g_dleafs[-nodenum - 1].contents == CONTENTS_SOLID) {
+				&& g_dleafs[-nodenum - 1].contents == contents_t::SOLID) {
 				return true;
 			} else {
 				return false;

@@ -90,7 +90,7 @@ void MakeHeadnodePortals(
 		bounds[1][i] = maxs[i] + SIDESPACE;
 	}
 
-	g_outside_node.contents = CONTENTS_SOLID;
+	g_outside_node.contents = contents_t::SOLID;
 	g_outside_node.portals = nullptr;
 
 	for (std::size_t i = 0; i < 3; ++i) {
@@ -154,7 +154,7 @@ static void WritePortalFile_r(node_t const * const node) {
 		return;
 	}
 
-	if (node->contents == CONTENTS_SOLID) {
+	if (node->contents == contents_t::SOLID) {
 		return;
 	}
 
@@ -291,7 +291,7 @@ static void NumberLeafs_r(node_t* node) {
 	}
 
 	if (node->contents
-		== CONTENTS_SOLID) { // solid block, viewpoint never inside
+		== contents_t::SOLID) { // solid block, viewpoint never inside
 		node->visleafnum = -1;
 		return;
 	}
@@ -330,7 +330,7 @@ static void WriteLeafCount_r(node_t* node) {
 	if (!node->isportalleaf) {
 		WriteLeafCount_r(node->children[0]);
 		WriteLeafCount_r(node->children[1]);
-	} else if (node->contents != CONTENTS_SOLID) {
+	} else if (node->contents != contents_t::SOLID) {
 		int count = CountChildLeafs_r(node);
 		fprintf(pf, "%i\n", count);
 	}

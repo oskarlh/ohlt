@@ -2788,7 +2788,7 @@ static void GatherSampleLight(
 								float3_array skyhit;
 								VectorCopy(delta, skyhit);
 								if (TestLine(pos, delta, skyhit)
-									!= CONTENTS_SKY) {
+									!= contents_t::SKY) {
 									continue; // occluded
 								}
 
@@ -2892,7 +2892,7 @@ static void GatherSampleLight(
 								float3_array skyhit;
 								VectorCopy(delta, skyhit);
 								if (TestLine(pos, delta, skyhit)
-									!= CONTENTS_SKY) {
+									!= contents_t::SKY) {
 									continue; // occluded
 								}
 
@@ -3215,7 +3215,7 @@ static void GatherSampleLight(
 							}
 						}
 						if (TestLine(pos, testline_origin)
-							!= CONTENTS_EMPTY) {
+							!= contents_t::EMPTY) {
 							continue;
 						}
 						float3_array transparency;
