@@ -74,4 +74,4 @@ since modern HL doesn't use the mipmaps in OpenGL mode
 
 
 To apply changes in .clang-format:
-find src -iname '*.h' -o -iname '*.cpp' | xargs /opt/homebrew/opt/llvm@18/bin/clang-format -i
+find src -iname '*.h' -o -iname '*.cpp' | xargs ${HOMEBREW_PREFIX}/opt/llvm@18/bin/clang-format -i

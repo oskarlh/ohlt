@@ -33,7 +33,7 @@
 			"name": "base-macos-clang18-homebrew",
 
 			"cacheVariables": {
-				"CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@18/bin/clang++"
+				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/opt/llvm@18/bin/clang++"
 			}
 		},
 		{
@@ -41,7 +41,7 @@
 			"name": "base-macos-gcc14-homebrew",
 
 			"cacheVariables": {
-				"CMAKE_CXX_COMPILER": "/opt/homebrew/bin/g++-14"
+				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/bin/g++-14"
 			}
 		},
 		{
