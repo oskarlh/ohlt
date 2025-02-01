@@ -295,12 +295,12 @@ void TranslateWorldToTex(int facenum, matrix_t& m)
 	ti = &g_texinfo[f->texinfo];
 	fp = getPlaneFromFace(f);
 	for (std::size_t i = 0; i < 3; ++i) {
-		m.v[i][0] = ti->vecs[0][i];
-		m.v[i][1] = ti->vecs[1][i];
+		m.v[i][0] = ti->vecs[0].xyz[i];
+		m.v[i][1] = ti->vecs[1].xyz[i];
 		m.v[i][2] = fp->normal[i];
 	}
-	m.v[3][0] = ti->vecs[0][3];
-	m.v[3][1] = ti->vecs[1][3];
+	m.v[3][0] = ti->vecs[0].offset;
+	m.v[3][1] = ti->vecs[1].offset;
 	m.v[3][2] = -fp->dist;
 }
 
@@ -588,7 +588,7 @@ void FindFacePositions(int facenum)
 	map->grid = nullptr;
 
 	ti = &g_texinfo[f->texinfo];
-	if (ti->flags & TEX_SPECIAL) {
+	if (ti->has_special_flag()) {
 		map->valid = false;
 		return;
 	}

@@ -31,7 +31,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 	}
 	tex = &g_texinfo[f->texturenum];
 
-	if (tex->flags & TEX_SPECIAL) {
+	if (tex->has_special_flag()) {
 		return;
 	}
 
@@ -56,7 +56,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			maxs = -99'999'999;
 
 			for (i = 0; i < f->numpoints; i++) {
-				v = DotProduct(f->pts[i], tex->vecs[axis]);
+				v = DotProduct(f->pts[i], tex->vecs[axis].xyz);
 				if (v < mins) {
 					mins = v;
 				}
@@ -73,7 +73,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			subdivides++;
 
 			double3_array temp;
-			VectorCopy(tex->vecs[axis], temp);
+			VectorCopy(tex->vecs[axis].xyz, temp);
 			v = normalize_vector(temp);
 
 			VectorCopy(temp, plane.normal);

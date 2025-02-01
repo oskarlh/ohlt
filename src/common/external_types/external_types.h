@@ -1,5 +1,7 @@
 #pragma once
 
+#include "texinfo.h"
+
 #include <cstddef>
 #include <cstdint>
 

@@ -1064,9 +1064,6 @@ int main(int argc, char** argv) {
 					break;
 			}
 			if (g_chart) {
-				if (!CalcFaceExtents_test()) {
-					Warning("internal error: CalcFaceExtents_test failed.");
-				}
 				print_bsp_file_sizes(bspGlobals);
 			}
 			if (updatebsp) {

@@ -297,7 +297,7 @@ void PairEdges() {
 
 	f = g_dfaces.data();
 	for (i = 0; i < g_numfaces; i++, f++) {
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		if (g_texinfo[f->texinfo].has_special_flag()) {
 			// special textures don't have lightmaps
 			continue;
 		}
@@ -723,9 +723,8 @@ static void CalcFaceExtents(lightinfo_t* l) {
 		}
 
 		for (j = 0; j < 2; j++) {
-			val = v->point[0] * tex->vecs[j][0]
-				+ v->point[1] * tex->vecs[j][1]
-				+ v->point[2] * tex->vecs[j][2] + tex->vecs[j][3];
+			val = dot_product(v->point, tex->vecs[j].xyz)
+				+ tex->vecs[j].offset;
 			if (val < mins[j]) {
 				mins[j] = val;
 			}
@@ -749,7 +748,7 @@ static void CalcFaceExtents(lightinfo_t* l) {
 		l->texsize[i] = bmaxs[i] - bmins[i];
 	}
 
-	if (!(tex->flags & TEX_SPECIAL)) {
+	if (!(tex->has_special_flag())) {
 		if ((l->texsize[0] > MAX_SURFACE_EXTENT)
 			|| (l->texsize[1] > MAX_SURFACE_EXTENT) || l->texsize[0] < 0
 			|| l->texsize[1] < 0 //--vluzacn
@@ -835,14 +834,12 @@ static void CalcFaceVectors(lightinfo_t* l) {
 
 	// convert from float to double
 	for (i = 0; i < 2; i++) {
-		for (j = 0; j < 3; j++) {
-			l->worldtotex[i][j] = tex->vecs[i][j];
-		}
+		l->worldtotex[i] = tex->vecs[i].xyz;
 	}
 
 	// calculate a normal to the texture axis.  points can be moved along
 	// this without changing their S/T
-	CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
+	CrossProduct(tex->vecs[1].xyz, tex->vecs[0].xyz, texnormal);
 	normalize_vector(texnormal);
 
 	// flip it towards plane normal
@@ -877,8 +874,8 @@ static void CalcFaceVectors(lightinfo_t* l) {
 
 	// calculate texorg on the texture plane
 	for (i = 0; i < 3; i++) {
-		l->texorg[i] = -tex->vecs[0][3] * l->textoworld[0][i]
-			- tex->vecs[1][3] * l->textoworld[1][i];
+		l->texorg[i] = -tex->vecs[0].offset * l->textoworld[0][i]
+			- tex->vecs[1].offset * l->textoworld[1][i];
 	}
 
 	// project back to the face plane
@@ -2725,9 +2722,9 @@ static void GatherSampleLight(
 
 		for (x = 0; x < 2; x++) {
 			CrossProduct(
-				tex->vecs[1 - x], dp->normal, texlightgap_textoworld[x]
+				tex->vecs[1 - x].xyz, dp->normal, texlightgap_textoworld[x]
 			);
-			len = DotProduct(texlightgap_textoworld[x], tex->vecs[x]);
+			len = DotProduct(texlightgap_textoworld[x], tex->vecs[x].xyz);
 			if (fabs(len) < NORMAL_EPSILON) {
 				VectorClear(texlightgap_textoworld[x]);
 			} else {
@@ -3943,7 +3940,7 @@ void BuildFacelights(int const facenum) {
 		f_styles[j] = 255;
 	}
 
-	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+	if (g_texinfo[f->texinfo].has_special_flag()) {
 		for (j = 0; j < MAXLIGHTMAPS; j++) {
 			f->styles[j] = 255;
 		}
@@ -4599,7 +4596,7 @@ void PrecompLightmapOffsets() {
 		f = &g_dfaces[facenum];
 		fl = &facelight[facenum];
 
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		if (g_texinfo[f->texinfo].has_special_flag()) {
 			continue; // non-lit texture
 		}
 
@@ -4748,7 +4745,7 @@ void ReduceLightmap() {
 	for (facenum = 0; facenum < g_numfaces; facenum++) {
 		dface_t* f = &g_dfaces[facenum];
 		facelight_t* fl = &facelight[facenum];
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		if (g_texinfo[f->texinfo].has_special_flag()) {
 			continue; // non-lit texture
 		}
 		// just need to zero the lightmap so that it won't contribute to
@@ -4956,8 +4953,10 @@ void MLH_GetSamples_r(
 			if (f->lightofs == -1) {
 				continue;
 			}
-			int s = (int) (DotProduct(mid, tex->vecs[0]) + tex->vecs[0][3]);
-			int t = (int) (DotProduct(mid, tex->vecs[1]) + tex->vecs[1][3]);
+			int s = (int) (DotProduct(mid, tex->vecs[0].xyz)
+						   + tex->vecs[0].offset);
+			int t = (int) (DotProduct(mid, tex->vecs[1].xyz)
+						   + tex->vecs[1].offset);
 			int texturemins[2], extents[2];
 			MLH_CalcExtents(f, texturemins, extents);
 			if (s < texturemins[0] || t < texturemins[1]) {
@@ -5117,7 +5116,7 @@ void CreateFacelightDependencyList() {
 	for (facenum = 0; facenum < g_numfaces; facenum++) {
 		f = &g_dfaces[facenum];
 		fl = &facelight[facenum];
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		if (g_texinfo[f->texinfo].has_special_flag()) {
 			continue;
 		}
 
@@ -5182,7 +5181,7 @@ void ScaleDirectLights() {
 	for (facenum = 0; facenum < g_numfaces; facenum++) {
 		f = &g_dfaces[facenum];
 
-		if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+		if (g_texinfo[f->texinfo].has_special_flag()) {
 			continue;
 		}
 
@@ -5212,7 +5211,7 @@ void AddPatchLights(int facenum) {
 
 	f = &g_dfaces[facenum];
 
-	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+	if (g_texinfo[f->texinfo].has_special_flag()) {
 		return;
 	}
 
@@ -5313,7 +5312,7 @@ void FinalLightFace(int const facenum) {
 	f = &g_dfaces[facenum];
 	fl = &facelight[facenum];
 
-	if (g_texinfo[f->texinfo].flags & TEX_SPECIAL) {
+	if (g_texinfo[f->texinfo].has_special_flag()) {
 		return; // non-lit texture
 	}
 

@@ -505,106 +505,105 @@ void WriteBSPFile(std::filesystem::path const & filename) {
 // =====================================================================================
 
 float CalculatePointVecsProduct(
-	float const volatile * point, float const volatile * vecs
+	float3_array const & point, tex_vec const & vecs
 ) {
 	double volatile val;
 	double volatile tmp;
 
+	//	float3_array const volatile  & x {vecs.xyz[0]};
+	//	float const volatile  & offset {vecs.offset};
+
 	val = (double) point[0]
-		* (double
-		) vecs[0]; // always do one operation at a time and save to memory
-	tmp = (double) point[1] * (double) vecs[1];
+		* (double) vecs.xyz[0]; // Always do one operation at a time and
+								// save to memory
+	tmp = (double) point[1] * (double) vecs.xyz[1];
 	val = val + tmp;
-	tmp = (double) point[2] * (double) vecs[2];
+	tmp = (double) point[2] * (double) vecs.xyz[2];
 	val = val + tmp;
-	val = val + (double) vecs[3];
+	val = val + (double) vecs.offset;
 
 	return (float) val;
 }
 
 bool CalcFaceExtents_test() {
-	int const numtestcases = 6;
-	float volatile testcases[numtestcases][8] = {
-		{
-			1,
-			1,
-			1,
-			1,
-			0.375 * std::numeric_limits<double>::epsilon(),
-			0.375 * std::numeric_limits<double>::epsilon(),
-			-1,
-			0,
-		},
-		{
-			1,
-			1,
-			1,
-			0.375 * std::numeric_limits<double>::epsilon(),
-			0.375 * std::numeric_limits<double>::epsilon(),
-			1,
-			-1,
+	struct test_case {
+		float3_array point;
+		tex_vec tv;
+		float expectedResult;
+	};
+
+	std::array<test_case, 6> testCases = {
+		test_case{
+			float3_array{ 1.0f, 1.0f, 1.0f },
+			tex_vec{ float3_array{
+						 1.0f,
+						 0.375 * std::numeric_limits<double>::epsilon(),
+						 0.375 * std::numeric_limits<double>::epsilon() },
+					 -1.0f },
+			0.0f },
+		test_case{
+			float3_array{ 1.0f, 1.0f, 1.0f },
+			tex_vec{ float3_array{
+						 0.375 * std::numeric_limits<double>::epsilon(),
+						 0.375 * std::numeric_limits<double>::epsilon(),
+						 1.0f },
+					 -1.0f },
 			std::numeric_limits<double>::epsilon(),
 		},
-		{
-			std::numeric_limits<double>::epsilon(),
-			std::numeric_limits<double>::epsilon(),
-			1,
-			0.375,
-			0.375,
-			1,
-			-1,
+		test_case{
+			float3_array{ std::numeric_limits<double>::epsilon(),
+						  std::numeric_limits<double>::epsilon(),
+						  1.0f },
+			tex_vec{ float3_array{ 0.375f, 0.375f, 1.0f }, -1.0f },
 			std::numeric_limits<double>::epsilon(),
 		},
-		{
-			1,
-			1,
-			1,
-			1,
-			1,
-			0.375 * std::numeric_limits<float>::epsilon(),
-			-2,
-			0.375 * std::numeric_limits<float>::epsilon(),
-		},
-		{
-			1,
-			1,
-			1,
-			1,
-			0.375 * std::numeric_limits<float>::epsilon(),
-			1,
-			-2,
+		test_case{
+			float3_array{ 1.0f, 1.0f, 1.0f },
+			tex_vec{ float3_array{
+						 1.0f,
+						 1.0f,
+						 0.375 * std::numeric_limits<float>::epsilon() },
+					 -2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
 		},
-		{
-			1,
-			1,
-			1,
+		test_case{
+			float3_array{ 1.0f, 1.0f, 1.0f },
+			tex_vec{
+				float3_array{ 1.0f,
+							  0.375 * std::numeric_limits<float>::epsilon(),
+							  1.0f },
+				-2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
-			1,
-			1,
-			-2,
+		},
+		test_case{
+			float3_array{ 1.0f, 1.0f, 1.0f },
+			tex_vec{
+				float3_array{ 0.375 * std::numeric_limits<float>::epsilon(),
+							  1.0f,
+							  1.0f },
+				-2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
 		}
 	};
-	bool ok;
 
 	// If the test failed, please check:
 	//   1. whether the calculation is performed on FPU
 	//   2. whether the register precision is too low
 
-	ok = true;
-	for (int i = 0; i < 6; i++) {
-		float val = CalculatePointVecsProduct(
-			&testcases[i][0], &testcases[i][3]
+	bool ok = true;
+	for (std::size_t i = 0; i < testCases.size(); ++i) {
+		test_case const & testCase = testCases[i];
+		float const result = CalculatePointVecsProduct(
+			testCase.point, testCase.tv
 		);
-		if (val != testcases[i][7]) {
+		if (result != testCase.expectedResult) {
 			Warning(
-				"internal error: CalcFaceExtents_test failed on case %d "
+				"internal error: CalcFaceExtents_test failed on case %zu "
 				"(%.20f "
 				"!= %.20f).",
 				i,
-				val,
-				testcases[i][7]
+				result,
+				testCase.expectedResult
 			);
 			ok = false;
 		}
@@ -623,7 +622,7 @@ void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]) {
 	f = &g_dfaces[facenum];
 
 	mins[0] = mins[1] = 999'999;
-	maxs[0] = maxs[1] = -99999;
+	maxs[0] = maxs[1] = -999'999;
 
 	tex = &g_texinfo[ParseTexinfoForFace(f)];
 
@@ -654,9 +653,7 @@ void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]) {
 			// function CalcFaceExtents in HLSDK. So we must also
 			// know how Valve compiles HLSDK. I think Valve compiles
 			// HLSDK with VC6.0 in the past.
-			val = CalculatePointVecsProduct(
-				v->point.data(), tex->vecs[j].data()
-			);
+			val = CalculatePointVecsProduct(v->point, tex->vecs[j]);
 			if (val < mins[j]) {
 				mins[j] = val;
 			}

@@ -2,7 +2,7 @@
 
 #include "cmdlib.h"
 #include "entity_key_value.h"
-#include "external_types.h"
+#include "external_types/external_types.h"
 #include "mathlib.h"
 #include "wad_texture_name.h"
 
@@ -277,18 +277,6 @@ struct dclipnode_t {
 	std::int32_t planenum;
 	std::int16_t children[2]; // Negative numbers are contents
 };
-
-using tex_vecs = std::array<std::array<float, 4>, 2>; // [s/t][xyz offset]
-
-struct texinfo_t {
-	tex_vecs vecs;
-	std::int32_t miptex;
-	std::uint32_t flags;
-};
-
-// texinfo.flags only has one flag supported by the engine:
-constexpr std::uint32_t TEX_SPECIAL
-	= 1; // Sky or slime or null, no lightmap or 256 subdivision
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face

@@ -454,14 +454,14 @@ static void SaveOutside(
 
 			if (texinfo != -1 // nullified textures (nullptr, BEVEL,
 							  // aaatrigger, etc.)
-				&& !(tex->flags & TEX_SPECIAL) // sky
+				&& !tex->has_special_flag() // sky
 				&& !texname.is_skip()
 				&& !texname.is_any_hint(
 				) // HINT and SKIP will be nullified only after hlbsp
 			) {
 				// check for "Malformed face (%d) normal"
 				double3_array texnormal;
-				CrossProduct(tex->vecs[1], tex->vecs[0], texnormal);
+				CrossProduct(tex->vecs[1].xyz, tex->vecs[0].xyz, texnormal);
 				normalize_vector(texnormal);
 				if (fabs(DotProduct(texnormal, f.plane->normal))
 					<= NORMAL_EPSILON) {
@@ -480,8 +480,8 @@ static void SaveOutside(
 				bad = false;
 				for (double3_array const & point : f.w.points()) {
 					for (int j = 0; j < 2; ++j) {
-						val = DotProduct(point, tex->vecs[j])
-							+ tex->vecs[j][3];
+						val = DotProduct(point, tex->vecs[j].xyz)
+							+ tex->vecs[j].offset;
 						if (val < -99999 || val > 999'999) {
 							bad = true;
 						}

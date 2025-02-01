@@ -1,6 +1,6 @@
 #pragma once
 
-#include "external_types.h"
+#include "external_types/external_types.h"
 #include "mathtypes.h"
 
 #include <array>

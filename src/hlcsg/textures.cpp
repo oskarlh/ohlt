@@ -806,7 +806,7 @@ int TexinfoForBrushTexture(
 		|| textureName.is_origin() || textureName.is_ordinary_null()
 		|| textureName.is_aaatrigger()) {
 		// actually only 'sky' and 'aaatrigger' needs this. --vluzacn
-		tx.flags |= TEX_SPECIAL;
+		tx.set_special_flag(true);
 	}
 
 	if (!bt->vects.scale[0]) {
@@ -817,13 +817,15 @@ int TexinfoForBrushTexture(
 	}
 
 	double scale = 1 / bt->vects.scale[0];
-	VectorScale(bt->vects.UAxis, scale, tx.vecs[0]);
+	VectorScale(bt->vects.UAxis, scale, tx.vecs[0].xyz);
 
 	scale = 1 / bt->vects.scale[1];
-	VectorScale(bt->vects.VAxis, scale, tx.vecs[1]);
+	VectorScale(bt->vects.VAxis, scale, tx.vecs[1].xyz);
 
-	tx.vecs[0][3] = bt->vects.shift[0] + DotProduct(origin, tx.vecs[0]);
-	tx.vecs[1][3] = bt->vects.shift[1] + DotProduct(origin, tx.vecs[1]);
+	tx.vecs[0].offset = bt->vects.shift[0]
+		+ DotProduct(origin, tx.vecs[0].xyz);
+	tx.vecs[1].offset = bt->vects.shift[1]
+		+ DotProduct(origin, tx.vecs[1].xyz);
 
 	//
 	// find the g_texinfo

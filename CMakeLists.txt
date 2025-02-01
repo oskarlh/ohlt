@@ -53,7 +53,8 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/cmdlinecfg.h
     ${COMMON_DIR}/cli_option_defaults.h
     ${COMMON_DIR}/entity_key_value.h
-    ${COMMON_DIR}/external_types.h
+    ${COMMON_DIR}/external_types/external_types.h
+    ${COMMON_DIR}/external_types/texinfo.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/hull_size.h

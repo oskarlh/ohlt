@@ -601,7 +601,7 @@ static float3_array BaseLightForFace(dface_t const * const f) {
 //  IsSpecial
 // =====================================================================================
 static bool IsSpecial(dface_t const * const f) {
-	return g_texinfo[f->texinfo].flags & TEX_SPECIAL;
+	return g_texinfo[f->texinfo].has_special_flag();
 }
 
 // =====================================================================================
@@ -906,9 +906,8 @@ static void getGridPlanes(patch_t const * const p, dplane_t* const pl) {
 
 	for (x = 0; x < 2; x++, plane++) {
 		// cut the patch along texel grid planes
-		float val;
-		val = DotProduct(faceplane->normal, tx->vecs[!x]);
-		VectorMA(tx->vecs[!x], -val, faceplane->normal, plane->normal);
+		float const val = DotProduct(faceplane->normal, tx->vecs[!x].xyz);
+		VectorMA(tx->vecs[!x].xyz, -val, faceplane->normal, plane->normal);
 		normalize_vector(plane->normal);
 		plane->dist = DotProduct(plane->normal, patch->origin);
 	}
@@ -1227,9 +1226,12 @@ static float getScale(patch_t const * const patch) {
 		// snap texture "vecs" to faceplane without affecting texture
 		// alignment
 		for (std::size_t x = 0; x < 2; ++x) {
-			dot = DotProduct(faceplane->normal, tx->vecs[x]);
+			dot = DotProduct(faceplane->normal, tx->vecs[x].xyz);
 			VectorMA(
-				tx->vecs[x], -dot, faceplane->normal, vecs_perpendicular[x]
+				tx->vecs[x].xyz,
+				-dot,
+				faceplane->normal,
+				vecs_perpendicular[x]
 			);
 		}
 

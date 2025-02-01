@@ -1029,7 +1029,7 @@ GetValidTextureName(std::uint32_t miptex) {
 
 void EmbedLightmapInTextures() {
 	if (g_dlightdata.empty()) {
-		// hlrad hasn't run
+		// HLRAD hasn't run
 		return;
 	}
 	if (!g_texdatasize) {
@@ -1037,7 +1037,7 @@ void EmbedLightmapInTextures() {
 		return;
 	}
 	if (g_notextures) {
-		// hlrad didn't load the wad files
+		// HLRAD didn't load the WAD files
 		return;
 	}
 
@@ -1050,7 +1050,7 @@ void EmbedLightmapInTextures() {
 	for (i = 0; i < g_numfaces; i++) {
 		dface_t* f = &g_dfaces[i];
 
-		if (f->lightofs == -1) // some faces don't have lightmap
+		if (f->lightofs == -1) // Some faces don't have a lightmap
 		{
 			continue;
 		}
@@ -1071,13 +1071,12 @@ void EmbedLightmapInTextures() {
 
 		radtexture_t* tex = &g_textures[originaltexinfo->miptex];
 
-		if (ent == &g_entities[0]) // world
+		if (ent == &g_entities[0]) // World
 		{
 			continue;
 		}
 		if (texname.is_ordinary_sky()
-			|| originaltexinfo->flags
-				& TEX_SPECIAL) // skip special surfaces
+			|| originaltexinfo->has_special_flag()) // Skip special surfaces
 		{
 			continue;
 		}
@@ -1416,8 +1415,11 @@ void EmbedLightmapInTextures() {
 		if (resolution != 1) {
 			// apply a scale and a shift over the original vectors
 			for (k = 0; k < 2; k++) {
-				VectorScale(info->vecs[k], 1.0 / resolution, info->vecs[k]);
-				info->vecs[k][3] = info->vecs[k][3] / resolution + 0.5;
+				VectorScale(
+					info->vecs[k].xyz, 1.0 / resolution, info->vecs[k].xyz
+				);
+				info->vecs[k].offset = info->vecs[k].offset / resolution
+					+ 0.5;
 			}
 		}
 		info->miptex = NewTextures_GetCurrentMiptexIndex();

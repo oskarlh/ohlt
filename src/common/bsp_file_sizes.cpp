@@ -75,7 +75,7 @@ std::size_t count_blocks(bsp_data const & bspData) {
 		) get_texture_by_number(ParseTexinfoForFace(f));
 		if (texname.is_ordinary_sky() // Sky, no lightmap allocation
 			|| texname.is_water()	  // Water, no lightmap allocation
-			|| (g_texinfo[ParseTexinfoForFace(f)].flags & TEX_SPECIAL
+			|| g_texinfo[ParseTexinfoForFace(f)].has_special_flag(
 			) // AAATRIGGER, I don't know
 		) {
 			continue;
