@@ -53,12 +53,14 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/cmdlinecfg.h
     ${COMMON_DIR}/cli_option_defaults.h
     ${COMMON_DIR}/entity_key_value.h
+    ${COMMON_DIR}/external_types.h
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/hull_size.h
+    ${COMMON_DIR}/internal_types.h
     ${COMMON_DIR}/legacy_character_encodings.h
     ${COMMON_DIR}/log.h
-    ${COMMON_DIR}/map_token_parser.h
+    ${COMMON_DIR}/map_entity_parser.h
     ${COMMON_DIR}/mathlib.h
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h

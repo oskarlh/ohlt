@@ -371,7 +371,7 @@ static surface_t* ChooseMidPlaneFromList(
 	surface_t* surfaces,
 	double3_array const & mins,
 	double3_array const & maxs,
-	int detaillevel
+	detail_level detailLevel
 ) {
 	surface_t* p;
 	surface_t* bestsurface;
@@ -395,7 +395,7 @@ static surface_t* ChooseMidPlaneFromList(
 		if (p->onnode) {
 			continue;
 		}
-		if (p->detaillevel != detaillevel) {
+		if (p->detailLevel != detailLevel) {
 			continue;
 		}
 
@@ -502,9 +502,9 @@ static surface_t* ChoosePlaneFromList(
 	surface_t* surfaces,
 	double3_array const & mins,
 	double3_array const & maxs
-	// mins and maxs are invalid when detaillevel > 0
+	// mins and maxs are invalid when detailLevel > 0
 	,
-	int detaillevel
+	detail_level detailLevel
 ) {
 	surface_t* p;
 	surface_t* bestsurface;
@@ -534,7 +534,7 @@ static surface_t* ChoosePlaneFromList(
 		if (p->onnode) {
 			continue;
 		}
-		if (p->detaillevel != detaillevel) {
+		if (p->detailLevel != detailLevel) {
 			continue;
 		}
 		planecount++;
@@ -613,7 +613,7 @@ static surface_t* ChoosePlaneFromList(
 		if (p->onnode) {
 			continue;
 		}
-		if (p->detaillevel != detaillevel) {
+		if (p->detailLevel != detailLevel) {
 			continue;
 		}
 		value = tmpvalue[p->planenum][0]
@@ -632,55 +632,51 @@ static surface_t* ChoosePlaneFromList(
 	return bestsurface;
 }
 
-// =====================================================================================
-//  SelectPartition
-//      Selects a surface from a linked list of surfaces to split the group
-//      on returns NULL if the surface list can not be divided any more (a
-//      leaf)
-// =====================================================================================
-int CalcSplitDetaillevel(node_t const * node) {
-	int bestdetaillevel = -1;
-	surface_t* s;
-	face_t* f;
-	for (s = node->surfaces; s; s = s->next) {
+std::optional<detail_level> CalcSplitDetaillevel(node_t const * node) {
+	detail_level bestDetailLevel = std::numeric_limits<detail_level>::max();
+	bool found{};
+	for (surface_t const * s = node->surfaces; s; s = s->next) {
 		if (s->onnode) {
 			continue;
 		}
-		for (f = s->faces; f; f = f->next) {
+		for (face_t const * f = s->faces; f; f = f->next) {
 			if (f->facestyle == face_discardable) {
 				continue;
 			}
-			if (bestdetaillevel == -1 || f->detaillevel < bestdetaillevel) {
-				bestdetaillevel = f->detaillevel;
-			}
+			bestDetailLevel = std::min(bestDetailLevel, f->detailLevel);
+			found = true;
 		}
 	}
-	return bestdetaillevel;
+	if (!found) {
+		return std::nullopt;
+	}
+	return bestDetailLevel;
 }
+
+// SelectPartition selects a surface from a linked list of surfaces to split
+// the group on. Returns nullptr if the surface list cannot be
+// divided any more (a leaf)
 
 static surface_t* SelectPartition(
 	surface_t* surfaces,
 	node_t const * const node,
 	bool const usemidsplit,
-	int splitdetaillevel,
+	detail_level splitDetailLevel,
 	double3_array const & validmins,
 	double3_array const & validmaxs
 ) {
-	if (splitdetaillevel == -1) {
-		return nullptr;
-	}
-	// now we MUST choose a surface of this detail level
+	// We must choose a surface of this detail level
 
 	if (usemidsplit) {
 		surface_t* s = ChooseMidPlaneFromList(
-			surfaces, validmins, validmaxs, splitdetaillevel
+			surfaces, validmins, validmaxs, splitDetailLevel
 		);
 		if (s != nullptr) {
 			return s;
 		}
 	}
 	return ChoosePlaneFromList(
-		surfaces, node->mins, node->maxs, splitdetaillevel
+		surfaces, node->mins, node->maxs, splitDetailLevel
 	);
 }
 
@@ -689,10 +685,6 @@ static surface_t* SelectPartition(
 //      Calculates the bounding box
 // =====================================================================================
 static void CalcSurfaceInfo(surface_t* surf) {
-	int i;
-	int j;
-	face_t* f;
-
 	hlassume(
 		surf->faces != nullptr, assume_ValidPointer
 	); // "CalcSurfaceInfo() surface without a face"
@@ -700,18 +692,17 @@ static void CalcSurfaceInfo(surface_t* surf) {
 	//
 	// calculate a bounding box
 	//
-	for (i = 0; i < 3; i++) {
-		surf->mins[i] = 99999;
-		surf->maxs[i] = -99999;
-	}
+	surf->mins.fill(99999);
+	surf->maxs.fill(-99999);
 
-	surf->detaillevel = -1;
-	for (f = surf->faces; f; f = f->next) {
+	// A surface's detailLevel is the minimum detail level of its faces
+	surf->detailLevel = std::numeric_limits<detail_level>::max();
+	for (face_t const * f = surf->faces; f; f = f->next) {
 		if (std::to_underlying(f->contents) >= 0) {
 			Error("Bad contents");
 		}
-		for (i = 0; i < f->numpoints; i++) {
-			for (j = 0; j < 3; j++) {
+		for (std::size_t i = 0; i < f->numpoints; ++i) {
+			for (std::size_t j = 0; j < 3; ++j) {
 				if (f->pts[i][j] < surf->mins[j]) {
 					surf->mins[j] = f->pts[i][j];
 				}
@@ -720,18 +711,21 @@ static void CalcSurfaceInfo(surface_t* surf) {
 				}
 			}
 		}
-		if (surf->detaillevel == -1 || f->detaillevel < surf->detaillevel) {
-			surf->detaillevel = f->detaillevel;
-		}
+		surf->detailLevel = std::min(surf->detailLevel, f->detailLevel);
 	}
 }
 
-void FixDetaillevelForDiscardable(node_t* node, int detaillevel) {
-	// when we move on to the next detaillevel, some discardable faces of
+static void FixDetaillevelForDiscardable(
+	node_t* node, std::optional<detail_level> detailLevel
+) {
+	// When we move on to the next detailLevel, some discardable faces of
 	// previous detail level remain not on node (because they are
-	// discardable). remove them now
+	// discardable). Remove them now
 	surface_t *s, **psnext;
 	face_t *f, **pfnext;
+	detail_level detailLevelOrMax = detailLevel.value_or(
+		std::numeric_limits<detail_level>::max()
+	);
 	for (psnext = &node->surfaces; s = *psnext, s != nullptr;) {
 		if (s->onnode) {
 			psnext = &s->next;
@@ -739,7 +733,7 @@ void FixDetaillevelForDiscardable(node_t* node, int detaillevel) {
 		}
 		hlassume(s->faces, assume_ValidPointer);
 		for (pfnext = &s->faces; f = *pfnext, f != nullptr;) {
-			if (detaillevel == -1 || f->detaillevel < detaillevel) {
+			if (f->detailLevel <= detailLevelOrMax) {
 				*pfnext = f->next;
 				FreeFace(f);
 			} else {
@@ -752,10 +746,7 @@ void FixDetaillevelForDiscardable(node_t* node, int detaillevel) {
 		} else {
 			psnext = &s->next;
 			CalcSurfaceInfo(s);
-			hlassume(
-				!(detaillevel == -1 || s->detaillevel < detaillevel),
-				assume_first
-			);
+			hlassume(s->detailLevel > detailLevelOrMax, assume_first);
 		}
 	}
 }
@@ -1075,7 +1066,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 			if (f->contents == contents_t::HINT) {
 				f->contents = contents_t::EMPTY;
 			}
-			if (f->detaillevel) {
+			if (f->detailLevel) {
 				continue;
 			}
 			r = RankForContents(f->contents);
@@ -1089,7 +1080,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 			continue;
 		}
 		for (f = surf->faces; f; f = f->next) {
-			if (f->detaillevel) {
+			if (f->detailLevel) {
 				continue;
 			}
 			r = RankForContents(f->contents);
@@ -1457,7 +1448,6 @@ static void CopyFacesToNode(node_t* node, surface_t* surf) {
 //  BuildBspTree_r
 // =====================================================================================
 static void BuildBspTree_r(node_t* node) {
-	surface_t* split;
 	bool midsplit;
 	surface_t* allsurfs;
 	double3_array validmins, validmaxs;
@@ -1472,17 +1462,21 @@ static void BuildBspTree_r(node_t* node) {
 		node->loosemaxs.fill(-hlbsp_bogus_range);
 	}
 
-	int splitdetaillevel = CalcSplitDetaillevel(node);
-	FixDetaillevelForDiscardable(node, splitdetaillevel);
-	split = SelectPartition(
-		node->surfaces,
-		node,
-		midsplit,
-		splitdetaillevel,
-		validmins,
-		validmaxs
+	std::optional<detail_level> splitDetailLevel = CalcSplitDetaillevel(node
 	);
-	if (!node->isdetail && (!split || split->detaillevel > 0)) {
+	FixDetaillevelForDiscardable(node, splitDetailLevel);
+	surface_t* split{};
+	if (splitDetailLevel) {
+		split = SelectPartition(
+			node->surfaces,
+			node,
+			midsplit,
+			splitDetailLevel.value(),
+			validmins,
+			validmaxs
+		);
+	}
+	if (!node->isdetail && (!split || split->detailLevel > 0)) {
 		node->isportalleaf = true;
 		LinkLeafFaces(node->surfaces, node); // set contents
 		if (node->contents == contents_t::SOLID) {
@@ -1505,8 +1499,8 @@ static void BuildBspTree_r(node_t* node) {
 
 	node->children[0] = AllocNode();
 	node->children[1] = AllocNode();
-	node->children[0]->isdetail = split->detaillevel > 0;
-	node->children[1]->isdetail = split->detaillevel > 0;
+	node->children[0]->isdetail = split->detailLevel > 0;
+	node->children[1]->isdetail = split->detailLevel > 0;
 
 	// split all the polysurfaces into front and back lists
 	SplitNodeSurfaces(allsurfs, node);
@@ -1548,7 +1542,7 @@ static void BuildBspTree_r(node_t* node) {
 	}
 	node->boundsbrush = nullptr;
 
-	if (!split->detaillevel) {
+	if (!split->detailLevel) {
 		MakeNodePortal(node);
 		SplitNodePortals(node);
 	}

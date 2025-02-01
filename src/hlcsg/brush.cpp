@@ -21,7 +21,7 @@ constexpr double FLOOR_Z = 0.7; // Quake default
 // =====================================================================================
 
 static int
-FindIntPlane(double const * const normal, double const * const origin) {
+FindIntPlane(double3_array const & normal, double3_array const & origin) {
 	int returnval;
 	mapplane_t* p;
 	mapplane_t temp;
@@ -102,19 +102,13 @@ find_plane:
 	return returnval;
 }
 
-int PlaneFromPoints(
-	double const * const p0,
-	double const * const p1,
-	double const * const p2
-) {
-	double3_array v1, v2;
-	double3_array normal;
+static int PlaneFromPoints(std::array<double3_array, 3> const & points) {
+	double3_array v1 = vector_subtract(points[0], points[1]);
+	double3_array v2 = vector_subtract(points[2], points[1]);
+	double3_array normal = cross_product(v1, v2);
 
-	VectorSubtract(p0, p1, v1);
-	VectorSubtract(p2, p1, v2);
-	CrossProduct(v1, v2, normal);
 	if (normalize_vector(normal)) {
-		return FindIntPlane(normal.data(), p0);
+		return FindIntPlane(normal, points[0]);
 	}
 	return -1;
 }
@@ -136,8 +130,8 @@ char const * GetClipTypeString(cliptype ct) {
 
 static void AddHullPlane(
 	brushhull_t* hull,
-	double const * const normal,
-	double const * const origin,
+	double3_array const & normal,
+	double3_array const & origin,
 	bool const check_planenum
 ) {
 	int planenum = FindIntPlane(normal, origin);
@@ -277,7 +271,7 @@ void ExpandBrushWithHullBrush(
 		} else {
 			VectorSubtract(brushface.point, bestvertex, origin);
 		}
-		AddHullPlane(hull, normal.data(), origin.data(), true);
+		AddHullPlane(hull, normal, origin, true);
 	}
 
 	// check for edge-edge type. edge-face type and face-edge type are
@@ -361,7 +355,7 @@ void ExpandBrushWithHullBrush(
 					continue;
 				}
 				VectorSubtract(brushedge.point, hbe->point, origin);
-				AddHullPlane(hull, normal.data(), origin.data(), true);
+				AddHullPlane(hull, normal, origin, true);
 			}
 		}
 	}
@@ -394,7 +388,7 @@ void ExpandBrushWithHullBrush(
 		} else {
 			VectorSubtract(bestvertex, hbf->point, origin);
 		}
-		AddHullPlane(hull, normal.data(), origin.data(), true);
+		AddHullPlane(hull, normal, origin, true);
 	}
 
 	free(axialbevel);
@@ -532,7 +526,7 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 			origin[2] += g_hull_size[hullnum][(normal[2] > 0 ? 1 : 0)][2];
 		}
 
-		AddHullPlane(hull, normal.data(), origin.data(), false);
+		AddHullPlane(hull, normal, origin, false);
 	} // end for loop over all faces
 
 	// step 2: for collision between player edge and brush edge. --vluzacn
@@ -703,7 +697,7 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 
 						// add the bevel plane to the expanded hull
 						AddHullPlane(
-							hull, normal.data(), origin.data(), true
+							hull, normal, origin, true
 						); // double check that this edge hasn't been added
 						   // yet
 					}
@@ -723,30 +717,30 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	double3_array normal{ -1, 0, 0 };
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_x)][0]
-			 ? brush->hulls[0].bounds.mins.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.mins
+			 : origin),
 		false
 	);
 	normal[0] = 0;
 	normal[1] = -1;
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_y)][0]
-			 ? brush->hulls[0].bounds.mins.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.mins
+			 : origin),
 		false
 	);
 	normal[1] = 0;
 	normal[2] = -1;
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_z)][0]
-			 ? brush->hulls[0].bounds.mins.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.mins
+			 : origin),
 		false
 	);
 
@@ -757,30 +751,30 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 	normal[0] = 1;
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_x)][1]
-			 ? brush->hulls[0].bounds.maxs.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.maxs
+			 : origin),
 		false
 	);
 	normal[0] = 0;
 	normal[1] = 1;
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_y)][1]
-			 ? brush->hulls[0].bounds.maxs.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.maxs
+			 : origin),
 		false
 	);
 	normal[1] = 0;
 	normal[2] = 1;
 	AddHullPlane(
 		hull,
-		normal.data(),
+		normal,
 		(axialbevel[std::size_t(planetype::plane_z)][1]
-			 ? brush->hulls[0].bounds.maxs.data()
-			 : origin.data()),
+			 ? brush->hulls[0].bounds.maxs
+			 : origin),
 		false
 	);
 }
@@ -872,7 +866,6 @@ restart:
 //  MakeBrushPlanes
 // =====================================================================================
 bool MakeBrushPlanes(brush_t* b) {
-	int i;
 	int j;
 	int planenum;
 	side_t* s;
@@ -888,14 +881,12 @@ bool MakeBrushPlanes(brush_t* b) {
 	// convert to mapplanes
 	//
 	// for each side in this brush
-	for (i = 0; i < b->numsides; i++) {
+	for (brush_side_count i = 0; i < b->numsides; ++i) {
 		s = &g_brushsides[b->firstside + i];
-		for (j = 0; j < 3; j++) {
-			VectorSubtract(s->planepts[j], origin, s->planepts[j]);
+		for (std::size_t j = 0; j < 3; ++j) {
+			s->planepts[j] = vector_subtract(s->planepts[j], origin);
 		}
-		planenum = PlaneFromPoints(
-			s->planepts[0], s->planepts[1], s->planepts[2]
-		);
+		planenum = PlaneFromPoints(s->planepts);
 		if (planenum == -1) {
 			Fatal(
 				assume_PLANE_WITH_NO_NORMAL,
@@ -1026,8 +1017,6 @@ contents_t CheckBrushContents(brush_t const * const b) {
 	contents_t best_contents;
 	contents_t contents;
 	side_t* s;
-	int i;
-	int best_i;
 	bool assigned = false;
 
 	s = &g_brushsides[b->firstside];
@@ -1042,7 +1031,6 @@ contents_t CheckBrushContents(brush_t const * const b) {
 			b->originalbrushnum
 		);
 	}
-	best_i = 0;
 	wad_texture_name const textureNameA{ s->td.name };
 	best_contents = TextureContents(textureNameA);
 	// Difference between SKIP, ContentEmpty:
@@ -1052,7 +1040,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 		assigned = true;
 	}
 	s++;
-	for (i = 1; i < b->numsides; i++, s++) {
+	brush_side_count best_i{ 0 };
+	for (brush_side_count i = 1; i < b->numsides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t contents_consider = TextureContents(textureNameB);
 		if (assigned) {
@@ -1074,7 +1063,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 
 	// attempt to pick up on mixed_face_contents errors
 	s = &g_brushsides[b->firstside];
-	for (i = 0; i < b->numsides; i++, s++) {
+	for (brush_side_count i = 0; i < b->numsides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t const contents2 = TextureContents(textureNameB);
 		if (assigned && !textureNameB.is_any_content_type()
@@ -1219,9 +1208,6 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 	hullbrushedge_t edges[MAXSIZE];
 	int numvertexes;
 	hullbrushvertex_t vertexes[MAXSIZE];
-	int i;
-	int j;
-	int k;
 	int e;
 	int e2;
 	double3_array origin;
@@ -1232,18 +1218,15 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 	numplanes = 0;
 	origin = get_double3_for_key(g_entities[b->entitynum], u8"origin");
 
-	for (i = 0; i < b->numsides; i++) {
+	for (brush_side_count i = 0; i < b->numsides; ++i) {
 		side_t* s;
 		double3_array p[3];
-		double3_array v1;
-		double3_array v2;
-		double3_array normal;
 		planetype axial;
 
 		s = &g_brushsides[b->firstside + i];
-		for (j = 0; j < 3; j++) {
-			VectorSubtract(s->planepts[j], origin, p[j]);
-			for (k = 0; k < 3; k++) {
+		for (std::size_t j = 0; j < 3; ++j) {
+			p[j] = vector_subtract(s->planepts[j], origin);
+			for (std::size_t k = 0; k < 3; ++k) {
 				if (fabs(p[j][k] - floor(p[j][k] + 0.5)) <= ON_EPSILON
 					&& p[j][k] != floor(p[j][k] + 0.5)) {
 					Warning(
@@ -1257,14 +1240,14 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				}
 			}
 		}
-		VectorSubtract(p[0], p[1], v1);
-		VectorSubtract(p[2], p[1], v2);
-		CrossProduct(v1, v2, normal);
+		double3_array normal = cross_product(
+			vector_subtract(p[0], p[1]), vector_subtract(p[2], p[1])
+		);
 		if (!normalize_vector(normal)) {
 			failed = true;
 			continue;
 		}
-		for (k = 0; k < 3; k++) {
+		for (std::size_t k = 0; k < 3; ++k) {
 			if (fabs(normal[k]) < NORMAL_EPSILON) {
 				normal[k] = 0.0;
 				normalize_vector(normal);
@@ -1272,7 +1255,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 		}
 		axial = plane_type_for_normal(normal);
 		if (axial <= last_axial) {
-			double sign = normal[std::size_t(axial)] > 0 ? 1 : -1;
+			double const sign = normal[std::size_t(axial)] > 0 ? 1 : -1;
 			normal = double3_array{};
 			normal[std::size_t(axial)] = sign;
 		}
@@ -1281,16 +1264,16 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 			failed = true;
 			continue;
 		}
-		VectorCopy(normal, planes[numplanes].normal);
-		planes[numplanes].dist = DotProduct(p[1], normal);
+		planes[numplanes].normal = normal;
+		planes[numplanes].dist = dot_product(p[1], normal);
 		numplanes++;
 	}
 
 	// windings
 
-	for (i = 0; i < numplanes; i++) {
+	for (std::size_t i = 0; i < numplanes; i++) {
 		w[i] = new accurate_winding(planes[i].normal, planes[i].dist);
-		for (j = 0; j < numplanes; j++) {
+		for (std::size_t j = 0; j < numplanes; j++) {
 			if (j == i) {
 				continue;
 			}
@@ -1306,10 +1289,9 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 
 	// edges
 	numedges = 0;
-	for (i = 0; i < numplanes; i++) {
+	for (std::size_t i = 0; i < numplanes; i++) {
 		for (e = 0; e < w[i]->size(); e++) {
 			hullbrushedge_t* edge;
-			int found;
 			if (numedges >= MAXSIZE) {
 				failed = true;
 				continue;
@@ -1325,9 +1307,10 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				failed = true;
 				continue;
 			}
-			VectorCopy(planes[i].normal, edge->normals[0]);
-			found = 0;
-			for (k = 0; k < numplanes; k++) {
+			edge->normals[0] = planes[i].normal;
+			std::size_t found{ 0 };
+			std::size_t j;
+			for (std::size_t k = 0; k < numplanes; ++k) {
 				for (e2 = 0; e2 < w[k]->size(); e2++) {
 					if (vectors_almost_same(
 							w[k]->point((e2 + 1) % w[k]->size()),
@@ -1336,8 +1319,8 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 						&& vectors_almost_same(
 							w[k]->point(e2), edge->vertexes[0]
 						)) {
-						found++;
-						VectorCopy(planes[k].normal, edge->normals[1]);
+						++found;
+						edge->normals[1] = planes[k].normal;
 						j = k;
 					}
 				}
@@ -1347,19 +1330,19 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				continue;
 			}
 			if (fabs(
-					DotProduct(edge->vertexes[0], edge->normals[0])
+					dot_product(edge->vertexes[0], edge->normals[0])
 					- planes[i].dist
 				) > NORMAL_EPSILON
 				|| fabs(
-					   DotProduct(edge->vertexes[1], edge->normals[0])
+					   dot_product(edge->vertexes[1], edge->normals[0])
 					   - planes[i].dist
 				   ) > NORMAL_EPSILON
 				|| fabs(
-					   DotProduct(edge->vertexes[0], edge->normals[1])
+					   dot_product(edge->vertexes[0], edge->normals[1])
 					   - planes[j].dist
 				   ) > NORMAL_EPSILON
 				|| fabs(
-					   DotProduct(edge->vertexes[1], edge->normals[1])
+					   dot_product(edge->vertexes[1], edge->normals[1])
 					   - planes[j].dist
 				   ) > NORMAL_EPSILON) {
 				failed = true;
@@ -1373,9 +1356,10 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 
 	// vertexes
 	numvertexes = 0;
-	for (i = 0; i < numplanes; ++i) {
+	for (std::size_t i = 0; i < numplanes; ++i) {
 		for (e = 0; e < w[i]->size(); e++) {
 			double3_array const & v = w[i]->point(e);
+			std::size_t j;
 			for (j = 0; j < numvertexes; j++) {
 				if (vectors_almost_same(vertexes[j].point, v)) {
 					break;
@@ -1392,7 +1376,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 			vertexes[numvertexes].point = v;
 			numvertexes++;
 
-			for (k = 0; k < numplanes; k++) {
+			for (std::size_t k = 0; k < numplanes; k++) {
 				if (fabs(dot_product(v, planes[k].normal) - planes[k].dist)
 					< ON_EPSILON) {
 					if (fabs(
@@ -1418,7 +1402,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 			hb->numfaces * sizeof(hullbrushface_t)
 		);
 		hlassume(hb->faces != nullptr, assume_NoMemory);
-		for (i = 0; i < numplanes; i++) {
+		for (std::size_t i = 0; i < numplanes; i++) {
 			hullbrushface_t* f = &hb->faces[i];
 			f->normal = planes[i].normal;
 			f->point = w[i]->point(0);
@@ -1427,7 +1411,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 				f->numvertexes * sizeof(double3_array)
 			);
 			hlassume(f->vertexes != nullptr, assume_NoMemory);
-			for (k = 0; k < w[i]->size(); ++k) {
+			for (std::size_t k = 0; k < w[i]->size(); ++k) {
 				f->vertexes[k] = w[i]->point(k);
 			}
 		}
@@ -1469,7 +1453,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 		);
 	}
 
-	for (i = 0; i < numplanes; i++) {
+	for (std::size_t i = 0; i < numplanes; i++) {
 		delete w[i];
 	}
 

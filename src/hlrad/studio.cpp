@@ -185,24 +185,12 @@ void LoadStudioModels() {
 			xform.fill(scale);
 		}
 
-		// check xform values
-		if (xform[0] < 0.01f) {
-			xform[0] = 1.0f;
-		}
-		if (xform[1] < 0.01f) {
-			xform[1] = 1.0f;
-		}
-		if (xform[2] < 0.01f) {
-			xform[2] = 1.0f;
-		}
-		if (xform[0] > 16.0f) {
-			xform[0] = 16.0f;
-		}
-		if (xform[1] > 16.0f) {
-			xform[1] = 16.0f;
-		}
-		if (xform[2] > 16.0f) {
-			xform[2] = 16.0f;
+		// Check xform values
+		for (float& xformElement : xform) {
+			if (xformElement < 0.01f) {
+				xformElement = 1.0f;
+			}
+			xformElement = std::min(16.0f, xformElement);
 		}
 
 		LoadStudioModel(

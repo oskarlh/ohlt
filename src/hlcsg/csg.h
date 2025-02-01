@@ -8,6 +8,7 @@
 #include "hlassert.h"
 #include "hlcsg_settings.h"
 #include "hull_size.h"
+#include "internal_types.h"
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"
@@ -38,9 +39,6 @@
 #define DEFAULT_NOLIGHTOPT	   false
 #define DEFAULT_NULLIFYTRIGGER true
 
-// AJM: added in
-#define UNLESS(a) if (!(a))
-
 struct valve220_vects {
 	double3_array UAxis;
 	double3_array VAxis;
@@ -54,10 +52,12 @@ struct brush_texture_t {
 	wad_texture_name name;
 };
 
+using side_index = std::uint32_t;
+
 struct side_t {
 	brush_texture_t td;
 	bool bevel;
-	double planepts[3][3];
+	std::array<double3_array, 3> planepts;
 };
 
 struct bface_t {
@@ -72,13 +72,14 @@ struct bface_t {
 	bool bevel; // used for ExpandBrush
 };
 
-// NUM_HULLS should be no larger than MAX_MAP_HULLS
-#define NUM_HULLS 4
-
 struct brushhull_t {
 	bounding_box bounds;
 	std::vector<bface_t> faces;
 };
+
+using cliphull_bitmask = std::uint8_t;
+static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
+using brush_side_count = std::uint16_t;
 
 struct brush_t {
 	int originalentitynum;
@@ -86,20 +87,20 @@ struct brush_t {
 	int entitynum;
 	int brushnum;
 
-	int firstside;
-	int numsides;
+	side_index firstside;
+	brush_side_count numsides;
 
-	unsigned int
-		noclip; // !!!FIXME: this should be a flag bitfield so we can use it
-				// for other stuff (ie. is this a detail brush...)
-	unsigned int cliphull;
+	cliphull_bitmask cliphull;
+
+	bool noclip;
 	bool bevel;
-	int detaillevel;
-	int chopdown; // allow this brush to chop brushes of lower detail level
-	int chopup;	  // allow this brush to be chopped by brushes of higher
-				  // detail level
-	int clipnodedetaillevel;
-	int coplanarpriority;
+	detail_level detailLevel;
+	detail_level
+		chopDown; // Allow this brush to chop brushes of lower detail level
+	detail_level chopUp; // Allow this brush to be chopped by brushes of
+						 // higher detail level
+	detail_level clipNodeDetailLevel;
+	coplanar_priority coplanarPriority;
 	std::array<std::u8string, NUM_HULLS> hullshapes;
 
 	contents_t contents;

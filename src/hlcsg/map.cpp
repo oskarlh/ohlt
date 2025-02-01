@@ -1,5 +1,6 @@
 #include "csg.h"
 #include "hlcsg_settings.h"
+#include "map_entity_parser.h"
 #include "project_constants.h"
 #include "utf8.h"
 
@@ -83,6 +84,14 @@ static bool CheckForInvisible(entity_t* mapent) {
 		);
 }
 
+void add_brushes(entity_t& mapent, parsed_brushes& brushes) {
+	// If the current entity is part of an invisible entity
+	bool const nullify = CheckForInvisible(&mapent);
+
+	for (auto const & faces : brushes) {
+	}
+}
+
 // =====================================================================================
 //  ParseBrush
 //      parse a brush from script
@@ -110,50 +119,41 @@ static void ParseBrush(entity_t* mapent) {
 	b->entitynum = g_numentities
 		- 1; // Set brush entity number to last created entity
 	b->brushnum = g_nummapbrushes - mapent->firstbrush
-		- 1;	   // Calculate the brush number within the current entity.
-	b->noclip = 0; // Initialize false for now
+		- 1; // Calculate the brush number within the current entity.
 
 	if (IntForKey(mapent, u8"zhlt_noclip")) // If zhlt_noclip
 	{
-		b->noclip = 1;
+		b->noclip = true;
 	}
 	b->cliphull = 0;
 	b->bevel = false;
-	{ // Validate func_detail values
-		b->detaillevel = IntForKey(mapent, u8"zhlt_detaillevel");
-		b->chopdown = IntForKey(mapent, u8"zhlt_chopdown");
-		b->chopup = IntForKey(mapent, u8"zhlt_chopup");
-		b->clipnodedetaillevel = IntForKey(
-			mapent, u8"zhlt_clipnodedetaillevel"
-		);
-		b->coplanarpriority = IntForKey(mapent, u8"zhlt_coplanarpriority");
-		bool wrong = false;
+	{ // func_detail values
+		b->detailLevel = numeric_key_value<detail_level>(
+							 *mapent, u8"zhlt_detaillevel"
+		)
+							 .value_or(0);
 
-		if (b->detaillevel < 0) {
-			wrong = true;
-			b->detaillevel = 0;
-		}
-		if (b->chopdown < 0) {
-			wrong = true;
-			b->chopdown = 0;
-		}
-		if (b->chopup < 0) {
-			wrong = true;
-			b->chopup = 0;
-		}
-		if (b->clipnodedetaillevel < 0) {
-			wrong = true;
-			b->clipnodedetaillevel = 0;
-		}
-		if (wrong) {
-			Warning(
-				"Entity %i, Brush %i: incorrect settings for detail brush.",
-				b->originalentitynum,
-				b->originalbrushnum
-			);
-		}
+		b->chopDown = numeric_key_value<detail_level>(
+						  *mapent, u8"zhlt_chopdown"
+		)
+						  .value_or(0);
+
+		b->chopUp = numeric_key_value<detail_level>(
+						*mapent, u8"zhlt_chopup"
+		)
+						.value_or(0);
+
+		b->clipNodeDetailLevel = numeric_key_value<detail_level>(
+									 *mapent, u8"zhlt_clipnodedetaillevel"
+		)
+									 .value_or(0);
+
+		b->coplanarPriority = numeric_key_value<coplanar_priority>(
+								  *mapent, u8"zhlt_coplanarpriority"
+		)
+								  .value_or(0);
 	}
-	for (std::size_t h = 0; h < NUM_HULLS; h++) // Loop through all hulls
+	for (std::size_t h = 0; h < NUM_HULLS; ++h) // Loop through all hulls
 	{
 		std::array<char8_t, u8"zhlt_hull0"sv.length()> key{
 			u8"zhlt_hull"
@@ -325,7 +325,7 @@ static void ParseBrush(entity_t* mapent) {
 	};
 	if (b->cliphull != 0) // has CLIP* texture
 	{
-		unsigned int mask_anyhull = 0;
+		cliphull_bitmask mask_anyhull = 0;
 		for (int h = 1; h < NUM_HULLS; h++) {
 			mask_anyhull |= (1 << h);
 		}
@@ -511,7 +511,7 @@ static void ParseBrush(entity_t* mapent) {
 //  ParseMapEntity
 //      parse an entity from script
 // =====================================================================================
-bool ParseMapEntity() {
+bool ParseMapEntity(parsed_entity& parsedEntity) {
 	bool all_clip = true;
 	entity_t* mapent;
 
@@ -522,13 +522,13 @@ bool ParseMapEntity() {
 
 	int this_entity = g_numentities;
 
-	if (g_token != u8"{") {
-		Error(
-			"Parsing Entity %i, expected '{' got '%s'",
-			g_numparsedentities,
-			(char const *) g_token.c_str()
-		);
-	}
+	// if (g_token != u8"{") {
+	//	Error(
+	//		"Parsing Entity %i, expected '{' got '%s'",
+	//		g_numparsedentities,
+	//		(char const *) g_token.c_str()
+	//	);
+	// }
 
 	hlassume(g_numentities < MAX_MAP_ENTITIES, assume_MAX_MAP_ENTITIES);
 	g_numentities++;
@@ -536,8 +536,10 @@ bool ParseMapEntity() {
 	mapent = &g_entities[this_entity];
 	mapent->firstbrush = g_nummapbrushes;
 	mapent->numbrushes = 0;
-	mapent->keyValues.reserve(16);
+	mapent->keyValues = std::move(parsedEntity.keyValues);
+	// mapent->keyValues.reserve(16);
 
+	Log("W1");
 	while (1) {
 		if (!GetToken(true)) {
 			Error("ParseEntity: EOF without closing brace");
@@ -569,8 +571,7 @@ bool ParseMapEntity() {
 		);
 	}
 	{
-		int i;
-		for (i = 0; i < mapent->numbrushes; i++) {
+		for (int i = 0; i < mapent->numbrushes; i++) {
 			brush_t* brush = &g_mapbrushes[mapent->firstbrush + i];
 			if (brush->cliphull == 0
 				&& brush->contents != contents_t::ORIGIN
@@ -644,7 +645,6 @@ bool ParseMapEntity() {
 			int ibrush, iside, ipoint;
 			brush_t* brush;
 			side_t* side;
-			double* point;
 			for (ibrush = 0, brush = g_mapbrushes + mapent->firstbrush;
 				 ibrush < mapent->numbrushes;
 				 ++ibrush, ++brush) {
@@ -652,17 +652,23 @@ bool ParseMapEntity() {
 					 iside < brush->numsides;
 					 ++iside, ++side) {
 					for (ipoint = 0; ipoint < 3; ++ipoint) {
-						point = side->planepts[ipoint];
+						double3_array& point = side->planepts[ipoint];
 						if (ent_scale_b) {
-							VectorSubtract(point, ent_scale_origin, point);
-							VectorScale(point, ent_scale, point);
-							VectorAdd(point, ent_scale_origin, point);
+							point = vector_add(
+								vector_scale(
+									vector_subtract(
+										point, ent_scale_origin
+									),
+									ent_scale
+								),
+								ent_scale_origin
+							);
 						}
 						if (ent_move_b) {
-							VectorAdd(point, ent_move, point);
+							point = vector_add(point, ent_move);
 						}
 						if (ent_gscale_b) {
-							VectorScale(point, ent_gscale, point);
+							point = vector_scale(point, ent_gscale);
 						}
 					}
 					// note that  tex->vecs = td.vects.Axis / td.vects.scale
@@ -935,7 +941,7 @@ unsigned int CountEngineEntities() {
 	for (x = 0; x < g_numentities; x++, mapent++) {
 		std::u8string_view classname = get_classname(*mapent);
 
-		// If it's a light_spot or light_env, dont include it as an engine
+		// If it's a light_spot or light_env, don't include it as an engine
 		// entity!
 		if (classname == u8"light" || classname == u8"light_spot"
 			|| classname == u8"light_environment") {
@@ -962,7 +968,42 @@ unsigned int CountEngineEntities() {
 void LoadMapFile(
 	hlcsg_settings const & settings, char const * const filename
 ) {
-	unsigned num_engine_entities;
+	std::optional<std::u8string> maybeMapFileContents = read_utf8_file(
+		filename,
+		true,
+		settings.legacyMapEncoding,
+		settings.forceLegacyMapEncoding
+	);
+	if (!maybeMapFileContents) {
+		Error("Failed to load %s", filename);
+	}
+	map_entity_parser parser{ maybeMapFileContents.value() };
+	parse_entity_outcome parseOutcome;
+	parsed_entity parsedEntity;
+	std::vector<parsed_entity> entityParsingResults;
+	while ((parseOutcome = parser.parse_entity(parsedEntity))
+		   == parse_entity_outcome::entity_parsed) {
+		Log("\n\nEntity\n");
+		for (entity_key_value const & keyValue : parsedEntity.keyValues) {
+			Log("K %s V %s\n",
+				(char const *) keyValue.key().data(),
+				(char const *) keyValue.value().data());
+		}
+		for (std::span<parsed_face const> brush : parsedEntity.brushes) {
+			Log("Brush\n");
+			for (parsed_face const & face : brush) {
+				Log("Face %s\n", (char const *) face.textureName.c_str());
+			}
+		}
+		entityParsingResults.push_back(parsedEntity);
+	}
+
+	if (parseOutcome == parse_entity_outcome::bad_input) {
+		Error(
+			"MAP parsing error near %s",
+			(char const *) parser.remaining_input().substr(0, 80).data()
+		);
+	}
 
 	LoadScriptFile(
 		filename,
@@ -973,7 +1014,7 @@ void LoadMapFile(
 	g_numentities = 0;
 
 	g_numparsedentities = 0;
-	while (ParseMapEntity()) {
+	while (ParseMapEntity(entityParsingResults[g_numparsedentities])) {
 		g_numparsedentities++;
 	}
 
@@ -995,7 +1036,7 @@ void LoadMapFile(
 	}
 	*/
 
-	num_engine_entities = CountEngineEntities();
+	unsigned num_engine_entities = CountEngineEntities();
 
 	hlassume(
 		num_engine_entities < MAX_ENGINE_ENTITIES,

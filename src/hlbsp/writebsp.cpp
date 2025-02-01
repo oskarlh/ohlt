@@ -393,26 +393,29 @@ void OutputEdges_face(face_t* f) {
 	}
 }
 
-int OutputEdges_r(node_t* node, int detaillevel) {
-	int next = -1;
-	if (node->planenum == -1) {
-		return next;
+std::optional<detail_level>
+OutputEdges_r(node_t* node, detail_level detailLevel) {
+	if (node->is_leaf_node()) {
+		return std::nullopt;
 	}
-	face_t* f;
-	for (f = node->faces; f; f = f->next) {
-		if (f->detaillevel > detaillevel) {
-			if (next == -1 ? true : f->detaillevel < next) {
-				next = f->detaillevel;
+	std::optional<detail_level> next;
+
+	for (face_t* f = node->faces; f; f = f->next) {
+		if (f->detailLevel > detailLevel) {
+			if (!next || f->detailLevel < next) {
+				next = f->detailLevel;
 			}
 		}
-		if (f->detaillevel == detaillevel) {
+		if (f->detailLevel == detailLevel) {
 			OutputEdges_face(f);
 		}
 	}
-	int i;
-	for (i = 0; i < 2; i++) {
-		int r = OutputEdges_r(node->children[i], detaillevel);
-		if (r == -1 ? false : next == -1 ? true : r < next) {
+	for (std::size_t i = 0; i < 2; ++i) {
+		std::optional<detail_level> r = OutputEdges_r(
+			node->children[i], detailLevel
+		);
+		if (!next.has_value()
+			|| (r.has_value() && r.value() < next.value())) {
 			next = r;
 		}
 	}
@@ -455,11 +458,14 @@ void WriteDrawNodes(node_t* headnode) {
 	RemoveCoveredFaces_r(headnode); // fill "referenced" value
 	// higher detail level should not compete for edge pairing with lower
 	// detail level.
-	int detaillevel, nextdetaillevel;
-	for (detaillevel = 0; detaillevel != -1;
-		 detaillevel = nextdetaillevel) {
-		nextdetaillevel = OutputEdges_r(headnode, detaillevel);
-	}
+
+	std::optional<detail_level> nextDetailLevel = 0;
+	while (
+		(nextDetailLevel = OutputEdges_r(headnode, nextDetailLevel.value()))
+			.has_value()
+	)
+		;
+
 	WriteDrawNodes_r(headnode, nullptr);
 }
 

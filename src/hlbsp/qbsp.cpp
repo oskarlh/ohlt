@@ -187,7 +187,7 @@ face_t* NewFaceFromFace(face_t const * const in) {
 	newf->original = in->original;
 	newf->contents = in->contents;
 	newf->facestyle = in->facestyle;
-	newf->detaillevel = in->detaillevel;
+	newf->detailLevel = in->detailLevel;
 
 	return newf;
 }
@@ -237,7 +237,7 @@ static void SplitFaceTmp(
 	dists[i] = dists[0];
 
 	if (!counts[0] && !counts[1]) {
-		if (in->detaillevel) {
+		if (in->detailLevel) {
 			// put front face in front node, and back face in back node.
 			mapplane_t const * faceplane = &g_mapplanes[in->planenum];
 			if (DotProduct(faceplane->normal, split->normal)
@@ -677,7 +677,8 @@ static surfchain_t* SurflistFromValidFaces() {
 		n->next = sc->surfaces;
 		sc->surfaces = n;
 		ClearBounds(n->mins, n->maxs);
-		n->detaillevel = -1;
+		// The surface's detailLevel is the minimum of its faces
+		n->detailLevel = std::numeric_limits<detail_level>::max();
 		n->planenum = i;
 
 		n->faces = nullptr;
@@ -686,18 +687,14 @@ static surfchain_t* SurflistFromValidFaces() {
 			f->next = n->faces;
 			n->faces = f;
 			AddFaceToBounds(f, n->mins, n->maxs);
-			if (n->detaillevel == -1 || f->detaillevel < n->detaillevel) {
-				n->detaillevel = f->detaillevel;
-			}
+			n->detailLevel = std::min(n->detailLevel, f->detailLevel);
 		}
 		for (f = validfaces[i + 1]; f; f = next) {
 			next = f->next;
 			f->next = n->faces;
 			n->faces = f;
 			AddFaceToBounds(f, n->mins, n->maxs);
-			if (n->detaillevel == -1 || f->detaillevel < n->detaillevel) {
-				n->detaillevel = f->detaillevel;
-			}
+			n->detailLevel = std::min(n->detailLevel, f->detailLevel);
 		}
 
 		AddPointToBounds(n->mins, sc->mins, sc->maxs);
@@ -758,9 +755,9 @@ static facestyle_e set_face_style(face_t* f) {
 }
 
 // =====================================================================================
-//  ReadSurfs
+//  read_surfaces
 // =====================================================================================
-static surfchain_t* ReadSurfs(FILE* file) {
+static surfchain_t* read_surfaces(FILE* file) {
 	int r;
 	int detaillevel;
 	int planenum, g_texinfo, numpoints;
@@ -781,7 +778,8 @@ static surfchain_t* ReadSurfs(FILE* file) {
 		r = fscanf(
 			file,
 			"%i %i %i %i %i\n",
-			&detaillevel,
+			&detaillevel, // TODO: Clamp to min and max of the detail_level
+						  // type
 			&planenum,
 			&g_texinfo,
 			&contents,
@@ -801,33 +799,39 @@ static surfchain_t* ReadSurfs(FILE* file) {
 			break;
 		}
 		if (r != 5) {
-			Error("ReadSurfs (line %i): scanf failure", line);
+			Error("read_surfaces (line %i): scanf failure", line);
 		}
 		if (numpoints > MAXPOINTS) {
 			Error(
-				"ReadSurfs (line %i): %i > MAXPOINTS\nThis is caused by a face with too many verticies (typically found on end-caps of high-poly cylinders)\n",
+				"read_surfaces (line %i): %i > MAXPOINTS\nThis is caused by a face with too many verticies (typically found on end-caps of high-poly cylinders)\n",
 				line,
 				numpoints
 			);
 		}
 		if (planenum > g_numplanes) {
 			Error(
-				"ReadSurfs (line %i): %i > g_numplanes\n", line, planenum
+				"read_surfaces (line %i): %i > g_numplanes\n",
+				line,
+				planenum
 			);
 		}
 		if (g_texinfo > g_numtexinfo) {
 			Error(
-				"ReadSurfs (line %i): %i > g_numtexinfo", line, g_texinfo
+				"read_surfaces (line %i): %i > g_numtexinfo",
+				line,
+				g_texinfo
 			);
 		}
 		if (detaillevel < 0) {
 			Error(
-				"ReadSurfs (line %i): detaillevel %i < 0", line, detaillevel
+				"read_surfaces (line %i): detaillevel %i < 0",
+				line,
+				detaillevel
 			);
 		}
 
 		if ((get_texture_by_number(g_texinfo)).is_skip()) {
-			Verbose("ReadSurfs (line %i): skipping a surface", line);
+			Verbose("read_surfaces (line %i): skipping a surface", line);
 
 			for (i = 0; i < numpoints; i++) {
 				line++;
@@ -835,7 +839,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 				r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 				if (r != 3) {
 					Error(
-						"::ReadSurfs (face_skip), fscanf of points failed at line %i",
+						"::read_surfaces (face_skip), fscanf of points failed at line %i",
 						line
 					);
 				}
@@ -845,7 +849,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 		}
 
 		f = AllocFace();
-		f->detaillevel = detaillevel;
+		f->detailLevel = detaillevel;
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
 		f->contents = contents_t{ contents };
@@ -860,7 +864,7 @@ static surfchain_t* ReadSurfs(FILE* file) {
 			r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 			if (r != 3) {
 				Error(
-					"::ReadSurfs (face_normal), fscanf of points failed at line %i",
+					"::read_surfaces (face_normal), fscanf of points failed at line %i",
 					line
 				);
 			}
@@ -947,7 +951,7 @@ static bool ProcessModel(bsp_data& bspData) {
 	dmodel_t* model;
 	int startleafs;
 
-	surfs = ReadSurfs(polyfiles[0]);
+	surfs = read_surfaces(polyfiles[0]);
 
 	if (!surfs) {
 		return false; // all models are done
@@ -1081,7 +1085,7 @@ static bool ProcessModel(bsp_data& bspData) {
 
 	// the clipping hulls are simpler
 	for (g_hullnum = 1; g_hullnum < NUM_HULLS; g_hullnum++) {
-		surfs = ReadSurfs(polyfiles[g_hullnum]);
+		surfs = read_surfaces(polyfiles[g_hullnum]);
 		detailbrushes = ReadBrushes(brushfiles[g_hullnum]);
 		{
 			int hullnum = g_hullnum;
@@ -1521,7 +1525,10 @@ int main(int const argc, char** argv) {
 				if (argv[i] == "-threads"sv) {
 					if (i + 1 < argc) // added "1" .--vluzacn
 					{
-						g_numthreads = atoi(argv[++i]);
+						g_numthreads = string_to_number<std::ptrdiff_t>(
+										   argv[++i]
+						)
+										   .value_or(-1);
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
 							Log("Expected value below %zu for '-threads'\n",

@@ -1087,7 +1087,7 @@ std::u8string_view get_classname(entity_t const & ent) {
 //  IntForKey
 // =====================================================================================
 std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key) {
-	std::u8string_view valueString{ value_for_key(ent, key) };
+	std::u8string_view const valueString{ value_for_key(ent, key) };
 
 	std::int32_t result{};
 	std::from_chars(
@@ -1096,6 +1096,84 @@ std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key) {
 		result
 	);
 	return result;
+}
+
+std::optional<double> clamp_double_key_value(
+	entity_t const & ent, std::u8string_view key, double min, double max
+) noexcept {
+	std::u8string_view const valueString{ value_for_key(&ent, key) };
+
+	// TODO: Once we no longer care about Clang < 20 support, we can use
+	// std::from_chars for floating-point numbers too
+
+	std::string zeroTerminatedCopy{ (char const *) valueString.data(),
+									valueString.length() };
+
+	char* rest = zeroTerminatedCopy.data();
+	double const parsed{ std::strtod(zeroTerminatedCopy.data(), &rest) };
+	bool const parsingFailed = rest == zeroTerminatedCopy.data();
+	if (parsingFailed || std::isnan(parsed)) [[unlikely]] {
+		return std::nullopt;
+	}
+
+	return std::clamp(parsed, min, max);
+}
+
+std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	std::uint64_t min,
+	std::uint64_t max
+) noexcept {
+	std::u8string_view const valueString{ value_for_key(&ent, key) };
+
+	std::uint64_t parsed;
+	std::errc error = std::from_chars(
+						  (char const *) valueString.begin(),
+						  (char const *) valueString.end(),
+						  parsed
+	)
+						  .ec;
+
+	bool const failedBecauseOfNegativeNumber = error
+			== std::errc::invalid_argument
+		&& valueString >= u8"-0" && valueString <= u8"-9";
+
+	if (failedBecauseOfNegativeNumber) [[unlikely]] {
+		parsed = 0;
+	} else if (error == std::errc::result_out_of_range) [[unlikely]] {
+		parsed = std::numeric_limits<std::uint64_t>::max();
+	} else if (error != std::errc{}) {
+		return std::nullopt;
+	}
+	return std::clamp(parsed, min, max);
+}
+
+std::optional<std::int64_t> clamp_signed_integer_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	std::int64_t min,
+	std::int64_t max
+) noexcept {
+	std::u8string_view const valueString{ value_for_key(&ent, key) };
+
+	std::int64_t parsed;
+	std::errc error = std::from_chars(
+						  (char const *) valueString.begin(),
+						  (char const *) valueString.end(),
+						  parsed
+	)
+						  .ec;
+
+	if (error == std::errc::result_out_of_range) [[unlikely]] {
+		parsed = valueString.starts_with(u8'-')
+			? std::numeric_limits<std::int64_t>::min()
+			: std::numeric_limits<std::int64_t>::max();
+	} else if (error != std::errc{}) {
+		return std::nullopt;
+	}
+
+	return std::clamp(parsed, min, max);
 }
 
 float float_for_key(entity_t const & ent, std::u8string_view key) {

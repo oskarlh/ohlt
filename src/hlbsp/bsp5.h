@@ -5,6 +5,7 @@
 #include "cmdlinecfg.h"
 #include "filelib.h"
 #include "hlassert.h"
+#include "internal_types.h"
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"
@@ -63,24 +64,22 @@ enum facestyle_e {
 	face_discardable, // contents must not differ between front and back
 };
 
-typedef struct face_s // This structure is layed out so 'pts' is on a
-					  // quad-word boundary (and the pointers are as well)
-{
-	struct face_s* next;
-	struct face_s* original; // face on node
+struct face_t {
+	face_t* next;
+	face_t* original; // Face on node
 	int planenum;
 	int texturenum;
-	contents_t contents; // contents in front of face
-	int detaillevel;	 // defined by hlcsg
-	int* outputedges;	 // used in WriteDrawNodes
+	contents_t contents;	  // contents in front of face
+	detail_level detailLevel; // From HLCSG
+	int* outputedges;		  // used in WriteDrawNodes
 
 	int outputnumber; // only valid for original faces after write surfaces
 	int numpoints;
 	int referenced; // only valid for original faces
 	facestyle_e facestyle;
-	// vector quad word aligned
+
 	double3_array pts[MAXEDGES]; // FIXME: change to use winding_t
-} face_t;
+};
 
 struct node_t;
 
@@ -91,7 +90,7 @@ struct surface_t {
 		onnode; // true if surface has already been used as a splitting node
 	double3_array mins, maxs;
 	int planenum;
-	int detaillevel; // minimum detail level of its faces
+	detail_level detailLevel; // Minimum detail level of its faces
 };
 
 struct surfchain_t {
@@ -134,7 +133,12 @@ struct node_t {
 	double3_array mins, maxs; // bounding volume of portals;
 
 	// information for decision nodes
-	int planenum;		 // -1 = leaf node
+	int planenum; // -1 = leaf node
+
+	constexpr bool is_leaf_node() const noexcept {
+		return planenum == -1;
+	}
+
 	node_t* children[2]; // only valid for decision nodes
 	face_t* faces;		 // decision nodes only, list for both sides
 

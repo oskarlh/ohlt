@@ -2,6 +2,7 @@
 
 #include "cmdlib.h"
 #include "entity_key_value.h"
+#include "external_types.h"
 #include "mathlib.h"
 #include "wad_texture_name.h"
 
@@ -10,9 +11,6 @@
 #include <vector>
 
 // upper design bounds
-
-constexpr std::ptrdiff_t MAX_MAP_HULLS = 4;
-// hard limit
 
 constexpr std::ptrdiff_t MAX_MAP_MODELS = 512; // 400 //vluzacn
 // variable, but 400 brush entities is very stressful on the engine and
@@ -118,7 +116,7 @@ struct dmodel_t {
 	float3_array mins;
 	float3_array maxs;
 	float3_array origin;
-	std::int32_t headnode[MAX_MAP_HULLS];
+	std::int32_t headnode[NUM_HULLS];
 	std::int32_t visleafs; // not including the solid leaf 0
 	std::int32_t firstface, numfaces;
 };
@@ -465,8 +463,8 @@ constexpr float ANGLE_DOWN{ -2.0 };
 
 struct entity_t {
 	float3_array origin;
-	int firstbrush;
-	int numbrushes;
+	std::uint32_t firstbrush;
+	std::uint16_t numbrushes;
 	std::vector<entity_key_value> keyValues;
 };
 
@@ -498,6 +496,69 @@ std::u8string_view get_classname(entity_t const & ent);
 
 std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key);
 float float_for_key(entity_t const & ent, std::u8string_view key);
+
+// Returns `clamp((kv as a double), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+std::optional<double> clamp_double_key_value(
+	entity_t const & ent, std::u8string_view key, double min, double max
+) noexcept;
+
+// Returns `clamp((kv as an unsigned integer), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	std::uint64_t min,
+	std::uint64_t max
+) noexcept;
+
+// Returns `clamp((kv as a signed integer), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+std::optional<std::int64_t> clamp_signed_integer_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	std::int64_t min,
+	std::int64_t max
+) noexcept;
+
+// Returns `clamp((kv as a floating-point number), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+template <std::floating_point NumberType>
+std::optional<NumberType> numeric_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	NumberType min = std::numeric_limits<NumberType>::min(),
+	NumberType max = std::numeric_limits<NumberType>::max()
+) noexcept {
+	return clamp_double_key_value(ent, key, min, max)
+		.transform([](double result) { return NumberType(result); });
+}
+
+// Returns `clamp((kv as an unsigned integer), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+template <std::unsigned_integral NumberType>
+std::optional<NumberType> numeric_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	NumberType min = std::numeric_limits<NumberType>::min(),
+	NumberType max = std::numeric_limits<NumberType>::max()
+) noexcept {
+	return clamp_unsigned_integer_key_value(ent, key, min, max)
+		.transform([](std::uint64_t result) { return NumberType(result); });
+}
+
+// Returns `clamp((kv as a signed integer), min, max)`.
+// If the key-value does not contain a number, returns std::nullopt
+template <std::signed_integral NumberType>
+std::optional<NumberType> numeric_key_value(
+	entity_t const & ent,
+	std::u8string_view key,
+	NumberType min = std::numeric_limits<NumberType>::min(),
+	NumberType max = std::numeric_limits<NumberType>::max()
+) noexcept {
+	return clamp_signed_integer_key_value(ent, key, min, max)
+		.transform([](std::int64_t result) { return NumberType(result); });
+}
 
 float3_array
 get_float3_for_key(entity_t const & ent, std::u8string_view key);

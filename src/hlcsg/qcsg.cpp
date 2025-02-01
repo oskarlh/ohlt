@@ -250,10 +250,9 @@ bface_t NewFaceFromFace(bface_t const & in) {
 	return newf;
 }
 
-// =====================================================================================
-//  WriteFace
-// =====================================================================================
-void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
+static void WriteFace(
+	int const hull, bface_t const * const f, detail_level detailLevel
+) {
 	unsigned int i;
 
 	ThreadLock();
@@ -268,7 +267,7 @@ void WriteFace(int const hull, bface_t const * const f, int detaillevel) {
 	fprintf(
 		out[hull],
 		"%i %i %i %i %zu\n",
-		detaillevel,
+		detailLevel,
 		f->planenum,
 		f->texinfo,
 		std::to_underlying(f->contents),
@@ -498,7 +497,7 @@ static void SaveOutside(
 			}
 		}
 
-		WriteFace(hull, &f, (hull ? b.clipnodedetaillevel : b.detaillevel));
+		WriteFace(hull, &f, (hull ? b.clipNodeDetailLevel : b.detailLevel));
 
 		//              if (mirrorcontents != contents_t::SOLID)
 		{
@@ -510,7 +509,7 @@ static void SaveOutside(
 			// swap point orders
 			f.w.reverse_points();
 			WriteFace(
-				hull, &f, (hull ? b.clipnodedetaillevel : b.detaillevel)
+				hull, &f, (hull ? b.clipNodeDetailLevel : b.detailLevel)
 			);
 		}
 	}
@@ -575,7 +574,7 @@ static void CSGBrush(int brushnum) {
 	for (int hull = 0; hull < NUM_HULLS; hull++) {
 		brushhull_t* bh1 = &b1.hulls[hull];
 		if (!bh1->faces.empty()
-			&& (hull ? b1.clipnodedetaillevel : b1.detaillevel)) {
+			&& (hull ? b1.clipNodeDetailLevel : b1.detailLevel)) {
 			switch (b1.contents) {
 				case contents_t::ORIGIN:
 				case contents_t::BOUNDINGBOX:
@@ -619,25 +618,26 @@ static void CSGBrush(int brushnum) {
 			if (b2.contents == contents_t::TOEMPTY) {
 				continue;
 			}
-			if (hull ? (b2.clipnodedetaillevel - 0
-						> b1.clipnodedetaillevel + 0)
-					 : (b2.detaillevel - b2.chopdown
-						> b1.detaillevel + b1.chopup)) {
-				continue; // you can't chop
+			if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
+					 : (std::int64_t(b2.detailLevel)
+							- std::int64_t(b2.chopDown)
+						> std::int64_t(b1.detailLevel)
+							+ std::int64_t(b1.chopUp))) {
+				continue; // You can't chop
 			}
 			if (b2.contents == b1.contents
 				&& (hull
-						? (b2.clipnodedetaillevel != b1.clipnodedetaillevel)
-						: (b2.detaillevel != b1.detaillevel))) {
+						? (b2.clipNodeDetailLevel != b1.clipNodeDetailLevel)
+						: (b2.detailLevel != b1.detailLevel))) {
 				overwrite
-					= (hull ? (b2.clipnodedetaillevel
-							   < b1.clipnodedetaillevel)
-							: (b2.detaillevel < b1.detaillevel));
+					= (hull ? (b2.clipNodeDetailLevel
+							   < b1.clipNodeDetailLevel)
+							: (b2.detailLevel < b1.detailLevel));
 			}
 			if (b2.contents == b1.contents && hull == 0
-				&& b2.detaillevel == b1.detaillevel
-				&& b2.coplanarpriority != b1.coplanarpriority) {
-				overwrite = b2.coplanarpriority > b1.coplanarpriority;
+				&& b2.detailLevel == b1.detailLevel
+				&& b2.coplanarPriority != b1.coplanarPriority) {
+				overwrite = b2.coplanarPriority > b1.coplanarPriority;
 			}
 
 			if (bh2.faces.empty()) {
@@ -664,8 +664,8 @@ static void CSGBrush(int brushnum) {
 					outside.emplace_back(std::move(f));
 					continue;
 				}
-				if (hull ? (b2.clipnodedetaillevel > b1.clipnodedetaillevel)
-						 : (b2.detaillevel > b1.detaillevel)) {
+				if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
+						 : (b2.detailLevel > b1.detailLevel)) {
 					wad_texture_name const texname{
 						GetTextureByNumber_CSG(f.texinfo).value_or(
 							wad_texture_name{}
@@ -769,15 +769,15 @@ static void CSGBrush(int brushnum) {
 				// there is one convex fragment of the original
 				// face left inside brush2
 
-				if (hull ? (b2.clipnodedetaillevel > b1.clipnodedetaillevel)
-						 : (b2.detaillevel > b1.detaillevel
+				if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
+						 : (b2.detailLevel > b1.detailLevel
 						   )) { // don't chop or set contents, only nullify
 					f.texinfo = -1;
 					outside.emplace_back(std::move(f));
 					continue;
 				}
-				if ((hull ? b2.clipnodedetaillevel < b1.clipnodedetaillevel
-						  : b2.detaillevel < b1.detaillevel)
+				if ((hull ? b2.clipNodeDetailLevel < b1.clipNodeDetailLevel
+						  : b2.detailLevel < b1.detailLevel)
 					&& b2.contents == contents_t::SOLID) {
 					// Real solid
 					continue;
@@ -1307,12 +1307,13 @@ unsigned int ClipNodesDiscarded = 0;
 
 // AJM: added in function
 static void MarkEntForNoclip(entity_t* ent) {
-	int i;
 	brush_t* b;
 
-	for (i = ent->firstbrush; i < ent->firstbrush + ent->numbrushes; i++) {
+	for (std::size_t i = ent->firstbrush;
+		 i < ent->firstbrush + ent->numbrushes;
+		 ++i) {
 		b = &g_mapbrushes[i];
-		b->noclip = 1;
+		b->noclip = true;
 
 		BrushClipHullsDiscarded++;
 		ClipNodesDiscarded += b->numsides;
@@ -1351,29 +1352,26 @@ static void CheckForNoClip() {
 		spawnflags = atoi((char const *) ValueForKey(ent, u8"spawnflags"));
 		int skin = IntForKey(ent, u8"skin"); // vluzacn
 
-		if ((skin != -16)
-			&& (entclassname == u8"env_bubbles"
-				|| entclassname == u8"func_illusionary"
-				|| (spawnflags & 8)
-					&& (/* NOTE: func_doors as far as i can tell may need
-						   clipnodes for their player collision detection,
-						   so for now, they stay out of it. */
-						entclassname == u8"func_train"
-						|| entclassname == u8"func_door"
-						|| entclassname == u8"func_water"
-						|| entclassname == u8"func_door_rotating"
-						|| entclassname == u8"func_pendulum"
-						|| entclassname == u8"func_train"
-						|| entclassname == u8"func_tracktrain"
-						|| entclassname == u8"func_vehicle"
-					)
-				|| (skin != 0)
-					&& (entclassname == u8"func_door"
-						|| entclassname == u8"func_water")
-				|| (spawnflags & 2) && (entclassname == u8"func_conveyor")
-				|| (spawnflags & 1) && (entclassname == u8"func_rot_button")
-				|| (spawnflags & 64) && (entclassname == u8"func_rotating")
-			)) {
+		if (skin == -16) {
+			continue;
+		}
+		if (entclassname == u8"env_bubbles"
+			|| entclassname == u8"func_illusionary"
+			|| ((spawnflags & 8)
+				&& (entclassname == u8"func_train"
+					|| entclassname == u8"func_door"
+					|| entclassname == u8"func_water"
+					|| entclassname == u8"func_door_rotating"
+					|| entclassname == u8"func_pendulum"
+					|| entclassname == u8"func_train"
+					|| entclassname == u8"func_tracktrain"
+					|| entclassname == u8"func_vehicle"))
+			|| (skin != 0)
+				&& (entclassname == u8"func_door"
+					|| entclassname == u8"func_water")
+			|| (spawnflags & 2) && (entclassname == u8"func_conveyor")
+			|| (spawnflags & 1) && (entclassname == u8"func_rot_button")
+			|| (spawnflags & 64) && (entclassname == u8"func_rotating")) {
 			MarkEntForNoclip(ent);
 			count++;
 		}

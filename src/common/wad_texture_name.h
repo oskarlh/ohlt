@@ -215,6 +215,10 @@ class wad_texture_name final {
 			);
 	}
 
+	constexpr bool empty() const noexcept {
+		return units[0] == '\0';
+	}
+
 	constexpr bool is_contentempty() const noexcept {
 		return equals_constant(u8"contentempty");
 	}

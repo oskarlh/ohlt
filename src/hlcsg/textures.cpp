@@ -38,25 +38,18 @@ static wad_texture_name texmap[MAX_INTERNAL_MAP_TEXINFOS];
 
 static int numtexmap = 0;
 
-static int texmap_store(wad_texture_name texname, bool shouldlock = true)
+static int texmap_store(wad_texture_name texname)
 // This function should never be called unless a new entry in g_texinfo is
-// being allocated.
+// being allocated. Also, should be called between ThreadLock() and
+// ThreadUnlock()!!
 {
-	int i;
-	if (shouldlock) {
-		ThreadLock();
-	}
-
 	hlassume(
 		numtexmap < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO
 	); // This error should never appear.
 
-	i = numtexmap;
+	int i = numtexmap;
 	texmap[numtexmap] = texname;
 	numtexmap++;
-	if (shouldlock) {
-		ThreadUnlock();
-	}
 	return i;
 }
 
@@ -799,13 +792,7 @@ int TexinfoForBrushTexture(
 	brush_texture_t* bt,
 	double3_array const & origin
 ) {
-	std::array<double3_array, 2> vecs;
-	int sv, tv;
-	double ang, sinv, cosv;
-	double ns, nt;
 	texinfo_t tx;
-	texinfo_t* tc;
-	int i, j, k;
 
 	wad_texture_name textureName{ bt->name };
 
@@ -844,24 +831,19 @@ int TexinfoForBrushTexture(
 	// find the g_texinfo
 	//
 	ThreadLock();
-	tc = g_texinfo.data();
-	for (i = 0; i < g_numtexinfo; i++, tc++) {
+
+	texinfo_t* tc = g_texinfo.data();
+	for (int i = 0; i < g_numtexinfo; ++i, ++tc) {
 		if (texmap_retrieve(tc->miptex) != bt->name) {
 			continue;
 		}
 		if (tc->flags != tx.flags) {
 			continue;
 		}
-		for (j = 0; j < 2; j++) {
-			for (k = 0; k < 4; k++) {
-				if (tc->vecs[j][k] != tx.vecs[j][k]) {
-					goto skip;
-				}
-			}
+		if (tc->vecs == tx.vecs) {
+			ThreadUnlock();
+			return i;
 		}
-		ThreadUnlock();
-		return i;
-	skip:;
 	}
 
 	hlassume(
@@ -869,10 +851,10 @@ int TexinfoForBrushTexture(
 	);
 
 	*tc = tx;
-	tc->miptex = texmap_store(bt->name, false);
-	g_numtexinfo++;
+	tc->miptex = texmap_store(bt->name);
+	int newTexinfo = g_numtexinfo++;
 	ThreadUnlock();
-	return i;
+	return newTexinfo;
 }
 
 // Before WriteMiptex(), for each texinfo in g_texinfo, .miptex is a string

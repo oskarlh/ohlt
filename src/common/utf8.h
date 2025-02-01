@@ -1,7 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <charconv>
 #include <cstdint>
+#include <cstdlib>
 #include <memory>
 #include <ranges>
 #include <string>
@@ -69,7 +71,7 @@ constexpr bool is_ascii_whitespace(char8_t c) noexcept {
 skip_ascii_whitespace(std::u8string_view str) noexcept {
 	std::size_t skipTo = str.find_first_not_of(ascii_whitespace);
 	if (skipTo == std::u8string_view::npos) {
-		skipTo = 0;
+		return {};
 	}
 
 	return str.substr(skipTo);
@@ -145,7 +147,7 @@ constexpr bool strings_equal_with_ascii_case_insensitivity(
 }
 
 // TODO: Delete these three when we're using UTF-8 types in enough places
-constexpr inline bool strings_equal_with_ascii_case_insensitivity(
+constexpr bool strings_equal_with_ascii_case_insensitivity(
 	std::u8string_view a, std::string_view b
 ) noexcept {
 	return strings_equal_with_ascii_case_insensitivity(
@@ -156,13 +158,13 @@ constexpr inline bool strings_equal_with_ascii_case_insensitivity(
 	);
 }
 
-constexpr inline bool strings_equal_with_ascii_case_insensitivity(
+constexpr bool strings_equal_with_ascii_case_insensitivity(
 	std::string_view a, std::u8string_view b
 ) noexcept {
 	return strings_equal_with_ascii_case_insensitivity(b, a);
 }
 
-constexpr inline bool strings_equal_with_ascii_case_insensitivity(
+constexpr bool strings_equal_with_ascii_case_insensitivity(
 	std::string_view a, std::string_view b
 ) noexcept {
 	return strings_equal_with_ascii_case_insensitivity(
@@ -171,4 +173,68 @@ constexpr inline bool strings_equal_with_ascii_case_insensitivity(
 		),
 		b
 	);
+}
+
+template <class Number, class Char = char8_t>
+struct parse_number_result {
+	std::optional<Number> number;
+	std::basic_string_view<Char> remainingText;
+};
+
+template <class Number = std::int32_t>
+constexpr parse_number_result<Number, char>
+parse_number(std::string_view str) noexcept {
+	Number number;
+	std::from_chars_result const fromCharsResult{
+		std::from_chars(str.begin(), str.end(), number)
+	};
+
+	if (fromCharsResult.ec == std::errc{}) [[likely]] {
+		return { .number = number,
+				 .remainingText = { fromCharsResult.ptr, str.end() } };
+	}
+	return { .number = std::nullopt, .remainingText = str };
+}
+
+template <std::floating_point Number>
+constexpr parse_number_result<Number, char>
+parse_number(std::string_view str) noexcept {
+	// TODO: Once we no longer care about Clang < 20 support, we can use
+	// std::from_chars for floating-point numbers too
+	constexpr std::string_view floatChars{ "+-.eE0123456789" };
+
+	std::string zeroTerminatedCopy{
+		str.begin(), std::min(str.size(), str.find_first_not_of(floatChars))
+	};
+
+	char* rest = zeroTerminatedCopy.data();
+	Number const number{ std::strtod(zeroTerminatedCopy.data(), &rest) };
+	std::size_t const numCharsParsed = rest - zeroTerminatedCopy.data();
+	if (numCharsParsed == 0) [[unlikely]] {
+		return { .number = std::nullopt, .remainingText = {} };
+	}
+	return { .number = number,
+			 .remainingText = str.substr(numCharsParsed) };
+}
+
+template <class Number = std::int32_t>
+constexpr parse_number_result<Number, char8_t>
+parse_number(std::u8string_view str) noexcept {
+	auto const res = parse_number<Number>(std::string_view{
+		(char const *) str.begin(), (char const *) str.end() });
+	return { .number = res.number,
+			 .remainingText = { (char8_t const *) res.remainingText.begin(),
+								res.remainingText.length() } };
+}
+
+template <class Number = std::int32_t>
+constexpr std::optional<Number>
+string_to_number(std::string_view str, Number errorValue = 0) noexcept {
+	return parse_number(str).number;
+}
+
+template <class Number = std::int32_t>
+constexpr Number
+string_to_number(std::u8string_view str, Number errorValue = 0) noexcept {
+	return parse_number(str).number;
 }

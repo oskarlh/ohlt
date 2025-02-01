@@ -49,7 +49,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	if (f1->facestyle != f2->facestyle) {
 		return nullptr;
 	}
-	if (f1->detaillevel != f2->detaillevel) {
+	if (f1->detailLevel != f2->detailLevel) {
 		return nullptr;
 	}
 
