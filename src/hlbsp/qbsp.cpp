@@ -15,6 +15,7 @@
 #include "bsp5.h"
 #include "cli_option_defaults.h"
 #include "hull_size.h"
+#include "time_counter.h"
 #include "utf8.h"
 
 #include <algorithm>
@@ -1502,7 +1503,6 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 // =====================================================================================
 int main(int const argc, char** argv) {
 	int i;
-	double start, end;
 	char const * mapname_from_arg = nullptr;
 
 	g_Program = "HLBSP";
@@ -1761,12 +1761,11 @@ int main(int const argc, char** argv) {
 			}
 
 			// BEGIN BSP
-			start = I_FloatTime();
+			time_counter timeCounter;
 
 			ProcessFile(g_Mapname, bspGlobals);
 
-			end = I_FloatTime();
-			LogTimeElapsed(end - start);
+			LogTimeElapsed(timeCounter.get_total());
 			// END BSP
 
 			FreeAllowableOutsideList();

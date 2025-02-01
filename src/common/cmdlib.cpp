@@ -10,25 +10,7 @@
 
 #include <bit>
 #include <cstring>
-#ifdef SYSTEM_POSIX
-#include <sys/time.h>
-#endif
 #include <ranges>
-
-double I_FloatTime() {
-	struct timeval tp;
-	struct timezone tzp;
-	static int secbase;
-
-	gettimeofday(&tp, &tzp);
-
-	if (!secbase) {
-		secbase = tp.tv_sec;
-		return tp.tv_usec / 1000000.0;
-	}
-
-	return (tp.tv_sec - secbase) + tp.tv_usec / 1000000.0;
-}
 
 // Case-insensitive substring matching
 bool a_contains_b_ignoring_ascii_character_case_differences(

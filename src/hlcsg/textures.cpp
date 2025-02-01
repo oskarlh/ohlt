@@ -1,4 +1,5 @@
 #include "csg.h"
+#include "time_counter.h"
 #include "wad_structs.h"
 
 #include <numbers>
@@ -535,7 +536,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 	g_texdatasize = 0;
 
-	double start = I_FloatTime();
+	time_counter timeCounter;
 	{
 		if (!TEX_InitFromWad(bspPath)) {
 			return;
@@ -543,17 +544,15 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 		AddAnimatingTextures();
 	}
-	double end = I_FloatTime();
+
 	Verbose(
-		"TEX_InitFromWad & AddAnimatingTextures elapsed time = %ldms\n",
-		(long) (end - start)
+		"TEX_InitFromWad & AddAnimatingTextures elapsed time = %.8fs\n",
+		timeCounter.get_total()
 	);
 
-	start = I_FloatTime();
+	timeCounter.restart();
 	{
-		int i;
-
-		for (i = 0; i < nummiptex; i++) {
+		for (int i = 0; i < nummiptex; ++i) {
 			lumpinfo_with_wadfileindex* found;
 
 			found = FindTexture(miptex + i);
@@ -566,8 +565,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 			}
 		}
 	}
-	end = I_FloatTime();
-	Verbose("FindTextures elapsed time = %ldms\n", (long) (end - start));
+	Verbose("FindTextures elapsed time = %.8fs\n", timeCounter.get_total());
 
 	// Now we have filled lumpinfo for each miptex and the number of used
 	// textures for each wad.
@@ -628,7 +626,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		);
 	}
 
-	start = I_FloatTime();
+	timeCounter.restart();
 	{
 		int i;
 		texinfo_t* tx = g_texinfo.data();
@@ -650,10 +648,11 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		}
 		texmap_clear();
 	}
-	end = I_FloatTime();
-	Verbose("qsort(miptex) elapsed time = %ldms\n", (long) (end - start));
+	Verbose(
+		"qsort(miptex) elapsed time = %.8fs\n", timeCounter.get_total()
+	);
 
-	start = I_FloatTime();
+	timeCounter.restart();
 	{
 		int i;
 
@@ -756,11 +755,10 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 			Error("File write failure");
 		}
 	}
-	end = I_FloatTime();
 	Log("Texture usage: %1.2f/%1.2f MB)\n",
 		(float) totaltexsize / (1024 * 1024),
 		(float) g_max_map_miptex / (1024 * 1024));
-	Verbose("LoadLump() elapsed time: %ldms\n", (long) (end - start));
+	Verbose("LoadLump() elapsed time: %.8fs\n", timeCounter.get_total());
 }
 
 // =====================================================================================

@@ -22,9 +22,9 @@ extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 
 constexpr double hlbsp_bogus_range = 144000.0;
 
-// the exact bounding box of the brushes is expanded some for the headnode
-// volume.  is this still needed?
-#define SIDESPACE 24
+// The exact bounding box of the brushes is expanded some for the headnode
+// volume. Is this still needed?
+constexpr float SIDESPACE = 24;
 
 //============================================================================
 

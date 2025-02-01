@@ -16,6 +16,7 @@
 
 #include "bsp_file_sizes.h"
 #include "rad_cli_option_defaults.h"
+#include "time_counter.h"
 #include "utf8.h"
 
 #include <algorithm>
@@ -4087,7 +4088,7 @@ int main(int const argc, char** argv) {
 			// END INIT
 
 			// BEGIN RAD
-			double const start = I_FloatTime();
+			time_counter timeCounter;
 
 			// normalise maxlight
 
@@ -4151,8 +4152,7 @@ int main(int const argc, char** argv) {
 
 			WriteBSPFile(g_source);
 
-			double const end = I_FloatTime();
-			LogTimeElapsed(end - start);
+			LogTimeElapsed(timeCounter.get_total());
 			// END RAD
 		}
 	}

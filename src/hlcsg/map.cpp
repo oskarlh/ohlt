@@ -24,13 +24,13 @@ brush_t* CopyCurrentBrush(entity_t* entity, brush_t const * brush) {
 	g_nummapbrushes++;
 	hlassume(g_nummapbrushes <= MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
 	*newb = *brush;
-	newb->firstside = g_numbrushsides;
-	g_numbrushsides += brush->numsides;
+	newb->firstSide = g_numbrushsides;
+	g_numbrushsides += brush->numSides;
 	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
 	memcpy(
-		&g_brushsides[newb->firstside],
-		&g_brushsides[brush->firstside],
-		brush->numsides * sizeof(side_t)
+		&g_brushsides[newb->firstSide],
+		&g_brushsides[brush->firstSide],
+		brush->numSides * sizeof(side_t)
 	);
 	newb->entitynum = entity - g_entities.data();
 	newb->brushnum = entity->numbrushes;
@@ -48,15 +48,15 @@ void DeleteCurrentEntity(entity_t* entity) {
 	}
 	for (int i = entity->numbrushes - 1; i >= 0; i--) {
 		brush_t* b = &g_mapbrushes[entity->firstbrush + i];
-		if (b->firstside + b->numsides != g_numbrushsides) {
+		if (b->firstSide + b->numSides != g_numbrushsides) {
 			Error(
 				"DeleteCurrentEntity: internal error. (Entity %i, Brush %i)",
 				b->originalentitynum,
 				b->originalbrushnum
 			);
 		}
-		std::fill_n(&g_brushsides[b->firstside], b->numsides, side_t{});
-		g_numbrushsides -= b->numsides;
+		std::fill_n(&g_brushsides[b->firstSide], b->numSides, side_t{});
+		g_numbrushsides -= b->numSides;
 		b->hullshapes = {};
 	}
 	std::fill_n(
@@ -110,7 +110,7 @@ static void ParseBrush(entity_t* mapent) {
 	g_nummapbrushes++; // Increment the global brush counter, we are adding
 					   // a new brush
 	*b = {};
-	b->firstside = g_numbrushsides; // Set the first side of the brush to
+	b->firstSide = g_numbrushsides; // Set the first side of the brush to
 									// current global side count20
 	b->originalentitynum = g_numparsedentities; // Record original entity
 												// number brush belongs to
@@ -184,7 +184,7 @@ static void ParseBrush(entity_t* mapent) {
 		side = &g_brushsides[g_numbrushsides]; // Get next brush side from
 											   // global array
 		g_numbrushsides++;					   // Global brush side counter
-		b->numsides++; // Number of sides for the current brush
+		b->numSides++; // Number of sides for the current brush
 		side->bevel = false;
 		// read the three point plane definition
 
@@ -201,7 +201,7 @@ static void ParseBrush(entity_t* mapent) {
 					"Parsing Entity %i, Brush %i, Side %i: Expecting '(' got '%s'",
 					b->originalentitynum,
 					b->originalbrushnum,
-					b->numsides,
+					b->numSides,
 					(char const *) g_token.c_str()
 				);
 			}
@@ -218,7 +218,7 @@ static void ParseBrush(entity_t* mapent) {
 					"Parsing Entity %i, Brush %i, Side %i: Expecting ')' got '%s'",
 					b->originalentitynum,
 					b->originalbrushnum,
-					b->numsides,
+					b->numSides,
 					(char const *) g_token.c_str()
 				);
 			}
@@ -234,7 +234,7 @@ static void ParseBrush(entity_t* mapent) {
 				"Parsing Entity %i, Brush %i, Side %i: Bad texture name '%s'",
 				b->originalentitynum,
 				b->originalbrushnum,
-				b->numsides,
+				b->numSides,
 				(char const *) g_token.c_str()
 			);
 		}
@@ -337,8 +337,8 @@ static void ParseBrush(entity_t* mapent) {
 	}
 
 	b->contents = contents = CheckBrushContents(b);
-	for (j = 0; j < b->numsides; j++) {
-		side = &g_brushsides[b->firstside + j];
+	for (j = 0; j < b->numSides; j++) {
+		side = &g_brushsides[b->firstSide + j];
 		wad_texture_name const textureName{ side->td.name };
 		if (textureName.is_any_content_type()
 			|| (nullify && !textureName.is_any_bevel()
@@ -350,9 +350,9 @@ static void ParseBrush(entity_t* mapent) {
 			side->td.name = wad_texture_name{ u8"null" };
 		}
 	}
-	for (j = 0; j < b->numsides; j++) {
+	for (j = 0; j < b->numSides; j++) {
 		// change to SKIP now that we have set brush content.
-		side = &g_brushsides[b->firstside + j];
+		side = &g_brushsides[b->firstSide + j];
 		if (side->td.name.is_splitface()) {
 			side->td.name = wad_texture_name{ u8"skip" };
 		}
@@ -408,9 +408,9 @@ static void ParseBrush(entity_t* mapent) {
 	}
 	if (has_key_value(&g_entities[b->entitynum], u8"zhlt_usemodel")) {
 		memset(
-			&g_brushsides[b->firstside], 0, b->numsides * sizeof(side_t)
+			&g_brushsides[b->firstSide], 0, b->numSides * sizeof(side_t)
 		);
-		g_numbrushsides -= b->numsides;
+		g_numbrushsides -= b->numSides;
 		*b = {};
 		g_nummapbrushes--;
 		mapent->numbrushes--;
@@ -476,16 +476,16 @@ static void ParseBrush(entity_t* mapent) {
 		brush_t* newb = CopyCurrentBrush(mapent, b);
 		newb->contents = contents_t::SOLID;
 		newb->cliphull = ~0;
-		for (j = 0; j < newb->numsides; j++) {
-			side = &g_brushsides[newb->firstside + j];
+		for (j = 0; j < newb->numSides; j++) {
+			side = &g_brushsides[newb->firstSide + j];
 			side->td.name = wad_texture_name{ u8"null" };
 		}
 	}
 	if (b->cliphull != 0 && b->contents == contents_t::TOEMPTY) {
 		// check for mix of CLIP and normal texture
 		bool mixed = false;
-		for (j = 0; j < b->numsides; j++) {
-			side = &g_brushsides[b->firstside + j];
+		for (j = 0; j < b->numSides; j++) {
+			side = &g_brushsides[b->firstSide + j];
 			if (side->td.name.is_ordinary_null(
 				)) { // this is not supposed to be a HINT brush, so remove
 					 // all invisible faces from hull 0.
@@ -500,8 +500,8 @@ static void ParseBrush(entity_t* mapent) {
 			newb->cliphull = 0;
 		}
 		b->contents = contents_t::SOLID;
-		for (j = 0; j < b->numsides; j++) {
-			side = &g_brushsides[b->firstside + j];
+		for (j = 0; j < b->numSides; j++) {
+			side = &g_brushsides[b->firstSide + j];
 			side->td.name = wad_texture_name{ u8"null" };
 		}
 	}
@@ -648,8 +648,8 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 			for (ibrush = 0, brush = g_mapbrushes + mapent->firstbrush;
 				 ibrush < mapent->numbrushes;
 				 ++ibrush, ++brush) {
-				for (iside = 0, side = g_brushsides + brush->firstside;
-					 iside < brush->numsides;
+				for (iside = 0, side = g_brushsides + brush->firstSide;
+					 iside < brush->numSides;
 					 ++iside, ++side) {
 					for (ipoint = 0; ipoint < 3; ++ipoint) {
 						double3_array& point = side->planepts[ipoint];

@@ -471,7 +471,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		return false;
 	}
 
-	time_counter profile;
+	time_counter timeCounter;
 
 	bool const simplifyModel{
 		pModel->trace_mode == trace_method::shadow_slow
@@ -800,7 +800,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	Verbose(
 		"%s: build time %g secs, size %zuB\n",
 		m_debugName,
-		profile.getTotal(),
+		timeCounter.get_total(),
 		mesh_size
 	);
 

@@ -22,6 +22,7 @@
 #include "filelib.h"
 #include "hlcsg_settings.h"
 #include "legacy_character_encodings.h"
+#include "time_counter.h"
 #include "utf8.h"
 
 #include <numbers>
@@ -1316,7 +1317,7 @@ static void MarkEntForNoclip(entity_t* ent) {
 		b->noclip = true;
 
 		BrushClipHullsDiscarded++;
-		ClipNodesDiscarded += b->numsides;
+		ClipNodesDiscarded += b->numSides;
 	}
 }
 
@@ -1814,7 +1815,6 @@ int main(int const argc, char** argv) {
 	bsp_data& bspData = bspGlobals;
 	int i;
 	char name[_MAX_PATH]; // mapanme
-	double start, end;	  // start/end time log
 	char const * mapname_from_arg
 		= nullptr; // mapname path from passed argvar
 
@@ -2142,7 +2142,7 @@ int main(int const argc, char** argv) {
 			// loaded
 			//  before settings are finalised and printed out, so that the
 			//  info_compile_parameters entity can be dealt with effectively
-			start = I_FloatTime();
+			time_counter timeCounter;
 			if (g_hullfile) {
 				std::filesystem::path test
 					= std::filesystem::path(g_Mapname).parent_path()
@@ -2249,8 +2249,7 @@ int main(int const argc, char** argv) {
 				// Write it all back out again.
 				WriteBSP(g_Mapname);
 
-				end = I_FloatTime();
-				LogTimeElapsed(end - start);
+				LogTimeElapsed(timeCounter.get_total());
 				return 0;
 			}
 
@@ -2378,9 +2377,7 @@ int main(int const argc, char** argv) {
 				Log("---------------------------------------\n\n");
 			}
 
-			// elapsed time
-			end = I_FloatTime();
-			LogTimeElapsed(end - start);
+			LogTimeElapsed(timeCounter.get_total());
 		}
 	}
 	return 0;

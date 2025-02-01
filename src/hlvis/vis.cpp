@@ -17,6 +17,7 @@
 
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
+#include "time_counter.h"
 #include "winding.h"
 
 #include <algorithm>
@@ -960,7 +961,6 @@ void FixPrt(char const * portalfile) {
 int main(int const argc, char** argv) {
 	char portalfile[_MAX_PATH];
 	char source[_MAX_PATH];
-	double start, end;
 	std::u8string_view mapname_from_arg;
 
 	g_Program = "HLVIS";
@@ -1078,7 +1078,7 @@ int main(int const argc, char** argv) {
 			// END INIT
 
 			// BEGIN VIS
-			start = I_FloatTime();
+			time_counter timeCounter;
 
 			safe_strncpy(source, g_Mapname, _MAX_PATH);
 			safe_strncat(source, ".bsp", _MAX_PATH);
@@ -1195,8 +1195,7 @@ int main(int const argc, char** argv) {
 
 			WriteBSPFile(source);
 
-			end = I_FloatTime();
-			LogTimeElapsed(end - start);
+			LogTimeElapsed(timeCounter.get_total());
 
 			free(g_uncompressed);
 			// END VIS

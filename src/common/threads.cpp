@@ -14,6 +14,7 @@
 #ifdef SYSTEM_POSIX
 #include <pthread.h>
 #include <sys/resource.h>
+#include <sys/time.h>
 #endif
 
 #include "hlassert.h"
@@ -31,6 +32,21 @@ static bool pacifier = false;
 static bool threaded = false;
 static double threadstart = 0;
 static double threadtimes[THREADTIMES_SIZE];
+
+double I_FloatTime() {
+	struct timeval tp;
+	struct timezone tzp;
+	static int secbase;
+
+	gettimeofday(&tp, &tzp);
+
+	if (!secbase) {
+		secbase = tp.tv_sec;
+		return tp.tv_usec / 1000000.0;
+	}
+
+	return (tp.tv_sec - secbase) + tp.tv_usec / 1000000.0;
+}
 
 int GetThreadWork() {
 	int r, f, i;

@@ -87,8 +87,8 @@ struct brush_t {
 	int entitynum;
 	int brushnum;
 
-	side_index firstside;
-	brush_side_count numsides;
+	side_index firstSide;
+	brush_side_count numSides;
 
 	cliphull_bitmask cliphull;
 

@@ -1,6 +1,7 @@
 // #pragma warning(disable: 4018) // '<' : signed/unsigned mismatch
 
 #include "bsp5.h"
+#include "time_counter.h"
 #include "util.h"
 
 #include <cstring>
@@ -796,7 +797,7 @@ static void DivideSurface(
 					frontlist = facet;
 				}
 			}
-			goto makesurfs;
+			goto makesurfaces;
 		}
 		return;
 	}
@@ -820,7 +821,7 @@ static void DivideSurface(
 	}
 
 	// if nothing actually got split, just move the in plane
-makesurfs:
+makesurfaces:
 	if (frontlist == nullptr && backlist == nullptr) {
 		*front = nullptr;
 		*back = nullptr;
@@ -1568,7 +1569,7 @@ node_t* SolidBSP(
 	node_t* headnode;
 
 	ResetStatus(report_progress);
-	double start_time = I_FloatTime();
+	time_counter timeCounter;
 	if (report_progress) {
 		Log("SolidBSP [hull %d] ", g_hullnum);
 	} else {
@@ -1579,9 +1580,8 @@ node_t* SolidBSP(
 	headnode->surfaces = surfhead->surfaces;
 	headnode->detailbrushes = detailbrushes;
 	headnode->isdetail = false;
-	double3_array brushmins, brushmaxs;
-	VectorAddVec(surfhead->mins, -SIDESPACE, brushmins);
-	VectorAddVec(surfhead->maxs, SIDESPACE, brushmaxs);
+	double3_array brushmins = vector_add(surfhead->mins, -SIDESPACE);
+	double3_array brushmaxs = vector_add(surfhead->maxs, SIDESPACE);
 	headnode->boundsbrush = BrushFromBox(brushmins, brushmaxs);
 
 	// generate six portals that enclose the entire world
@@ -1590,9 +1590,8 @@ node_t* SolidBSP(
 	// recursively partition everything
 	BuildBspTree_r(headnode);
 
-	double end_time = I_FloatTime();
 	if (report_progress) {
-		Log("%d (%.2f seconds)\n", ++g_numProcessed, (end_time - start_time)
+		Log("%d (%.2f seconds)\n", ++g_numProcessed, timeCounter.get_total()
 		);
 	}
 

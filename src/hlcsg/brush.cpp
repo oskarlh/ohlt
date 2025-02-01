@@ -264,12 +264,11 @@ void ExpandBrushWithHullBrush(
 			}
 		}
 
-		// add hull plane for this face
-		VectorCopy(brushface.normal, normal);
-		if (f.bevel) {
-			VectorCopy(brushface.point, origin);
-		} else {
-			VectorSubtract(brushface.point, bestvertex, origin);
+		// Add hull plane for this face
+		normal = brushface.normal;
+		origin = brushface.point;
+		if (!f.bevel) {
+			origin = vector_subtract(origin, bestvertex);
 		}
 		AddHullPlane(hull, normal, origin, true);
 	}
@@ -344,17 +343,15 @@ void ExpandBrushWithHullBrush(
 				// corresponding f2) but since brushedge.delta are exactly
 				// the opposite between the two iterations only one of them
 				// can reach here
-				double3_array e1;
-				double3_array e2;
-				VectorCopy(brushedge.delta, e1);
+				double3_array e1 = brushedge.delta;
 				normalize_vector(e1);
-				VectorCopy(hbe->delta, e2);
+				double3_array e2 = hbe->delta;
 				normalize_vector(e2);
 				CrossProduct(e1, e2, normal);
 				if (!normalize_vector(normal)) {
 					continue;
 				}
-				VectorSubtract(brushedge.point, hbe->point, origin);
+				origin = vector_subtract(brushedge.point, hbe->point);
 				AddHullPlane(hull, normal, origin, true);
 			}
 		}
@@ -881,8 +878,8 @@ bool MakeBrushPlanes(brush_t* b) {
 	// convert to mapplanes
 	//
 	// for each side in this brush
-	for (brush_side_count i = 0; i < b->numsides; ++i) {
-		s = &g_brushsides[b->firstside + i];
+	for (brush_side_count i = 0; i < b->numSides; ++i) {
+		s = &g_brushsides[b->firstSide + i];
 		for (std::size_t j = 0; j < 3; ++j) {
 			s->planepts[j] = vector_subtract(s->planepts[j], origin);
 		}
@@ -1019,12 +1016,12 @@ contents_t CheckBrushContents(brush_t const * const b) {
 	side_t* s;
 	bool assigned = false;
 
-	s = &g_brushsides[b->firstside];
+	s = &g_brushsides[b->firstSide];
 
 	// cycle though the sides of the brush and attempt to get our best side
 	// contents for
 	//  determining overall brush contents
-	if (b->numsides == 0) {
+	if (b->numSides == 0) {
 		Error(
 			"Entity %i, Brush %i: Brush with no sides.\n",
 			b->originalentitynum,
@@ -1041,7 +1038,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 	}
 	s++;
 	brush_side_count best_i{ 0 };
-	for (brush_side_count i = 1; i < b->numsides; i++, s++) {
+	for (brush_side_count i = 1; i < b->numSides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t contents_consider = TextureContents(textureNameB);
 		if (assigned) {
@@ -1062,8 +1059,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 	contents = best_contents;
 
 	// attempt to pick up on mixed_face_contents errors
-	s = &g_brushsides[b->firstside];
-	for (brush_side_count i = 0; i < b->numsides; i++, s++) {
+	s = &g_brushsides[b->firstSide];
+	for (brush_side_count i = 0; i < b->numSides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t const contents2 = TextureContents(textureNameB);
 		if (assigned && !textureNameB.is_any_content_type()
@@ -1088,7 +1085,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 				"Entity %i, Brush %i: mixed face contents\n    Texture %s and %s",
 				b->originalentitynum,
 				b->originalbrushnum,
-				g_brushsides[b->firstside + best_i].td.name.c_str(),
+				g_brushsides[b->firstSide + best_i].td.name.c_str(),
 				s->td.name.c_str()
 			);
 		}
@@ -1218,12 +1215,12 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 	numplanes = 0;
 	origin = get_double3_for_key(g_entities[b->entitynum], u8"origin");
 
-	for (brush_side_count i = 0; i < b->numsides; ++i) {
+	for (brush_side_count i = 0; i < b->numSides; ++i) {
 		side_t* s;
 		double3_array p[3];
 		planetype axial;
 
-		s = &g_brushsides[b->firstside + i];
+		s = &g_brushsides[b->firstSide + i];
 		for (std::size_t j = 0; j < 3; ++j) {
 			p[j] = vector_subtract(s->planepts[j], origin);
 			for (std::size_t k = 0; k < 3; ++k) {

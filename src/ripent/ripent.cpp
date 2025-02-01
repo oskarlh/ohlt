@@ -14,6 +14,7 @@
 
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
+#include "time_counter.h"
 #include "wad_structs.h"
 
 #include <cstring>
@@ -932,8 +933,6 @@ static void Settings() {
  * ============
  */
 int main(int argc, char** argv) {
-	double start, end;
-
 	g_Program = "RIPENT";
 
 	int argcold = argc;
@@ -1034,7 +1033,7 @@ int main(int argc, char** argv) {
 			atexit(dtexdata_free);
 
 			// BEGIN RipEnt
-			start = I_FloatTime();
+			time_counter timeCounter;
 
 			ReadBSP(g_Mapname);
 			bool updatebsp = false;
@@ -1074,8 +1073,7 @@ int main(int argc, char** argv) {
 				WriteBSP(g_Mapname);
 			}
 
-			end = I_FloatTime();
-			LogTimeElapsed(end - start);
+			LogTimeElapsed(timeCounter.get_total());
 			// END RipEnt
 		}
 	}

@@ -59,8 +59,6 @@ extern bool TerminatedString(char const * buffer, int const size);
 
 extern char* FlipSlashes(char* string);
 
-extern double I_FloatTime();
-
 extern int CheckParm(char* check);
 
 extern void DefaultExtension(char* path, char const * extension);

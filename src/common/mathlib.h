@@ -51,6 +51,16 @@ vector_add(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 }
 
 constexpr auto
+vector_add(any_vec3 auto const & a, any_vec_element auto b) noexcept {
+	return std::array{ a[0] + b, a[1] + b, a[2] + b };
+}
+
+constexpr auto
+vector_add(any_vec_element auto a, any_vec3 auto const & b) noexcept {
+	return vector_add(b, a);
+}
+
+constexpr auto
 vector_multiply(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 	return to_vec3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
 }
