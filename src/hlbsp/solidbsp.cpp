@@ -723,9 +723,7 @@ static void FixDetaillevelForDiscardable(
 	// discardable). Remove them now
 	surface_t *s, **psnext;
 	face_t *f, **pfnext;
-	detail_level detailLevelOrMax = detailLevel.value_or(
-		std::numeric_limits<detail_level>::max()
-	);
+
 	for (psnext = &node->surfaces; s = *psnext, s != nullptr;) {
 		if (s->onnode) {
 			psnext = &s->next;
@@ -733,7 +731,7 @@ static void FixDetaillevelForDiscardable(
 		}
 		hlassume(s->faces, assume_ValidPointer);
 		for (pfnext = &s->faces; f = *pfnext, f != nullptr;) {
-			if (f->detailLevel <= detailLevelOrMax) {
+			if (!detailLevel.has_value() || f->detailLevel < detailLevel) {
 				*pfnext = f->next;
 				FreeFace(f);
 			} else {
@@ -746,7 +744,10 @@ static void FixDetaillevelForDiscardable(
 		} else {
 			psnext = &s->next;
 			CalcSurfaceInfo(s);
-			hlassume(s->detailLevel > detailLevelOrMax, assume_first);
+			hlassume(
+				detailLevel.has_value() && s->detailLevel >= detailLevel,
+				assume_first
+			);
 		}
 	}
 }
