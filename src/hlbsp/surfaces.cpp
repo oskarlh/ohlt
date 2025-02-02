@@ -305,7 +305,7 @@ int GetEdge(double3_array const & p1, double3_array const & p2, face_t* f) {
 	dedge_t* edge;
 	int i;
 
-	hlassert(f->contents);
+	hlassert(std::to_underlying(f->contents));
 
 	v1 = GetVertex(p1, f->planenum);
 	v2 = GetVertex(p2, f->planenum);
