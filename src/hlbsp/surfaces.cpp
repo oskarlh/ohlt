@@ -56,7 +56,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			maxs = -99'999'999;
 
 			for (i = 0; i < f->numpoints; i++) {
-				v = DotProduct(f->pts[i], tex->vecs[axis].xyz);
+				v = dot_product(f->pts[i], tex->vecs[axis].xyz);
 				if (v < mins) {
 					mins = v;
 				}

@@ -79,8 +79,8 @@ bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
 	VectorSubtract(m_vecEnd, m_vecStart, p);
 	VectorSubtract(m_vecStart, facet->triangle[0].point, w);
 
-	float const d1 = -DotProduct(n, w);
-	float const d2 = DotProduct(n, p);
+	float const d1 = -dot_product(n, w);
+	float const d2 = dot_product(n, p);
 	if (fabs(d2) < FRAC_EPSILON) {
 		return false; // parallel with plane
 	}
@@ -98,13 +98,13 @@ bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
 	p[2] = m_vecStart[2] + (m_vecEnd[2] - m_vecStart[2]) * frac;
 
 	// does p lie inside triangle?
-	float const uu = DotProduct(facet->edge1, facet->edge1);
-	float const uv = DotProduct(facet->edge1, facet->edge2);
-	float const vv = DotProduct(facet->edge2, facet->edge2);
+	float const uu = dot_product(facet->edge1, facet->edge1);
+	float const uv = dot_product(facet->edge1, facet->edge2);
+	float const vv = dot_product(facet->edge2, facet->edge2);
 
 	VectorSubtract(p, facet->triangle[0].point, w);
-	float const wu = DotProduct(w, facet->edge1);
-	float const wv = DotProduct(w, facet->edge2);
+	float const wu = dot_product(w, facet->edge1);
+	float const wv = dot_product(w, facet->edge2);
 	float const d = uv * uv - uu * vv;
 
 	// get and test parametric coords
@@ -128,7 +128,7 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 	CrossProduct(m_vecTraceDirection, facet->edge2, pvec);
 
 	// if determinant is near zero, trace lies in plane of triangle
-	float det = DotProduct(facet->edge1, pvec);
+	float det = dot_product(facet->edge1, pvec);
 
 	// the non-culling branch
 	if (fabs(det) < COPLANAR_EPSILON) {
@@ -141,7 +141,7 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 	VectorSubtract(m_vecStart, facet->triangle[0].point, tvec);
 
 	// calculate u parameter and test bounds
-	float u = DotProduct(tvec, pvec) * invDet;
+	float u = dot_product(tvec, pvec) * invDet;
 	if (u < -BARY_EPSILON || u > (1.0f + BARY_EPSILON)) {
 		return false;
 	}
@@ -150,13 +150,13 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 	CrossProduct(tvec, facet->edge1, qvec);
 
 	// calculate v parameter and test bounds
-	float v = DotProduct(m_vecTraceDirection, qvec) * invDet;
+	float v = dot_product(m_vecTraceDirection, qvec) * invDet;
 	if (v < -BARY_EPSILON || (u + v) > (1.0f + BARY_EPSILON)) {
 		return false;
 	}
 
 	// calculate t (depth)
-	float depth = DotProduct(facet->edge2, qvec) * invDet;
+	float depth = dot_product(facet->edge2, qvec) * invDet;
 	if (depth <= NEAR_SHADOW_EPSILON || depth >= m_flTraceDistance) {
 		return false;
 	}

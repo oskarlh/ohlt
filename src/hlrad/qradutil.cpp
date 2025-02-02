@@ -10,7 +10,7 @@ dleaf_t* PointInLeaf_Worst_r(int nodenum, float3_array const & point) {
 	while (nodenum >= 0) {
 		node = &g_dnodes[nodenum];
 		plane = &g_dplanes[node->planenum];
-		dist = DotProduct(point, plane->normal) - plane->dist;
+		dist = dot_product(point, plane->normal) - plane->dist;
 		if (dist > HUNT_WALL_EPSILON) {
 			nodenum = node->children[0];
 		} else if (dist < -HUNT_WALL_EPSILON) {
@@ -57,7 +57,7 @@ dleaf_t* PointInLeaf(float3_array const & point) {
 	while (nodenum >= 0) {
 		node = &g_dnodes[nodenum];
 		plane = &g_dplanes[node->planenum];
-		dist = DotProduct(point, plane->normal) - plane->dist;
+		dist = dot_product(point, plane->normal) - plane->dist;
 		if (dist >= 0.0) {
 			nodenum = node->children[0];
 		} else {
@@ -78,7 +78,7 @@ float PatchPlaneDist(patch_t const * const patch) {
 	dplane_t const * plane = getPlaneFromFaceNumber(patch->faceNumber);
 
 	return plane->dist
-		+ DotProduct(g_face_offset[patch->faceNumber], plane->normal);
+		+ dot_product(g_face_offset[patch->faceNumber], plane->normal);
 }
 
 void MakeBackplanes() {
@@ -126,20 +126,20 @@ void getAdjustedPlaneFromFaceNumber(
 		float dist;
 
 		plane->normal = backplanes[face->planenum].normal;
-		dist = DotProduct(plane->normal, face_offset);
+		dist = dot_product(plane->normal, face_offset);
 		plane->dist = backplanes[face->planenum].dist + dist;
 	} else {
 		float dist;
 
 		plane->normal = g_dplanes[face->planenum].normal;
-		dist = DotProduct(plane->normal, face_offset);
+		dist = dot_product(plane->normal, face_offset);
 		plane->dist = g_dplanes[face->planenum].dist + dist;
 	}
 }
 
 // Will modify the plane with the new dist
-void TranslatePlane(dplane_t* plane, float const * delta) {
-	plane->dist += DotProduct(plane->normal, delta);
+static void TranslatePlane(dplane_t* plane, float3_array const & delta) {
+	plane->dist += dot_product(plane->normal, delta);
 }
 
 // HuntForWorld will never return contents_t::SKY or contents_t::SOLID leafs
@@ -164,7 +164,7 @@ dleaf_t* HuntForWorld(
 
 	float3_array scales{ 0.0, -hunt_scale, hunt_scale };
 
-	TranslatePlane(&new_plane, plane_offset.data());
+	TranslatePlane(&new_plane, plane_offset);
 
 	for (int a = 0; a < hunt_size; ++a) {
 		for (int x = 0; x < 3; ++x) {
@@ -188,7 +188,7 @@ dleaf_t* HuntForWorld(
 					float3_array const delta = vector_subtract(
 						current_point, original_point
 					);
-					float const dist = DotProduct(delta, delta);
+					float const dist = dot_product(delta, delta);
 
 					if (std::ranges::any_of(
 							g_opaque_face_list,
@@ -413,7 +413,7 @@ static bool IsPositionValid(
 	}
 	pos = vector_fma(pos_normal, DEFAULT_HUNT_OFFSET, pos);
 
-	hunt_offset = DotProduct(pos, map->faceplanewithoffset.normal)
+	hunt_offset = dot_product(pos, map->faceplanewithoffset.normal)
 		- map->faceplanewithoffset
 			  .dist; // might be smaller than DEFAULT_HUNT_OFFSET
 
@@ -715,7 +715,7 @@ void FreePositionMaps() {
 					}
 					v = map->grid[j].pos;
 					VectorSubtract(v, g_drawsample_origin, dist);
-					if (DotProduct(dist, dist)
+					if (dot_product(dist, dist)
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
 							fprintf(

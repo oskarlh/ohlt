@@ -100,7 +100,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 
 	back = f2->pts[(j + 2) % f2->numpoints].data();
 	VectorSubtract(back, p1, delta);
-	dot = DotProduct(delta, normal);
+	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
 		return nullptr; // not a convex polygon
 	}
@@ -113,7 +113,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 
 	back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints].data();
 	VectorSubtract(back, p2, delta);
-	dot = DotProduct(delta, normal);
+	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
 		return nullptr; // not a convex polygon
 	}

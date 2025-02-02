@@ -129,7 +129,7 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 	for (bface_t const & face : hull->faces) {
 		mapplane_t* plane = &g_mapplanes[face.planenum];
 		double area = face.w.getArea();
-		double dist = DotProduct(plane->normal, midpoint);
+		double dist = dot_product(plane->normal, midpoint);
 
 		dist -= plane->dist;
 		dist = fabs(dist);

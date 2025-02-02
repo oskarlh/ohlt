@@ -339,7 +339,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 				f->pts[lastcorner - 1], f->pts[lastcorner], test
 			);
 			normalize_vector(test);
-			v = DotProduct(test, dir);
+			v = dot_product(test, dir);
 			if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON) {
 				break;
 			}
@@ -354,7 +354,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 				f->pts[firstcorner + 1], f->pts[firstcorner], test
 			);
 			normalize_vector(test);
-			v = DotProduct(test, dir);
+			v = dot_product(test, dir);
 			if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON) {
 				break;
 			}

@@ -223,7 +223,7 @@ bool CMeshDesc ::PlaneFromPoints(
 	}
 
 	normalize_vector(plane->normal);
-	plane->dist = DotProduct(triangle[0].point, plane->normal);
+	plane->dist = dot_product(triangle[0].point, plane->normal);
 
 	return true;
 }
@@ -934,7 +934,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 				}
 
 				normalize_vector(normal);
-				dist = DotProduct(triangle[i].point, normal);
+				dist = dot_product(triangle[i].point, normal);
 
 				for (j = 0; j < numplanes; j++) {
 					// if this plane has already been used, skip it
@@ -951,7 +951,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 				// edge bevel
 				for (j = 0; j < 3; j++) {
 					if (j != i) {
-						float d = DotProduct(triangle[j].point, normal)
+						float d = dot_product(triangle[j].point, normal)
 							- dist;
 						// point in front: this plane isn't part of the
 						// outer hull

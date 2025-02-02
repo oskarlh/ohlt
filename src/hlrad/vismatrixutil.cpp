@@ -261,11 +261,11 @@ void MakeScales(int const threadnum) {
 			delta = vector_fma(normal2, -PATCH_HUNT_OFFSET, delta);
 
 			dist = normalize_vector(delta);
-			dot1 = DotProduct(delta, normal1);
+			dot1 = dot_product(delta, normal1);
 			if (useback) {
-				dot1 = DotProduct(delta, backnormal);
+				dot1 = dot_product(delta, backnormal);
 			}
-			dot2 = -DotProduct(delta, normal2);
+			dot2 = -dot_product(delta, normal2);
 			bool light_behind_surface = false;
 			if (dot1 <= NORMAL_EPSILON) {
 				light_behind_surface = true;
@@ -521,7 +521,7 @@ void MakeRGBScales(int const threadnum) {
 			if (useback) {
 				dot1 = dot_product(delta, backnormal);
 			}
-			dot2 = -DotProduct(delta, normal2);
+			dot2 = -dot_product(delta, normal2);
 			bool light_behind_surface = false;
 			if (dot1 <= NORMAL_EPSILON) {
 				light_behind_surface = true;

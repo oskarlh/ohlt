@@ -169,9 +169,9 @@ static void WritePortalFile_r(node_t const * const node) {
 				// interpret the plane the same way vis will, and flip the
 				// side orders if needed
 				w->getPlane(plane2);
-				if (DotProduct(p->plane.normal, plane2.normal)
+				if (dot_product(p->plane.normal, plane2.normal)
 					< 1.0 - ON_EPSILON) { // backwards...
-					if (DotProduct(p->plane.normal, plane2.normal)
+					if (dot_product(p->plane.normal, plane2.normal)
 						> -1.0 + ON_EPSILON) {
 						Warning("Colinear portal @");
 						w->Print();

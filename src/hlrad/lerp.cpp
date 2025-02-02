@@ -110,9 +110,9 @@ static bool CalcAdaptedSpot(
 	// Use phong normal instead of face normal, because phong normal is a
 	// continuous function
 	GetPhongNormal(surface, position, phongnormal);
-	dot = DotProduct(spot, phongnormal);
+	dot = dot_product(spot, phongnormal);
 	if (fabs(dot) > ON_EPSILON) {
-		frac = DotProduct(surfacespot, phongnormal) / dot;
+		frac = dot_product(surfacespot, phongnormal) / dot;
 		// To correct some extreme cases
 		frac = std::clamp(frac, 0.0f, 1.0f);
 	} else {
@@ -140,7 +140,7 @@ static float GetAngle(
 
 	CrossProduct(rightdirection, leftdirection, v);
 	angle = atan2(
-		DotProduct(v, normal), DotProduct(rightdirection, leftdirection)
+		dot_product(v, normal), dot_product(rightdirection, leftdirection)
 	);
 
 	return angle;
@@ -355,8 +355,8 @@ static void CalcInterpolation_Square(
 	normal = cross_product(lt->normal, w3->leftdirection);
 	normalize_vector(normal);
 	dot = dot_product(spot, normal) - 0;
-	dot1 = (1 - frac_far) * DotProduct(w1->leftspot, normal)
-		+ frac_far * DotProduct(w2->leftspot, normal) - 0;
+	dot1 = (1 - frac_far) * dot_product(w1->leftspot, normal)
+		+ frac_far * dot_product(w2->leftspot, normal) - 0;
 	if (dot <= NORMAL_EPSILON) {
 		ratio = 0.0;
 	} else if (dot >= dot1) {
@@ -593,11 +593,11 @@ static void CalcInterpolation(
 				float dot2;
 				float frac;
 
-				dot1 = DotProduct(w->leftspot, w->wedgenormal)
-					- DotProduct(spot, w->wedgenormal);
-				dot2 = DotProduct(wnext->leftspot, w->wedgenormal)
-					- DotProduct(spot, w->wedgenormal);
-				dot = 0 - DotProduct(spot, w->wedgenormal);
+				dot1 = dot_product(w->leftspot, w->wedgenormal)
+					- dot_product(spot, w->wedgenormal);
+				dot2 = dot_product(wnext->leftspot, w->wedgenormal)
+					- dot_product(spot, w->wedgenormal);
+				dot = 0 - dot_product(spot, w->wedgenormal);
 				// for eConvex type: dot1 < dot < dot2
 
 				if (g_drawlerp && (dot1 > dot || dot > dot2)) {
@@ -652,7 +652,7 @@ static void CalcInterpolation(
 			float dist;
 			float ratio;
 
-			if (DotProduct(spot, w->wedgenormal)
+			if (dot_product(spot, w->wedgenormal)
 				< 0) // the spot is closer to the left edge than the right
 					 // edge
 			{
@@ -956,18 +956,18 @@ static bool TestLineSegmentIntersectWall(
 
 	for (i = 0; i < (int) facetrian->walls.size(); i++) {
 		wall = &facetrian->walls[i];
-		bottom = DotProduct(wall->points[0], wall->direction);
-		top = DotProduct(wall->points[1], wall->direction);
-		front = DotProduct(p1, wall->normal)
-			- DotProduct(wall->points[0], wall->normal);
-		back = DotProduct(p2, wall->normal)
-			- DotProduct(wall->points[0], wall->normal);
+		bottom = dot_product(wall->points[0], wall->direction);
+		top = dot_product(wall->points[1], wall->direction);
+		front = dot_product(p1, wall->normal)
+			- dot_product(wall->points[0], wall->normal);
+		back = dot_product(p2, wall->normal)
+			- dot_product(wall->points[0], wall->normal);
 		if (front > ON_EPSILON && back > ON_EPSILON
 			|| front < -ON_EPSILON && back < -ON_EPSILON) {
 			continue;
 		}
-		dot1 = DotProduct(p1, wall->direction);
-		dot2 = DotProduct(p2, wall->direction);
+		dot1 = dot_product(p1, wall->direction);
+		dot2 = dot_product(p2, wall->direction);
 		if (fabs(front) <= 2 * ON_EPSILON && fabs(back) <= 2 * ON_EPSILON) {
 			top = std::min(top, std::max(dot1, dot2));
 			bottom = std::max(bottom, std::min(dot1, dot2));
@@ -1130,7 +1130,7 @@ static void PurgePatches(localtriangulation_t* lt) {
 		next[i] = (i + 1) % (int) points.size();
 		prev[i] = (i - 1 + (int) points.size()) % (int) points.size();
 		valid[i] = 1;
-		dists[i].first = DotProduct(
+		dists[i].first = dot_product(
 			points[i].leftspot, points[i].leftdirection
 		);
 		dists[i].second = i;
@@ -1162,8 +1162,8 @@ static void PurgePatches(localtriangulation_t* lt) {
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
 				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
 							+ NORMAL_EPSILON
-					&& DotProduct(points[next[cur]].leftspot, v)
-						>= DotProduct(points[cur].leftspot, v)
+					&& dot_product(points[next[cur]].leftspot, v)
+						>= dot_product(points[cur].leftspot, v)
 							- ON_EPSILON / 2) {
 				// remove next patch
 				valid[next[cur]] = 0;
@@ -1193,8 +1193,8 @@ static void PurgePatches(localtriangulation_t* lt) {
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
 				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
 							+ NORMAL_EPSILON
-					&& DotProduct(points[prev[cur]].leftspot, v)
-						>= DotProduct(points[cur].leftspot, v)
+					&& dot_product(points[prev[cur]].leftspot, v)
+						>= dot_product(points[cur].leftspot, v)
 							- ON_EPSILON / 2) {
 				// remove previous patch
 				valid[prev[cur]] = 0;
@@ -1335,16 +1335,16 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 						lt->normal
 					);
 					len = (1 - frac)
-							* DotProduct(
+							* dot_product(
 								arc_spots[prev[j]].spot,
 								arc_spots[j].direction
 							)
 						+ frac
-							* DotProduct(
+							* dot_product(
 								arc_spots[next[j]].spot,
 								arc_spots[j].direction
 							);
-					dist = DotProduct(
+					dist = dot_product(
 						arc_spots[j].spot, arc_spots[j].direction
 					);
 					if (dist <= len + NORMAL_EPSILON) {
@@ -1424,7 +1424,7 @@ static void FindSquares(localtriangulation_t* lt) {
 	dists.resize((int) lt->sortedwedges.size());
 	for (i = 0; i < (int) lt->sortedwedges.size(); i++) {
 		w = &lt->sortedwedges[i];
-		dists[i].first = DotProduct(w->leftspot, w->leftdirection);
+		dists[i].first = dot_product(w->leftspot, w->leftdirection);
 		dists[i].second = i;
 	}
 	std::sort(dists.begin(), dists.end());
@@ -1588,7 +1588,7 @@ static void FindNeighbors(facetriangulation_t* facetrian) {
 		f2 = es->faces[e > 0 ? 1 : 0];
 		facenum2 = f2 - g_dfaces.data();
 		dp2 = getPlaneFromFace(f2);
-		if (DotProduct(dp->normal, dp2->normal) < -NORMAL_EPSILON) {
+		if (dot_product(dp->normal, dp2->normal) < -NORMAL_EPSILON) {
 			continue;
 		}
 		for (j = 0; j < (int) facetrian->neighbors.size(); j++) {
@@ -1612,7 +1612,8 @@ static void FindNeighbors(facetriangulation_t* facetrian) {
 				f2 = fl->face;
 				facenum2 = f2 - g_dfaces.data();
 				dp2 = getPlaneFromFace(f2);
-				if (DotProduct(dp->normal, dp2->normal) < -NORMAL_EPSILON) {
+				if (dot_product(dp->normal, dp2->normal)
+					< -NORMAL_EPSILON) {
 					continue;
 				}
 				for (j = 0; j < (int) facetrian->neighbors.size(); j++) {

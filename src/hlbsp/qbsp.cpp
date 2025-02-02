@@ -221,7 +221,7 @@ static void SplitFaceTmp(
 	// This again... We have code like this in accurate_winding repeated
 	// several times determine sides for each point
 	for (i = 0; i < in->numpoints; i++) {
-		dot = DotProduct(in->pts[i], split->normal);
+		dot = dot_product(in->pts[i], split->normal);
 		dot -= split->dist;
 		dotSum += dot;
 		dists[i] = dot;
@@ -241,7 +241,7 @@ static void SplitFaceTmp(
 		if (in->detailLevel) {
 			// put front face in front node, and back face in back node.
 			mapplane_t const * faceplane = &g_mapplanes[in->planenum];
-			if (DotProduct(faceplane->normal, split->normal)
+			if (dot_product(faceplane->normal, split->normal)
 				> NORMAL_EPSILON) // usually near 1.0 or -1.0
 			{
 				*front = in;

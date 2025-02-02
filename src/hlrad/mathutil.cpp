@@ -97,7 +97,7 @@ void snap_to_winding(
 		float3_array const & p2 = w.point((x + 1) % numpoints);
 		float3_array delta = vector_subtract(p2, p1);
 		float3_array const normal = cross_product(delta, plane.normal);
-		dist = DotProduct(point, normal) - DotProduct(p1, normal);
+		dist = dot_product(point, normal) - dot_product(p1, normal);
 
 		if (dist < 0.0) {
 			in = false;
@@ -119,10 +119,10 @@ void snap_to_winding(
 	for (x = 0; x < numpoints; x++) {
 		float3_array const & p1 = w.point(x);
 		float3_array delta = vector_subtract(p1, point);
-		dist = DotProduct(delta, plane.normal)
-			/ DotProduct(plane.normal, plane.normal);
+		dist = dot_product(delta, plane.normal)
+			/ dot_product(plane.normal, plane.normal);
 		delta = vector_fma(plane.normal, -dist, delta);
-		dot = DotProduct(delta, delta);
+		dot = dot_product(delta, delta);
 
 		if (x == 0 || dot < bestdist) {
 			bestpoint = vector_add(point, delta);
@@ -174,7 +174,7 @@ float snap_to_winding_noedge(
 		if (!normalize_vector(planes[numplanes].normal)) {
 			continue;
 		}
-		planes[numplanes].dist = DotProduct(
+		planes[numplanes].dist = dot_product(
 			w.point(x), planes[numplanes].normal
 		);
 		numplanes++;
@@ -240,8 +240,8 @@ bool intersect_linesegment_plane(
 	float3_array const & p2,
 	float3_array& point
 ) {
-	float const part1 = DotProduct(p1, plane.normal) - plane.dist;
-	float const part2 = DotProduct(p2, plane.normal) - plane.dist;
+	float const part1 = dot_product(p1, plane.normal) - plane.dist;
+	float const part2 = dot_product(p2, plane.normal) - plane.dist;
 	if (part1 * part2 > 0 || part1 == part2) {
 		return false;
 	}
@@ -265,7 +265,7 @@ void plane_from_points(
 	VectorSubtract(p1, p2, delta2);
 	CrossProduct(delta1, delta2, normal);
 	normalize_vector(normal);
-	plane.dist = DotProduct(normal, p1);
+	plane.dist = dot_product(normal, p1);
 	plane.normal = normal;
 }
 
@@ -366,7 +366,7 @@ bool TestSegmentAgainstOpaqueList(
 float3_array snap_point_to_plane(
 	dplane_t const * const plane, float3_array const & point, float offset
 ) noexcept {
-	float dist = DotProduct(point, plane->normal) - plane->dist;
+	float dist = dot_product(point, plane->normal) - plane->dist;
 	dist -= offset;
 	return vector_fma(plane->normal, -dist, point);
 }
@@ -416,12 +416,12 @@ float CalcSightArea(
 			psize = g_skynormalsizes[skylevel];
 			 i < g_numskynormals[skylevel];
 			 i++, pnormal++, psize++) {
-			dot = DotProduct(*pnormal, receiver_normal);
+			dot = dot_product(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
 			}
 			for (j = 0, pedge = edges; j < numedges; j++, pedge++) {
-				if (DotProduct(*pnormal, *pedge) <= 0) {
+				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
 			}
@@ -491,12 +491,12 @@ float CalcSightArea_SpotLight(
 			psize = g_skynormalsizes[skylevel];
 			 i < g_numskynormals[skylevel];
 			 i++, pnormal++, psize++) {
-			dot = DotProduct(*pnormal, receiver_normal);
+			dot = dot_product(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
 			}
 			for (j = 0, pedge = edges; j < numedges; j++, pedge++) {
-				if (DotProduct(*pnormal, *pedge) <= 0) {
+				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
 			}
@@ -506,7 +506,7 @@ float CalcSightArea_SpotLight(
 			if (lighting_power != 1.0) {
 				dot = pow(dot, lighting_power);
 			}
-			dot2 = -DotProduct(*pnormal, emitter_normal);
+			dot2 = -dot_product(*pnormal, emitter_normal);
 			if (dot2 <= emitter_stopdot2 + NORMAL_EPSILON) {
 				dot = 0;
 			} else if (dot2 < emitter_stopdot) {
@@ -540,7 +540,7 @@ void GetAlternateOrigin(
 	float3_array const & faceplaneoffset = g_face_offset[patch->faceNumber];
 	float3_array const & facenormal = faceplane->normal;
 	clipplane.normal = normal;
-	clipplane.dist = DotProduct(pos, clipplane.normal);
+	clipplane.dist = dot_product(pos, clipplane.normal);
 
 	w = *patch->winding;
 	if (w.WindingOnPlaneSide(clipplane.normal, clipplane.dist)

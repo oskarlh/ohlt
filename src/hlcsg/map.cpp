@@ -687,7 +687,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 						double coord[2];
 						if (fabs(side->td.vects.scale[0])
 							> NORMAL_EPSILON) {
-							coord[0] = DotProduct(
+							coord[0] = dot_product(
 										   ent_scale_origin,
 										   side->td.vects.UAxis
 									   )
@@ -697,7 +697,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 							if (fabs(side->td.vects.scale[0])
 								> NORMAL_EPSILON) {
 								side->td.vects.shift[0] = coord[0]
-									- DotProduct(
+									- dot_product(
 										  ent_scale_origin,
 										  side->td.vects.UAxis
 									  ) / side->td.vects.scale[0];
@@ -709,7 +709,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 						}
 						if (fabs(side->td.vects.scale[1])
 							> NORMAL_EPSILON) {
-							coord[1] = DotProduct(
+							coord[1] = dot_product(
 										   ent_scale_origin,
 										   side->td.vects.VAxis
 									   )
@@ -719,7 +719,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 							if (fabs(side->td.vects.scale[1])
 								> NORMAL_EPSILON) {
 								side->td.vects.shift[1] = coord[1]
-									- DotProduct(
+									- dot_product(
 										  ent_scale_origin,
 										  side->td.vects.VAxis
 									  ) / side->td.vects.scale[1];
@@ -734,7 +734,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 						if (fabs(side->td.vects.scale[0])
 							> NORMAL_EPSILON) {
 							side->td.vects.shift[0]
-								-= DotProduct(
+								-= dot_product(
 									   ent_move, side->td.vects.UAxis
 								   )
 								/ side->td.vects.scale[0];
@@ -744,7 +744,7 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 						if (fabs(side->td.vects.scale[1])
 							> NORMAL_EPSILON) {
 							side->td.vects.shift[1]
-								-= DotProduct(
+								-= dot_product(
 									   ent_move, side->td.vects.VAxis
 								   )
 								/ side->td.vects.scale[1];

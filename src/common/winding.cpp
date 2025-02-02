@@ -164,7 +164,7 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 			if (j == i) {
 				continue;
 			}
-			d = DotProduct(m_Points[j], edgenormal);
+			d = dot_product(m_Points[j], edgenormal);
 			if (d > edgedist) {
 				Error("winding_base::Check : non-convex");
 			}
@@ -341,10 +341,10 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 		VectorSubtract(p2, p1, v1);
 		VectorSubtract(p3, p2, v2);
 		// v1 or v2 might be close to 0
-		if (DotProduct(v1, v2) * DotProduct(v1, v2)
-			>= DotProduct(v1, v1) * DotProduct(v2, v2)
+		if (dot_product(v1, v2) * dot_product(v1, v2)
+			>= dot_product(v1, v1) * dot_product(v2, v2)
 				- epsilon * epsilon
-					* (DotProduct(v1, v1) + DotProduct(v2, v2)
+					* (dot_product(v1, v1) + dot_product(v2, v2)
 					   + epsilon * epsilon))
 		// v2 == k * v1 + v3 && abs (v3) < epsilon || v1 == k * v2 + v3 &&
 		// abs (v3) < epsilon
@@ -383,7 +383,7 @@ void winding_base<VecElement>::Clip(
 
 	// determine sides for each point
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element dot = DotProduct(m_Points[i], normal);
+		vec_element dot = dot_product(m_Points[i], normal);
 		dot -= dist;
 		dists[i] = dot;
 		if (dot > epsilon) {
@@ -489,7 +489,7 @@ face_side winding_base<VecElement>::WindingOnPlaneSide(
 	bool front = false;
 	bool back = false;
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element d = DotProduct(m_Points[i], normal) - dist;
+		vec_element d = dot_product(m_Points[i], normal) - dist;
 		if (d < -epsilon) {
 			if (front) {
 				return face_side::cross;
@@ -533,7 +533,7 @@ bool winding_base<VecElement>::mutating_clip(
 	// determine sides for each point
 	// do this exactly, with no epsilon so tiny portals still work
 	for (i = 0; i < size(); i++) {
-		dot = DotProduct(m_Points[i], planeNormal);
+		dot = dot_product(m_Points[i], planeNormal);
 		dot -= planeDist;
 		dists[i] = dot;
 		if (dot > epsilon) {
@@ -633,7 +633,7 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 
 	// determine sides for each point
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element dot = DotProduct(m_Points[i], split.normal);
+		vec_element dot = dot_product(m_Points[i], split.normal);
 		dot -= split.dist;
 		dotSum += dot;
 		dists[i] = dot;

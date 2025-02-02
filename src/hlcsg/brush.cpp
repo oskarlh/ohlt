@@ -41,7 +41,7 @@ find_plane:
 			&& -DIR_EPSILON
 				< (t = normal[2] - g_mapplanes[returnval].normal[2])
 			&& t < DIR_EPSILON) {
-			t = DotProduct(origin, g_mapplanes[returnval].normal)
+			t = dot_product(origin, g_mapplanes[returnval].normal)
 				- g_mapplanes[returnval].dist;
 
 			if (-DIST_EPSILON < t && t < DIST_EPSILON) {
@@ -80,7 +80,7 @@ find_plane:
 			}
 		}
 	}
-	p->dist = DotProduct(origin, p->normal);
+	p->dist = dot_product(origin, p->normal);
 
 	(p + 1)->origin = origin;
 
@@ -221,7 +221,7 @@ void ExpandBrushWithHullBrush(
 		// check for coplanar hull brush face
 		hullbrushface_t const * hbf;
 		for (hbf = hb->faces; hbf < hb->faces + hb->numfaces; hbf++) {
-			if (-DotProduct(hbf->normal, brushface.normal)
+			if (-dot_product(hbf->normal, brushface.normal)
 				< 1 - ON_EPSILON) {
 				continue;
 			}
@@ -235,7 +235,7 @@ void ExpandBrushWithHullBrush(
 				 v < hbf->vertexes + hbf->numvertexes;
 				 v++) {
 				double dot;
-				dot = DotProduct(*v, brushface.normal);
+				dot = dot_product(*v, brushface.normal);
 				dotmin = std::min(dotmin, dot);
 				dotmax = std::max(dotmax, dot);
 			}
@@ -258,9 +258,9 @@ void ExpandBrushWithHullBrush(
 		for (hbv = hb->vertexes; hbv < hb->vertexes + hb->numvertexes;
 			 hbv++) {
 			if (hbv == hb->vertexes
-				|| DotProduct(hbv->point, brushface.normal)
+				|| dot_product(hbv->point, brushface.normal)
 					< bestdist - NORMAL_EPSILON) {
-				bestdist = DotProduct(hbv->point, brushface.normal);
+				bestdist = dot_product(hbv->point, brushface.normal);
 				bestvertex = hbv->point;
 			}
 		}
@@ -330,10 +330,10 @@ void ExpandBrushWithHullBrush(
 			// check for each edge in the hullbrush
 			for (hbe = hb->edges; hbe < hb->edges + hb->numedges; hbe++) {
 				double dot[4];
-				dot[0] = DotProduct(hbe->delta, brushedge.normals[0]);
-				dot[1] = DotProduct(hbe->delta, brushedge.normals[1]);
-				dot[2] = DotProduct(brushedge.delta, hbe->normals[0]);
-				dot[3] = DotProduct(brushedge.delta, hbe->normals[1]);
+				dot[0] = dot_product(hbe->delta, brushedge.normals[0]);
+				dot[1] = dot_product(hbe->delta, brushedge.normals[1]);
+				dot[2] = dot_product(brushedge.delta, hbe->normals[0]);
+				dot[3] = dot_product(brushedge.delta, hbe->normals[1]);
 				if (dot[0] <= ON_EPSILON || dot[1] >= -ON_EPSILON
 					|| dot[2] <= ON_EPSILON || dot[3] >= -ON_EPSILON) {
 					continue;
@@ -348,7 +348,7 @@ void ExpandBrushWithHullBrush(
 				normalize_vector(e1);
 				double3_array e2 = hbe->delta;
 				normalize_vector(e2);
-				CrossProduct(e1, e2, normal);
+				normal = cross_product(e1, e2);
 				if (!normalize_vector(normal)) {
 					continue;
 				}

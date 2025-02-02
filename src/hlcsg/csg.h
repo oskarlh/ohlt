@@ -121,7 +121,7 @@ struct hullbrushedge_t {
 
 	double3_array vertexes[2];
 	double3_array delta; // delta has the same direction as
-						 // CrossProduct(normals[0],normals[1])
+						 // cross_product(normals[0], normals[1])
 };
 
 struct hullbrushvertex_t {

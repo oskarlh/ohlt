@@ -31,7 +31,7 @@ static bool CheckVisBitNoVismatrix(
 		dplane_t const * plane2 = getPlaneFromFaceNumber(patch2->faceNumber
 		);
 
-		if (DotProduct(patch->origin, plane2->normal)
+		if (dot_product(patch->origin, plane2->normal)
 			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 
@@ -56,7 +56,7 @@ static bool CheckVisBitNoVismatrix(
 			} else {
 				origin2 = patch2->origin;
 			}
-			if (DotProduct(origin2, plane->normal)
+			if (dot_product(origin2, plane->normal)
 				<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
@@ -67,7 +67,7 @@ static bool CheckVisBitNoVismatrix(
 			} else {
 				origin1 = patch->origin;
 			}
-			if (DotProduct(origin1, plane2->normal)
+			if (dot_product(origin1, plane2->normal)
 				<= PatchPlaneDist(patch2) + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
@@ -112,7 +112,7 @@ bool CheckVisBitBackwards(
 			emitpatch->faceNumber
 		);
 
-		if (DotProduct(backorigin, emitplane->normal)
+		if (dot_product(backorigin, emitplane->normal)
 			> (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE)) {
 			float3_array transparency = { 1.0, 1.0, 1.0 };
 			int opaquestyle = -1;
@@ -129,8 +129,8 @@ bool CheckVisBitBackwards(
 			} else {
 				emitorigin = emitpatch->origin;
 			}
-			if (DotProduct(emitorigin, backnormal)
-				<= DotProduct(backorigin, backnormal)
+			if (dot_product(emitorigin, backnormal)
+				<= dot_product(backorigin, backnormal)
 					+ MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}

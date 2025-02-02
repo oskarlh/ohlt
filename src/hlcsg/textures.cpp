@@ -823,9 +823,9 @@ int TexinfoForBrushTexture(
 	VectorScale(bt->vects.VAxis, scale, tx.vecs[1].xyz);
 
 	tx.vecs[0].offset = bt->vects.shift[0]
-		+ DotProduct(origin, tx.vecs[0].xyz);
+		+ dot_product(origin, tx.vecs[0].xyz);
 	tx.vecs[1].offset = bt->vects.shift[1]
-		+ DotProduct(origin, tx.vecs[1].xyz);
+		+ dot_product(origin, tx.vecs[1].xyz);
 
 	//
 	// find the g_texinfo

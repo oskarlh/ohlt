@@ -389,7 +389,7 @@ void BuildFaceEdges(opaqueface_t* f) {
 			pl->dist = -1;
 			continue;
 		}
-		pl->dist = DotProduct(pl->normal, p1);
+		pl->dist = dot_product(pl->normal, p1);
 	}
 }
 
@@ -469,7 +469,7 @@ static bool TestLineOpaque_face(int facenum, float3_array const & hit) {
 		return false;
 	}
 	for (std::size_t x = 0; x < thisface->numedges; ++x) {
-		if (DotProduct(hit, thisface->edges[x].normal)
+		if (dot_product(hit, thisface->edges[x].normal)
 				- thisface->edges[x].dist
 			> ON_EPSILON) {
 			return false;
@@ -477,9 +477,9 @@ static bool TestLineOpaque_face(int facenum, float3_array const & hit) {
 	}
 	if (thisface->tex_alphatest) {
 		radtexture_t const & tex = g_textures[thisface->gTexturesIndex];
-		double x = DotProduct(hit, thisface->texVecs[0].xyz)
+		double x = dot_product(hit, thisface->texVecs[0].xyz)
 			+ thisface->texVecs[0].offset;
-		double y = DotProduct(hit, thisface->texVecs[1].xyz)
+		double y = dot_product(hit, thisface->texVecs[1].xyz)
 			+ thisface->texVecs[1].offset;
 		x = floor(x - tex.width * floor(x / tex.width));
 		y = floor(y - tex.height * floor(y / tex.height));
@@ -515,8 +515,8 @@ static int TestLineOpaque_r(
 			back = stop[2] - thisnode->dist;
 			break;
 		default:
-			front = DotProduct(start, thisnode->normal) - thisnode->dist;
-			back = DotProduct(stop, thisnode->normal) - thisnode->dist;
+			front = dot_product(start, thisnode->normal) - thisnode->dist;
+			back = dot_product(stop, thisnode->normal) - thisnode->dist;
 	}
 	if (front > ON_EPSILON / 2 && back > ON_EPSILON / 2) {
 		return TestLineOpaque_r(thisnode->children[0], start, stop);
@@ -649,7 +649,8 @@ TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 				dist = point[2] - thisnode->dist;
 				break;
 			default:
-				dist = DotProduct(point, thisnode->normal) - thisnode->dist;
+				dist = dot_product(point, thisnode->normal)
+					- thisnode->dist;
 		}
 		if (dist > HUNT_WALL_EPSILON) {
 			nodenum = thisnode->children[0];

@@ -231,7 +231,7 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 		float mincurv = 1.0f; // curve for face i and closer side to it
 
 		for (int j = 0; j < sides.num; j++) {
-			float dotprod = DotProduct(
+			float dotprod = dot_product(
 				u->face[i]->normal, sides[j]->normal
 			);
 			mincurv = std::min(mincurv, (1.0f - dotprod) / 2.0f);

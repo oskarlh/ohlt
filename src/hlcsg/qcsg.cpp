@@ -463,7 +463,7 @@ static void SaveOutside(
 				double3_array texnormal;
 				CrossProduct(tex->vecs[1].xyz, tex->vecs[0].xyz, texnormal);
 				normalize_vector(texnormal);
-				if (fabs(DotProduct(texnormal, f.plane->normal))
+				if (fabs(dot_product(texnormal, f.plane->normal))
 					<= NORMAL_EPSILON) {
 					Warning(
 						"Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
@@ -480,7 +480,7 @@ static void SaveOutside(
 				bad = false;
 				for (double3_array const & point : f.w.points()) {
 					for (int j = 0; j < 2; ++j) {
-						val = DotProduct(point, tex->vecs[j].xyz)
+						val = dot_product(point, tex->vecs[j].xyz)
 							+ tex->vecs[j].offset;
 						if (val < -99999 || val > 999'999) {
 							bad = true;

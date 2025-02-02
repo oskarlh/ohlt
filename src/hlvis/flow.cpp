@@ -58,7 +58,7 @@ inline winding_t* ChopWinding(
 
 	// determine sides for each point
 	for (i = 0; i < in->numpoints; i++) {
-		dot = DotProduct(in->points[i], split->normal);
+		dot = dot_product(in->points[i], split->normal);
 		dot -= split->dist;
 		dists[i] = dot;
 		if (dot > ON_EPSILON) {
@@ -222,7 +222,7 @@ inline static winding_t* ClipToSeperators(
 			if (normalize_vector(plane.normal) < ON_EPSILON) {
 				continue;
 			}
-			plane.dist = DotProduct(pass->points[j], plane.normal);
+			plane.dist = dot_product(pass->points[j], plane.normal);
 
 			// find out which side of the generated seperating plane has the
 			// source portal
@@ -233,7 +233,7 @@ inline static winding_t* ClipToSeperators(
 				{
 					continue;
 				}
-				d = DotProduct(source->points[k], plane.normal)
+				d = dot_product(source->points[k], plane.normal)
 					- plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so
 									   // we want all
@@ -264,7 +264,7 @@ inline static winding_t* ClipToSeperators(
 				if (k == j) {
 					continue;
 				}
-				d = DotProduct(pass->points[k], plane.normal) - plane.dist;
+				d = dot_product(pass->points[k], plane.normal) - plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {
@@ -588,7 +588,7 @@ void BasePortalVis(int unused) {
 
 			w = tp->winding;
 			for (k = 0; k < w->numpoints; k++) {
-				d = DotProduct(w->points[k], p->plane.normal)
+				d = dot_product(w->points[k], p->plane.normal)
 					- p->plane.dist;
 				if (d > ON_EPSILON) {
 					break;
@@ -600,7 +600,7 @@ void BasePortalVis(int unused) {
 
 			w = p->winding;
 			for (k = 0; k < w->numpoints; k++) {
-				d = DotProduct(w->points[k], tp->plane.normal)
+				d = dot_product(w->points[k], tp->plane.normal)
 					- tp->plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
@@ -635,7 +635,7 @@ static bool BestNormalFromWinding(
 			continue;
 		}
 		VectorSubtract(points[k], *pt1, edge);
-		dist = DotProduct(edge, edge);
+		dist = dot_product(edge, edge);
 		if (dist > maxdist) {
 			maxdist = dist;
 			pt2 = &points[k];
@@ -653,7 +653,7 @@ static bool BestNormalFromWinding(
 		}
 		VectorSubtract(points[k], *pt1, d);
 		CrossProduct(edge, d, normal);
-		dist = DotProduct(normal, normal);
+		dist = dot_product(normal, normal);
 		if (dist > maxdist) {
 			maxdist = dist;
 			pt3 = &points[k];
@@ -681,7 +681,7 @@ float WindingDist(winding_t const * w[2]) {
 		for (b = 0; b < w[1]->numpoints; b++) {
 			float3_array v;
 			VectorSubtract(w[0]->points[a], w[1]->points[b], v);
-			sqrdist = DotProduct(v, v);
+			sqrdist = dot_product(v, v);
 			if (sqrdist < minsqrdist) {
 				minsqrdist = sqrdist;
 			}
@@ -702,17 +702,17 @@ float WindingDist(winding_t const * w[2]) {
 				if (normalize_vector(delta) <= ON_EPSILON) {
 					continue;
 				}
-				frac = DotProduct(p, delta) - DotProduct(p1, delta);
+				frac = dot_product(p, delta) - dot_product(p1, delta);
 				if (frac <= ON_EPSILON
 					|| frac
-						>= (DotProduct(p2, delta) - DotProduct(p1, delta))
+						>= (dot_product(p2, delta) - dot_product(p1, delta))
 							- ON_EPSILON) {
 					// p1 or p2 is closest to p
 					continue;
 				}
 				v = vector_fma(delta, frac, p1);
 				VectorSubtract(p, v, v);
-				sqrdist = DotProduct(v, v);
+				sqrdist = dot_product(v, v);
 				if (sqrdist < minsqrdist) {
 					minsqrdist = sqrdist;
 				}
@@ -749,18 +749,18 @@ float WindingDist(winding_t const * w[2]) {
 				|| normalize_vector(normal2) <= ON_EPSILON) {
 				continue;
 			}
-			if (DotProduct(p3, normal1)
-					>= DotProduct(p1, normal1) - ON_EPSILON
-				|| DotProduct(p4, normal1)
-					<= DotProduct(p1, normal1) + ON_EPSILON
-				|| DotProduct(p1, normal2)
-					>= DotProduct(p3, normal2) - ON_EPSILON
-				|| DotProduct(p2, normal2)
-					<= DotProduct(p3, normal2) + ON_EPSILON) {
+			if (dot_product(p3, normal1)
+					>= dot_product(p1, normal1) - ON_EPSILON
+				|| dot_product(p4, normal1)
+					<= dot_product(p1, normal1) + ON_EPSILON
+				|| dot_product(p1, normal2)
+					>= dot_product(p3, normal2) - ON_EPSILON
+				|| dot_product(p2, normal2)
+					<= dot_product(p3, normal2) + ON_EPSILON) {
 				// the edges are not crossing when viewed along normal
 				continue;
 			}
-			sqrdist = DotProduct(p3, normal) - DotProduct(p1, normal);
+			sqrdist = dot_product(p3, normal) - dot_product(p1, normal);
 			sqrdist = sqrdist * sqrdist;
 			if (sqrdist < minsqrdist) {
 				minsqrdist = sqrdist;
@@ -778,7 +778,7 @@ float WindingDist(winding_t const * w[2]) {
 			)) {
 			continue;
 		}
-		planedist = DotProduct(planenormal, w[!side]->points[0]);
+		planedist = dot_product(planenormal, w[!side]->points[0]);
 		hlassume(
 			boundnormals = (float3_array*)
 				malloc(w[!side]->numpoints * sizeof(float3_array)),
@@ -800,13 +800,13 @@ float WindingDist(winding_t const * w[2]) {
 			if (!normalize_vector(boundnormals[b])) {
 				bounddists[b] = 1.0;
 			} else {
-				bounddists[b] = DotProduct(p1, boundnormals[b]);
+				bounddists[b] = dot_product(p1, boundnormals[b]);
 			}
 		}
 		for (a = 0; a < w[side]->numpoints; a++) {
 			float3_array const & p = w[side]->points[a];
 			for (b = 0; b < w[!side]->numpoints; b++) {
-				if (DotProduct(p, boundnormals[b]) - bounddists[b]
+				if (dot_product(p, boundnormals[b]) - bounddists[b]
 					>= -ON_EPSILON) {
 					break;
 				}
@@ -814,7 +814,7 @@ float WindingDist(winding_t const * w[2]) {
 			if (b < w[!side]->numpoints) {
 				continue;
 			}
-			sqrdist = DotProduct(p, planenormal) - planedist;
+			sqrdist = dot_product(p, planenormal) - planedist;
 			sqrdist = sqrdist * sqrdist;
 			if (sqrdist < minsqrdist) {
 				minsqrdist = sqrdist;
@@ -824,8 +824,8 @@ float WindingDist(winding_t const * w[2]) {
 			float3_array const & p1 = w[side]->points[a];
 			float3_array const & p2
 				= w[side]->points[(a + 1) % w[side]->numpoints];
-			float dist1 = DotProduct(p1, planenormal) - planedist;
-			float dist2 = DotProduct(p2, planenormal) - planedist;
+			float dist1 = dot_product(p1, planenormal) - planedist;
+			float dist2 = dot_product(p2, planenormal) - planedist;
 			float3_array delta;
 			float frac;
 			float3_array v;
@@ -835,7 +835,7 @@ float WindingDist(winding_t const * w[2]) {
 				VectorSubtract(p2, p1, delta);
 				v = vector_fma(delta, frac, p1);
 				for (b = 0; b < w[!side]->numpoints; b++) {
-					if (DotProduct(v, boundnormals[b]) - bounddists[b]
+					if (dot_product(v, boundnormals[b]) - bounddists[b]
 						>= -ON_EPSILON) {
 						break;
 					}

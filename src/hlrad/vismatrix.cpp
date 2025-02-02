@@ -35,7 +35,7 @@ static void TestPatchToFace(
 	if (patch2) {
 		dplane_t const * plane2 = getPlaneFromFaceNumber(facenum);
 
-		if (DotProduct(patch->origin, plane2->normal)
+		if (dot_product(patch->origin, plane2->normal)
 			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 			dplane_t const * plane = getPlaneFromFaceNumber(
@@ -72,7 +72,7 @@ static void TestPatchToFace(
 					} else {
 						origin2 = patch2->origin;
 					}
-					if (DotProduct(origin2, plane->normal)
+					if (dot_product(origin2, plane->normal)
 						<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
@@ -83,7 +83,7 @@ static void TestPatchToFace(
 					} else {
 						origin1 = patch->origin;
 					}
-					if (DotProduct(origin1, plane2->normal)
+					if (dot_product(origin1, plane2->normal)
 						<= PatchPlaneDist(patch2)
 							+ MINIMUM_PATCH_DISTANCE) {
 						continue;

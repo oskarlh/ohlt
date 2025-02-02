@@ -84,10 +84,10 @@ static face_side FaceSide(
 		}
 	} else {
 		// sloping planes take longer
-		double const * p;
+		double3_array const * p;
 		// TODO: This pointer logic is ugly, with the p += 3
-		for (i = 0, p = in->pts[0].data(); i < in->numpoints; i++, p += 3) {
-			dot = DotProduct(p, split->normal);
+		for (i = 0, p = &in->pts[0]; i < in->numpoints; ++i, ++p) {
+			dot = dot_product(*p, split->normal);
 			dot -= split->dist;
 			if (dot > d_front) {
 				d_front = dot;

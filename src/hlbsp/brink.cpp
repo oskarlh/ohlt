@@ -203,8 +203,8 @@ struct btreeface_t {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+				   // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -588,7 +588,7 @@ void SplitTreeLeaf(
 					continue;
 				}
 				tp->tmp_tested = true;
-				double dist = DotProduct(tp->v, plane->normal)
+				double dist = dot_product(tp->v, plane->normal)
 					- plane->dist;
 				tp->tmp_dist = dist;
 				if (dist > epsilon) {
@@ -1232,7 +1232,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 					);
 					c->numwedges[side]++;
 					bool flipnode
-						= (DotProduct(node->plane->normal, facing) < 0);
+						= (dot_product(node->plane->normal, facing) < 0);
 					c->wedges[side][i].nodenum = node->children[flipnode];
 					c->wedges[side][i + 1].nodenum
 						= node->children[!flipnode];
@@ -1287,7 +1287,8 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 			}
 			double3_array v;
 			CrossProduct(w->prev->normal, w->next->normal, v);
-			if (!normalize_vector(v) || DotProduct(v, c->axis) < 1 - 0.01) {
+			if (!normalize_vector(v)
+				|| dot_product(v, c->axis) < 1 - 0.01) {
 				return false;
 			}
 		}
@@ -1345,7 +1346,7 @@ bool AddPartition(
 			for (side = 0; side < 2; side++) {
 				btreepoint_t* tp = GetPointFromEdge(ei->e, side);
 				mapplane_t const * plane = &g_mapplanes[planenum];
-				double dist = DotProduct(tp->v, plane->normal)
+				double dist = dot_product(tp->v, plane->normal)
 					- plane->dist;
 				if (planeside ? dist < -ON_EPSILON : dist > ON_EPSILON) {
 					return false;
@@ -1490,7 +1491,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					transitionpos[side2]->normal,
 					transitionside[side2] ? -1.0 : 1.0
 				); // pointing from SOLID to EMPTY
-				if (DotProduct(normal, vup) > BRINK_FLOOR_THRESHOLD) {
+				if (dot_product(normal, vup) > BRINK_FLOOR_THRESHOLD) {
 					isfloor = true;
 				}
 			}
@@ -1522,7 +1523,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 								(fi->f->planeside != (bool) side3) ? -1.0
 																   : 1.0
 							);
-							if (DotProduct(normal, vup)
+							if (dot_product(normal, vup)
 									> BRINK_FLOOR_THRESHOLD
 								&& GetLeafFromFace(fi->f, side3)
 										->clipnode->content
@@ -1553,7 +1554,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 				double3_array tmp;
 				double dot;
 				CrossProduct(smovement->normal, snext->normal, tmp);
-				dot = DotProduct(tmp, c.axis);
+				dot = dot_product(tmp, c.axis);
 				if (transitionside[!side] ? dot < 0.01 : dot > -0.01) {
 					break;
 				}
@@ -1571,7 +1572,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 				}
 				bfix = true;
 				{
-					if (DotProduct(smovement->normal, s->normal) > 0.01) {
+					if (dot_product(smovement->normal, s->normal) > 0.01) {
 						blocking = false;
 					} else {
 						blocking = true;

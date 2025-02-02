@@ -171,7 +171,7 @@ static void PlaneFromWinding(winding_t* w, hlvis_plane_t* plane) {
 	VectorSubtract(w->points[0], w->points[1], v2);
 	CrossProduct(v2, v1, plane->normal);
 	normalize_vector(plane->normal);
-	plane->dist = DotProduct(w->points[0], plane->normal);
+	plane->dist = dot_product(w->points[0], plane->normal);
 }
 
 // =====================================================================================
@@ -833,7 +833,7 @@ int VisLeafnumForPoint(float3_array const & point) {
 	while (nodenum >= 0) {
 		node = &g_dnodes[nodenum];
 		plane = &g_dplanes[node->planenum];
-		dist = DotProduct(point, plane->normal) - plane->dist;
+		dist = dot_product(point, plane->normal) - plane->dist;
 		if (dist >= 0.0) {
 			nodenum = node->children[0];
 		} else {

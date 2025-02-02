@@ -1256,7 +1256,7 @@ static float getScale(patch_t const * const patch) {
 //  getChop
 // =====================================================================================
 static bool getEmitMode(patch_t const * patch) {
-	float value = DotProduct(patch->baselight, patch->texturereflectivity)
+	float value = dot_product(patch->baselight, patch->texturereflectivity)
 		/ 3;
 	if (g_face_texlights[patch->faceNumber]) {
 		if (has_key_value(
@@ -1794,7 +1794,7 @@ static entity_t* FindTexlightEntity(int facenum) {
 			}
 		}
 		if (has_key_value(&ent, u8"_fdist")) {
-			if (fabs(DotProduct(delta, dplane->normal))
+			if (fabs(dot_product(delta, dplane->normal))
 				> float_for_key(ent, u8"_fdist")) {
 				continue;
 			}

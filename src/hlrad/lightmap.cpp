@@ -69,7 +69,7 @@ intersecttest_t* CreateIntersectTest(dplane_t const * p, int facenum) {
 				continue;
 			}
 			t->clipplanes[t->numclipplanes].normal = normal;
-			t->clipplanes[t->numclipplanes].dist = DotProduct(v0, normal);
+			t->clipplanes[t->numclipplanes].dist = dot_product(v0, normal);
 			t->numclipplanes++;
 		}
 	}
@@ -190,7 +190,7 @@ int AddFaceForVertexNormal(
 	}
 	normalize_vector(vec1);
 	normalize_vector(vec2);
-	dot = DotProduct(vec1, vec2);
+	dot = dot_product(vec1, vec2);
 	dot = dot > 1 ? 1 : dot < -1 ? -1 : dot;
 	angle = acos(dot);
 	edgeshare_t* es = &g_edgeshare[edgeabsnext];
@@ -329,7 +329,7 @@ void PairEdges() {
 					normals[0] = getPlaneFromFace(e->faces[0])->normal;
 					normals[1] = getPlaneFromFace(e->faces[1])->normal;
 
-					e->cos_normals_angle = DotProduct(
+					e->cos_normals_angle = dot_product(
 						normals[0], normals[1]
 					);
 
@@ -511,9 +511,9 @@ void PairEdges() {
 								);
 								break;
 							}
-							if (DotProduct(normal, p0->normal)
+							if (dot_product(normal, p0->normal)
 									<= NORMAL_EPSILON
-								|| DotProduct(normal, p1->normal)
+								|| dot_product(normal, p1->normal)
 									<= NORMAL_EPSILON) {
 								break;
 							}
@@ -531,7 +531,7 @@ void PairEdges() {
 							if (smoothvalue >= 1.0 - NORMAL_EPSILON) {
 								smoothvalue = 2.0;
 							}
-							if (DotProduct(edgenormal, normal) < std::max(
+							if (dot_product(edgenormal, normal) < std::max(
 									smoothvalue - NORMAL_EPSILON,
 									NORMAL_EPSILON
 								)) {
@@ -828,7 +828,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 	normalize_vector(texnormal);
 
 	// flip it towards plane normal
-	distscale = DotProduct(texnormal, l->facenormal);
+	distscale = dot_product(texnormal, l->facenormal);
 	if (distscale == 0.0) {
 		unsigned const facenum = l->face - g_dfaces.data();
 
@@ -853,7 +853,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 
 	for (i = 0; i < 2; i++) {
 		CrossProduct(l->worldtotex[!i], l->facenormal, l->textoworld[i]);
-		len = DotProduct(l->textoworld[i], l->worldtotex[i]);
+		len = dot_product(l->textoworld[i], l->worldtotex[i]);
 		VectorScale(l->textoworld[i], 1 / len, l->textoworld[i]);
 	}
 
@@ -864,7 +864,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 	}
 
 	// project back to the face plane
-	dist = DotProduct(l->texorg, l->facenormal) - l->facedist;
+	dist = dot_product(l->texorg, l->facenormal) - l->facedist;
 	dist *= distscale;
 	l->texorg = vector_fma(texnormal, -dist, l->texorg);
 	l->texnormal = texnormal;
@@ -1101,9 +1101,9 @@ void ChopFrag(samplefrag_t* frag)
 			float dot1;
 			float dot2;
 
-			dot1 = DotProduct(e->point1, frag->rect.planes[x].normal)
+			dot1 = dot_product(e->point1, frag->rect.planes[x].normal)
 				- frag->rect.planes[x].dist;
-			dot2 = DotProduct(e->point2, frag->rect.planes[x].normal)
+			dot2 = dot_product(e->point2, frag->rect.planes[x].normal)
 				- frag->rect.planes[x].dist;
 			if (dot1 <= ON_EPSILON && dot2 <= ON_EPSILON) {
 				frac1 = 1;
@@ -1123,16 +1123,16 @@ void ChopFrag(samplefrag_t* frag)
 		// calculate the distance, etc., which are used to determine its
 		// priority
 		e->noseam = frag->noseam;
-		dot = DotProduct(frag->origin, e->direction);
-		dot1 = DotProduct(e->point1, e->direction);
-		dot2 = DotProduct(e->point2, e->direction);
+		dot = dot_product(frag->origin, e->direction);
+		dot1 = dot_product(e->point1, e->direction);
+		dot2 = dot_product(e->point2, e->direction);
 		dot = std::max(dot1, std::min(dot, dot2));
 		v = vector_fma(e->direction, dot - dot1, e->point1);
 		VectorSubtract(v, frag->origin, v);
 		e->distance = vector_length(v);
 		CrossProduct(e->direction, frag->windingplane.normal, normal);
 		normalize_vector(normal); // points inward
-		e->distancereduction = DotProduct(v, normal);
+		e->distancereduction = dot_product(v, normal);
 		e->flippedangle = frag->flippedangle
 			+ acos(std::min(es->cos_normals_angle, (float) 1.0));
 
@@ -1755,7 +1755,7 @@ void CreateDirectLights() {
 				numstyles++;
 			}
 		}
-		if (DotProduct(p->baselight, p->texturereflectivity) / 3 > 0.0
+		if (dot_product(p->baselight, p->texturereflectivity) / 3 > 0.0
 			&& !(
 				g_face_texlights[p->faceNumber]
 				&& has_key_value(
@@ -2179,7 +2179,7 @@ void CreateDirectLights() {
 							 i++) {
 							float3_array& testnormal
 								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
-							float dot = DotProduct(dl->normal, testnormal);
+							float dot = dot_product(dl->normal, testnormal);
 							if (dot >= testdot - NORMAL_EPSILON) {
 								totalweight += std::max(
 												   (float) 0, dot - testdot
@@ -2218,7 +2218,7 @@ void CreateDirectLights() {
 							 i++) {
 							float3_array& testnormal
 								= g_skynormals[SUNSPREAD_SKYLEVEL][i];
-							float dot = DotProduct(dl->normal, testnormal);
+							float dot = dot_product(dl->normal, testnormal);
 							if (dot >= testdot - NORMAL_EPSILON) {
 								if (count >= dl->numsunnormals) {
 									Error(
@@ -2471,9 +2471,9 @@ void CopyToSkynormals(
 			pt[k] = edges[triangles[j].edge[k]].point[triangles[j].dir[k]];
 		}
 		double currentsize;
-		double tmp[3];
+		double3_array tmp;
 		CrossProduct(points[pt[0]], points[pt[1]], tmp);
-		currentsize = DotProduct(tmp, points[pt[2]]);
+		currentsize = dot_product(tmp, points[pt[2]]);
 		hlassume(currentsize > 0, assume_first);
 		g_skynormalsizes[skylevel][pt[0]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[1]] += currentsize / 3.0;
@@ -2575,7 +2575,7 @@ void BuildDiffuseNormals() {
 					points[edges[j].point[1]],
 					mid
 				);
-				len = sqrt(DotProduct(mid, mid));
+				len = sqrt(dot_product(mid, mid));
 				hlassume(len > 0.2, assume_first);
 				VectorScale(mid, 1 / len, mid);
 				int p2 = numpoints;
@@ -2737,7 +2737,9 @@ static void GatherSampleLight(
 							// loop over the normals
 							for (int j = 0; j < l->numsunnormals; j++) {
 								// make sure the angle is okay
-								dot = -DotProduct(normal, l->sunnormals[j]);
+								dot = -dot_product(
+									normal, l->sunnormals[j]
+								);
 								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
 														   // 10 //--vluzacn
 								{
@@ -2843,7 +2845,7 @@ static void GatherSampleLight(
 												: SKYLEVEL_SOFTSKYOFF];
 								 j++) {
 								// make sure the angle is okay
-								dot = -DotProduct(normal, skynormals[j]);
+								dot = -dot_product(normal, skynormals[j]);
 								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
 														   // 10 //--vluzacn
 								{
@@ -2878,7 +2880,7 @@ static void GatherSampleLight(
 									std::max(
 										(float) 0.0,
 										(1
-										 - DotProduct(
+										 - dot_product(
 											 l->normal, skynormals[j]
 										 )) / 2
 									),
@@ -2950,7 +2952,7 @@ static void GatherSampleLight(
 							);
 						}
 						dist = normalize_vector(delta);
-						dot = DotProduct(delta, normal);
+						dot = dot_product(delta, normal);
 						//                        if (dot <= 0.0)
 						//                            continue;
 
@@ -2986,7 +2988,7 @@ static void GatherSampleLight(
 									dot = lighting_scale
 										* pow(dot, lighting_power);
 								}
-								dot2 = -DotProduct(delta, l->normal);
+								dot2 = -dot_product(delta, l->normal);
 								// discard the texlight if the spot is too
 								// close to the texlight plane
 								if (l->texlightgap > 0) {
@@ -2996,7 +2998,7 @@ static void GatherSampleLight(
 										* dist; // distance from spot
 												// to texlight plane;
 									test -= l->texlightgap
-										* fabs(DotProduct(
+										* fabs(dot_product(
 											l->normal,
 											texlightgap_textoworld[0]
 										)); // maximum distance reduction if
@@ -3004,7 +3006,7 @@ static void GatherSampleLight(
 											// l->texlightgap pixels along s
 											// axis
 									test -= l->texlightgap
-										* fabs(DotProduct(
+										* fabs(dot_product(
 											l->normal,
 											texlightgap_textoworld[1]
 										)); // maximum distance reduction if
@@ -3150,7 +3152,7 @@ static void GatherSampleLight(
 								if (dot <= NORMAL_EPSILON) {
 									continue;
 								}
-								dot2 = -DotProduct(delta, l->normal);
+								dot2 = -dot_product(delta, l->normal);
 								if (dot2 <= l->stopdot2) {
 									continue; // outside light cone
 								}
@@ -3456,13 +3458,13 @@ void GetPhongNormal(
 				VectorSubtract(s2, g_face_centroids[facenum], v2);
 				VectorSubtract(spot, g_face_centroids[facenum], vspot);
 
-				aa = DotProduct(v1, v1);
-				bb = DotProduct(v2, v2);
-				ab = DotProduct(v1, v2);
-				a1 = (bb * DotProduct(v1, vspot)
-					  - ab * DotProduct(vspot, v2))
+				aa = dot_product(v1, v1);
+				bb = dot_product(v2, v2);
+				ab = dot_product(v1, v2);
+				a1 = (bb * dot_product(v1, vspot)
+					  - ab * dot_product(vspot, v2))
 					/ (aa * bb - ab * ab);
-				a2 = (DotProduct(vspot, v2) - a1 * ab) / bb;
+				a2 = (dot_product(vspot, v2) - a1 * ab) / bb;
 
 				// Test center to sample vector for inclusion between center
 				// to vertex vectors (Use dot product of vectors)
@@ -4866,8 +4868,8 @@ void MLH_GetSamples_r(
 	float front, back, frac;
 	int side;
 	plane = &g_dplanes[node->planenum];
-	front = DotProduct(start, plane->normal) - plane->dist;
-	back = DotProduct(end, plane->normal) - plane->dist;
+	front = dot_product(start, plane->normal) - plane->dist;
+	back = dot_product(end, plane->normal) - plane->dist;
 	side = front < 0;
 	if ((back < 0) == side) {
 		MLH_GetSamples_r(ml, node->children[side], start, end);
@@ -4892,9 +4894,9 @@ void MLH_GetSamples_r(
 			if (f->lightofs == -1) {
 				continue;
 			}
-			int s = (int) (DotProduct(mid, tex->vecs[0].xyz)
+			int s = (int) (dot_product(mid, tex->vecs[0].xyz)
 						   + tex->vecs[0].offset);
-			int t = (int) (DotProduct(mid, tex->vecs[1].xyz)
+			int t = (int) (dot_product(mid, tex->vecs[1].xyz)
 						   + tex->vecs[1].offset);
 			int texturemins[2], extents[2];
 			MLH_CalcExtents(f, texturemins, extents);
@@ -5214,7 +5216,7 @@ void FinalLightFace(int const facenum) {
 				for (j = 0; j < fl->numsamples; ++j) {
 					v = fl->samples[0][j].pos;
 					VectorSubtract(v, g_drawsample_origin, dist);
-					if (DotProduct(dist, dist)
+					if (dot_product(dist, dist)
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
 							fprintf(
