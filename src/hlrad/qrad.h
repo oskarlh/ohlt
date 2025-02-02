@@ -293,7 +293,7 @@ typedef struct directlight_s {
 } directlight_t;
 
 // LRC
-float3_array* GetTotalLight(patch_t* patch, int style);
+float3_array get_total_light(patch_t const & patch, int style) noexcept;
 
 typedef struct facelist_s {
 	dface_t* face;
@@ -463,7 +463,7 @@ extern void PairEdges();
 #define SKYLEVEL_SOFTSKYON	7
 #define SKYLEVEL_SOFTSKYOFF 4
 #define SUNSPREAD_SKYLEVEL	7
-#define SUNSPREAD_THRESHOLD 15.0
+constexpr float SUNSPREAD_THRESHOLD = 15.0f;
 extern int g_numskynormals[SKYLEVELMAX + 1]; // 0, 6, 18, 66, 258, 1026,
 											 // 4098, 16386, 65538
 extern float3_array* g_skynormals[SKYLEVELMAX + 1]; //[numskynormals]

@@ -2265,21 +2265,18 @@ void CreateDirectLights() {
 					}
 					if (dl->sunspreadangle < SUNSPREAD_THRESHOLD) {
 						for (i = 0; i < dl->numsunnormals; i++) {
-							float3_array tmp;
-							VectorScale(
+							float3_array tmp = vector_scale(
 								dl->sunnormals[i],
 								1
-									/ DotProduct(
+									/ dot_product(
 										dl->sunnormals[i], dl->normal
-									),
-								tmp
+									)
 							);
-							VectorSubtract(tmp, dl->normal, tmp);
-							VectorMA(
-								dl->normal,
-								dl->sunspreadangle / SUNSPREAD_THRESHOLD,
+							tmp = vector_subtract(tmp, dl->normal);
+							dl->sunnormals[i] = vector_fma(
 								tmp,
-								dl->sunnormals[i]
+								dl->sunspreadangle / SUNSPREAD_THRESHOLD,
+								dl->normal
 							);
 							normalize_vector(dl->sunnormals[i]);
 						}
@@ -2915,16 +2912,13 @@ static void GatherSampleLight(
 									(float) 1.0
 								); // how far this piece of sky has deviated
 								   // from the sun
-								VectorScale(
-									l->diffuse_intensity,
-									1 - factor,
-									sky_intensity
-								);
-								VectorMA(
-									sky_intensity,
-									factor,
+								sky_intensity = vector_fma(
 									l->diffuse_intensity2,
-									sky_intensity
+									factor,
+									vector_scale(
+										l->diffuse_intensity, 1 - factor
+									)
+
 								);
 								VectorScale(
 									sky_intensity,
@@ -2972,14 +2966,14 @@ static void GatherSampleLight(
 							  || l->intensity[2])) {
 							continue;
 						}
-						VectorCopy(l->origin, testline_origin);
+						testline_origin = l->origin;
 						float denominator;
 
-						VectorSubtract(l->origin, pos, delta);
+						delta = vector_subtract(l->origin, pos);
 						if (l->type == emit_surface) {
 							// move emitter back to its plane
-							VectorMA(
-								delta, -PATCH_HUNT_OFFSET, l->normal, delta
+							delta = vector_fma(
+								l->normal, -PATCH_HUNT_OFFSET, delta
 							);
 						}
 						dist = normalize_vector(delta);
@@ -3390,11 +3384,8 @@ static void AddSamplesToPatches(
 						if ((*patch->totalstyle_all)[k] == 255) {
 							(*patch->totalstyle_all)[k] = style;
 						}
-						VectorMA(
-							(*patch->samplelight_all)[k],
-							area,
-							s->light,
-							(*patch->samplelight_all)[k]
+						(*patch->samplelight_all)[k] = vector_fma(
+							s->light, area, (*patch->samplelight_all)[k]
 						);
 					}
 				}
@@ -3780,10 +3771,9 @@ void CalcLightmap(
 						surfacewinding, *surfaceplane, spot2, 0.2, 4 * 0.2
 					);
 				}
-				VectorMA(
-					spot2,
-					-(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET),
+				spot2 = vector_fma(
 					surfaceplane->normal,
+					-(g_translucentdepth + 2 * DEFAULT_HUNT_OFFSET),
 					spot2
 				);
 			}
@@ -4167,7 +4157,7 @@ void BuildFacelights(int const facenum) {
 					// limits the effect of blur distance when the normal
 					// changes very fast this correction will not break the
 					// smoothness that HLRAD_GROWSAMPLE ensures
-					weighting_correction = DotProduct(
+					weighting_correction = dot_product(
 						l.lmcache_normal[pos], centernormal
 					);
 					weighting_correction = (weighting_correction > 0)
@@ -4175,10 +4165,9 @@ void BuildFacelights(int const facenum) {
 						: 0;
 					weighting = weighting * weighting_correction;
 					for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
-						VectorMA(
-							fl_samples[j][i].light,
-							weighting,
+						fl_samples[j][i].light = vector_fma(
 							l.lmcache[pos][j],
+							weighting,
 							fl_samples[j][i].light
 						);
 					}
@@ -4263,11 +4252,10 @@ void BuildFacelights(int const facenum) {
 				memset(pvs2, 255, (g_dmodels[0].visleafs + 7) / 8);
 				lastoffset2 = -1;
 			} else {
-				VectorMA(
-					patch->origin,
-					-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+				spot2 = vector_fma(
 					l.facenormal,
-					spot2
+					-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+					patch->origin
 				);
 				dleaf_t* leaf2 = PointInLeaf(spot2);
 
@@ -5486,16 +5474,15 @@ void FinalLightFace(int const facenum) {
 	free(final_basiclight);
 }
 
-// LRC
 static float3_array totallight_default = { 0, 0, 0 };
 
-// LRC - utility for getting the right totallight value from a patch
-float3_array* GetTotalLight(patch_t* patch, int style) {
-	int i;
-	for (i = 0; i < MAXLIGHTMAPS && patch->totalstyle[i] != 255; i++) {
-		if (patch->totalstyle[i] == style) {
-			return &(patch->totallight[i]);
+// Get the right totalLight value from a patch
+float3_array get_total_light(patch_t const & patch, int style) noexcept {
+	for (std::size_t i = 0; i < MAXLIGHTMAPS && patch.totalstyle[i] != 255;
+		 ++i) {
+		if (patch.totalstyle[i] == style) {
+			return patch.totallight[i];
 		}
 	}
-	return &totallight_default;
+	return totallight_default;
 }

@@ -169,7 +169,6 @@ void MakeScales(int const threadnum) {
 	float send;
 	float3_array origin;
 	float area;
-	float const * normal2;
 
 	unsigned int fastfind_index = 0;
 
@@ -205,11 +204,10 @@ void MakeScales(int const threadnum) {
 		float3_array backorigin;
 		float3_array backnormal;
 		if (patch->translucent_b) {
-			VectorMA(
-				patch->origin,
-				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+			backorigin = vector_fma(
 				normal1,
-				backorigin
+				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+				patch->origin
 			);
 			backnormal = negate_vector(normal1);
 		}
@@ -251,8 +249,8 @@ void MakeScales(int const threadnum) {
 				}
 			}
 
-			normal2
-				= getPlaneFromFaceNumber(patch2->faceNumber)->normal.data();
+			float3_array const & normal2
+				= getPlaneFromFaceNumber(patch2->faceNumber)->normal;
 
 			// calculate transferemnce
 			VectorSubtract(patch2->origin, origin, delta);
@@ -260,7 +258,7 @@ void MakeScales(int const threadnum) {
 				VectorSubtract(patch2->origin, backorigin, delta);
 			}
 			// move emitter back to its plane
-			VectorMA(delta, -PATCH_HUNT_OFFSET, normal2, delta);
+			delta = vector_fma(normal2, -PATCH_HUNT_OFFSET, delta);
 
 			dist = normalize_vector(delta);
 			dot1 = DotProduct(delta, normal1);
@@ -427,7 +425,6 @@ void MakeRGBScales(int const threadnum) {
 	float send;
 	float3_array origin;
 	float area;
-	float const * normal2;
 
 	unsigned int fastfind_index = 0;
 	float total;
@@ -465,11 +462,10 @@ void MakeRGBScales(int const threadnum) {
 		float3_array backorigin;
 		float3_array backnormal;
 		if (patch->translucent_b) {
-			VectorMA(
-				patch->origin,
-				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+			backorigin = vector_fma(
 				normal1,
-				backorigin
+				-(g_translucentdepth + 2 * PATCH_HUNT_OFFSET),
+				patch->origin
 			);
 			backnormal = negate_vector(normal1);
 		}
@@ -509,8 +505,8 @@ void MakeRGBScales(int const threadnum) {
 				}
 			}
 
-			normal2
-				= getPlaneFromFaceNumber(patch2->faceNumber)->normal.data();
+			float3_array const & normal2
+				= getPlaneFromFaceNumber(patch2->faceNumber)->normal;
 
 			// calculate transferemnce
 			VectorSubtract(patch2->origin, origin, delta);
@@ -518,12 +514,12 @@ void MakeRGBScales(int const threadnum) {
 				VectorSubtract(patch2->origin, backorigin, delta);
 			}
 			// move emitter back to its plane
-			VectorMA(delta, -PATCH_HUNT_OFFSET, normal2, delta);
+			delta = vector_fma(normal2, -PATCH_HUNT_OFFSET, delta);
 
 			dist = normalize_vector(delta);
-			dot1 = DotProduct(delta, normal1);
+			dot1 = dot_product(delta, normal1);
 			if (useback) {
-				dot1 = DotProduct(delta, backnormal);
+				dot1 = dot_product(delta, backnormal);
 			}
 			dot2 = -DotProduct(delta, normal2);
 			bool light_behind_surface = false;

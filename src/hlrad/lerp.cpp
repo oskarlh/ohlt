@@ -316,8 +316,8 @@ static void CalcInterpolation_Square(
 	normalize_vector(normal1);
 	CrossProduct(w2->wedgenormal, lt->normal, normal2);
 	normalize_vector(normal2);
-	dot1 = DotProduct(spot, normal1) - 0;
-	dot2 = DotProduct(spot, normal2) - DotProduct(w3->leftspot, normal2);
+	dot1 = dot_product(spot, normal1) - 0;
+	dot2 = dot_product(spot, normal2) - dot_product(w3->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac = 0.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
@@ -327,8 +327,8 @@ static void CalcInterpolation_Square(
 		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
-	dot1 = DotProduct(w3->leftspot, normal1) - 0;
-	dot2 = 0 - DotProduct(w3->leftspot, normal2);
+	dot1 = dot_product(w3->leftspot, normal1) - 0;
+	dot2 = 0 - dot_product(w3->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac_near = 1.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
@@ -338,9 +338,9 @@ static void CalcInterpolation_Square(
 	}
 	VectorScale(w3->leftspot, frac_near, mid_near);
 
-	dot1 = DotProduct(w2->leftspot, normal1) - 0;
-	dot2 = DotProduct(w1->leftspot, normal2)
-		- DotProduct(w3->leftspot, normal2);
+	dot1 = dot_product(w2->leftspot, normal1) - 0;
+	dot2 = dot_product(w1->leftspot, normal2)
+		- dot_product(w3->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac_far = 1.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
@@ -348,12 +348,13 @@ static void CalcInterpolation_Square(
 	} else {
 		frac_far = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale(w1->leftspot, 1 - frac_far, mid_far);
-	VectorMA(mid_far, frac_far, w2->leftspot, mid_far);
+	mid_far = vector_fma(
+		w2->leftspot, frac_far, vector_scale(w1->leftspot, 1 - frac_far)
+	);
 
-	CrossProduct(lt->normal, w3->leftdirection, normal);
+	normal = cross_product(lt->normal, w3->leftdirection);
 	normalize_vector(normal);
-	dot = DotProduct(spot, normal) - 0;
+	dot = dot_product(spot, normal) - 0;
 	dot1 = (1 - frac_far) * DotProduct(w1->leftspot, normal)
 		+ frac_far * DotProduct(w2->leftspot, normal) - 0;
 	if (dot <= NORMAL_EPSILON) {
@@ -365,9 +366,9 @@ static void CalcInterpolation_Square(
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
-	VectorScale(mid_near, 1 - ratio, test);
-	VectorMA(test, ratio, mid_far, test);
-	VectorSubtract(test, spot, test);
+	test = vector_subtract(
+		vector_fma(mid_far, ratio, vector_scale(mid_near, 1 - ratio)), spot
+	);
 	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON) {
 		Developer(
 			developer_level::spam,
@@ -386,8 +387,8 @@ static void CalcInterpolation_Square(
 	normalize_vector(normal1);
 	CrossProduct(w1->wedgenormal, lt->normal, normal2);
 	normalize_vector(normal2);
-	dot1 = DotProduct(spot, normal1) - 0;
-	dot2 = DotProduct(spot, normal2) - DotProduct(w1->leftspot, normal2);
+	dot1 = dot_product(spot, normal1) - 0;
+	dot2 = dot_product(spot, normal2) - dot_product(w1->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac = 0.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
@@ -397,8 +398,8 @@ static void CalcInterpolation_Square(
 		frac = std::max((float) 0, std::min(frac, (float) 1));
 	}
 
-	dot1 = DotProduct(w1->leftspot, normal1) - 0;
-	dot2 = 0 - DotProduct(w1->leftspot, normal2);
+	dot1 = dot_product(w1->leftspot, normal1) - 0;
+	dot2 = 0 - dot_product(w1->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac_near = 1.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
@@ -406,26 +407,27 @@ static void CalcInterpolation_Square(
 	} else {
 		frac_near = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale(w1->leftspot, frac_near, mid_near);
+	mid_near = vector_scale(w1->leftspot, frac_near);
 
-	dot1 = DotProduct(w2->leftspot, normal1) - 0;
-	dot2 = DotProduct(w3->leftspot, normal2)
-		- DotProduct(w1->leftspot, normal2);
+	dot1 = dot_product(w2->leftspot, normal1) - 0;
+	dot2 = dot_product(w3->leftspot, normal2)
+		- dot_product(w1->leftspot, normal2);
 	if (dot1 <= NORMAL_EPSILON) {
 		frac_far = 1.0;
 	} else if (dot2 <= NORMAL_EPSILON) {
 		frac_far = 0.0;
 	} else {
 		frac_far = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
-	}
-	VectorScale(w3->leftspot, 1 - frac_far, mid_far);
-	VectorMA(mid_far, frac_far, w2->leftspot, mid_far);
+	};
+	mid_far = vector_fma(
+		w2->leftspot, frac_far, vector_scale(w3->leftspot, 1 - frac_far)
+	);
 
-	CrossProduct(w1->leftdirection, lt->normal, normal);
+	normal = cross_product(w1->leftdirection, lt->normal);
 	normalize_vector(normal);
-	dot = DotProduct(spot, normal) - 0;
-	dot1 = (1 - frac_far) * DotProduct(w3->leftspot, normal)
-		+ frac_far * DotProduct(w2->leftspot, normal) - 0;
+	dot = dot_product(spot, normal) - 0;
+	dot1 = (1 - frac_far) * dot_product(w3->leftspot, normal)
+		+ frac_far * dot_product(w2->leftspot, normal) - 0;
 	if (dot <= NORMAL_EPSILON) {
 		ratio = 0.0;
 	} else if (dot >= dot1) {
@@ -435,9 +437,9 @@ static void CalcInterpolation_Square(
 		ratio = std::max((float) 0, std::min(ratio, (float) 1));
 	}
 
-	VectorScale(mid_near, 1 - ratio, test);
-	VectorMA(test, ratio, mid_far, test);
-	VectorSubtract(test, spot, test);
+	test = vector_subtract(
+		vector_fma(mid_far, ratio, vector_scale(mid_near, 1 - ratio)), spot
+	);
 	if (g_drawlerp && vector_length(test) > 4 * ON_EPSILON) {
 		Developer(
 			developer_level::spam,
@@ -737,10 +739,12 @@ static void ApplyInterpolation(
 		return;
 	}
 	for (auto const & point : interp.points) {
-		float3_array const * b = GetTotalLight(
-			&g_patches[point.patchnum], style
+		float3_array const totalLight = get_total_light(
+			g_patches[point.patchnum], style
 		);
-		VectorMA(out, point.weight / interp.totalweight, *b, out);
+		out = vector_fma(
+			totalLight, point.weight / interp.totalweight, out
+		);
 	}
 }
 
@@ -889,9 +893,9 @@ void InterpolateSampleLight(
 
 				if (best) {
 					lt = best;
-					VectorSubtract(position, lt->center, spot);
-					dot = DotProduct(spot, lt->normal);
-					VectorMA(spot, -dot, lt->normal, spot);
+					spot = vector_subtract(position, lt->center);
+					dot = dot_product(spot, lt->normal);
+					spot = vector_fma(lt->normal, -dot, spot);
 					CalcInterpolation(lt, spot, maininterp);
 
 					maininterp.totalweight = 0;
@@ -1048,7 +1052,7 @@ static void GatherPatches(
 			patchnum2 = patch2 - g_patches;
 
 			point.leftpatchnum = patchnum2;
-			VectorMA(patch2->origin, -PATCH_HUNT_OFFSET, dp2->normal, v);
+			v = vector_fma(dp2->normal, -PATCH_HUNT_OFFSET, patch2->origin);
 
 			// Do permission tests using the original position of the patch
 			if (patchnum2 == lt->patchnum
@@ -1140,12 +1144,15 @@ static void PurgePatches(localtriangulation_t* lt) {
 		}
 		valid[cur] = 2; // mark current patch as final
 
-		CrossProduct(points[cur].leftdirection, lt->normal, normal);
+		normal = cross_product(points[cur].leftdirection, lt->normal);
 		normalize_vector(normal);
-		VectorScale(normal, cos(TRIANGLE_SHAPE_THRESHOLD), v);
-		VectorMA(
-			v, sin(TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v
-		);
+		// TODO: Do we really need `double` intermediate values here? Might
+		// be an accident
+		v = to_float3(vector_fma(
+			points[cur].leftdirection,
+			std::sin(TRIANGLE_SHAPE_THRESHOLD),
+			vector_scale(normal, std::cos(TRIANGLE_SHAPE_THRESHOLD))
+		));
 		while (next[cur] != cur && valid[next[cur]] != 2) {
 			angle = GetAngle(
 				points[cur].leftdirection,
@@ -1168,12 +1175,15 @@ static void PurgePatches(localtriangulation_t* lt) {
 			break;
 		}
 
-		CrossProduct(lt->normal, points[cur].leftdirection, normal);
+		normal = cross_product(lt->normal, points[cur].leftdirection);
 		normalize_vector(normal);
-		VectorScale(normal, cos(TRIANGLE_SHAPE_THRESHOLD), v);
-		VectorMA(
-			v, sin(TRIANGLE_SHAPE_THRESHOLD), points[cur].leftdirection, v
-		);
+		// TODO: Do we really need `double` intermediate values here? Might
+		// be an accident
+		v = to_float3(vector_fma(
+			points[cur].leftdirection,
+			std::sin(TRIANGLE_SHAPE_THRESHOLD),
+			vector_scale(normal, std::cos(TRIANGLE_SHAPE_THRESHOLD))
+		));
 		while (prev[cur] != cur && valid[prev[cur]] != 2) {
 			angle = GetAngle(
 				points[prev[cur]].leftdirection,
@@ -1450,13 +1460,13 @@ static localtriangulation_t* CreateLocalTriangulation(
 
 	// Fill basic information for this local triangulation
 	lt->plane = *getPlaneFromFaceNumber(facenum);
-	lt->plane.dist += DotProduct(g_face_offset[facenum], lt->plane.normal);
+	lt->plane.dist += dot_product(g_face_offset[facenum], lt->plane.normal);
 	lt->winding = *patch->winding;
-	VectorMA(
-		patch->origin, -PATCH_HUNT_OFFSET, lt->plane.normal, lt->center
+	lt->center = vector_fma(
+		lt->plane.normal, -PATCH_HUNT_OFFSET, patch->origin
 	);
-	dot = DotProduct(lt->center, lt->plane.normal) - lt->plane.dist;
-	VectorMA(lt->center, -dot, lt->plane.normal, lt->center);
+	dot = dot_product(lt->center, lt->plane.normal) - lt->plane.dist;
+	lt->center = vector_fma(lt->plane.normal, -dot, lt->center);
 	if (!point_in_winding_noedge(
 			lt->winding, lt->plane, lt->center, DEFAULT_EDGE_WIDTH
 		)) {
@@ -1641,7 +1651,7 @@ static void BuildWalls(facetriangulation_t* facetrian) {
 		facenum2 = facetrian->neighbors[i];
 		f2 = &g_dfaces[facenum2];
 		dp2 = getPlaneFromFace(f2);
-		if (DotProduct(dp->normal, dp2->normal) <= 0.1) {
+		if (dot_product(dp->normal, dp2->normal) <= 0.1f) {
 			continue;
 		}
 		for (j = 0; j < f2->numedges; j++) {
@@ -1650,21 +1660,21 @@ static void BuildWalls(facetriangulation_t* facetrian) {
 			if (!es->smooth) {
 				facetriangulation_t::Wall wall;
 
-				VectorAdd(
+				wall.points[0] = vector_add(
 					g_dvertexes[g_dedges[abs(e)].v[0]].point,
-					g_face_offset[facenum],
-					wall.points[0]
+					g_face_offset[facenum]
 				);
-				VectorAdd(
+				wall.points[1] = vector_add(
 					g_dvertexes[g_dedges[abs(e)].v[1]].point,
-					g_face_offset[facenum],
-					wall.points[1]
+					g_face_offset[facenum]
 				);
-				VectorSubtract(
-					wall.points[1], wall.points[0], wall.direction
+				wall.direction = vector_subtract(
+					wall.points[1], wall.points[0]
 				);
-				dot = DotProduct(wall.direction, dp->normal);
-				VectorMA(wall.direction, -dot, dp->normal, wall.direction);
+				dot = dot_product(wall.direction, dp->normal);
+				wall.direction = vector_fma(
+					dp->normal, -dot, wall.direction
+				);
 				if (normalize_vector(wall.direction)) {
 					CrossProduct(wall.direction, dp->normal, wall.normal);
 					normalize_vector(wall.normal);

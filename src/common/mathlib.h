@@ -146,12 +146,6 @@ constexpr auto vec3_min(any_vec3 auto const & v) noexcept {
 		(a)[2] = -((a)[2]); \
 	}
 #define VectorRound(a) floor((a) + 0.5)
-#define VectorMA(a, scale, b, dest)            \
-	{                                          \
-		(dest)[0] = (a)[0] + (scale) * (b)[0]; \
-		(dest)[1] = (a)[1] + (scale) * (b)[1]; \
-		(dest)[2] = (a)[2] + (scale) * (b)[2]; \
-	}
 
 template <any_vec3 Multiplicand, any_vec3 Multiplier, any_vec3 ToAdd>
 constexpr auto vector_fma(
