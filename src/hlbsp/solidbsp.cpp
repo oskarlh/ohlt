@@ -1516,8 +1516,8 @@ static void BuildBspTree_r(node_t* node) {
 				p.dist = g_mapplanes[split->planenum].dist
 					- BOUNDS_EXPANSION;
 			} else { // back child
-				VecSubtractVector(
-					0, g_mapplanes[split->planenum].normal, p.normal
+				p.normal = vector_subtract(
+					0.0f, g_mapplanes[split->planenum].normal
 				);
 				p.dist = -g_mapplanes[split->planenum].dist
 					- BOUNDS_EXPANSION;
