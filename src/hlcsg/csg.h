@@ -43,7 +43,6 @@ struct valve220_vects {
 	double3_array UAxis;
 	double3_array VAxis;
 	std::array<double, 2> shift;
-	double rotate;
 	std::array<double, 2> scale;
 };
 
@@ -51,8 +50,6 @@ struct brush_texture_t {
 	valve220_vects vects;
 	wad_texture_name name;
 };
-
-using side_index = std::uint32_t;
 
 struct side_t {
 	brush_texture_t td;
@@ -79,16 +76,22 @@ struct brushhull_t {
 
 using cliphull_bitmask = std::uint8_t;
 static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
-using brush_side_count = std::uint16_t;
 
 struct brush_t {
-	int originalentitynum;
-	int originalbrushnum;
 	int entitynum;
-	int brushnum;
+	// Same as entitynum except if entities are removed/added during the
+	// compilation process. Used for helpful error messages
+	int originalentitynum;
 
-	side_index firstSide;
-	brush_side_count numSides;
+	// Entity-local brushnum. The first brush of every entity has brushnum
+	// 0, the second has brushnum 1 and so on
+	int brushnum;
+	// Same as brushnum except if brushes are removed/added during the
+	// compilation process. Used for helpful error messages
+	int originalbrushnum;
+
+	side_count firstSide;
+	side_count numSides;
 
 	cliphull_bitmask cliphull;
 
@@ -149,8 +152,6 @@ struct hullshape_t {
 
 extern int g_nummapbrushes;
 extern brush_t g_mapbrushes[MAX_MAP_BRUSHES];
-
-#define MAX_MAP_SIDES (MAX_MAP_BRUSHES * 6)
 
 extern int g_numbrushsides;
 extern side_t g_brushsides[MAX_MAP_SIDES];

@@ -879,7 +879,7 @@ bool MakeBrushPlanes(brush_t* b) {
 	// convert to mapplanes
 	//
 	// for each side in this brush
-	for (brush_side_count i = 0; i < b->numSides; ++i) {
+	for (side_count i = 0; i < b->numSides; ++i) {
 		s = &g_brushsides[b->firstSide + i];
 		for (std::size_t j = 0; j < 3; ++j) {
 			s->planepts[j] = vector_subtract(s->planepts[j], origin);
@@ -1038,8 +1038,8 @@ contents_t CheckBrushContents(brush_t const * const b) {
 		assigned = true;
 	}
 	s++;
-	brush_side_count best_i{ 0 };
-	for (brush_side_count i = 1; i < b->numSides; i++, s++) {
+	side_count best_i{ 0 };
+	for (side_count i = 1; i < b->numSides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t contents_consider = TextureContents(textureNameB);
 		if (assigned) {
@@ -1061,7 +1061,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 
 	// attempt to pick up on mixed_face_contents errors
 	s = &g_brushsides[b->firstSide];
-	for (brush_side_count i = 0; i < b->numSides; i++, s++) {
+	for (side_count i = 0; i < b->numSides; i++, s++) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t const contents2 = TextureContents(textureNameB);
 		if (assigned && !textureNameB.is_any_content_type()
@@ -1216,7 +1216,7 @@ hullbrush_t* CreateHullBrush(brush_t const * b) {
 	numplanes = 0;
 	origin = get_double3_for_key(g_entities[b->entitynum], u8"origin");
 
-	for (brush_side_count i = 0; i < b->numSides; ++i) {
+	for (side_count i = 0; i < b->numSides; ++i) {
 		side_t* s;
 		double3_array p[3];
 		planetype axial;

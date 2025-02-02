@@ -8,7 +8,7 @@
 #include <optional>
 #include <string>
 
-struct parsed_face {
+struct parsed_side {
 	wad_texture_name textureName;
 	std::array<double3_array, 3> planePoints;
 	std::array<double, 2> shift;
@@ -21,25 +21,25 @@ class parsed_brushes_iterator {
   private:
 	friend class parsed_brushes;
 
-	std::vector<parsed_face>::const_iterator facesIt;
-	std::vector<std::uint16_t>::const_iterator numFacesInEachBrushIt;
+	std::vector<parsed_side>::const_iterator sidesIt;
+	std::vector<std::uint16_t>::const_iterator numSidesInEachBrushIt;
 
   public:
-	using value_type = std::span<parsed_face const>;
+	using value_type = std::span<parsed_side const>;
 
 	constexpr parsed_brushes_iterator& operator++() noexcept {
-		facesIt += *numFacesInEachBrushIt;
-		++numFacesInEachBrushIt;
+		sidesIt += *numSidesInEachBrushIt;
+		++numSidesInEachBrushIt;
 		return *this;
 	}
 
 	constexpr value_type operator*() const noexcept {
-		return value_type(facesIt, facesIt + *numFacesInEachBrushIt);
+		return value_type(sidesIt, sidesIt + *numSidesInEachBrushIt);
 	}
 
 	constexpr bool operator!=(parsed_brushes_iterator const & other
 	) const noexcept {
-		return numFacesInEachBrushIt != other.numFacesInEachBrushIt;
+		return numSidesInEachBrushIt != other.numSidesInEachBrushIt;
 	}
 };
 
@@ -51,42 +51,42 @@ class parsed_brushes {
 	friend parsed_brushes_iterator;
 
 	// std::uint16_t was chosen because you couldn't reasonably need more
-	// than 65K faces per brush
-	using brush_face_count = std::uint16_t;
+	// than 65K sides per brush
+	using brush_side_count = std::uint16_t;
 
-	std::vector<parsed_face> faces;
-	std::vector<brush_face_count> numFacesInEachBrush;
+	std::vector<parsed_side> sides;
+	std::vector<brush_side_count> numSidesInEachBrush;
 
   public:
-	static constexpr std::size_t max_faces_per_brush
-		= std::numeric_limits<brush_face_count>::max();
+	static constexpr std::size_t max_sides_per_brush
+		= std::numeric_limits<brush_side_count>::max();
 
 	using const_iterator = parsed_brushes_iterator;
 	using iterator = parsed_brushes_iterator;
-	using value_type = std::span<parsed_face const>;
+	using value_type = std::span<parsed_side const>;
 	using const_reference = value_type&;
 
 	void clear() {
-		faces.clear();
-		numFacesInEachBrush.clear();
+		sides.clear();
+		numSidesInEachBrush.clear();
 	}
 
 	void free_memory() {
-		faces.shrink_to_fit();
-		numFacesInEachBrush.shrink_to_fit();
+		sides.shrink_to_fit();
+		numSidesInEachBrush.shrink_to_fit();
 	}
 
 	constexpr parsed_brushes_iterator cbegin() const noexcept {
 		parsed_brushes_iterator it;
-		it.facesIt = faces.cbegin();
-		it.numFacesInEachBrushIt = numFacesInEachBrush.cbegin();
+		it.sidesIt = sides.cbegin();
+		it.numSidesInEachBrushIt = numSidesInEachBrush.cbegin();
 		return it;
 	}
 
 	constexpr parsed_brushes_iterator cend() const noexcept {
 		parsed_brushes_iterator it;
-		it.facesIt = faces.cend();
-		it.numFacesInEachBrushIt = numFacesInEachBrush.cend();
+		it.sidesIt = sides.cend();
+		it.numSidesInEachBrushIt = numSidesInEachBrush.cend();
 		return it;
 	}
 
@@ -99,11 +99,11 @@ class parsed_brushes {
 	}
 
 	constexpr bool empty() const noexcept {
-		return numFacesInEachBrush.empty();
+		return numSidesInEachBrush.empty();
 	}
 
 	constexpr std::size_t size() const noexcept {
-		return numFacesInEachBrush.size();
+		return numSidesInEachBrush.size();
 	}
 };
 
@@ -160,32 +160,34 @@ enum class parse_entity_outcome {
 	entity_parsed,
 	reached_end,
 	bad_input,
+	not_valve220_map_format
 };
 
 class map_entity_parser {
   private:
-	std::u8string_view input;
+	std::u8string_view allInput;
+	std::u8string_view remainingInput;
 
 	constexpr std::optional<std::u8string_view>
 	parse_quoted_string(std::u8string& quotedStringBuffer) noexcept {
-		if (!input.starts_with(u8'"')) {
+		if (!remainingInput.starts_with(u8'"')) {
 			return std::nullopt;
 		}
 
 		quotedStringBuffer.clear();
 		bool isEndQuote{};
 		do {
-			std::size_t const nextSpecial = input.find_first_of(
+			std::size_t const nextSpecial = remainingInput.find_first_of(
 				u8"\\\"", 1
 			);
 			if (nextSpecial == std::u8string_view::npos) [[unlikely]] {
 				return std::nullopt;
 			}
-			isEndQuote = input[nextSpecial] == u8'"';
-			std::u8string_view const untilSpecial = input.substr(
+			isEndQuote = remainingInput[nextSpecial] == u8'"';
+			std::u8string_view const untilSpecial = remainingInput.substr(
 				1, nextSpecial - 1
 			);
-			input = input.substr(nextSpecial + 1);
+			remainingInput = remainingInput.substr(nextSpecial + 1);
 			if (isEndQuote && quotedStringBuffer.empty()) [[likely]] {
 				// No escape characters in the string at all, we don't need
 				// to use a buffer
@@ -201,13 +203,13 @@ class map_entity_parser {
 
 	constexpr bool parse_key_values(std::vector<entity_key_value>& keyValues
 	) noexcept {
-		while (input.starts_with(u8'"')) {
+		while (remainingInput.starts_with(u8'"')) {
 			auto maybeKey = parse_quoted_string(quotedStringBufferForKey);
 			if (!maybeKey || maybeKey.value().empty()) [[unlikely]] {
 				return false;
 			}
 
-			skip_whitespace_and_comments(input);
+			skip_whitespace_and_comments(remainingInput);
 
 			auto maybeValue = parse_quoted_string(quotedStringBufferForValue
 			);
@@ -231,7 +233,7 @@ class map_entity_parser {
 				keyValues.emplace_back(key, value);
 			}
 
-			skip_whitespace_and_comments(input);
+			skip_whitespace_and_comments(remainingInput);
 		}
 		return true;
 	}
@@ -241,7 +243,7 @@ class map_entity_parser {
 	constexpr wad_texture_name parse_texture_name() noexcept {
 		wad_texture_name textureName{};
 
-		bool const isQuotedTextureName = input.starts_with(u8'"');
+		bool const isQuotedTextureName = remainingInput.starts_with(u8'"');
 		if (isQuotedTextureName) [[unlikely]] {
 			auto maybeValue = parse_quoted_string(quotedStringBufferForValue
 			);
@@ -251,15 +253,17 @@ class map_entity_parser {
 			textureName = { maybeValue.value() };
 		} else {
 			std::size_t const nameLength = std::min(
-				input.size(), input.find_first_of(ascii_whitespace)
+				remainingInput.size(),
+				remainingInput.find_first_of(ascii_whitespace)
 			);
 			if (nameLength == 0) [[unlikely]] {
 				return wad_texture_name{};
 			}
-			textureName = std::u8string_view{ input.begin(), nameLength };
-			input = input.substr(nameLength);
+			textureName = std::u8string_view{ remainingInput.begin(),
+											  nameLength };
+			remainingInput = remainingInput.substr(nameLength);
 		}
-		skip_whitespace_and_comments(input);
+		skip_whitespace_and_comments(remainingInput);
 		return textureName;
 	}
 
@@ -268,14 +272,16 @@ class map_entity_parser {
 	parse_doubles() noexcept {
 		std::array<double, N> result;
 		for (std::size_t i = 0; i != N; ++i) {
-			std::optional<double> maybeElement = try_to_parse_double(input);
+			std::optional<double> maybeElement = try_to_parse_double(
+				remainingInput
+			);
 
 			if (!maybeElement) [[unlikely]] {
 				return std::nullopt;
 			}
 			result[i] = maybeElement.value();
 
-			skip_whitespace_and_comments(input);
+			skip_whitespace_and_comments(remainingInput);
 		}
 		return result;
 	}
@@ -283,10 +289,10 @@ class map_entity_parser {
 	template <std::size_t N>
 	constexpr std::optional<std::array<double, N>>
 	parse_surrounded_doubles(char8_t startChar, char8_t endChar) noexcept {
-		if (!try_to_skip_one(input, startChar)) [[unlikely]] {
+		if (!try_to_skip_one(remainingInput, startChar)) [[unlikely]] {
 			return std::nullopt;
 		}
-		skip_whitespace_and_comments(input);
+		skip_whitespace_and_comments(remainingInput);
 
 		std::optional<std::array<double, N>> maybeResult{ parse_doubles<N>(
 		) };
@@ -295,16 +301,16 @@ class map_entity_parser {
 			return std::nullopt;
 		}
 
-		if (!try_to_skip_one(input, endChar)) [[unlikely]] {
+		if (!try_to_skip_one(remainingInput, endChar)) [[unlikely]] {
 			return std::nullopt;
 		}
-		skip_whitespace_and_comments(input);
+		skip_whitespace_and_comments(remainingInput);
 
 		return maybeResult;
 	}
 
-	constexpr bool parse_faces(std::vector<parsed_face>& out) noexcept {
-		while (!input.starts_with(u8'}')) {
+	constexpr bool parse_sides(std::vector<parsed_side>& out) noexcept {
+		while (!remainingInput.starts_with(u8'}')) {
 			// Read 3-point plane definition for brush side
 			std::array<double3_array, 3> planePoints;
 			for (std::size_t pointIndex = 0; pointIndex != 3;
@@ -355,7 +361,7 @@ class map_entity_parser {
 			std::array<double, 2> const shift{ maybeU.value()[3],
 											   maybeV.value()[3] };
 
-			out.push_back(parsed_face{
+			out.push_back(parsed_side{
 				.textureName = textureName,
 				.planePoints = planePoints,
 				.shift = shift,
@@ -363,81 +369,93 @@ class map_entity_parser {
 				.uAxis = uAxis,
 				.vAxis = vAxis });
 
-			skip_whitespace_and_comments(input);
+			skip_whitespace_and_comments(remainingInput);
 		}
 		return true;
 	}
 
 	constexpr bool parse_brushes(parsed_brushes& out) noexcept {
-		while (try_to_skip_one(input, u8'{')) {
-			skip_whitespace_and_comments(input);
+		while (try_to_skip_one(remainingInput, u8'{')) {
+			skip_whitespace_and_comments(remainingInput);
 
-			std::size_t const numFacesBefore = out.faces.size();
-			if (!parse_faces(out.faces)) [[unlikely]] {
+			std::size_t const numSidesBefore = out.sides.size();
+			if (!parse_sides(out.sides)) [[unlikely]] {
 				return false;
 			}
 
-			std::size_t const numFacesAdded = out.faces.size()
-				- numFacesBefore;
+			std::size_t const numSidesAdded = out.sides.size()
+				- numSidesBefore;
 
-			if (numFacesAdded < 4) [[unlikely]] {
-				// Less than 4 faces can't make a concave brush
+			if (numSidesAdded < 4) [[unlikely]] {
+				// Less than 4 sides can't make a concave brush
 				return false;
 			}
 
-			if (numFacesAdded > parsed_brushes::max_faces_per_brush) {
+			if (numSidesAdded > parsed_brushes::max_sides_per_brush) {
 				return false;
 			}
 
-			out.numFacesInEachBrush.push_back(numFacesAdded);
+			out.numSidesInEachBrush.push_back(numSidesAdded);
 
-			if (!try_to_skip_one(input, u8'}')) [[unlikely]] {
+			if (!try_to_skip_one(remainingInput, u8'}')) [[unlikely]] {
 				return false;
 			}
-			skip_whitespace_and_comments(input);
+			skip_whitespace_and_comments(remainingInput);
 		}
 
 		return true;
 	}
 
+	// The compilers only support the Valve 220 .MAP format. .MAP files
+	// created by old versions of WorldCraft or Quark are not supported.
+	constexpr bool isValve220Format() const noexcept {
+		constexpr std::u8string_view mapVersionKey = u8"\"mapversion\"";
+		std::size_t mapVersionKeyStart = allInput.find(mapVersionKey);
+		if (mapVersionKeyStart == std::u8string_view::npos) {
+			return false;
+		}
+		std::u8string_view afterMapVersionStartKey = allInput.substr(
+			mapVersionKeyStart + mapVersionKey.length()
+		);
+		skip_whitespace_and_comments(afterMapVersionStartKey);
+		return afterMapVersionStartKey.starts_with(u8"\"220\"");
+	}
+
   public:
 	// Note: str will be kept and used
 	constexpr map_entity_parser(std::u8string_view str) noexcept :
-		input{ str } { }
+		allInput(str), remainingInput{ str } { }
 
 	constexpr parse_entity_outcome parse_entity(parsed_entity& ent
 	) noexcept {
 		ent.clear();
 
-		skip_whitespace_and_comments(input);
+		skip_whitespace_and_comments(remainingInput);
 
-		if (input.empty()) {
+		if (remainingInput.empty()) {
 			ent.free_memory();
 			return parse_entity_outcome::reached_end;
 		}
 
-		if (!try_to_skip_one(input, u8'{')) [[unlikely]] {
-			return parse_entity_outcome::bad_input;
+		// Entity start
+		if (try_to_skip_one(remainingInput, u8'{')) [[likely]] {
+			skip_whitespace_and_comments(remainingInput);
+
+			if (parse_key_values(ent.keyValues)
+				&& parse_brushes(ent.brushes)
+				&& try_to_skip_one(remainingInput, u8'}') // Entity end
+			) [[likely]] {
+				return parse_entity_outcome::entity_parsed;
+			}
 		}
 
-		skip_whitespace_and_comments(input);
-		if (!parse_key_values(ent.keyValues)) [[unlikely]] {
-			return parse_entity_outcome::bad_input;
+		if (!isValve220Format()) {
+			return parse_entity_outcome::not_valve220_map_format;
 		}
-
-		if (!parse_brushes(ent.brushes)) [[unlikely]] {
-			return parse_entity_outcome::bad_input;
-		}
-
-		// Entity end
-		if (!try_to_skip_one(input, u8'}')) [[unlikely]] {
-			return parse_entity_outcome::bad_input;
-		}
-
-		return parse_entity_outcome::entity_parsed;
+		return parse_entity_outcome::bad_input;
 	}
 
 	constexpr std::u8string_view remaining_input() noexcept {
-		return input;
+		return remainingInput;
 	}
 };

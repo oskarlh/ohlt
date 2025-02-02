@@ -1083,7 +1083,8 @@ std::u8string_view get_classname(entity_t const & ent) {
 // =====================================================================================
 //  IntForKey
 // =====================================================================================
-std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key) {
+std::int32_t
+IntForKey(entity_t const * ent, std::u8string_view key) noexcept {
 	std::u8string_view const valueString{ value_for_key(ent, key) };
 
 	std::int32_t result{};
@@ -1093,6 +1094,11 @@ std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key) {
 		result
 	);
 	return result;
+}
+
+bool bool_key_value(entity_t const & ent, std::u8string_view key) noexcept {
+	std::u8string_view const valueString{ value_for_key(&ent, key) };
+	return !valueString.empty() && valueString != u8"0";
 }
 
 std::optional<double> clamp_double_key_value(
@@ -1173,7 +1179,7 @@ std::optional<std::int64_t> clamp_signed_integer_key_value(
 	return std::clamp(parsed, min, max);
 }
 
-float float_for_key(entity_t const & ent, std::u8string_view key) {
+float float_for_key(entity_t const & ent, std::u8string_view key) noexcept {
 	return atof((char const *) value_for_key(&ent, key).data());
 }
 

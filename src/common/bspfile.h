@@ -16,10 +16,6 @@ constexpr std::ptrdiff_t MAX_MAP_MODELS = 512; // 400 //vluzacn
 // variable, but 400 brush entities is very stressful on the engine and
 // network code as it is
 
-constexpr std::ptrdiff_t MAX_MAP_BRUSHES = 32768;
-// arbitrary, but large numbers of brushes generally require more lightmap's
-// than the compiler can handle
-
 constexpr std::ptrdiff_t MAX_ENGINE_ENTITIES = 16384; // 1024 //vluzacn
 constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384;	  // 2048 //vluzacn
 // hard limit, in actuallity it is too much, as temporary entities in the
@@ -482,8 +478,11 @@ bool key_value_starts_with(
 bool classname_is(entity_t const * const ent, std::u8string_view classname);
 std::u8string_view get_classname(entity_t const & ent);
 
-std::int32_t IntForKey(entity_t const * const ent, std::u8string_view key);
-float float_for_key(entity_t const & ent, std::u8string_view key);
+std::int32_t
+IntForKey(entity_t const * const ent, std::u8string_view key) noexcept;
+float float_for_key(entity_t const & ent, std::u8string_view key) noexcept;
+
+bool bool_key_value(entity_t const & ent, std::u8string_view key) noexcept;
 
 // Returns `clamp((kv as a double), min, max)`.
 // If the key-value does not contain a number, returns std::nullopt
