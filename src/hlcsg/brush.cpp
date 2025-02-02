@@ -630,7 +630,7 @@ void ExpandBrush(brush_t* brush, int const hullnum) {
 					{
 						// pick direction of bevel edge by looking at normal
 						// of existing planes
-						VectorClear(bevel_edge);
+						bevel_edge = {};
 						bevel_edge[dir] = (current_plane->normal[dir] > 0)
 							? -1
 							: 1;

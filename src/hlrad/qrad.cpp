@@ -2114,16 +2114,13 @@ static void WriteWorld(char const * const name) {
 //  CollectLight
 // =====================================================================================
 static void CollectLight() {
-	unsigned j; // LRC
-	unsigned i;
-	patch_t* patch;
-
-	for (i = 0, patch = g_patches; i < g_num_patches; i++, patch++) {
-		std::array<float3_array, MAXLIGHTMAPS> newtotallight;
-		for (j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255; j++) {
-			VectorClear(newtotallight[j]);
-			int k;
-			for (k = 0; k < MAXLIGHTMAPS && patch->totalstyle[k] != 255;
+	patch_t* patch = g_patches;
+	for (std::size_t i = 0; i < g_num_patches; ++i, ++patch) {
+		std::array<float3_array, MAXLIGHTMAPS> newtotallight{};
+		for (std::size_t j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255;
+			 ++j) {
+			for (std::size_t k = 0;
+				 k < MAXLIGHTMAPS && patch->totalstyle[k] != 255;
 				 k++) {
 				if (patch->totalstyle[k] == newstyles[i][j]) {
 					newtotallight[j] = patch->totallight[k];
@@ -2131,7 +2128,7 @@ static void CollectLight() {
 				}
 			}
 		}
-		for (j = 0; j < MAXLIGHTMAPS; j++) {
+		for (std::size_t j = 0; j < MAXLIGHTMAPS; ++j) {
 			if (newstyles[i][j] != 255) {
 				patch->totalstyle[j] = newstyles[i][j];
 				patch->totallight[j] = newtotallight[j];

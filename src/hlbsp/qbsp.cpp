@@ -1149,17 +1149,10 @@ skipclip:
 	entity_t* ent;
 	ent = EntityForModel(modnum);
 	if (ent != &g_entities[0] && has_key_value(ent, u8"zhlt_minsmaxs")) {
-		double origin[3], mins[3], maxs[3];
-		VectorClear(origin);
-		sscanf(
-			(char const *) ValueForKey(ent, u8"origin"),
-			"%lf %lf %lf",
-			&origin[0],
-			&origin[1],
-			&origin[2]
-		);
+		double3_array const origin = get_double3_for_key(*ent, u8"origin");
+		double3_array mins, maxs;
 		if (sscanf(
-				(char const *) ValueForKey(ent, u8"zhlt_minsmaxs"),
+				(char const *) value_for_key(ent, u8"zhlt_minsmaxs").data(),
 				"%lf %lf %lf %lf %lf %lf",
 				&mins[0],
 				&mins[1],
@@ -1169,8 +1162,8 @@ skipclip:
 				&maxs[2]
 			)
 			== 6) {
-			VectorSubtract(mins, origin, model->mins);
-			VectorSubtract(maxs, origin, model->maxs);
+			model->mins = to_float3(vector_subtract(mins, origin));
+			model->maxs = to_float3(vector_subtract(maxs, origin));
 		}
 	}
 }
@@ -1199,8 +1192,8 @@ skipclip:
 			(ent ? (char const *) value_for_key(ent, u8"targetname").data()
 				 : "unknown")
 		);
-		VectorClear(model->mins); // fix "backward minsmaxs" in HL
-		VectorClear(model->maxs);
+		model->mins = {}; // Fix "backward minsmaxs" in HL
+		model->maxs = {};
 	} else if (novisiblebrushes) {
 		entity_t* ent = EntityForModel(g_nummodels - 1);
 		if (g_nummodels - 1 != 0 && ent == &g_entities[0]) {

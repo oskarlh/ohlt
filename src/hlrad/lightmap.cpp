@@ -133,7 +133,7 @@ int AddFaceForVertexNormal(
 //  e   enext
 //
 {
-	VectorCopy(getPlaneFromFace(f)->normal, normal);
+	normal = getPlaneFromFace(f)->normal;
 	int vnum = g_dedges[edgeabs].v[edgeend];
 	int iedge, iedgenext, edge, edgenext;
 	int i, e, count1, count2;
@@ -262,10 +262,9 @@ static bool TranslateTexToTex(
 		face2_axis[1] = negate_vector(face2_axis[1]);
 	}
 
-	VectorCopy(
-		face_axis[0], edgetotex.v[0]
-	); // / v[0][0] v[1][0] \ is a rotation (possibly with a reflection by
-	   // the edge)
+	edgetotex.v[0] = face_axis[0]; // / v[0][0] v[1][0] \ is a rotation
+								   // (possibly with a reflection by
+								   // the edge)
 	edgetotex.v[1] = face_axis[1]; // \ v[0][1] v[1][1] /
 	VectorScale(
 		v_up, len, edgetotex.v[2]
@@ -318,10 +317,9 @@ void PairEdges() {
 				if (e->faces[0]->planenum == e->faces[1]->planenum
 					&& e->faces[0]->side == e->faces[1]->side) {
 					e->coplanar = true;
-					VectorCopy(
-						getPlaneFromFace(e->faces[0])->normal,
-						e->interface_normal
-					);
+					e->interface_normal
+						= getPlaneFromFace(e->faces[0])->normal;
+
 					e->cos_normals_angle = 1.0;
 				} else {
 					// see if they fall into a "smoothing group" based on
@@ -351,10 +349,8 @@ void PairEdges() {
 					}
 					if (e->cos_normals_angle > (1.0 - NORMAL_EPSILON)) {
 						e->coplanar = true;
-						VectorCopy(
-							getPlaneFromFace(e->faces[0])->normal,
-							e->interface_normal
-						);
+						e->interface_normal
+							= getPlaneFromFace(e->faces[0])->normal;
 						e->cos_normals_angle = 1.0;
 					} else if (e->cos_normals_angle >= std::max(
 								   smoothvalue - NORMAL_EPSILON,
@@ -375,7 +371,7 @@ void PairEdges() {
 							[g_texinfo[e->faces[1]->texinfo].miptex]
 					)) {
 					e->coplanar = false;
-					VectorClear(e->interface_normal);
+					e->interface_normal = {};
 				}
 				{
 					int miptex0, miptex1;
@@ -390,7 +386,7 @@ void PairEdges() {
 							   - g_lightingconeinfo[miptex1].scale
 						   ) > NORMAL_EPSILON) {
 						e->coplanar = false;
-						VectorClear(e->interface_normal);
+						e->interface_normal = {};
 					}
 				}
 				if (!vectors_almost_same(
@@ -409,7 +405,7 @@ void PairEdges() {
 						)) {
 						e->smooth = false;
 						e->coplanar = false;
-						VectorClear(e->interface_normal);
+						e->interface_normal = {};
 
 						dvertex_t* dv = &g_dvertexes[g_dedges[abs(k)].v[0]];
 						Developer(
@@ -1835,9 +1831,7 @@ void CreateDirectLights() {
 			}
 
 			dl->type = emit_surface;
-			VectorCopy(
-				getPlaneFromFaceNumber(p->faceNumber)->normal, dl->normal
-			);
+			dl->normal = getPlaneFromFaceNumber(p->faceNumber)->normal;
 			dl->intensity = p->baselight; // LRC
 			if (g_face_texlights[p->faceNumber]) {
 				if (has_key_value(
@@ -1876,8 +1870,6 @@ void CreateDirectLights() {
 				directlights[leafnum] = dl2;
 			}
 		}
-
-		// LRC        VectorClear(p->totallight[0]);
 	}
 
 	//
@@ -2233,9 +2225,7 @@ void CreateDirectLights() {
 										"collect spread normals: internal error."
 									);
 								}
-								VectorCopy(
-									testnormal, dl->sunnormals[count]
-								);
+								dl->sunnormals[count] = testnormal;
 								dl->sunnormalweights[count]
 									= std::max((float) 0, dot - testdot)
 									* g_skynormalsizes[SUNSPREAD_SKYLEVEL]
@@ -2700,21 +2690,18 @@ static void GatherSampleLight(
 		dface_t* f = &g_dfaces[texlightgap_surfacenum];
 		dplane_t const * dp = getPlaneFromFace(f);
 		texinfo_t* tex = &g_texinfo[f->texinfo];
-		int x;
 		float len;
 
-		for (x = 0; x < 2; x++) {
-			CrossProduct(
-				tex->vecs[1 - x].xyz, dp->normal, texlightgap_textoworld[x]
+		for (std::size_t x = 0; x < 2; ++x) {
+			texlightgap_textoworld[x] = cross_product(
+				tex->vecs[1 - x].xyz, dp->normal
 			);
-			len = DotProduct(texlightgap_textoworld[x], tex->vecs[x].xyz);
+			len = dot_product(texlightgap_textoworld[x], tex->vecs[x].xyz);
 			if (fabs(len) < NORMAL_EPSILON) {
-				VectorClear(texlightgap_textoworld[x]);
+				texlightgap_textoworld[x] = {};
 			} else {
-				VectorScale(
-					texlightgap_textoworld[x],
-					1 / len,
-					texlightgap_textoworld[x]
+				texlightgap_textoworld[x] = vector_scale(
+					texlightgap_textoworld[x], 1 / len
 				);
 			}
 		}
@@ -3316,17 +3303,13 @@ static void AddSamplesToPatches(
 		t_vec = l->texmins[1] * TEXTURE_STEP
 			+ (i / (l->texsize[0] + 1)) * TEXTURE_STEP;
 
-		dplane_t clipplanes[4];
-		VectorClear(clipplanes[0].normal);
+		dplane_t clipplanes[4]{};
 		clipplanes[0].normal[0] = 1;
 		clipplanes[0].dist = s_vec - 0.5 * TEXTURE_STEP;
-		VectorClear(clipplanes[1].normal);
 		clipplanes[1].normal[0] = -1;
 		clipplanes[1].dist = -(s_vec + 0.5 * TEXTURE_STEP);
-		VectorClear(clipplanes[2].normal);
 		clipplanes[2].normal[1] = 1;
 		clipplanes[2].dist = t_vec - 0.5 * TEXTURE_STEP;
-		VectorClear(clipplanes[3].normal);
 		clipplanes[3].normal[1] = -1;
 		clipplanes[3].dist = -(t_vec + 0.5 * TEXTURE_STEP);
 
@@ -3490,13 +3473,9 @@ void GetPhongNormal(
 
 					if (es->smooth) {
 						if (s == 0) {
-							VectorCopy(
-								es->vertex_normal[e > 0 ? 0 : 1], n1
-							);
+							n1 = es->vertex_normal[e > 0 ? 0 : 1];
 						} else {
-							VectorCopy(
-								es->vertex_normal[e > 0 ? 1 : 0], n1
-							);
+							n1 = es->vertex_normal[e > 0 ? 1 : 0];
 						}
 					} else if (s == 0 && es1->smooth) {
 						n1 = es1->vertex_normal[e1 > 0 ? 1 : 0];
@@ -3514,7 +3493,7 @@ void GetPhongNormal(
 
 					// Interpolate between the center and edge normals based
 					// on sample position
-					VectorScale(facenormal, 1.0 - a1 - a2, phongnormal);
+					phongnormal = vector_scale(facenormal, 1.0f - a1 - a2);
 					float3_array temp;
 					VectorScale(n1, a1, temp);
 					VectorAdd(phongnormal, temp, phongnormal);
@@ -3932,9 +3911,7 @@ void BuildFacelights(int const facenum) {
 	l.surfnum = facenum;
 	l.face = f;
 
-	VectorCopy(
-		g_translucenttextures[g_texinfo[f->texinfo].miptex], l.translucent_v
-	);
+	l.translucent_v = g_translucenttextures[g_texinfo[f->texinfo].miptex];
 	l.translucent_b = !vectors_almost_same(l.translucent_v, float3_array{});
 	l.miptex = g_texinfo[f->texinfo].miptex;
 
@@ -3985,9 +3962,9 @@ void BuildFacelights(int const facenum) {
 		);
 		for (j = 0; j < ALLSTYLES; j++) {
 			(*patch->totalstyle_all)[j] = 255;
-			VectorClear((*patch->samplelight_all)[j]);
-			VectorClear((*patch->totallight_all)[j]);
-			VectorClear((*patch->directlight_all)[j]);
+			(*patch->samplelight_all)[j] = {};
+			(*patch->totallight_all)[j] = {};
+			(*patch->directlight_all)[j] = {};
 		}
 		(*patch->totalstyle_all)[0] = 0;
 	}
@@ -4015,10 +3992,8 @@ void BuildFacelights(int const facenum) {
 			+ l.lmcache_offset;
 		sizehalf = 0.5 * g_blur * l.lmcache_density;
 		subsamples = 0.0;
-		VectorCopy(
-			l.lmcache_normal[s_center + l.lmcachewidth * t_center],
-			centernormal
-		);
+		centernormal
+			= l.lmcache_normal[s_center + l.lmcachewidth * t_center];
 		if (g_bleedfix && !g_drawnudge) {
 			int s_origin = s_center;
 			int t_origin = t_center;
@@ -4164,7 +4139,7 @@ void BuildFacelights(int const facenum) {
 			} else {
 				subsamples = 0.0;
 				for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
-					VectorClear(fl_samples[j][i].light);
+					fl_samples[j][i].light = {};
 				}
 			}
 		}
@@ -4513,10 +4488,8 @@ void BuildFacelights(int const facenum) {
 			if (bestindex != -1) {
 				maxlights[bestindex] = 0;
 				patch->directstyle[k] = (*patch->totalstyle_all)[bestindex];
-				VectorCopy(
-					(*patch->directlight_all)[bestindex],
-					patch->directlight[k]
-				);
+				patch->directlight[k] = (*patch->directlight_all
+				)[bestindex];
 			} else {
 				patch->directstyle[k] = 255;
 			}
@@ -4572,14 +4545,10 @@ void PrecompLightmapOffsets() {
 
 		{
 			int i, j, k;
-			float maxlights[ALLSTYLES];
+			std::array<float, ALLSTYLES> maxlights;
 			{
-				std::array<float3_array, ALLSTYLES> maxlights1;
-				std::array<float3_array, ALLSTYLES> maxlights2;
-				for (j = 0; j < ALLSTYLES; j++) {
-					VectorClear(maxlights1[j]);
-					VectorClear(maxlights2[j]);
-				}
+				std::array<float3_array, ALLSTYLES> maxlights1{};
+				std::array<float3_array, ALLSTYLES> maxlights2{};
 				for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
 					for (i = 0; i < fl->numsamples; i++) {
 						maxlights1[f->styles[k]] = vector_maximums(
@@ -4667,7 +4636,7 @@ void PrecompLightmapOffsets() {
 						   // the same for all styles! (why did we
 						   // decide to store it in many places?)
 						for (j = 0; j < fl->numsamples; j++) {
-							VectorClear(fl->samples[k][j].light);
+							fl->samples[k][j].light = {};
 						}
 					}
 				} else {

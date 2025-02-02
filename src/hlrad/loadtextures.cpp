@@ -358,8 +358,7 @@ void LoadTextures() {
 			}
 		}
 		{
-			float3_array total;
-			VectorClear(total);
+			float3_array total{};
 			for (int j = 0; j < tex->width * tex->height; j++) {
 				float3_array reflectivity;
 				if (tex->name.is_transparent_or_decal()
@@ -950,7 +949,7 @@ static void GetLightInt(
 ) {
 	ix = std::max(0, std::min(ix, texsize[0]));
 	iy = std::max(0, std::min(iy, texsize[1]));
-	VectorClear(light);
+	light = {};
 	if (face->lightofs < 0) {
 		return;
 	}
@@ -1294,7 +1293,6 @@ void EmbedLightmapInTextures() {
 				for (s = 0; s < (texturesize[0] >> miplevel); s++) {
 					byte(*src[4])[4];
 					byte(*dest)[4];
-					double average[4];
 
 					dest = &texturemips[miplevel]
 									   [t * (texturesize[0] >> miplevel)
@@ -1320,8 +1318,7 @@ void EmbedLightmapInTextures() {
 												 >> (miplevel - 1))
 										  + (2 * s + 1)];
 
-					VectorClear(average);
-					average[3] = 0;
+					std::array<double, 4> average{};
 					for (k = 0; k < 4; k++) {
 						for (j = 0; j < 3; j++) {
 							average[j] += (*src[k])[3] * (*src[k])[j];
@@ -1330,8 +1327,7 @@ void EmbedLightmapInTextures() {
 					}
 
 					if (average[3] / 4 <= 0.4 * 255) {
-						VectorClear(*dest);
-						(*dest)[3] = 0;
+						std::fill_n(*dest, 4, 0);
 					} else {
 						for (j = 0; j < 3; j++) {
 							int val = (int
@@ -1403,7 +1399,7 @@ void EmbedLightmapInTextures() {
 				palettetree
 			);
 			for (j = palettenumcolors; j < palettemaxcolors; j++) {
-				VectorClear(palette[paletteoffset + j]);
+				palette[paletteoffset + j] = {};
 			}
 
 			free(samplepoints);

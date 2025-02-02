@@ -99,7 +99,7 @@ static bool CalcAdaptedSpot(
 		}
 	}
 	if (i == (int) lt->neighborfaces.size()) {
-		VectorClear(spot);
+		spot = {};
 		return false;
 	}
 
@@ -1515,7 +1515,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 		if (angle <= std::numbers::pi_v<double> + NORMAL_EPSILON) {
 			if (angle < TRIANGLE_SHAPE_THRESHOLD) {
 				w->shape = localtriangulation_t::Wedge::eTriangular;
-				VectorClear(w->wedgenormal);
+				w->wedgenormal = {};
 			} else {
 				w->shape = localtriangulation_t::Wedge::eConvex;
 				VectorSubtract(wnext->leftspot, w->leftspot, v);

@@ -908,17 +908,14 @@ void MaxDistVis(int unused) {
 			{
 				winding_t const * w;
 				leaf_t const * leaf[2] = { l, tl };
-				float3_array center[2];
-				float radius[2];
-				int count[2];
-				for (int side = 0; side < 2; side++) {
-					count[side] = 0;
-					VectorClear(center[side]);
+				std::array<float3_array, 2> center{};
+				std::array<int, 2> count{};
+				for (std::size_t side = 0; side < 2; ++side) {
 					for (a = 0; a < leaf[side]->numportals; a++) {
 						w = leaf[side]->portals[a]->winding;
 						for (b = 0; b < w->numpoints; b++) {
-							VectorAdd(
-								w->points[b], center[side], center[side]
+							center[side] = vector_add(
+								center[side], w->points[b]
 							);
 							count[side]++;
 						}
@@ -927,11 +924,11 @@ void MaxDistVis(int unused) {
 				if (!count[0] && !count[1]) {
 					goto Work;
 				}
+				std::array<float, 2> radius{};
 				for (int side = 0; side < 2; side++) {
 					center[side] = vector_scale(
 						center[side], 1.0f / float(count[side])
 					);
-					radius[side] = 0;
 					for (a = 0; a < leaf[side]->numportals; a++) {
 						w = leaf[side]->portals[a]->winding;
 						for (b = 0; b < w->numpoints; b++) {

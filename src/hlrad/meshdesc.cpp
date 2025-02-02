@@ -218,7 +218,7 @@ bool CMeshDesc ::PlaneFromPoints(
 	CrossProduct(v2, v1, plane->normal);
 
 	if (vector_length(plane->normal) == 0.0f) {
-		VectorClear(plane->normal);
+		plane->normal = {};
 		return false;
 	}
 
@@ -250,16 +250,16 @@ bool CMeshDesc ::ComparePlanes(
 SnapVectorToGrid
 ==================
 */
-void CMeshDesc ::SnapVectorToGrid(float3_array& normal) {
-	for (int i = 0; i < 3; i++) {
+void CMeshDesc::SnapVectorToGrid(float3_array& normal) {
+	for (std::size_t i = 0; i < 3; ++i) {
 		if (fabs(normal[i] - 1.0f) < PLANE_NORMAL_EPSILON) {
-			VectorClear(normal);
+			normal = {};
 			normal[i] = 1.0f;
 			break;
 		}
 
 		if (fabs(normal[i] - -1.0f) < PLANE_NORMAL_EPSILON) {
-			VectorClear(normal);
+			normal = {};
 			normal[i] = -1.0f;
 			break;
 		}
@@ -298,14 +298,14 @@ void CMeshDesc ::CategorizePlane(mplane_t* plane) {
 
 			if (plane->normal[i] == -1.0f) {
 				plane->signbits = (1 << i);
-				VectorClear(plane->normal);
+				plane->normal = {};
 				plane->normal[i] = -1.0f;
 				break;
 			}
 		} else if (plane->normal[i] == 1.0f) {
 			plane->type = i;
 			plane->signbits = 0;
-			VectorClear(plane->normal);
+			plane->normal = {};
 			plane->normal[i] = 1.0f;
 			break;
 		}
@@ -883,7 +883,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 			}
 
 			if (i == numplanes) {
-				VectorClear(normal);
+				normal = {};
 				normal[axis] = dir;
 				if (dir == 1) {
 					dist = facet->maxs[axis];

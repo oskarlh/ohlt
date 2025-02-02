@@ -114,15 +114,6 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 		(c)[2] = (a)[2] * (b); \
 	}
 
-#define VectorCopy(a, b) \
-	{                    \
-		(b)[0] = (a)[0]; \
-		(b)[1] = (a)[1]; \
-		(b)[2] = (a)[2]; \
-	}
-#define VectorClear(a) \
-	{ (a)[0] = (a)[1] = (a)[2] = 0.0; }
-
 constexpr auto
 vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
 	return to_vec3(v[0] * scale, v[1] * scale, v[2] * scale);

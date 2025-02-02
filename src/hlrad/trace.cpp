@@ -385,7 +385,7 @@ void BuildFaceEdges(opaqueface_t* f) {
 				developer_level::warning,
 				"Warning: BuildFaceEdges: Empty edge.\n"
 			);
-			VectorClear(pl->normal);
+			pl->normal = {};
 			pl->dist = -1;
 			continue;
 		}

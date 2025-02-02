@@ -271,12 +271,11 @@ MultiplyMatrix(matrix_t const & m_left, matrix_t const & m_right) noexcept {
 }
 
 matrix_t MatrixForScale(float3_array const & center, float scale) noexcept {
-	matrix_t result;
+	matrix_t result{};
 	for (std::size_t i = 0; i < 3; ++i) {
-		VectorClear(result.v[i]);
 		result.v[i][i] = scale;
 	}
-	VectorScale(center, 1 - scale, result.v[3]);
+	result.v[3] = vector_scale(center, 1 - scale);
 	return result;
 }
 
