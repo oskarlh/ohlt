@@ -767,14 +767,16 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 			}
 			if (ent_gscale_b) {
 				if (has_key_value(mapent, u8"origin")) {
-					double3_array v;
 					std::array<std::int32_t, 3> origin;
 					char8_t string[MAXTOKEN];
-					v = get_double3_for_key(*mapent, u8"origin");
-					VectorScale(v, ent_gscale, v);
+					double3_array const originScaled = vector_scale(
+						get_double3_for_key(*mapent, u8"origin"), ent_gscale
+					);
 
-					std::ranges::
-						transform(v, origin.begin(), std::round<double>);
+					for (std::size_t i = 0; i < 3; ++i) {
+						origin[i] = (std::int32_t
+						) std::round(originScaled[i]);
+					}
 
 					safe_snprintf(
 						(char*) string,
