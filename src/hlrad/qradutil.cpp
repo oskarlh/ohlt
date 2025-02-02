@@ -125,13 +125,13 @@ void getAdjustedPlaneFromFaceNumber(
 	if (face->side) {
 		float dist;
 
-		VectorCopy(backplanes[face->planenum].normal, plane->normal);
+		plane->normal = backplanes[face->planenum].normal;
 		dist = DotProduct(plane->normal, face_offset);
 		plane->dist = backplanes[face->planenum].dist + dist;
 	} else {
 		float dist;
 
-		VectorCopy(g_dplanes[face->planenum].normal, plane->normal);
+		plane->normal = g_dplanes[face->planenum].normal;
 		dist = DotProduct(plane->normal, face_offset);
 		plane->dist = g_dplanes[face->planenum].dist + dist;
 	}
@@ -349,10 +349,10 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	texorg = vector_fma(texaxis[0], -texplanes[0][3], texorg);
 	texorg = vector_fma(texaxis[1], -texplanes[1][3], texorg);
 
-	VectorCopy(texaxis[0], m_inverse.v[0]);
-	VectorCopy(texaxis[1], m_inverse.v[1]);
-	VectorCopy(normalaxis, m_inverse.v[2]);
-	VectorCopy(texorg, m_inverse.v[3]);
+	m_inverse.v[0] = to_float3(texaxis[0]);
+	m_inverse.v[1] = to_float3(texaxis[1]);
+	m_inverse.v[2] = to_float3(normalaxis);
+	m_inverse.v[3] = to_float3(texorg);
 	return true;
 }
 
@@ -410,7 +410,7 @@ static bool IsPositionValid(
 	if (usephongnormal) {
 		GetPhongNormal(map->facenum, pos, pos_normal);
 	} else {
-		VectorCopy(map->faceplanewithoffset.normal, pos_normal);
+		pos_normal = map->faceplanewithoffset.normal;
 	}
 	pos = vector_fma(pos_normal, DEFAULT_HUNT_OFFSET, pos);
 
@@ -443,7 +443,7 @@ static bool IsPositionValid(
 		float3_array transparency;
 		int opaquestyle;
 
-		VectorCopy(pos, test);
+		test = pos;
 		snap_to_winding_noedge(
 			*map->facewindingwithoffset,
 			map->faceplanewithoffset,
@@ -517,7 +517,7 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 
 	float3_array test_st;
 
-	VectorCopy(original_st, test_st);
+	test_st = original_st;
 	snap_to_winding(zone, map->texplane, test_st);
 
 	if (IsPositionValid(map, test_st, p.pos)) {
@@ -593,8 +593,8 @@ void FindFacePositions(int facenum)
 		return;
 	}
 
-	VectorCopy(g_face_offset[facenum], map->face_offset);
-	VectorCopy(g_face_centroids[facenum], map->face_centroid);
+	map->face_offset = g_face_offset[facenum];
+	map->face_centroid = g_face_centroids[facenum];
 	TranslateWorldToTex(facenum, map->worldtotex);
 	if (!InvertMatrix(map->worldtotex, map->textoworld)) {
 		map->valid = false;
@@ -714,7 +714,7 @@ void FreePositionMaps() {
 					if (!map->grid[j].valid) {
 						continue;
 					}
-					VectorCopy(map->grid[j].pos, v);
+					v = map->grid[j].pos;
 					VectorSubtract(v, g_drawsample_origin, dist);
 					if (DotProduct(dist, dist)
 						< g_drawsample_radius * g_drawsample_radius) {
@@ -833,7 +833,7 @@ bool FindNearestPosition(
 			position_t* p;
 
 			p = &map->grid[best_is + map->w * best_it];
-			VectorCopy(p->pos, pos);
+			pos = p->pos;
 			*best_s = p->best_s;
 			*best_t = p->best_t;
 			*dist = 0.0;

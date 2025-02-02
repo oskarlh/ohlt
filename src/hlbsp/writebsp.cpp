@@ -179,8 +179,8 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 		mins = vector_maximums(portalleaf->mins, node->loosemins);
 		maxs = vector_minimums(portalleaf->maxs, node->loosemaxs);
 	} else {
-		VectorCopy(node->mins, mins);
-		VectorCopy(node->maxs, maxs);
+		mins = node->mins;
+		maxs = node->maxs;
 	}
 	for (int k = 0; k < 3; k++) {
 		leaf_p->mins[k] = (short
@@ -313,8 +313,8 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 		mins = vector_maximums(portalleaf->mins, node->loosemins);
 		maxs = vector_minimums(portalleaf->maxs, node->loosemaxs);
 	} else {
-		VectorCopy(node->mins, mins);
-		VectorCopy(node->maxs, maxs);
+		mins = node->mins;
+		maxs = node->maxs;
 	}
 	for (int k = 0; k < 3; k++) {
 		n->mins[k] = (short
@@ -779,7 +779,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 	for (int i = 0; i < g_numplanes; i++) {
 		mapplane_t& mp = g_mapplanes[i];
 		dplane_t& dp = g_dplanes[i];
-		VectorCopy(mp.normal, dp.normal);
+		dp.normal = to_float3(mp.normal);
 		dp.dist = mp.dist;
 		dp.type = mp.type;
 	}

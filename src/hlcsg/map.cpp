@@ -619,13 +619,13 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 					break;
 				case 3:
 					ent_move_b = true;
-					VectorCopy(v, ent_move);
+					std::copy_n(v, 3, ent_move.begin());
 					break;
 				case 4:
 					ent_scale_b = true;
 					ent_scale = v[0];
 					ent_move_b = true;
-					VectorCopy(v + 1, ent_move);
+					std::copy_n(v + 1, 3, ent_move.begin());
 					break;
 				default:
 					Warning(

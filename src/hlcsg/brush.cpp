@@ -65,8 +65,8 @@ find_plane:
 
 	p = &g_mapplanes[g_nummapplanes];
 
-	VectorCopy(origin, p->origin);
-	VectorCopy(normal, p->normal);
+	p->origin = origin;
+	p->normal = normal;
 	normalize_vector(p->normal);
 	p->type = plane_type_for_normal(p->normal);
 	if (p->type <= last_axial) {
@@ -82,7 +82,8 @@ find_plane:
 	}
 	p->dist = DotProduct(origin, p->normal);
 
-	VectorCopy(origin, (p + 1)->origin);
+	(p + 1)->origin = origin;
+
 	(p + 1)->normal = negate_vector(p->normal);
 	(p + 1)->type = p->type;
 	(p + 1)->dist = -p->dist;
@@ -260,7 +261,7 @@ void ExpandBrushWithHullBrush(
 				|| DotProduct(hbv->point, brushface.normal)
 					< bestdist - NORMAL_EPSILON) {
 				bestdist = DotProduct(hbv->point, brushface.normal);
-				VectorCopy(hbv->point, bestvertex);
+				bestvertex = hbv->point;
 			}
 		}
 
@@ -381,7 +382,7 @@ void ExpandBrushWithHullBrush(
 		// add hull plane for this face
 		normal = negate_vector(hbf->normal);
 		if (axialbevel[hbf - hb->faces]) {
-			VectorCopy(bestvertex, origin);
+			origin = bestvertex;
 		} else {
 			VectorSubtract(bestvertex, hbf->point, origin);
 		}

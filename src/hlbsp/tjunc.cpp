@@ -216,8 +216,8 @@ static wedge_t* FindEdge(
 	w->next = wedge_hash[h];
 	wedge_hash[h] = w;
 
-	VectorCopy(origin, w->origin);
-	VectorCopy(dir, w->dir);
+	w->origin = origin;
+	w->dir = dir;
 	w->head.next = w->head.prev = &w->head;
 	w->head.t = 99999;
 	return w;
@@ -362,11 +362,11 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 
 		if (firstcorner + 2 >= MAXPOINTS) {
 			// rotate the point winding
-			VectorCopy(f->pts[0], test);
+			test = f->pts[0];
 			for (i = 1; i < f->numpoints; i++) {
-				VectorCopy(f->pts[i], f->pts[i - 1]);
+				f->pts[i - 1] = f->pts[i];
 			}
-			VectorCopy(test, f->pts[f->numpoints - 1]);
+			f->pts[f->numpoints - 1] = test;
 			goto restart;
 		}
 
@@ -393,11 +393,11 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		}
 
 		for (i = 0; i < newface->numpoints; i++) {
-			VectorCopy(f->pts[i], newface->pts[i]);
+			newface->pts[i] = f->pts[i];
 		}
 
 		for (i = newface->numpoints - 1; i < f->numpoints; i++) {
-			VectorCopy(f->pts[i], f->pts[i - (newface->numpoints - 2)]);
+			f->pts[i - (newface->numpoints - 2)] = f->pts[i];
 		}
 		f->numpoints -= (newface->numpoints - 2);
 	} while (1);
@@ -433,7 +433,7 @@ restart:
 			tjuncs++;
 			// insert a new vertex here
 			for (k = superface->numpoints; k > j; k--) {
-				VectorCopy(superface->pts[k - 1], superface->pts[k]);
+				superface->pts[k] = superface->pts[k - 1];
 			}
 			superface->pts[j] = vector_fma(w->dir, v->t, w->origin);
 			superface->numpoints++;

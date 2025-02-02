@@ -864,7 +864,7 @@ static void EmitPlanes() {
 		// if (!(mp->redundant))
 		//{
 		//     Log("EmitPlanes: plane %i non redundant\n", i);
-		VectorCopy(mp->normal, dp->normal);
+		dp->normal = to_float3(mp->normal);
 		dp->dist = mp->dist;
 		dp->type = mp->type;
 		// }

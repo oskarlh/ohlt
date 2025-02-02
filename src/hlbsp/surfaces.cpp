@@ -72,11 +72,10 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			// split it
 			subdivides++;
 
-			double3_array temp;
-			VectorCopy(tex->vecs[axis].xyz, temp);
+			double3_array temp{ to_double3(tex->vecs[axis].xyz) };
 			v = normalize_vector(temp);
 
-			VectorCopy(temp, plane.normal);
+			plane.normal = temp;
 			plane.dist = (mins + g_subdivide_size - TEXTURE_STEP)
 				/ v; // plane.dist = (mins + g_subdivide_size - 16) / v;
 					 // //--vluzacn
@@ -278,7 +277,7 @@ static int GetVertex(double3_array const & in, int const planenum) {
 	hv->planenums[0] = planenum;
 	hv->next = hashverts[h];
 	hashverts[h] = hv;
-	VectorCopy(vert, hv->point);
+	hv->point = vert;
 	hv->num = g_numvertexes;
 	hlassume(hv->num != MAX_MAP_VERTS, assume_MAX_MAP_VERTS);
 	hvert_p++;

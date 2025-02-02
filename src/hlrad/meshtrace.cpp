@@ -12,8 +12,8 @@ void TraceMesh ::SetupTrace(
 ) {
 	m_bHitTriangle = false;
 
-	VectorCopy(start, m_vecStart);
-	VectorCopy(end, m_vecEnd);
+	m_vecStart = start;
+	m_vecEnd = end;
 	VectorSubtract(end, start, m_vecTraceDirection);
 	m_flTraceDistance = normalize_vector(m_vecTraceDirection);
 

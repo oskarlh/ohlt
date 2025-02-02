@@ -1367,10 +1367,9 @@ static void MakePatchForFace(
 
 	patch->emitstyle = style;
 
-	VectorCopy(
-		g_textures[g_texinfo[f->texinfo].miptex].reflectivity,
-		patch->texturereflectivity
-	);
+	patch->texturereflectivity
+		= g_textures[g_texinfo[f->texinfo].miptex].reflectivity;
+
 	if (g_face_texlights[fn]
 		&& has_key_value(g_face_texlights[fn], u8"_texcolor")) {
 		float3_array texturereflectivity;
@@ -1413,7 +1412,7 @@ static void MakePatchForFace(
 				texturereflectivity[2]
 			);
 		}
-		VectorCopy(texturereflectivity, patch->texturereflectivity);
+		patch->texturereflectivity = texturereflectivity;
 	}
 	{
 		float opacity = 0.0;
@@ -1457,10 +1456,9 @@ static void MakePatchForFace(
 	patch->emitmode = getEmitMode(patch);
 	patch->scale = getScale(patch);
 	patch->chop = getChop(patch);
-	VectorCopy(
-		g_translucenttextures[g_texinfo[f->texinfo].miptex],
-		patch->translucent_v
-	);
+	patch->translucent_v
+		= g_translucenttextures[g_texinfo[f->texinfo].miptex];
+
 	patch->translucent_b = !vectors_almost_same(
 		patch->translucent_v, float3_array{}
 	);
@@ -1979,7 +1977,7 @@ static void MakePatches() {
 		for (j = 0; j < mod->numfaces; j++) {
 			fn = mod->firstface + j;
 			g_face_entity[fn] = ent;
-			VectorCopy(origin, g_face_offset[fn]);
+			g_face_offset[fn] = origin;
 			g_face_texlights[fn] = FindTexlightEntity(fn);
 			g_face_lightmode[fn] = lightmode;
 			f = &g_dfaces[fn];
@@ -2128,7 +2126,7 @@ static void CollectLight() {
 			for (k = 0; k < MAXLIGHTMAPS && patch->totalstyle[k] != 255;
 				 k++) {
 				if (patch->totalstyle[k] == newstyles[i][j]) {
-					VectorCopy(patch->totallight[k], newtotallight[j]);
+					newtotallight[j] = patch->totallight[k];
 					break;
 				}
 			}
@@ -2290,7 +2288,7 @@ static void GatherLight(int threadnum) {
 			if (beststyle != 255) {
 				maxlights[beststyle] = 0;
 				newstyles[j][m] = beststyle;
-				VectorCopy(adds[beststyle], addlight[j][m]);
+				addlight[j][m] = adds[beststyle];
 			} else {
 				newstyles[j][m] = 255;
 			}
@@ -2456,7 +2454,7 @@ static void GatherRGBLight(int threadnum) {
 			if (beststyle != 255) {
 				maxlights[beststyle] = 0;
 				newstyles[j][m] = beststyle;
-				VectorCopy(adds[beststyle], addlight[j][m]);
+				addlight[j][m] = adds[beststyle];
 			} else {
 				newstyles[j][m] = 255;
 			}
@@ -2496,7 +2494,7 @@ static void BounceLight() {
 	for (i = 0; i < g_num_patches; i++) {
 		patch_t* patch = &g_patches[i];
 		for (j = 0; j < MAXLIGHTMAPS && patch->totalstyle[j] != 255; j++) {
-			VectorCopy(patch->totallight[j], emitlight[i][j]);
+			emitlight[i][j] = patch->totallight[j];
 		}
 	}
 
@@ -2517,7 +2515,7 @@ static void BounceLight() {
 	for (i = 0; i < g_num_patches; i++) {
 		patch_t* patch = &g_patches[i];
 		for (j = 0; j < MAXLIGHTMAPS && patch->totalstyle[j] != 255; j++) {
-			VectorCopy(emitlight[i][j], patch->totallight[j]);
+			patch->totallight[j] = emitlight[i][j];
 		}
 	}
 

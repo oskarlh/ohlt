@@ -646,7 +646,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 						indices[numElems++] = numVerts;
 					}
 
-					VectorCopy(m_verts[ptricmds[0]], verts[numVerts]);
+					verts[numVerts] = m_verts[ptricmds[0]];
 					textures[numVerts]
 						= &ptexture[pskinref[pmesh->skinref]];
 					if (flags & STUDIO_NF_CHROME) {
@@ -734,9 +734,9 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			}
 
 			// fill the triangle
-			VectorCopy(vert[p0], triangle[0].point);
-			VectorCopy(vert[p1], triangle[1].point);
-			VectorCopy(vert[p2], triangle[2].point);
+			triangle[0].point = vert[p0];
+			triangle[1].point = vert[p1];
+			triangle[2].point = vert[p2];
 
 			triangle[0].st[0] = coords[p0 * 2 + 0];
 			triangle[0].st[1] = coords[p0 * 2 + 1];
@@ -768,9 +768,9 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	} else {
 		for (std::uint32_t i = 0; i < numElems; i += 3) {
 			// fill the triangle
-			VectorCopy(verts[indices[i + 0]], triangle[0].point);
-			VectorCopy(verts[indices[i + 1]], triangle[1].point);
-			VectorCopy(verts[indices[i + 2]], triangle[2].point);
+			triangle[0].point = verts[indices[i + 0]];
+			triangle[1].point = verts[indices[i + 1]];
+			triangle[2].point = verts[indices[i + 2]];
 
 			triangle[0].st[0] = coords[indices[i + 0] * 2 + 0];
 			triangle[0].st[1] = coords[indices[i + 0] * 2 + 1];
@@ -854,7 +854,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 	// add front plane
 	SnapPlaneToGrid(&mainplane);
 
-	VectorCopy(mainplane.normal, planes[numplanes].normal);
+	planes[numplanes].normal = mainplane.normal;
 	planes[numplanes].dist = mainplane.dist;
 	numplanes++;
 
@@ -891,7 +891,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 					dist = -facet->mins[axis];
 				}
 
-				VectorCopy(normal, planes[numplanes].normal);
+				planes[numplanes].normal = normal;
 				planes[numplanes].dist = dist;
 				numplanes++;
 			}
@@ -966,7 +966,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 				}
 
 				// add this plane
-				VectorCopy(normal, planes[numplanes].normal);
+				planes[numplanes].normal = normal;
 				planes[numplanes].dist = dist;
 				numplanes++;
 			}
@@ -1072,10 +1072,10 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 
 	// copy planes into mesh array (probably aligned block)
 	for (std::size_t i = 0; i < m_mesh.numfacets; ++i) {
-		VectorCopy(facets[i].mins, m_mesh.facets[i].mins);
-		VectorCopy(facets[i].maxs, m_mesh.facets[i].maxs);
-		VectorCopy(facets[i].edge1, m_mesh.facets[i].edge1);
-		VectorCopy(facets[i].edge2, m_mesh.facets[i].edge2);
+		m_mesh.facets[i].mins = facets[i].mins;
+		m_mesh.facets[i].maxs = facets[i].maxs;
+		m_mesh.facets[i].edge1 = facets[i].edge1;
+		m_mesh.facets[i].edge2 = facets[i].edge2;
 		m_mesh.facets[i].area.next = m_mesh.facets[i].area.prev = nullptr;
 		m_mesh.facets[i].numplanes = facets[i].numplanes;
 		m_mesh.facets[i].texture = facets[i].texture;

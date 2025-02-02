@@ -1301,8 +1301,8 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 		next.resize((int) spots.size() + 2);
 		prev.resize((int) spots.size() + 2);
 
-		VectorCopy(w->leftspot, arc_spots[0].spot);
-		VectorCopy(w->leftdirection, arc_spots[0].direction);
+		arc_spots[0].spot = w->leftspot;
+		arc_spots[0].direction = w->leftdirection;
 		arc_angles[0] = 0;
 		next[0] = 1;
 		prev[0] = -1;
@@ -1317,8 +1317,8 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 				n++;
 			}
 		}
-		VectorCopy(wnext->leftspot, arc_spots[n].spot);
-		VectorCopy(wnext->leftdirection, arc_spots[n].direction);
+		arc_spots[n].spot = wnext->leftspot;
+		arc_spots[n].direction = wnext->leftdirection;
 		arc_angles[n] = angle;
 		next[n] = -1;
 		prev[n] = n - 1;
@@ -1478,7 +1478,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 			4 * DEFAULT_EDGE_WIDTH
 		);
 	}
-	VectorCopy(lt->plane.normal, lt->normal);
+	lt->normal = lt->plane.normal;
 	lt->patchnum = patchnum;
 	lt->neighborfaces = facetrian->neighbors;
 

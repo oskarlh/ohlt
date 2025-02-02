@@ -385,7 +385,7 @@ void LoadTextures() {
 			VectorScale(
 				total, 1.0 / (double) (tex->width * tex->height), total
 			);
-			VectorCopy(total, tex->reflectivity);
+			tex->reflectivity = total;
 			Developer(
 				developer_level::message,
 				"Texture '%s': reflectivity is (%f,%f,%f).\n",
@@ -512,9 +512,9 @@ static void CQ_SelectPartition(cq_node_t* node) {
 	node->needsplit = false;
 	for (int k = 0; k < CQ_DIMENSIONS; k++) {
 		double count;
-		double counts[256];
-		double sum[CQ_DIMENSIONS];
-		double sums[256][CQ_DIMENSIONS];
+		std::array<double, 256> counts;
+		std::array<double, CQ_DIMENSIONS> sum;
+		std::array<std::array<double, CQ_DIMENSIONS>, 256> sums;
 
 		double bucketsums[256][CQ_DIMENSIONS];
 		int bucketsizes[256];
@@ -533,12 +533,14 @@ static void CQ_SelectPartition(cq_node_t* node) {
 		int min = 256;
 		int max = -1;
 		count = 0;
-		CQ_VectorClear(sum);
+		sum = {};
 		for (int j = 0; j < 256; j++) {
 			counts[j] = count;
-			CQ_VectorCopy(sum, sums[j]);
+			sums[j] = sum;
 			count += bucketsizes[j];
-			CQ_VectorAdd(sum, bucketsums[j], sum);
+			for (std::size_t x = 0; x < CQ_DIMENSIONS; ++x) {
+				sum[x] = sum[x] + bucketsums[j][x];
+			}
 			if (bucketsizes[j] > 0) {
 				if (j < min) {
 					min = j;
@@ -555,13 +557,13 @@ static void CQ_SelectPartition(cq_node_t* node) {
 		// error reduction
 		for (int j = min + 1; j < max + 1; j++) {
 			double priority = 0; // the decrease in total square deviation
-			priority -= CQ_DotProduct(sum, sum) / count;
-			priority += CQ_DotProduct(sums[j], sums[j]) / counts[j];
-			double remain[CQ_DIMENSIONS];
-			CQ_VectorSubtract(
-				sum, sums[j], remain
+			priority -= dot_product(sum, sum) / count;
+			priority += dot_product(sums[j], sums[j]) / counts[j];
+			double3_array remain;
+			remain = vector_subtract(
+				sum, sums[j]
 			); // sums and counts are precise (have no round-off error)
-			priority += CQ_DotProduct(remain, remain) / (count - counts[j]);
+			priority += dot_product(remain, remain) / (count - counts[j]);
 			if (node->needsplit == false
 				|| priority > node->splitpriority + 0.1
 				|| priority >= node->splitpriority - 0.1
@@ -594,9 +596,9 @@ static void CQ_FreeSearchTree(cq_searchnode_t* searchtree) {
 
 static void CQ_CreatePalette(
 	int numpoints,
-	unsigned char const (*points)[CQ_DIMENSIONS],
+	std::array<std::uint8_t, CQ_DIMENSIONS> const * points,
 	int maxcolors,
-	unsigned char (*colors_out)[CQ_DIMENSIONS],
+	std::array<std::uint8_t, CQ_DIMENSIONS>* colors_out,
 	int& numcolors_out,
 	cq_searchnode_t* searchtree_out
 ) //[2 * maxcolors - 1]
@@ -611,7 +613,9 @@ static void CQ_CreatePalette(
 	) malloc(numpoints * sizeof(unsigned char[CQ_DIMENSIONS]));
 	hlassume(pointarray != nullptr, assume_NoMemory);
 	memcpy(
-		pointarray, points, numpoints * sizeof(unsigned char[CQ_DIMENSIONS])
+		pointarray,
+		points,
+		numpoints * sizeof(std::array<std::uint8_t, CQ_DIMENSIONS>)
 	);
 
 	cq_node_t* n;
@@ -771,8 +775,8 @@ static void CQ_MapPoint_r(
 	int* bestdist,
 	int* best,
 	cq_searchnode_t* node,
-	unsigned char const (*colors)[CQ_DIMENSIONS],
-	unsigned char const point[CQ_DIMENSIONS],
+	std::array<std::uint8_t, CQ_DIMENSIONS> const * colors,
+	std::array<std::uint8_t, CQ_DIMENSIONS> const & point,
 	int searchradius
 ) {
 	while (!node->isleafnode) {
@@ -815,8 +819,8 @@ static void CQ_MapPoint_r(
 }
 
 static int CQ_MapPoint(
-	unsigned char const point[CQ_DIMENSIONS],
-	unsigned char const (*colors)[CQ_DIMENSIONS],
+	std::array<std::uint8_t, CQ_DIMENSIONS> const & point,
+	std::array<std::uint8_t, CQ_DIMENSIONS> const * colors,
 	int numcolors,
 	cq_searchnode_t* searchtree
 ) {
@@ -1184,7 +1188,7 @@ void EmbedLightmapInTextures() {
 				double src_s, src_t;
 				std::int32_t src_is, src_it;
 				std::uint8_t src_index;
-				std::uint8_t src_color[3];
+				std::array<std::uint8_t, 3> src_color;
 				double dest_s, dest_t;
 				std::int32_t dest_is, dest_it;
 				std::array<float, 5>* dest;
@@ -1231,7 +1235,7 @@ void EmbedLightmapInTextures() {
 				src_is = std::max(0, std::min(src_is, tex->width - 1));
 				src_it = std::max(0, std::min(src_it, tex->height - 1));
 				src_index = tex->canvas[src_it * tex->width + src_is];
-				VectorCopy(tex->palette[src_index], src_color);
+				src_color = tex->palette[src_index];
 
 				// get light from the center of the destination pixel
 				light_s = (s_vec + resolution * (dest_is + 0.5 - dest_s))
@@ -1342,7 +1346,7 @@ void EmbedLightmapInTextures() {
 
 		// create its palette
 
-		std::uint8_t palette[256][3];
+		std::array<std::array<std::uint8_t, 3>, 256> palette;
 		cq_searchnode_t* palettetree = CQ_AllocSearchTree(256);
 		int paletteoffset;
 		int palettenumcolors;
@@ -1350,14 +1354,12 @@ void EmbedLightmapInTextures() {
 		{
 			int palettemaxcolors;
 			int numsamplepoints;
-			unsigned char(*samplepoints)[3];
+			std::array<std::uint8_t, 3>* samplepoints;
 
 			if (texname.is_transparent_or_decal()) {
 				paletteoffset = 0;
 				palettemaxcolors = 255;
-				VectorCopy(
-					tex->palette[255], palette[255]
-				); // the transparency color
+				palette[255] = tex->palette[255]; // The transparency color
 			}
 			/*else if (texname[0] == '!')
 			{
@@ -1365,7 +1367,7 @@ void EmbedLightmapInTextures() {
 			entry are reserved for fog color and fog density for (j = 0; j <
 			16; j++)
 				{
-					VectorCopy (tex->palette[j], palette[j]);
+					palette[j] = tex->palette[j];
 				}
 				palettemaxcolors = 256 - 16;
 			}*/
@@ -1374,8 +1376,9 @@ void EmbedLightmapInTextures() {
 				palettemaxcolors = 256;
 			}
 
-			samplepoints = (unsigned char(*)[3]) malloc(
-				texturesize[0] * texturesize[1] * sizeof(unsigned char[3])
+			samplepoints = (std::array<std::uint8_t, 3>*) malloc(
+				texturesize[0] * texturesize[1]
+				* sizeof(std::array<std::uint8_t, 3>)
 			);
 			hlassume(samplepoints != nullptr, assume_NoMemory);
 			numsamplepoints = 0;
@@ -1383,7 +1386,9 @@ void EmbedLightmapInTextures() {
 				for (s = 0; s < texturesize[0]; s++) {
 					byte(*src)[4] = &texturemips[0][t * texturesize[0] + s];
 					if ((*src)[3] > 0) {
-						VectorCopy(*src, samplepoints[numsamplepoints]);
+						std::copy_n(
+							*src, 3, samplepoints[numsamplepoints].begin()
+						);
 						numsamplepoints++;
 					}
 				}
@@ -1449,8 +1454,9 @@ void EmbedLightmapInTextures() {
 										+ s];
 					if ((*src)[3] > 0) {
 						if (palettenumcolors) {
-							unsigned char point[3];
-							VectorCopy(*src, point);
+							std::array<std::uint8_t, 3> point;
+
+							std::copy_n(*src, 3, point.begin());
 							*p = paletteoffset
 								+ CQ_MapPoint(
 									 point,
@@ -1471,7 +1477,7 @@ void EmbedLightmapInTextures() {
 		}
 		*(short*) p = 256;
 		p += 2;
-		std::memcpy(p, palette, 256 * 3);
+		std::memcpy(p, palette.data(), 256 * 3);
 		p += 256 * 3;
 		*(short*) p = 0;
 		p += 2;

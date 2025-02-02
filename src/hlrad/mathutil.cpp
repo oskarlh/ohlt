@@ -545,11 +545,11 @@ void GetAlternateOrigin(
 	w = *patch->winding;
 	if (w.WindingOnPlaneSide(clipplane.normal, clipplane.dist)
 		!= face_side::cross) {
-		VectorCopy(patch->origin, origin);
+		origin = patch->origin;
 	} else {
 		w.mutating_clip(clipplane.normal, clipplane.dist, false);
 		if (w.size() == 0) {
-			VectorCopy(patch->origin, origin);
+			origin = patch->origin;
 		} else {
 			bool found;
 			float3_array bestpoint;
@@ -571,7 +571,7 @@ void GetAlternateOrigin(
 				float const dist = distance_between_points(point, center);
 				if (!found || dist < bestdist) {
 					found = true;
-					VectorCopy(point, bestpoint);
+					bestpoint = point;
 					bestdist = dist;
 				}
 			}
@@ -598,7 +598,7 @@ void GetAlternateOrigin(
 						);
 						if (!found || dist < bestdist) {
 							found = true;
-							VectorCopy(point, bestpoint);
+							bestpoint = point;
 							bestdist = dist;
 						}
 					}
@@ -606,9 +606,9 @@ void GetAlternateOrigin(
 			}
 
 			if (found) {
-				VectorCopy(bestpoint, origin);
+				origin = bestpoint;
 			} else {
-				VectorCopy(patch->origin, origin);
+				origin = patch->origin;
 			}
 		}
 	}

@@ -54,7 +54,7 @@ static bool CheckVisBitNoVismatrix(
 					patch->origin, plane->normal, patch2, origin2
 				);
 			} else {
-				VectorCopy(patch2->origin, origin2);
+				origin2 = patch2->origin;
 			}
 			if (DotProduct(origin2, plane->normal)
 				<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
@@ -65,7 +65,7 @@ static bool CheckVisBitNoVismatrix(
 					patch2->origin, plane2->normal, patch, origin1
 				);
 			} else {
-				VectorCopy(patch->origin, origin1);
+				origin1 = patch->origin;
 			}
 			if (DotProduct(origin1, plane2->normal)
 				<= PatchPlaneDist(patch2) + MINIMUM_PATCH_DISTANCE) {
@@ -85,7 +85,7 @@ static bool CheckVisBitNoVismatrix(
 					AddStyleToStyleArray(patchnum1, patchnum2, opaquestyle);
 				}
 				if (g_customshadow_with_bouncelight) {
-					VectorCopy(transparency, transparency_out);
+					transparency_out = transparency;
 				}
 				return true;
 			}
@@ -127,7 +127,7 @@ bool CheckVisBitBackwards(
 					backorigin, backnormal, emitpatch, emitorigin
 				);
 			} else {
-				VectorCopy(emitpatch->origin, emitorigin);
+				emitorigin = emitpatch->origin;
 			}
 			if (DotProduct(emitorigin, backnormal)
 				<= DotProduct(backorigin, backnormal)
@@ -148,7 +148,7 @@ bool CheckVisBitBackwards(
 					AddStyleToStyleArray(receiver, emitter, opaquestyle);
 				}
 				if (g_customshadow_with_bouncelight) {
-					VectorCopy(transparency, transparency_out);
+					transparency_out = transparency;
 				}
 				return true;
 			}
