@@ -239,8 +239,9 @@ static int GetVertex(double3_array const & in, int const planenum) {
 	int hashneighbors[MAX_HASH_NEIGHBORS];
 
 	for (i = 0; i < 3; i++) {
-		if (fabs(in[i] - VectorRound(in[i])) < 0.001) {
-			vert[i] = VectorRound(in[i]);
+		double const rounded = std::floor(in[i] + 0.5);
+		if (fabs(in[i] - rounded) < 0.001) {
+			vert[i] = rounded;
 		} else {
 			vert[i] = in[i];
 		}

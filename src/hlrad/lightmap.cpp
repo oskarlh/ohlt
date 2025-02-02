@@ -252,14 +252,14 @@ static bool TranslateTexToTex(
 	if (CalcMatrixSign(worldtotex)
 		< 0.0) // the three vectors s, t, facenormal are in reverse order
 	{
-		VectorInverse(face_axis[1]);
+		face_axis[1] = negate_vector(face_axis[1]);
 	}
 
 	VectorSubtract(face2_vert[1], face2_vert[0], face2_axis[0]);
 	len2 = vector_length(face2_axis[0]);
 	CrossProduct(v_up, face2_axis[0], face2_axis[1]);
 	if (CalcMatrixSign(worldtotex2) < 0.0) {
-		VectorInverse(face2_axis[1]);
+		face2_axis[1] = negate_vector(face2_axis[1]);
 	}
 
 	VectorCopy(

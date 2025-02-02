@@ -139,14 +139,6 @@ constexpr auto vec3_min(any_vec3 auto const & v) noexcept {
 #define VectorMaximum(a) (std::max({ (a)[0], (a)[1], (a)[2] }))
 #define VectorMinimum(a) (std::min({ (a)[0], (a)[1], (a)[2] }))
 
-#define VectorInverse(a)    \
-	{                       \
-		(a)[0] = -((a)[0]); \
-		(a)[1] = -((a)[1]); \
-		(a)[2] = -((a)[2]); \
-	}
-#define VectorRound(a) floor((a) + 0.5)
-
 template <any_vec3 Multiplicand, any_vec3 Multiplier, any_vec3 ToAdd>
 constexpr auto vector_fma(
 	Multiplicand const & multiplicand,
