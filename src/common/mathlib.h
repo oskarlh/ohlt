@@ -23,15 +23,6 @@ constexpr float EQUAL_EPSILON{ 0.004f };
 // Vector Math
 //
 
-#define DotProduct(x, y) \
-	((x)[0] * (y)[0] + (x)[1] * (y)[1] + (x)[2] * (y)[2])
-#define CrossProduct(a, b, dest)                       \
-	{                                                  \
-		(dest)[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1]; \
-		(dest)[1] = (a)[2] * (b)[0] - (a)[0] * (b)[2]; \
-		(dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]; \
-	}
-
 constexpr auto
 dot_product(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -80,16 +71,18 @@ vector_subtract(any_vec_element auto a, any_vec3 auto const & b) noexcept {
 	return std::array{ a - b[0], a - b[1], a - b[2] };
 }
 
-#define VectorMidpoint(a, b, c)         \
-	{                                   \
-		(c)[0] = ((a)[0] + (b)[0]) / 2; \
-		(c)[1] = ((a)[1] + (b)[1]) / 2; \
-		(c)[2] = ((a)[2] + (b)[2]) / 2; \
-	}
-
 constexpr auto vector_average(any_vec3 auto const & v) {
 	return (v[0] + v[1] + v[2]) / 3;
 }
+
+#define DotProduct(x, y) \
+	((x)[0] * (y)[0] + (x)[1] * (y)[1] + (x)[2] * (y)[2])
+#define CrossProduct(a, b, dest)                       \
+	{                                                  \
+		(dest)[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1]; \
+		(dest)[1] = (a)[2] * (b)[0] - (a)[0] * (b)[2]; \
+		(dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]; \
+	}
 
 #define VectorSubtract(a, b, c)   \
 	{                             \
@@ -104,13 +97,6 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 		(c)[2] = (a)[2] + (b)[2]; \
 	}
 
-#define VectorAddVec(a, b, c)  \
-	{                          \
-		(c)[0] = (a)[0] + (b); \
-		(c)[1] = (a)[1] + (b); \
-		(c)[2] = (a)[2] + (b); \
-	}
-
 #define VectorScale(a, b, c)   \
 	{                          \
 		(c)[0] = (a)[0] * (b); \
@@ -123,16 +109,13 @@ vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
 	return to_vec3(v[0] * scale, v[1] * scale, v[2] * scale);
 }
 
-constexpr auto vec3_max(any_vec3 auto const & v) noexcept {
+constexpr auto vector_max_element(any_vec3 auto const & v) noexcept {
 	return std::max({ v[0], v[1], v[2] });
 }
 
-constexpr auto vec3_min(any_vec3 auto const & v) noexcept {
+constexpr auto vector_min_element(any_vec3 auto const & v) noexcept {
 	return std::min({ v[0], v[1], v[2] });
 }
-
-#define VectorMaximum(a) (std::max({ (a)[0], (a)[1], (a)[2] }))
-#define VectorMinimum(a) (std::min({ (a)[0], (a)[1], (a)[2] }))
 
 template <any_vec3 Multiplicand, any_vec3 Multiplier, any_vec3 ToAdd>
 constexpr auto vector_fma(

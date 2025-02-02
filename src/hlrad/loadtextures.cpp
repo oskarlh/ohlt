@@ -393,7 +393,8 @@ void LoadTextures() {
 				tex->reflectivity[1],
 				tex->reflectivity[2]
 			);
-			if (VectorMaximum(tex->reflectivity) > 1.0 + NORMAL_EPSILON) {
+			if (vector_max_element(tex->reflectivity)
+				> 1.0 + NORMAL_EPSILON) {
 				Warning(
 					"Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.",
 					tex->name.c_str(),

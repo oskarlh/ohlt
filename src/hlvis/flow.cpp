@@ -666,7 +666,7 @@ static bool BestNormalFromWinding(
 	CrossProduct(edge, d, normal);
 	normalize_vector(normal);
 	if (pt3 < pt2) {
-		VectorScale(normal, -1, normal);
+		normal = vector_scale(normal, -1.0f);
 	}
 	normal_out = normal;
 	return true;

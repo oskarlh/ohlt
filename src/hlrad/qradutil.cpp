@@ -336,15 +336,15 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	{
 		return false;
 	}
-	VectorScale(normalaxis, 1 / det, normalaxis);
+	normalaxis = vector_scale(normalaxis, 1 / det);
 
 	CrossProduct(texplanes[1], faceplane, texaxis[0]);
-	VectorScale(texaxis[0], 1 / det, texaxis[0]);
+	texaxis[0] = vector_scale(texaxis[0], 1 / det);
 
 	CrossProduct(faceplane, texplanes[0], texaxis[1]);
-	VectorScale(texaxis[1], 1 / det, texaxis[1]);
+	texaxis[1] = vector_scale(texaxis[1], 1 / det);
 
-	VectorScale(normalaxis, -faceplane[3], texorg);
+	texorg = vector_scale(normalaxis, -faceplane[3]);
 	texorg = vector_fma(texaxis[0], -texplanes[0][3], texorg);
 	texorg = vector_fma(texaxis[1], -texplanes[1][3], texorg);
 

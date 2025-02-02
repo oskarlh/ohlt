@@ -42,26 +42,20 @@ void TraceMesh ::SetupTrace(
 bool TraceMesh ::ClipRayToBox(
 	float3_array const & mins, float3_array const & maxs
 ) {
-	float3_array t0, t1;
-	float3_array n, f;
-	float d, t;
+	float3_array const t0 = cross_product(
+		vector_subtract(mins, m_vecStart), m_vecTraceDirection
+	);
+	float3_array const t1 = cross_product(
+		vector_subtract(maxs, m_vecStart), m_vecTraceDirection
+	);
 
-	VectorSubtract(mins, m_vecStart, t0);
-	VectorSubtract(maxs, m_vecStart, t1);
+	float const d = std::max({ std::min(t0[0], t1[0]),
+							   std::min(t0[1], t1[1]),
+							   std::min(t0[2], t1[2]) });
 
-	float3_array ray_inv = m_vecTraceDirection;
-	CrossProduct(t0, ray_inv, t0);
-	CrossProduct(t1, ray_inv, t1);
-
-	n[0] = std::min(t0[0], t1[0]);
-	n[1] = std::min(t0[1], t1[1]);
-	n[2] = std::min(t0[2], t1[2]);
-	d = VectorMaximum(n);
-
-	f[0] = std::max(t0[0], t1[0]);
-	f[1] = std::max(t0[1], t1[1]);
-	f[2] = std::max(t0[2], t1[2]);
-	t = VectorMinimum(f);
+	float const t = std::min({ std::max(t0[0], t1[0]),
+							   std::max(t0[1], t1[1]),
+							   std::max(t0[2], t1[2]) });
 
 	return (t >= 0.0f) && (t >= d);
 }

@@ -1379,8 +1379,8 @@ static void MakePatchForFace(
 		for (int k = 0; k < 3; k++) {
 			texturecolor[k] = floor(texturecolor[k] + 0.001);
 		}
-		if (VectorMinimum(texturecolor) < -0.001
-			|| VectorMaximum(texturecolor) > 255.001) {
+		if (vector_min_element(texturecolor) < -0.001f
+			|| vector_max_element(texturecolor) > 255.001) {
 			float3_array const origin{
 				get_float3_for_key(*g_face_texlights[fn], u8"origin")
 			};
@@ -1403,7 +1403,8 @@ static void MakePatchForFace(
 		VectorScale(
 			texturereflectivity, g_texreflectscale, texturereflectivity
 		);
-		if (VectorMaximum(texturereflectivity) > 1.0 + NORMAL_EPSILON) {
+		if (vector_max_element(texturereflectivity)
+			> 1.0 + NORMAL_EPSILON) {
 			Warning(
 				"Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.",
 				g_textures[g_texinfo[f->texinfo].miptex].name.c_str(),
@@ -2267,7 +2268,7 @@ static void GatherLight(int threadnum) {
 
 		float maxlights[ALLSTYLES];
 		for (std::size_t style = 0; style < ALLSTYLES; style++) {
-			maxlights[style] = VectorMaximum(adds[style]);
+			maxlights[style] = vector_max_element(adds[style]);
 		}
 		for (m = 0; m < MAXLIGHTMAPS; m++) {
 			unsigned char beststyle = 255;
@@ -2433,7 +2434,7 @@ static void GatherRGBLight(int threadnum) {
 
 		float maxlights[ALLSTYLES];
 		for (style = 0; style < ALLSTYLES; style++) {
-			maxlights[style] = VectorMaximum(adds[style]);
+			maxlights[style] = vector_max_element(adds[style]);
 		}
 		for (m = 0; m < MAXLIGHTMAPS; m++) {
 			unsigned char beststyle = 255;

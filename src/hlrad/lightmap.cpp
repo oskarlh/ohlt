@@ -3215,7 +3215,7 @@ static void GatherSampleLight(
 	}
 
 	for (style = 0; style < ALLSTYLES; ++style) {
-		if (VectorMaximum(adds[style]) > g_corings[style] * 0.1) {
+		if (vector_max_element(adds[style]) > g_corings[style] * 0.1) {
 			for (style_index = 0; style_index < ALLSTYLES; style_index++) {
 				if (styles[style_index] == style
 					|| styles[style_index] == 255) {
@@ -3248,12 +3248,12 @@ static void GatherSampleLight(
 			VectorAdd(
 				sample[style_index], adds[style], sample[style_index]
 			);
-		} else if (VectorMaximum(adds[style])
+		} else if (vector_max_element(adds[style])
 				   > g_maxdiscardedlight + NORMAL_EPSILON) {
 			ThreadLock();
-			if (VectorMaximum(adds[style])
+			if (vector_max_element(adds[style])
 				> g_maxdiscardedlight + NORMAL_EPSILON) {
-				g_maxdiscardedlight = VectorMaximum(adds[style]);
+				g_maxdiscardedlight = vector_max_element(adds[style]);
 				g_maxdiscardedpos = pos;
 			}
 			ThreadUnlock();
@@ -4364,7 +4364,7 @@ void BuildFacelights(int const facenum) {
 		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			maxlights[j] = 0;
 			for (i = 0; i < fl->numsamples; i++) {
-				float b = VectorMaximum(fl_samples[j][i].light);
+				float b = vector_max_element(fl_samples[j][i].light);
 				maxlights[j] = std::max(maxlights[j], b);
 			}
 			if (maxlights[j] <= g_corings[f_styles[j]]
@@ -4432,7 +4432,7 @@ void BuildFacelights(int const facenum) {
 		float maxlights[ALLSTYLES];
 		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
-			maxlights[j] = VectorMaximum((*patch->totallight_all)[j]);
+			maxlights[j] = vector_max_element((*patch->totallight_all)[j]);
 		}
 		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			int bestindex = -1;
@@ -4470,7 +4470,7 @@ void BuildFacelights(int const facenum) {
 		}
 		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
-			maxlights[j] = VectorMaximum((*patch->directlight_all)[j]);
+			maxlights[j] = vector_max_element((*patch->directlight_all)[j]);
 		}
 		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			int bestindex = -1;
@@ -4579,7 +4579,7 @@ void PrecompLightmapOffsets() {
 				for (j = 0; j < ALLSTYLES; j++) {
 					float3_array v;
 					VectorAdd(maxlights1[j], maxlights2[j], v);
-					maxlights[j] = VectorMaximum(v);
+					maxlights[j] = vector_max_element(v);
 					if (maxlights[j] <= g_corings[j] * 0.01) {
 						if (maxlights[j]
 							> g_maxdiscardedlight + NORMAL_EPSILON) {
@@ -5178,14 +5178,15 @@ void AddPatchLights(int facenum) {
 					);
 
 					VectorAdd(samp->light, v, v);
-					if (VectorMaximum(v) >= g_corings[f_other->styles[k]]) {
+					if (vector_max_element(v)
+						>= g_corings[f_other->styles[k]]) {
 						samp->light = v;
-					} else if (VectorMaximum(v)
+					} else if (vector_max_element(v)
 							   > g_maxdiscardedlight + NORMAL_EPSILON) {
 						ThreadLock();
-						if (VectorMaximum(v)
+						if (vector_max_element(v)
 							> g_maxdiscardedlight + NORMAL_EPSILON) {
-							g_maxdiscardedlight = VectorMaximum(v);
+							g_maxdiscardedlight = vector_max_element(v);
 							g_maxdiscardedpos = samp->pos;
 						}
 						ThreadUnlock();
@@ -5348,7 +5349,7 @@ void FinalLightFace(int const facenum) {
 
 			// clip from the top
 			{
-				float max = VectorMaximum(lb);
+				float max = vector_max_element(lb);
 				if (g_limitthreshold >= 0 && max > g_limitthreshold) {
 					if (!g_drawoverload) {
 						VectorScale(lb, g_limitthreshold / max, lb);

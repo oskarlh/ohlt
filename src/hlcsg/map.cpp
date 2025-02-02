@@ -389,7 +389,7 @@ static void ParseBrush(entity_t* mapent) {
 			VectorAdd(
 				b->hulls[0].bounds.mins, b->hulls[0].bounds.maxs, origin
 			);
-			VectorScale(origin, 0.5, origin);
+			origin = vector_scale(origin, 0.5);
 
 			safe_snprintf(
 				string,
@@ -768,15 +768,14 @@ bool ParseMapEntity(parsed_entity& parsedEntity) {
 			if (ent_gscale_b) {
 				if (has_key_value(mapent, u8"origin")) {
 					double3_array v;
-					int origin[3];
+					std::array<std::int32_t, 3> origin;
 					char8_t string[MAXTOKEN];
-					int i;
 					v = get_double3_for_key(*mapent, u8"origin");
 					VectorScale(v, ent_gscale, v);
-					for (i = 0; i < 3; ++i) {
-						origin[i] = (int) (v[i] >= 0 ? v[i] + 0.5
-													 : v[i] - 0.5);
-					}
+
+					std::ranges::
+						transform(v, origin.begin(), std::round<double>);
+
 					safe_snprintf(
 						(char*) string,
 						MAXTOKEN,
