@@ -3865,11 +3865,9 @@ void CalcLightmap(
 
 void BuildFacelights(int const facenum) {
 	dface_t* f;
-	std::array<unsigned char, ALLSTYLES> f_styles;
 	sample_t* fl_samples[ALLSTYLES];
 	lightinfo_t l;
 	int i;
-	int j;
 	int k;
 	sample_t* s;
 	patch_t* patch;
@@ -3892,17 +3890,14 @@ void BuildFacelights(int const facenum) {
 	// some surfaces don't need lightmaps
 	//
 	f->lightofs = -1;
-	for (j = 0; j < ALLSTYLES; j++) {
-		f_styles[j] = 255;
-	}
 
 	if (g_texinfo[f->texinfo].has_special_flag()) {
-		for (j = 0; j < MAXLIGHTMAPS; j++) {
-			f->styles[j] = 255;
-		}
+		f->styles.fill(255);
 		return; // non-lit texture
 	}
 
+	std::array<unsigned char, ALLSTYLES> f_styles;
+	f_styles.fill(255);
 	f_styles[0] = 0;
 	if (g_face_patches[facenum] && g_face_patches[facenum]->emitstyle) {
 		f_styles[1] = g_face_patches[facenum]->emitstyle;
@@ -3962,13 +3957,11 @@ void BuildFacelights(int const facenum) {
 				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
 			assume_NoMemory
 		);
-		for (j = 0; j < ALLSTYLES; j++) {
-			(*patch->totalstyle_all)[j] = 255;
-			(*patch->samplelight_all)[j] = {};
-			(*patch->totallight_all)[j] = {};
-			(*patch->directlight_all)[j] = {};
-		}
+		patch->totalstyle_all->fill(255);
 		(*patch->totalstyle_all)[0] = 0;
+		patch->samplelight_all->fill({});
+		patch->totallight_all->fill({});
+		patch->directlight_all->fill({});
 	}
 
 	sample_wallflags = (int*) malloc(
@@ -4126,7 +4119,9 @@ void BuildFacelights(int const facenum) {
 						? weighting_correction * weighting_correction
 						: 0;
 					weighting = weighting * weighting_correction;
-					for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+					for (std::size_t j = 0;
+						 j < ALLSTYLES && f_styles[j] != 255;
+						 j++) {
 						fl_samples[j][i].light = vector_fma(
 							l.lmcache[pos][j],
 							weighting,
@@ -4140,13 +4135,15 @@ void BuildFacelights(int const facenum) {
 				break;
 			} else {
 				subsamples = 0.0;
-				for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+				for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255;
+					 j++) {
 					fl_samples[j][i].light = {};
 				}
 			}
 		}
 		if (subsamples > 0) {
-			for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+			for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255;
+				 j++) {
 				VectorScale(
 					fl_samples[j][i].light,
 					1.0 / subsamples,
@@ -4258,7 +4255,8 @@ void BuildFacelights(int const facenum) {
 				l.miptex,
 				facenum
 			);
-			for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+			for (std::size_t j = 0;
+				 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 				 j++) {
 				for (int x = 0; x < 3; x++) {
 					(*patch->totallight_all)[j][x] += (1.0
@@ -4283,7 +4281,7 @@ void BuildFacelights(int const facenum) {
 
 	// add an ambient term if desired
 	if (g_ambient[0] || g_ambient[1] || g_ambient[2]) {
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+		for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			if (f_styles[j] == 0) {
 				s = fl_samples[j];
 				for (i = 0; i < l.numsurfpt; i++, s++) {
@@ -4296,7 +4294,7 @@ void BuildFacelights(int const facenum) {
 
 	// add circus lighting for finding black lightmaps
 	if (g_circus) {
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+		for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			if (f_styles[j] == 0) {
 				int amt = 7;
 
@@ -4329,6 +4327,7 @@ void BuildFacelights(int const facenum) {
 	// dlight_threshold)       // Now all lighted surfaces glow
 	// Texlights
 	if (g_face_patches[facenum]) {
+		std::size_t j;
 		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			if (f_styles[j] == g_face_patches[facenum]->emitstyle) {
 				break;
@@ -4361,7 +4360,7 @@ void BuildFacelights(int const facenum) {
 	{
 		facelight_t* fl = &facelight[facenum];
 		float maxlights[ALLSTYLES];
-		for (j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
+		for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			maxlights[j] = 0;
 			for (i = 0; i < fl->numsamples; i++) {
 				float b = vector_max_element(fl_samples[j][i].light);
@@ -4389,7 +4388,8 @@ void BuildFacelights(int const facenum) {
 				bestindex = 0;
 			} else {
 				float bestmaxlight = 0;
-				for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++) {
+				for (std::size_t j = 1; j < ALLSTYLES && f_styles[j] != 255;
+					 j++) {
 					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
 						bestmaxlight = maxlights[j];
 						bestindex = j;
@@ -4413,7 +4413,7 @@ void BuildFacelights(int const facenum) {
 				fl->samples[k] = nullptr;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && f_styles[j] != 255; j++) {
+		for (std::size_t j = 1; j < ALLSTYLES && f_styles[j] != 255; j++) {
 			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 				ThreadLock();
 				if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
@@ -4423,14 +4423,15 @@ void BuildFacelights(int const facenum) {
 				ThreadUnlock();
 			}
 		}
-		for (j = 0; j < ALLSTYLES; j++) {
+		for (std::size_t j = 0; j < ALLSTYLES; j++) {
 			free(fl_samples[j]);
 		}
 	}
 	// patches
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		float maxlights[ALLSTYLES];
-		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+		for (std::size_t j = 0;
+			 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
 			maxlights[j] = vector_max_element((*patch->totallight_all)[j]);
 		}
@@ -4440,7 +4441,7 @@ void BuildFacelights(int const facenum) {
 				bestindex = 0;
 			} else {
 				float bestmaxlight = 0;
-				for (j = 1;
+				for (std::size_t j = 1;
 					 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 					 j++) {
 					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
@@ -4457,7 +4458,8 @@ void BuildFacelights(int const facenum) {
 				patch->totalstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+		for (std::size_t j = 1;
+			 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
 			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 				ThreadLock();
@@ -4468,7 +4470,8 @@ void BuildFacelights(int const facenum) {
 				ThreadUnlock();
 			}
 		}
-		for (j = 0; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+		for (std::size_t j = 0;
+			 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
 			maxlights[j] = vector_max_element((*patch->directlight_all)[j]);
 		}
@@ -4478,7 +4481,7 @@ void BuildFacelights(int const facenum) {
 				bestindex = 0;
 			} else {
 				float bestmaxlight = 0;
-				for (j = 1;
+				for (std::size_t j = 1;
 					 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 					 j++) {
 					if (maxlights[j] > bestmaxlight + NORMAL_EPSILON) {
@@ -4496,7 +4499,8 @@ void BuildFacelights(int const facenum) {
 				patch->directstyle[k] = 255;
 			}
 		}
-		for (j = 1; j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
+		for (std::size_t j = 1;
+			 j < ALLSTYLES && (*patch->totalstyle_all)[j] != 255;
 			 j++) {
 			if (maxlights[j] > g_maxdiscardedlight + NORMAL_EPSILON) {
 				ThreadLock();
