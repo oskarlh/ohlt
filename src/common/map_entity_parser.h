@@ -175,26 +175,44 @@ class map_entity_parser {
 		}
 
 		quotedStringBuffer.clear();
-		bool isEndQuote{};
+		bool foundEscapeSequence;
 		do {
-			std::size_t const nextSpecial = remainingInput.find_first_of(
-				u8"\\\"", 1
-			);
-			if (nextSpecial == std::u8string_view::npos) [[unlikely]] {
-				return std::nullopt;
-			}
-			isEndQuote = remainingInput[nextSpecial] == u8'"';
+			std::size_t nextSpecial = 0;
+			bool isBackslash;
+			char8_t escapedCharacter;
+			do {
+				nextSpecial = remainingInput.find_first_of(
+					u8"\\\"", nextSpecial + 1
+				);
+
+				if (nextSpecial == std::u8string_view::npos
+					|| nextSpecial >= remainingInput.size() - 1)
+					[[unlikely]] {
+					return std::nullopt;
+				}
+				isBackslash = remainingInput[nextSpecial] == u8'\\';
+				escapedCharacter = remainingInput[nextSpecial + 1];
+				foundEscapeSequence = isBackslash
+					&& (escapedCharacter == u8'\\'
+						|| escapedCharacter == u8'"');
+			} while (isBackslash && !foundEscapeSequence);
+
 			std::u8string_view const untilSpecial = remainingInput.substr(
 				1, nextSpecial - 1
 			);
-			remainingInput = remainingInput.substr(nextSpecial + 1);
-			if (isEndQuote && quotedStringBuffer.empty()) [[likely]] {
+
+			remainingInput.remove_prefix(nextSpecial + 1);
+			if (!foundEscapeSequence && quotedStringBuffer.empty())
+				[[likely]] {
 				// No escape characters in the string at all, we don't need
 				// to use a buffer
 				return untilSpecial;
 			}
 			quotedStringBuffer += untilSpecial;
-		} while (!isEndQuote);
+			if (foundEscapeSequence) {
+				quotedStringBuffer += escapedCharacter;
+			}
+		} while (foundEscapeSequence);
 		return quotedStringBuffer;
 	}
 
