@@ -315,7 +315,7 @@ typedef struct {
 						  // face to the other face
 } edgeshare_t;
 
-extern edgeshare_t g_edgeshare[MAX_MAP_EDGES];
+extern std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
 
 //
 // lerp.c stuff
@@ -369,7 +369,7 @@ typedef std::vector<minlight_t>::iterator minlight_i;
 //
 
 extern std::vector<minlight_t> s_minlights;
-extern patch_t* g_face_patches[MAX_MAP_FACES];
+extern std::array<patch_t*, MAX_MAP_FACES> g_face_patches;
 extern entity_t* g_face_entity[MAX_MAP_FACES];
 extern float3_array g_face_offset[MAX_MAP_FACES]; // for models with origins
 extern eModelLightmodes g_face_lightmode[MAX_MAP_FACES];

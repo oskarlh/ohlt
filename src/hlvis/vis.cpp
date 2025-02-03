@@ -290,7 +290,7 @@ static void LeafFlowNeighborAddLeaf(
 static void LeafFlow(int const leafnum) {
 	leaf_t* leaf;
 	byte* outbuffer;
-	byte compressed[MAX_MAP_LEAFS / 8];
+	byte compressed[MAX_MAP_LEAFS / 8]{};
 	unsigned i;
 	unsigned j;
 	int k;
@@ -302,7 +302,6 @@ static void LeafFlow(int const leafnum) {
 	//
 	// flow through all portals, collecting visible bits
 	//
-	memset(compressed, 0, sizeof(compressed));
 	outbuffer = g_uncompressed + leafnum * g_bitbytes;
 	leaf = &g_leafs[leafnum];
 	tmp = 0;
@@ -368,7 +367,7 @@ static void LeafFlow(int const leafnum) {
 
 	byte buffer2[MAX_MAP_LEAFS / 8];
 	int diskbytes = (g_leafcount_all + 7) >> 3;
-	memset(buffer2, 0, diskbytes);
+	std::fill_n(buffer2, diskbytes, 0);
 	for (i = 0; i < g_portalleafs; i++) {
 		for (j = 0; j < g_leafcounts[i]; j++) {
 			int srcofs = i >> 3;

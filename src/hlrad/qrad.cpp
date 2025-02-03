@@ -41,7 +41,7 @@ static vis_method g_method = cli_option_defaults::visMethod;
 
 float g_fade = DEFAULT_FADE;
 
-patch_t* g_face_patches[MAX_MAP_FACES];
+std::array<patch_t*, MAX_MAP_FACES> g_face_patches;
 entity_t* g_face_entity[MAX_MAP_FACES];
 eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
 patch_t* g_patches;
@@ -740,7 +740,7 @@ static void UpdateEmitterInfo(patch_t* patch) {
 
 // misc
 #define MAX_SUBDIVIDE 16384
-static fast_winding* windingArray[MAX_SUBDIVIDE];
+static std::array<fast_winding*, MAX_SUBDIVIDE> windingArray;
 static unsigned g_numwindings = 0;
 
 // =====================================================================================
@@ -926,7 +926,7 @@ static void SubdividePatch(patch_t* patch) {
 	unsigned x;
 	patch_t* new_patch;
 
-	memset(windingArray, 0, sizeof(windingArray));
+	windingArray.fill(nullptr);
 	g_numwindings = 0;
 
 	getGridPlanes(patch, planes);
@@ -934,7 +934,7 @@ static void SubdividePatch(patch_t* patch) {
 
 	x = 0;
 	patch->next = nullptr;
-	winding = windingArray;
+	winding = windingArray.data();
 	while (*winding == nullptr) {
 		winding++;
 		x++;
@@ -1353,7 +1353,7 @@ static void MakePatchForFace(
 
 	patch = &g_patches[g_num_patches];
 	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
-	memset(patch, 0, sizeof(patch_t));
+	*patch = {};
 
 	patch->winding = w;
 
@@ -2032,7 +2032,7 @@ static void SortPatches() {
 	);
 
 	// Fixup g_face_patches & Fixup patch->next
-	memset(g_face_patches, 0, sizeof(g_face_patches));
+	g_face_patches.fill(nullptr);
 	{
 		unsigned x;
 		patch_t* patch = g_patches + 1;
@@ -2070,7 +2070,6 @@ static void FreePatches() {
 	for (x = 0; x < g_num_patches; x++, patch++) {
 		delete patch->winding;
 	}
-	memset(g_patches, 0, sizeof(patch_t) * g_num_patches);
 	delete[] g_patches;
 	g_patches = nullptr;
 }
@@ -2677,7 +2676,7 @@ static void RadWorld() {
 		FILE* f;
 		f = fopen(name, "w");
 		if (f) {
-			edgeshare_t const * es{ g_edgeshare };
+			edgeshare_t const * es{ g_edgeshare.data() };
 			for (std::size_t j = 0; j < MAX_MAP_EDGES; j++, es++) {
 				if (es->smooth) {
 					int v0 = g_dedges[j].v[0], v1 = g_dedges[j].v[1];

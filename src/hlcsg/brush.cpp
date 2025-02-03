@@ -204,11 +204,9 @@ void ExpandBrushWithHullBrush(
 	hullbrushvertex_t const * hbv;
 	double3_array normal;
 	double3_array origin;
-	bool* axialbevel;
 	bool warned;
 
-	axialbevel = (bool*) malloc(hb->numfaces * sizeof(bool));
-	memset(axialbevel, 0, hb->numfaces * sizeof(bool));
+	auto axialbevel = std::make_unique<bool[]>(hb->numfaces);
 	warned = false;
 
 	// check for collisions of face-vertex type. face-edge type is also
@@ -388,8 +386,6 @@ void ExpandBrushWithHullBrush(
 		}
 		AddHullPlane(hull, normal, origin, true);
 	}
-
-	free(axialbevel);
 }
 
 void ExpandBrush(brush_t* brush, int const hullnum) {

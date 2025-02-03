@@ -579,7 +579,7 @@ void BasePortalVis(int unused) {
 
 		p->mightsee = (byte*) calloc(1, g_bitbytes);
 
-		memset(portalsee, 0, portalsize);
+		std::fill_n(portalsee, portalsize, 0);
 
 		for (j = 0, tp = g_portals; j < portalsize; j++, tp++) {
 			if (j == i) {

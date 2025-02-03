@@ -5,7 +5,7 @@
 #include <numbers>
 #include <span>
 
-edgeshare_t g_edgeshare[MAX_MAP_EDGES];
+std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
 std::array<float3_array, MAX_MAP_EDGES>
 	g_face_centroids; // BUG: should this be MAX_MAP_FACES instead of
 					  // MAX_MAP_EDGES???
@@ -290,7 +290,7 @@ void PairEdges() {
 	dface_t* f;
 	edgeshare_t* e;
 
-	memset(&g_edgeshare, 0, sizeof(g_edgeshare));
+	g_edgeshare = {};
 
 	f = g_dfaces.data();
 	for (i = 0; i < g_numfaces; i++, f++) {

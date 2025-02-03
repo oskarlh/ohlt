@@ -517,13 +517,12 @@ static void CQ_SelectPartition(cq_node_t* node) {
 		std::array<std::array<double, CQ_DIMENSIONS>, 256> sums;
 
 		double bucketsums[256][CQ_DIMENSIONS];
-		int bucketsizes[256];
+		std::array<int, 256> bucketsizes{};
 
 		unsigned char const(*nodepoints)[CQ_DIMENSIONS] = node->refpoints;
 		int const nodenumpoints = node->numpoints;
 
 		memset(bucketsums, 0, 256 * sizeof(double[CQ_DIMENSIONS]));
-		memset(bucketsizes, 0, 256 * sizeof(int));
 		for (int i = 0; i < nodenumpoints; i++) {
 			int j = nodepoints[i][k];
 			bucketsizes[j]++;
@@ -1436,8 +1435,8 @@ void EmbedLightmapInTextures() {
 		miptexsize += 2 + 256 * 3 + 2;
 		miptex_t* miptex = (miptex_t*) malloc(miptexsize);
 		hlassume(miptex != nullptr, assume_NoMemory);
+		*miptex = {};
 
-		memset(miptex, 0, sizeof(miptex_t));
 		miptex->width = texturesize[0];
 		miptex->height = texturesize[1];
 		byte* p = (byte*) miptex + sizeof(miptex_t);

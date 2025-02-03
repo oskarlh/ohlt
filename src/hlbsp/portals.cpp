@@ -82,7 +82,6 @@ void MakeHeadnodePortals(
 	portal_t* p;
 	portal_t* portals[6];
 	mapplane_t bplanes[6];
-	mapplane_t* pl;
 
 	// pad with some space so there will never be null volume leafs
 	for (std::size_t i = 0; i < 3; ++i) {
@@ -100,17 +99,17 @@ void MakeHeadnodePortals(
 			p = AllocPortal();
 			portals[n] = p;
 
-			pl = &bplanes[n];
-			std::memset(pl, 0, sizeof(*pl));
+			mapplane_t& pl = bplanes[n];
+			pl = {};
 			if (j) {
-				pl->normal[i] = -1;
-				pl->dist = -bounds[j][i];
+				pl.normal[i] = -1;
+				pl.dist = -bounds[j][i];
 			} else {
-				pl->normal[i] = 1;
-				pl->dist = bounds[j][i];
+				pl.normal[i] = 1;
+				pl.dist = bounds[j][i];
 			}
-			p->plane = *pl;
-			p->winding = new accurate_winding(*pl);
+			p->plane = pl;
+			p->winding = new accurate_winding(pl);
 			AddPortalToNodes(p, node, &g_outside_node);
 		}
 	}

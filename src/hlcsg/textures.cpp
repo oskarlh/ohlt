@@ -790,14 +790,12 @@ int TexinfoForBrushTexture(
 	brush_texture_t* bt,
 	double3_array const & origin
 ) {
-	texinfo_t tx;
-
 	wad_texture_name textureName{ bt->name };
 
 	if (textureName.is_ordinary_null()) {
 		return -1;
 	}
-	memset(&tx, 0, sizeof(tx));
+	texinfo_t tx{};
 	FindMiptex(bt->name);
 	textureName = bt->name;
 

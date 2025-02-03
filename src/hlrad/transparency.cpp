@@ -71,10 +71,10 @@ void AddTransparencyToRawArray(
 
 		hlassume(s_raw_list != nullptr, assume_NoMemory);
 
-		memset(
+		std::fill_n(
 			&s_raw_list[old_max_count],
-			0,
-			sizeof(transList_t) * (s_max_raw_count - old_max_count)
+			s_max_raw_count - old_max_count,
+			transList_t{}
 		);
 	}
 
@@ -97,9 +97,8 @@ static int SortList(void const * a, void const * b) {
 
 	if (item1->p1 == item2->p1) {
 		return item1->p2 - item2->p2;
-	} else {
-		return item1->p1 - item2->p1;
 	}
+	return item1->p1 - item2->p1;
 }
 
 //===============================================
@@ -215,11 +214,11 @@ void GetTransparency(
 	next_index = s_sorted_count;
 }
 
-typedef struct {
+struct styleList_t {
 	unsigned p1;
 	unsigned p2;
 	char style;
-} styleList_t;
+};
 
 static styleList_t* s_style_list = nullptr;
 static std::uint32_t s_style_count = 0;
@@ -251,10 +250,10 @@ void AddStyleToStyleArray(
 
 		hlassume(s_style_list != nullptr, assume_NoMemory);
 
-		memset(
+		std::fill_n(
 			&s_style_list[old_max_count],
-			0,
-			sizeof(styleList_t) * (s_max_style_count - old_max_count)
+			(s_max_style_count - old_max_count),
+			styleList_t{}
 		);
 	}
 

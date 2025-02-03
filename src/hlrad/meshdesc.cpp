@@ -135,10 +135,8 @@ bool CMeshDesc ::InitMeshBuild(char const * debug_name, int numTriangles) {
 	planehash = std::make_unique<std::uint32_t[]>(PLANE_HASHES);
 	planepool = std::make_unique<hashplane_t[]>(MAX_PLANES);
 
-	mplane_t badplane;
-
 	// create default invalid plane for index 0
-	memset(&badplane, 0, sizeof(badplane));
+	mplane_t badplane{};
 	AddPlaneToPool(&badplane);
 
 	return true;
