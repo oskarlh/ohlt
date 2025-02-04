@@ -255,8 +255,8 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 		for (std::size_t j = 0; j < wadinfo.numlumps; ++j, ++nTexLumps) {
 			SafeRead(
 				texfile,
-				&lumpinfo[nTexLumps],
-				(sizeof(lumpinfo_with_wadfileindex) - sizeof(int))
+				&lumpinfo[nTexLumps].lump_info,
+				sizeof(wad_lumpinfo)
 			); // iTexFile is NOT read from file
 			char szWadFileName[_MAX_PATH];
 			ExtractFile((char const *) pszWadFile.data(), szWadFileName);
