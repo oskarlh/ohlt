@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entity_key_value.h"
-#include "internal_types.h"
+#include "internal_types/internal_types.h"
 #include "mathtypes.h"
 #include "wad_texture_name.h"
 

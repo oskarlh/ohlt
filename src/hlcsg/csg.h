@@ -8,7 +8,7 @@
 #include "hlassert.h"
 #include "hlcsg_settings.h"
 #include "hull_size.h"
-#include "internal_types.h"
+#include "internal_types/internal_types.h"
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"

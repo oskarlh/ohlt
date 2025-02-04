@@ -5,7 +5,7 @@
 #include "cmdlinecfg.h"
 #include "filelib.h"
 #include "hlassert.h"
-#include "internal_types.h"
+#include "internal_types/internal_types.h"
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"
