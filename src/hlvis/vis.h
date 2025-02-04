@@ -25,7 +25,9 @@ constexpr std::size_t MAX_PORTALS = 32768;
 #define MAX_POINTS_ON_FIXED_WINDING 32
 
 struct winding_t final {
-	bool original; // Don't free, it's part of the portal
+	// Indicates if the winding is original (Don't free, it's
+	// part of the portal)
+	bool original;
 	std::size_t numpoints;
 	float3_array points[MAX_POINTS_ON_FIXED_WINDING];
 };
@@ -36,18 +38,19 @@ struct hlvis_plane_t final {
 };
 
 enum vstatus_t {
-	stat_none,
-	stat_working,
-	stat_done
+	stat_none,	  // No status
+	stat_working, // Currently working
+	stat_done	  // Process completed
 };
 
+// TODO: Rename! HLBSP also has a portal_t
 struct portal_t final {
 	hlvis_plane_t plane; // normal pointing into neighbor
 	int leaf;			 // neighbor
 	winding_t* winding;
 	vstatus_t status;
 	byte* visbits;
-	byte* mightsee;
+	byte* mightsee; // Potential visibility of the portal
 	unsigned nummightsee;
 	int numcansee;
 	std::uint_least32_t zone; // Which zone is this portal a member of

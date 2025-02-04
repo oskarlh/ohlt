@@ -611,13 +611,13 @@ bool CalcFaceExtents_test() {
 	return ok;
 }
 
-void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]) {
+face_extents get_face_extents(int facenum) noexcept {
+	face_extents result;
 	dface_t* f;
 	float mins[2], maxs[2], val;
 	int i, j, e;
 	dvertex_t* v;
 	texinfo_t* tex;
-	int bmins[2], bmaxs[2];
 
 	f = &g_dfaces[facenum];
 
@@ -664,14 +664,10 @@ void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]) {
 	}
 
 	for (i = 0; i < 2; i++) {
-		bmins[i] = (int) floor(mins[i] / TEXTURE_STEP);
-		bmaxs[i] = (int) ceil(maxs[i] / TEXTURE_STEP);
+		result.mins[i] = floor(mins[i] / TEXTURE_STEP);
+		result.maxs[i] = ceil(maxs[i] / TEXTURE_STEP);
 	}
-
-	for (i = 0; i < 2; i++) {
-		mins_out[i] = bmins[i];
-		maxs_out[i] = bmaxs[i];
-	}
+	return result;
 }
 
 // =====================================================================================
@@ -685,10 +681,15 @@ void WriteExtentFile(std::filesystem::path const & filename) {
 	}
 	fprintf(f, "%i\n", g_numfaces);
 	for (int i = 0; i < g_numfaces; i++) {
-		int mins[2];
-		int maxs[2];
-		GetFaceExtents(i, mins, maxs);
-		fprintf(f, "%i %i %i %i\n", mins[0], mins[1], maxs[0], maxs[1]);
+		face_extents const extents{ get_face_extents(i) };
+		fprintf(
+			f,
+			"%i %i %i %i\n",
+			extents.mins[0],
+			extents.mins[1],
+			extents.maxs[0],
+			extents.maxs[1]
+		);
 	}
 	fclose(f);
 }

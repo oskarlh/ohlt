@@ -83,11 +83,10 @@ std::size_t count_blocks(bsp_data const & bspData) {
 		std::array<int, 2> extents;
 		float3_array point{};
 		{
-			int bmins[2];
-			int bmaxs[2];
-			GetFaceExtents(k, bmins, bmaxs);
+			face_extents const bExtents{ get_face_extents(k) };
 			for (std::size_t i = 0; i < 2; ++i) {
-				extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
+				extents[i] = (bExtents.maxs[i] - bExtents.mins[i])
+					* TEXTURE_STEP;
 			}
 
 			if (f->numedges > 0) {

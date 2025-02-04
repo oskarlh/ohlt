@@ -723,14 +723,14 @@ static void CalcFaceExtents(lightinfo_t* l) {
 		l->exactmins[i] = mins[i];
 		l->exactmaxs[i] = maxs[i];
 	}
-	int bmins[2];
-	int bmaxs[2];
-	GetFaceExtents(l->surfnum, bmins, bmaxs);
+
+	face_extents const bExtents{ get_face_extents(l->surfnum) };
+
 	for (i = 0; i < 2; i++) {
-		mins[i] = bmins[i];
-		maxs[i] = bmaxs[i];
-		l->texmins[i] = bmins[i];
-		l->texsize[i] = bmaxs[i] - bmins[i];
+		mins[i] = bExtents.mins[i];
+		maxs[i] = bExtents.maxs[i];
+		l->texmins[i] = bExtents.mins[i];
+		l->texsize[i] = bExtents.maxs[i] - bExtents.mins[i];
 	}
 
 	if (!(tex->has_special_flag())) {
@@ -4853,14 +4853,11 @@ void MLH_AddSample(
 }
 
 void MLH_CalcExtents(dface_t const * f, int* texturemins, int* extents) {
-	int bmins[2];
-	int bmaxs[2];
-	int i;
+	face_extents const bExtents{ get_face_extents(f - g_dfaces.data()) };
 
-	GetFaceExtents(f - g_dfaces.data(), bmins, bmaxs);
-	for (i = 0; i < 2; i++) {
-		texturemins[i] = bmins[i] * TEXTURE_STEP;
-		extents[i] = (bmaxs[i] - bmins[i]) * TEXTURE_STEP;
+	for (std::size_t i = 0; i < 2; ++i) {
+		texturemins[i] = bExtents.mins[i] * TEXTURE_STEP;
+		extents[i] = (bExtents.maxs[i] - bExtents.mins[i]) * TEXTURE_STEP;
 	}
 }
 

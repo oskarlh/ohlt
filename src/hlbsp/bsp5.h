@@ -177,6 +177,8 @@ GetEdge(double3_array const & p1, double3_array const & p2, face_t* f);
 
 //=============================================================================
 // portals.c
+
+// TODO: Rename! HLVIS also has a portal_t
 struct portal_t final {
 	mapplane_t plane;
 	node_t* onnode;	  // NULL = outside box

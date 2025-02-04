@@ -1116,14 +1116,12 @@ void EmbedLightmapInTextures() {
 		byte(*texturemips[MIPLEVELS]
 		)[4]; // red, green, blue and alpha channel
 		int s, t;
-		int texmins[2];
-		int texmaxs[2];
 		int texsize[2]; // texturesize = (texsize + 1) * TEXTURE_STEP
 		int side[2];
 
-		GetFaceExtents(i, texmins, texmaxs);
-		texsize[0] = texmaxs[0] - texmins[0];
-		texsize[1] = texmaxs[1] - texmins[1];
+		face_extents const texMinsMaxs{ get_face_extents(i) };
+		texsize[0] = texMinsMaxs.maxs[0] - texMinsMaxs.mins[0];
+		texsize[1] = texMinsMaxs.maxs[1] - texMinsMaxs.mins[1];
 		if (texsize[0] < 0 || texsize[1] < 0
 			|| texsize[0] > MAX_SURFACE_EXTENT
 			|| texsize[1] > MAX_SURFACE_EXTENT) {
@@ -1194,8 +1192,8 @@ void EmbedLightmapInTextures() {
 				double light_s, light_t;
 				float3_array light;
 
-				s_vec = s + texmins[0] * TEXTURE_STEP + 0.5;
-				t_vec = t + texmins[1] * TEXTURE_STEP + 0.5;
+				s_vec = s + texMinsMaxs.mins[0] * TEXTURE_STEP + 0.5;
+				t_vec = t + texMinsMaxs.mins[1] * TEXTURE_STEP + 0.5;
 
 				if (resolution == 1) {
 					dest_s = s_vec;
@@ -1239,10 +1237,10 @@ void EmbedLightmapInTextures() {
 				// get light from the center of the destination pixel
 				light_s = (s_vec + resolution * (dest_is + 0.5 - dest_s))
 						/ TEXTURE_STEP
-					- texmins[0];
+					- texMinsMaxs.mins[0];
 				light_t = (t_vec + resolution * (dest_it + 0.5 - dest_t))
 						/ TEXTURE_STEP
-					- texmins[1];
+					- texMinsMaxs.mins[1];
 				GetLight(f, texsize, light_s, light_t, light);
 
 				(*dest)[4] += 1;

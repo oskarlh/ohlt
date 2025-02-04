@@ -2192,8 +2192,9 @@ int main(int const argc, char** argv) {
 				}
 			}
 			Verbose("Loading hull file\n");
-			LoadHullfile(g_hullfile
-			); // if the user specified a hull file, load it now
+			// If the user specified a hull file, load it now
+			LoadHullfile(g_hullfile);
+
 			if (g_bUseNullTex) {
 				properties_initialize(g_nullfile);
 			}

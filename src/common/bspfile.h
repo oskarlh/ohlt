@@ -300,7 +300,7 @@ struct dvertex_t final {
 
 struct dplane_t final {
 	std::array<float, 3> normal;
-	float dist;
+	float dist;		// Distance from the origin
 	planetype type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 };
 
@@ -799,7 +799,13 @@ extern void LoadBSPFile(std::filesystem::path const & filename);
 extern void WriteBSPFile(std::filesystem::path const & filename);
 extern void WriteExtentFile(std::filesystem::path const & filename);
 extern bool CalcFaceExtents_test();
-extern void GetFaceExtents(int facenum, int mins_out[2], int maxs_out[2]);
+
+struct face_extents {
+	std::array<std::int32_t, 2> mins;
+	std::array<std::int32_t, 2> maxs;
+};
+
+extern face_extents get_face_extents(int facenum) noexcept;
 extern int ParseImplicitTexinfoFromTexture(int miptex);
 extern int ParseTexinfoForFace(dface_t const * f);
 extern void DeleteEmbeddedLightmaps();
