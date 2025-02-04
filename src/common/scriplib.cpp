@@ -11,7 +11,6 @@ std::u8string g_token;
 
 typedef struct {
 	std::filesystem::path filename;
-	bool fromMemory;
 	std::u8string buffer;
 	char8_t const * script_p;
 	char8_t const * end_p;
@@ -26,61 +25,11 @@ int s_scriptline;
 bool s_endofscript;
 bool s_tokenready; // only true if UnGetToken was just called
 
-//  AddScriptToStack
-//  LoadScriptFile
 //  ParseFromMemory
 //  UnGetToken
 //  EndOfScript
 //  GetToken
 //  TokenAvailable
-
-// =====================================================================================
-//  AddScriptToStack
-// =====================================================================================
-static void AddScriptToStack(
-	char const * const filename,
-	legacy_encoding legacyEncoding,
-	bool forceLegacyEncoding
-) {
-	s_script++;
-
-	if (s_script == &s_scriptstack[MAX_INCLUDES]) {
-		Error("s_script file exceeded MAX_INCLUDES");
-	}
-
-	s_script->filename = filename;
-	s_script->fromMemory = false;
-
-	std::optional<std::u8string> maybeContents = read_utf8_file(
-		filename, true, legacyEncoding, forceLegacyEncoding
-	);
-	if (!maybeContents) {
-		Error("Failed to load %s", filename);
-	}
-
-	s_script->buffer = std::move(maybeContents.value());
-
-	Log("Entering %s\n", filename);
-
-	s_script->line = 1;
-	s_script->script_p = s_script->buffer.data();
-	s_script->end_p = s_script->buffer.data() + s_script->buffer.size();
-}
-
-// =====================================================================================
-//  LoadScriptFile
-// =====================================================================================
-void LoadScriptFile(
-	char const * const filename,
-	legacy_encoding legacyEncoding,
-	bool forceLegacyEncoding
-) {
-	s_script = s_scriptstack;
-	AddScriptToStack(filename, legacyEncoding, forceLegacyEncoding);
-
-	s_endofscript = false;
-	s_tokenready = false;
-}
 
 // =====================================================================================
 //  ParseFromMemory
@@ -94,7 +43,6 @@ void ParseFromMemory(std::u8string_view buffer) {
 	}
 
 	s_script->filename = std::filesystem::path{};
-	s_script->fromMemory = true;
 
 	s_script->buffer.clear();
 	s_script->line = 1;
@@ -133,27 +81,8 @@ bool EndOfScript(bool const crossline) {
 		);
 	}
 
-	if (s_script->fromMemory) {
-		s_endofscript = true;
-		return false;
-	}
-
-	s_script->buffer.clear();
-	s_script->buffer.shrink_to_fit();
-
-	if (s_script == s_scriptstack + 1) {
-		s_endofscript = true;
-		return false;
-	}
-
-	s_script--;
-	s_scriptline = s_script->line;
-
-	Log("Returning to %s\n",
-		s_script->fromMemory ? "Memory buffer" : s_script->filename.c_str()
-	);
-
-	return GetToken(crossline);
+	s_endofscript = true;
+	return false;
 }
 
 // =====================================================================================

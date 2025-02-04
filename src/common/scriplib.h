@@ -7,11 +7,6 @@
 
 extern std::u8string g_token;
 
-extern void LoadScriptFile(
-	char const * const filename,
-	legacy_encoding legacyEncoding,
-	bool forceLegacyEncoding
-);
 extern void ParseFromMemory(std::u8string_view buffer);
 
 extern bool GetToken(bool crossline);

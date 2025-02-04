@@ -13,62 +13,22 @@ brush_t g_mapbrushes[MAX_MAP_BRUSHES];
 int g_numbrushsides;
 side_t g_brushsides[MAX_MAP_SIDES];
 
-int g_numparsedentities;
-int g_numparsedbrushes;
-
-brush_t* CopyCurrentBrush(entity_t* entity, brush_t const * brush) {
-	if (entity->firstbrush + entity->numbrushes != g_nummapbrushes) {
-		Error("CopyCurrentBrush: internal error.");
-	}
-	brush_t* newb = &g_mapbrushes[g_nummapbrushes];
-	g_nummapbrushes++;
+brush_t& copy_last_brush_with_sides(brush_t* lastBrush) {
+	brush_t& newBrush = lastBrush[1];
 	hlassume(g_nummapbrushes <= MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
-	*newb = *brush;
-	newb->firstSide = g_numbrushsides;
-	g_numbrushsides += brush->numSides;
 	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
-	memcpy(
-		&g_brushsides[newb->firstSide],
-		&g_brushsides[brush->firstSide],
-		brush->numSides * sizeof(side_t)
+	newBrush = *lastBrush;
+	newBrush.firstSide += newBrush.numSides;
+	std::copy_n(
+		&g_brushsides[lastBrush->firstSide],
+		newBrush.numSides,
+		&g_brushsides[newBrush.firstSide]
 	);
-	newb->entitynum = entity - g_entities.data();
-	newb->brushnum = entity->numbrushes;
-	entity->numbrushes++;
-	newb->hullshapes = brush->hullshapes;
-	return newb;
+	++newBrush.brushnum;
+	return newBrush;
 }
 
-void DeleteCurrentEntity(entity_t* entity) {
-	if (entity != &g_entities[g_numentities - 1]) {
-		Error("DeleteCurrentEntity: internal error.");
-	}
-	if (entity->firstbrush + entity->numbrushes != g_nummapbrushes) {
-		Error("DeleteCurrentEntity: internal error.");
-	}
-	for (int i = entity->numbrushes - 1; i >= 0; i--) {
-		brush_t* b = &g_mapbrushes[entity->firstbrush + i];
-		if (b->firstSide + b->numSides != g_numbrushsides) {
-			Error(
-				"DeleteCurrentEntity: internal error. (Entity %i, Brush %i)",
-				b->originalentitynum,
-				b->originalbrushnum
-			);
-		}
-		std::fill_n(&g_brushsides[b->firstSide], b->numSides, side_t{});
-		g_numbrushsides -= b->numSides;
-		b->hullshapes = {};
-	}
-	std::fill_n(
-		&g_mapbrushes[entity->firstbrush], entity->numbrushes, brush_t{}
-	);
-
-	g_nummapbrushes -= entity->numbrushes;
-	*entity = entity_t{};
-	g_numentities--;
-}
-
-#define ScaleCorrection (1.0 / 128.0)
+constexpr float ScaleCorrection = (1.0f / 128.0f);
 
 // =====================================================================================
 //  CheckForInvisible
@@ -84,420 +44,6 @@ static bool CheckForInvisible(entity_t* mapent) {
 		);
 }
 
-// =====================================================================================
-//  ParseBrush
-//      parse a brush from script
-// =====================================================================================
-static void ParseBrush(entity_t* mapent) {
-	brush_t* b;			 // Current brush
-	int i, j;			 // Loop counters
-	side_t* side;		 // Current side of the brush
-	contents_t contents; // Contents type of the brush
-	bool ok;
-	bool nullify = CheckForInvisible(mapent
-	); // If the current entity is part of an invis entity
-	hlassume(g_nummapbrushes < MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
-
-	b = &g_mapbrushes[g_nummapbrushes]; // Get next brush slot
-	g_nummapbrushes++; // Increment the global brush counter, we are adding
-					   // a new brush
-	*b = {};
-	b->firstSide = g_numbrushsides; // Set the first side of the brush to
-									// current global side count20
-	b->originalentitynum = g_numparsedentities; // Record original entity
-												// number brush belongs to
-	b->originalbrushnum = g_numparsedbrushes;	// Record original brush
-												// number
-	b->entitynum = g_numentities
-		- 1; // Set brush entity number to last created entity
-	b->brushnum = g_nummapbrushes - mapent->firstbrush
-		- 1; // Calculate the brush number within the current entity.
-
-	if (IntForKey(mapent, u8"zhlt_noclip")) // If zhlt_noclip
-	{
-		b->noclip = true;
-	}
-	b->cliphull = 0;
-	b->bevel = false;
-	{ // func_detail values
-		b->detailLevel = numeric_key_value<detail_level>(
-							 *mapent, u8"zhlt_detaillevel"
-		)
-							 .value_or(0);
-
-		b->chopDown = numeric_key_value<detail_level>(
-						  *mapent, u8"zhlt_chopdown"
-		)
-						  .value_or(0);
-
-		b->chopUp = numeric_key_value<detail_level>(
-						*mapent, u8"zhlt_chopup"
-		)
-						.value_or(0);
-
-		b->clipNodeDetailLevel = numeric_key_value<detail_level>(
-									 *mapent, u8"zhlt_clipnodedetaillevel"
-		)
-									 .value_or(0);
-
-		b->coplanarPriority = numeric_key_value<coplanar_priority>(
-								  *mapent, u8"zhlt_coplanarpriority"
-		)
-								  .value_or(0);
-	}
-	for (std::size_t h = 0; h < NUM_HULLS; ++h) // Loop through all hulls
-	{
-		std::array<char8_t, u8"zhlt_hull0"sv.length()> key{
-			u8"zhlt_hull"
-		}; // Key name for the hull shape.
-		static_assert(NUM_HULLS <= 10);
-		key.back() = u8'0' + h;
-		std::u8string_view const value = value_for_key(
-			mapent, std::u8string_view{ key.begin(), key.end() }
-		);
-
-		if (!value.empty()) {
-			// If we have a value associated with the key from the entity
-			// properties copy the value to brush's hull shape for this hull
-			b->hullshapes[h] = value;
-		}
-	}
-	mapent->numbrushes++;
-	ok = GetToken(true);
-
-	while (ok) // Loop through brush sides
-	{
-		if (g_token == u8"}"sv) // If we have reached the end of the brush
-		{
-			break;
-		}
-
-		hlassume(g_numbrushsides < MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
-		side = &g_brushsides[g_numbrushsides]; // Get next brush side from
-											   // global array
-		g_numbrushsides++;					   // Global brush side counter
-		b->numSides++; // Number of sides for the current brush
-		side->bevel = false;
-		// read the three point plane definition
-
-		for (i = 0; i < 3;
-			 i++) // Read 3 point plane definition for brush side
-		{
-			if (i != 0) // If not the first point get next token
-			{
-				GetToken(true);
-			}
-			if (g_token != u8"("sv) // Token must be '('
-			{
-				Error(
-					"Parsing Entity %i, Brush %i, Side %i: Expecting '(' got '%s'",
-					b->originalentitynum,
-					b->originalbrushnum,
-					b->numSides,
-					(char const *) g_token.c_str()
-				);
-			}
-			for (j = 0; j < 3; j++) // Get three coords for the point
-			{
-				GetToken(false); // Get next token on same line
-				side->planepts[i][j] = atof((char const *) g_token.c_str()
-				); // Convert token to float and store in planepts
-			}
-			GetToken(false);
-
-			if (g_token != u8")"sv) {
-				Error(
-					"Parsing Entity %i, Brush %i, Side %i: Expecting ')' got '%s'",
-					b->originalentitynum,
-					b->originalbrushnum,
-					b->numSides,
-					(char const *) g_token.c_str()
-				);
-			}
-		}
-
-		// Read the texturedef
-		GetToken(false);
-		std::optional<wad_texture_name> maybeTextureName{
-			wad_texture_name::make_if_legal_name(g_token)
-		};
-		if (!maybeTextureName) {
-			Error(
-				"Parsing Entity %i, Brush %i, Side %i: Bad texture name '%s'",
-				b->originalentitynum,
-				b->originalbrushnum,
-				b->numSides,
-				(char const *) g_token.c_str()
-			);
-		}
-		wad_texture_name textureName = maybeTextureName.value();
-
-		{ // Check for tool textures on the brush
-			if (textureName.is_noclip()) {
-				textureName = wad_texture_name{ "null" };
-				b->noclip = true;
-			} else if (textureName.is_any_clip()) {
-				b->cliphull
-					|= (1 << NUM_HULLS); // arbitrary nonexistent hull
-				std::optional<std::uint8_t> hullNumber
-					= textureName.get_clip_hull_number();
-				if (hullNumber) {
-					b->cliphull |= (1 << hullNumber.value());
-				} else if (textureName.is_any_clip_bevel()) {
-					side->bevel = true;
-					if (textureName.is_clip_bevel_brush()) {
-						b->bevel = true;
-					}
-				}
-				textureName = wad_texture_name{ "skip" };
-			} else if (textureName.is_any_bevel(
-					   )) // Including BEVEL, BEVELBRUSH, and BEVELHINT
-			{
-				textureName = wad_texture_name{ "null" };
-				side->bevel = true;
-				if (textureName.is_bevelbrush()) {
-					b->bevel = true;
-				}
-			}
-		}
-		side->td.name = textureName;
-
-		// texture U axis
-		GetToken(false);
-		if (g_token != u8"["sv) {
-			hlassume(false, assume_MISSING_BRACKET_IN_TEXTUREDEF);
-		}
-
-		GetToken(false);
-		side->td.vects.UAxis[0] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.UAxis[1] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.UAxis[2] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.shift[0] = atof((char const *) g_token.c_str());
-
-		GetToken(false);
-		if (g_token != u8"]"sv) {
-			Error("missing ']' in texturedef (U)");
-		}
-
-		// texture V axis
-		GetToken(false);
-		if (g_token != u8"["sv) {
-			Error("missing '[' in texturedef (V)");
-		}
-
-		GetToken(false);
-		side->td.vects.VAxis[0] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.VAxis[1] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.VAxis[2] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.shift[1] = atof((char const *) g_token.c_str());
-
-		GetToken(false);
-		if (g_token != u8"]"sv) {
-			Error("missing ']' in texturedef (V)");
-		}
-
-		// Texture rotation is implicit in U/V axes.
-		GetToken(false);
-
-		// texure scale
-		GetToken(false);
-		side->td.vects.scale[0] = atof((char const *) g_token.c_str());
-		GetToken(false);
-		side->td.vects.scale[1] = atof((char const *) g_token.c_str());
-
-		ok = GetToken(true
-		); // Done with line, this reads the first item from the next line
-	};
-	if (b->cliphull != 0) // has CLIP* texture
-	{
-		cliphull_bitmask mask_anyhull = 0;
-		for (int h = 1; h < NUM_HULLS; h++) {
-			mask_anyhull |= (1 << h);
-		}
-		if ((b->cliphull & mask_anyhull)
-			== 0) // no CLIPHULL1 or CLIPHULL2 or CLIPHULL3 texture
-		{
-			b->cliphull |= mask_anyhull; // CLIP all hulls
-		}
-	}
-
-	b->contents = contents = CheckBrushContents(b);
-	for (j = 0; j < b->numSides; j++) {
-		side = &g_brushsides[b->firstSide + j];
-		wad_texture_name const textureName{ side->td.name };
-		if (textureName.is_any_content_type()
-			|| (nullify && !textureName.is_any_bevel()
-				&& !textureName.is_any_hint() && !textureName.is_origin()
-				&& !textureName.is_skip() && !textureName.is_splitface()
-				&& !textureName.is_bounding_box()
-				&& !textureName.is_ordinary_sky())
-			|| (side->td.name.is_aaatrigger() && g_nullifytrigger)) {
-			side->td.name = wad_texture_name{ u8"null" };
-		}
-	}
-	for (j = 0; j < b->numSides; j++) {
-		// change to SKIP now that we have set brush content.
-		side = &g_brushsides[b->firstSide + j];
-		if (side->td.name.is_splitface()) {
-			side->td.name = wad_texture_name{ u8"skip" };
-		}
-	}
-
-	//
-	// origin brushes are removed, but they set
-	// the rotation origin for the rest of the brushes
-	// in the entity
-	//
-
-	if (contents == contents_t::ORIGIN) {
-		if (has_key_value(mapent, u8"origin")) {
-			Error(
-				"Entity %i, Brush %i: Only one ORIGIN brush allowed.",
-				b->originalentitynum,
-				b->originalbrushnum
-			);
-		}
-		char string[MAXTOKEN];
-		double3_array origin;
-
-		b->contents = contents_t::SOLID;
-		CreateBrush(mapent->firstbrush + b->brushnum); // to get sizes
-		b->contents = contents;
-
-		for (i = 0; i < NUM_HULLS; i++) {
-			b->hulls[i].faces.clear();
-		}
-
-		if (b->entitynum != 0) // Ignore for WORLD (code elsewhere enforces
-							   // no ORIGIN in world message)
-		{
-			VectorAdd(
-				b->hulls[0].bounds.mins, b->hulls[0].bounds.maxs, origin
-			);
-			origin = vector_scale(origin, 0.5);
-
-			safe_snprintf(
-				string,
-				MAXTOKEN,
-				"%i %i %i",
-				(int) origin[0],
-				(int) origin[1],
-				(int) origin[2]
-			);
-			set_key_value(
-				&g_entities[b->entitynum],
-				u8"origin",
-				(char8_t const *) string
-			);
-		}
-	}
-	if (has_key_value(&g_entities[b->entitynum], u8"zhlt_usemodel")) {
-		memset(
-			&g_brushsides[b->firstSide], 0, b->numSides * sizeof(side_t)
-		);
-		g_numbrushsides -= b->numSides;
-		*b = {};
-		g_nummapbrushes--;
-		mapent->numbrushes--;
-		return;
-	}
-	if (key_value_is(
-			&g_entities[b->entitynum], u8"classname", u8"info_hullshape"
-		)) {
-		// all brushes should be erased, but not now.
-		return;
-	}
-	if (contents == contents_t::BOUNDINGBOX) {
-		if (has_key_value(mapent, u8"zhlt_minsmaxs")) {
-			Error(
-				"Entity %i, Brush %i: Only one BoundingBox brush allowed.",
-				b->originalentitynum,
-				b->originalbrushnum
-			);
-		}
-		std::u8string origin{ value_for_key(mapent, u8"origin") };
-		if (!origin.empty()) {
-			DeleteKey(mapent, u8"origin");
-		}
-
-		b->contents = contents_t::SOLID;
-		CreateBrush(mapent->firstbrush + b->brushnum); // To get sizes
-		b->contents = contents;
-
-		for (i = 0; i < NUM_HULLS; i++) {
-			b->hulls[i].faces.clear();
-		}
-
-		if (b->entitynum != 0) // Ignore for WORLD (code elsewhere enforces
-							   // no ORIGIN in world message)
-		{
-			double3_array const mins{ b->hulls[0].bounds.mins };
-			double3_array const maxs{ b->hulls[0].bounds.maxs };
-
-			char string[MAXTOKEN];
-			safe_snprintf(
-				string,
-				MAXTOKEN,
-				"%.0f %.0f %.0f %.0f %.0f %.0f",
-				mins[0],
-				mins[1],
-				mins[2],
-				maxs[0],
-				maxs[1],
-				maxs[2]
-			);
-			set_key_value(
-				&g_entities[b->entitynum],
-				u8"zhlt_minsmaxs",
-				(char8_t const *) string
-			);
-		}
-
-		if (!origin.empty()) {
-			set_key_value(mapent, u8"origin", origin);
-		}
-	}
-	if (g_skyclip && b->contents == contents_t::SKY && !b->noclip) {
-		brush_t* newb = CopyCurrentBrush(mapent, b);
-		newb->contents = contents_t::SOLID;
-		newb->cliphull = ~0;
-		for (j = 0; j < newb->numSides; j++) {
-			side = &g_brushsides[newb->firstSide + j];
-			side->td.name = wad_texture_name{ u8"null" };
-		}
-	}
-	if (b->cliphull != 0 && b->contents == contents_t::TOEMPTY) {
-		// check for mix of CLIP and normal texture
-		bool mixed = false;
-		for (j = 0; j < b->numSides; j++) {
-			side = &g_brushsides[b->firstSide + j];
-			if (side->td.name.is_ordinary_null(
-				)) { // this is not supposed to be a HINT brush, so remove
-					 // all invisible faces from hull 0.
-				side->td.name = wad_texture_name{ u8"skip" };
-			}
-			if (!side->td.name.is_skip()) {
-				mixed = true;
-			}
-		}
-		if (mixed) {
-			brush_t* newb = CopyCurrentBrush(mapent, b);
-			newb->cliphull = 0;
-		}
-		b->contents = contents_t::SOLID;
-		for (j = 0; j < b->numSides; j++) {
-			side = &g_brushsides[b->firstSide + j];
-			side->td.name = wad_texture_name{ u8"null" };
-		}
-	}
-}
-
 static std::array<std::u8string_view, NUM_HULLS> const zhltHullKeys{
 	u8"zhlt_hull0", u8"zhlt_hull1", u8"zhlt_hull2", u8"zhlt_hull3"
 };
@@ -510,7 +56,6 @@ struct add_parsed_entity_result {
 
 add_parsed_entity_result add_parsed_entity(
 	parsed_entity& parsedEntity,
-	entity_count originalEntityNumber,
 	entity_count entityNumber,
 	brush_count firstBrushNumber,
 	side_count firstSideNumber
@@ -520,7 +65,6 @@ add_parsed_entity_result add_parsed_entity(
 	mapent.firstbrush = firstBrushNumber;
 	mapent.keyValues = std::move(parsedEntity.keyValues);
 
-	entity_local_brush_count parsedBrushNumber = 0;
 	side_count sidesAdded = 0;
 
 	bool const isWorldspawn = entityNumber == 0;
@@ -531,31 +75,39 @@ add_parsed_entity_result add_parsed_entity(
 	bool const nullify = CheckForInvisible(&mapent);
 
 	// func_detail values
-	detail_level const detailLevel = numeric_key_value<detail_level>(
-										 mapent, u8"zhlt_detaillevel"
-	)
-										 .value_or(0);
-	detail_level const chopDown = numeric_key_value<detail_level>(
-									  mapent, u8"zhlt_chopdown"
-	)
-									  .value_or(0);
-	detail_level const chopUp = numeric_key_value<detail_level>(
-									mapent, u8"zhlt_chopup"
-	)
-									.value_or(0);
-	detail_level const clipNodeDetailLevel
-		= numeric_key_value<detail_level>(
-			  mapent, u8"zhlt_clipnodedetaillevel"
+	detail_level detailLevel{};
+	detail_level chopDown{};
+	detail_level chopUp{};
+	detail_level clipNodeDetailLevel{};
+	coplanar_priority coplanarPriority{};
+
+	// See the entry in hlt.fgd for info about func_group. For simplicity's
+	// sake, we treat it the same as func_detail
+	bool const isDetailBrush = classname_is(&mapent, u8"func_detail")
+		|| classname_is(&mapent, u8"func_group");
+	if (isDetailBrush) {
+		detailLevel = numeric_key_value<detail_level>(
+						  mapent, u8"zhlt_detaillevel"
 		)
-			  .value_or(0);
-	coplanar_priority const coplanarPriority
-		= numeric_key_value<coplanar_priority>(
-			  mapent, u8"zhlt_coplanarpriority"
+						  .value_or(0);
+		chopDown = numeric_key_value<detail_level>(
+					   mapent, u8"zhlt_chopdown"
 		)
-			  .value_or(0);
+					   .value_or(0);
+		chopUp = numeric_key_value<detail_level>(mapent, u8"zhlt_chopup")
+					 .value_or(0);
+		clipNodeDetailLevel = numeric_key_value<detail_level>(
+								  mapent, u8"zhlt_clipnodedetaillevel"
+		)
+								  .value_or(0);
+		coplanarPriority = numeric_key_value<coplanar_priority>(
+							   mapent, u8"zhlt_coplanarpriority"
+		)
+							   .value_or(0);
+	}
 
 	// Add brushes
-	for (std::span<parsed_side const> parsedSides : parsedEntity.brushes) {
+	for (parsed_brush const & parsedBrush : parsedEntity.brushes) {
 		// Get next brush slot
 		brush_t& b = g_mapbrushes[firstBrushNumber + mapent.numbrushes];
 		b = {};
@@ -563,14 +115,11 @@ add_parsed_entity_result add_parsed_entity(
 		//  Set the first side of the brush to current global side count
 		b.firstSide = firstSideNumber + sidesAdded;
 
-		b.originalentitynum = originalEntityNumber;
-		b.originalbrushnum = parsedBrushNumber;
-		++parsedBrushNumber;
+		b.originalentitynum = parsedEntity.entityNumber;
+		b.originalbrushnum = parsedBrush.entityLocalBrushNumber;
 
 		b.entitynum = entityNumber;
-		// TODO: Is this really necessary? We can just calculate it
-		// since it's the offset from g_mapbrushes.begin() !!!
-		b.brushnum = firstBrushNumber + mapent.numbrushes;
+		b.brushnum = mapent.numbrushes;
 
 		++mapent.numbrushes;
 
@@ -578,8 +127,7 @@ add_parsed_entity_result add_parsed_entity(
 
 		// func_detail values
 		b.detailLevel = detailLevel;
-
-		b.chopDown = detailLevel;
+		b.chopDown = chopDown;
 		b.chopUp = chopUp;
 		b.clipNodeDetailLevel = clipNodeDetailLevel;
 		b.coplanarPriority = coplanarPriority;
@@ -600,9 +148,9 @@ add_parsed_entity_result add_parsed_entity(
 		}
 
 		// Loop through brush sides
-		for (parsed_side const & parsedSide : parsedSides) {
+		for (parsed_side const & parsedSide : parsedBrush.sides) {
 			// Current side of the brush
-			side_t& side{ g_brushsides[firstSideNumber + b.numSides] };
+			side_t& side{ g_brushsides[b.firstSide + b.numSides] };
 			side = {};
 			++b.numSides;
 
@@ -623,13 +171,16 @@ add_parsed_entity_result add_parsed_entity(
 					= textureName.get_clip_hull_number();
 				if (hullNumber) {
 					b.cliphull |= (1 << hullNumber.value());
-				} else if (textureName.is_any_clip_bevel()) {
+				} else {
 					constexpr cliphull_bitmask anyHullBut0Mask
-						= ((1 << NUM_HULLS) - 1);
+						= ((1 << NUM_HULLS) - 1) - 1;
+
 					b.cliphull |= anyHullBut0Mask; // CLIP all hulls
-					side.bevel = true;
-					if (textureName.is_clip_bevel_brush()) {
-						b.bevel = true;
+					if (textureName.is_any_clip_bevel()) {
+						side.bevel = true;
+						if (textureName.is_clip_bevel_brush()) {
+							b.bevel = true;
+						}
 					}
 				}
 				textureName = wad_texture_name{ "skip" };
@@ -645,12 +196,32 @@ add_parsed_entity_result add_parsed_entity(
 			side.td.vects.VAxis = parsedSide.vAxis;
 			side.td.vects.shift = parsedSide.shift;
 			side.td.vects.scale = parsedSide.textureScale;
-
-			// TODO: Delete this property. Texture rotation is implicit
-			// in U/V axes.
+			side.planepts = parsedSide.planePoints;
 		}
 
+		// Error(
+		// 	"newBrush %i %i %i %i : %i %i %i %i : %i %i %i %i : %i %i",
+		// 	(int) b.bevel,
+		// 	(int) b.brushnum,
+		// 	(int) b.chopDown,
+		// 	(int) b.chopUp,
+
+		// 	(int) fast_checksum(b.cliphull),
+		// 	(int) b.clipNodeDetailLevel,
+		// 	(int) b.contents,
+		// 	(int) b.coplanarPriority,
+
+		// 	(int) b.detailLevel,
+		// 	(int) b.entitynum,
+		// 	(int) b.firstSide,
+		// 	(int) fast_checksum(b.hulls),
+
+		// 	(int) b.noclip,
+		// 	(int) b.numSides
+		// );
+
 		b.contents = CheckBrushContents(&b);
+
 		for (std::size_t j = 0; j < b.numSides; ++j) {
 			side_t& side = g_brushsides[b.firstSide + j];
 			wad_texture_name const textureName{ side.td.name };
@@ -773,9 +344,7 @@ add_parsed_entity_result add_parsed_entity(
 					maxs[2]
 				);
 				set_key_value(
-					&g_entities[b.entitynum],
-					u8"zhlt_minsmaxs",
-					(char8_t const *) string
+					&mapent, u8"zhlt_minsmaxs", (char8_t const *) string
 				);
 			}
 
@@ -784,7 +353,10 @@ add_parsed_entity_result add_parsed_entity(
 			}
 		}
 		if (g_skyclip && b.contents == contents_t::SKY && !b.noclip) {
-			brush_t& newBrush = *CopyCurrentBrush(&mapent, &b);
+			brush_t& newBrush = copy_last_brush_with_sides(&b);
+			++mapent.numbrushes;
+			sidesAdded += newBrush.numSides;
+
 			newBrush.contents = contents_t::SOLID;
 			newBrush.cliphull = ~0;
 			for (std::size_t j = 0; j < newBrush.numSides; ++j) {
@@ -807,8 +379,10 @@ add_parsed_entity_result add_parsed_entity(
 				}
 			}
 			if (mixed) {
-				brush_t& newb = *CopyCurrentBrush(&mapent, &b);
-				newb.cliphull = 0;
+				brush_t& newBrush = copy_last_brush_with_sides(&b);
+				++mapent.numbrushes;
+				sidesAdded += newBrush.numSides;
+				newBrush.cliphull = 0;
 			}
 			b.contents = contents_t::SOLID;
 			for (std::size_t j = 0; j < b.numSides; ++j) {
@@ -831,31 +405,32 @@ add_parsed_entity_result add_parsed_entity(
 	if (useOtherModel && !has_key_value(&mapent, u8"origin")) {
 		Warning(
 			"Entity %i: 'zhlt_usemodel' requires the entity to have an origin brush.",
-			g_numparsedentities
+			parsedEntity.entityNumber
 		);
 	}
 
 	if (!isInfoHullshape) // info_hullshape is not affected by '-scale'
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
-		double3_array ent_move = { 0, 0, 0 },
-					  ent_scale_origin = { 0, 0, 0 };
-		double ent_scale = 1, ent_gscale = 1;
+		double3_array ent_move{};
+		double3_array ent_scale_origin;
+		double ent_scale = 1;
+		double ent_gscale = 1;
 
 		if (g_scalesize > 0) {
 			ent_gscale_b = true;
 			ent_gscale = g_scalesize;
 		}
-		double v[4] = { 0, 0, 0, 0 };
+		std::array<double, 4> v{};
 		if (has_key_value(&mapent, u8"zhlt_transform")) {
 			switch (sscanf(
 				(char const *) value_for_key(&mapent, u8"zhlt_transform")
 					.data(),
 				"%lf %lf %lf %lf",
-				v,
-				v + 1,
-				v + 2,
-				v + 3
+				&v[0],
+				&v[1],
+				&v[2],
+				&v[3]
 			)) {
 				case 1:
 					ent_scale_b = true;
@@ -863,13 +438,13 @@ add_parsed_entity_result add_parsed_entity(
 					break;
 				case 3:
 					ent_move_b = true;
-					std::copy_n(v, 3, ent_move.begin());
+					std::copy_n(v.begin(), 3, ent_move.begin());
 					break;
 				case 4:
 					ent_scale_b = true;
 					ent_scale = v[0];
 					ent_move_b = true;
-					std::copy_n(v + 1, 3, ent_move.begin());
+					std::copy_n(v.begin() + 1, 3, ent_move.begin());
 					break;
 				default:
 					Warning(
@@ -1103,19 +678,17 @@ add_parsed_entity_result add_parsed_entity(
 		GetParamsFromEnt(&mapent);
 	}
 
-	if (classname_is(&mapent, u8"func_group")
-		|| classname_is(&mapent, u8"func_detail")) {
-		// this is pretty gross, because the brushes are expected to be
+	if (isDetailBrush) {
+		// This is pretty gross, because the brushes are expected to be
 		// in linear order for each entity
 
 		brush_count newbrushes = mapent.numbrushes;
 		brush_count worldbrushes = g_entities[0].numbrushes;
 
 		auto temp = std::make_unique_for_overwrite<brush_t[]>(newbrushes);
-		std::copy(
-			g_mapbrushes + mapent.firstbrush,
-			g_mapbrushes + mapent.firstbrush + newbrushes,
-			temp.get()
+		// TODO: Move instead of copying
+		std::copy_n(
+			g_mapbrushes + mapent.firstbrush, newbrushes, temp.get()
 		);
 
 		for (brush_count i = 0; i < newbrushes; ++i) {
@@ -1124,17 +697,16 @@ add_parsed_entity_result add_parsed_entity(
 		}
 
 		// Make space to move the brushes (overlapped copy)
-		std::size_t numToMove = g_nummapbrushes + worldbrushes;
+		// TODO: Move instead of copying
 		std::copy_backward(
 			g_mapbrushes + worldbrushes,
-			g_mapbrushes + worldbrushes + numToMove,
-			g_mapbrushes + worldbrushes + numToMove + newbrushes
+			g_mapbrushes + firstBrushNumber,
+			g_mapbrushes + firstBrushNumber + newbrushes
 		);
 
 		// copy the new brushes down
-		std::copy(
-			temp.get(), temp.get() + newbrushes, g_mapbrushes + worldbrushes
-		);
+		// TODO: Move instead of copying
+		std::copy_n(temp.get(), newbrushes, g_mapbrushes + worldbrushes);
 
 		// Fix up indexes
 		g_entities[0].numbrushes += newbrushes;
@@ -1144,7 +716,9 @@ add_parsed_entity_result add_parsed_entity(
 		// TODO: Is this `mapent = {};` actually necessary?
 		mapent = {};
 
-		return { .entityAdded = false, .brushesAdded = 0, .sidesAdded = 0 };
+		return { .entityAdded = false,
+				 .brushesAdded = newbrushes,
+				 .sidesAdded = sidesAdded };
 	}
 
 	if (isInfoHullshape) {
@@ -1154,7 +728,7 @@ add_parsed_entity_result add_parsed_entity(
 		);
 		int defaulthulls = IntForKey(&mapent, u8"defaulthulls");
 		CreateHullShape(entityNumber, disabled, id, defaulthulls);
-		DeleteCurrentEntity(&mapent);
+		//	DeleteCurrentEntity(&mapent);
 		return { .entityAdded = false, .brushesAdded = 0, .sidesAdded = 0 };
 	}
 	if (fabs(mapent.origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON
@@ -1164,7 +738,7 @@ add_parsed_entity_result add_parsed_entity(
 		if (!classname.starts_with(u8"light")) {
 			Warning(
 				"Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)",
-				g_numparsedentities,
+				parsedEntity.entityNumber,
 				(char const *) classname.data(),
 				(double) ENGINE_ENTITY_RANGE,
 				mapent.origin[0],
@@ -1177,436 +751,6 @@ add_parsed_entity_result add_parsed_entity(
 	return { .entityAdded = true,
 			 .brushesAdded = mapent.numbrushes,
 			 .sidesAdded = sidesAdded };
-
-	// g_numparsedentities = originalEntityNumber += 1;
-	//	g_numentities += result.entityAdded;
-	//	g_nummapbrushes = firstBrushNumber += result.brushesAdded;
-	//	g_numbrushsides = firstSideNumber += result.sidesAdded;
-	//	g_numparsedbrushes += parsedEntity.brushes.size(
-	//	); // Do we need to update this one?
-
-	//	hlassume(g_numbrushsides < MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
-	//	hlassume(g_numentities < MAX_MAP_ENTITIES, assume_MAX_MAP_ENTITIES);
-	//	hlassume(g_nummapbrushes < MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
-}
-
-// =====================================================================================
-//  ParseMapEntity
-//      parse an entity from script
-// =====================================================================================
-bool ParseMapEntity(parsed_entity& parsedEntity) {
-	bool all_clip = true;
-	entity_t* mapent;
-
-	g_numparsedbrushes = 0;
-	if (!GetToken(true)) {
-		return false;
-	}
-
-	int this_entity = g_numentities;
-
-	// if (g_token != u8"{") {
-	//	Error(
-	//		"Parsing Entity %i, expected '{' got '%s'",
-	//		g_numparsedentities,
-	//		(char const *) g_token.c_str()
-	//	);
-	// }
-
-	g_numentities++;
-	hlassume(g_numentities < MAX_MAP_ENTITIES, assume_MAX_MAP_ENTITIES);
-
-	mapent = &g_entities[this_entity];
-	mapent->firstbrush = g_nummapbrushes;
-	mapent->numbrushes = 0;
-	mapent->keyValues = std::move(parsedEntity.keyValues);
-	// mapent->keyValues.reserve(16);
-
-	while (1) {
-		if (!GetToken(true)) {
-			Error("ParseEntity: EOF without closing brace");
-		}
-
-		if (g_token == u8"}"sv) { // end of our context
-			break;
-		}
-
-		if (g_token == u8"{"sv) // must be a brush
-		{
-			ParseBrush(mapent);
-			g_numparsedbrushes++;
-
-		} else // else assume a key-value pair
-		{
-			entity_key_value kv{ parse_entity_key_value() };
-			if (mapent->numbrushes > 0) {
-				Warning("Error: ParseEntity: Keyvalue comes after brushes."
-				);
-			}
-			set_key_value(mapent, std::move(kv));
-		}
-	}
-
-	{
-		for (int i = 0; i < mapent->numbrushes; i++) {
-			brush_t* brush = &g_mapbrushes[mapent->firstbrush + i];
-			if (brush->cliphull == 0
-				&& brush->contents != contents_t::ORIGIN
-				&& brush->contents != contents_t::BOUNDINGBOX) {
-				all_clip = false;
-			}
-		}
-	}
-	if (has_key_value(mapent, u8"zhlt_usemodel")) {
-		if (!has_key_value(mapent, u8"origin")) {
-			Warning(
-				"Entity %i: 'zhlt_usemodel' requires the entity to have an origin brush.",
-				g_numparsedentities
-			);
-		}
-		mapent->numbrushes = 0;
-	}
-
-	if (!classname_is(
-			mapent, u8"info_hullshape"
-		)) // info_hullshape is not affected by '-scale'
-	{
-		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
-		double3_array ent_move = { 0, 0, 0 },
-					  ent_scale_origin = { 0, 0, 0 };
-		double ent_scale = 1, ent_gscale = 1;
-
-		if (g_scalesize > 0) {
-			ent_gscale_b = true;
-			ent_gscale = g_scalesize;
-		}
-		double v[4] = { 0, 0, 0, 0 };
-		if (has_key_value(mapent, u8"zhlt_transform")) {
-			switch (sscanf(
-				(char const *) value_for_key(mapent, u8"zhlt_transform")
-					.data(),
-				"%lf %lf %lf %lf",
-				v,
-				v + 1,
-				v + 2,
-				v + 3
-			)) {
-				case 1:
-					ent_scale_b = true;
-					ent_scale = v[0];
-					break;
-				case 3:
-					ent_move_b = true;
-					std::copy_n(v, 3, ent_move.begin());
-					break;
-				case 4:
-					ent_scale_b = true;
-					ent_scale = v[0];
-					ent_move_b = true;
-					std::copy_n(v + 1, 3, ent_move.begin());
-					break;
-				default:
-					Warning(
-						"bad value '%s' for key 'zhlt_transform'",
-						(char const *)
-							value_for_key(mapent, u8"zhlt_transform")
-								.data()
-					);
-			}
-			DeleteKey(mapent, u8"zhlt_transform");
-		}
-		ent_scale_origin = get_double3_for_key(*mapent, u8"origin");
-
-		if (ent_move_b || ent_scale_b || ent_gscale_b) {
-			// Scaling hack
-
-			int ibrush, iside, ipoint;
-			brush_t* brush;
-			side_t* side;
-			for (ibrush = 0, brush = g_mapbrushes + mapent->firstbrush;
-				 ibrush < mapent->numbrushes;
-				 ++ibrush, ++brush) {
-				for (iside = 0, side = g_brushsides + brush->firstSide;
-					 iside < brush->numSides;
-					 ++iside, ++side) {
-					for (ipoint = 0; ipoint < 3; ++ipoint) {
-						double3_array& point = side->planepts[ipoint];
-						if (ent_scale_b) {
-							point = vector_add(
-								vector_scale(
-									vector_subtract(
-										point, ent_scale_origin
-									),
-									ent_scale
-								),
-								ent_scale_origin
-							);
-						}
-						if (ent_move_b) {
-							point = vector_add(point, ent_move);
-						}
-						if (ent_gscale_b) {
-							point = vector_scale(point, ent_gscale);
-						}
-					}
-					// note that  tex->vecs = td.vects.Axis /
-					// td.vects.scale
-					//            tex->vecs[3] = vects.shift +
-					//            Dot(origin, tex->vecs)
-					//      and   texcoordinate = Dot(worldposition,
-					//      tex->vecs) + tex->vecs[3]
-					bool zeroscale = false;
-					if (!side->td.vects.scale[0]) {
-						side->td.vects.scale[0] = 1;
-					}
-					if (!side->td.vects.scale[1]) {
-						side->td.vects.scale[1] = 1;
-					}
-					if (ent_scale_b) {
-						double coord[2];
-						if (fabs(side->td.vects.scale[0])
-							> NORMAL_EPSILON) {
-							coord[0] = dot_product(
-										   ent_scale_origin,
-										   side->td.vects.UAxis
-									   )
-									/ side->td.vects.scale[0]
-								+ side->td.vects.shift[0];
-							side->td.vects.scale[0] *= ent_scale;
-							if (fabs(side->td.vects.scale[0])
-								> NORMAL_EPSILON) {
-								side->td.vects.shift[0] = coord[0]
-									- dot_product(
-										  ent_scale_origin,
-										  side->td.vects.UAxis
-									  ) / side->td.vects.scale[0];
-							} else {
-								zeroscale = true;
-							}
-						} else {
-							zeroscale = true;
-						}
-						if (fabs(side->td.vects.scale[1])
-							> NORMAL_EPSILON) {
-							coord[1] = dot_product(
-										   ent_scale_origin,
-										   side->td.vects.VAxis
-									   )
-									/ side->td.vects.scale[1]
-								+ side->td.vects.shift[1];
-							side->td.vects.scale[1] *= ent_scale;
-							if (fabs(side->td.vects.scale[1])
-								> NORMAL_EPSILON) {
-								side->td.vects.shift[1] = coord[1]
-									- dot_product(
-										  ent_scale_origin,
-										  side->td.vects.VAxis
-									  ) / side->td.vects.scale[1];
-							} else {
-								zeroscale = true;
-							}
-						} else {
-							zeroscale = true;
-						}
-					}
-					if (ent_move_b) {
-						if (fabs(side->td.vects.scale[0])
-							> NORMAL_EPSILON) {
-							side->td.vects.shift[0]
-								-= dot_product(
-									   ent_move, side->td.vects.UAxis
-								   )
-								/ side->td.vects.scale[0];
-						} else {
-							zeroscale = true;
-						}
-						if (fabs(side->td.vects.scale[1])
-							> NORMAL_EPSILON) {
-							side->td.vects.shift[1]
-								-= dot_product(
-									   ent_move, side->td.vects.VAxis
-								   )
-								/ side->td.vects.scale[1];
-						} else {
-							zeroscale = true;
-						}
-					}
-					if (ent_gscale_b) {
-						side->td.vects.scale[0] *= ent_gscale;
-						side->td.vects.scale[1] *= ent_gscale;
-					}
-					if (zeroscale) {
-						Error(
-							"Entity %i, Brush %i: invalid texture scale.\n",
-							brush->originalentitynum,
-							brush->originalbrushnum
-						);
-					}
-				}
-			}
-			if (ent_gscale_b) {
-				if (has_key_value(mapent, u8"origin")) {
-					std::array<std::int32_t, 3> origin;
-					char8_t string[MAXTOKEN];
-					double3_array const originScaled = vector_scale(
-						get_double3_for_key(*mapent, u8"origin"), ent_gscale
-					);
-
-					for (std::size_t i = 0; i < 3; ++i) {
-						origin[i] = (std::int32_t
-						) std::round(originScaled[i]);
-					}
-
-					safe_snprintf(
-						(char*) string,
-						MAXTOKEN,
-						"%d %d %d",
-						origin[0],
-						origin[1],
-						origin[2]
-					);
-					set_key_value(mapent, u8"origin", string);
-				}
-			}
-			{
-				std::array<double3_array, 2> b;
-				if (sscanf(
-						(char const *)
-							ValueForKey(mapent, u8"zhlt_minsmaxs"),
-						"%lf %lf %lf %lf %lf %lf",
-						&b[0][0],
-						&b[0][1],
-						&b[0][2],
-						&b[1][0],
-						&b[1][1],
-						&b[1][2]
-					)
-					== 6) {
-					for (int i = 0; i < 2; i++) {
-						double3_array& point = b[i];
-						if (ent_scale_b) {
-							point = vector_add(
-								vector_scale(
-									vector_subtract(
-										point, ent_scale_origin
-									),
-									ent_scale
-								),
-								ent_scale_origin
-							);
-						}
-						if (ent_move_b) {
-							point = vector_add(point, ent_move);
-						}
-						if (ent_gscale_b) {
-							point = vector_scale(point, ent_gscale);
-						}
-					}
-					char string[MAXTOKEN];
-					safe_snprintf(
-						string,
-						MAXTOKEN,
-						"%.0f %.0f %.0f %.0f %.0f %.0f",
-						b[0][0],
-						b[0][1],
-						b[0][2],
-						b[1][0],
-						b[1][1],
-						b[1][2]
-					);
-					set_key_value(
-						mapent, u8"zhlt_minsmaxs", (char8_t const *) string
-					);
-				}
-			}
-		}
-	}
-
-	CheckFatal();
-	if (this_entity == 0) {
-		// Let the map tell which version of the compiler it comes from,
-		// to help tracing compiler bugs.
-		set_key_value(mapent, u8"compiler", projectName);
-	}
-
-	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
-		GetParamsFromEnt(mapent);
-	}
-
-	mapent->origin = get_float3_for_key(*mapent, u8"origin");
-
-	if (classname_is(mapent, u8"func_group")
-		|| classname_is(mapent, u8"func_detail")) {
-		// this is pretty gross, because the brushes are expected to be
-		// in linear order for each entity
-		int newbrushes;
-		int worldbrushes;
-
-		newbrushes = mapent->numbrushes;
-		worldbrushes = g_entities[0].numbrushes;
-
-		auto temp = std::make_unique_for_overwrite<brush_t[]>(newbrushes);
-		std::copy(
-			g_mapbrushes + mapent->firstbrush,
-			g_mapbrushes + mapent->firstbrush + newbrushes,
-			temp.get()
-		);
-
-		for (int i = 0; i < newbrushes; i++) {
-			temp[i].entitynum = 0;
-			temp[i].brushnum += worldbrushes;
-		}
-
-		// make space to move the brushes (overlapped copy)
-		std::size_t numToMove = g_nummapbrushes - worldbrushes - newbrushes;
-		std::copy_backward(
-			g_mapbrushes + worldbrushes,
-			g_mapbrushes + worldbrushes + numToMove,
-			g_mapbrushes + worldbrushes + numToMove + newbrushes
-		);
-
-		// copy the new brushes down
-		std::copy(
-			temp.get(), temp.get() + newbrushes, g_mapbrushes + worldbrushes
-		);
-
-		// fix up indexes
-		g_numentities--;
-		g_entities[0].numbrushes += newbrushes;
-		for (std::size_t i = 1; i < g_numentities; i++) {
-			g_entities[i].firstbrush += newbrushes;
-		}
-		*mapent = entity_t{};
-		return true;
-	}
-
-	if (classname_is(mapent, u8"info_hullshape")) {
-		bool disabled;
-		int defaulthulls;
-		disabled = IntForKey(mapent, u8"disabled");
-		std::u8string_view const id = value_for_key(mapent, u8"targetname");
-		defaulthulls = IntForKey(mapent, u8"defaulthulls");
-		CreateHullShape(this_entity, disabled, id, defaulthulls);
-		DeleteCurrentEntity(mapent);
-		return true;
-	}
-	if (fabs(mapent->origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON
-		|| fabs(mapent->origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON
-		|| fabs(mapent->origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON) {
-		std::u8string_view const classname{ get_classname(*mapent) };
-		if (!classname.starts_with(u8"light")) {
-			Warning(
-				"Entity %i (classname \"%s\"): origin outside +/-%.0f: (%.0f,%.0f,%.0f)",
-				g_numparsedentities,
-				(char const *) classname.data(),
-				(double) ENGINE_ENTITY_RANGE,
-				mapent->origin[0],
-				mapent->origin[1],
-				mapent->origin[2]
-			);
-		}
-	}
-	return true;
 }
 
 // =====================================================================================
@@ -1641,13 +785,14 @@ unsigned int CountEngineEntities() {
 
 // =====================================================================================
 //  LoadMapFile
-//      wrapper for LoadScriptFile
 //      parse in script entities
 // =====================================================================================
 
 void LoadMapFile(
 	hlcsg_settings const & settings, char const * const filename
 ) {
+	g_numentities = 0;
+
 	std::optional<std::u8string> maybeMapFileContents = read_utf8_file(
 		filename,
 		true,
@@ -1657,25 +802,19 @@ void LoadMapFile(
 	if (!maybeMapFileContents) {
 		Error("Failed to load %s", filename);
 	}
+
 	map_entity_parser parser{ maybeMapFileContents.value() };
 	parse_entity_outcome parseOutcome;
 	parsed_entity parsedEntity;
-	std::vector<parsed_entity> entityParsingResults;
 	while ((parseOutcome = parser.parse_entity(parsedEntity))
 		   == parse_entity_outcome::entity_parsed) {
-		Log("\n\nEntity\n");
-		for (entity_key_value const & keyValue : parsedEntity.keyValues) {
-			Log("K %s V %s\n",
-				(char const *) keyValue.key().data(),
-				(char const *) keyValue.value().data());
-		}
-		for (std::span<parsed_side const> brush : parsedEntity.brushes) {
-			Log("Brush\n");
-			for (parsed_side const & side : brush) {
-				Log("Side %s\n", (char const *) side.textureName.c_str());
-			}
-		}
-		entityParsingResults.push_back(parsedEntity);
+		add_parsed_entity_result const result = add_parsed_entity(
+			parsedEntity, g_numentities, g_nummapbrushes, g_numbrushsides
+		);
+
+		g_numentities += result.entityAdded;
+		g_nummapbrushes += result.brushesAdded;
+		g_numbrushsides += result.sidesAdded;
 	}
 
 	if (parseOutcome == parse_entity_outcome::bad_input) {
@@ -1686,42 +825,11 @@ void LoadMapFile(
 	} else if (parseOutcome
 			   == parse_entity_outcome::not_valve220_map_format) {
 		Error(
-			"It looks like you are trying to compile a map made with a very old editor or one which outputs incompatible .map files. The compiler supports only the Valve220 .map format.\n"
+			"It looks like you are trying to compile a map made with a very old editor or one which outputs incompatible .map files. The compiler supports only the Valve220 .map format. Try opening the .map in Hammer Editor 3.5, J.A.C.K., or another modern editor, and exporting the .map again.\n"
 		);
 	}
 
-	LoadScriptFile(
-		filename,
-		settings.legacyMapEncoding,
-		settings.forceLegacyMapEncoding
-	);
-
-	g_numentities = 0;
-
-	g_numparsedentities = 0;
-	while (ParseMapEntity(entityParsingResults[g_numparsedentities])) {
-		g_numparsedentities++;
-	}
-
-	// AJM debug
-	/*
-	for (int i = 0; i < g_numentities; i++)
-	{
-		Log("entity: %i - %i brushes - %s\n", i,
-	g_entities[i].numbrushes, ValueForKey(&g_entities[i], "classname"));
-	}
-	Log("total entities: %i\ntotal brushes: %i\n\n", g_numentities,
-	g_nummapbrushes);
-
-	for (i = g_entities[0].firstbrush; i < g_entities[0].firstbrush +
-	g_entities[0].numbrushes; i++)
-	{
-		Log("worldspawn brush %i: contents %s\n", i,
-	ContentsToString((contents_t::t)g_mapbrushes[i].contents));
-	}
-	*/
-
-	unsigned num_engine_entities = CountEngineEntities();
+	entity_count num_engine_entities = CountEngineEntities();
 
 	hlassume(
 		num_engine_entities < MAX_ENGINE_ENTITIES,

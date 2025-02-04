@@ -34,6 +34,7 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/hull_size.cpp
     ${COMMON_DIR}/legacy_character_encodings.cpp
     ${COMMON_DIR}/log.cpp
+    ${COMMON_DIR}/map_entity_parser.cpp
     ${COMMON_DIR}/mathlib.cpp
     ${COMMON_DIR}/messages.cpp
     ${COMMON_DIR}/scriplib.cpp

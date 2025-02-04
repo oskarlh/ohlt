@@ -129,18 +129,6 @@
 	_light(color255) : "Brightness" : "0 0 0 100"
 ]
 
-// func_group
-// It is not a real entity. Brushes in this entity are still world brushes.
-@SolidClass = func_group : "Solid brushes"
-[
-	zhlt_coplanarpriority(integer) : "Priority when faces overlap" : 0
-	zhlt_noclip(choices) : "Passable" : "" =
-	[
-		"": "No"
-		1: "Yes"
-	]
-]
-
 // info_minlights
 // It defines per-texture minlights.
 // Add any texture name as a key and their new minlight as the value.
@@ -245,9 +233,8 @@
 	]
 ]
 
-// func_detail
-// Similar in function to the func_detail in Source, though it is still subject to the bsp file format.
-@SolidClass = func_detail : "Detail brushes"
+
+@BaseClass = DetailBrush
 [
 	// You can leave the detail level to 1. For tiny objects, you might set to 2, so that they won't chop faces of other func_details.
 	zhlt_detaillevel(integer) : "Detail level" : 1
@@ -265,6 +252,19 @@
 		"": "No"
 		1: "Yes"
 	]
+]
+
+// func_detail
+// Similar in function to the func_detail in Source, though it is still subject to the BSP file format.
+@SolidClass base(DetailBrush) = func_detail : "Detail brush"
+[
+]
+
+// func_group
+// It is not a real entity. Brushes in this entity are still world brushes. Used by Hammer (or just old WorldCraft? Think so)
+// for grouping. The compilers treat these the same as func_details.
+@SolidClass base(DetailBrush) = func_group : "Solid brushes"
+[
 ]
 
 // info_hullshape

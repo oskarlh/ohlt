@@ -104,7 +104,7 @@ struct side_t {
 	accurate_winding wind; // (Also reversed)
 };
 
-struct brush_t {
+struct brush_t { // TODO: Rename this, since we have a brush_t in HLCSG too
 	brush_t* next;
 	side_t* sides;
 };

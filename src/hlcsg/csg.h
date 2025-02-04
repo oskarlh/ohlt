@@ -46,16 +46,37 @@ struct valve220_vects {
 	std::array<double, 2> scale;
 };
 
+template <>
+inline std::uint32_t fast_checksum(valve220_vects const & ent) noexcept {
+	return fast_checksum(ent.UAxis, ent.VAxis, ent.shift, ent.scale);
+}
+
+// TODO: Move to an appropriate location
+template <>
+inline std::uint32_t fast_checksum(wad_texture_name const & ent) noexcept {
+	return fast_checksum(ent.string_view());
+}
+
 struct brush_texture_t {
 	valve220_vects vects;
 	wad_texture_name name;
 };
+
+template <>
+inline std::uint32_t fast_checksum(brush_texture_t const & ent) noexcept {
+	return fast_checksum(ent.vects, ent.name);
+}
 
 struct side_t {
 	brush_texture_t td;
 	bool bevel;
 	std::array<double3_array, 3> planepts;
 };
+
+template <>
+inline std::uint32_t fast_checksum(side_t const & ent) noexcept {
+	return fast_checksum(ent.td, ent.bevel, ent.planepts);
+}
 
 struct bface_t {
 	accurate_winding w;
@@ -69,15 +90,35 @@ struct bface_t {
 	bool bevel; // used for ExpandBrush
 };
 
+template <>
+inline std::uint32_t fast_checksum(bface_t const & bFace) noexcept {
+	return fast_checksum(
+		bFace.w,
+		bFace.plane,
+		bFace.bounds,
+		bFace.planenum,
+		bFace.texinfo,
+		bFace.contents,
+		bFace.backcontents,
+		bFace.used,
+		bFace.bevel
+	);
+}
+
 struct brushhull_t {
 	bounding_box bounds;
 	std::vector<bface_t> faces;
 };
 
+template <>
+inline std::uint32_t fast_checksum(brushhull_t const & brushHull) noexcept {
+	return fast_checksum(brushHull.bounds, brushHull.faces);
+}
+
 using cliphull_bitmask = std::uint8_t;
 static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
 
-struct brush_t {
+struct brush_t { // TODO: Rename this, since we have a brush_t in HLBSP too
 	int entitynum;
 	// Same as entitynum except if entities are removed/added during the
 	// compilation process. Used for helpful error messages
@@ -85,6 +126,7 @@ struct brush_t {
 
 	// Entity-local brushnum. The first brush of every entity has brushnum
 	// 0, the second has brushnum 1 and so on
+	// TODO: Rename
 	int brushnum;
 	// Same as brushnum except if brushes are removed/added during the
 	// compilation process. Used for helpful error messages
@@ -109,6 +151,29 @@ struct brush_t {
 	contents_t contents;
 	std::array<brushhull_t, NUM_HULLS> hulls;
 };
+
+template <>
+inline std::uint32_t fast_checksum(brush_t const & brush) noexcept {
+	return fast_checksum(
+		brush.entitynum,
+		brush.originalentitynum,
+		brush.brushnum,
+		brush.originalbrushnum,
+		brush.firstSide,
+		brush.numSides,
+		brush.cliphull,
+		brush.noclip,
+		brush.bevel,
+		brush.detailLevel,
+		brush.chopDown,
+		brush.chopUp,
+		brush.clipNodeDetailLevel,
+		brush.coplanarPriority,
+		brush.hullshapes,
+		brush.contents,
+		brush.hulls
+	);
+}
 
 struct hullbrushface_t {
 	double3_array normal;

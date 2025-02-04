@@ -1256,6 +1256,7 @@ static void ConvertHintToEmpty() {
 // =====================================================================================
 //  WriteBSP
 // =====================================================================================
+// Only used with -onlyents
 void LoadWadValue() {
 	std::u8string wadValue;
 	ParseFromMemory(std::u8string_view{ g_dentdata.data(), g_entdatasize });

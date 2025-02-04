@@ -194,5 +194,11 @@ class winding_base {
 	}
 };
 
+template <class VT>
+inline std::uint32_t fast_checksum(winding_base<VT> const & winding
+) noexcept {
+	return fast_checksum(winding.points());
+}
+
 using accurate_winding = winding_base<double>;
 using fast_winding = winding_base<float>;

@@ -422,7 +422,7 @@ static int LoadLump(
 				SEEK_SET
 			)) {
 			Warning("fseek to %d failed\n", source->lump_info.filepos);
-			Error("File read failure");
+			Error("LoadLump: File read failure");
 		}
 		*texsize = source->lump_info.disksize;
 
