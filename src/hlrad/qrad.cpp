@@ -414,7 +414,7 @@ struct texlight_t {
 };
 
 static std::vector<texlight_t> s_texlights;
-typedef std::vector<texlight_t>::iterator texlight_i;
+using texlight_i = std::vector<texlight_t>::iterator;
 
 std::vector<minlight_t> s_minlights;
 

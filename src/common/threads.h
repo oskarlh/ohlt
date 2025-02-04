@@ -10,7 +10,7 @@ enum class q_threadpriority {
 	eThreadPriorityHigh
 };
 
-typedef void (*q_threadfunction)(int);
+using q_threadfunction = void (*)(int);
 
 extern std::ptrdiff_t g_numthreads;
 extern q_threadpriority g_threadpriority;

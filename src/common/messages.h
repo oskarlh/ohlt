@@ -2,13 +2,13 @@
 
 #include "cmdlib.h" //--vluzacn
 
-typedef struct {
+struct MessageTable_t {
 	char const * title;
 	char const * text;
 	char const * howto;
-} MessageTable_t;
+};
 
-typedef enum {
+enum assume_msgs {
 	assume_first = 0,
 
 	// generic
@@ -84,6 +84,6 @@ typedef enum {
 	assume_COULD_NOT_LOCATE_WAD,
 
 	assume_last
-} assume_msgs;
+};
 
 extern MessageTable_t const * GetAssume(assume_msgs id);

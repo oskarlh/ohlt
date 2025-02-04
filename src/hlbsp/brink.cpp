@@ -203,8 +203,8 @@ struct btreeface_t {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite; // when the face is infinite, all its edges must also be
-				   // infinite
+	bool infinite;	// when the face is infinite, all its edges must also be
+					// infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -1185,14 +1185,14 @@ struct bsurface_t {
 
 #define MAXBRINKWEDGES 64
 
-typedef struct {
+struct bcircle_t {
 	double3_array axis;
 	double3_array basenormal;
 	int numwedges[2]; // the front and back side of nodes[0]
 	bwedge_t wedges[2][MAXBRINKWEDGES];		// in counterclosewise order
 	bsurface_t surfaces[2][MAXBRINKWEDGES]; // the surface between two
 											// adjacent wedges
-} bcircle_t;
+};
 
 bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 	c->axis = b->direction;
@@ -1735,7 +1735,7 @@ bbrinkinfo_t* CreateBrinkinfo(dclipnode_t const * clipnodes, int headnode) {
 }
 
 extern int count_mergedclipnodes;
-typedef std::map<std::pair<int, std::pair<int, int>>, int> clipnodemap_t;
+using clipnodemap_t = std::map<std::pair<int, std::pair<int, int>>, int>;
 
 inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
 	return std::make_pair(

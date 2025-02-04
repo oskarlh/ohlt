@@ -35,13 +35,13 @@ struct hlvis_plane_t {
 	float dist;
 };
 
-typedef enum {
+enum vstatus_t {
 	stat_none,
 	stat_working,
 	stat_done
-} vstatus_t;
+};
 
-typedef struct {
+struct portal_t {
 	hlvis_plane_t plane; // normal pointing into neighbor
 	int leaf;			 // neighbor
 	winding_t* winding;
@@ -51,30 +51,30 @@ typedef struct {
 	unsigned nummightsee;
 	int numcansee;
 	std::uint_least32_t zone; // Which zone is this portal a member of
-} portal_t;
+};
 
 struct sep_t {
 	sep_t* next;
 	hlvis_plane_t plane; // from portal is on positive side
 };
 
-typedef struct passage_s {
-	struct passage_s* next;
+struct passage_t {
+	passage_t* next;
 	int from, to; // leaf numbers
 	sep_t* planes;
-} passage_t;
+};
 
 #define MAX_PORTALS_ON_LEAF 256
 
-typedef struct leaf_s {
+struct leaf_t {
 	unsigned numportals;
 	passage_t* passages;
 	portal_t* portals[MAX_PORTALS_ON_LEAF];
-} leaf_t;
+};
 
-typedef struct pstack_s {
+struct pstack_t {
 	byte mightsee[MAX_MAP_LEAFS / 8]; // bit string
-	struct pstack_s* head;
+	pstack_t* head;
 
 	leaf_t* leaf;
 	portal_t* portal; // portal exiting
@@ -88,15 +88,15 @@ typedef struct pstack_s {
 
 	int clipPlaneCount;
 	hlvis_plane_t* clipPlane;
-} pstack_t;
+};
 
-typedef struct {
+struct threaddata_t {
 	byte* leafvis; // bit string
 	//      byte            fullportal[MAX_PORTALS/8];              // bit
 	//      string
 	portal_t* base;
 	pstack_t pstack_head;
-} threaddata_t;
+};
 
 extern bool g_fastvis;
 extern bool g_fullvis;
@@ -112,35 +112,35 @@ extern unsigned int g_maxdistance;
 // time being, ONE target is good enough.
 #define MAX_ROOM_NEIGHBOR 16
 
-typedef struct {
+struct room_t {
 	int visleafnum;
 	int target_visleafnum;
 	// Traversal of neighbors being affected.
 	int neighbor;
-} room_t;
+};
 
 extern int const g_room_max;
 extern room_t g_room[];
 extern int g_room_count;
 extern std::unordered_map<int, bool> leaf_flow_add_exclude;
 
-typedef struct {
+struct overview_t {
 	float3_array origin;
 	int visleafnum;
 	int reverse;
-} overview_t;
+};
 
 extern int const g_overview_max;
 extern overview_t g_overview[];
 extern int g_overview_count;
 
-typedef struct {
+struct leafinfo_t {
 	bool isoverviewpoint;
 	bool isskyboxpoint;
 	// For info_portal
 	std::vector<int> additional_leaves;
 	int neighbor;
-} leafinfo_t;
+};
 
 extern leafinfo_t* g_leafinfos;
 

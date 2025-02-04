@@ -4,7 +4,7 @@
 
 #include <array>
 
-typedef unsigned char byte;
+using byte = unsigned char;
 
 using float3_array = std::array<float, 3>;	 // x, y, z
 using double3_array = std::array<double, 3>; // x, y, z

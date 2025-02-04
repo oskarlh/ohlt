@@ -4,7 +4,7 @@
 
 #include <string>
 
-typedef struct {
+struct wadpath_t {
 	std::u8string path;
 	int totaltextures; // Total number of textures in this WAD
 	int usedtextures;  // Number of textures in this WAD the map actually
@@ -13,7 +13,7 @@ typedef struct {
 					// .bsp?
 	// !!! the above two are VERY DIFFERENT. ie (usedtextures == 0) !=
 	// (usedbymap == false)
-} wadpath_t;
+};
 
 extern std::vector<wadpath_t*> g_pWadPaths;
 

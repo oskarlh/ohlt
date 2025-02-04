@@ -193,14 +193,14 @@ struct opaqueface_t {
 	bool tex_alphatest;
 };
 
-typedef struct opaquenode_s {
+struct opaquenode_t {
 	planetype type;
 	float3_array normal;
 	float dist;
 	int children[2];
 	int firstface;
 	int numfaces;
-} opaquenode_t;
+};
 
 static std::unique_ptr<opaquemodel_t[]> opaquemodels;
 static std::unique_ptr<opaquenode_t[]> opaquenodes;

@@ -7,19 +7,19 @@
 #include <cstring>
 #include <map>
 
-typedef std::map<int, int> PlaneMap;
+using PlaneMap = std::map<int, int>;
 static PlaneMap gPlaneMap;
 static int gNumMappedPlanes;
 static mapplane_t gMappedPlanes[MAX_MAP_PLANES];
 extern bool g_noopt;
 
-typedef std::map<int, int> texinfomap_t;
+using texinfomap_t = std::map<int, int>;
 static int g_nummappedtexinfo;
 static texinfo_t g_mappedtexinfo[MAX_MAP_TEXINFO];
 static texinfomap_t g_texinfomap;
 
 int count_mergedclipnodes;
-typedef std::map<std::pair<int, std::pair<int, int>>, int> clipnodemap_t;
+using clipnodemap_t = std::map<std::pair<int, std::pair<int, int>>, int>;
 
 inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
 	return std::make_pair(

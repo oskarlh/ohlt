@@ -219,7 +219,7 @@ void ThreadSetPriority(q_threadpriority type) {
 	setpriority(PRIO_PROCESS, 0, val);
 }
 
-typedef void* pthread_addr_t;
+using pthread_addr_t = void*;
 pthread_mutex_t* my_mutex;
 
 void ThreadLock() {

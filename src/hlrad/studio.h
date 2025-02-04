@@ -76,16 +76,16 @@ struct studiohdr_t {
 };
 
 // header for demand loaded sequence group data
-typedef struct {
+struct studioseqhdr_t {
 	std::int32_t id;
 	std::int32_t version;
 
 	std::array<char, 64> name;
 	std::int32_t length;
-} studioseqhdr_t;
+};
 
 // bones
-typedef struct {
+struct mstudiobone_t {
 	std::array<char, 32> name; // bone name for symbolic links
 	std::int32_t parent;	   // parent bone
 	std::int32_t flags;		   // ??
@@ -93,7 +93,7 @@ typedef struct {
 		bonecontroller;			// bone controller index, -1 == none
 	std::array<float, 6> value; // Default DoF values
 	std::array<float, 6> scale; // Scale for delta DoF values
-} mstudiobone_t;
+};
 
 // demand loaded sequence groups
 struct mstudioseqgroup_t {
@@ -104,7 +104,7 @@ struct mstudioseqgroup_t {
 };
 
 // sequence descriptions
-typedef struct {
+struct mstudioseqdesc_t {
 	std::array<char, 32> label; // sequence label
 
 	float fps;			// frames per second
@@ -147,43 +147,44 @@ typedef struct {
 	std::int32_t nodeflags; // transition rules
 
 	std::int32_t nextseq; // auto advancing sequences
-} mstudioseqdesc_t;
+};
 
 // events
-typedef struct mstudioevent_s {
+struct mstudioevent_t {
 	std::int32_t frame;
 	std::int32_t event;
 	std::int32_t type;
 	std::array<char, 64> options;
-} mstudioevent_t;
+};
 
 // pivots
-typedef struct {
+struct mstudiopivot_t {
 	float3_array org; // pivot point
 	std::int32_t start;
 	std::int32_t end;
-} mstudiopivot_t;
+};
 
 // attachment
-typedef struct {
+struct mstudioattachment_t {
 	std::array<char, 32> name;
 	std::int32_t type;
 	std::int32_t bone;
 	float3_array org; // attachment point
 	std::array<float3_array, 3> vectors;
-} mstudioattachment_t;
+};
 
-typedef struct {
+struct mstudioanim_t {
 	std::array<std::uint16_t, 6> offset;
-} mstudioanim_t;
+};
 
-// animation frames
+struct mstudioanimvalue_num_t {
+	std::uint8_t valid;
+	std::uint8_t total;
+};
+
+// Animation frames
 union mstudioanimvalue_t {
-	struct {
-		std::uint8_t valid;
-		std::uint8_t total;
-	} num;
-
+	mstudioanimvalue_num_t num;
 	std::int16_t value;
 };
 

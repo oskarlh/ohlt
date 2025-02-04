@@ -230,7 +230,7 @@ LoadMapFile(hlcsg_settings const & settings, char const * const filename);
 //=============================================================================
 // textures.cpp
 
-typedef std::deque<std::u8string>::iterator WadInclude_i;
+using WadInclude_i = std::deque<std::u8string>::iterator;
 extern std::deque<std::u8string>
 	g_WadInclude; // List of substrings to wadinclude
 
@@ -273,13 +273,13 @@ extern bool g_bClipNazi;
 
 #define EnumPrint(a) #a
 
-typedef enum {
+enum cliptype {
 	clip_smallest,
 	clip_normalized,
 	clip_simple,
 	clip_precise,
 	clip_legacy
-} cliptype;
+};
 
 extern cliptype g_cliptype;
 extern char const * GetClipTypeString(cliptype);

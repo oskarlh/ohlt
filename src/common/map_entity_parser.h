@@ -10,7 +10,7 @@
 #include <span>
 #include <string>
 
-struct parsed_side {
+struct parsed_side final {
 	wad_texture_name textureName;
 	std::array<double3_array, 3> planePoints;
 	std::array<double, 2> shift;
@@ -19,14 +19,14 @@ struct parsed_side {
 	double3_array vAxis;
 };
 
-struct parsed_brush {
+struct parsed_brush final {
 	entity_local_brush_count entityLocalBrushNumber;
 	std::span<parsed_side const> sides;
 };
 
 class parsed_brushes;
 
-class parsed_brushes_iterator {
+class parsed_brushes_iterator final {
   private:
 	friend parsed_brushes;
 
@@ -46,7 +46,7 @@ class parsed_brushes_iterator {
 
 class map_entity_parser;
 
-class parsed_brushes {
+class parsed_brushes final {
   private:
 	friend map_entity_parser;
 	friend parsed_brushes_iterator;
@@ -80,7 +80,7 @@ class parsed_brushes {
 	parsed_brushes_iterator end() const noexcept;
 };
 
-struct parsed_entity {
+struct parsed_entity final {
 	entity_count entityNumber{};
 	std::vector<entity_key_value> keyValues;
 	parsed_brushes brushes;
@@ -138,7 +138,7 @@ enum class parse_entity_outcome {
 	not_valve220_map_format
 };
 
-class map_entity_parser {
+class map_entity_parser final {
   private:
 	std::u8string_view allInput;
 	std::u8string_view remainingInput;

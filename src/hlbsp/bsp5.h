@@ -118,6 +118,8 @@ struct brush_t { // TODO: Rename this, since we have a brush_t in HLCSG too
 		// to prevent some strange brushes in the func_detail from clipping
 		// away the entire boundsbrush making the func_detail invisible.
 
+struct portal_t;
+
 struct node_t {
 	surface_t* surfaces;
 	brush_t* detailbrushes;
@@ -145,7 +147,7 @@ struct node_t {
 	// information for leafs
 	contents_t contents; // leaf nodes (0 for decision nodes)
 	face_t** markfaces;	 // leaf nodes only, point to node faces
-	struct portal_s* portals;
+	portal_t* portals;
 	int visleafnum; // -1 = solid
 	int valid;		// for flood filling
 	int occupied;	// light number in leaf for outside filling
@@ -174,13 +176,13 @@ GetEdge(double3_array const & p1, double3_array const & p2, face_t* f);
 
 //=============================================================================
 // portals.c
-typedef struct portal_s {
+struct portal_t {
 	mapplane_t plane;
 	node_t* onnode;	  // NULL = outside box
 	node_t* nodes[2]; // [0] = front side of plane
-	struct portal_s* next[2];
+	portal_t* next[2];
 	accurate_winding* winding;
-} portal_t;
+};
 
 extern node_t g_outside_node; // portals outside the world face this
 
@@ -219,8 +221,8 @@ extern void GetParamsFromEnt(entity_t* mapent);
 extern face_t* AllocFace();
 extern void FreeFace(face_t* f);
 
-extern struct portal_s* AllocPortal();
-extern void FreePortal(struct portal_s* p);
+extern portal_t* AllocPortal();
+extern void FreePortal(struct portal_t* p);
 
 extern surface_t* AllocSurface();
 extern void FreeSurface(surface_t* s);
@@ -245,14 +247,14 @@ extern bool should_face_have_facestyle_null(
 ) noexcept;
 #define BRINK_FLOOR_THRESHOLD 0.7
 
-typedef enum {
+enum bbrinklevel_e {
 	BrinkNone = 0,
 	BrinkFloorBlocking,
 	BrinkFloor,
 	BrinkWallBlocking,
 	BrinkWall,
 	BrinkAny,
-} bbrinklevel_e;
+};
 
 //=============================================================================
 // cull.c

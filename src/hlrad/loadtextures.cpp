@@ -464,17 +464,17 @@ inline T CQ_DotProduct(T const a[CQ_DIMENSIONS], T const b[CQ_DIMENSIONS]) {
 	return dot;
 }
 
-typedef struct {
+struct cq_splitter_t {
 	int axis;
 	int dist;
 	double numpoints[2];
-} cq_splitter_t; // partition the space into { point: point[axis] < dist }
-				 // and { point: point[axis] >= dist }
+}; // partition the space into { point: point[axis] < dist }
+   // and { point: point[axis] >= dist }
 
-typedef struct cq_node_s {
+struct cq_node_t {
 	bool isleafnode;
-	cq_node_s* parentnode;
-	cq_node_s* childrennode[2];
+	cq_node_t* parentnode;
+	cq_node_t* childrennode[2];
 
 	int numpoints; // numpoints > 0
 	unsigned char (*refpoints)[CQ_DIMENSIONS];
@@ -483,18 +483,18 @@ typedef struct cq_node_s {
 	bool needsplit;
 	cq_splitter_t bestsplitter;
 	double splitpriority;
-} cq_node_t; // a cuboid region; the root node is the entire cube whose size
-			 // is 255
+}; // a cuboid region; the root node is the entire cube whose size
+   // is 255
 
-typedef struct cq_searchnode_s {
+struct cq_searchnode_t {
 	bool isleafnode;
-	cq_searchnode_s* childrennode[2];
+	cq_searchnode_t* childrennode[2];
 
 	int planeaxis;
 	int planedist;
 
 	int result;
-} cq_searchnode_t;
+};
 
 static void CQ_SelectPartition(cq_node_t* node) {
 	CQ_VectorClear(node->centerofpoints);

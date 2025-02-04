@@ -20,11 +20,11 @@
 #include <cstring>
 #include <filesystem>
 
-typedef enum {
+enum hl_types {
 	hl_undefined = -1,
 	hl_export = 0,
 	hl_import = 1
-} hl_types;
+};
 
 static hl_types g_mode = hl_undefined;
 static hl_types g_texturemode = hl_undefined;
@@ -97,8 +97,8 @@ bool ScanForToken(
 }
 
 #include <list>
-typedef std::list<char*> CEntityPairList;
-typedef std::list<CEntityPairList*> CEntityList;
+using CEntityPairList = std::list<char*>;
+using CEntityList = std::list<CEntityPairList*>;
 
 // ParseEntityData()
 // Added by: Ryan Gregg aka Nem

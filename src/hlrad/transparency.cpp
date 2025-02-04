@@ -6,11 +6,11 @@
 
 #include <limits>
 
-typedef struct {
+struct transList_t {
 	unsigned p1;
 	unsigned p2;
 	unsigned data_index;
-} transList_t;
+};
 
 static transList_t* s_raw_list = nullptr;
 static unsigned int s_raw_count = 0;

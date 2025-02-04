@@ -5,7 +5,7 @@ struct sparse_row_t {
 	std::uint32_t values : 8;
 };
 
-typedef std::vector<sparse_row_t> sparse_column_t;
+using sparse_column_t = std::vector<sparse_row_t>;
 
 std::vector<sparse_column_t> s_vismatrix;
 

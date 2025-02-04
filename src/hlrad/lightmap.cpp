@@ -16,10 +16,10 @@ bool g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
 // =====================================================================================
 //  PairEdges
 // =====================================================================================
-typedef struct {
+struct intersecttest_t {
 	int numclipplanes;
 	dplane_t* clipplanes;
-} intersecttest_t;
+};
 
 bool TestFaceIntersect(intersecttest_t* t, int facenum) {
 	dface_t* f2 = &g_dfaces[facenum];
@@ -621,14 +621,14 @@ void PairEdges() {
 	((MAX_SURFACE_EXTENT + 1) * (MAX_SURFACE_EXTENT + 1) \
 	) // #define	MAX_SINGLEMAP	(18*18*4) //--vluzacn
 
-typedef enum {
+enum wallflag_t {
 	WALLFLAG_NONE = 0,
 	WALLFLAG_NUDGED = 0x1,
 	WALLFLAG_BLOCKED = 0x2, // this only happens when the entire face and
 							// its surroundings are covered by solid or
 							// opaque entities
 	WALLFLAG_SHADOWED = 0x4,
-} wallflag_t;
+};
 
 struct lightinfo_t {
 	float* light;
@@ -888,7 +888,7 @@ static void SetSurfFromST(
 	VectorAdd(surf, g_face_offset[facenum], surf);
 }
 
-typedef enum {
+enum light_flag_t {
 	LightOutside,		// Not lit
 	LightShifted,		// used HuntForWorld on 100% dark face
 	LightShiftedInside, // moved to neighbhor on 2nd cleanup pass
@@ -896,7 +896,7 @@ typedef enum {
 	LightPulledInside,	// Pulled inside by bleed code adjustments
 	LightSimpleNudge, // A simple nudge 1/3 or 2/3 towards center along S or
 					  // T axist
-} light_flag_t;
+};
 
 // =====================================================================================
 //  CalcPoints
@@ -918,7 +918,7 @@ static void SetSTFromSurf(
 	}
 }
 
-typedef struct {
+struct samplefragedge_t {
 	int edgenum; // g_dedges index
 	int edgeside;
 	int nextfacenum; // where to grow
@@ -936,15 +936,15 @@ typedef struct {
 	float ratio; // if ratio != 1, seam is unavoidable
 	matrix_t prevtonext;
 	matrix_t nexttoprev;
-} samplefragedge_t;
+};
 
-typedef struct {
+struct samplefragrect_t {
 	dplane_t planes[4];
-} samplefragrect_t;
+};
 
-typedef struct samplefrag_s {
-	samplefrag_s* next;		  // since this is a node in a list
-	samplefrag_s* parentfrag; // where it grew from
+struct samplefrag_t {
+	samplefrag_t* next;		  // since this is a node in a list
+	samplefrag_t* parentfrag; // where it grew from
 	samplefragedge_t* parentedge;
 	int facenum; // facenum
 
@@ -974,13 +974,13 @@ typedef struct samplefrag_s {
 
 	int numedges;			 // # of candicates for the next growth
 	samplefragedge_t* edges; // candicates for the next growth
-} samplefrag_t;
+};
 
-typedef struct {
+struct samplefraginfo_t {
 	int maxsize;
 	int size;
 	samplefrag_t* head;
-} samplefraginfo_t;
+};
 
 void ChopFrag(samplefrag_t* frag)
 // fill winding, windingplane, mywinding, mywindingplane, numedges, edges
@@ -1711,16 +1711,16 @@ static void CalcPoints(lightinfo_t* l) {
 
 //==============================================================
 
-typedef struct {
+struct sample_t {
 	float3_array pos;
 	float3_array light;
 	int surface; // this sample can grow into another face
-} sample_t;
+};
 
-typedef struct {
+struct facelight_t {
 	int numsamples;
 	sample_t* samples[MAXLIGHTMAPS];
-} facelight_t;
+};
 
 static directlight_t* directlights[MAX_MAP_LEAFS];
 static facelight_t facelight[MAX_MAP_FACES];
@@ -2429,16 +2429,16 @@ float3_array* g_skynormals[SKYLEVELMAX + 1];
 float* g_skynormalsizes[SKYLEVELMAX + 1];
 using point_t = double3_array;
 
-typedef struct {
+struct edge_t {
 	int point[2];
 	bool divided;
 	int child[2];
-} edge_t;
+};
 
-typedef struct {
+struct triangle_t {
 	int edge[3];
 	int dir[3];
-} triangle_t;
+};
 
 void CopyToSkynormals(
 	int skylevel,
@@ -4758,26 +4758,32 @@ constexpr std::int32_t MLH_MAXSAMPLECOUNT = 4;
 constexpr float MLH_LEFT = 0;
 constexpr float MLH_RIGHT = 1;
 
+struct mdllight_face_style_t {
+	bool exist;
+	int seq;
+};
+
+struct mdllight_face_sample_t {
+	int num;
+	float3_array pos;
+	std::byte*(style[ALLSTYLES]);
+};
+
+struct mdllight_face_t {
+	int num;
+
+	std::array<mdllight_face_style_t, ALLSTYLES> styles;
+
+	std::array<mdllight_face_sample_t, MLH_MAXSAMPLECOUNT> samples;
+
+	int samplecount;
+};
+
 struct mdllight_t {
 	float3_array origin;
 	float3_array floor;
 
-	struct {
-		int num;
-
-		struct {
-			bool exist;
-			int seq;
-		} style[ALLSTYLES];
-
-		struct {
-			int num;
-			float3_array pos;
-			std::byte*(style[ALLSTYLES]);
-		} sample[MLH_MAXSAMPLECOUNT];
-
-		int samplecount;
-	} face[MLH_MAXFACECOUNT];
+	std::array<mdllight_face_t, MLH_MAXFACECOUNT> faces;
 
 	int facecount;
 };
@@ -4786,7 +4792,7 @@ int MLH_AddFace(mdllight_t* ml, int facenum) {
 	dface_t* f = &g_dfaces[facenum];
 	int i, j;
 	for (i = 0; i < ml->facecount; i++) {
-		if (ml->face[i].num == facenum) {
+		if (ml->faces[i].num == facenum) {
 			return -1;
 		}
 	}
@@ -4795,14 +4801,14 @@ int MLH_AddFace(mdllight_t* ml, int facenum) {
 	}
 	i = ml->facecount;
 	ml->facecount++;
-	ml->face[i].num = facenum;
-	ml->face[i].samplecount = 0;
+	ml->faces[i].num = facenum;
+	ml->faces[i].samplecount = 0;
 	for (j = 0; j < ALLSTYLES; j++) {
-		ml->face[i].style[j].exist = false;
+		ml->faces[i].styles[j].exist = false;
 	}
 	for (j = 0; j < MAXLIGHTMAPS && f->styles[j] != 255; j++) {
-		ml->face[i].style[f->styles[j]].exist = true;
-		ml->face[i].style[f->styles[j]].seq = j;
+		ml->faces[i].styles[f->styles[j]].exist = true;
+		ml->faces[i].styles[f->styles[j]].seq = j;
 	}
 	return i;
 }
@@ -4824,24 +4830,24 @@ void MLH_AddSample(
 	}
 	int size = w * h;
 	int num = s + w * t;
-	for (i = 0; i < ml->face[r].samplecount; i++) {
-		if (ml->face[r].sample[i].num == num) {
+	for (i = 0; i < ml->faces[r].samplecount; i++) {
+		if (ml->faces[r].samples[i].num == num) {
 			return;
 		}
 	}
-	if (ml->face[r].samplecount >= MLH_MAXSAMPLECOUNT) {
+	if (ml->faces[r].samplecount >= MLH_MAXSAMPLECOUNT) {
 		return;
 	}
-	i = ml->face[r].samplecount;
-	ml->face[r].samplecount++;
-	ml->face[r].sample[i].num = num;
-	ml->face[r].sample[i].pos = pos;
+	i = ml->faces[r].samplecount;
+	ml->faces[r].samplecount++;
+	ml->faces[r].samples[i].num = num;
+	ml->faces[r].samples[i].pos = pos;
 	for (j = 0; j < ALLSTYLES; j++) {
-		if (ml->face[r].style[j].exist) {
-			ml->face[r].sample[i].style[j]
+		if (ml->faces[r].styles[j].exist) {
+			ml->faces[r].samples[i].style[j]
 				= &g_dlightdata
 					  [f->lightofs
-					   + (num + size * ml->face[r].style[j].seq) * 3];
+					   + (num + size * ml->faces[r].styles[j].seq) * 3];
 		}
 	}
 }
@@ -4951,28 +4957,28 @@ MLH_CopyLight(float3_array const & from, float3_array const & to) {
 	mlto.origin = to;
 	MLH_mdllightCreate(&mlfrom);
 	MLH_mdllightCreate(&mlto);
-	if (mlfrom.facecount == 0 || mlfrom.face[0].samplecount == 0) {
+	if (mlfrom.facecount == 0 || mlfrom.faces[0].samplecount == 0) {
 		return -1;
 	}
 	for (i = 0; i < mlto.facecount; ++i) {
-		for (j = 0; j < mlto.face[i].samplecount; ++j, ++count) {
+		for (j = 0; j < mlto.faces[i].samplecount; ++j, ++count) {
 			for (k = 0; k < ALLSTYLES; ++k) {
-				if (mlto.face[i].style[k].exist
-					&& mlfrom.face[0].style[k].exist) {
+				if (mlto.faces[i].styles[k].exist
+					&& mlfrom.faces[0].styles[k].exist) {
 					std::copy_n(
-						mlfrom.face[0].sample[0].style[k],
+						mlfrom.faces[0].samples[0].style[k],
 						3,
-						mlto.face[i].sample[j].style[k]
+						mlto.faces[i].samples[j].style[k]
 					);
 					Developer(
 						developer_level::spam,
 						"Mdl Light Hack: face (%d) sample (%d) style (%d) position (%f,%f,%f)\n",
-						mlto.face[i].num,
-						mlto.face[i].sample[j].num,
+						mlto.faces[i].num,
+						mlto.faces[i].samples[j].num,
 						k,
-						mlto.face[i].sample[j].pos[0],
-						mlto.face[i].sample[j].pos[1],
-						mlto.face[i].sample[j].pos[2]
+						mlto.faces[i].samples[j].pos[0],
+						mlto.faces[i].samples[j].pos[1],
+						mlto.faces[i].samples[j].pos[2]
 					);
 				}
 			}
@@ -5035,10 +5041,10 @@ void MdlLightHack() {
 	}
 }
 
-typedef struct facelightlist_s {
+struct facelightlist_t {
 	int facenum;
-	facelightlist_s* next;
-} facelightlist_t;
+	facelightlist_t* next;
+};
 
 static facelightlist_t* g_dependentfacelights[MAX_MAP_FACES];
 

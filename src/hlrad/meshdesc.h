@@ -23,37 +23,37 @@ enum class trace_method : std::uint8_t {
 	shadow_slow
 };
 
-typedef unsigned short word;
-typedef unsigned int uint;
+using word = unsigned short;
+using uint = unsigned int;
 using vec4_t = std::array<float, 4>; // x,y,z,w
-typedef std::array<std::array<float, 4>, 3> matrix3x4;
+using matrix3x4 = std::array<std::array<float, 4>, 3>;
 
 #define Q_rint(x) ((x) < 0 ? ((int) ((x) - 0.5f)) : ((int) ((x) + 0.5f)))
 
-typedef struct mplane_s {
+struct mplane_t {
 	float3_array normal;
 	float dist;
 	byte type;	   // for fast side tests
 	byte signbits; // signx + (signy<<1) + (signz<<1)
 	byte pad[2];
-} mplane_t;
+};
 
-typedef struct hashplane_s {
+struct hashplane_t {
 	mplane_t pl;
 	std::uint32_t planePoolIndex;
-} hashplane_t;
+};
 
 struct link_t {
 	link_t* prev;
 	link_t* next;
 };
 
-typedef struct areanode_s {
+struct areanode_t {
 	int axis; // -1 = leaf node
 	float dist;
-	struct areanode_s* children[2];
+	areanode_t* children[2];
 	link_t facets;
-} areanode_t;
+};
 
 struct mvert_t {
 	float3_array point;

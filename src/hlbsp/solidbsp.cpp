@@ -138,18 +138,20 @@ struct surfacetreenode_t {
 	std::vector<face_t*>* leaffaces;
 };
 
+struct surfacetree_result_t {
+	int frontsize;
+	int backsize;
+	std::vector<face_t*>* middle; // may contain coplanar faces and
+								  // discardable(SOLIDHINT) faces
+};
+
 struct surfacetree_t {
 	bool dontbuild;
 	double epsilon; // if a face is not epsilon far from the splitting
 					// plane, put it in result.middle
 	surfacetreenode_t* headnode;
 
-	struct {
-		int frontsize;
-		int backsize;
-		std::vector<face_t*>* middle; // may contains coplanar faces and
-									  // discardable(SOLIDHINT) faces
-	} result;						  // "public"
+	surfacetree_result_t result;
 };
 
 void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {

@@ -177,10 +177,10 @@ struct transfer_index_t {
 	std::uint32_t index : 20;
 };
 
-typedef std::uint32_t transfer_raw_index_t;
-typedef unsigned char transfer_data_t;
+using transfer_raw_index_t = std::uint32_t;
+using transfer_data_t = unsigned char;
 
-typedef unsigned char rgb_transfer_data_t;
+using rgb_transfer_data_t = unsigned char;
 
 #define MAX_COMPRESSED_TRANSFER_INDEX_SIZE ((1 << 12) - 1)
 
@@ -188,10 +188,10 @@ typedef unsigned char rgb_transfer_data_t;
 #define MAX_VISMATRIX_PATCHES		 65535
 #define MAX_SPARSE_VISMATRIX_PATCHES MAX_PATCHES
 
-typedef enum {
+enum ePatchFlags {
 	ePatchFlagNull = 0,
 	ePatchFlagOutside = 1
-} ePatchFlags;
+};
 
 struct patch_t {
 	patch_t* next;		 // next in face
@@ -252,15 +252,15 @@ struct patch_t {
 	int leafnum;
 };
 
-typedef enum {
+enum emittype_t {
 	emit_surface,
 	emit_point,
 	emit_spotlight,
 	emit_skylight
-} emittype_t;
+};
 
-typedef struct directlight_s {
-	struct directlight_s* next;
+struct directlight_t {
+	directlight_t* next;
 	emittype_t type;
 	int style;
 	float3_array origin;
@@ -290,17 +290,17 @@ typedef struct directlight_s {
 	patch_t* patch;
 	float texlightgap;
 	bool topatch;
-} directlight_t;
+};
 
 // LRC
 float3_array get_total_light(patch_t const & patch, int style) noexcept;
 
-typedef struct facelist_s {
+struct facelist_t {
 	dface_t* face;
-	facelist_s* next;
-} facelist_t;
+	facelist_t* next;
+};
 
-typedef struct {
+struct edgeshare_t {
 	dface_t* faces[2];
 	float3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field
 								   // must be set when smooth==true
@@ -313,7 +313,7 @@ typedef struct {
 									// faces[0] and faces[1]
 	matrix_t textotex[2]; // how we translate texture coordinates from one
 						  // face to the other face
-} edgeshare_t;
+};
 
 extern std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
 
@@ -322,11 +322,11 @@ extern std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
 //
 
 // These are bitflags for lighting adjustments for special cases
-typedef enum {
+enum eModelLightmodes {
 	eModelLightmodeNull = 0,
 	eModelLightmodeOpaque = 0x02,
 	eModelLightmodeNonsolid = 0x08, // for opaque entities with {texture
-} eModelLightmodes;
+};
 
 struct opaqueList_t {
 	int entitynum;
@@ -362,7 +362,7 @@ struct minlight_t {
 	float value;
 }; // info_minlights
 
-typedef std::vector<minlight_t>::iterator minlight_i;
+using minlight_i = std::vector<minlight_t>::iterator;
 
 //
 // qrad globals
@@ -525,7 +525,7 @@ extern void GetPhongNormal(
 	int facenum, float3_array const & spot, float3_array& phongnormal
 ); // added "const" --vluzacn
 
-typedef bool (*funcCheckVisBit)(
+using funcCheckVisBit = bool (*)(
 	unsigned,
 	unsigned,
 	float3_array&,
