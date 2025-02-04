@@ -39,7 +39,7 @@
 #define DEFAULT_NOLIGHTOPT	   false
 #define DEFAULT_NULLIFYTRIGGER true
 
-struct valve220_vects {
+struct valve220_vects final {
 	double3_array UAxis;
 	double3_array VAxis;
 	std::array<double, 2> shift;
@@ -57,7 +57,7 @@ inline std::uint32_t fast_checksum(wad_texture_name const & ent) noexcept {
 	return fast_checksum(ent.string_view());
 }
 
-struct brush_texture_t {
+struct brush_texture_t final {
 	valve220_vects vects;
 	wad_texture_name name;
 };
@@ -67,7 +67,7 @@ inline std::uint32_t fast_checksum(brush_texture_t const & ent) noexcept {
 	return fast_checksum(ent.vects, ent.name);
 }
 
-struct side_t {
+struct side_t final {
 	brush_texture_t td;
 	bool bevel;
 	std::array<double3_array, 3> planepts;
@@ -78,7 +78,7 @@ inline std::uint32_t fast_checksum(side_t const & ent) noexcept {
 	return fast_checksum(ent.td, ent.bevel, ent.planepts);
 }
 
-struct bface_t {
+struct bface_t final {
 	accurate_winding w;
 	mapplane_t* plane;
 	bounding_box bounds;
@@ -105,7 +105,7 @@ inline std::uint32_t fast_checksum(bface_t const & bFace) noexcept {
 	);
 }
 
-struct brushhull_t {
+struct brushhull_t final {
 	bounding_box bounds;
 	std::vector<bface_t> faces;
 };
@@ -118,7 +118,8 @@ inline std::uint32_t fast_checksum(brushhull_t const & brushHull) noexcept {
 using cliphull_bitmask = std::uint8_t;
 static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
 
-struct brush_t { // TODO: Rename this, since we have a brush_t in HLBSP too
+struct brush_t
+	final { // TODO: Rename this, since we have a brush_t in HLBSP too
 	int entitynum;
 	// Same as entitynum except if entities are removed/added during the
 	// compilation process. Used for helpful error messages
@@ -175,7 +176,7 @@ inline std::uint32_t fast_checksum(brush_t const & brush) noexcept {
 	);
 }
 
-struct hullbrushface_t {
+struct hullbrushface_t final {
 	double3_array normal;
 	double3_array point;
 
@@ -183,7 +184,7 @@ struct hullbrushface_t {
 	double3_array* vertexes;
 };
 
-struct hullbrushedge_t {
+struct hullbrushedge_t final {
 	double3_array normals[2];
 	double3_array point;
 
@@ -192,11 +193,11 @@ struct hullbrushedge_t {
 						 // cross_product(normals[0], normals[1])
 };
 
-struct hullbrushvertex_t {
+struct hullbrushvertex_t final {
 	double3_array point;
 };
 
-struct hullbrush_t {
+struct hullbrush_t final {
 	int numfaces;
 	hullbrushface_t* faces;
 	int numedges;
@@ -205,7 +206,7 @@ struct hullbrush_t {
 	hullbrushvertex_t* vertexes;
 };
 
-struct hullshape_t {
+struct hullshape_t final {
 	std::u8string id;
 	hullbrush_t** brushes;
 	int numbrushes; // must be 0 or 1

@@ -24,13 +24,13 @@ constexpr std::size_t MAX_PORTALS = 32768;
 
 #define MAX_POINTS_ON_FIXED_WINDING 32
 
-struct winding_t {
+struct winding_t final {
 	bool original; // Don't free, it's part of the portal
 	std::size_t numpoints;
 	float3_array points[MAX_POINTS_ON_FIXED_WINDING];
 };
 
-struct hlvis_plane_t {
+struct hlvis_plane_t final {
 	float3_array normal;
 	float dist;
 };
@@ -41,7 +41,7 @@ enum vstatus_t {
 	stat_done
 };
 
-struct portal_t {
+struct portal_t final {
 	hlvis_plane_t plane; // normal pointing into neighbor
 	int leaf;			 // neighbor
 	winding_t* winding;
@@ -53,12 +53,12 @@ struct portal_t {
 	std::uint_least32_t zone; // Which zone is this portal a member of
 };
 
-struct sep_t {
+struct sep_t final {
 	sep_t* next;
 	hlvis_plane_t plane; // from portal is on positive side
 };
 
-struct passage_t {
+struct passage_t final {
 	passage_t* next;
 	int from, to; // leaf numbers
 	sep_t* planes;
@@ -66,13 +66,13 @@ struct passage_t {
 
 #define MAX_PORTALS_ON_LEAF 256
 
-struct leaf_t {
+struct leaf_t final {
 	unsigned numportals;
 	passage_t* passages;
 	portal_t* portals[MAX_PORTALS_ON_LEAF];
 };
 
-struct pstack_t {
+struct pstack_t final {
 	byte mightsee[MAX_MAP_LEAFS / 8]; // bit string
 	pstack_t* head;
 
@@ -90,7 +90,7 @@ struct pstack_t {
 	hlvis_plane_t* clipPlane;
 };
 
-struct threaddata_t {
+struct threaddata_t final {
 	byte* leafvis; // bit string
 	//      byte            fullportal[MAX_PORTALS/8];              // bit
 	//      string
@@ -112,7 +112,7 @@ extern unsigned int g_maxdistance;
 // time being, ONE target is good enough.
 #define MAX_ROOM_NEIGHBOR 16
 
-struct room_t {
+struct room_t final {
 	int visleafnum;
 	int target_visleafnum;
 	// Traversal of neighbors being affected.
@@ -124,7 +124,7 @@ extern room_t g_room[];
 extern int g_room_count;
 extern std::unordered_map<int, bool> leaf_flow_add_exclude;
 
-struct overview_t {
+struct overview_t final {
 	float3_array origin;
 	int visleafnum;
 	int reverse;
@@ -134,7 +134,7 @@ extern int const g_overview_max;
 extern overview_t g_overview[];
 extern int g_overview_count;
 
-struct leafinfo_t {
+struct leafinfo_t final {
 	bool isoverviewpoint;
 	bool isskyboxpoint;
 	// For info_portal

@@ -405,7 +405,7 @@ static void MakeParents(int const nodenum, int const parent) {
 // =====================================================================================
 
 // misc
-struct texlight_t {
+struct texlight_t final {
 	wad_texture_name name{};
 	float3_array value{};
 	char const * filename{

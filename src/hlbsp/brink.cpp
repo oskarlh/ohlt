@@ -174,7 +174,7 @@ void BrinkReplaceClipnode(bbrink_t* b, bclipnode_t* prev, bclipnode_t* n) {
 
 // compute the structure of the whole bsp tree
 
-struct btreepoint_t {
+struct btreepoint_t final {
 	btreeedge_l* edges; // this is a reversed reference
 	double3_array v;
 	double tmp_dist;
@@ -183,7 +183,7 @@ struct btreepoint_t {
 	bool tmp_tested;
 };
 
-struct btreeedge_t {
+struct btreeedge_t final {
 	btreeface_l* faces;		// this is a reversed reference
 	bbrink_t* brink;		// not defined for infinite edges
 	btreepoint_r points[2]; // pointing from points[1] to points[0]
@@ -194,7 +194,7 @@ struct btreeedge_t {
 	bool tmp_onleaf[2];
 };
 
-struct btreeface_t {
+struct btreeface_t final {
 	mapplane_t const * plane; // not defined for infinite face
 	btreeedge_l* edges;	  // empty faces are allowed (in order to preserve
 						  // topological correctness)
@@ -203,8 +203,8 @@ struct btreeface_t {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+				   // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -1168,14 +1168,14 @@ void FreeBrinks(bbrinkinfo_t* info) {
 
 struct bsurface_t;
 
-struct bwedge_t {
+struct bwedge_t final {
 	contents_t content;
 	int nodenum;
 	bsurface_t* prev;
 	bsurface_t* next;
 };
 
-struct bsurface_t {
+struct bsurface_t final {
 	double3_array normal; // pointing clockwise
 	int nodenum;
 	bool nodeside;
@@ -1185,7 +1185,7 @@ struct bsurface_t {
 
 #define MAXBRINKWEDGES 64
 
-struct bcircle_t {
+struct bcircle_t final {
 	double3_array axis;
 	double3_array basenormal;
 	int numwedges[2]; // the front and back side of nodes[0]

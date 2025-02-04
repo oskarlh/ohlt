@@ -6,8 +6,8 @@
 
 int g_lerp_enabled = DEFAULT_LERP_ENABLED;
 
-struct interpolation_t {
-	struct Point {
+struct interpolation_t final {
+	struct Point final {
 		int patchnum;
 		float weight;
 	};
@@ -17,8 +17,8 @@ struct interpolation_t {
 	std::vector<Point> points;
 };
 
-struct localtriangulation_t {
-	struct Wedge {
+struct localtriangulation_t final {
+	struct Wedge final {
 		enum eShape {
 			eTriangular,
 			eConvex,
@@ -36,7 +36,7 @@ struct localtriangulation_t {
 		float3_array wedgenormal; // for custom usage
 	};
 
-	struct HullPoint {
+	struct HullPoint final {
 		float3_array spot;
 		float3_array direction;
 	};
@@ -55,8 +55,8 @@ struct localtriangulation_t {
 		sortedhullpoints; // in clockwise order (same as fast_winding)
 };
 
-struct facetriangulation_t {
-	struct Wall {
+struct facetriangulation_t final {
+	struct Wall final {
 		float3_array points[2];
 		float3_array direction;
 		float3_array normal;

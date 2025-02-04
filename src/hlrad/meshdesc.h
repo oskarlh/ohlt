@@ -30,7 +30,7 @@ using matrix3x4 = std::array<std::array<float, 4>, 3>;
 
 #define Q_rint(x) ((x) < 0 ? ((int) ((x) - 0.5f)) : ((int) ((x) + 0.5f)))
 
-struct mplane_t {
+struct mplane_t final {
 	float3_array normal;
 	float dist;
 	byte type;	   // for fast side tests
@@ -38,29 +38,29 @@ struct mplane_t {
 	byte pad[2];
 };
 
-struct hashplane_t {
+struct hashplane_t final {
 	mplane_t pl;
 	std::uint32_t planePoolIndex;
 };
 
-struct link_t {
+struct link_t final {
 	link_t* prev;
 	link_t* next;
 };
 
-struct areanode_t {
+struct areanode_t final {
 	int axis; // -1 = leaf node
 	float dist;
 	areanode_t* children[2];
 	link_t facets;
 };
 
-struct mvert_t {
+struct mvert_t final {
 	float3_array point;
 	float st[2]; // for alpha-texture test
 };
 
-struct mfacet_t {
+struct mfacet_t final {
 	link_t area;			   // linked to a division node or leaf
 	mstudiotexture_t* texture; // valid for alpha-testing surfaces
 	mvert_t triangle[3];	   // store triangle points
@@ -71,7 +71,7 @@ struct mfacet_t {
 	uint* indices; // a indexes into mesh plane pool
 };
 
-struct mmesh_t {
+struct mmesh_t final {
 	mfacet_t* facets;
 	mplane_t* planes; // Shared plane pool
 	float3_array mins;
@@ -81,14 +81,14 @@ struct mmesh_t {
 	trace_method trace_mode; // Trace method
 };
 
-class triset {
+class triset final {
   public:
 	int v[3]; // indices to vertex list
 };
 
 struct model_t; // Forward declaration
 
-class CMeshDesc {
+class CMeshDesc final {
   private:
 	mmesh_t m_mesh{};
 	char const * m_debugName{ nullptr }; // just for debug purpoces
@@ -226,7 +226,7 @@ void PermuteVertices(
 int MapVertex(int a, int mx, List<int>& map);
 
 // collision description
-struct model_t {
+struct model_t final {
 	char name[64]; // model name
 	float3_array origin;
 	float3_array angles;

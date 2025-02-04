@@ -17,7 +17,7 @@ using namespace std::literals;
 constexpr std::int32_t BLOCK_HEIGHT = 128;
 constexpr std::int32_t BLOCK_WIDTH = 128;
 
-struct lightmapblock {
+struct lightmapblock final {
 	std::array<std::int32_t, BLOCK_WIDTH> allocated = {};
 	bool used = false;
 };

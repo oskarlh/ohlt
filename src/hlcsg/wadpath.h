@@ -4,7 +4,7 @@
 
 #include <string>
 
-struct wadpath_t {
+struct wadpath_t final {
 	std::u8string path;
 	int totaltextures; // Total number of textures in this WAD
 	int usedtextures;  // Number of textures in this WAD the map actually

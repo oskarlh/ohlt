@@ -17,7 +17,7 @@ inline std::uint32_t fast_checksum(Object const & obj) noexcept {
 	// floating-point calculations give slightly different results on
 	// different platforms 3) struct padding
 
-	struct element_as_bytes {
+	struct element_as_bytes final {
 		unsigned char bytes[sizeof(Object)];
 	};
 
@@ -182,12 +182,12 @@ constexpr std::uint32_t BSPVERSION = 30;
 // BSP File Structures
 //
 
-struct lump_t {
+struct lump_t final {
 	std::uint32_t fileofs;
 	std::uint32_t filelen;
 };
 
-struct dmodel_t {
+struct dmodel_t final {
 	float3_array mins;
 	float3_array maxs;
 	float3_array origin;
@@ -196,14 +196,14 @@ struct dmodel_t {
 	std::int32_t firstface, numfaces;
 };
 
-struct dmiptexlump_t {
+struct dmiptexlump_t final {
 	std::int32_t nummiptex;
 	std::int32_t dataofs[4]; // [nummiptex]
 };
 
 constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored
 
-struct miptex_t {
+struct miptex_t final {
 	wad_texture_name name;
 	std::uint32_t width, height;
 	std::uint32_t offsets[MIPLEVELS];
@@ -294,11 +294,11 @@ class miptex_header_and_data_view final {
 	}
 };
 
-struct dvertex_t {
+struct dvertex_t final {
 	std::array<float, 3> point;
 };
 
-struct dplane_t {
+struct dplane_t final {
 	std::array<float, 3> normal;
 	float dist;
 	planetype type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
@@ -338,7 +338,7 @@ enum class contents_t : std::int32_t {
 
 std::u8string_view ContentsToString(contents_t contents) noexcept;
 
-struct dnode_t {
+struct dnode_t final {
 	std::int32_t planenum;
 	std::array<std::int16_t, 2>
 		children; // Negative numbers are -(leafs+1), not nodes
@@ -348,20 +348,20 @@ struct dnode_t {
 	std::uint16_t numfaces; // Counting both sides
 };
 
-struct dclipnode_t {
+struct dclipnode_t final {
 	std::int32_t planenum;
 	std::int16_t children[2]; // Negative numbers are contents
 };
 
 // note that edge 0 is never used, because negative edge nums are used for
 // counterclockwise use of the edge in a face
-struct dedge_t {
+struct dedge_t final {
 	std::array<std::uint16_t, 2> v; // vertex numbers
 };
 
 constexpr std::size_t MAXLIGHTMAPS = 4;
 
-struct dface_t {
+struct dface_t final {
 	std::uint16_t planenum;
 	std::uint16_t side;
 
@@ -376,7 +376,7 @@ struct dface_t {
 
 // leaf 0 is the generic contents_t::SOLID leaf, used for all solid areas
 // all other leafs need visibility info
-struct dleaf_t {
+struct dleaf_t final {
 	contents_t contents;
 	std::int32_t visofs; // -1 = no visibility info
 
@@ -430,87 +430,87 @@ enum class lump_id : std::size_t {
 constexpr std::size_t num_lump_types = std::size_t(lump_id::models) + 1;
 
 template <lump_id Id>
-struct lump_element_type_map { };
+struct lump_element_type_map final { };
 
 template <>
-struct lump_element_type_map<lump_id::entities> {
+struct lump_element_type_map<lump_id::entities> final {
 	using type = char8_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::planes> {
+struct lump_element_type_map<lump_id::planes> final {
 	using type = dplane_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::textures> {
+struct lump_element_type_map<lump_id::textures> final {
 	using type = std::byte;
 };
 
 template <>
-struct lump_element_type_map<lump_id::vertexes> {
+struct lump_element_type_map<lump_id::vertexes> final {
 	using type = dvertex_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::visibility> {
+struct lump_element_type_map<lump_id::visibility> final {
 	using type = std::byte;
 };
 
 template <>
-struct lump_element_type_map<lump_id::nodes> {
+struct lump_element_type_map<lump_id::nodes> final {
 	using type = dnode_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::texinfo> {
+struct lump_element_type_map<lump_id::texinfo> final {
 	using type = texinfo_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::faces> {
+struct lump_element_type_map<lump_id::faces> final {
 	using type = dface_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::lighting> {
+struct lump_element_type_map<lump_id::lighting> final {
 	using type = std::byte;
 };
 
 template <>
-struct lump_element_type_map<lump_id::clipnodes> {
+struct lump_element_type_map<lump_id::clipnodes> final {
 	using type = dclipnode_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::leafs> {
+struct lump_element_type_map<lump_id::leafs> final {
 	using type = dleaf_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::marksurfaces> {
+struct lump_element_type_map<lump_id::marksurfaces> final {
 	using type = std::uint16_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::edges> {
+struct lump_element_type_map<lump_id::edges> final {
 	using type = dedge_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::surfedges> {
+struct lump_element_type_map<lump_id::surfedges> final {
 	using type = std::int32_t;
 };
 
 template <>
-struct lump_element_type_map<lump_id::models> {
+struct lump_element_type_map<lump_id::models> final {
 	using type = dmodel_t;
 };
 
 template <lump_id Id>
 using lump_element_type = lump_element_type_map<Id>::type;
 
-struct dheader_t {
+struct dheader_t final {
 	std::uint32_t version;
 	lump_t lumps[num_lump_types];
 };
@@ -524,7 +524,7 @@ constexpr float ANGLE_DOWN{ -2.0 };
 // Entity Related Stuff
 //
 
-struct entity_t {
+struct entity_t final {
 	float3_array origin;
 	std::uint32_t firstbrush;
 	std::uint16_t numbrushes;
@@ -676,7 +676,7 @@ extern wad_texture_name get_texture_by_number(int texturenumber);
 // BSP File Data
 //
 
-struct bsp_data {
+struct bsp_data final {
 	std::array<dmodel_t, MAX_MAP_MODELS> mapModels{};
 	std::uint32_t mapModelsLength{ 0 };
 

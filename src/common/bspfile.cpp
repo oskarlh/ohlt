@@ -526,7 +526,7 @@ float CalculatePointVecsProduct(
 }
 
 bool CalcFaceExtents_test() {
-	struct test_case {
+	struct test_case final {
 		float3_array point;
 		tex_vec tv;
 		float expectedResult;

@@ -9,7 +9,7 @@ struct btreeedge_t;	 // 1d object
 struct btreeface_t;	 // 2d object
 struct btreeleaf_t;	 // 3d object
 
-struct bpartition_t {
+struct bpartition_t final {
 	bbrinklevel_e type;
 	bpartition_t* next;
 	int planenum;
@@ -17,7 +17,7 @@ struct bpartition_t {
 	bool planeside;
 };
 
-struct bclipnode_t {
+struct bclipnode_t final {
 	mapplane_t const * plane;
 	bclipnode_t* children[2]; // children[0] is the front side of the plane
 							  // (face_side::front = 0)
@@ -29,22 +29,22 @@ struct bclipnode_t {
 	bool isleaf;
 };
 
-struct btreepoint_r {
+struct btreepoint_r final {
 	btreepoint_t* p;
 	bool side;
 };
 
-struct btreeedge_r {
+struct btreeedge_r final {
 	btreeedge_t* e;
 	bool side;
 };
 
-struct btreeface_r {
+struct btreeface_r final {
 	btreeface_t* f;
 	bool side;
 };
 
-struct btreeleaf_r {
+struct btreeleaf_r final {
 	btreeleaf_t* l;
 	bool side;
 };
@@ -52,7 +52,7 @@ struct btreeleaf_r {
 using btreeedge_l = std::list<btreeedge_r>;
 using btreeface_l = std::list<btreeface_r>;
 
-struct btreeleaf_t {
+struct btreeleaf_t final {
 	btreeface_l* faces;
 
 	bclipnode_t* clipnode; // not defined for infinite leaf
@@ -60,7 +60,7 @@ struct btreeleaf_t {
 	bool infinite; // note: the infinite leaf is not convex
 };
 
-struct bbrinknode_t {
+struct bbrinknode_t final {
 	// We will only focus on the BSP shape which encircles a brink,
 	// so we extract the clipnodes that meet with the brink and store them
 	// here
@@ -74,7 +74,7 @@ struct bbrinknode_t {
 	bclipnode_t* clipnode;
 };
 
-struct bbrink_t {
+struct bbrink_t final {
 	std::vector<bbrinknode_t> nodes{};
 	btreeedge_t* edge{}; // Only for use in deciding brink type
 	double3_array start{};
@@ -84,7 +84,7 @@ struct bbrink_t {
 	int numnodes{ 0 }; // Including both nodes and leafs
 };
 
-struct bbrinkinfo_t {
+struct bbrinkinfo_t final {
 	bclipnode_t* clipnodes;
 	btreeleaf_t* leaf_outside;
 	bbrink_t** brinks;

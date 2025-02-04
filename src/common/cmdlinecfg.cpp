@@ -125,7 +125,7 @@ enum class command_t {
 	UNDEF
 };
 
-struct execute_t {
+struct execute_t final {
 	int stack;
 	bool skip;
 	int skipstack;

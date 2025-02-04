@@ -2,13 +2,13 @@
 
 #include <cstring>
 
-struct wvert_t {
+struct wvert_t final {
 	double t;
 	wvert_t* prev;
 	wvert_t* next;
 };
 
-struct wedge_t {
+struct wedge_t final {
 	wedge_t* next;
 	double3_array dir;
 	double3_array origin;

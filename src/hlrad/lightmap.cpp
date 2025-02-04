@@ -16,7 +16,7 @@ bool g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
 // =====================================================================================
 //  PairEdges
 // =====================================================================================
-struct intersecttest_t {
+struct intersecttest_t final {
 	int numclipplanes;
 	dplane_t* clipplanes;
 };
@@ -630,7 +630,7 @@ enum wallflag_t {
 	WALLFLAG_SHADOWED = 0x4,
 };
 
-struct lightinfo_t {
+struct lightinfo_t final {
 	float* light;
 	float facedist;
 	float3_array facenormal;
@@ -918,7 +918,7 @@ static void SetSTFromSurf(
 	}
 }
 
-struct samplefragedge_t {
+struct samplefragedge_t final {
 	int edgenum; // g_dedges index
 	int edgeside;
 	int nextfacenum; // where to grow
@@ -938,11 +938,11 @@ struct samplefragedge_t {
 	matrix_t nexttoprev;
 };
 
-struct samplefragrect_t {
+struct samplefragrect_t final {
 	dplane_t planes[4];
 };
 
-struct samplefrag_t {
+struct samplefrag_t final {
 	samplefrag_t* next;		  // since this is a node in a list
 	samplefrag_t* parentfrag; // where it grew from
 	samplefragedge_t* parentedge;
@@ -976,7 +976,7 @@ struct samplefrag_t {
 	samplefragedge_t* edges; // candicates for the next growth
 };
 
-struct samplefraginfo_t {
+struct samplefraginfo_t final {
 	int maxsize;
 	int size;
 	samplefrag_t* head;
@@ -1711,13 +1711,13 @@ static void CalcPoints(lightinfo_t* l) {
 
 //==============================================================
 
-struct sample_t {
+struct sample_t final {
 	float3_array pos;
 	float3_array light;
 	int surface; // this sample can grow into another face
 };
 
-struct facelight_t {
+struct facelight_t final {
 	int numsamples;
 	sample_t* samples[MAXLIGHTMAPS];
 };
@@ -2429,13 +2429,13 @@ float3_array* g_skynormals[SKYLEVELMAX + 1];
 float* g_skynormalsizes[SKYLEVELMAX + 1];
 using point_t = double3_array;
 
-struct edge_t {
+struct edge_t final {
 	int point[2];
 	bool divided;
 	int child[2];
 };
 
-struct triangle_t {
+struct triangle_t final {
 	int edge[3];
 	int dir[3];
 };
@@ -4758,18 +4758,18 @@ constexpr std::int32_t MLH_MAXSAMPLECOUNT = 4;
 constexpr float MLH_LEFT = 0;
 constexpr float MLH_RIGHT = 1;
 
-struct mdllight_face_style_t {
+struct mdllight_face_style_t final {
 	bool exist;
 	int seq;
 };
 
-struct mdllight_face_sample_t {
+struct mdllight_face_sample_t final {
 	int num;
 	float3_array pos;
 	std::byte*(style[ALLSTYLES]);
 };
 
-struct mdllight_face_t {
+struct mdllight_face_t final {
 	int num;
 
 	std::array<mdllight_face_style_t, ALLSTYLES> styles;
@@ -4779,7 +4779,7 @@ struct mdllight_face_t {
 	int samplecount;
 };
 
-struct mdllight_t {
+struct mdllight_t final {
 	float3_array origin;
 	float3_array floor;
 
@@ -5041,7 +5041,7 @@ void MdlLightHack() {
 	}
 }
 
-struct facelightlist_t {
+struct facelightlist_t final {
 	int facenum;
 	facelightlist_t* next;
 };

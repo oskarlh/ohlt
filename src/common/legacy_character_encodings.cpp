@@ -64,7 +64,7 @@ static std::array<char16_t, 0x9F - 0x80 + 1> const
 		0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
 		0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x009D, 0x017E, 0x0178 };
 
-struct conversion_data {
+struct conversion_data final {
 	char16_t const * table;
 	char16_t add_to_characters_past_the_table;
 	unsigned char last_character_to_use_table_for;

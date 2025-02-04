@@ -8,7 +8,7 @@
 // always be written to at least once before being read from. Values should
 // be considered lost after resizing.
 template <class T>
-class vector_for_overwriting {
+class vector_for_overwriting final {
 	static_assert(
 		std::is_trivially_default_constructible_v<T>
 			&& std::is_trivially_destructible_v<T>,

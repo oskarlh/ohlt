@@ -1,6 +1,6 @@
 #include "qrad.h"
 
-struct sparse_row_t {
+struct sparse_row_t final {
 	std::uint32_t offset : 24;
 	std::uint32_t values : 8;
 };

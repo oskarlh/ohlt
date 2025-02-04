@@ -17,7 +17,7 @@
 #define bound(min, num, max) \
 	((num) >= (min) ? ((num) < (max) ? (num) : (max)) : (min))
 
-class TraceMesh {
+class TraceMesh final {
   private:
 	float3_array m_vecStart, m_vecEnd;
 	float3_array m_vecStartMins, m_vecEndMins;

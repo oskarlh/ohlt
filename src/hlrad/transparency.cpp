@@ -6,7 +6,7 @@
 
 #include <limits>
 
-struct transList_t {
+struct transList_t final {
 	unsigned p1;
 	unsigned p2;
 	unsigned data_index;
@@ -214,7 +214,7 @@ void GetTransparency(
 	next_index = s_sorted_count;
 }
 
-struct styleList_t {
+struct styleList_t final {
 	unsigned p1;
 	unsigned p2;
 	char style;

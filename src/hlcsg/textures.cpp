@@ -16,7 +16,7 @@ using namespace std::literals;
 //  LoadLump
 //  AddAnimatingTextures
 
-struct lumpinfo_with_wadfileindex {
+struct lumpinfo_with_wadfileindex final {
 	wad_lumpinfo lump_info;
 	int iTexFile; // index of the wad this texture is located in
 };

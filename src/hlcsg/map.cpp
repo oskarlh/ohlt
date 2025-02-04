@@ -48,7 +48,7 @@ static std::array<std::u8string_view, NUM_HULLS> const zhltHullKeys{
 	u8"zhlt_hull0", u8"zhlt_hull1", u8"zhlt_hull2", u8"zhlt_hull3"
 };
 
-struct add_parsed_entity_result {
+struct add_parsed_entity_result final {
 	bool entityAdded{};
 	entity_local_brush_count brushesAdded{};
 	side_count sidesAdded{};

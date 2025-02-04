@@ -355,7 +355,7 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	return true;
 }
 
-struct position_t {
+struct position_t final {
 	bool valid;
 	bool nudged;
 	float best_s; // FindNearestPosition will return this value
@@ -368,7 +368,7 @@ struct position_t {
 //   = 200MB of RAM
 // But they are freed before BuildVisLeafs, so it's not a problem.
 
-struct positionmap_t {
+struct positionmap_t final {
 	bool valid;
 	int facenum;
 	int w; // Number of s

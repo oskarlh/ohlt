@@ -28,13 +28,13 @@ enum class one_sided_winding_division_result {
 };
 
 template <class W>
-struct split_winding_division_result_template {
+struct split_winding_division_result_template final {
 	W back{};
 	W front{};
 };
 
 template <any_vec_element VecElement>
-class winding_base {
+class winding_base final {
   public:
 	using vec_element = VecElement;
 	using vec3 = std::array<vec_element, 3>;

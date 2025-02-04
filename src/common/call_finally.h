@@ -4,7 +4,7 @@
 
 // RAII helper. The function will be called when the object is destroyed
 template <class Callback>
-class call_finally {
+class call_finally final {
   private:
 	Callback callback;
 

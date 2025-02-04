@@ -64,7 +64,7 @@ enum facestyle_e {
 	face_discardable, // contents must not differ between front and back
 };
 
-struct face_t {
+struct face_t final {
 	face_t* next;
 	face_t* original; // Face on node
 	int planenum;
@@ -83,7 +83,7 @@ struct face_t {
 
 struct node_t;
 
-struct surface_t {
+struct surface_t final {
 	surface_t* next;
 	face_t* faces; // links to all the faces on either side of the surf
 	node_t*
@@ -93,18 +93,19 @@ struct surface_t {
 	detail_level detailLevel; // Minimum detail level of its faces
 };
 
-struct surfchain_t {
+struct surfchain_t final {
 	double3_array mins, maxs;
 	surface_t* surfaces;
 };
 
-struct side_t {
+struct side_t final {
 	side_t* next;
 	mapplane_t plane; // Facing inside (reversed when loading brush file)
 	accurate_winding wind; // (Also reversed)
 };
 
-struct brush_t { // TODO: Rename this, since we have a brush_t in HLCSG too
+struct brush_t
+	final { // TODO: Rename this, since we have a brush_t in HLCSG too
 	brush_t* next;
 	side_t* sides;
 };
@@ -120,7 +121,7 @@ struct brush_t { // TODO: Rename this, since we have a brush_t in HLCSG too
 
 struct portal_t;
 
-struct node_t {
+struct node_t final {
 	surface_t* surfaces;
 	brush_t* detailbrushes;
 	brush_t* boundsbrush;
@@ -176,7 +177,7 @@ GetEdge(double3_array const & p1, double3_array const & p2, face_t* f);
 
 //=============================================================================
 // portals.c
-struct portal_t {
+struct portal_t final {
 	mapplane_t plane;
 	node_t* onnode;	  // NULL = outside box
 	node_t* nodes[2]; // [0] = front side of plane

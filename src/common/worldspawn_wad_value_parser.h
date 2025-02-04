@@ -4,7 +4,7 @@
 
 #include <string>
 
-class worldspawn_wad_value_iterator {
+class worldspawn_wad_value_iterator final {
   private:
 	std::u8string_view remaining;
 	std::u8string_view currentWad;
@@ -53,7 +53,7 @@ class worldspawn_wad_value_iterator {
 	}
 };
 
-class worldspawn_wad_value_parser {
+class worldspawn_wad_value_parser final {
   private:
 	std::u8string_view wadValue;
 

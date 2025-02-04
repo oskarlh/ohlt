@@ -13,7 +13,7 @@ void AddWadFolder(std::filesystem::path path) {
 	g_wadDirs.emplace_back(std::move(path));
 }
 
-struct wadfile_t {
+struct wadfile_t final {
 	wad_lumpinfo* lumpinfos;
 	FILE* file;
 	std::filesystem::path path;
@@ -464,14 +464,14 @@ inline T CQ_DotProduct(T const a[CQ_DIMENSIONS], T const b[CQ_DIMENSIONS]) {
 	return dot;
 }
 
-struct cq_splitter_t {
+struct cq_splitter_t final {
 	int axis;
 	int dist;
 	double numpoints[2];
 }; // partition the space into { point: point[axis] < dist }
    // and { point: point[axis] >= dist }
 
-struct cq_node_t {
+struct cq_node_t final {
 	bool isleafnode;
 	cq_node_t* parentnode;
 	cq_node_t* childrennode[2];
@@ -486,7 +486,7 @@ struct cq_node_t {
 }; // a cuboid region; the root node is the entire cube whose size
    // is 255
 
-struct cq_searchnode_t {
+struct cq_searchnode_t final {
 	bool isleafnode;
 	cq_searchnode_t* childrennode[2];
 

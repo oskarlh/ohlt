@@ -38,13 +38,13 @@ operator|=(texinfo_flags& a, texinfo_flags b) noexcept {
 	return a = (a | b);
 }
 
-struct tex_vec {
+struct tex_vec final {
 	float3_array xyz;
 	float offset;
 	constexpr auto operator<=>(tex_vec const &) const noexcept = default;
 };
 
-struct texinfo_t {
+struct texinfo_t final {
 	// [s/t] unit vectors in world space.
 	// [i][3] is the s/t offset relative to the origin.
 	// float s = dot_product(3dPoint, vecs[0].xyz) + vecs[0].offset;

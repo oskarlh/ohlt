@@ -2,7 +2,7 @@
 
 #include "cmdlib.h" //--vluzacn
 
-struct MessageTable_t {
+struct MessageTable_t final {
 	char const * title;
 	char const * text;
 	char const * howto;

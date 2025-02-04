@@ -176,7 +176,7 @@ constexpr bool strings_equal_with_ascii_case_insensitivity(
 }
 
 template <class Number, class Char = char8_t>
-struct parse_number_result {
+struct parse_number_result final {
 	std::optional<Number> number;
 	std::basic_string_view<Char> remainingText;
 };

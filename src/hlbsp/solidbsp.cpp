@@ -124,7 +124,7 @@ static face_side FaceSide(
 // organize all surfaces into a tree structure to accelerate intersection
 // test can reduce more than 90% compile time for very complicated maps
 
-struct surfacetreenode_t {
+struct surfacetreenode_t final {
 	int size; // can be zero, which invalidates mins and maxs
 	int size_discardable;
 	double3_array mins;
@@ -138,14 +138,14 @@ struct surfacetreenode_t {
 	std::vector<face_t*>* leaffaces;
 };
 
-struct surfacetree_result_t {
+struct surfacetree_result_t final {
 	int frontsize;
 	int backsize;
 	std::vector<face_t*>* middle; // may contain coplanar faces and
 								  // discardable(SOLIDHINT) faces
 };
 
-struct surfacetree_t {
+struct surfacetree_t final {
 	bool dontbuild;
 	double epsilon; // if a face is not epsilon far from the splitting
 					// plane, put it in result.middle

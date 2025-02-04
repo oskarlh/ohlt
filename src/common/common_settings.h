@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-struct common_settings {
+struct common_settings final {
 	bool chart = true;
 	developer_level developer = developer_level::always;
 	bool estimate = true;

@@ -20,7 +20,7 @@ constexpr std::size_t MAXSTUDIOBONES = 128;	 // Total bones actually used
 
 // These should match
 // https://github.com/ValveSoftware/halflife/blob/master/engine/studio.h
-struct studiohdr_t {
+struct studiohdr_t final {
 	std::int32_t ident;
 	std::int32_t version;
 
@@ -76,7 +76,7 @@ struct studiohdr_t {
 };
 
 // header for demand loaded sequence group data
-struct studioseqhdr_t {
+struct studioseqhdr_t final {
 	std::int32_t id;
 	std::int32_t version;
 
@@ -85,7 +85,7 @@ struct studioseqhdr_t {
 };
 
 // bones
-struct mstudiobone_t {
+struct mstudiobone_t final {
 	std::array<char, 32> name; // bone name for symbolic links
 	std::int32_t parent;	   // parent bone
 	std::int32_t flags;		   // ??
@@ -96,7 +96,7 @@ struct mstudiobone_t {
 };
 
 // demand loaded sequence groups
-struct mstudioseqgroup_t {
+struct mstudioseqgroup_t final {
 	std::array<char, 32> label; // Textual name
 	std::array<char, 64> name;	// File name
 	std::uint32_t unused;		// Was the "cache" index pointer
@@ -104,7 +104,7 @@ struct mstudioseqgroup_t {
 };
 
 // sequence descriptions
-struct mstudioseqdesc_t {
+struct mstudioseqdesc_t final {
 	std::array<char, 32> label; // sequence label
 
 	float fps;			// frames per second
@@ -150,7 +150,7 @@ struct mstudioseqdesc_t {
 };
 
 // events
-struct mstudioevent_t {
+struct mstudioevent_t final {
 	std::int32_t frame;
 	std::int32_t event;
 	std::int32_t type;
@@ -158,14 +158,14 @@ struct mstudioevent_t {
 };
 
 // pivots
-struct mstudiopivot_t {
+struct mstudiopivot_t final {
 	float3_array org; // pivot point
 	std::int32_t start;
 	std::int32_t end;
 };
 
 // attachment
-struct mstudioattachment_t {
+struct mstudioattachment_t final {
 	std::array<char, 32> name;
 	std::int32_t type;
 	std::int32_t bone;
@@ -173,11 +173,11 @@ struct mstudioattachment_t {
 	std::array<float3_array, 3> vectors;
 };
 
-struct mstudioanim_t {
+struct mstudioanim_t final {
 	std::array<std::uint16_t, 6> offset;
 };
 
-struct mstudioanimvalue_num_t {
+struct mstudioanimvalue_num_t final {
 	std::uint8_t valid;
 	std::uint8_t total;
 };
@@ -189,7 +189,7 @@ union mstudioanimvalue_t {
 };
 
 // body part index
-struct mstudiobodyparts_t {
+struct mstudiobodyparts_t final {
 	std::array<char, 64> name;
 	std::int32_t nummodels;
 	std::int32_t base;
@@ -197,7 +197,7 @@ struct mstudiobodyparts_t {
 };
 
 // skin info
-struct mstudiotexture_t {
+struct mstudiotexture_t final {
 	std::array<char, 64> name;
 	std::int32_t flags;
 	std::int32_t width;
@@ -209,7 +209,7 @@ struct mstudiotexture_t {
 // short	index[skinfamilies][skinref]
 
 // studio models
-struct mstudiomodel_t {
+struct mstudiomodel_t final {
 	std::array<char, 64> name;
 
 	std::int32_t type;
@@ -230,7 +230,7 @@ struct mstudiomodel_t {
 };
 
 // meshes
-struct mstudiomesh_t {
+struct mstudiomesh_t final {
 	std::int32_t numtris;
 	std::int32_t triindex;
 	std::int32_t skinref;

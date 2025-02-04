@@ -10,7 +10,7 @@
 // VLQ is a variable-length integer encoding
 // See https://en.wikipedia.org/wiki/Variable-length_quantity
 template <std::unsigned_integral UInt, std::unsigned_integral Octet>
-struct unsigned_vlq_decoding_result {
+struct unsigned_vlq_decoding_result final {
 	UInt result;
 	Octet const * endOfVlq;
 };

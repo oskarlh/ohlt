@@ -17,7 +17,7 @@
 // Either a Subtask receives a span of mutable data, or we have the main
 // thread do the job of applying all the data
 
-struct job { };
+struct job final { };
 
 void thread_function(std::stop_token stopToken) {
 	while (!stopToken.stop_requested()) {
@@ -25,7 +25,7 @@ void thread_function(std::stop_token stopToken) {
 	}
 }
 
-class threads {
+class threads final {
   private:
 	std::vector<std::jthread> threads;
 

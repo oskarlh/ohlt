@@ -156,7 +156,7 @@ constexpr float PATCH_HUNT_OFFSET = 0.5;
 
 constexpr float hlrad_bogus_range = 131'072;
 
-struct matrix_t {
+struct matrix_t final {
 	std::array<float3_array, 4> v;
 };
 
@@ -172,7 +172,7 @@ struct matrix_t {
 // LIGHTMAP.C STUFF
 //
 
-struct transfer_index_t {
+struct transfer_index_t final {
 	std::uint32_t size : 12;
 	std::uint32_t index : 20;
 };
@@ -193,7 +193,7 @@ enum ePatchFlags {
 	ePatchFlagOutside = 1
 };
 
-struct patch_t {
+struct patch_t final {
 	patch_t* next;		 // next in face
 	float3_array origin; // Center centroid of winding (cached info
 						 // calculated from winding)
@@ -259,7 +259,7 @@ enum emittype_t {
 	emit_skylight
 };
 
-struct directlight_t {
+struct directlight_t final {
 	directlight_t* next;
 	emittype_t type;
 	int style;
@@ -295,12 +295,12 @@ struct directlight_t {
 // LRC
 float3_array get_total_light(patch_t const & patch, int style) noexcept;
 
-struct facelist_t {
+struct facelist_t final {
 	dface_t* face;
 	facelist_t* next;
 };
 
-struct edgeshare_t {
+struct edgeshare_t final {
 	dface_t* faces[2];
 	float3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field
 								   // must be set when smooth==true
@@ -328,7 +328,7 @@ enum eModelLightmodes {
 	eModelLightmodeNonsolid = 0x08, // for opaque entities with {texture
 };
 
-struct opaqueList_t {
+struct opaqueList_t final {
 	int entitynum;
 	int modelnum;
 	float3_array origin;
@@ -342,7 +342,7 @@ struct opaqueList_t {
 				// should move outside.
 };
 
-struct radtexture_t {
+struct radtexture_t final {
 	wad_texture_name name; // Not always same with the name in texdata
 	std::int32_t width;
 	std::int32_t height;
@@ -357,7 +357,7 @@ extern void AddWadFolder(std::filesystem::path);
 extern void LoadTextures();
 extern void EmbedLightmapInTextures();
 
-struct minlight_t {
+struct minlight_t final {
 	std::u8string name;
 	float value;
 }; // info_minlights
@@ -419,7 +419,7 @@ extern float3_array g_colour_lightscale;
 extern float3_array g_colour_jitter_hack;
 extern float3_array g_jitter_hack;
 
-struct lighting_cone_power_and_scale {
+struct lighting_cone_power_and_scale final {
 	float power{ 1.0 };
 	float scale{ 1.0 };
 };
@@ -498,7 +498,7 @@ enum class vis_method {
 	no_vismatrix
 };
 
-struct opaquemodel_t {
+struct opaquemodel_t final {
 	float3_array mins, maxs;
 	int headnode;
 };

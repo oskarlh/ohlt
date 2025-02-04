@@ -38,7 +38,7 @@ inline X const & to_cref(X const & x) noexcept {
 	return x;
 }
 
-class compilation_root_data {
+class compilation_root_data final {
   private:
 	log_level minLogLevel{ log_level::verbose };
 	std::ofstream logFile;
@@ -88,7 +88,7 @@ class compilation_root_data {
 	}
 };
 
-class compilation_context {
+class compilation_context final {
   private:
 	compilation_root_data* root;
 

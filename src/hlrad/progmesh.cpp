@@ -21,7 +21,7 @@
 class CTriangle;
 class CVertex;
 
-class CTriangle {
+class CTriangle final {
   public:
 	CVertex* vertex[3];	   // the 3 points that make this tri
 	float3_array normal{}; // unit vector othogonal to this face
@@ -34,7 +34,7 @@ class CTriangle {
 	int HasVertex(CVertex* v);
 };
 
-class CVertex {
+class CVertex final {
   public:
 	float3_array position{}; // location of point in euclidean space
 	int id;					 // place of vertex in original list

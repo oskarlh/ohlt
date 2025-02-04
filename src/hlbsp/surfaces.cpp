@@ -107,7 +107,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 
 //===========================================================================
 
-struct hashvert_t {
+struct hashvert_t final {
 	hashvert_t* next;
 	double3_array point;
 	int num;

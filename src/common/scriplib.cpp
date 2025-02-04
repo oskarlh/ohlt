@@ -9,13 +9,13 @@
 
 std::u8string g_token;
 
-typedef struct {
+struct script_t final {
 	std::filesystem::path filename;
 	std::u8string buffer;
 	char8_t const * script_p;
 	char8_t const * end_p;
 	int line;
-} script_t;
+};
 
 #define MAX_INCLUDES 8
 

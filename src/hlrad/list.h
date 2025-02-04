@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 template <class Type>
-class List {
+class List final {
   public:
 	List(int s = 0);
 	~List();

@@ -7,7 +7,7 @@
 
 // #define      ON_EPSILON      0.001
 
-struct tnode_t {
+struct tnode_t final {
 	planetype type;
 	float3_array normal;
 	float dist;
@@ -182,7 +182,7 @@ contents_t TestLine(
 	return TestLine_r(0, start, stop, skyhit);
 }
 
-struct opaqueface_t {
+struct opaqueface_t final {
 	fast_winding* winding;
 	dplane_t plane;
 	dplane_t* edges;
@@ -193,7 +193,7 @@ struct opaqueface_t {
 	bool tex_alphatest;
 };
 
-struct opaquenode_t {
+struct opaquenode_t final {
 	planetype type;
 	float3_array normal;
 	float dist;
@@ -206,7 +206,7 @@ static std::unique_ptr<opaquemodel_t[]> opaquemodels;
 static std::unique_ptr<opaquenode_t[]> opaquenodes;
 static std::unique_ptr<opaqueface_t[]> opaquefaces;
 
-struct try_merge_points {
+struct try_merge_points final {
 	float3_array const & pA;
 	float3_array const & pB;
 	float3_array const & pD;

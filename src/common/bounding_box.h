@@ -2,7 +2,7 @@
 
 #include "cmdlib.h" //--vluzacn
 
-struct bounding_box {
+struct bounding_box final {
 	double3_array mins;
 	double3_array maxs;
 };

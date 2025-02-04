@@ -10,7 +10,7 @@
 
 // TODO: Remove 0 termination once we no longer use C strings
 // anywhere
-class entity_key_value {
+class entity_key_value final {
   private:
 	// Contains key, null byte for key, value, null byte for value.
 	usually_inplace_vector<char8_t, 40> storage;
