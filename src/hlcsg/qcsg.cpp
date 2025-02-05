@@ -62,8 +62,6 @@ bool g_estimate
 	= cli_option_defaults::estimate;	 // progress estimates "-estimate"
 bool g_info = cli_option_defaults::info; // "-info" ?
 char const * g_hullfile = nullptr; // external hullfile "-hullfie sdfsd"
-std::filesystem::path g_wadcfgfile;
-std::u8string g_wadconfigname;
 
 bool g_bUseNullTex = cli_option_defaults::nulltex; // "-nonulltex"
 
@@ -136,14 +134,6 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (has_key_value(mapent, u8"hullfile")) {
 		g_hullfile = (char const *) ValueForKey(mapent, u8"hullfile");
 		Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile);
-	}
-
-	// wadconfig(string) : "Custom Wad Configuration" : ""
-	if (has_key_value(mapent, u8"wadconfig")) {
-		g_wadconfigname = value_for_key(mapent, u8"wadconfig");
-		Log("%30s [ %-9s ]\n",
-			"Custom Wad Configuration Name",
-			(char const *) g_wadconfigname.c_str());
 	}
 
 	// noclipeconomy(choices) : "Strip Uneeded Clipnodes?" : 1 = [ 1 : "Yes"
@@ -1719,13 +1709,6 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 	Log("hullfile              [ %7s ] [ %7s ]\n",
 		g_hullfile ? g_hullfile : "None",
 		"None");
-	Log("wad.cfg file          [ %7s ] [ %7s ]\n",
-		g_wadcfgfile.empty() ? "None" : g_wadcfgfile.c_str(),
-		"None");
-	Log("wad.cfg config name   [ %7s ] [ %7s ]\n",
-		g_wadconfigname.empty() ? "None"
-								: (char const *) g_wadconfigname.c_str(),
-		"None");
 	Log("nullfile              [ %7s ] [ %7s ]\n",
 		g_nullfile ? g_nullfile : "None",
 		"None");
@@ -2035,24 +2018,6 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-wadcfgfile"
-						   )) {
-					if (i + 1 < argc) {
-						g_wadcfgfile = std::filesystem::path{
-							argv[++i], std::filesystem::path::auto_format
-						};
-					} else {
-						Usage();
-					}
-				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-wadconfig"
-						   )) {
-					if (i + 1 < argc) {
-						g_wadconfigname = (char8_t const *) argv[++i];
-					} else {
-						Usage();
-					}
-				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-force-legacy-map-encoding"
 						   )) {
 					settings.forceLegacyMapEncoding = true;
@@ -2173,24 +2138,6 @@ int main(int const argc, char** argv) {
 					}
 				}
 			}
-			if (!g_wadcfgfile.empty()) // If wad.cfg exists
-			{
-				std::filesystem::path wadCfgPath
-					= std::filesystem::path(g_Mapname).parent_path()
-					/ g_wadcfgfile;
-				if (std::filesystem::exists(wadCfgPath
-					)) // Use global wad.cfg if file exists
-				{
-					g_wadcfgfile = wadCfgPath.c_str();
-				} else {
-					// Look for wad.cfg relative to exe
-					wadCfgPath = get_path_to_directory_with_executable(argv)
-						/ g_wadcfgfile;
-					if (std::filesystem::exists(wadCfgPath)) {
-						g_wadcfgfile = c_strdup(wadCfgPath.c_str());
-					}
-				}
-			}
 			Verbose("Loading hull file\n");
 			// If the user specified a hull file, load it now
 			LoadHullfile(g_hullfile);
@@ -2210,31 +2157,7 @@ int main(int const argc, char** argv) {
 			Settings(bspData, settings);
 
 			if (!g_onlyents) {
-				if (!g_wadconfigname.empty(
-					)) // If wadconfig had a name provided //seedee
-				{
-					std::filesystem::path wadCfgPath
-						= get_path_to_directory_with_executable(argv)
-						/ u8"wad.cfg";
-
-					if (!g_wadcfgfile.empty(
-						)) // If provided override the default
-					{
-						wadCfgPath = g_wadcfgfile;
-					}
-					LoadWadconfig(wadCfgPath.c_str(), g_wadconfigname);
-				} else if (!g_wadcfgfile.empty()) {
-					if (!std::filesystem::exists(g_wadcfgfile)) {
-						Error(
-							"Couldn't find wad configuration file '%s'\n",
-							g_wadcfgfile.c_str()
-						);
-					}
-					LoadWadcfgfile(g_wadcfgfile);
-				} else {
-					Log("Loading mapfile wad configuration by default\n");
-					GetUsedWads();
-				}
+				GetUsedWads();
 
 				DumpWadinclude();
 				Log("\n");

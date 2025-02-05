@@ -120,18 +120,18 @@ static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
 
 struct brush_t
 	final { // TODO: Rename this, since we have a brush_t in HLBSP too
-	int entitynum;
+	entity_count entitynum;
 	// Same as entitynum except if entities are removed/added during the
 	// compilation process. Used for helpful error messages
-	int originalentitynum;
+	entity_count originalentitynum;
 
 	// Entity-local brushnum. The first brush of every entity has brushnum
 	// 0, the second has brushnum 1 and so on
 	// TODO: Rename
-	int brushnum;
+	entity_local_brush_count brushnum;
 	// Same as brushnum except if brushes are removed/added during the
 	// compilation process. Used for helpful error messages
-	int originalbrushnum;
+	entity_local_brush_count originalbrushnum;
 
 	side_count firstSide;
 	side_count numSides;
@@ -311,13 +311,7 @@ void CalculateBrushUnions(int brushnum);
 //============================================================================
 // hullfile.cpp
 extern hull_sizes g_hull_size;
-extern void LoadHullfile(char const * filename);
-
-extern std::filesystem::path g_wadcfgfile;
-extern std::u8string g_wadconfigname;
-extern void LoadWadcfgfile(std::filesystem::path wadCfgPath);
-extern void
-LoadWadconfig(char const * filename, std::u8string_view configname);
+void LoadHullfile(char const * filename);
 
 //=============================================================================
 // properties.cpp

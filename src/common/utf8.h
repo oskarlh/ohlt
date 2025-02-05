@@ -67,16 +67,6 @@ constexpr bool is_ascii_whitespace(char8_t c) noexcept {
 	return ascii_whitespace.contains(c);
 }
 
-[[nodiscard]] constexpr std::u8string_view
-skip_ascii_whitespace(std::u8string_view str) noexcept {
-	std::size_t skipTo = str.find_first_not_of(ascii_whitespace);
-	if (skipTo == std::u8string_view::npos) {
-		return {};
-	}
-
-	return str.substr(skipTo);
-}
-
 [[nodiscard]] constexpr char8_t ascii_character_to_lowercase(char8_t c
 ) noexcept {
 	char8_t const add = (c >= u8'A' && c <= u8'Z') ? (u8'a' - u8'A')

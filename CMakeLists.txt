@@ -66,6 +66,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/mathlib.h
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h
+    ${COMMON_DIR}/parsing.h
     ${COMMON_DIR}/planes.h
     ${COMMON_DIR}/project_constants.h
     ${COMMON_DIR}/scriplib.h

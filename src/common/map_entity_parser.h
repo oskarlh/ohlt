@@ -3,6 +3,7 @@
 #include "entity_key_value.h"
 #include "internal_types/internal_types.h"
 #include "mathtypes.h"
+#include "parsing.h"
 #include "wad_texture_name.h"
 
 #include <algorithm>
@@ -96,26 +97,6 @@ struct parsed_entity final {
 		brushes.free_memory();
 	}
 };
-
-constexpr void skip_whitespace_and_comments(std::u8string_view& str
-) noexcept {
-	bool foundComment{};
-	do {
-		str = skip_ascii_whitespace(str);
-
-		foundComment = str.starts_with(u8"//") || str.starts_with(u8"#")
-			|| str.starts_with(u8";");
-
-		if (foundComment) [[unlikely]] {
-			std::size_t const endOfLine = str.find(u8'\n');
-			str = str.substr(endOfLine + 1);
-			bool const isEndOfFile = endOfLine == std::u8string_view::npos;
-			if (isEndOfFile) {
-				str = {};
-			}
-		}
-	} while (foundComment);
-}
 
 constexpr std::optional<double> try_to_parse_double(std::u8string_view& str
 ) noexcept {

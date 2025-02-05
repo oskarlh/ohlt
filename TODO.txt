@@ -85,3 +85,14 @@ Document zhlt_minsmaxs: Override this entity's bounding box.
 
 https://developer.valvesoftware.com/wiki/Template:Hl1_kv_zhlt_point
 https://developer.valvesoftware.com/wiki/Template:Hl1_kv_zhlt_light_source
+
+
+
+
+				std::filesystem::path wadCfgPath
+					= std::filesystem::path(g_Mapname).parent_path()
+					/ "wad.cfg";
+
+					// Look for wad.cfg relative to exe
+					wadCfgPath = get_path_to_directory_with_executable(argv)
+						/ "wad.cfg';

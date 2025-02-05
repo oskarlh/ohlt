@@ -24,7 +24,7 @@ Desktop.ini
 
 /build/
 /tools/*
-!/tools/*.cfg
+!/tools/mods
 !/tools/*.fgd
 !/tools/*.rad
 !/tools/*.txt
