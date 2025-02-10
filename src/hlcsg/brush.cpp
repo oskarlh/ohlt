@@ -706,8 +706,9 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 	// completely axial brush, this is the only necessary step
 
 	// add mins
-	double3_array origin;
-	VectorAdd(brush->hulls[0].bounds.mins, g_hull_size[hullnum][0], origin);
+	double3_array origin{
+		vector_add(brush->hulls[0].bounds.mins, g_hull_size[hullnum][0])
+	};
 	double3_array normal{ -1, 0, 0 };
 	AddHullPlane(
 		hull,
@@ -741,7 +742,9 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 	normal[2] = 0;
 
 	// add maxes
-	VectorAdd(brush->hulls[0].bounds.maxs, g_hull_size[hullnum][1], origin);
+	origin = vector_add(
+		brush->hulls[0].bounds.maxs, g_hull_size[hullnum][1]
+	);
 	normal[0] = 1;
 	AddHullPlane(
 		hull,

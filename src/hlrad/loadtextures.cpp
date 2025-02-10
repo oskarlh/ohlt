@@ -379,7 +379,7 @@ void LoadTextures() {
 						reflectivity, g_texreflectscale, reflectivity
 					);
 				}
-				VectorAdd(total, reflectivity, total);
+				total = vector_add(total, reflectivity);
 			}
 			VectorScale(
 				total, 1.0 / (double) (tex->width * tex->height), total
@@ -959,11 +959,10 @@ static void GetLightInt(
 				  [face->lightofs
 				   + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
 		if (face->styles[k] == 0) {
-			VectorAdd(
-				light,
-				(std::uint8_t const *) &samples
-					[(iy * (texsize[0] + 1) + ix) * 3],
-				light
+			std::uint8_t const * s = (std::uint8_t const *) &samples
+				[(iy * (texsize[0] + 1) + ix) * 3];
+			light = vector_add(
+				light, float3_array{ float(s[0]), float(s[1]), float(s[2]) }
 			);
 		}
 	}

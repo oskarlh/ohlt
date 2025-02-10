@@ -20,16 +20,16 @@ void TraceMesh ::SetupTrace(
 	// build a bounding box of the entire move
 	ClearBounds(m_vecAbsMins, m_vecAbsMaxs);
 
-	VectorAdd(m_vecStart, mins, m_vecStartMins);
+	m_vecStartMins = vector_add(m_vecStart, mins);
 	AddPointToBounds(m_vecStartMins, m_vecAbsMins, m_vecAbsMaxs);
 
-	VectorAdd(m_vecStart, maxs, m_vecStartMaxs);
+	m_vecStartMaxs = vector_add(m_vecStart, maxs);
 	AddPointToBounds(m_vecStartMaxs, m_vecAbsMins, m_vecAbsMaxs);
 
-	VectorAdd(m_vecEnd, mins, m_vecEndMins);
+	m_vecEndMins = vector_add(m_vecEnd, mins);
 	AddPointToBounds(m_vecEndMins, m_vecAbsMins, m_vecAbsMaxs);
 
-	VectorAdd(m_vecEnd, maxs, m_vecEndMaxs);
+	m_vecEndMaxs = vector_add(m_vecEnd, maxs);
 	AddPointToBounds(m_vecEndMaxs, m_vecAbsMins, m_vecAbsMaxs);
 
 	// spread min\max by a pixel

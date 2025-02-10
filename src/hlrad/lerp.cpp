@@ -1451,7 +1451,6 @@ static localtriangulation_t* CreateLocalTriangulation(
 	localtriangulation_t::Wedge* wnext;
 	float angle;
 	float total;
-	float3_array v;
 	float3_array normal;
 
 	facenum = facetrian->facenum;
@@ -1518,15 +1517,21 @@ static localtriangulation_t* CreateLocalTriangulation(
 				w->wedgenormal = {};
 			} else {
 				w->shape = localtriangulation_t::Wedge::eConvex;
-				VectorSubtract(wnext->leftspot, w->leftspot, v);
+				float3_array const v{
+					vector_subtract(wnext->leftspot, w->leftspot)
+				};
 				GetDirection(v, lt->normal, w->wedgenormal);
 			}
 		} else {
 			w->shape = localtriangulation_t::Wedge::eConcave;
-			VectorAdd(wnext->leftdirection, w->leftdirection, v);
-			CrossProduct(lt->normal, v, normal);
-			VectorSubtract(wnext->leftdirection, w->leftdirection, v);
-			VectorAdd(normal, v, normal);
+			float3_array const v{
+				vector_add(wnext->leftdirection, w->leftdirection)
+			};
+			normal = cross_product(lt->normal, v);
+			normal = vector_add(
+				normal,
+				vector_subtract(wnext->leftdirection, w->leftdirection)
+			);
 			GetDirection(normal, lt->normal, w->wedgenormal);
 			if (g_drawlerp && vector_length(w->wedgenormal) == 0) {
 				Developer(

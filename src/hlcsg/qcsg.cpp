@@ -285,8 +285,7 @@ static void WriteFace(
 		side = !side;
 		if (side) {
 			double3_array center = w.getCenter();
-			double3_array center2;
-			VectorAdd(center, f->plane->normal, center2);
+			double3_array center2{ vector_add(center, f->plane->normal) };
 			fprintf(
 				out_view[hull],
 				"%5.2f %5.2f %5.2f\n",

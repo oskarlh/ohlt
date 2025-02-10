@@ -400,12 +400,12 @@ static bool IsPositionValid(
 	int hunt_size = 2,
 	float hunt_scale = 0.2
 ) {
-	float3_array pos;
 	float3_array pos_normal;
 	float hunt_offset;
 
-	pos = apply_matrix(map->textoworld, pos_st);
-	VectorAdd(pos, map->face_offset, pos);
+	float3_array pos{
+		vector_add(apply_matrix(map->textoworld, pos_st), map->face_offset)
+	};
 	if (usephongnormal) {
 		GetPhongNormal(map->facenum, pos, pos_normal);
 	} else {

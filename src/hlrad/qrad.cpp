@@ -1480,26 +1480,18 @@ static void MakePatchForFace(
 			int edge = g_dsurfedges[f->firstedge + j];
 
 			if (edge > 0) {
-				VectorAdd(
-					g_dvertexes[g_dedges[edge].v[0]].point,
-					centroid,
-					centroid
-				);
-				VectorAdd(
+				centroid = vector_add(
 					g_dvertexes[g_dedges[edge].v[1]].point,
-					centroid,
-					centroid
+					vector_add(
+						g_dvertexes[g_dedges[edge].v[0]].point, centroid
+					)
 				);
 			} else {
-				VectorAdd(
-					g_dvertexes[g_dedges[-edge].v[1]].point,
-					centroid,
-					centroid
-				);
-				VectorAdd(
+				centroid = vector_add(
 					g_dvertexes[g_dedges[-edge].v[0]].point,
-					centroid,
-					centroid
+					vector_add(
+						g_dvertexes[g_dedges[-edge].v[1]].point, centroid
+					)
 				);
 			}
 		}
@@ -1508,7 +1500,7 @@ static void MakePatchForFace(
 		// models/turrets mostly) Save them for moving direct lighting
 		// points towards the face center
 		VectorScale(centroid, 1.0 / (f->numedges * 2), centroid);
-		VectorAdd(centroid, g_face_offset[fn], g_face_centroids[fn]);
+		g_face_centroids[fn] = vector_add(centroid, g_face_offset[fn]);
 	}
 
 	{
@@ -1768,7 +1760,7 @@ static entity_t* FindTexlightEntity(int facenum) {
 	wad_texture_name const texname{ get_texture_by_number(face->texinfo) };
 	entity_t* faceent = g_face_entity[facenum];
 	float3_array centroid{ fast_winding(*face).getCenter() };
-	VectorAdd(centroid, g_face_offset[facenum], centroid);
+	centroid = vector_add(centroid, g_face_offset[facenum]);
 
 	entity_t* found = nullptr;
 	float bestdist = -1;
@@ -2167,10 +2159,8 @@ static void GatherLight(int threadnum) {
 		iIndex = patch->iIndex;
 
 		for (m = 0; m < MAXLIGHTMAPS && patch->totalstyle[m] != 255; m++) {
-			VectorAdd(
-				adds[patch->totalstyle[m]],
-				patch->totallight[m],
-				adds[patch->totalstyle[m]]
+			adds[patch->totalstyle[m]] = vector_add(
+				adds[patch->totalstyle[m]], patch->totallight[m]
 			);
 		}
 
@@ -2216,7 +2206,7 @@ static void GatherLight(int threadnum) {
 								continue;
 							}
 						}
-						VectorAdd(adds[addstyle], v, adds[addstyle]);
+						adds[addstyle] = vector_add(adds[addstyle], v);
 					}
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
@@ -2675,13 +2665,15 @@ static void RadWorld() {
 			for (std::size_t j = 0; j < MAX_MAP_EDGES; j++, es++) {
 				if (es->smooth) {
 					int v0 = g_dedges[j].v[0], v1 = g_dedges[j].v[1];
-					float3_array v = midpoint_between(
-						g_dvertexes[v0].point, g_dvertexes[v1].point
-					);
-					VectorAdd(v, es->interface_normal, v);
-					VectorAdd(
-						v, g_face_offset[es->faces[0] - g_dfaces.data()], v
-					);
+					float3_array const v{ vector_add(
+						vector_add(
+							midpoint_between(
+								g_dvertexes[v0].point, g_dvertexes[v1].point
+							),
+							es->interface_normal
+						),
+						g_face_offset[es->faces[0] - g_dfaces.data()]
+					) };
 					for (float3_array const & p : pos) {
 						fprintf(
 							f,

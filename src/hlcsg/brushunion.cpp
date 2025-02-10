@@ -101,15 +101,15 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 
 	int x = 0;
 	for (bface_t const & face : hull->faces) {
-		double3_array facemid = face.w.getCenter();
-		VectorAdd(midpoint, facemid, midpoint);
+		double3_array const faceMid{ face.w.getCenter() };
+		midpoint = vector_add(midpoint, faceMid);
 		Developer(
 			developer_level::message,
 			"Midpoint for face %d is %f %f %f\n",
 			x,
-			facemid[0],
-			facemid[1],
-			facemid[2]
+			faceMid[0],
+			faceMid[1],
+			faceMid[2]
 		);
 		++x;
 	}
