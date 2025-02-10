@@ -3450,12 +3450,10 @@ void GetPhongNormal(
 			VectorAdd(p2, g_face_offset[facenum], p2);
 			for (s = 0; s < 2; s++) {
 				float3_array s1 = s == 0 ? p1 : p2;
-				float3_array s2;
-				VectorAdd(p1, p2, s2); // edge center
-				VectorScale(s2, 0.5, s2);
+				float3_array const edgeCenter = midpoint_between(p1, p2);
 
 				VectorSubtract(s1, g_face_centroids[facenum], v1);
-				VectorSubtract(s2, g_face_centroids[facenum], v2);
+				VectorSubtract(edgeCenter, g_face_centroids[facenum], v2);
 				VectorSubtract(spot, g_face_centroids[facenum], vspot);
 
 				aa = dot_product(v1, v1);

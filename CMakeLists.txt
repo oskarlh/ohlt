@@ -32,12 +32,12 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/cmdlinecfg.cpp
     ${COMMON_DIR}/filelib.cpp
     ${COMMON_DIR}/hull_size.cpp
+    ${COMMON_DIR}/key_value_definitions.cpp
     ${COMMON_DIR}/legacy_character_encodings.cpp
     ${COMMON_DIR}/log.cpp
     ${COMMON_DIR}/map_entity_parser.cpp
     ${COMMON_DIR}/mathlib.cpp
     ${COMMON_DIR}/messages.cpp
-    ${COMMON_DIR}/scriplib.cpp
     ${COMMON_DIR}/threads.cpp
     ${COMMON_DIR}/utf8.cpp
     ${COMMON_DIR}/winding.cpp
@@ -59,7 +59,10 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/filelib.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/hull_size.h
+    ${COMMON_DIR}/internal_types/entity.h
     ${COMMON_DIR}/internal_types/internal_types.h
+    ${COMMON_DIR}/key_value_definitions.h
+    ${COMMON_DIR}/key_values.h
     ${COMMON_DIR}/legacy_character_encodings.h
     ${COMMON_DIR}/log.h
     ${COMMON_DIR}/map_entity_parser.h
@@ -69,7 +72,6 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/parsing.h
     ${COMMON_DIR}/planes.h
     ${COMMON_DIR}/project_constants.h
-    ${COMMON_DIR}/scriplib.h
     ${COMMON_DIR}/threads.h
     ${COMMON_DIR}/threads2.h
     ${COMMON_DIR}/time_counter.h
@@ -105,7 +107,6 @@ set(BSP_SOURCES
 )
 
 set(BSP_HEADERS
-#    ${COMMON_HEADERS}
     ${BSP_DIR}/brink.h
     ${BSP_DIR}/bsp5.h
 )
@@ -129,7 +130,8 @@ set(CSG_SOURCES
 )
 
 set(CSG_HEADERS
-#    ${COMMON_HEADERS}
+    ${CSG_DIR}/csg_types/csg_entity.h
+    ${CSG_DIR}/csg_types/csg_types.h
     ${CSG_DIR}/csg.h
     ${CSG_DIR}/hlcsg_settings.h
     ${CSG_DIR}/wadpath.h
@@ -164,7 +166,6 @@ set(RAD_SOURCES
 )
 
 set(RAD_HEADERS
-#    ${COMMON_HEADERS}
     ${RAD_DIR}/compress.h
 	${RAD_DIR}/list.h
 	${RAD_DIR}/meshdesc.h
@@ -185,7 +186,6 @@ set(VIS_SOURCES
 )
 
 set(VIS_HEADERS
-#    ${COMMON_HEADERS}
     ${VIS_DIR}/vis.h
 )
 
@@ -200,7 +200,6 @@ set(RIPENT_SOURCES
 )
 
 set(RIPENT_HEADERS
-#    ${COMMON_HEADERS}
     ${RIPENT_DIR}/ripent.h
 )
 

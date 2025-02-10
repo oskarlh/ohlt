@@ -195,7 +195,7 @@ static void AddHullPlane(
 //     clipnodecount        971       1089       1202       1232       1000
 
 void ExpandBrushWithHullBrush(
-	brush_t const * brush,
+	csg_brush const * brush,
 	brushhull_t const * hull0,
 	hullbrush_t const * hb,
 	brushhull_t* hull
@@ -388,7 +388,7 @@ void ExpandBrushWithHullBrush(
 	}
 }
 
-void ExpandBrush(brush_t* brush, int const hullnum) {
+void ExpandBrush(csg_brush* brush, int const hullnum) {
 	hullshape_t const * hs = &g_defaulthulls[hullnum];
 	{ // look up the name of its hull shape in g_hullshapes[]
 		std::u8string const & name = brush->hullshapes[hullnum];
@@ -796,7 +796,7 @@ void SortSides(brushhull_t* h) {
 	);
 }
 
-void MakeHullFaces(brush_t const * const b, brushhull_t* h) {
+void MakeHullFaces(csg_brush const * const b, brushhull_t* h) {
 	SortSides(h);
 
 restart:
@@ -859,7 +859,7 @@ restart:
 // =====================================================================================
 //  MakeBrushPlanes
 // =====================================================================================
-bool MakeBrushPlanes(brush_t* b) {
+bool MakeBrushPlanes(csg_brush* b) {
 	int j;
 	int planenum;
 	side_t* s;
@@ -1007,7 +1007,7 @@ static contents_t TextureContents(wad_texture_name name) {
 //      Perfoms abitrary checking on brush surfaces and states to try and
 //      catch errors
 // =====================================================================================
-contents_t CheckBrushContents(brush_t const * const b) {
+contents_t CheckBrushContents(csg_brush const * const b) {
 	contents_t best_contents;
 	contents_t contents;
 	side_t* s;
@@ -1139,7 +1139,7 @@ contents_t CheckBrushContents(brush_t const * const b) {
 // =====================================================================================
 void CreateBrush(int const brushnum) //--vluzacn
 {
-	brush_t* b;
+	csg_brush* b;
 	contents_t contents;
 	int h;
 
@@ -1191,7 +1191,7 @@ void CreateBrush(int const brushnum) //--vluzacn
 	}
 }
 
-hullbrush_t* CreateHullBrush(brush_t const * b) {
+hullbrush_t* CreateHullBrush(csg_brush const * b) {
 	int const MAXSIZE = 256;
 
 	hullbrush_t* hb;
@@ -1537,7 +1537,7 @@ void CreateHullShape(
 	});
 
 	for (int i = 0; i < entity->numbrushes; i++) {
-		brush_t* b = &g_mapbrushes[entity->firstbrush + i];
+		csg_brush* b = &g_mapbrushes[entity->firstBrush + i];
 		if (b->contents == contents_t::ORIGIN) {
 			continue;
 		}
@@ -1545,7 +1545,7 @@ void CreateHullShape(
 		hs->numbrushes++;
 	}
 	if (hs->numbrushes >= 2) {
-		brush_t* b = &g_mapbrushes[entity->firstbrush];
+		csg_brush* b = &g_mapbrushes[entity->firstBrush];
 		Error(
 			"Entity %i, Brush %i: Too many brushes in info_hullshape.",
 			b->originalentitynum,

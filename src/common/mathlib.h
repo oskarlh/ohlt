@@ -53,7 +53,7 @@ vector_add(any_vec_element auto a, any_vec3 auto const & b) noexcept {
 
 constexpr auto
 vector_multiply(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
-	return to_vec3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
+	return std::array{ a[0] * b[0], a[1] * b[1], a[2] * b[2] };
 }
 
 constexpr auto
@@ -106,7 +106,7 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 
 constexpr auto
 vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
-	return to_vec3(v[0] * scale, v[1] * scale, v[2] * scale);
+	return std::array{ v[0] * scale, v[1] * scale, v[2] * scale };
 }
 
 constexpr auto vector_max_element(any_vec3 auto const & v) noexcept {
@@ -128,23 +128,21 @@ constexpr auto vector_fma(
 		typename Multiplier::value_type,
 		typename ToAdd::value_type>;
 
-	return to_vec3(
-		std::fma(
-			(result_element) multiplicand[0],
-			(result_element) multiplier[0],
-			(result_element) toAdd[0]
-		),
-		std::fma(
-			(result_element) multiplicand[1],
-			(result_element) multiplier[1],
-			(result_element) toAdd[1]
-		),
-		std::fma(
-			(result_element) multiplicand[2],
-			(result_element) multiplier[2],
-			(result_element) toAdd[2]
-		)
-	);
+	return std::array{ std::fma(
+						   (result_element) multiplicand[0],
+						   (result_element) multiplier[0],
+						   (result_element) toAdd[0]
+					   ),
+					   std::fma(
+						   (result_element) multiplicand[1],
+						   (result_element) multiplier[1],
+						   (result_element) toAdd[1]
+					   ),
+					   std::fma(
+						   (result_element) multiplicand[2],
+						   (result_element) multiplier[2],
+						   (result_element) toAdd[2]
+					   ) };
 }
 
 constexpr auto vector_fma(
@@ -153,7 +151,9 @@ constexpr auto vector_fma(
 	any_vec3 auto const & toAdd
 ) noexcept {
 	return vector_fma(
-		multiplicand, to_vec3(multiplier, multiplier, multiplier), toAdd
+		multiplicand,
+		std::array{ multiplier, multiplier, multiplier },
+		toAdd
 	);
 }
 
@@ -184,6 +184,13 @@ vector_maximums(VecA const & a, VecB const & b) noexcept {
 	return { std::max(vec_element{ a[0] }, vec_element{ b[0] }),
 			 std::max(vec_element{ a[1] }, vec_element{ b[1] }),
 			 std::max(vec_element{ a[2] }, vec_element{ b[2] }) };
+}
+
+template <any_vec3 VecA, any_vec3 VecB>
+constexpr largest_vec3<VecA, VecB>
+midpoint_between(VecA const & a, VecB const & b) noexcept {
+	using vec_element = largest_vec3<VecA, VecB>::value_type;
+	return vector_scale(vector_add(a, b), 0.5f);
 }
 
 template <any_vec_element T>

@@ -311,7 +311,7 @@ winding_base<VecElement>::winding_base(
 		}
 
 		dv = &g_dvertexes[v];
-		m_Points[i] = to_vec3<vec3>(dv->point);
+		m_Points[i] = to_vec3<vec_element>(dv->point);
 	}
 
 	RemoveColinearPoints(epsilon);
@@ -319,12 +319,12 @@ winding_base<VecElement>::winding_base(
 
 template <any_vec_element VecElement>
 winding_base<VecElement>::winding_base(dplane_t const & plane) {
-	initFromPlane(to_vec3<vec3>(plane.normal), plane.dist);
+	initFromPlane(to_vec3<vec_element>(plane.normal), plane.dist);
 }
 
 template <any_vec_element VecElement>
 winding_base<VecElement>::winding_base(mapplane_t const & plane) {
-	initFromPlane(to_vec3<vec3>(plane.normal), plane.dist);
+	initFromPlane(to_vec3<vec_element>(plane.normal), plane.dist);
 }
 
 // Remove the colinear point of any three points that form a triangle which
@@ -366,7 +366,9 @@ void winding_base<VecElement>::Clip(
 	winding_base& back,
 	vec_element epsilon
 ) const {
-	Clip(to_vec3<vec3>(plane.normal), plane.dist, front, back, epsilon);
+	Clip(
+		to_vec3<vec_element>(plane.normal), plane.dist, front, back, epsilon
+	);
 }
 
 template <any_vec_element VecElement>

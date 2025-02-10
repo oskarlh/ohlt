@@ -1085,7 +1085,7 @@ int main(int const argc, char** argv) {
 			safe_strncat(portalfile, ".prt", _MAX_PATH);
 
 			LoadBSPFile(source);
-			ParseEntities();
+			parse_entities_from_bsp_file();
 			{
 				for (std::size_t i = 0; i < g_numentities; i++) {
 					std::u8string_view current_entity_classname

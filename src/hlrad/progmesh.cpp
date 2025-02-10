@@ -207,12 +207,10 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 	// would be generated.  i.e. normal of a remaining face gets
 	// flipped.  I never seemed to run into this problem and
 	// therefore never added code to detect this case.
-	float3_array edgedir{};
 
-	VectorSubtract(v->position, u->position, edgedir);
-
-	float edgelength = vector_length(edgedir);
-	float curvature = 0.0f;
+	float const edgelength = distance_between_points(
+		v->position, u->position
+	);
 
 	int i;
 
@@ -225,6 +223,7 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 		}
 	}
 
+	float curvature = 0.0f;
 	// use the triangle facing most away from the sides
 	// to determine our curvature term
 	for (i = 0; i < u->face.num; i++) {

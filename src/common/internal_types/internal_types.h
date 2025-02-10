@@ -1,5 +1,7 @@
 #pragma once
 
+#include "entity.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <limits>

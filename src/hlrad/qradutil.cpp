@@ -812,9 +812,9 @@ bool FindNearestPosition(
 				}
 				float3_array const current_st{ p->best_s, p->best_t, 0 };
 
-				float3_array v;
-				VectorSubtract(current_st, original_st, v);
-				float const d = vector_length(v);
+				float const d = distance_between_points(
+					current_st, original_st
+				);
 
 				if (!found || !p->nudged && best_nudged
 					|| p->nudged == best_nudged

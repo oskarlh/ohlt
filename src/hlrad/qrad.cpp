@@ -423,7 +423,7 @@ std::vector<minlight_t> s_minlights;
 // =====================================================================================
 static void ReadLightFile(char const * const filename) {
 	FILE* f;
-	char scan[MAXTOKEN];
+	char scan[4096]; // TODO: Replace. 4096 is arbitrary
 	short argCnt;
 	unsigned int file_texlights = 0;
 
@@ -1513,16 +1513,11 @@ static void MakePatchForFace(
 
 	{
 		if (g_subdivide) {
-			float amt;
-			float length;
-			float3_array delta;
-
 			bounding_box bounds = patch->winding->getBounds();
-			VectorSubtract(
-				to_float3(bounds.maxs), to_float3(bounds.mins), delta
+			float const length = distance_between_points(
+				to_float3(bounds.maxs), to_float3(bounds.mins)
 			);
-			length = vector_length(delta);
-			amt = patch->chop;
+			float const amt = patch->chop;
 
 			if (length > amt) {
 				if (patch->area < 1.0) {
@@ -2680,11 +2675,9 @@ static void RadWorld() {
 			for (std::size_t j = 0; j < MAX_MAP_EDGES; j++, es++) {
 				if (es->smooth) {
 					int v0 = g_dedges[j].v[0], v1 = g_dedges[j].v[1];
-					float3_array v;
-					VectorAdd(
-						g_dvertexes[v0].point, g_dvertexes[v1].point, v
+					float3_array v = midpoint_between(
+						g_dvertexes[v0].point, g_dvertexes[v1].point
 					);
-					VectorScale(v, 0.5, v);
 					VectorAdd(v, es->interface_normal, v);
 					VectorAdd(
 						v, g_face_offset[es->faces[0] - g_dfaces.data()], v
@@ -4090,7 +4083,7 @@ int main(int const argc, char** argv) {
 
 			safe_snprintf(g_source, _MAX_PATH, "%s.bsp", g_Mapname);
 			LoadBSPFile(g_source);
-			ParseEntities();
+			parse_entities_from_bsp_file();
 			if (g_fastmode) {
 				g_numbounce = 0;
 				g_softsky = false;

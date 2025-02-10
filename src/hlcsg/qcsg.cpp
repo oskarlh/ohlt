@@ -22,6 +22,7 @@
 #include "filelib.h"
 #include "hlcsg_settings.h"
 #include "legacy_character_encodings.h"
+#include "map_entity_parser.h"
 #include "time_counter.h"
 #include "utf8.h"
 
@@ -366,7 +367,7 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 //      generate a mirrored copy of the face to be seen from the inside.
 // =====================================================================================
 static void SaveOutside(
-	brush_t& b,
+	csg_brush& b,
 	int hull,
 	std::vector<bface_t>& outside,
 	contents_t mirrorcontents
@@ -558,7 +559,7 @@ static std::vector<bface_t> CopyFacesToOutside(brushhull_t const * bh) {
 static void CSGBrush(int brushnum) {
 	// get entity and brush info from the given brushnum that we can work
 	// with
-	brush_t& b1 = g_mapbrushes[brushnum];
+	csg_brush& b1 = g_mapbrushes[brushnum];
 	entity_t* e = &g_entities[b1.entitynum];
 
 	// for each of the hulls
@@ -598,12 +599,12 @@ static void CSGBrush(int brushnum) {
 		// for each brush in entity e
 		for (int bn = 0; bn < e->numbrushes; bn++) {
 			// see if b2 needs to clip a chunk out of b1
-			if (e->firstbrush + bn == brushnum) {
+			if (e->firstBrush + bn == brushnum) {
 				continue;
 			}
-			overwrite = e->firstbrush + bn > brushnum;
+			overwrite = e->firstBrush + bn > brushnum;
 
-			brush_t const & b2 = g_mapbrushes[e->firstbrush + bn];
+			csg_brush const & b2 = g_mapbrushes[e->firstBrush + bn];
 			brushhull_t const & bh2 = b2.hulls[hull];
 
 			if (b2.contents == contents_t::TOEMPTY) {
@@ -1060,7 +1061,7 @@ static float3_array angles_for_vector(float3_array const & vector) {
 static void UnparseEntities() {
 	char8_t* buf;
 	char8_t* end;
-	char line[MAXTOKEN];
+	char line[4096]; // TODO: Replace. 4096 is arbitrary
 	int i;
 
 	buf = g_dentdata.data();
@@ -1211,6 +1212,9 @@ static void UnparseEntities() {
 		end += 2;
 
 		for (entity_key_value const & kv : g_entities[i].keyValues) {
+			if (kv.is_removed()) {
+				continue;
+			}
 			snprintf(
 				line,
 				sizeof(line),
@@ -1249,23 +1253,19 @@ static void ConvertHintToEmpty() {
 // Only used with -onlyents
 void LoadWadValue() {
 	std::u8string wadValue;
-	ParseFromMemory(std::u8string_view{ g_dentdata.data(), g_entdatasize });
-	if (GetToken(true)) {
-		if (g_token != u8"{"sv) {
-			Error("ParseEntity: { not found");
-		}
-		while (1) {
-			if (!GetToken(true)) {
-				Error("ParseEntity: EOF without closing brace");
-			}
-			if (g_token == u8"}"sv) {
-				break;
-			}
-			entity_key_value kv{ parse_entity_key_value() };
-			if (kv.key() == u8"wad") {
-				set_key_value(&g_entities[0], std::move(kv));
-			}
-		}
+	map_entity_parser parser{ { g_dentdata.data(), g_entdatasize } };
+	parsed_entity parsedEntity;
+	if (parser.parse_entity(parsedEntity)
+		!= parse_entity_outcome::entity_parsed) {
+		Error("Failed to parse worldspawn");
+	}
+	auto wadKvIt = std::ranges::find_if(
+		parsedEntity.keyValues,
+		[](entity_key_value const & kv) { return kv.key() == u8"wad"; }
+	);
+
+	if (wadKvIt != parsedEntity.keyValues.end()) {
+		set_key_value(&g_entities[0], std::move(*wadKvIt));
 	}
 }
 
@@ -1299,10 +1299,10 @@ unsigned int ClipNodesDiscarded = 0;
 
 // AJM: added in function
 static void MarkEntForNoclip(entity_t* ent) {
-	brush_t* b;
+	csg_brush* b;
 
-	for (std::size_t i = ent->firstbrush;
-		 i < ent->firstbrush + ent->numbrushes;
+	for (std::size_t i = ent->firstBrush;
+		 i < ent->firstBrush + ent->numbrushes;
 		 ++i) {
 		b = &g_mapbrushes[i];
 		b->noclip = true;
@@ -1380,9 +1380,9 @@ static void ProcessModels() {
 	int type;
 	int placed;
 	contents_t contents;
-	brush_t temp;
+	csg_brush temp;
 
-	std::vector<brush_t> temps;
+	std::vector<csg_brush> temps;
 
 	for (int i = 0; i < g_numentities; i++) {
 		if (!g_entities[i].numbrushes) { // only models
@@ -1390,7 +1390,7 @@ static void ProcessModels() {
 		}
 
 		// sort the contents down so stone bites water, etc
-		int first = g_entities[i].firstbrush;
+		int first = g_entities[i].firstBrush;
 		if (temps.size() < g_entities[i].numbrushes) {
 			temps.resize(g_entities[i].numbrushes);
 		}
@@ -1402,7 +1402,7 @@ static void ProcessModels() {
 		for (placed = 0; placed < g_entities[i].numbrushes;) {
 			bool b_contents = false;
 			for (int j = 0; j < g_entities[i].numbrushes; j++) {
-				brush_t* brush = &temps[j];
+				csg_brush* brush = &temps[j];
 				if (b_placedcontents && brush->contents <= placedcontents) {
 					continue;
 				}
@@ -1413,7 +1413,7 @@ static void ProcessModels() {
 				contents = brush->contents;
 			}
 			for (int j = 0; j < g_entities[i].numbrushes; j++) {
-				brush_t* brush = &temps[j];
+				csg_brush* brush = &temps[j];
 				if (brush->contents == contents) {
 					g_mapbrushes[first + placed] = *brush;
 					placed++;
@@ -1453,7 +1453,7 @@ static void ProcessModels() {
 static void SetModelCenters(int entitynum) {
 	int i;
 	int last;
-	char string[MAXTOKEN];
+	char string[4096]; // TODO: Replace. 4096 is arbitrary
 	entity_t* e = &g_entities[entitynum];
 	bounding_box bounds;
 
@@ -1468,7 +1468,7 @@ static void SetModelCenters(int entitynum) {
 		return;
 	}
 
-	for (i = e->firstbrush, last = e->firstbrush + e->numbrushes; i < last;
+	for (i = e->firstBrush, last = e->firstBrush + e->numbrushes; i < last;
 		 i++) {
 		if (g_mapbrushes[i].contents != contents_t::ORIGIN
 			&& g_mapbrushes[i].contents != contents_t::BOUNDINGBOX) {
@@ -1476,13 +1476,11 @@ static void SetModelCenters(int entitynum) {
 		}
 	}
 
-	double3_array center = vector_scale(
-		vector_add(bounds.mins, bounds.maxs), 0.5
-	);
+	double3_array center = midpoint_between(bounds.mins, bounds.maxs);
 
 	safe_snprintf(
 		string,
-		MAXTOKEN,
+		sizeof(string),
 		"%i %i %i",
 		(int) center[0],
 		(int) center[1],

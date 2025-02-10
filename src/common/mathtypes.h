@@ -10,11 +10,11 @@ using float3_array = std::array<float, 3>;	 // x, y, z
 using double3_array = std::array<double, 3>; // x, y, z
 
 template <class T>
-concept any_vec3 = std::same_as<T, float3_array>
-	|| std::same_as<T, double3_array>;
+concept any_vec3 = std::floating_point<typename T::value_type>
+	&& std::same_as<T, std::array<typename T::value_type, 3>>;
 
 template <class T>
-concept any_vec_element = std::same_as<T, float> || std::same_as<T, double>;
+concept any_vec_element = std::floating_point<T>;
 
 template <any_vec3 FirstVec3, any_vec3... Rest>
 struct largest_vec3_helper final {
@@ -50,20 +50,17 @@ constexpr double3_array const & to_double3(double3_array const & input
 	return input;
 }
 
-template <any_vec3 Out>
-constexpr float3_array to_vec3(any_vec3 auto const & input) noexcept
-	requires(std::is_same_v<Out, float3_array>) {
-	return to_float3(input);
+template <any_vec_element OutElement, any_vec_element InElement>
+constexpr std::array<OutElement, 3>
+to_vec3(std::array<InElement, 3> const & input) noexcept {
+	return std::array{ OutElement(input[0]),
+					   OutElement(input[1]),
+					   OutElement(input[2]) };
 }
 
-template <any_vec3 Out>
-constexpr double3_array to_vec3(any_vec3 auto const & input) noexcept
-	requires(std::is_same_v<Out, double3_array>) {
-	return to_double3(input);
-}
-
-template <any_vec_element VecElement>
-constexpr std::array<VecElement, 3>
-to_vec3(VecElement el0, VecElement el1, VecElement el2) noexcept {
-	return std::array<VecElement, 3>{ el0, el1, el2 };
+template <any_vec_element OutElement, any_vec_element InElement>
+constexpr std::array<OutElement, 3> const &
+to_vec3(std::array<InElement, 3> const & input) noexcept
+	requires(std::is_same_v<OutElement, InElement>) {
+	return input;
 }

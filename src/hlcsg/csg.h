@@ -4,6 +4,7 @@
 #include "bspfile.h"
 #include "cmdlib.h"
 #include "cmdlinecfg.h"
+#include "csg_types/csg_types.h"
 #include "filelib.h"
 #include "hlassert.h"
 #include "hlcsg_settings.h"
@@ -13,7 +14,6 @@
 #include "mathlib.h"
 #include "messages.h"
 #include "planes.h"
-#include "scriplib.h"
 #include "threads.h"
 #include "wadpath.h"
 #include "win32fix.h"
@@ -118,8 +118,8 @@ inline std::uint32_t fast_checksum(brushhull_t const & brushHull) noexcept {
 using cliphull_bitmask = std::uint8_t;
 static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
 
-struct brush_t
-	final { // TODO: Rename this, since we have a brush_t in HLBSP too
+struct csg_brush
+	final { // TODO: Rename this, since we have a csg_brush in HLBSP too
 	entity_count entitynum;
 	// Same as entitynum except if entities are removed/added during the
 	// compilation process. Used for helpful error messages
@@ -154,7 +154,7 @@ struct brush_t
 };
 
 template <>
-inline std::uint32_t fast_checksum(brush_t const & brush) noexcept {
+inline std::uint32_t fast_checksum(csg_brush const & brush) noexcept {
 	return fast_checksum(
 		brush.entitynum,
 		brush.originalentitynum,
@@ -217,7 +217,7 @@ struct hullshape_t final {
 // map.c
 
 extern int g_nummapbrushes;
-extern brush_t g_mapbrushes[MAX_MAP_BRUSHES];
+extern csg_brush g_mapbrushes[MAX_MAP_BRUSHES];
 
 extern int g_numbrushsides;
 extern side_t g_brushsides[MAX_MAP_SIDES];
@@ -248,8 +248,8 @@ GetTextureByNumber_CSG(int texturenumber);
 //=============================================================================
 // brush.c
 
-extern brush_t* Brush_LoadEntity(entity_t* ent, int hullnum);
-extern contents_t CheckBrushContents(brush_t const * const b);
+extern csg_brush* Brush_LoadEntity(entity_t* ent, int hullnum);
+extern contents_t CheckBrushContents(csg_brush const * const b);
 
 extern void CreateBrush(int brushnum);
 extern void CreateHullShape(

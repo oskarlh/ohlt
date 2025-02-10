@@ -523,11 +523,12 @@ constexpr float ANGLE_DOWN{ -2.0 };
 //
 // Entity Related Stuff
 //
+#include "internal_types/internal_types.h"
 
 struct entity_t final {
 	float3_array origin;
-	std::uint32_t firstbrush;
-	std::uint16_t numbrushes;
+	brush_count firstBrush;
+	entity_local_brush_count numbrushes;
 	std::vector<entity_key_value> keyValues;
 };
 
@@ -535,13 +536,14 @@ template <>
 inline std::uint32_t fast_checksum(entity_t const & ent) noexcept {
 	return fast_checksum(
 		ent.origin,
-		ent.firstbrush,
+		ent.firstBrush,
 		ent.numbrushes,
 		fast_checksum(std::span{ ent.keyValues })
 	);
 }
 
-extern void ParseEntities();
+// Called by every stage except hlcsg
+extern void parse_entities_from_bsp_file();
 
 extern void DeleteKey(entity_t* ent, std::u8string_view key);
 extern void set_key_value(entity_t* ent, entity_key_value&& newKeyValue);
@@ -657,7 +659,6 @@ get_vector_for_key(entity_t const & ent, std::u8string_view key)
 
 std::optional<std::reference_wrapper<entity_t>>
 find_target_entity(std::u8string_view target);
-entity_key_value parse_entity_key_value();
 entity_t* EntityForModel(int modnum);
 
 //

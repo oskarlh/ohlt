@@ -1434,7 +1434,7 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 	g_bspfilename += u8".bsp";
 	// load the output of csg
 	LoadBSPFile(g_bspfilename.c_str());
-	ParseEntities();
+	parse_entities_from_bsp_file();
 
 	Settings(); // AJM: moved here due to info_compile_parameters entity
 

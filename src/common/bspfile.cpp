@@ -5,9 +5,9 @@
 #include "filelib.h"
 #include "hlassert.h"
 #include "log.h"
+#include "map_entity_parser.h"
 #include "mathlib.h"
 #include "messages.h"
-#include "scriplib.h"
 
 #include <bit>
 #include <charconv>
@@ -893,12 +893,6 @@ void DeleteEmbeddedLightmaps() {
 	}
 }
 
-entity_key_value parse_entity_key_value() {
-	std::u8string key{ g_token };
-	GetToken(false);
-	return entity_key_value{ key, g_token };
-}
-
 /*
  * ================
  * ParseEntity
@@ -909,39 +903,21 @@ entity_key_value parse_entity_key_value() {
 // parseentity calls
 extern void GetParamsFromEnt(entity_t* mapent);
 
-bool ParseEntity() {
-	if (!GetToken(true)) {
-		return false;
-	}
-
-	if (g_token != u8"{"sv) {
-		Error("ParseEntity: { not found");
-	}
-
+void add_entity_from_bsp_file(parsed_entity& parsedEntity) {
 	if (g_numentities == MAX_MAP_ENTITIES) {
 		Error("g_numentities == MAX_MAP_ENTITIES");
 	}
 
 	entity_t* mapent = &g_entities[g_numentities];
 	g_numentities++;
-	mapent->keyValues.reserve(16);
-
-	while (1) {
-		if (!GetToken(true)) {
-			Error("ParseEntity: EOF without closing brace");
-		}
-		if (g_token == u8"}"sv) {
-			break;
-		}
-		set_key_value(mapent, parse_entity_key_value());
-	}
+	mapent->keyValues = parsedEntity.keyValues;
 
 	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
 		Log("Map entity info_compile_parameters detected, using compile "
 			"settings\n");
 		GetParamsFromEnt(mapent);
 	}
-	// ugly code
+	// Ugly code
 	if (key_value_starts_with(mapent, u8"classname", u8"light")
 		&& has_key_value(mapent, u8"_tex")) {
 		set_key_value(mapent, u8"convertto", get_classname(*mapent));
@@ -957,30 +933,40 @@ bool ParseEntity() {
 		);
 		DeleteKey(mapent, u8"convertfrom");
 	}
-	if (classname_is(mapent, u8"light_environment")
-		&& key_value_is(mapent, u8"convertfrom", u8"info_sunlight")) {
-		*mapent = entity_t{};
-		g_numentities--;
-		return true;
+	if (classname_is(mapent, u8"light_environment")) {
+		if (key_value_is(mapent, u8"convertfrom", u8"info_sunlight")) {
+			*mapent = entity_t{};
+			g_numentities--;
+		} else if (IntForKey(mapent, u8"_fake")) {
+			set_key_value(mapent, u8"classname", u8"info_sunlight");
+		}
 	}
-	if (classname_is(mapent, u8"light_environment")
-		&& IntForKey(mapent, u8"_fake")) {
-		set_key_value(mapent, u8"classname", u8"info_sunlight");
-	}
-
-	return true;
 }
 
-// =====================================================================================
-//  ParseEntities
-//      Parses the dentdata string into entities
-// =====================================================================================
-void ParseEntities() {
+// Parses the dentdata string into entities
+void parse_entities_from_bsp_file() {
 	g_numentities = 0;
-	ParseFromMemory(std::u8string_view{ g_dentdata.data(), g_entdatasize });
 
-	while (ParseEntity())
-		;
+	map_entity_parser parser{ { g_dentdata.data(), g_entdatasize } };
+	parse_entity_outcome parseOutcome;
+	parsed_entity parsedEntity;
+	while ((parseOutcome = parser.parse_entity(parsedEntity))
+		   == parse_entity_outcome::entity_parsed) {
+		add_entity_from_bsp_file(parsedEntity);
+	}
+
+	if (parseOutcome == parse_entity_outcome::bad_input) {
+		Error(
+			"MAP parsing error near %s %i",
+			(char const *) parser.remaining_input().substr(0, 80).data(),
+			(int) parser.remaining_input()[0]
+		);
+	} else if (parseOutcome
+			   == parse_entity_outcome::not_valve220_map_format) {
+		Error(
+			"It looks like you are trying to compile a map made with a very old editor or one which outputs incompatible .map files. The compiler supports only the Valve220 .map format. Try opening the .map in Hammer Editor 3.5, J.A.C.K., or another modern editor, and exporting the .map again.\n"
+		);
+	}
 }
 
 static entity_key_value const * get_key_value_pointer(

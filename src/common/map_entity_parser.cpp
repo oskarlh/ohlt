@@ -279,17 +279,29 @@ bool map_entity_parser::parse_brushes(parsed_brushes& out) noexcept {
 	return true;
 }
 
-bool map_entity_parser::isValve220Format() const noexcept {
-	constexpr std::u8string_view mapVersionKey = u8"\"mapversion\"";
-	std::size_t mapVersionKeyStart = allInput.find(mapVersionKey);
-	if (mapVersionKeyStart == std::u8string_view::npos) {
+bool map_entity_parser::isOldFormat() const noexcept {
+	std::u8string_view input{ allInput };
+
+	constexpr std::u8string_view worldspawnClassnameValue
+		= u8"\"worldspawn\"";
+	std::size_t worldspawnClassnameValueStart = input.find(
+		worldspawnClassnameValue
+	);
+	if (worldspawnClassnameValueStart == std::u8string_view::npos) {
 		return false;
 	}
-	std::u8string_view afterMapVersionStartKey = allInput.substr(
-		mapVersionKeyStart + mapVersionKey.length()
+	input.remove_prefix(
+		worldspawnClassnameValueStart + worldspawnClassnameValue.length()
 	);
-	skip_whitespace_and_comments(afterMapVersionStartKey);
-	return afterMapVersionStartKey.starts_with(u8"\"220\"");
+
+	constexpr std::u8string_view mapVersionKey = u8"\"mapversion\"";
+	std::size_t mapVersionKeyStart = input.find(mapVersionKey);
+	if (mapVersionKeyStart == std::u8string_view::npos) {
+		return true;
+	}
+	input.remove_prefix(mapVersionKeyStart + mapVersionKey.length());
+
+	return !input.contains(u8"\"220\"");
 }
 
 map_entity_parser::map_entity_parser(std::u8string_view str) noexcept :
@@ -301,7 +313,8 @@ parse_entity_outcome map_entity_parser::parse_entity(parsed_entity& ent
 
 	skip_whitespace_and_comments(remainingInput);
 
-	if (remainingInput.empty()) {
+	if (remainingInput.empty()
+		|| (remainingInput.length() == 1 && remainingInput[0] == u8'\0')) {
 		ent.free_memory();
 		return parse_entity_outcome::reached_end;
 	}
@@ -318,7 +331,7 @@ parse_entity_outcome map_entity_parser::parse_entity(parsed_entity& ent
 		}
 	}
 
-	if (!isValve220Format()) {
+	if (isOldFormat()) {
 		return parse_entity_outcome::not_valve220_map_format;
 	}
 	return parse_entity_outcome::bad_input;

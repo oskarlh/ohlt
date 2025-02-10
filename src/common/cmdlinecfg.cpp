@@ -3,7 +3,6 @@
 #include "cmdlib.h"
 #include "filelib.h"
 #include "log.h"
-#include "scriplib.h"
 #include "utf8.h"
 
 #include <algorithm>
@@ -278,6 +277,9 @@ void unparsearg(int& argc, char**& argv, char8_t* cmdline) {
 void ParseParamFile(
 	int const argc, char** const argv, int& argcnew, char**& argvnew
 ) {
+	// MAXTOKEN is arbitrary. TODO: Replace strings with
+	// std::u8string/std::u8string_view
+	constexpr std::size_t MAXTOKEN = 4444;
 	char8_t token[MAXTOKEN], words[MAXTOKEN], cmdline[MAXTOKEN];
 
 	std::filesystem::path settingsFilePath

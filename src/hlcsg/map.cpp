@@ -8,13 +8,13 @@
 using namespace std::literals;
 
 int g_nummapbrushes;
-brush_t g_mapbrushes[MAX_MAP_BRUSHES];
+csg_brush g_mapbrushes[MAX_MAP_BRUSHES];
 
 int g_numbrushsides;
 side_t g_brushsides[MAX_MAP_SIDES];
 
-brush_t& copy_last_brush_with_sides(brush_t* lastBrush) {
-	brush_t& newBrush = lastBrush[1];
+csg_brush& copy_last_brush_with_sides(csg_brush* lastBrush) {
+	csg_brush& newBrush = lastBrush[1];
 	hlassume(g_nummapbrushes <= MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
 	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
 	newBrush = *lastBrush;
@@ -62,8 +62,8 @@ add_parsed_entity_result add_parsed_entity(
 ) {
 	bool all_clip = true;
 	entity_t& mapent{ g_entities[entityNumber] };
-	mapent.firstbrush = firstBrushNumber;
-	mapent.keyValues = std::move(parsedEntity.keyValues);
+	mapent.firstBrush = firstBrushNumber;
+	mapent.keyValues = parsedEntity.keyValues;
 
 	side_count sidesAdded = 0;
 
@@ -109,7 +109,7 @@ add_parsed_entity_result add_parsed_entity(
 	// Add brushes
 	for (parsed_brush const & parsedBrush : parsedEntity.brushes) {
 		// Get next brush slot
-		brush_t& b = g_mapbrushes[firstBrushNumber + mapent.numbrushes];
+		csg_brush& b = g_mapbrushes[firstBrushNumber + mapent.numbrushes];
 		b = {};
 
 		//  Set the first side of the brush to current global side count
@@ -260,7 +260,7 @@ add_parsed_entity_result add_parsed_entity(
 			// Get sizes. This is an ugly method that wastes work
 			contents_t const contents = b.contents;
 			b.contents = contents_t::SOLID;
-			CreateBrush(mapent.firstbrush + b.brushnum);
+			CreateBrush(mapent.firstBrush + b.brushnum);
 			b.contents = contents;
 			for (brushhull_t& brushHull : b.hulls) {
 				brushHull.faces.clear();
@@ -269,17 +269,14 @@ add_parsed_entity_result add_parsed_entity(
 			if (!isWorldspawn) { // Code elsewhere enforces no ORIGIN in
 								 // world message
 
-				double3_array origin = vector_scale(
-					vector_add(
-						b.hulls[0].bounds.mins, b.hulls[0].bounds.maxs
-					),
-					0.5
+				double3_array const origin = midpoint_between(
+					b.hulls[0].bounds.mins, b.hulls[0].bounds.maxs
 				);
 
-				char string[MAXTOKEN];
+				char string[4096];
 				safe_snprintf(
 					string,
-					MAXTOKEN,
+					4096,
 					"%i %i %i",
 					(int) origin[0],
 					(int) origin[1],
@@ -320,7 +317,7 @@ add_parsed_entity_result add_parsed_entity(
 			// Get sizes. This is an ugly method that wastes work
 			contents_t const contents = b.contents;
 			b.contents = contents_t::SOLID;
-			CreateBrush(mapent.firstbrush + b.brushnum);
+			CreateBrush(mapent.firstBrush + b.brushnum);
 			b.contents = contents;
 			for (brushhull_t& brushHull : b.hulls) {
 				brushHull.faces.clear();
@@ -331,10 +328,10 @@ add_parsed_entity_result add_parsed_entity(
 				double3_array const mins{ b.hulls[0].bounds.mins };
 				double3_array const maxs{ b.hulls[0].bounds.maxs };
 
-				char string[MAXTOKEN];
+				char string[4096];
 				safe_snprintf(
 					string,
-					MAXTOKEN,
+					4096,
 					"%.0f %.0f %.0f %.0f %.0f %.0f",
 					mins[0],
 					mins[1],
@@ -353,7 +350,7 @@ add_parsed_entity_result add_parsed_entity(
 			}
 		}
 		if (g_skyclip && b.contents == contents_t::SKY && !b.noclip) {
-			brush_t& newBrush = copy_last_brush_with_sides(&b);
+			csg_brush& newBrush = copy_last_brush_with_sides(&b);
 			++mapent.numbrushes;
 			sidesAdded += newBrush.numSides;
 
@@ -379,7 +376,7 @@ add_parsed_entity_result add_parsed_entity(
 				}
 			}
 			if (mixed) {
-				brush_t& newBrush = copy_last_brush_with_sides(&b);
+				csg_brush& newBrush = copy_last_brush_with_sides(&b);
 				++mapent.numbrushes;
 				sidesAdded += newBrush.numSides;
 				newBrush.cliphull = 0;
@@ -395,7 +392,7 @@ add_parsed_entity_result add_parsed_entity(
 	}
 
 	for (brush_count i = 0; i < mapent.numbrushes; ++i) {
-		brush_t const & brush = g_mapbrushes[mapent.firstbrush + i];
+		csg_brush const & brush = g_mapbrushes[mapent.firstBrush + i];
 		if (brush.cliphull == 0 && brush.contents != contents_t::ORIGIN
 			&& brush.contents != contents_t::BOUNDINGBOX) {
 			all_clip = false;
@@ -462,9 +459,9 @@ add_parsed_entity_result add_parsed_entity(
 			// Scaling hack
 
 			int ibrush, iside, ipoint;
-			brush_t* brush;
+			csg_brush* brush;
 			side_t* side;
-			for (ibrush = 0, brush = g_mapbrushes + mapent.firstbrush;
+			for (ibrush = 0, brush = g_mapbrushes + mapent.firstBrush;
 				 ibrush < mapent.numbrushes;
 				 ++ibrush, ++brush) {
 				for (iside = 0, side = g_brushsides + brush->firstSide;
@@ -588,7 +585,7 @@ add_parsed_entity_result add_parsed_entity(
 			if (ent_gscale_b) {
 				if (has_key_value(&mapent, u8"origin")) {
 					std::array<std::int32_t, 3> origin;
-					char8_t string[MAXTOKEN];
+					char8_t string[4096];
 					double3_array const originScaled = vector_scale(
 						get_double3_for_key(mapent, u8"origin"), ent_gscale
 					);
@@ -600,7 +597,7 @@ add_parsed_entity_result add_parsed_entity(
 
 					safe_snprintf(
 						(char*) string,
-						MAXTOKEN,
+						4096,
 						"%d %d %d",
 						origin[0],
 						origin[1],
@@ -644,10 +641,10 @@ add_parsed_entity_result add_parsed_entity(
 							point = vector_scale(point, ent_gscale);
 						}
 					}
-					char string[MAXTOKEN];
+					char string[4096];
 					safe_snprintf(
 						string,
-						MAXTOKEN,
+						4096,
 						"%.0f %.0f %.0f %.0f %.0f %.0f",
 						b[0][0],
 						b[0][1],
@@ -685,10 +682,10 @@ add_parsed_entity_result add_parsed_entity(
 		brush_count newbrushes = mapent.numbrushes;
 		brush_count worldbrushes = g_entities[0].numbrushes;
 
-		auto temp = std::make_unique_for_overwrite<brush_t[]>(newbrushes);
+		auto temp = std::make_unique_for_overwrite<csg_brush[]>(newbrushes);
 		// TODO: Move instead of copying
 		std::copy_n(
-			g_mapbrushes + mapent.firstbrush, newbrushes, temp.get()
+			g_mapbrushes + mapent.firstBrush, newbrushes, temp.get()
 		);
 
 		for (brush_count i = 0; i < newbrushes; ++i) {
@@ -711,7 +708,7 @@ add_parsed_entity_result add_parsed_entity(
 		// Fix up indexes
 		g_entities[0].numbrushes += newbrushes;
 		for (std::size_t i = 1; i < entityNumber; i++) {
-			g_entities[i].firstbrush += newbrushes;
+			g_entities[i].firstBrush += newbrushes;
 		}
 		// TODO: Is this `mapent = {};` actually necessary?
 		mapent = {};

@@ -175,8 +175,8 @@ static bool isInvalidHull(brushhull_t const * hull) {
 
 void CalculateBrushUnions(int const brushnum) {
 	int bn, hull;
-	brush_t* b1;
-	brush_t* b2;
+	csg_brush* b1;
+	csg_brush* b2;
 	brushhull_t* bh1;
 	brushhull_t* bh2;
 	entity_t* e;
@@ -193,7 +193,7 @@ void CalculateBrushUnions(int const brushnum) {
 
 		for (bn = brushnum + 1; bn < e->numbrushes;
 			 bn++) { // Only compare if b2 > b1, tests are communitive
-			b2 = &g_mapbrushes[e->firstbrush + bn];
+			b2 = &g_mapbrushes[e->firstBrush + bn];
 			bh2 = &b2->hulls[hull];
 
 			if (bh2->faces.empty()) // Skip it if it is not in this hull

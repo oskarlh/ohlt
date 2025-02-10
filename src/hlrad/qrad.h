@@ -9,7 +9,6 @@
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"
-#include "scriplib.h"
 #include "threads.h"
 #include "win32fix.h"
 #include "winding.h"

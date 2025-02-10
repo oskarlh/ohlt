@@ -183,7 +183,8 @@ class map_entity_parser final {
 
 	// The compilers only support the Valve 220 .MAP format. .MAP files
 	// created by old versions of WorldCraft or Quark are not supported.
-	bool isValve220Format() const noexcept;
+	// This may return a false negative but not a false positive
+	bool isOldFormat() const noexcept;
 
   public:
 	// Note: str will be kept and used
