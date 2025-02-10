@@ -2092,7 +2092,7 @@ int main(int const argc, char** argv) {
 			if (!g_onlyents && g_resetlog) {
 				ResetLog();
 			}
-			OpenLog(g_clientid);
+			OpenLog();
 			atexit(CloseLog);
 			LogStart(argcold, argvold);
 			log_arguments(argc, argv);

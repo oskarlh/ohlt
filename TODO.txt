@@ -87,6 +87,7 @@ https://developer.valvesoftware.com/wiki/Template:Hl1_kv_zhlt_point
 https://developer.valvesoftware.com/wiki/Template:Hl1_kv_zhlt_light_source
 
 
+When writing key-values to the .bsp file, in the end compiler-specific key-values (starting with zhlt_ or just a _) should be excluded. The game engine discards entities starting with _ so it should be safe
 
 
 				std::filesystem::path wadCfgPath
@@ -96,3 +97,5 @@ https://developer.valvesoftware.com/wiki/Template:Hl1_kv_zhlt_light_source
 					// Look for wad.cfg relative to exe
 					wadCfgPath = get_path_to_directory_with_executable(argv)
 						/ "wad.cfg';
+
+

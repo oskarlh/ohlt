@@ -1062,7 +1062,7 @@ int main(int const argc, char** argv) {
 			);
 			FlipSlashes(g_Mapname);
 			StripExtension(g_Mapname);
-			OpenLog(g_clientid);
+			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
 			ThreadSetPriority(g_threadpriority);

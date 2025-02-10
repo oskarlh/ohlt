@@ -21,9 +21,6 @@ developer_level g_developer = cli_option_defaults::developer;
 bool g_verbose = cli_option_defaults::verbose;
 bool g_log = cli_option_defaults::log;
 
-unsigned long g_clientid = 0;
-unsigned long g_nextclientid = 0;
-
 static FILE* CompileLog = nullptr;
 static bool fatal = false;
 
@@ -146,7 +143,7 @@ void LogError(char const * const message) {
 	}
 }
 
-void OpenLog(int const clientid) {
+void OpenLog() {
 	if (g_log) {
 		char logfilename[_MAX_PATH];
 		safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);

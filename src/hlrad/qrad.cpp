@@ -4060,7 +4060,7 @@ int main(int const argc, char** argv) {
 			ExtractFilePath(g_Mapname, temp); // skip mapname
 			ExtractFilePath(temp, g_Wadpath);
 			StripExtension(g_Mapname);
-			OpenLog(g_clientid);
+			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
 			ThreadSetPriority(g_threadpriority);

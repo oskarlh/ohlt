@@ -1708,7 +1708,7 @@ int main(int const argc, char** argv) {
 			safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
 			FlipSlashes(g_Mapname);
 			StripExtension(g_Mapname);
-			OpenLog(g_clientid);
+			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
 			ThreadSetPriority(g_threadpriority);
