@@ -262,7 +262,6 @@ void winding_base<VecElement>::initFromPlane(
 		case 2:
 			vup[0] = 1;
 			break;
-		default:
 	}
 
 	v = dot_product(vup, normal);
