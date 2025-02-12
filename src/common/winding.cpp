@@ -6,6 +6,7 @@
 #include "mathlib.h"
 
 #include <algorithm>
+#include <optional>
 #include <ranges>
 #include <span>
 
@@ -113,7 +114,6 @@ auto winding_base<VecElement>::getCenter() const noexcept -> vec3 {
 
 template <any_vec_element VecElement>
 void winding_base<VecElement>::Check(vec_element epsilon) const {
-	unsigned int i, j;
 	vec_element d, edgedist;
 	vec3 dir, edgenormal, facenormal;
 
@@ -129,16 +129,16 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 	vec_element facedist;
 	getPlane(facenormal, facedist);
 
-	for (i = 0; i < size(); i++) {
+	for (std::size_t i = 0; i < size(); ++i) {
 		vec3 const & p1 = m_Points[i];
 
-		for (j = 0; j < 3; j++) {
-			if (p1[j] > bogus_range || p1[j] < -bogus_range) {
-				Error("winding_base::Check : bogus_range: %f", p1[j]);
+		for (vec_element p1Element : p1) {
+			if (p1Element > bogus_range || p1Element < -bogus_range) {
+				Error("winding_base::Check : bogus_range: %f", p1Element);
 			}
 		}
 
-		j = i + 1 == size() ? 0 : i + 1;
+		std::size_t j = i + 1 == size() ? 0 : i + 1;
 
 		// check the point is on the face plane
 		d = dot_product(p1, facenormal) - facedist;
@@ -148,19 +148,19 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 
 		// check the edge isn't degenerate
 		vec3 const & p2 = m_Points[j];
-		VectorSubtract(p2, p1, dir);
+		dir = vector_subtract(p2, p1);
 
 		if (vector_length(dir) < epsilon) {
 			Error("winding_base::Check : degenerate edge");
 		}
 
-		CrossProduct(facenormal, dir, edgenormal);
+		edgenormal = cross_product(facenormal, dir);
 		normalize_vector(edgenormal);
 		edgedist = dot_product(p1, edgenormal);
 		edgedist += epsilon;
 
 		// all other points must be on front side
-		for (j = 0; j < size(); j++) {
+		for (std::size_t j = 0; j < size(); ++j) {
 			if (j == i) {
 				continue;
 			}
@@ -236,26 +236,25 @@ template <any_vec_element VecElement>
 void winding_base<VecElement>::initFromPlane(
 	vec3 const & normal, vec_element const dist
 ) {
-	int i;
 	vec_element max, v;
 
 	// find the major axis
 
 	max = -bogus_range;
-	int x = -1;
-	for (i = 0; i < 3; i++) {
+	std::size_t majorAxis{ -1zu };
+	for (std::size_t i = 0; i < 3; i++) {
 		v = fabs(normal[i]);
 		if (v > max) {
 			max = v;
-			x = i;
+			majorAxis = i;
 		}
 	}
-	if (x == -1) {
+	if (majorAxis == -1zu) {
 		Error("winding_base::initFromPlane no major axis found\n");
 	}
 
 	vec3 vup{};
-	switch (x) {
+	switch (majorAxis) {
 		case 0:
 		case 1:
 			vup[2] = 1;
@@ -263,6 +262,7 @@ void winding_base<VecElement>::initFromPlane(
 		case 2:
 			vup[0] = 1;
 			break;
+		default:
 	}
 
 	v = dot_product(vup, normal);
@@ -295,15 +295,13 @@ template <any_vec_element VecElement>
 winding_base<VecElement>::winding_base(
 	dface_t const & face, vec_element epsilon
 ) {
-	int se;
 	dvertex_t* dv;
-	int v;
 
 	m_Points.resize(face.numedges);
 
-	unsigned i;
-	for (i = 0; i < face.numedges; i++) {
-		se = g_dsurfedges[face.firstedge + i];
+	for (std::size_t i = 0; i < face.numedges; i++) {
+		std::int32_t se = g_dsurfedges[face.firstedge + i];
+		std::uint16_t v;
 		if (se < 0) {
 			v = g_dedges[-se].v[1];
 		} else {
@@ -331,15 +329,12 @@ winding_base<VecElement>::winding_base(mapplane_t const & plane) {
 // is thinner than epsilon
 template <any_vec_element VecElement>
 void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
-	unsigned int i;
-	vec3 v1, v2;
-	vec_element *p1, *p2, *p3;
-	for (i = 0; i < size(); i++) {
-		p1 = m_Points[(i + size() - 1) % size()].data();
-		p2 = m_Points[i].data();
-		p3 = m_Points[(i + 1) % size()].data();
-		VectorSubtract(p2, p1, v1);
-		VectorSubtract(p3, p2, v2);
+	for (std::size_t i = 0; i < size(); ++i) {
+		vec3 const & p1 = m_Points[(i + size() - 1) % size()];
+		vec3 const & p2 = m_Points[i];
+		vec3 const & p3 = m_Points[(i + 1) % size()];
+		vec3 const v1 = vector_subtract(p2, p1);
+		vec3 const v2 = vector_subtract(p3, p2);
 		// v1 or v2 might be close to 0
 		if (dot_product(v1, v2) * dot_product(v1, v2)
 			>= dot_product(v1, v1) * dot_product(v2, v2)
@@ -440,7 +435,7 @@ void winding_base<VecElement>::Clip(
 
 		// generate a split point
 		vec3 mid;
-		unsigned int tmp = i + 1;
+		std::size_t tmp = i + 1;
 		if (tmp >= size()) {
 			tmp = 0;
 		}
@@ -526,15 +521,14 @@ bool winding_base<VecElement>::mutating_clip(
 ) {
 	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
 	auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
-	int counts[3];
+	std::size_t counts[3];
 	vec_element dot;
-	int i, j;
 
 	counts[0] = counts[1] = counts[2] = 0;
 
 	// determine sides for each point
 	// do this exactly, with no epsilon so tiny portals still work
-	for (i = 0; i < size(); i++) {
+	for (std::size_t i = 0; i < size(); ++i) {
 		dot = dot_product(m_Points[i], planeNormal);
 		dot -= planeDist;
 		dists[i] = dot;
@@ -545,7 +539,7 @@ bool winding_base<VecElement>::mutating_clip(
 		} else {
 			sides[i] = face_side::on;
 		}
-		counts[(std::size_t) sides[i]]++;
+		++counts[(std::size_t) sides[i]];
 	}
 	sides[size()] = sides[0];
 	dists[size()] = dists[0];
@@ -567,7 +561,7 @@ bool winding_base<VecElement>::mutating_clip(
 	points_vector newPoints{};
 	newPoints.reserve(size() + 4);
 
-	for (i = 0; i < size(); i++) {
+	for (std::size_t i = 0; i < size(); ++i) {
 		vec3 const & p1 = m_Points[i];
 
 		if (sides[i] == face_side::on) {
@@ -583,13 +577,14 @@ bool winding_base<VecElement>::mutating_clip(
 
 		// generate a split point
 		vec3 mid;
-		unsigned int tmp = i + 1;
+		std::size_t tmp = i + 1;
 		if (tmp >= size()) {
 			tmp = 0;
 		}
 		vec3 const & p2 = m_Points[tmp];
 		dot = dists[i] / (dists[i] - dists[i + 1]);
-		for (j = 0; j < 3; j++) { // avoid round off error when possible
+		for (std::size_t j = 0; j < 3;
+			 ++j) { // avoid round off error when possible
 			if (planeNormal[j] == 1) {
 				mid[j] = planeDist;
 			} else if (planeNormal[j] == -1) {
@@ -689,7 +684,7 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 
 		// generate a split point
 		vec3 mid;
-		unsigned int tmp = i + 1;
+		std::size_t tmp = i + 1;
 		if (tmp >= size()) {
 			tmp = 0;
 		}
