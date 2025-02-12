@@ -189,7 +189,6 @@ vector_maximums(VecA const & a, VecB const & b) noexcept {
 template <any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB>
 midpoint_between(VecA const & a, VecB const & b) noexcept {
-	using vec_element = largest_vec3<VecA, VecB>::value_type;
 	return vector_scale(vector_add(a, b), 0.5f);
 }
 

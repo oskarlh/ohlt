@@ -86,7 +86,7 @@ std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges{
 	bspGlobals.surfEdges
 };
 
-int& g_numentities{ bspGlobals.entitiesLength };
+entity_count& g_numentities{ bspGlobals.entitiesLength };
 std::array<entity_t, MAX_MAP_ENTITIES>& g_entities{ bspGlobals.entities };
 
 std::u8string_view ContentsToString(contents_t contents) noexcept {

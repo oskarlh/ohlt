@@ -635,7 +635,7 @@ struct bsp_data final {
 	int surfEdgesLength{ 0 };
 
 	std::array<entity_t, MAX_MAP_ENTITIES> entities{};
-	int entitiesLength;
+	entity_count entitiesLength;
 };
 
 extern bsp_data bspGlobals;
@@ -686,7 +686,7 @@ extern std::array<std::uint16_t, MAX_MAP_MARKSURFACES>& g_dmarksurfaces;
 extern int& g_numsurfedges;
 extern std::array<std::int32_t, MAX_MAP_SURFEDGES>& g_dsurfedges;
 
-extern int& g_numentities;
+extern entity_count& g_numentities;
 extern std::array<entity_t, MAX_MAP_ENTITIES>& g_entities;
 
 extern void DecompressVis(
