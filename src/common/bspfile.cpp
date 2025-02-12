@@ -372,25 +372,25 @@ void LoadBSPImage(dheader_t* const header) {
 }
 
 // For debugging purposes
-std::uint32_t hash_data() {
-	auto hashes = std::array{
-		fast_checksum(std::span(g_dmodels.data(), g_nummodels)),
-		fast_checksum(std::span(g_dvertexes.data(), g_numvertexes)),
-		fast_checksum(std::span(g_dplanes.data(), g_numplanes)),
-		fast_checksum(std::span(g_dleafs.data(), g_numleafs)),
-		fast_checksum(std::span(g_dnodes.data(), g_numnodes)),
-		fast_checksum(std::span(g_texinfo.data(), g_numtexinfo)),
-		fast_checksum(std::span(g_dclipnodes.data(), g_numclipnodes)),
-		fast_checksum(std::span(g_dfaces.data(), g_numfaces)),
-		fast_checksum(std::span(g_dmarksurfaces.data(), g_nummarksurfaces)),
-		fast_checksum(std::span(g_dsurfedges.data(), g_numsurfedges)),
-		fast_checksum(std::span(g_dedges.data(), g_numedges)),
-		fast_checksum(std::span(g_dtexdata.data(), g_texdatasize)),
-		fast_checksum(std::span(g_dvisdata.data(), g_visdatasize)),
-		fast_checksum(std::span(g_dlightdata)),
-		fast_checksum(std::span(g_dentdata.data(), g_entdatasize))
-	};
-	return fast_checksum(std::span(hashes));
+std::size_t hash_data() {
+	return hash_multiple(
+		0
+		// std::span(g_dmodels.data(), g_nummodels),
+		// std::span(g_dvertexes.data(), g_numvertexes),
+		// std::span(g_dplanes.data(), g_numplanes),
+		// std::span(g_dleafs.data(), g_numleafs),
+		// std::span(g_dnodes.data(), g_numnodes),
+		// std::span(g_texinfo.data(), g_numtexinfo),
+		// std::span(g_dclipnodes.data(), g_numclipnodes),
+		// std::span(g_dfaces.data(), g_numfaces),
+		// std::span(g_dmarksurfaces.data(), g_nummarksurfaces),
+		// std::span(g_dsurfedges.data(), g_numsurfedges),
+		// std::span(g_dedges.data(), g_numedges),
+		// std::span(g_dtexdata.data(), g_texdatasize),
+		// std::span(g_dvisdata.data(), g_visdatasize),
+		// std::span(g_dlightdata),
+		// std::span(g_dentdata.data(), g_entdatasize)
+	);
 }
 
 //
@@ -407,12 +407,6 @@ void add_lump(
 	dheader_t* header,
 	FILE* bspfile
 ) {
-	//	Log("CHECKSUM %s%u %u\n",
-	//		g_Program,
-	//		(int) LumpId,
-	//		fast_checksum(data)
-	//	);
-
 	using element_type = lump_element_type<LumpId>;
 	std::size_t const byteLength = data.size() * sizeof(element_type);
 	lump_t* lump = &header->lumps[std::size_t(LumpId)];

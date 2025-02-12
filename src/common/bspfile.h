@@ -3,91 +3,13 @@
 #include "cmdlib.h"
 #include "entity_key_value.h"
 #include "external_types/external_types.h"
+#include "internal_types/internal_types.h"
 #include "mathlib.h"
 #include "wad_texture_name.h"
 
 #include <cstddef>
 #include <filesystem>
 #include <vector>
-
-template <class Object>
-inline std::uint32_t fast_checksum(Object const & obj) noexcept {
-	// Note: This gives us different output on different platforms. This
-	// because : 1) NaN floats can have different bit representations 2)
-	// floating-point calculations give slightly different results on
-	// different platforms 3) struct padding
-
-	struct element_as_bytes final {
-		unsigned char bytes[sizeof(Object)];
-	};
-
-	std::uint32_t checksum = 0;
-	for (unsigned char byteInElement :
-		 std::bit_cast<element_as_bytes>(obj).bytes) {
-		checksum = std::rotl(checksum, 4) ^ byteInElement;
-	}
-	return checksum;
-}
-
-template <class T, std::size_t Extent>
-inline std::uint32_t fast_checksum(std::span<T, Extent> const & elements
-) noexcept {
-	std::uint32_t checksum = 0;
-	for (T const & element : elements) {
-		checksum = (std::rotl(checksum, 11) ^ fast_checksum(element)) + 1;
-	}
-	return checksum;
-}
-
-template <>
-inline std::uint32_t fast_checksum(std::u8string const & elements
-) noexcept {
-	return fast_checksum(std::span{ elements.begin(), elements.end() });
-}
-
-template <class T>
-inline std::uint32_t fast_checksum(std::vector<T> const & elements
-) noexcept {
-	return fast_checksum(std::span{ elements.begin(), elements.end() });
-}
-
-template <class T, std::size_t N>
-inline std::uint32_t fast_checksum(std::array<T, N> const & elements
-) noexcept {
-	return fast_checksum(std::span{ elements.begin(), elements.size() });
-}
-
-template <class T>
-inline std::uint32_t fast_checksum(std::basic_string<T> const & elements
-) noexcept {
-	return fast_checksum(std::span{ elements.begin(), elements.end() });
-}
-
-template <class T>
-inline std::uint32_t
-fast_checksum(std::basic_string_view<T> const & elements) noexcept {
-	return fast_checksum(std::span{ elements.begin(), elements.end() });
-}
-
-template <class FirstObject, class... Rest>
-inline std::uint32_t fast_checksum(
-	FirstObject const & firstObject, Rest const &... rest
-) noexcept {
-	return (std::rotl(fast_checksum(firstObject), 11)
-			^ fast_checksum(rest...))
-		+ 1;
-}
-
-template <>
-inline std::uint32_t
-fast_checksum<entity_key_value>(entity_key_value const & kv) noexcept {
-	return fast_checksum(kv.key(), kv.value());
-}
-
-template <class Object>
-inline std::uint32_t fast_checksum(Object* const & objPtr) noexcept {
-	return objPtr ? fast_checksum(*objPtr) : 1;
-}
 
 // upper design bounds
 
@@ -523,24 +445,6 @@ constexpr float ANGLE_DOWN{ -2.0 };
 //
 // Entity Related Stuff
 //
-#include "internal_types/internal_types.h"
-
-struct entity_t final {
-	float3_array origin;
-	brush_count firstBrush;
-	entity_local_brush_count numbrushes;
-	std::vector<entity_key_value> keyValues;
-};
-
-template <>
-inline std::uint32_t fast_checksum(entity_t const & ent) noexcept {
-	return fast_checksum(
-		ent.origin,
-		ent.firstBrush,
-		ent.numbrushes,
-		fast_checksum(std::span{ ent.keyValues })
-	);
-}
 
 // Called by every stage except hlcsg
 extern void parse_entities_from_bsp_file();
@@ -811,4 +715,4 @@ extern int ParseImplicitTexinfoFromTexture(int miptex);
 extern int ParseTexinfoForFace(dface_t const * f);
 extern void DeleteEmbeddedLightmaps();
 
-std::uint32_t hash_data();
+std::size_t hash_data();

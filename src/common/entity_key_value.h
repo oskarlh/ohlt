@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hashing.h"
 #include "usually_inplace_vector.h"
 
 #include <algorithm>
@@ -87,3 +88,13 @@ class entity_key_value final {
 		storage.emplace_back(u8'\0');
 	}
 };
+
+namespace std {
+	template <>
+	struct hash<entity_key_value> {
+		constexpr std::size_t operator()(entity_key_value const & kv
+		) const noexcept {
+			return hash_multiple(kv.key(), kv.value());
+		}
+	};
+} // namespace std

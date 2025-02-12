@@ -53,7 +53,6 @@ intersecttest_t* CreateIntersectTest(dplane_t const * p, int facenum) {
 		int edgenum = g_dsurfedges[f->firstedge + j];
 		{
 			float3_array v0, v1;
-			float3_array dir, normal;
 			if (edgenum < 0) {
 				v0 = g_dvertexes[g_dedges[-edgenum].v[1]].point;
 				v1 = g_dvertexes[g_dedges[-edgenum].v[0]].point;
@@ -61,10 +60,13 @@ intersecttest_t* CreateIntersectTest(dplane_t const * p, int facenum) {
 				v0 = g_dvertexes[g_dedges[edgenum].v[0]].point;
 				v1 = g_dvertexes[g_dedges[edgenum].v[1]].point;
 			}
-			VectorAdd(v0, g_face_offset[facenum], v0);
-			VectorAdd(v1, g_face_offset[facenum], v1);
-			VectorSubtract(v1, v0, dir);
-			CrossProduct(dir, p->normal, normal); // facing inward
+			v0 = vector_add(v0, g_face_offset[facenum]);
+			v1 = vector_add(v1, g_face_offset[facenum]);
+
+			float3_array const dir = vector_subtract(v1, v0);
+			float3_array normal = cross_product(
+				dir, p->normal
+			); // Facing inward
 			if (!normalize_vector(normal)) {
 				continue;
 			}
@@ -356,12 +358,10 @@ void PairEdges() {
 								   smoothvalue - NORMAL_EPSILON,
 								   NORMAL_EPSILON
 							   )) {
-						{
-							VectorAdd(
-								normals[0], normals[1], e->interface_normal
-							);
-							normalize_vector(e->interface_normal);
-						}
+						e->interface_normal = vector_add(
+							normals[0], normals[1]
+						);
+						normalize_vector(e->interface_normal);
 					}
 				}
 				if (!vectors_almost_same(
@@ -438,12 +438,10 @@ void PairEdges() {
 			}
 			edgenormal = e->interface_normal;
 			if (g_dedges[edgeabs].v[0] == g_dedges[edgeabs].v[1]) {
-				float3_array errorpos
-					= g_dvertexes[g_dedges[edgeabs].v[0]].point;
-				VectorAdd(
-					errorpos,
-					g_face_offset[e->faces[0] - g_dfaces.data()],
-					errorpos
+				float3_array const errorpos = vector_add(
+					g_dvertexes[g_dedges[edgeabs].v[0]].point,
+					g_face_offset[e->faces[0] - g_dfaces.data()]
+
 				);
 				Developer(
 					developer_level::warning,
@@ -464,12 +462,9 @@ void PairEdges() {
 					p1, e->faces[1] - g_dfaces.data()
 				);
 				for (edgeend = 0; edgeend < 2; edgeend++) {
-					float3_array errorpos
-						= g_dvertexes[g_dedges[edgeabs].v[edgeend]].point;
-					VectorAdd(
-						errorpos,
-						g_face_offset[e->faces[0] - g_dfaces.data()],
-						errorpos
+					float3_array errorpos = vector_add(
+						g_dvertexes[g_dedges[edgeabs].v[edgeend]].point,
+						g_face_offset[e->faces[0] - g_dfaces.data()]
 					);
 					angles = 0;
 					normals = {};
@@ -752,8 +747,9 @@ static void CalcFaceExtents(lightinfo_t* l) {
 				} else {
 					v = g_dvertexes.data() + g_dedges[-e].v[1];
 				}
-				float3_array pos;
-				VectorAdd(v->point, g_face_offset[facenum], pos);
+				float3_array const pos = vector_add(
+					v->point, g_face_offset[facenum]
+				);
 				Log("(%4.3f %4.3f %4.3f) ", pos[0], pos[1], pos[2]);
 			}
 			Log("\n");
@@ -2568,16 +2564,12 @@ void BuildDiffuseNormals() {
 				hlassume(
 					numpoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first
 				);
-				point_t mid;
-				double len;
-				VectorAdd(
-					points[edges[j].point[0]],
-					points[edges[j].point[1]],
-					mid
+				point_t mid = vector_add(
+					points[edges[j].point[0]], points[edges[j].point[1]]
 				);
-				len = sqrt(dot_product(mid, mid));
+				double len = sqrt(dot_product(mid, mid));
 				hlassume(len > 0.2, assume_first);
-				VectorScale(mid, 1 / len, mid);
+				mid = vector_scale(mid, 1 / len);
 				int p2 = numpoints;
 				points[numpoints] = mid;
 				numpoints++;
@@ -2748,12 +2740,10 @@ static void GatherSampleLight(
 
 								// search back to see if we can hit a sky
 								// brush
-								VectorScale(
-									l->sunnormals[j],
-									-hlrad_bogus_range,
-									delta
+								delta = vector_scale(
+									l->sunnormals[j], -hlrad_bogus_range
 								);
-								VectorAdd(pos, delta, delta);
+								delta = vector_add(pos, delta);
 								float3_array skyhit;
 								skyhit = delta;
 								if (TestLine(pos, delta, skyhit)
@@ -2854,8 +2844,8 @@ static void GatherSampleLight(
 
 								// search back to see if we can hit a sky
 								// brush
-								VectorScale(
-									skynormals[j], -hlrad_bogus_range, delta
+								delta = vector_scale(
+									skynormals[j], -hlrad_bogus_range
 								);
 								VectorAdd(pos, delta, delta);
 								float3_array skyhit;
@@ -5182,7 +5172,7 @@ void AddPatchLights(int facenum) {
 						samp->pos, samp->surface, style, v
 					);
 
-					VectorAdd(samp->light, v, v);
+					v = vector_add(samp->light, v);
 					if (vector_max_element(v)
 						>= g_corings[f_other->styles[k]]) {
 						samp->light = v;
@@ -5311,7 +5301,7 @@ void FinalLightFace(int const facenum) {
 			if (k == 0) {
 				original_basiclight[j] = lb;
 			} else {
-				VectorAdd(lb, original_basiclight[j], lb);
+				lb = vector_add(lb, original_basiclight[j]);
 			}
 			// colour lightscale:
 			lb[0] *= g_colour_lightscale[0];

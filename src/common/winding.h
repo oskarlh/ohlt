@@ -194,11 +194,15 @@ class winding_base final {
 	}
 };
 
-template <class VT>
-inline std::uint32_t fast_checksum(winding_base<VT> const & winding
-) noexcept {
-	return fast_checksum(winding.points());
-}
+namespace std {
+	template <class VT>
+	struct hash<winding_base<VT>> {
+		constexpr std::size_t operator()(winding_base<VT> const & winding
+		) const noexcept {
+			return hash_multiple(winding.points());
+		}
+	};
+} // namespace std
 
 using accurate_winding = winding_base<double>;
 using fast_winding = winding_base<float>;

@@ -57,6 +57,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/external_types/external_types.h
     ${COMMON_DIR}/external_types/texinfo.h
     ${COMMON_DIR}/filelib.h
+    ${COMMON_DIR}/hashing.h
     ${COMMON_DIR}/hlassert.h
     ${COMMON_DIR}/hull_size.h
     ${COMMON_DIR}/internal_types/entity.h

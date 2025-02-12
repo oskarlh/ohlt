@@ -2233,7 +2233,7 @@ static void GatherLight(int threadnum) {
 								continue;
 							}
 						}
-						VectorAdd(adds[addstyle], v, adds[addstyle]);
+						adds[addstyle] = vector_add(adds[addstyle], v);
 					} else {
 						Verbose(
 							"GatherLight, v (%4.3f %4.3f %4.3f)@(%4.3f %4.3f %4.3f)\n",
@@ -2318,10 +2318,9 @@ static void GatherRGBLight(int threadnum) {
 		iIndex = patch->iIndex;
 
 		for (m = 0; m < MAXLIGHTMAPS && patch->totalstyle[m] != 255; m++) {
-			VectorAdd(
-				adds[patch->totalstyle[m]],
-				patch->totallight[m],
-				adds[patch->totalstyle[m]]
+			adds[patch->totalstyle[m]] = vector_add(
+				adds[patch->totalstyle[m]], patch->totallight[m]
+
 			);
 		}
 
@@ -2372,7 +2371,7 @@ static void GatherRGBLight(int threadnum) {
 								continue;
 							}
 						}
-						VectorAdd(adds[addstyle], v, adds[addstyle]);
+						adds[addstyle] = vector_add(adds[addstyle], v);
 					}
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
@@ -2399,7 +2398,7 @@ static void GatherRGBLight(int threadnum) {
 								continue;
 							}
 						}
-						VectorAdd(adds[addstyle], v, adds[addstyle]);
+						adds[addstyle] = vector_add(adds[addstyle], v);
 					} else {
 						Verbose(
 							"GatherLight, v (%4.3f %4.3f %4.3f)@(%4.3f %4.3f %4.3f)\n",

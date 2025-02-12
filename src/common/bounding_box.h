@@ -1,11 +1,22 @@
 #pragma once
 
-#include "cmdlib.h" //--vluzacn
+#include "cmdlib.h"
+#include "hashing.h"
 
 struct bounding_box final {
 	double3_array mins;
 	double3_array maxs;
 };
+
+namespace std {
+	template <>
+	struct hash<bounding_box> {
+		constexpr std::size_t operator()(bounding_box const & bb
+		) const noexcept {
+			return hash_multiple(bb.mins, bb.maxs);
+		}
+	};
+} // namespace std
 
 constexpr bounding_box empty_bounding_box{
 	.mins = double3_array{ 999999999.999, 999999999.999, 999999999.999 },

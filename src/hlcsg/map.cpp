@@ -199,27 +199,6 @@ add_parsed_entity_result add_parsed_entity(
 			side.planepts = parsedSide.planePoints;
 		}
 
-		// Error(
-		// 	"newBrush %i %i %i %i : %i %i %i %i : %i %i %i %i : %i %i",
-		// 	(int) b.bevel,
-		// 	(int) b.brushnum,
-		// 	(int) b.chopDown,
-		// 	(int) b.chopUp,
-
-		// 	(int) fast_checksum(b.cliphull),
-		// 	(int) b.clipNodeDetailLevel,
-		// 	(int) b.contents,
-		// 	(int) b.coplanarPriority,
-
-		// 	(int) b.detailLevel,
-		// 	(int) b.entitynum,
-		// 	(int) b.firstSide,
-		// 	(int) fast_checksum(b.hulls),
-
-		// 	(int) b.noclip,
-		// 	(int) b.numSides
-		// );
-
 		b.contents = CheckBrushContents(&b);
 
 		for (std::size_t j = 0; j < b.numSides; ++j) {

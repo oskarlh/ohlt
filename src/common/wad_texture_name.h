@@ -524,3 +524,13 @@ constexpr bool
 operator==(std::u8string_view string, wad_texture_name name) noexcept {
 	return name == string;
 }
+
+namespace std {
+	template <>
+	struct hash<wad_texture_name> {
+		constexpr std::size_t operator()(wad_texture_name const & vects
+		) const noexcept {
+			return std::hash<std::u8string_view>()(vects.string_view());
+		}
+	};
+} // namespace std

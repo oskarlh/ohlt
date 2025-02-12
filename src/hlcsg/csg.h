@@ -6,6 +6,7 @@
 #include "cmdlinecfg.h"
 #include "csg_types/csg_types.h"
 #include "filelib.h"
+#include "hashing.h"
 #include "hlassert.h"
 #include "hlcsg_settings.h"
 #include "hull_size.h"
@@ -46,26 +47,32 @@ struct valve220_vects final {
 	std::array<double, 2> scale;
 };
 
-template <>
-inline std::uint32_t fast_checksum(valve220_vects const & ent) noexcept {
-	return fast_checksum(ent.UAxis, ent.VAxis, ent.shift, ent.scale);
-}
-
-// TODO: Move to an appropriate location
-template <>
-inline std::uint32_t fast_checksum(wad_texture_name const & ent) noexcept {
-	return fast_checksum(ent.string_view());
-}
+namespace std {
+	template <>
+	struct hash<valve220_vects> {
+		constexpr std::size_t operator()(valve220_vects const & vects
+		) const noexcept {
+			return hash_multiple(
+				vects.UAxis, vects.VAxis, vects.shift, vects.scale
+			);
+		}
+	};
+} // namespace std
 
 struct brush_texture_t final {
 	valve220_vects vects;
 	wad_texture_name name;
 };
 
-template <>
-inline std::uint32_t fast_checksum(brush_texture_t const & ent) noexcept {
-	return fast_checksum(ent.vects, ent.name);
-}
+namespace std {
+	template <>
+	struct hash<brush_texture_t> {
+		constexpr std::size_t operator()(brush_texture_t const & bt
+		) const noexcept {
+			return hash_multiple(bt.vects, bt.name);
+		}
+	};
+} // namespace std
 
 struct side_t final {
 	brush_texture_t td;
@@ -73,10 +80,14 @@ struct side_t final {
 	std::array<double3_array, 3> planepts;
 };
 
-template <>
-inline std::uint32_t fast_checksum(side_t const & ent) noexcept {
-	return fast_checksum(ent.td, ent.bevel, ent.planepts);
-}
+namespace std {
+	template <>
+	struct hash<side_t> {
+		constexpr std::size_t operator()(side_t const & s) const noexcept {
+			return hash_multiple(s.td, s.bevel, s.planepts);
+		}
+	};
+} // namespace std
 
 struct bface_t final {
 	accurate_winding w;
@@ -90,30 +101,40 @@ struct bface_t final {
 	bool bevel; // used for ExpandBrush
 };
 
-template <>
-inline std::uint32_t fast_checksum(bface_t const & bFace) noexcept {
-	return fast_checksum(
-		bFace.w,
-		bFace.plane,
-		bFace.bounds,
-		bFace.planenum,
-		bFace.texinfo,
-		bFace.contents,
-		bFace.backcontents,
-		bFace.used,
-		bFace.bevel
-	);
-}
+namespace std {
+	template <>
+	struct hash<bface_t> {
+		constexpr std::size_t operator()(bface_t const & bFace
+		) const noexcept {
+			return hash_multiple(
+				bFace.w,
+				bFace.plane,
+				bFace.bounds,
+				bFace.planenum,
+				bFace.texinfo,
+				bFace.contents,
+				bFace.backcontents,
+				bFace.used,
+				bFace.bevel
+			);
+		}
+	};
+} // namespace std
 
 struct brushhull_t final {
 	bounding_box bounds;
 	std::vector<bface_t> faces;
 };
 
-template <>
-inline std::uint32_t fast_checksum(brushhull_t const & brushHull) noexcept {
-	return fast_checksum(brushHull.bounds, brushHull.faces);
-}
+namespace std {
+	template <>
+	struct hash<brushhull_t> {
+		constexpr std::size_t operator()(brushhull_t const & brushHull
+		) const noexcept {
+			return hash_multiple(brushHull.bounds, brushHull.faces);
+		}
+	};
+} // namespace std
 
 using cliphull_bitmask = std::uint8_t;
 static_assert(std::numeric_limits<cliphull_bitmask>::digits >= NUM_HULLS);
@@ -153,28 +174,33 @@ struct csg_brush
 	std::array<brushhull_t, NUM_HULLS> hulls;
 };
 
-template <>
-inline std::uint32_t fast_checksum(csg_brush const & brush) noexcept {
-	return fast_checksum(
-		brush.entitynum,
-		brush.originalentitynum,
-		brush.brushnum,
-		brush.originalbrushnum,
-		brush.firstSide,
-		brush.numSides,
-		brush.cliphull,
-		brush.noclip,
-		brush.bevel,
-		brush.detailLevel,
-		brush.chopDown,
-		brush.chopUp,
-		brush.clipNodeDetailLevel,
-		brush.coplanarPriority,
-		brush.hullshapes,
-		brush.contents,
-		brush.hulls
-	);
-}
+namespace std {
+	template <>
+	struct hash<csg_brush> {
+		constexpr std::size_t operator()(csg_brush const & brush
+		) const noexcept {
+			return hash_multiple(
+				brush.entitynum,
+				brush.originalentitynum,
+				brush.brushnum,
+				brush.originalbrushnum,
+				brush.firstSide,
+				brush.numSides,
+				brush.cliphull,
+				brush.noclip,
+				brush.bevel,
+				brush.detailLevel,
+				brush.chopDown,
+				brush.chopUp,
+				brush.clipNodeDetailLevel,
+				brush.coplanarPriority,
+				brush.hullshapes,
+				brush.contents,
+				brush.hulls
+			);
+		}
+	};
+} // namespace std
 
 struct hullbrushface_t final {
 	double3_array normal;
