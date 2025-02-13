@@ -203,8 +203,8 @@ struct btreeface_t final {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+				   // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -1203,8 +1203,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 
 	int side, i;
 	for (side = 0; side < 2; side++) {
-		double3_array facing;
-		CrossProduct(c->basenormal, c->axis, facing);
+		double3_array facing = cross_product(c->basenormal, c->axis);
 		facing = vector_scale(facing, side ? -1.0 : 1.0);
 		if (normalize_vector(facing) < 1 - 0.01) {
 			return false;
@@ -1285,8 +1284,9 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 			{
 				continue;
 			}
-			double3_array v;
-			CrossProduct(w->prev->normal, w->next->normal, v);
+			double3_array v = cross_product(
+				w->prev->normal, w->next->normal
+			);
 			if (!normalize_vector(v)
 				|| dot_product(v, c->axis) < 1 - 0.01) {
 				return false;
@@ -1551,10 +1551,9 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 				bwedge_t* w = transitionside[!side] ? s->next : s->prev;
 				bsurface_t* snext = transitionside[!side] ? w->next
 														  : w->prev;
-				double3_array tmp;
-				double dot;
-				CrossProduct(smovement->normal, snext->normal, tmp);
-				dot = dot_product(tmp, c.axis);
+				double dot = dot_product(
+					cross_product(smovement->normal, snext->normal), c.axis
+				);
 				if (transitionside[!side] ? dot < 0.01 : dot > -0.01) {
 					break;
 				}

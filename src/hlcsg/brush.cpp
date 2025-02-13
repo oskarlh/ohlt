@@ -314,10 +314,9 @@ void ExpandBrushWithHullBrush(
 			}
 
 			// make sure the math is accurate
-			double len;
-			len = vector_length(brushedge.delta);
-			CrossProduct(
-				brushedge.normals[0], brushedge.normals[1], brushedge.delta
+			double len = vector_length(brushedge.delta);
+			brushedge.delta = cross_product(
+				brushedge.normals[0], brushedge.normals[1]
 			);
 			if (!normalize_vector(brushedge.delta)) {
 				continue;
@@ -632,8 +631,9 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 
 						// find normal by taking normalized cross of the
 						// edge vector and the bevel edge
-						double3_array normal;
-						CrossProduct(edge, bevel_edge, normal);
+						double3_array normal = cross_product(
+							edge, bevel_edge
+						);
 
 						// normalize to length 1
 						normalize_vector(normal);

@@ -450,8 +450,9 @@ static void SaveOutside(
 				) // HINT and SKIP will be nullified only after hlbsp
 			) {
 				// check for "Malformed face (%d) normal"
-				double3_array texnormal;
-				CrossProduct(tex->vecs[1].xyz, tex->vecs[0].xyz, texnormal);
+				float3_array texnormal = cross_product(
+					tex->vecs[1].xyz, tex->vecs[0].xyz
+				);
 				normalize_vector(texnormal);
 				if (fabs(dot_product(texnormal, f.plane->normal))
 					<= NORMAL_EPSILON) {
@@ -464,13 +465,13 @@ static void SaveOutside(
 				}
 
 				// check for "Bad surface extents"
-				bool bad;
-				double val;
 
-				bad = false;
+				bool bad = false;
 				for (double3_array const & point : f.w.points()) {
 					for (int j = 0; j < 2; ++j) {
-						val = dot_product(point, tex->vecs[j].xyz)
+						double const val = dot_product(
+											   point, tex->vecs[j].xyz
+										   )
 							+ tex->vecs[j].offset;
 						if (val < -99999 || val > 999'999) {
 							bad = true;

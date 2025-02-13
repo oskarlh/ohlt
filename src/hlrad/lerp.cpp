@@ -135,12 +135,9 @@ static float GetAngle(
 	float3_array const & rightdirection,
 	float3_array const & normal
 ) {
-	float angle;
-	float3_array v;
-
-	CrossProduct(rightdirection, leftdirection, v);
-	angle = atan2(
-		dot_product(v, normal), dot_product(rightdirection, leftdirection)
+	float const angle = atan2(
+		dot_product(cross_product(rightdirection, leftdirection), normal),
+		dot_product(rightdirection, leftdirection)
 	);
 
 	return angle;

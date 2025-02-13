@@ -257,13 +257,9 @@ void plane_from_points(
 	float3_array const & p3,
 	dplane_t& plane
 ) {
-	float3_array delta1;
-	float3_array delta2;
-	float3_array normal;
-
-	VectorSubtract(p3, p2, delta1);
-	VectorSubtract(p1, p2, delta2);
-	CrossProduct(delta1, delta2, normal);
+	float3_array const delta1 = vector_subtract(p3, p2);
+	float3_array const delta2 = vector_subtract(p1, p2);
+	float3_array normal = cross_product(delta1, delta2);
 	normalize_vector(normal);
 	plane.dist = dot_product(normal, p1);
 	plane.normal = normal;

@@ -103,15 +103,13 @@ int CTriangle ::HasVertex(CVertex* v) {
 }
 
 void CTriangle ::ComputeNormal(void) {
-	float3_array a{}, b{};
-
 	float3_array v0 = vertex[0]->position;
 	float3_array v1 = vertex[1]->position;
 	float3_array v2 = vertex[2]->position;
 
-	VectorSubtract(v1, v0, a);
-	VectorSubtract(v2, v1, b);
-	CrossProduct(a, b, normal);
+	float3_array a = vector_subtract(v1, v0);
+	float3_array b = vector_subtract(v2, v1);
+	normal = cross_product(a, b);
 
 	if (vector_length(normal) == 0.0f) {
 		return;
