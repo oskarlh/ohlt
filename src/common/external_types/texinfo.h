@@ -69,3 +69,11 @@ struct texinfo_t final {
 		}
 	}
 };
+
+using texinfo_count = std::uint16_t;
+// We use this limit because in the game engine, dface_t.texinfo is i16.
+// Because faces are sometimes discarded we can allow a larger
+// texinfo limit in early stages of compilation, that limit is
+// INITIAL_MAX_MAP_TEXINFO
+constexpr texinfo_count FINAL_MAX_MAP_TEXINFO = 0x7FFF;
+constexpr texinfo_count no_texinfo = texinfo_count(-1);

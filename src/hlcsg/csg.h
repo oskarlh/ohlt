@@ -94,7 +94,7 @@ struct bface_t final {
 	mapplane_t* plane;
 	bounding_box bounds;
 	std::uint16_t planenum;
-	std::int16_t texinfo;
+	texinfo_count texinfo;
 	contents_t contents;
 	contents_t backcontents;
 	bool used;	// just for face counting
@@ -263,7 +263,7 @@ extern std::deque<std::u8string>
 
 extern void WriteMiptex(std::filesystem::path const & bspPath);
 extern void LogWadUsage(wadpath_t* currentwad, int nummiptex);
-extern int TexinfoForBrushTexture(
+extern texinfo_count TexinfoForBrushTexture(
 	mapplane_t const * const plane,
 	brush_texture_t* bt,
 	double3_array const & origin
@@ -277,7 +277,7 @@ GetTextureByNumber_CSG(int texturenumber);
 extern csg_brush* Brush_LoadEntity(entity_t* ent, int hullnum);
 extern contents_t CheckBrushContents(csg_brush const * const b);
 
-extern void CreateBrush(int brushnum);
+extern void create_brush(csg_brush& b, csg_entity const & ent);
 extern void CreateHullShape(
 	int entitynum, bool disabled, std::u8string_view id, int defaulthulls
 );

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "external_types/texinfo.h"
 #include "util.h"
 
 #include <algorithm>
@@ -16,7 +17,8 @@ constexpr std::size_t
 	= 5; // __radXXXXX
 constexpr std::size_t
 	embedded_lightmap_texture_name_original_texinfo_index_length
-	= 5;
+	= 5; // TODO: Reduce it to just enough for INITIAL_MAX_MAP_TEXINFO to
+		 // fit
 
 constexpr std::size_t wad_texture_name_max_length_without_last_null = 15;
 constexpr std::size_t wad_texture_name_max_length_with_last_null = 1
@@ -288,10 +290,10 @@ class wad_texture_name final {
 	}
 
 	// Returns nullopt if it's not an embedded lightmap texture
-	constexpr std::optional<std::uint32_t>
+	constexpr std::optional<texinfo_count>
 	original_texinfo_index_for_embedded_lightmap() const noexcept {
 		if (is_any_embedded_lightmap()) {
-			std::uint32_t result = 0;
+			texinfo_count result = 0;
 			for (char8_t c :
 				 original_texinfo_index_for_embedded_lightmap_as_string()) {
 				result *= 10;

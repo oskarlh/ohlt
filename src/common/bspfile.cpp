@@ -56,8 +56,8 @@ std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes{ bspGlobals.vertexes };
 int& g_numnodes{ bspGlobals.nodesLength };
 std::array<dnode_t, MAX_MAP_NODES>& g_dnodes{ bspGlobals.nodes };
 
-int& g_numtexinfo{ bspGlobals.texInfosLength };
-std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo{
+texinfo_count& g_numtexinfo{ bspGlobals.texInfosLength };
+std::array<texinfo_t, INITIAL_MAX_MAP_TEXINFO>& g_texinfo{
 	bspGlobals.texInfos
 };
 
@@ -693,7 +693,7 @@ void WriteExtentFile(std::filesystem::path const & filename) {
 //      purpose: get the actual texinfo for a face. the tools shouldn't
 //      directly use f->texinfo after embedlightmap is done
 // =====================================================================================
-int ParseImplicitTexinfoFromTexture(int miptex) {
+static texinfo_count ParseImplicitTexinfoFromTexture(int miptex) {
 	int numtextures = g_texdatasize
 		? ((dmiptexlump_t*) g_dtexdata.data())->nummiptex
 		: 0;
@@ -722,10 +722,10 @@ int ParseImplicitTexinfoFromTexture(int miptex) {
 
 	miptex_t const & mt = (miptex_t const &) (g_dtexdata[offset]);
 
-	std::optional<std::uint32_t> maybeTexinfoIndex
+	std::optional<texinfo_count> maybeTexinfoIndex
 		= mt.name.original_texinfo_index_for_embedded_lightmap();
 	if (!maybeTexinfoIndex) {
-		return -1;
+		return no_texinfo;
 	}
 
 	if (maybeTexinfoIndex.value() >= g_numtexinfo) {
@@ -742,16 +742,16 @@ int ParseImplicitTexinfoFromTexture(int miptex) {
 	return maybeTexinfoIndex.value();
 }
 
-int ParseTexinfoForFace(dface_t const * f) {
-	int texinfo;
+texinfo_count ParseTexinfoForFace(dface_t const * f) {
+	texinfo_count texinfo;
 	int miptex;
-	int texinfo2;
+	texinfo_count texinfo2;
 
 	texinfo = f->texinfo;
 	miptex = g_texinfo[texinfo].miptex;
 	if (miptex != -1) {
 		texinfo2 = ParseImplicitTexinfoFromTexture(miptex);
-		if (texinfo2 != -1) {
+		if (texinfo2 != no_texinfo) {
 			texinfo = texinfo2;
 		}
 	}
@@ -780,7 +780,7 @@ void DeleteEmbeddedLightmaps() {
 
 	for (int i = 0; i < g_numfaces; i++) {
 		dface_t* f = &g_dfaces[i];
-		int const texinfo = ParseTexinfoForFace(f);
+		texinfo_count const texinfo = ParseTexinfoForFace(f);
 		if (texinfo != f->texinfo) {
 			f->texinfo = texinfo;
 			countrestoredfaces++;
@@ -792,35 +792,35 @@ void DeleteEmbeddedLightmaps() {
 		bool* texinfoused = (bool*) malloc(g_numtexinfo * sizeof(bool));
 		hlassume(texinfoused != nullptr, assume_NoMemory);
 
-		for (int i = 0; i < g_numtexinfo; i++) {
+		for (texinfo_count i = 0; i < g_numtexinfo; ++i) {
 			texinfoused[i] = false;
 		}
 		for (int i = 0; i < g_numfaces; i++) {
-			auto const texinfo = g_dfaces[i].texinfo;
+			texinfo_count const texinfo = g_dfaces[i].texinfo;
 
-			if (texinfo < 0 || texinfo >= g_numtexinfo) {
+			if (texinfo >= g_numtexinfo) {
 				continue;
 			}
 			texinfoused[texinfo] = true;
 		}
-		int i;
-		for (i = g_numtexinfo - 1; i > -1; i--) {
-			auto const miptex = g_texinfo[i].miptex;
+		texinfo_count i;
+		for (i = g_numtexinfo; i > 0; i--) {
+			auto const miptex = g_texinfo[i - 1].miptex;
 
-			if (texinfoused[i]) {
+			if (texinfoused[i - 1]) {
 				break; // still used by a face; should not remove
 					   // this texinfo
 			}
 			if (miptex < 0 || miptex >= numtextures) {
 				break; // invalid; should not remove this texinfo
 			}
-			if (ParseImplicitTexinfoFromTexture(miptex) == -1) {
+			if (ParseImplicitTexinfoFromTexture(miptex) == no_texinfo) {
 				break; // not added by hlrad; should not remove this
 					   // texinfo
 			}
 			countremovedtexinfos++;
 		}
-		g_numtexinfo = i + 1; // shrink g_texinfo
+		g_numtexinfo = i; // shrink g_texinfo
 		free(texinfoused);
 	}
 
@@ -844,7 +844,7 @@ void DeleteEmbeddedLightmaps() {
 		int i;
 		for (i = numtextures - 1; i > -1; i--) {
 			if (textureused[i]
-				|| ParseImplicitTexinfoFromTexture(i) == -1) {
+				|| ParseImplicitTexinfoFromTexture(i) == no_texinfo) {
 				break; // should not remove this texture
 			}
 			countremovedtextures++;
@@ -1225,8 +1225,8 @@ void dtexdata_free() {
 //      kosher (i.e. map was compiled with missing textures)
 // =====================================================================================
 
-wad_texture_name get_texture_by_number(int texturenumber) {
-	if (texturenumber == -1) {
+wad_texture_name get_texture_by_number(texinfo_count texturenumber) {
+	if (texturenumber == no_texinfo) {
 		return wad_texture_name{};
 	}
 

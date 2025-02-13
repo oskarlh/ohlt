@@ -59,13 +59,9 @@ constexpr std::ptrdiff_t MAX_MAP_WORLDFACES = 32768;
 constexpr std::ptrdiff_t MAX_MAP_MARKSURFACES = 65535;
 // hard limit (data structures store them as unsigned shorts)
 
-constexpr std::ptrdiff_t MAX_MAP_TEXTURES = 4096; // 512 //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_TEXTURES = 4096;
 // hard limit (halflife limitation) // I used 2048 different textures in a
 // test map and everything looks fine in both opengl and d3d mode.
-
-constexpr std::ptrdiff_t MAX_MAP_TEXINFO = 32767;
-// hard limit (face.texinfo is signed short)
-constexpr std::ptrdiff_t MAX_INTERNAL_MAP_TEXINFOS = 262'144;
 
 constexpr std::ptrdiff_t MAX_MAP_EDGES = 256'000;
 constexpr std::ptrdiff_t MAX_MAP_SURFEDGES = 512'000;
@@ -289,7 +285,7 @@ struct dface_t final {
 
 	std::uint32_t firstedge; // We must support > 64k edges
 	std::uint16_t numedges;
-	std::int16_t texinfo;
+	texinfo_count texinfo; // Can be no_texinfo (-1)
 
 	// lighting info
 	std::array<std::uint8_t, MAXLIGHTMAPS> styles;
@@ -575,7 +571,7 @@ constexpr std::ptrdiff_t g_max_map_lightdata
 extern void dtexdata_init();
 extern void dtexdata_free();
 
-extern wad_texture_name get_texture_by_number(int texturenumber);
+extern wad_texture_name get_texture_by_number(texinfo_count texturenumber);
 
 //
 // BSP File Data
@@ -612,12 +608,13 @@ struct bsp_data final {
 	std::array<dnode_t, MAX_MAP_NODES> nodes{};
 	int nodesLength{ 0 };
 
-	std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS> texInfos{};
-	int texInfosLength{ 0 };
+	std::array<texinfo_t, INITIAL_MAX_MAP_TEXINFO> texInfos{};
+	texinfo_count texInfosLength{ 0 };
 
 	std::array<dface_t, MAX_MAP_FACES> faces{};
 	int facesLength{ 0 };
 
+	// Doesn't belong here - it's not something that's written to the BSP
 	int worldExtent{
 		65536
 	}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
@@ -634,6 +631,8 @@ struct bsp_data final {
 	std::array<std::int32_t, MAX_MAP_SURFEDGES> surfEdges{};
 	int surfEdgesLength{ 0 };
 
+	// Doesn't belong here - it's not something that's written directly to
+	// the BSP
 	std::array<entity_t, MAX_MAP_ENTITIES> entities{};
 	entity_count entitiesLength;
 };
@@ -666,8 +665,8 @@ extern std::array<dvertex_t, MAX_MAP_VERTS>& g_dvertexes;
 extern int& g_numnodes;
 extern std::array<dnode_t, MAX_MAP_NODES>& g_dnodes;
 
-extern int& g_numtexinfo;
-extern std::array<texinfo_t, MAX_INTERNAL_MAP_TEXINFOS>& g_texinfo;
+extern texinfo_count& g_numtexinfo;
+extern std::array<texinfo_t, INITIAL_MAX_MAP_TEXINFO>& g_texinfo;
 
 extern int& g_numfaces;
 extern std::array<dface_t, MAX_MAP_FACES>& g_dfaces;
@@ -711,8 +710,7 @@ struct face_extents {
 };
 
 extern face_extents get_face_extents(int facenum) noexcept;
-extern int ParseImplicitTexinfoFromTexture(int miptex);
-extern int ParseTexinfoForFace(dface_t const * f);
+extern texinfo_count ParseTexinfoForFace(dface_t const * f);
 extern void DeleteEmbeddedLightmaps();
 
 std::size_t hash_data();

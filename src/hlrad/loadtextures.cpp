@@ -1056,7 +1056,7 @@ void EmbedLightmapInTextures() {
 		{
 			continue;
 		}
-		if (f->texinfo < 0 || f->texinfo >= g_numtexinfo) {
+		if (f->texinfo >= g_numtexinfo) {
 			continue;
 		}
 
@@ -1404,7 +1404,10 @@ void EmbedLightmapInTextures() {
 
 		// emit a texinfo
 
-		hlassume(g_numtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
+		hlassume(
+			g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
+			assume_INITIAL_MAX_MAP_TEXINFO
+		);
 		f->texinfo = g_numtexinfo;
 		texinfo_t* info = &g_texinfo[g_numtexinfo];
 		g_numtexinfo++;

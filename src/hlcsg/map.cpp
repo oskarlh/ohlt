@@ -61,7 +61,7 @@ add_parsed_entity_result add_parsed_entity(
 	side_count firstSideNumber
 ) {
 	bool all_clip = true;
-	entity_t& mapent{ g_entities[entityNumber] };
+	csg_entity& mapent{ g_entities[entityNumber] };
 	mapent.firstBrush = firstBrushNumber;
 	mapent.keyValues = parsedEntity.keyValues;
 
@@ -239,7 +239,7 @@ add_parsed_entity_result add_parsed_entity(
 			// Get sizes. This is an ugly method that wastes work
 			contents_t const contents = b.contents;
 			b.contents = contents_t::SOLID;
-			CreateBrush(mapent.firstBrush + b.brushnum);
+			create_brush(b, mapent);
 			b.contents = contents;
 			for (brushhull_t& brushHull : b.hulls) {
 				brushHull.faces.clear();
@@ -296,7 +296,7 @@ add_parsed_entity_result add_parsed_entity(
 			// Get sizes. This is an ugly method that wastes work
 			contents_t const contents = b.contents;
 			b.contents = contents_t::SOLID;
-			CreateBrush(mapent.firstBrush + b.brushnum);
+			create_brush(b, mapent);
 			b.contents = contents;
 			for (brushhull_t& brushHull : b.hulls) {
 				brushHull.faces.clear();

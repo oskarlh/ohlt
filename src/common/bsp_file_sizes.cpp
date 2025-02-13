@@ -301,7 +301,7 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 	totalmemory += array_usage(
 		"texinfos",
 		bspData.texInfosLength,
-		MAX_MAP_TEXINFO,
+		FINAL_MAX_MAP_TEXINFO,
 		sizeof(bspData.texInfos[0])
 	);
 	totalmemory += array_usage(

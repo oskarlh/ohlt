@@ -14,24 +14,13 @@ static int subdivides;
 //      piece off and insert the remainder in the next link
 // =====================================================================================
 void SubdivideFace(face_t* f, face_t** prevptr) {
-	double mins, maxs;
-	double v;
-	int axis;
-	int i;
-	mapplane_t plane;
-	face_t* front;
-	face_t* back;
-	face_t* next;
-	texinfo_t* tex;
-
-	// special (non-surface cached) faces don't need subdivision
-
-	if (f->texturenum == -1) {
+	// Special (non-surface cached) faces don't need subdivision
+	if (f->texturenum == no_texinfo) {
 		return;
 	}
-	tex = &g_texinfo[f->texturenum];
+	texinfo_t const & tex = g_texinfo[f->texturenum];
 
-	if (tex->has_special_flag()) {
+	if (tex.has_special_flag()) {
 		return;
 	}
 
@@ -50,13 +39,13 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 		return;
 	}
 
-	for (axis = 0; axis < 2; axis++) {
+	for (std::size_t axis = 0; axis < 2; ++axis) {
 		while (1) {
-			mins = 99'999'999;
-			maxs = -99'999'999;
+			double mins = 99'999'999;
+			double maxs = -99'999'999;
 
-			for (i = 0; i < f->numpoints; i++) {
-				v = dot_product(f->pts[i], tex->vecs[axis].xyz);
+			for (int i = 0; i < f->numpoints; i++) {
+				double const v = dot_product(f->pts[i], tex.vecs[axis].xyz);
 				if (v < mins) {
 					mins = v;
 				}
@@ -72,14 +61,16 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			// split it
 			subdivides++;
 
-			double3_array temp{ to_double3(tex->vecs[axis].xyz) };
-			v = normalize_vector(temp);
+			double3_array temp{ to_double3(tex.vecs[axis].xyz) };
+			double const v = normalize_vector(temp);
 
+			mapplane_t plane{};
 			plane.normal = temp;
-			plane.dist = (mins + g_subdivide_size - TEXTURE_STEP)
-				/ v; // plane.dist = (mins + g_subdivide_size - 16) / v;
-					 // //--vluzacn
-			next = f->next;
+			plane.dist = (mins + g_subdivide_size - TEXTURE_STEP) / v;
+
+			face_t* front{};
+			face_t* back{};
+			face_t* next = f->next;
 			SplitFace(f, &plane, &front, &back);
 			if (!front || !back) {
 				Developer(

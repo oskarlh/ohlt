@@ -436,14 +436,14 @@ static void SaveOutside(
 
 		// check the texture alignment of this face
 		if (!hull) {
-			int texinfo = f.texinfo;
+			texinfo_count texinfo = f.texinfo;
 			wad_texture_name const texname{
 				GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
 			};
 			texinfo_t* tex = &g_texinfo[texinfo];
 
-			if (texinfo != -1 // nullified textures (nullptr, BEVEL,
-							  // aaatrigger, etc.)
+			if (texinfo != no_texinfo // nullified textures (nullptr, BEVEL,
+									  // aaatrigger, etc.)
 				&& !tex->has_special_flag() // sky
 				&& !texname.is_skip()
 				&& !texname.is_any_hint(
@@ -662,7 +662,7 @@ static void CSGBrush(int brushnum) {
 							wad_texture_name{}
 						)
 					};
-					if (f.texinfo == -1 || texname.is_skip()
+					if (f.texinfo == no_texinfo || texname.is_skip()
 						|| texname.is_any_hint()) {
 						// should not nullify the fragment inside detail
 						// brush
@@ -2180,9 +2180,16 @@ int main(int const argc, char** argv) {
 			// createbrush
 			int numT = g_numthreads;
 			//   g_numthreads = 1;
-			NamedRunThreadsOnIndividual(
-				g_nummapbrushes, g_estimate, CreateBrush
-			);
+			//
+			// TODO: Reimplement multi-threading here!
+			for (brush_count brushIndex = 0; brushIndex != g_nummapbrushes;
+				 ++brushIndex) {
+				csg_brush& brush{ g_mapbrushes[brushIndex] };
+				create_brush(brush, g_entities[brush.entitynum]);
+			}
+			// NamedRunThreadsOnIndividual(
+			//	g_nummapbrushes, g_estimate, CreateBrush
+			//);
 			g_numthreads = numT;
 			CheckFatal();
 

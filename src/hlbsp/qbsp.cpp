@@ -761,7 +761,8 @@ static facestyle_e set_face_style(face_t* f) {
 static surfchain_t* read_surfaces(FILE* file) {
 	int r;
 	int detaillevel;
-	int planenum, g_texinfo, numpoints;
+	int planenum, numpoints;
+	texinfo_count g_texinfo;
 	std::underlying_type_t<contents_t> contents;
 	face_t* f;
 	int i;
@@ -778,7 +779,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 		line++;
 		r = fscanf(
 			file,
-			"%i %i %i %i %i\n",
+			"%i %i %hu %i %i\n",
 			&detaillevel, // TODO: Clamp to min and max of the detail_level
 						  // type
 			&planenum,
@@ -816,7 +817,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 				planenum
 			);
 		}
-		if (g_texinfo > g_numtexinfo) {
+		if (g_texinfo != no_texinfo && g_texinfo > g_numtexinfo) {
 			Error(
 				"read_surfaces (line %i): %i > g_numtexinfo",
 				line,

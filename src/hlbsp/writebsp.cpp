@@ -13,9 +13,9 @@ static int gNumMappedPlanes;
 static mapplane_t gMappedPlanes[MAX_MAP_PLANES];
 extern bool g_noopt;
 
-using texinfomap_t = std::map<int, int>;
-static int g_nummappedtexinfo;
-static texinfo_t g_mappedtexinfo[MAX_MAP_TEXINFO];
+using texinfomap_t = std::map<texinfo_count, texinfo_count>;
+static texinfo_count g_nummappedtexinfo;
+static texinfo_t g_mappedtexinfo[FINAL_MAX_MAP_TEXINFO];
 static texinfomap_t g_texinfomap;
 
 int count_mergedclipnodes;
@@ -50,11 +50,8 @@ static int WritePlane(int planenum) {
 	return gNumMappedPlanes++;
 }
 
-// =====================================================================================
-//  WriteTexinfo
-// =====================================================================================
-static int WriteTexinfo(int texinfo) {
-	if (texinfo < 0 || texinfo >= g_numtexinfo) {
+static texinfo_count WriteTexinfo(texinfo_count texinfo) {
+	if (texinfo >= g_numtexinfo) {
 		Error("Bad texinfo number %d.\n", texinfo);
 	}
 
@@ -68,9 +65,11 @@ static int WriteTexinfo(int texinfo) {
 		return it->second;
 	}
 
-	int c;
-	hlassume(g_nummappedtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
-	c = g_nummappedtexinfo;
+	hlassume(
+		g_nummappedtexinfo < FINAL_MAX_MAP_TEXINFO,
+		assume_FINAL_MAX_MAP_TEXINFO
+	);
+	texinfo_count const c = g_nummappedtexinfo;
 	g_mappedtexinfo[g_nummappedtexinfo] = g_texinfo[texinfo];
 	g_texinfomap.insert(
 		texinfomap_t::value_type(texinfo, g_nummappedtexinfo)
@@ -231,15 +230,14 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 // =====================================================================================
 static void WriteFace(face_t* f) {
 	dface_t* df;
-	int i;
-	int e;
 
 	wad_texture_name const textureName{ get_texture_by_number(f->texturenum
 	) };
 
 	if (textureName.is_ordinary_hint() || textureName.is_skip()
 		|| should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces() || f->texturenum == -1
+		|| textureName.marks_discardable_faces()
+		|| f->texturenum == no_texinfo
 		|| f->referenced
 			== 0 // this face is not referenced by any nonsolid leaf because
 				 // it is completely covered by func_details
@@ -261,8 +259,8 @@ static void WriteFace(face_t* f) {
 
 	df->texinfo = WriteTexinfo(f->texturenum);
 
-	for (i = 0; i < f->numpoints; i++) {
-		e = f->outputedges[i];
+	for (int i = 0; i < f->numpoints; i++) {
+		int e = f->outputedges[i];
 		hlassume(
 			g_numsurfedges < MAX_MAP_SURFEDGES, assume_MAX_MAP_SURFEDGES
 		);
@@ -338,7 +336,7 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 	//
 	// recursively output the other nodes
 	//
-	for (i = 0; i < 2; i++) {
+	for (i = 0; i < 2; ++i) {
 		n->children[i] = WriteDrawNodes_r(node->children[i], portalleaf);
 	}
 	return nodenum;
@@ -380,8 +378,9 @@ void OutputEdges_face(face_t* f) {
 
 	if (textureName.is_ordinary_hint() || textureName.is_skip()
 		|| should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces() || f->texturenum == -1
-		|| f->referenced == 0 || textureName.is_env_sky()) {
+		|| textureName.marks_discardable_faces()
+		|| f->texturenum == no_texinfo || f->referenced == 0
+		|| textureName.is_env_sky()) {
 		return;
 	}
 	f->outputedges = (int*) malloc(f->numpoints * sizeof(int));
@@ -671,7 +670,10 @@ void FinishBSPFile(bsp_data const & bspData) {
 		}
 		g_numplanes = gNumMappedPlanes;
 	} else {
-		hlassume(g_numtexinfo < MAX_MAP_TEXINFO, assume_MAX_MAP_TEXINFO);
+		hlassume(
+			g_numtexinfo < FINAL_MAX_MAP_TEXINFO,
+			assume_FINAL_MAX_MAP_TEXINFO
+		);
 		hlassume(g_numplanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
 	}
 

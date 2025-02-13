@@ -35,7 +35,7 @@ static wadpath_t*
 // The old buggy code in effect limit the number of brush sides to
 // MAX_MAP_BRUSHES
 
-static wad_texture_name texmap[MAX_INTERNAL_MAP_TEXINFOS];
+static wad_texture_name texmap[INITIAL_MAX_MAP_TEXINFO];
 
 static int numtexmap = 0;
 
@@ -45,7 +45,7 @@ static int texmap_store(wad_texture_name texname)
 // ThreadUnlock()!!
 {
 	hlassume(
-		numtexmap < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO
+		numtexmap < INITIAL_MAX_MAP_TEXINFO, assume_INITIAL_MAX_MAP_TEXINFO
 	); // This error should never appear.
 
 	int i = numtexmap;
@@ -782,10 +782,7 @@ void LogWadUsage(wadpath_t* currentwad, int nummiptex) {
 		(char const *) currentwad->path.c_str());
 }
 
-// =====================================================================================
-//  TexinfoForBrushTexture
-// =====================================================================================
-int TexinfoForBrushTexture(
+texinfo_count TexinfoForBrushTexture(
 	mapplane_t const * const plane,
 	brush_texture_t* bt,
 	double3_array const & origin
@@ -845,12 +842,13 @@ int TexinfoForBrushTexture(
 	}
 
 	hlassume(
-		g_numtexinfo < MAX_INTERNAL_MAP_TEXINFOS, assume_MAX_MAP_TEXINFO
+		g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
+		assume_INITIAL_MAX_MAP_TEXINFO
 	);
 
 	*tc = tx;
 	tc->miptex = texmap_store(bt->name);
-	int newTexinfo = g_numtexinfo++;
+	texinfo_count const newTexinfo = g_numtexinfo++;
 	ThreadUnlock();
 	return newTexinfo;
 }

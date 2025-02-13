@@ -8,9 +8,9 @@ int g_nummapplanes;
 hullshape_t g_defaulthulls[NUM_HULLS]{};
 std::vector<hullshape_t> g_hullshapes{};
 
-constexpr double DIST_EPSILON = 0.04;
+constexpr float DIST_EPSILON = 0.04f;
 
-constexpr double FLOOR_Z = 0.7; // Quake default
+constexpr float FLOOR_Z = 0.7f; // Quake default
 
 // =====================================================================================
 //  FindIntPlane, fast version (replacement by KGP)
@@ -150,7 +150,7 @@ static void AddHullPlane(
 	new_face.planenum = planenum;
 	new_face.plane = &g_mapplanes[planenum];
 	new_face.contents = contents_t::EMPTY;
-	new_face.texinfo = -1;
+	new_face.texinfo = no_texinfo;
 	hull->faces.emplace_back(std::move(new_face));
 }
 
@@ -249,9 +249,8 @@ void ExpandBrushWithHullBrush(
 		}
 
 		// find the impact point
-		double3_array bestvertex;
-		double bestdist;
-		bestdist = g_iWorldExtent;
+		double3_array bestvertex{};
+		double bestdist = g_iWorldExtent;
 		hlassume(hb->numvertexes >= 1, assume_first);
 		for (hbv = hb->vertexes; hbv < hb->vertexes + hb->numvertexes;
 			 hbv++) {
@@ -862,24 +861,23 @@ restart:
 // =====================================================================================
 //  MakeBrushPlanes
 // =====================================================================================
-bool MakeBrushPlanes(csg_brush* b) {
+static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 	int j;
 	int planenum;
 	side_t* s;
-	double3_array origin;
 
 	//
 	// if the origin key is set (by an origin brush), offset all of the
 	// values
 	//
-	origin = get_double3_for_key(g_entities[b->entitynum], u8"origin");
+	double3_array const origin = get_double3_for_key(entity, u8"origin");
 
 	//
 	// convert to mapplanes
 	//
 	// for each side in this brush
-	for (side_count i = 0; i < b->numSides; ++i) {
-		s = &g_brushsides[b->firstSide + i];
+	for (side_count i = 0; i < b.numSides; ++i) {
+		s = &g_brushsides[b.firstSide + i];
 		for (std::size_t j = 0; j < 3; ++j) {
 			s->planepts[j] = vector_subtract(s->planepts[j], origin);
 		}
@@ -888,8 +886,8 @@ bool MakeBrushPlanes(csg_brush* b) {
 			Fatal(
 				assume_PLANE_WITH_NO_NORMAL,
 				"Entity %i, Brush %i, Side %i: plane with no normal",
-				b->originalentitynum,
-				b->originalbrushnum,
+				b.originalentitynum,
+				b.originalbrushnum,
 				i
 			);
 		}
@@ -897,13 +895,13 @@ bool MakeBrushPlanes(csg_brush* b) {
 		//
 		// see if the plane has been used already
 		//
-		for (bface_t const & f : b->hulls[0].faces) {
+		for (bface_t const & f : b.hulls[0].faces) {
 			if (f.planenum == planenum || f.planenum == (planenum ^ 1)) {
 				Fatal(
 					assume_BRUSH_WITH_COPLANAR_FACES,
 					"Entity %i, Brush %i, Side %i: has a coplanar plane at (%.0f, %.0f, %.0f), texture %s",
-					b->originalentitynum,
-					b->originalbrushnum,
+					b.originalentitynum,
+					b.originalbrushnum,
 					i,
 					s->planepts[0][0] + origin[0],
 					s->planepts[0][1] + origin[1],
@@ -919,8 +917,8 @@ bool MakeBrushPlanes(csg_brush* b) {
 		new_face.texinfo = g_onlyents
 			? 0
 			: TexinfoForBrushTexture(new_face.plane, &s->td, origin);
-		new_face.bevel = b->bevel || s->bevel;
-		b->hulls[0].faces.emplace_back(std::move(new_face));
+		new_face.bevel = b.bevel || s->bevel;
+		b.hulls[0].faces.emplace_back(std::move(new_face));
 	}
 
 	return true;
@@ -1136,19 +1134,8 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 	return contents;
 }
 
-// =====================================================================================
-//  CreateBrush
-//      makes a brush!
-// =====================================================================================
-void CreateBrush(int const brushnum) //--vluzacn
-{
-	csg_brush* b;
-	contents_t contents;
-	int h;
-
-	b = &g_mapbrushes[brushnum];
-
-	contents = b->contents;
+void create_brush(csg_brush& b, csg_entity const & ent) {
+	contents_t contents = b.contents;
 
 	if (contents == contents_t::ORIGIN) {
 		return;
@@ -1157,9 +1144,9 @@ void CreateBrush(int const brushnum) //--vluzacn
 		return;
 	}
 
-	//  HULL 0
-	MakeBrushPlanes(b);
-	MakeHullFaces(b, &b->hulls[0]);
+	// HULL 0
+	MakeBrushPlanes(b, ent);
+	MakeHullFaces(&b, &b.hulls[0]);
 
 	if (contents == contents_t::HINT) {
 		return;
@@ -1169,27 +1156,27 @@ void CreateBrush(int const brushnum) //--vluzacn
 	}
 
 	if (g_noclip) {
-		if (b->cliphull) {
+		if (b.cliphull) {
 			// Is this necessary?
-			b->hulls[0].faces.clear();
+			b.hulls[0].faces.clear();
 		}
 		return;
 	}
 
-	if (b->cliphull) {
-		for (h = 1; h < NUM_HULLS; h++) {
-			if (b->cliphull & (1 << h)) {
-				ExpandBrush(b, h);
-				MakeHullFaces(b, &b->hulls[h]);
+	if (b.cliphull) {
+		for (std::size_t h = 1; h < NUM_HULLS; ++h) {
+			if (b.cliphull & (1 << h)) {
+				ExpandBrush(&b, h);
+				MakeHullFaces(&b, &b.hulls[h]);
 			}
 		}
-		b->contents = contents_t::SOLID;
+		b.contents = contents_t::SOLID;
 		// Is this necessary?
-		b->hulls[0].faces.clear();
-	} else if (!b->noclip) {
-		for (h = 1; h < NUM_HULLS; h++) {
-			ExpandBrush(b, h);
-			MakeHullFaces(b, &b->hulls[h]);
+		b.hulls[0].faces.clear();
+	} else if (!b.noclip) {
+		for (std::size_t h = 1; h < NUM_HULLS; ++h) {
+			ExpandBrush(&b, h);
+			MakeHullFaces(&b, &b.hulls[h]);
 		}
 	}
 }

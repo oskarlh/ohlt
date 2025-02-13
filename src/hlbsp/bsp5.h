@@ -68,7 +68,7 @@ struct face_t final {
 	face_t* next;
 	face_t* original; // Face on node
 	int planenum;
-	int texturenum;
+	texinfo_count texturenum;
 	contents_t contents;	  // contents in front of face
 	detail_level detailLevel; // From HLCSG
 	int* outputedges;		  // used in WriteDrawNodes
