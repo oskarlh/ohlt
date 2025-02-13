@@ -1400,8 +1400,8 @@ static void MakePatchForFace(
 				texturereflectivity[k], g_texreflectgamma
 			);
 		}
-		VectorScale(
-			texturereflectivity, g_texreflectscale, texturereflectivity
+		texturereflectivity = vector_scale(
+			texturereflectivity, g_texreflectscale
 		);
 		if (vector_max_element(texturereflectivity)
 			> 1.0 + NORMAL_EPSILON) {
@@ -1446,8 +1446,8 @@ static void MakePatchForFace(
 				}
 			}
 		}
-		VectorScale(
-			patch->texturereflectivity, opacity, patch->bouncereflectivity
+		patch->bouncereflectivity = vector_scale(
+			patch->texturereflectivity, opacity
 		);
 	}
 	patch->bouncestyle = bouncestyle;

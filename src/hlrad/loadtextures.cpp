@@ -975,13 +975,11 @@ static void GetLight(
 	double y,
 	float3_array& light
 ) {
-	int ix, iy;
-	float dx, dy;
-	ix = (int) floor(x);
-	iy = (int) floor(y);
-	dx = x - ix;
+	int ix = (int) floor(x);
+	int iy = (int) floor(y);
+	float dx = x - ix;
 	dx = std::max(0.0f, std::min(dx, 1.0f));
-	dy = y - iy;
+	float dy = y - iy;
 	dy = std::max(0.0f, std::min(dy, 1.0f));
 
 	// do bilinear interpolation
@@ -990,12 +988,11 @@ static void GetLight(
 	GetLightInt(face, texsize, ix + 1, iy, light10);
 	GetLightInt(face, texsize, ix, iy + 1, light01);
 	GetLightInt(face, texsize, ix + 1, iy + 1, light11);
-	float3_array light0, light1;
-	VectorScale(light00, 1 - dy, light0);
+	float3_array light0 = vector_scale(light00, 1 - dy);
 	light0 = vector_fma(light01, dy, light0);
-	VectorScale(light10, 1 - dy, light1);
+	float3_array light1 = vector_scale(light10, 1 - dy);
 	light1 = vector_fma(light11, dy, light1);
-	VectorScale(light0, 1 - dx, light);
+	light = vector_scale(light0, 1 - dx);
 	light = vector_fma(light1, dx, light);
 }
 

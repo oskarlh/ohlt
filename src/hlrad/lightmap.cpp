@@ -866,22 +866,21 @@ static void CalcFaceVectors(lightinfo_t* l) {
 	l->texnormal = texnormal;
 }
 
-// =====================================================================================
-//  SetSurfFromST
-// =====================================================================================
-static void SetSurfFromST(
-	lightinfo_t const * const l, float* surf, float const s, float const t
+static void SetSurfaceFromST(
+	lightinfo_t const * const l,
+	float3_array& surface,
+	float const s,
+	float const t
 ) {
 	int const facenum = l->surfnum;
-	int j;
 
-	for (j = 0; j < 3; j++) {
-		surf[j] = l->texorg[j] + l->textoworld[0][j] * s
+	for (std::size_t j = 0; j < 3; ++j) {
+		surface[j] = l->texorg[j] + l->textoworld[0][j] * s
 			+ l->textoworld[1][j] * t;
 	}
 
 	// Adjust for origin-based models
-	VectorAdd(surf, g_face_offset[facenum], surf);
+	surface = vector_add(surface, g_face_offset[facenum]);
 }
 
 enum light_flag_t {
@@ -1579,7 +1578,7 @@ static light_flag_t SetSampleFromST(
 		// returned value
 		LuxelFlag = LightNormal;
 	} else {
-		SetSurfFromST(l, point.data(), original_s, original_t);
+		SetSurfaceFromST(l, point, original_s, original_t);
 		position = vector_fma(
 			faceplane->normal, DEFAULT_HUNT_OFFSET, point
 		);
@@ -2790,8 +2789,8 @@ static void GatherSampleLight(
 												  // completely vanishes.
 									}
 								}
-								VectorAdd(
-									adds[style], add_one, adds[style]
+								adds[style] = vector_add(
+									adds[style], add_one
 								);
 							} // (loop over the normals)
 						} while (0);
@@ -2847,7 +2846,7 @@ static void GatherSampleLight(
 								delta = vector_scale(
 									skynormals[j], -hlrad_bogus_range
 								);
-								VectorAdd(pos, delta, delta);
+								delta = vector_add(delta, pos);
 								float3_array skyhit;
 								skyhit = delta;
 								if (TestLine(pos, delta, skyhit)
@@ -2914,8 +2913,8 @@ static void GatherSampleLight(
 												  // completely vanishes.
 									}
 								}
-								VectorAdd(
-									adds[style], add_one, adds[style]
+								adds[style] = vector_add(
+									adds[style], add_one
 								);
 							} // (loop over the normals)
 
@@ -3197,7 +3196,7 @@ static void GatherSampleLight(
 										  // vanishes.
 							}
 						}
-						VectorAdd(adds[style], add, adds[style]);
+						adds[style] = vector_add(adds[style], add);
 					} // end emit_skylight
 				}
 			}
@@ -3235,8 +3234,8 @@ static void GatherSampleLight(
 				styles[style_index] = style;
 			}
 
-			VectorAdd(
-				sample[style_index], adds[style], sample[style_index]
+			sample[style_index] = vector_add(
+				sample[style_index], adds[style]
 			);
 		} else if (vector_max_element(adds[style])
 				   > g_maxdiscardedlight + NORMAL_EPSILON) {
@@ -3436,8 +3435,8 @@ void GetPhongNormal(
 			}
 
 			// Adjust for origin-based models
-			VectorAdd(p1, g_face_offset[facenum], p1);
-			VectorAdd(p2, g_face_offset[facenum], p2);
+			p1 = vector_add(p1, g_face_offset[facenum]);
+			p2 = vector_add(p2, g_face_offset[facenum]);
 			for (s = 0; s < 2; s++) {
 				float3_array s1 = s == 0 ? p1 : p2;
 				float3_array const edgeCenter = midpoint_between(p1, p2);
@@ -3484,11 +3483,12 @@ void GetPhongNormal(
 					// Interpolate between the center and edge normals based
 					// on sample position
 					phongnormal = vector_scale(facenormal, 1.0f - a1 - a2);
-					float3_array temp;
-					VectorScale(n1, a1, temp);
-					VectorAdd(phongnormal, temp, phongnormal);
-					VectorScale(n2, a2, temp);
-					VectorAdd(phongnormal, temp, phongnormal);
+					phongnormal = vector_add(
+						phongnormal, vector_scale(n1, a1)
+					);
+					phongnormal = vector_add(
+						phongnormal, vector_scale(n2, a2)
+					);
 					normalize_vector(phongnormal);
 					break;
 				}
@@ -4157,16 +4157,12 @@ void BuildFacelights(int const facenum) {
 				for (istyle = 0; istyle < ALLSTYLES
 					 && (*patch->totalstyle_all)[istyle] != 255;
 					 istyle++) {
-					float3_array v;
-					VectorScale(
+					float3_array v = vector_scale(
 						(*patch->samplelight_all)[istyle],
-						1.0f / patch->samples,
-						v
+						1.0f / patch->samples
 					);
-					VectorAdd(
-						(*patch->directlight_all)[istyle],
-						v,
-						(*patch->directlight_all)[istyle]
+					(*patch->directlight_all)[istyle] = vector_add(
+						(*patch->directlight_all)[istyle], v
 					);
 				}
 			}
@@ -4273,7 +4269,7 @@ void BuildFacelights(int const facenum) {
 			if (f_styles[j] == 0) {
 				s = fl_samples[j];
 				for (i = 0; i < l.numsurfpt; i++, s++) {
-					VectorAdd(s->light, g_ambient, s->light);
+					s->light = vector_add(s->light, g_ambient);
 				}
 				break;
 			}
@@ -4298,8 +4294,8 @@ void BuildFacelights(int const facenum) {
 				for (i = 0; i < l.numsurfpt; i++, s++) {
 					if ((s->light[0] == 0) && (s->light[1] == 0)
 						&& (s->light[2] == 0)) {
-						VectorAdd(
-							s->light, s_circuscolors[i % amt], s->light
+						s->light = vector_add(
+							s->light, s_circuscolors[i % amt]
 						);
 					}
 				}
@@ -4337,8 +4333,8 @@ void BuildFacelights(int const facenum) {
 
 			s = fl_samples[j];
 			for (i = 0; i < l.numsurfpt; i++, s++) {
-				VectorAdd(
-					s->light, g_face_patches[facenum]->baselight, s->light
+				s->light = vector_add(
+					s->light, g_face_patches[facenum]->baselight
 				);
 			}
 		}
@@ -4569,8 +4565,9 @@ void PrecompLightmapOffsets() {
 					}
 				}
 				for (j = 0; j < ALLSTYLES; j++) {
-					float3_array v;
-					VectorAdd(maxlights1[j], maxlights2[j], v);
+					float3_array v = vector_add(
+						maxlights1[j], maxlights2[j]
+					);
 					maxlights[j] = vector_max_element(v);
 					if (maxlights[j] <= g_corings[j] * 0.01) {
 						if (maxlights[j]

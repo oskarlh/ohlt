@@ -759,13 +759,11 @@ static facestyle_e set_face_style(face_t* f) {
 //  read_surfaces
 // =====================================================================================
 static surfchain_t* read_surfaces(FILE* file) {
-	int r;
-	int detaillevel;
+	detail_level detailLevel;
 	int planenum, numpoints;
 	texinfo_count g_texinfo;
 	std::underlying_type_t<contents_t> contents;
 	face_t* f;
-	int i;
 	double3_array v;
 	int line = 0;
 	double inaccuracy, inaccuracy_count = 0.0, inaccuracy_total = 0.0,
@@ -777,11 +775,10 @@ static surfchain_t* read_surfaces(FILE* file) {
 			break;
 		}
 		line++;
-		r = fscanf(
+		int r = fscanf(
 			file,
-			"%i %i %hu %i %i\n",
-			&detaillevel, // TODO: Clamp to min and max of the detail_level
-						  // type
+			"%hu %i %hu %i %i\n",
+			&detailLevel,
 			&planenum,
 			&g_texinfo,
 			&contents,
@@ -824,18 +821,11 @@ static surfchain_t* read_surfaces(FILE* file) {
 				g_texinfo
 			);
 		}
-		if (detaillevel < 0) {
-			Error(
-				"read_surfaces (line %i): detaillevel %i < 0",
-				line,
-				detaillevel
-			);
-		}
 
 		if ((get_texture_by_number(g_texinfo)).is_skip()) {
 			Verbose("read_surfaces (line %i): skipping a surface", line);
 
-			for (i = 0; i < numpoints; i++) {
+			for (int i = 0; i < numpoints; i++) {
 				line++;
 				// Verbose("skipping line %d", line);
 				r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
@@ -851,7 +841,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 		}
 
 		f = AllocFace();
-		f->detailLevel = detaillevel;
+		f->detailLevel = detailLevel;
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
 		f->contents = contents_t{ contents };
@@ -861,7 +851,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 
 		set_face_style(f);
 
-		for (i = 0; i < f->numpoints; i++) {
+		for (int i = 0; i < f->numpoints; i++) {
 			line++;
 			r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 			if (r != 3) {

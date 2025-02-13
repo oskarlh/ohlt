@@ -125,7 +125,7 @@ static bool CalcAdaptedSpot(
 		+ distance_between_points(surfacespot, middle);
 
 	if (dist > ON_EPSILON && fabs(dist2 - dist) > ON_EPSILON) {
-		VectorScale(spot, dist2 / dist, spot);
+		spot = vector_scale(spot, dist2 / dist);
 	}
 	return true;
 }
@@ -336,7 +336,7 @@ static void CalcInterpolation_Square(
 	} else {
 		frac_near = (frac * dot2) / ((1 - frac) * dot1 + frac * dot2);
 	}
-	VectorScale(w3->leftspot, frac_near, mid_near);
+	mid_near = vector_scale(w3->leftspot, frac_near);
 
 	dot1 = dot_product(w2->leftspot, normal1) - 0;
 	dot2 = dot_product(w1->leftspot, normal2)
