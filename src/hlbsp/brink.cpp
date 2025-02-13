@@ -48,7 +48,7 @@ CreateBrink(double3_array const & start, double3_array const & stop) {
 	bbrink_t b{};
 	b.start = start;
 	b.stop = stop;
-	VectorSubtract(stop, start, b.direction);
+	b.direction = vector_subtract(stop, start);
 
 	b.numnodes = 1;
 	bbrinknode_t newnode;
@@ -203,8 +203,8 @@ struct btreeface_t final {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite; // when the face is infinite, all its edges must also be
-				   // infinite
+	bool infinite;	// when the face is infinite, all its edges must also be
+					// infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };

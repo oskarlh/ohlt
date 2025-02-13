@@ -227,14 +227,31 @@ enum class contents_t : std::int32_t {
 	// HLBSP's node_t::contents
 	DECISION_NODE = 0,
 
+	// Non-solid and doesn't affect VIS
 	EMPTY = -1,
+
+	// Default
 	SOLID = -2,
+
+	// Textures with the ! prefix are usually water when part of
+	// worldspawn, unless they are slime, lava, or a current.
 	WATER = -3,
+
+	// Like water but deals damage to the player and some
+	// monsters when touched
 	SLIME = -4,
+
+	// Like slime but deals double the damage
 	LAVA = -5,
 	SKY = -6,
-	ORIGIN = -7, // Removed at CSG time
 
+	// Replaces an entity's origin KV, then is removed by HLCSG
+	// If a brush were to have this content type at runtime, it would be
+	// treated like water
+	ORIGIN = -7,
+
+	// Acts like water combined with a trigger_push with a speed of 2048 in
+	// the given direction
 	CURRENT_0 = -9,
 	CURRENT_90 = -10,
 	CURRENT_180 = -11,
@@ -242,14 +259,20 @@ enum class contents_t : std::int32_t {
 	CURRENT_UP = -13,
 	CURRENT_DOWN = -14,
 
+	// Like water, but never solid. Despite this, it still affects VIS
 	TRANSLUCENT = -15,
-	HINT = -16, // Filters down to EMPTY by BSP,
-				// ENGINE SHOULD NEVER SEE THIS
 
-	CONTENTS_NULL = -17, // Removed in CSG and BSP, so VIS and RAD shouldn't
-						 // have to deal with this, only clip planes!
+	// Removed in CSG and BSP, so VIS and RAD shouldn't
+	// have to deal with this, only clip planes!
+	CONTENTS_NULL = -20,
 
-	BOUNDINGBOX = -19, // Similar to ORIGIN
+	// Filters down to EMPTY by BSP,
+	// ENGINE SHOULD NEVER SEE THIS.
+	// The game engine also uses this
+	HINT = -21,
+
+	// Similar to ORIGIN
+	BOUNDINGBOX = -22,
 
 	TOEMPTY = -32,
 };

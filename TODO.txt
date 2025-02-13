@@ -99,3 +99,4 @@ When writing key-values to the .bsp file, in the end compiler-specific key-value
 						/ "wad.cfg';
 
 
+Check out https://developer.valvesoftware.com/wiki/Newbspguy - it might help with troubleshooting issues

@@ -16,16 +16,10 @@
 //      The originals will NOT be freed.
 // =====================================================================================
 static face_t* TryMerge(face_t* f1, face_t* f2) {
-	double* p1;
-	double* p2;
-	double* p3;
-	double* p4;
-	double* back;
 	face_t* newf;
 	int i;
 	int j;
 	int k;
-	int l;
 	double3_array normal;
 	double3_array delta;
 	double3_array planenormal;
@@ -56,15 +50,17 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	//
 	// find a common edge
 	//
-	p1 = p2 = nullptr; // shut up the compiler
+
+	double3_array p1{};
+	double3_array p2{};
 	j = 0;
 
 	for (i = 0; i < f1->numpoints; i++) {
-		p1 = f1->pts[i].data();
-		p2 = f1->pts[(i + 1) % f1->numpoints].data();
+		p1 = f1->pts[i];
+		p2 = f1->pts[(i + 1) % f1->numpoints];
 		for (j = 0; j < f2->numpoints; j++) {
-			p3 = f2->pts[j].data();
-			p4 = f2->pts[(j + 1) % f2->numpoints].data();
+			double3_array const & p3{ f2->pts[j] };
+			double3_array const & p4{ f2->pts[(j + 1) % f2->numpoints] };
 			for (k = 0; k < 3; k++) {
 				if (fabs(p1[k] - p4[k]) > ON_EPSILON) {
 					break;
@@ -93,26 +89,26 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	plane = &g_mapplanes[f1->planenum];
 	planenormal = plane->normal;
 
-	back = f1->pts[(i + f1->numpoints - 1) % f1->numpoints].data();
-	VectorSubtract(p1, back, delta);
-	CrossProduct(planenormal, delta, normal);
+	double3_array back{ f1->pts[(i + f1->numpoints - 1) % f1->numpoints] };
+	delta = vector_subtract(p1, back);
+	normal = cross_product(planenormal, delta);
 	normalize_vector(normal);
 
-	back = f2->pts[(j + 2) % f2->numpoints].data();
-	VectorSubtract(back, p1, delta);
+	back = f2->pts[(j + 2) % f2->numpoints];
+	delta = vector_subtract(back, p1);
 	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
 		return nullptr; // not a convex polygon
 	}
 	keep1 = dot < -CONTINUOUS_EPSILON;
 
-	back = f1->pts[(i + 2) % f1->numpoints].data();
-	VectorSubtract(back, p2, delta);
-	CrossProduct(planenormal, delta, normal);
+	back = f1->pts[(i + 2) % f1->numpoints];
+	delta = vector_subtract(back, p2);
+	normal = cross_product(planenormal, delta);
 	normalize_vector(normal);
 
-	back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints].data();
-	VectorSubtract(back, p2, delta);
+	back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints];
+	delta = vector_subtract(back, p2);
 	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
 		return nullptr; // not a convex polygon
@@ -140,7 +136,8 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	}
 
 	// copy second polygon
-	for (l = (j + 1) % f2->numpoints; l != j; l = (l + 1) % f2->numpoints) {
+	for (int l = (j + 1) % f2->numpoints; l != j;
+		 l = (l + 1) % f2->numpoints) {
 		if (l == (j + 1) % f2->numpoints && !keep1) {
 			continue;
 		}
