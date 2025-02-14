@@ -477,9 +477,9 @@ static bool TestLineOpaque_face(int facenum, float3_array const & hit) {
 	}
 	if (thisface->tex_alphatest) {
 		radtexture_t const & tex = g_textures[thisface->gTexturesIndex];
-		double x = dot_product(hit, thisface->texVecs[0].xyz)
+		float x = dot_product(hit, thisface->texVecs[0].xyz)
 			+ thisface->texVecs[0].offset;
-		double y = dot_product(hit, thisface->texVecs[1].xyz)
+		float y = dot_product(hit, thisface->texVecs[1].xyz)
 			+ thisface->texVecs[1].offset;
 		x = floor(x - tex.width * floor(x / tex.width));
 		y = floor(y - tex.height * floor(y / tex.height));

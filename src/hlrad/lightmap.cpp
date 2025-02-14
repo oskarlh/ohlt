@@ -1309,16 +1309,16 @@ static bool FindBestEdge(
 
 			if (!found) {
 				better = true;
-			} else if ((e->flippedangle < std::numbers::pi_v<double>
+			} else if ((e->flippedangle < std::numbers::pi_v<float>
 							+ NORMAL_EPSILON)
 					   != (bestedge->flippedangle
-						   < std::numbers::pi_v<double> + NORMAL_EPSILON)) {
+						   < std::numbers::pi_v<float> + NORMAL_EPSILON)) {
 				better
-					= ((e->flippedangle < std::numbers::pi_v<double>
+					= ((e->flippedangle < std::numbers::pi_v<float>
 							+ NORMAL_EPSILON)
 					   && !(
 						   bestedge->flippedangle
-						   < std::numbers::pi_v<double> + NORMAL_EPSILON
+						   < std::numbers::pi_v<float> + NORMAL_EPSILON
 					   ));
 			} else if (e->noseam != bestedge->noseam) {
 				better = (e->noseam && !bestedge->noseam);
@@ -1802,9 +1802,10 @@ void CreateDirectLights() {
 					);
 					dl->stopdot = dl->stopdot >= 90
 						? 0
-						: (float)
-							  cos(dl->stopdot / 180
-								  * std::numbers::pi_v<double>);
+						: std::cos(
+							  dl->stopdot
+							  * (std::numbers::pi_v<float> / 180)
+						  );
 				}
 				if (has_key_value(
 						g_face_texlights[p->faceNumber], u8"_cone2"
@@ -1814,9 +1815,10 @@ void CreateDirectLights() {
 					);
 					dl->stopdot2 = dl->stopdot2 >= 90
 						? 0
-						: (float)
-							  cos(dl->stopdot2 / 180
-								  * std::numbers::pi_v<double>);
+						: std::cos(
+							  dl->stopdot2
+							  * (std::numbers::pi_v<float> / 180)
+						  );
 				}
 				if (dl->stopdot2 > dl->stopdot) {
 					dl->stopdot2 = dl->stopdot;
@@ -1839,9 +1841,7 @@ void CreateDirectLights() {
 			VectorScale(dl->intensity, p->area, dl->intensity);
 			VectorScale(dl->intensity, p->exposure, dl->intensity);
 			VectorScale(
-				dl->intensity,
-				1.0 / std::numbers::pi_v<double>,
-				dl->intensity
+				dl->intensity, 1 / std::numbers::pi_v<float>, dl->intensity
 			);
 			dl->intensity = vector_multiply(
 				dl->intensity, p->texturereflectivity
@@ -1998,10 +1998,12 @@ void CreateDirectLights() {
 			if (dl->stopdot2 < dl->stopdot) {
 				dl->stopdot2 = dl->stopdot;
 			}
-			dl->stopdot2 = (float
-			) cos(dl->stopdot2 / 180 * std::numbers::pi_v<double>);
-			dl->stopdot = (float
-			) cos(dl->stopdot / 180 * std::numbers::pi_v<double>);
+			dl->stopdot2 = std::cos(
+				dl->stopdot2 * (std::numbers::pi_v<float> / 180)
+			);
+			dl->stopdot = std::cos(
+				dl->stopdot * (std::numbers::pi_v<float> / 180)
+			);
 
 			auto maybeE2 = find_target_entity(target);
 			if (!target.empty() && !maybeE2) {
@@ -2037,10 +2039,12 @@ void CreateDirectLights() {
 					}
 
 					dl->normal[2] = 0;
-					dl->normal[0] = (float
-					) cos(angle / 180 * std::numbers::pi_v<double>);
-					dl->normal[1] = (float
-					) sin(angle / 180 * std::numbers::pi_v<double>);
+					dl->normal[0] = std::cos(
+						angle * (std::numbers::pi_v<float> / 180)
+					);
+					dl->normal[1] = std::sin(
+						angle * (std::numbers::pi_v<float> / 180)
+					);
 				}
 
 				angle = float_for_key(*e, u8"pitch");
@@ -2050,12 +2054,15 @@ void CreateDirectLights() {
 					angle = vAngles[0];
 				}
 
-				dl->normal[2] = (float
-				) sin(angle / 180 * std::numbers::pi_v<double>);
-				dl->normal[0] *= (float
-				) cos(angle / 180 * std::numbers::pi_v<double>);
-				dl->normal[1] *= (float
-				) cos(angle / 180 * std::numbers::pi_v<double>);
+				dl->normal[2] = std::sin(
+					angle * (std::numbers::pi_v<float> / 180)
+				);
+				dl->normal[0] *= std::cos(
+					angle * (std::numbers::pi_v<float> / 180)
+				);
+				dl->normal[1] *= std::cos(
+					angle * (std::numbers::pi_v<float> / 180)
+				);
 			}
 
 			if (float_for_key(*e, u8"_sky")

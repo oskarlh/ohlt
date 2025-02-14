@@ -144,11 +144,9 @@ static float GetAngle(
 }
 
 static float GetAngleDiff(float angle, float base) {
-	float diff;
-
-	diff = angle - base;
+	float diff = angle - base;
 	if (diff < 0) {
-		diff += 2 * std::numbers::pi_v<double>;
+		diff += 2 * std::numbers::pi_v<float>;
 	}
 	return diff;
 }
@@ -1156,7 +1154,7 @@ static void PurgePatches(localtriangulation_t* lt) {
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
-				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
+				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
 							+ NORMAL_EPSILON
 					&& dot_product(points[next[cur]].leftspot, v)
 						>= dot_product(points[cur].leftspot, v)
@@ -1187,7 +1185,7 @@ static void PurgePatches(localtriangulation_t* lt) {
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
-				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
+				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
 							+ NORMAL_EPSILON
 					&& dot_product(points[prev[cur]].leftspot, v)
 						>= dot_product(points[cur].leftspot, v)
@@ -1287,7 +1285,7 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 			w->leftdirection, wnext->leftdirection, lt->normal
 		);
 		if ((int) lt->sortedwedges.size() == 1) {
-			angle = 2 * std::numbers::pi_v<double>;
+			angle = 2 * std::numbers::pi_v<float>;
 		} else {
 			angle = GetAngleDiff(angle, 0);
 		}
@@ -1323,7 +1321,7 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 		for (j = 1; next[j] != -1; j = next[j]) {
 			while (prev[j] != -1) {
 				if (arc_angles[next[j]] - arc_angles[prev[j]]
-					<= std::numbers::pi_v<double> + NORMAL_EPSILON) {
+					<= std::numbers::pi_v<float> + NORMAL_EPSILON) {
 					frac = GetFrac(
 						arc_spots[prev[j]].spot,
 						arc_spots[next[j]].spot,
@@ -1503,11 +1501,11 @@ static localtriangulation_t* CreateLocalTriangulation(
 		}
 		angle = GetAngleDiff(angle, 0);
 		if ((int) lt->sortedwedges.size() == 1) {
-			angle = 2 * std::numbers::pi_v<double>;
+			angle = 2 * std::numbers::pi_v<float>;
 		}
 		total += angle;
 
-		if (angle <= std::numbers::pi_v<double> + NORMAL_EPSILON) {
+		if (angle <= std::numbers::pi_v<float> + NORMAL_EPSILON) {
 			if (angle < TRIANGLE_SHAPE_THRESHOLD) {
 				w->shape = localtriangulation_t::Wedge::eTriangular;
 				w->wedgenormal = {};
@@ -1539,7 +1537,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 	}
 	if (g_drawlerp
 		&& ((int) lt->sortedwedges.size() > 0
-			&& fabs(total - 2 * std::numbers::pi_v<double>)
+			&& std::fabs(total - 2 * std::numbers::pi_v<float>)
 				> 10 * NORMAL_EPSILON)) {
 		Developer(
 			developer_level::spam,

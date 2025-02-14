@@ -638,9 +638,8 @@ static void LoadPortals(char* portal_image) {
 		w->numpoints = numpoints;
 
 		for (j = 0; j < numpoints; j++) {
-			int k;
-			double v[3];
-			unsigned rval = 0;
+			double3_array v;
+			std::size_t rval = 0;
 
 			token = strtok(nullptr, seperators);
 			CheckNullToken(token);
@@ -656,9 +655,7 @@ static void LoadPortals(char* portal_image) {
 			if (rval != 3) {
 				Error("LoadPortals: reading portal %i", i);
 			}
-			for (k = 0; k < 3; k++) {
-				w->points[j][k] = v[k];
-			}
+			w->points[j] = to_float3(v);
 		}
 
 		// calc plane

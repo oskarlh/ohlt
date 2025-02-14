@@ -430,7 +430,7 @@ float CalcSightArea(
 			area += dot * (*psize);
 		}
 		area = area * 4
-			* std::numbers::pi_v<double>; // convert to absolute sphere area
+			* std::numbers::pi_v<float>; // Convert to absolute sphere area
 	}
 	free(edges);
 	area *= lighting_scale;
@@ -512,7 +512,7 @@ float CalcSightArea_SpotLight(
 			area += dot * (*psize);
 		}
 		area = area * 4
-			* std::numbers::pi_v<double>; // convert to absolute sphere area
+			* std::numbers::pi_v<float>; // Convert to absolute sphere area
 	}
 	free(edges);
 	area *= lighting_scale;
