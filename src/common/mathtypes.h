@@ -13,9 +13,6 @@ template <class T>
 concept any_vec3 = std::floating_point<typename T::value_type>
 	&& std::same_as<T, std::array<typename T::value_type, 3>>;
 
-template <class T>
-concept any_vec_element = std::floating_point<T>;
-
 template <any_vec3 FirstVec3, any_vec3... Rest>
 struct largest_vec3_helper final {
 	using type = std::conditional_t<
@@ -50,7 +47,7 @@ constexpr double3_array const & to_double3(double3_array const & input
 	return input;
 }
 
-template <any_vec_element OutElement, any_vec_element InElement>
+template <std::floating_point OutElement, std::floating_point InElement>
 constexpr std::array<OutElement, 3>
 to_vec3(std::array<InElement, 3> const & input) noexcept {
 	return std::array{ OutElement(input[0]),
@@ -58,7 +55,7 @@ to_vec3(std::array<InElement, 3> const & input) noexcept {
 					   OutElement(input[2]) };
 }
 
-template <any_vec_element OutElement, any_vec_element InElement>
+template <std::floating_point OutElement, std::floating_point InElement>
 constexpr std::array<OutElement, 3> const &
 to_vec3(std::array<InElement, 3> const & input) noexcept
 	requires(std::is_same_v<OutElement, InElement>) {

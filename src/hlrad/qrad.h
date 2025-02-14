@@ -13,18 +13,8 @@
 #include "win32fix.h"
 #include "winding.h"
 
-#include <vector>
-
-#ifdef SYSTEM_WIN32
-#pragma warning(disable : 4142 4028)
-#include <io.h>
-#pragma warning(default : 4142 4028)
-#endif
-
-#ifdef SYSTEM_WIN32
-#include <direct.h>
-#endif
 #include <string>
+#include <vector>
 
 #define DEFAULT_PRE25UPDATE	  false
 #define DEFAULT_FASTMODE	  false

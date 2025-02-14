@@ -154,21 +154,13 @@ int GetThreadWork() {
 
 q_threadfunction workfunction;
 
-#ifdef SYSTEM_WIN32
-#pragma warning(push)
-#pragma warning(disable : 4100) // unreferenced formal parameter
-#endif
-static void ThreadWorkerFunction(int unused) {
+static void ThreadWorkerFunction(int) {
 	int work;
 
 	while ((work = GetThreadWork()) != -1) {
 		workfunction(work);
 	}
 }
-
-#ifdef SYSTEM_WIN32
-#pragma warning(pop)
-#endif
 
 void RunThreadsOnIndividual(
 	int workcnt, bool showpacifier, q_threadfunction func

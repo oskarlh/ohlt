@@ -229,7 +229,6 @@ static wedge_t* FindEdge(
  *
  * ===============
  */
-#define T_EPSILON ON_EPSILON
 
 static void AddVert(wedge_t const * const w, double const t) {
 	wvert_t* v;
@@ -237,7 +236,7 @@ static void AddVert(wedge_t const * const w, double const t) {
 
 	v = w->head.next;
 	do {
-		if (fabs(v->t - t) < T_EPSILON) {
+		if (fabs(v->t - t) < ON_EPSILON) {
 			return;
 		}
 		if (v->t > t) {
@@ -415,8 +414,6 @@ static void FixFaceEdges(face_t* f) {
 	int k;
 	wedge_t* w;
 	wvert_t* v;
-	double t1;
-	double t2;
 
 	*superface = *f;
 
@@ -424,12 +421,14 @@ restart:
 	for (i = 0; i < superface->numpoints; i++) {
 		j = (i + 1) % superface->numpoints;
 
+		double t1;
+		double t2;
 		w = FindEdge(superface->pts[i], superface->pts[j], &t1, &t2);
 
-		for (v = w->head.next; v->t < t1 + T_EPSILON; v = v->next) {
-		}
+		for (v = w->head.next; v->t < t1 + ON_EPSILON; v = v->next)
+			;
 
-		if (v->t < t2 - T_EPSILON) {
+		if (v->t < t2 - ON_EPSILON) {
 			tjuncs++;
 			// insert a new vertex here
 			for (k = superface->numpoints; k > j; k--) {

@@ -42,12 +42,12 @@ vector_add(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 }
 
 constexpr auto
-vector_add(any_vec3 auto const & a, any_vec_element auto b) noexcept {
+vector_add(any_vec3 auto const & a, std::floating_point auto b) noexcept {
 	return std::array{ a[0] + b, a[1] + b, a[2] + b };
 }
 
 constexpr auto
-vector_add(any_vec_element auto a, any_vec3 auto const & b) noexcept {
+vector_add(std::floating_point auto a, any_vec3 auto const & b) noexcept {
 	return vector_add(b, a);
 }
 
@@ -61,13 +61,15 @@ vector_subtract(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
 	return std::array{ a[0] - b[0], a[1] - b[1], a[2] - b[2] };
 }
 
-constexpr auto
-vector_subtract(any_vec3 auto const & a, any_vec_element auto b) noexcept {
+constexpr auto vector_subtract(
+	any_vec3 auto const & a, std::floating_point auto b
+) noexcept {
 	return std::array{ a[0] - b, a[1] - b, a[2] - b };
 }
 
-constexpr auto
-vector_subtract(any_vec_element auto a, any_vec3 auto const & b) noexcept {
+constexpr auto vector_subtract(
+	std::floating_point auto a, any_vec3 auto const & b
+) noexcept {
 	return std::array{ a - b[0], a - b[1], a - b[2] };
 }
 
@@ -75,8 +77,9 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 	return (v[0] + v[1] + v[2]) / 3;
 }
 
-constexpr auto
-vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
+constexpr auto vector_scale(
+	any_vec3 auto const & v, std::floating_point auto scale
+) noexcept {
 	return std::array{ v[0] * scale, v[1] * scale, v[2] * scale };
 }
 
@@ -118,7 +121,7 @@ constexpr auto vector_fma(
 
 constexpr auto vector_fma(
 	any_vec3 auto const & multiplicand,
-	any_vec_element auto multiplier,
+	std::floating_point auto multiplier,
 	any_vec3 auto const & toAdd
 ) noexcept {
 	return vector_fma(
@@ -163,7 +166,7 @@ midpoint_between(VecA const & a, VecB const & b) noexcept {
 	return vector_scale(vector_add(a, b), 0.5f);
 }
 
-template <any_vec_element T>
+template <std::floating_point T>
 constexpr T normalize_vector(std::array<T, 3>& v) {
 	T length = vector_length(v);
 	if (length < NORMAL_EPSILON) {
@@ -177,7 +180,7 @@ constexpr T normalize_vector(std::array<T, 3>& v) {
 	return length;
 }
 
-template <any_vec_element T>
+template <std::floating_point T>
 [[nodiscard]] constexpr std::array<T, 3>
 negate_vector(std::array<T, 3> const & v) noexcept {
 	// We do 0 - x instead of just -x, so we don't unnecessarily
@@ -219,7 +222,7 @@ constexpr planetype last_axial{ planetype::plane_z };
 
 constexpr float DIR_EPSILON = 0.0001;
 
-template <any_vec_element T>
+template <std::floating_point T>
 constexpr planetype plane_type_for_normal(std::array<T, 3> const & normal
 ) noexcept {
 	T const ax = std::fabs(normal[0]);

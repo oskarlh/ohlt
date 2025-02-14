@@ -33,7 +33,7 @@ struct split_winding_division_result_template final {
 	W front{};
 };
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 class winding_base final {
   public:
 	using vec_element = VecElement;

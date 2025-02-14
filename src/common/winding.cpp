@@ -16,14 +16,14 @@ constexpr float bogus_range = 80000.0;
 // winding_base Public Methods
 //
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::Print() const {
 	for (vec3 const & point : m_Points) {
 		Log("(%5.2f, %5.2f, %5.2f)\n", point[0], point[1], point[2]);
 	}
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::getPlane(dplane_t& plane) const {
 	if (size() < 3) {
 		plane.normal = {};
@@ -40,7 +40,7 @@ void winding_base<VecElement>::getPlane(dplane_t& plane) const {
 	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::getPlane(mapplane_t& plane) const {
 	if (size() < 3) {
 		plane.normal = {};
@@ -57,7 +57,7 @@ void winding_base<VecElement>::getPlane(mapplane_t& plane) const {
 	plane.dist = dot_product(m_Points[0], plane.normal);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::getPlane(vec3& normal, vec_element& dist)
 	const {
 	if (size() < 3) {
@@ -74,7 +74,7 @@ void winding_base<VecElement>::getPlane(vec3& normal, vec_element& dist)
 	dist = dot_product(m_Points[0], normal);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 auto winding_base<VecElement>::getArea() const -> vec_element {
 	if (size() < 3) {
 		return 0.0;
@@ -91,7 +91,7 @@ auto winding_base<VecElement>::getArea() const -> vec_element {
 	return total;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 bounding_box winding_base<VecElement>::getBounds() const {
 	bounding_box bounds = empty_bounding_box;
 	for (vec3 const & point : m_Points) {
@@ -100,7 +100,7 @@ bounding_box winding_base<VecElement>::getBounds() const {
 	return bounds;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 auto winding_base<VecElement>::getCenter() const noexcept -> vec3 {
 	winding_base<VecElement>::vec3 center{};
 
@@ -112,7 +112,7 @@ auto winding_base<VecElement>::getCenter() const noexcept -> vec3 {
 	return vector_scale(center, scale);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::Check(vec_element epsilon) const {
 	vec_element d, edgedist;
 	vec3 dir, edgenormal, facenormal;
@@ -172,27 +172,27 @@ void winding_base<VecElement>::Check(vec_element epsilon) const {
 	}
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 bool winding_base<VecElement>::Valid() const {
 	// TODO: Check to ensure there are 3 non-colinear points
 	return size() >= 3;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 bool winding_base<VecElement>::empty() const {
 	return m_Points.empty();
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::clear(bool shrinkToFit) {
 	m_Points.clear();
 	m_Points.shrink_to_fit();
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base() { }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(
 	vec3 const * points, std::size_t numpoints
 ) {
@@ -200,39 +200,39 @@ winding_base<VecElement>::winding_base(
 	m_Points.assign_range(std::span(points, numpoints));
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 auto winding_base<VecElement>::operator=(winding_base const & other
 ) -> winding_base& {
 	m_Points = other.m_Points;
 	return *this;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 auto winding_base<VecElement>::operator=(winding_base&& other
 ) -> winding_base& {
 	m_Points = std::move(other.m_Points);
 	return *this;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(std::size_t numpoints) {
 	hlassert(numpoints >= 3);
 	m_Points.resize(numpoints);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(winding_base const & other) {
 	m_Points = other.m_Points;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(winding_base&& other) :
 	m_Points(std::move(other.m_Points)) { }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::~winding_base() { }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::initFromPlane(
 	vec3 const & normal, vec_element const dist
 ) {
@@ -283,14 +283,14 @@ void winding_base<VecElement>::initFromPlane(
 	m_Points[3] = vector_subtract(vector_subtract(org, vright), vup);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(
 	vec3 const & normal, vec_element const dist
 ) {
 	initFromPlane(normal, dist);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(
 	dface_t const & face, vec_element epsilon
 ) {
@@ -314,19 +314,19 @@ winding_base<VecElement>::winding_base(
 	RemoveColinearPoints(epsilon);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(dplane_t const & plane) {
 	initFromPlane(to_vec3<vec_element>(plane.normal), plane.dist);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(mapplane_t const & plane) {
 	initFromPlane(to_vec3<vec_element>(plane.normal), plane.dist);
 }
 
 // Remove the colinear point of any three points that form a triangle which
 // is thinner than epsilon
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 	for (std::size_t i = 0; i < size(); ++i) {
 		vec3 const & p1 = m_Points[(i + size() - 1) % size()];
@@ -353,7 +353,7 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 	}
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::Clip(
 	dplane_t const & plane,
 	winding_base& front,
@@ -365,7 +365,7 @@ void winding_base<VecElement>::Clip(
 	);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::Clip(
 	vec3 const & normal,
 	vec_element dist,
@@ -466,7 +466,7 @@ void winding_base<VecElement>::Clip(
 	back.RemoveColinearPoints(epsilon);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 bool winding_base<VecElement>::Chop(
 	vec3 const & normal, vec_element const dist, vec_element epsilon
 ) {
@@ -478,7 +478,7 @@ bool winding_base<VecElement>::Chop(
 	return !empty();
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 face_side winding_base<VecElement>::WindingOnPlaneSide(
 	vec3 const & normal, vec_element const dist, vec_element epsilon
 ) {
@@ -511,7 +511,7 @@ face_side winding_base<VecElement>::WindingOnPlaneSide(
 	return face_side::on;
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 bool winding_base<VecElement>::mutating_clip(
 	vec3 const & planeNormal,
 	vec_element planeDist,
@@ -617,7 +617,7 @@ bool winding_base<VecElement>::mutating_clip(
  * new windings will be created.
  * ==================
  */
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 	mapplane_t const & split, vec_element epsilon
 ) const {
@@ -718,12 +718,12 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 }
 
 // Unused??
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 void winding_base<VecElement>::pushPoint(vec3 const & newpoint) {
 	m_Points.emplace_back(newpoint);
 }
 
-template <any_vec_element VecElement>
+template <std::floating_point VecElement>
 std::size_t winding_base<VecElement>::size() const {
 	return m_Points.size();
 }
