@@ -375,14 +375,14 @@ void LoadTextures() {
 							reflectivity[k], g_texreflectgamma
 						);
 					}
-					VectorScale(
-						reflectivity, g_texreflectscale, reflectivity
+					reflectivity = vector_scale(
+						reflectivity, g_texreflectscale
 					);
 				}
 				total = vector_add(total, reflectivity);
 			}
-			VectorScale(
-				total, 1.0 / (double) (tex->width * tex->height), total
+			total = vector_scale(
+				total, 1.0f / (float) (tex->width * tex->height)
 			);
 			tex->reflectivity = total;
 			Developer(
@@ -1413,8 +1413,8 @@ void EmbedLightmapInTextures() {
 		if (resolution != 1) {
 			// apply a scale and a shift over the original vectors
 			for (k = 0; k < 2; k++) {
-				VectorScale(
-					info->vecs[k].xyz, 1.0 / resolution, info->vecs[k].xyz
+				info->vecs[k].xyz = vector_scale(
+					info->vecs[k].xyz, 1.0f / resolution
 				);
 				info->vecs[k].offset = info->vecs[k].offset / resolution
 					+ 0.5;

@@ -248,18 +248,18 @@ static bool TranslateTexToTex(
 		face2_vert[i][2] = 0;
 	}
 
-	VectorSubtract(face_vert[1], face_vert[0], face_axis[0]);
+	face_axis[0] = vector_subtract(face_vert[1], face_vert[0]);
 	len = vector_length(face_axis[0]);
-	CrossProduct(v_up, face_axis[0], face_axis[1]);
+	face_axis[1] = cross_product(v_up, face_axis[0]);
 	if (CalcMatrixSign(worldtotex)
 		< 0.0) // the three vectors s, t, facenormal are in reverse order
 	{
 		face_axis[1] = negate_vector(face_axis[1]);
 	}
 
-	VectorSubtract(face2_vert[1], face2_vert[0], face2_axis[0]);
+	face2_axis[0] = vector_subtract(face2_vert[1], face2_vert[0]);
 	len2 = vector_length(face2_axis[0]);
-	CrossProduct(v_up, face2_axis[0], face2_axis[1]);
+	face2_axis[1] = cross_product(v_up, face2_axis[0]);
 	if (CalcMatrixSign(worldtotex2) < 0.0) {
 		face2_axis[1] = negate_vector(face2_axis[1]);
 	}
@@ -1123,9 +1123,9 @@ void ChopFrag(samplefrag_t* frag)
 		dot2 = dot_product(e->point2, e->direction);
 		dot = std::max(dot1, std::min(dot, dot2));
 		v = vector_fma(e->direction, dot - dot1, e->point1);
-		VectorSubtract(v, frag->origin, v);
+		v = vector_subtract(v, frag->origin);
 		e->distance = vector_length(v);
-		CrossProduct(e->direction, frag->windingplane.normal, normal);
+		normal = cross_product(e->direction, frag->windingplane.normal);
 		normalize_vector(normal); // points inward
 		e->distancereduction = dot_product(v, normal);
 		e->flippedangle = frag->flippedangle
@@ -1207,7 +1207,7 @@ static samplefrag_t* GrowSingleFrag(
 			frag->myrect.planes[x].normal,
 			frag->myrect.planes[x].dist
 		);
-		double len = vector_length(frag->myrect.planes[x].normal);
+		float len = vector_length(frag->myrect.planes[x].normal);
 		if (!len) {
 			Developer(
 				developer_level::megaspam,
@@ -1217,10 +1217,8 @@ static samplefrag_t* GrowSingleFrag(
 			free(frag);
 			return nullptr;
 		}
-		VectorScale(
-			frag->myrect.planes[x].normal,
-			1 / len,
-			frag->myrect.planes[x].normal
+		frag->myrect.planes[x].normal = vector_scale(
+			frag->myrect.planes[x].normal, 1.0f / len
 		);
 		frag->myrect.planes[x].dist /= len;
 	}
@@ -2167,7 +2165,7 @@ void CreateDirectLights() {
 						float totalweight = 0;
 						int count;
 						float testdot = cos(
-							testangle * (std::numbers::pi_v<double> / 180.0)
+							testangle * (std::numbers::pi_v<float> / 180)
 						);
 						for (count = 0, i = 0;
 							 i < g_numskynormals[SUNSPREAD_SKYLEVEL];
@@ -2466,8 +2464,7 @@ void CopyToSkynormals(
 			pt[k] = edges[triangles[j].edge[k]].point[triangles[j].dir[k]];
 		}
 		double currentsize;
-		double3_array tmp;
-		CrossProduct(points[pt[0]], points[pt[1]], tmp);
+		double3_array tmp = cross_product(points[pt[0]], points[pt[1]]);
 		currentsize = dot_product(tmp, points[pt[2]]);
 		hlassume(currentsize > 0, assume_first);
 		g_skynormalsizes[skylevel][pt[0]] += currentsize / 3.0;
@@ -2894,7 +2891,7 @@ static void GatherSampleLight(
 									dot = lighting_scale
 										* pow(dot, lighting_power);
 								}
-								VectorScale(sky_intensity, dot, add_one);
+								add_one = vector_scale(sky_intensity, dot);
 								add_one = vector_multiply(
 									add_one, transparency
 								);
@@ -2963,7 +2960,7 @@ static void GatherSampleLight(
 										* pow(dot, lighting_power);
 								}
 								ratio = dot / denominator;
-								VectorScale(l->intensity, ratio, add);
+								add = vector_scale(l->intensity, ratio);
 								break;
 							}
 
@@ -3133,7 +3130,7 @@ static void GatherSampleLight(
 								} else if (light_behind_surface) {
 									continue;
 								}
-								VectorScale(l->intensity, ratio, add);
+								add = vector_scale(l->intensity, ratio);
 								break;
 							}
 
@@ -3160,7 +3157,7 @@ static void GatherSampleLight(
 									ratio *= (dot2 - l->stopdot2)
 										/ (l->stopdot - l->stopdot2);
 								}
-								VectorScale(l->intensity, ratio, add);
+								add = vector_scale(l->intensity, ratio);
 								break;
 							}
 
@@ -4132,10 +4129,8 @@ void BuildFacelights(int const facenum) {
 		if (subsamples > 0) {
 			for (std::size_t j = 0; j < ALLSTYLES && f_styles[j] != 255;
 				 j++) {
-				VectorScale(
-					fl_samples[j][i].light,
-					1.0 / subsamples,
-					fl_samples[j][i].light
+				fl_samples[j][i].light = vector_scale(
+					fl_samples[j][i].light, 1.0f / subsamples
 				);
 			}
 		}
@@ -5124,7 +5119,7 @@ void ScaleDirectLights() {
 		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
 			for (i = 0; i < fl->numsamples; i++) {
 				samp = &fl->samples[k][i];
-				VectorScale(samp->light, g_direct_scale, samp->light);
+				samp->light = vector_scale(samp->light, g_direct_scale);
 			}
 		}
 	}
@@ -5344,10 +5339,10 @@ void FinalLightFace(int const facenum) {
 				float max = vector_max_element(lb);
 				if (g_limitthreshold >= 0 && max > g_limitthreshold) {
 					if (!g_drawoverload) {
-						VectorScale(lb, g_limitthreshold / max, lb);
+						lb = vector_scale(lb, g_limitthreshold / max);
 					}
 				} else if (g_drawoverload) {
-					VectorScale(lb, 0.1, lb); // darken good points
+					lb = vector_scale(lb, 0.1f); // darken good points
 				}
 			}
 			for (i = 0; i < 3; ++i) {

@@ -283,9 +283,6 @@ static void CalcInterpolation_Square(
 	float dot1;
 	float dot2;
 	float dot;
-	float3_array normal1;
-	float3_array normal2;
-	float3_array normal;
 	float frac;
 	float frac_near;
 	float frac_far;
@@ -309,9 +306,10 @@ static void CalcInterpolation_Square(
 
 	// find mid_near on (o,p3), mid_far on (p1,p2), spot on
 	// (mid_near,mid_far)
-	CrossProduct(w1->leftdirection, lt->normal, normal1);
+
+	float3_array normal1 = cross_product(w1->leftdirection, lt->normal);
 	normalize_vector(normal1);
-	CrossProduct(w2->wedgenormal, lt->normal, normal2);
+	float3_array normal2 = cross_product(w2->wedgenormal, lt->normal);
 	normalize_vector(normal2);
 	dot1 = dot_product(spot, normal1) - 0;
 	dot2 = dot_product(spot, normal2) - dot_product(w3->leftspot, normal2);
@@ -349,7 +347,7 @@ static void CalcInterpolation_Square(
 		w2->leftspot, frac_far, vector_scale(w1->leftspot, 1 - frac_far)
 	);
 
-	normal = cross_product(lt->normal, w3->leftdirection);
+	float3_array normal = cross_product(lt->normal, w3->leftdirection);
 	normalize_vector(normal);
 	dot = dot_product(spot, normal) - 0;
 	dot1 = (1 - frac_far) * dot_product(w1->leftspot, normal)
@@ -380,9 +378,9 @@ static void CalcInterpolation_Square(
 
 	// find mid_near on (o,p1), mid_far on (p2,p3), spot on
 	// (mid_near,mid_far)
-	CrossProduct(lt->normal, w3->leftdirection, normal1);
+	normal1 = cross_product(lt->normal, w3->leftdirection);
 	normalize_vector(normal1);
-	CrossProduct(w1->wedgenormal, lt->normal, normal2);
+	normal2 = cross_product(w1->wedgenormal, lt->normal);
 	normalize_vector(normal2);
 	dot1 = dot_product(spot, normal1) - 0;
 	dot2 = dot_product(spot, normal2) - dot_product(w1->leftspot, normal2);
@@ -1015,7 +1013,8 @@ static bool TestFarPatch(
 	return dist > 1.4 * (size1 + size2);
 }
 
-#define TRIANGLE_SHAPE_THRESHOLD (115.0 * std::numbers::pi_v<double> / 180)
+constexpr float TRIANGLE_SHAPE_THRESHOLD = 115.0f
+	* std::numbers::pi_v<float> / 180;
 
 // If one of the angles in a triangle exceeds this threshold, the most
 // distant point will be removed or the triangle will break into a
@@ -1156,7 +1155,7 @@ static void PurgePatches(localtriangulation_t* lt) {
 				points[next[cur]].leftdirection,
 				lt->normal
 			);
-			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
+			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
 				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
 							+ NORMAL_EPSILON
 					&& dot_product(points[next[cur]].leftspot, v)
@@ -1187,7 +1186,7 @@ static void PurgePatches(localtriangulation_t* lt) {
 				points[cur].leftdirection,
 				lt->normal
 			);
-			if (fabs(angle) <= (1.0 * std::numbers::pi_v<double> / 180)
+			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
 				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<double>
 							+ NORMAL_EPSILON
 					&& dot_product(points[prev[cur]].leftspot, v)
@@ -1495,7 +1494,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 		);
 		if (g_drawlerp
 			&& ((int) lt->sortedwedges.size() >= 2
-				&& fabs(angle) <= (0.9 * std::numbers::pi_v<double> / 180)
+				&& fabs(angle) <= (0.9f * std::numbers::pi_v<float> / 180)
 			)) {
 			Developer(
 				developer_level::spam,
@@ -1679,7 +1678,7 @@ static void BuildWalls(facetriangulation_t* facetrian) {
 					dp->normal, -dot, wall.direction
 				);
 				if (normalize_vector(wall.direction)) {
-					CrossProduct(wall.direction, dp->normal, wall.normal);
+					wall.normal = cross_product(wall.direction, dp->normal);
 					normalize_vector(wall.normal);
 					facetrian->walls.push_back(wall);
 				}

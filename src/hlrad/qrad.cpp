@@ -275,7 +275,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (flTmp) {
 		/*g_smoothing_threshold = flTmp;*/
 		g_smoothing_threshold = cos(
-			g_smoothing_value * (std::numbers::pi_v<double> / 180.0)
+			g_smoothing_value * (std::numbers::pi_v<float> / 180)
 		); // --vluzacn
 		Log("%30s [ %-9s ]\n",
 			"Smoothing threshold",
@@ -1059,9 +1059,9 @@ void ReadCustomSmoothValue() {
 			if (texname.is_origin()) {
 				continue;
 			}
+			float const valueFloat = atof((char const *) value.data());
 			g_smoothvalues[i] = cos(
-				atof((char const *) value.data())
-				* (std::numbers::pi_v<double> / 180.0)
+				valueFloat * (std::numbers::pi_v<float> / 180)
 			);
 			Developer(
 				developer_level::message,
@@ -1394,7 +1394,7 @@ static void MakePatchForFace(
 				texturecolor[2]
 			);
 		}
-		VectorScale(texturecolor, 1.0 / 255.0, texturereflectivity);
+		texturereflectivity = vector_scale(texturecolor, 1.0f / 255.0f);
 		for (int k = 0; k < 3; k++) {
 			texturereflectivity[k] = pow(
 				texturereflectivity[k], g_texreflectgamma
@@ -1499,7 +1499,7 @@ static void MakePatchForFace(
 		// Fixup centroid for anything with an altered origin (rotating
 		// models/turrets mostly) Save them for moving direct lighting
 		// points towards the face center
-		VectorScale(centroid, 1.0 / (f->numedges * 2), centroid);
+		centroid = vector_scale(centroid, 0.5f / f->numedges);
 		g_face_centroids[fn] = vector_add(centroid, g_face_offset[fn]);
 	}
 
@@ -4043,8 +4043,9 @@ int main(int const argc, char** argv) {
 				Usage();
 			}
 
-			g_smoothing_threshold = (float
-			) cos(g_smoothing_value * (std::numbers::pi_v<double> / 180.0));
+			g_smoothing_threshold = std::cos(
+				g_smoothing_value * (std::numbers::pi_v<float> / 180)
+			);
 
 			safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
 			FlipSlashes(g_Mapname);
@@ -4089,9 +4090,9 @@ int main(int const argc, char** argv) {
 			ReadLightingCone();
 			g_smoothing_threshold_2 = g_smoothing_value_2 < 0
 				? g_smoothing_threshold
-				: (float) cos(
+				: std::cos(
 					  g_smoothing_value_2
-					  * (std::numbers::pi_v<double> / 180.0)
+					  * (std::numbers::pi_v<float> / 180)
 				  );
 			{
 				g_corings[0] = 0;

@@ -363,7 +363,7 @@ void MakeScales(int const threadnum) {
 			g_transfer_data_bytes += data_size;
 			ThreadUnlock();
 
-			total = 1 / std::numbers::pi_v<double>;
+			total = 1 / std::numbers::pi_v<float>;
 			{
 				unsigned x;
 				transfer_data_t* t1 = patch->tData;
@@ -623,7 +623,7 @@ void MakeRGBScales(int const threadnum) {
 			g_transfer_data_bytes += data_size;
 			ThreadUnlock();
 
-			total = 1 / std::numbers::pi_v<double>;
+			total = 1 / std::numbers::pi_v<float>;
 			{
 				unsigned x;
 				rgb_transfer_data_t* t1 = patch->tRGBData;
@@ -666,15 +666,15 @@ void MakeRGBScales(int const threadnum) {
 void DumpTransfersMemoryUsage() {
 	if (g_total_transfer > 1000 * 1000) {
 		Log("Transfer Lists : %11.0f : %8.2fM transfers\n",
-			(double) g_total_transfer,
-			(double) g_total_transfer / (1000.0f * 1000.0f));
+			(float) g_total_transfer,
+			(float) g_total_transfer / (1000.0f * 1000.0f));
 	} else if (g_total_transfer > 1000) {
 		Log("Transfer Lists : %11.0f : %8.2fk transfers\n",
-			(double) g_total_transfer,
-			(double) g_total_transfer / 1000.0f);
+			(float) g_total_transfer,
+			(float) g_total_transfer / 1000.0f);
 	} else {
 		Log("Transfer Lists : %11.0f transfers\n",
-			(double) g_total_transfer);
+			(float) g_total_transfer);
 	}
 
 	if (g_transfer_index_bytes > 1024 * 1024) {

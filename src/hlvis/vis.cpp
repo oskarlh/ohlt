@@ -163,13 +163,10 @@ void GetParamsFromEnt(entity_t* mapent) {
 //  PlaneFromWinding
 // =====================================================================================
 static void PlaneFromWinding(winding_t* w, hlvis_plane_t* plane) {
-	float3_array v1;
-	float3_array v2;
-
 	// calc plane
-	VectorSubtract(w->points[2], w->points[1], v1);
-	VectorSubtract(w->points[0], w->points[1], v2);
-	CrossProduct(v2, v1, plane->normal);
+	float3_array const v1 = vector_subtract(w->points[2], w->points[1]);
+	float3_array const v2 = vector_subtract(w->points[0], w->points[1]);
+	plane->normal = cross_product(v2, v1);
 	normalize_vector(plane->normal);
 	plane->dist = dot_product(w->points[0], plane->normal);
 }

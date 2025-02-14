@@ -195,7 +195,6 @@ inline static winding_t* ClipToSeperators(
 	bool const flipclip,
 	pstack_t* const stack
 ) {
-	int i, j, k, l;
 	hlvis_plane_t plane;
 	float3_array v1, v2;
 	float d;
@@ -206,19 +205,19 @@ inline static winding_t* ClipToSeperators(
 	unsigned int const numpoints = source->numpoints;
 
 	// check all combinations
-	for (i = 0, l = 1; i < numpoints; i++, l++) {
+	for (std::size_t i = 0, l = 1; i < numpoints; ++i, ++l) {
 		if (l == numpoints) {
 			l = 0;
 		}
 
-		VectorSubtract(source->points[l], source->points[i], v1);
+		v1 = vector_subtract(source->points[l], source->points[i]);
 
 		// fing a vertex of pass that makes a plane that puts all of the
 		// vertexes of pass on the front side and all of the vertexes of
 		// source on the back side
-		for (j = 0; j < pass->numpoints; j++) {
-			VectorSubtract(pass->points[j], source->points[i], v2);
-			CrossProduct(v1, v2, plane.normal);
+		for (std::size_t j = 0; j < pass->numpoints; ++j) {
+			v2 = vector_subtract(pass->points[j], source->points[i]);
+			plane.normal = cross_product(v1, v2);
 			if (normalize_vector(plane.normal) < ON_EPSILON) {
 				continue;
 			}
@@ -227,7 +226,8 @@ inline static winding_t* ClipToSeperators(
 			// find out which side of the generated seperating plane has the
 			// source portal
 			fliptest = false;
-			for (k = 0; k < numpoints; k++) {
+			std::size_t k;
+			for (k = 0; k < numpoints; ++k) {
 				if ((k == i)
 					| (k == l)) // | instead of || for branch optimization
 				{
@@ -645,14 +645,14 @@ static bool BestNormalFromWinding(
 		return false;
 	}
 	maxdist = -1;
-	VectorSubtract(*pt2, *pt1, edge);
+	edge = vector_subtract(*pt2, *pt1);
 	normalize_vector(edge);
 	for (k = 0; k < numpoints; k++) {
 		if (&points[k] == pt1 || &points[k] == pt2) {
 			continue;
 		}
-		VectorSubtract(points[k], *pt1, d);
-		CrossProduct(edge, d, normal);
+		d = vector_subtract(points[k], *pt1);
+		normal = cross_product(edge, d);
 		dist = dot_product(normal, normal);
 		if (dist > maxdist) {
 			maxdist = dist;
@@ -662,8 +662,8 @@ static bool BestNormalFromWinding(
 	if (maxdist <= ON_EPSILON * ON_EPSILON) {
 		return false;
 	}
-	VectorSubtract(*pt3, *pt1, d);
-	CrossProduct(edge, d, normal);
+	d = vector_subtract(*pt3, *pt1);
+	normal = cross_product(edge, d);
 	normalize_vector(normal);
 	if (pt3 < pt2) {
 		normal = vector_scale(normal, -1.0f);
@@ -733,17 +733,17 @@ float WindingDist(winding_t const * w[2]) {
 			float3_array normal;
 			float3_array normal1;
 			float3_array normal2;
-			VectorSubtract(p2, p1, delta1);
-			VectorSubtract(p4, p3, delta2);
-			CrossProduct(delta1, delta2, normal);
+			delta1 = vector_subtract(p2, p1);
+			delta2 = vector_subtract(p4, p3);
+			normal = cross_product(delta1, delta2);
 			if (!normalize_vector(normal)) {
 				continue;
 			}
-			CrossProduct(
-				normal, delta1, normal1
+			normal1 = cross_product(
+				normal, delta1
 			); // same direction as delta2
-			CrossProduct(
-				delta2, normal, normal2
+			normal2 = cross_product(
+				delta2, normal
 			); // same direction as delta1
 			if (normalize_vector(normal1) <= ON_EPSILON
 				|| normalize_vector(normal2) <= ON_EPSILON) {
@@ -791,12 +791,12 @@ float WindingDist(winding_t const * w[2]) {
 		);
 		// build boundaries
 		for (b = 0; b < w[!side]->numpoints; b++) {
-			float3_array v;
 			float3_array const & p1 = w[!side]->points[b];
 			float3_array const & p2
 				= w[!side]->points[(b + 1) % w[!side]->numpoints];
-			VectorSubtract(p2, p1, v);
-			CrossProduct(v, planenormal, boundnormals[b]);
+			boundnormals[b] = cross_product(
+				vector_subtract(p2, p1), planenormal
+			);
 			if (!normalize_vector(boundnormals[b])) {
 				bounddists[b] = 1.0;
 			} else {

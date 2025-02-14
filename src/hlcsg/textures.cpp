@@ -812,10 +812,10 @@ texinfo_count TexinfoForBrushTexture(
 	}
 
 	double scale = 1 / bt->vects.scale[0];
-	VectorScale(bt->vects.UAxis, scale, tx.vecs[0].xyz);
+	tx.vecs[0].xyz = to_float3(vector_scale(bt->vects.UAxis, scale));
 
 	scale = 1 / bt->vects.scale[1];
-	VectorScale(bt->vects.VAxis, scale, tx.vecs[1].xyz);
+	tx.vecs[1].xyz = to_float3(vector_scale(bt->vects.VAxis, scale));
 
 	tx.vecs[0].offset = bt->vects.shift[0]
 		+ dot_product(origin, tx.vecs[0].xyz);

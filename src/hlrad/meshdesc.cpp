@@ -209,11 +209,13 @@ The normal will point out of the clock for clockwise ordered points
 bool CMeshDesc ::PlaneFromPoints(
 	mvert_t const triangle[3], mplane_t* plane
 ) {
-	float3_array v1;
-	float3_array v2;
-	VectorSubtract(triangle[1].point, triangle[0].point, v1);
-	VectorSubtract(triangle[2].point, triangle[0].point, v2);
-	CrossProduct(v2, v1, plane->normal);
+	float3_array const v1 = vector_subtract(
+		triangle[1].point, triangle[0].point
+	);
+	float3_array const v2 = vector_subtract(
+		triangle[2].point, triangle[0].point
+	);
+	plane->normal = cross_product(v2, v1);
 
 	if (vector_length(plane->normal) == 0.0f) {
 		plane->normal = {};
@@ -925,7 +927,7 @@ bool CMeshDesc ::AddMeshTrinagle(
 				// construct a plane
 				float3_array vec2 = { 0.0f, 0.0f, 0.0f };
 				vec2[axis] = dir;
-				CrossProduct(vec, vec2, normal);
+				normal = cross_product(vec, vec2);
 
 				if (vector_length(normal) < 0.5f) {
 					continue;

@@ -61,10 +61,10 @@ bool TraceMesh ::ClipRayToBox(
 }
 
 bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
-	float3_array w, n, p;
+	float3_array w, p;
 
 	// we have two edge directions, we can calculate the normal
-	CrossProduct(facet->edge2, facet->edge1, n);
+	float3_array n = cross_product(facet->edge2, facet->edge1);
 
 	if (vectors_almost_same(n, float3_array{})) {
 		return false; // degenerate triangle
@@ -116,10 +116,8 @@ bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
 }
 
 bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
-	float3_array tvec, pvec, qvec;
-
 	// begin calculating determinant - also used to calculate u parameter
-	CrossProduct(m_vecTraceDirection, facet->edge2, pvec);
+	float3_array pvec = cross_product(m_vecTraceDirection, facet->edge2);
 
 	// if determinant is near zero, trace lies in plane of triangle
 	float det = dot_product(facet->edge1, pvec);
@@ -132,7 +130,9 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 	float invDet = 1.0f / det;
 
 	// calculate distance from first vertex to ray origin
-	VectorSubtract(m_vecStart, facet->triangle[0].point, tvec);
+	float3_array tvec = vector_subtract(
+		m_vecStart, facet->triangle[0].point
+	);
 
 	// calculate u parameter and test bounds
 	float u = dot_product(tvec, pvec) * invDet;
@@ -141,7 +141,7 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 	}
 
 	// prepare to test v parameter
-	CrossProduct(tvec, facet->edge1, qvec);
+	float3_array qvec = cross_product(tvec, facet->edge1);
 
 	// calculate v parameter and test bounds
 	float v = dot_product(m_vecTraceDirection, qvec) * invDet;
