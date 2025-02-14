@@ -456,7 +456,7 @@ extern float g_maxdiscardedlight;
 extern float3_array g_maxdiscardedpos;
 extern float g_texlightgap;
 
-extern void MakeTnodes(dmodel_t* bm);
+extern void MakeTnodes();
 extern void PairEdges();
 #define SKYLEVELMAX			8
 #define SKYLEVEL_SOFTSKYON	7

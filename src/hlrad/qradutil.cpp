@@ -333,7 +333,10 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 		return false;
 	}
 
-	CrossProduct(texplanes[0], texplanes[1], normalaxis);
+	normalaxis = cross_product(
+		std::array{ texplanes[0][0], texplanes[0][1], texplanes[0][2] },
+		std::array{ texplanes[1][0], texplanes[1][1], texplanes[1][2] }
+	);
 	det = dot_product(
 		normalaxis, std::array{ faceplane[0], faceplane[1], faceplane[2] }
 	);
@@ -345,10 +348,16 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	}
 	normalaxis = vector_scale(normalaxis, 1 / det);
 
-	CrossProduct(texplanes[1], faceplane, texaxis[0]);
+	texaxis[0] = cross_product(
+		std::array{ texplanes[1][0], texplanes[1][1], texplanes[1][2] },
+		std::array{ faceplane[0], faceplane[1], faceplane[2] }
+	);
 	texaxis[0] = vector_scale(texaxis[0], 1 / det);
 
-	CrossProduct(faceplane, texplanes[0], texaxis[1]);
+	texaxis[1] = cross_product(
+		std::array{ faceplane[0], faceplane[1], faceplane[2] },
+		std::array{ texplanes[0][0], texplanes[0][1], texplanes[0][2] }
+	);
 	texaxis[1] = vector_scale(texaxis[1], 1 / det);
 
 	texorg = vector_scale(normalaxis, -faceplane[3]);

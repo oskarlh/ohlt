@@ -2613,7 +2613,7 @@ std::array<float3_array, 15> const pos{
 static void RadWorld() {
 	MakeBackplanes();
 	MakeParents(0, -1);
-	MakeTnodes(&g_dmodels[0]);
+	MakeTnodes();
 	CreateOpaqueNodes();
 	LoadOpaqueEntities();
 

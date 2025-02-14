@@ -10,7 +10,6 @@ struct tnode_t final {
 	float3_array normal;
 	float dist;
 	int children[2];
-	int pad;
 };
 
 static tnode_t* tnodes;
@@ -67,16 +66,9 @@ static void MakeTnode(int const nodenum) {
  * occlusion
  * =============
  */
-void MakeTnodes(dmodel_t* /*bm*/) {
-	// 32 byte align the structs
-	tnodes = (tnode_t*) calloc((g_numnodes + 1), sizeof(tnode_t));
-
-	// The alignment doesn't have any effect at all. --vluzacn
-	int ofs = 31
-		- (int) (((uintptr_t) tnodes + (uintptr_t) 31) & (uintptr_t) 31);
-	tnodes = (tnode_t*) ((byte*) tnodes + ofs);
+void MakeTnodes() {
+	tnodes = (tnode_t*) calloc((g_numnodes), sizeof(tnode_t));
 	tnode_p = tnodes;
-
 	MakeTnode(0);
 }
 

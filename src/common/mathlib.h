@@ -75,13 +75,6 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 	return (v[0] + v[1] + v[2]) / 3;
 }
 
-#define CrossProduct(a, b, dest)                       \
-	{                                                  \
-		(dest)[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1]; \
-		(dest)[1] = (a)[2] * (b)[0] - (a)[0] * (b)[2]; \
-		(dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]; \
-	}
-
 constexpr auto
 vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
 	return std::array{ v[0] * scale, v[1] * scale, v[2] * scale };

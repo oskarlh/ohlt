@@ -911,7 +911,7 @@ void SplitTreeLeaf(
 		}
 
 		btreeleaf_t* frontback[2]{ front, back };
-		for (int side = 0; side < 2; side++) {
+		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
 				 fi != frontback[side]->faces->end();
 				 fi++) {
@@ -922,7 +922,7 @@ void SplitTreeLeaf(
 				}
 			}
 		}
-		for (int side = 0; side < 2; side++) {
+		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
 				 fi != frontback[side]->faces->end();
 				 fi++) {
@@ -932,7 +932,7 @@ void SplitTreeLeaf(
 				}
 			}
 		}
-		for (int side = 0; side < 2; side++) {
+		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
 				 fi != frontback[side]->faces->end();
 				 fi++) {

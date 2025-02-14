@@ -189,32 +189,28 @@ float snap_to_winding_noedge(
 				 // maximal distance that the point can be kept away from
 				 // all the edges
 	{
-		bool failed;
 		float3_array newpoint;
-		fast_winding* newwinding;
 
-		failed = true;
+		bool failed = true;
 
-		newwinding = new fast_winding(w);
-		for (x = 0; x < numplanes && newwinding->size() > 0; x++) {
+		fast_winding newwinding{ w };
+		for (x = 0; x < numplanes && !newwinding.empty(); x++) {
 			dplane_t clipplane = planes[x];
 			clipplane.dist += newwidth;
-			newwinding->mutating_clip(
+			newwinding.mutating_clip(
 				clipplane.normal, clipplane.dist, false
 			);
 		}
 
-		if (newwinding->size() > 0) {
+		if (!newwinding.empty()) {
 			newpoint = point;
-			snap_to_winding(*newwinding, plane, newpoint);
+			snap_to_winding(newwinding, plane, newpoint);
 
 			if (distance_between_points(newpoint, point)
 				<= maxmove + ON_EPSILON) {
 				failed = false;
 			}
 		}
-
-		delete newwinding;
 
 		if (!failed) {
 			bestwidth = newwidth;
