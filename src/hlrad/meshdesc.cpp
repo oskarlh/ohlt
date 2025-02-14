@@ -56,8 +56,7 @@ areanode_t* CMeshDesc::CreateAreaNode(
 		return anode;
 	}
 
-	float3_array size;
-	VectorSubtract(maxs, mins, size);
+	float3_array size = vector_subtract(maxs, mins);
 
 	if (size[0] > size[1]) {
 		anode->axis = 0;
@@ -866,11 +865,11 @@ bool CMeshDesc ::AddMeshTrinagle(
 		facet->triangle[i] = triangle[i];
 	}
 
-	VectorSubtract(
-		facet->triangle[1].point, facet->triangle[0].point, facet->edge1
+	facet->edge1 = vector_subtract(
+		facet->triangle[1].point, facet->triangle[0].point
 	);
-	VectorSubtract(
-		facet->triangle[2].point, facet->triangle[0].point, facet->edge2
+	facet->edge2 = vector_subtract(
+		facet->triangle[2].point, facet->triangle[0].point
 	);
 
 	// add the axial planes
@@ -901,9 +900,9 @@ bool CMeshDesc ::AddMeshTrinagle(
 	// add the edge bevels
 	for (i = 0; i < 3; i++) {
 		int j = (i + 1) % 3;
-		float3_array vec;
-
-		VectorSubtract(triangle[i].point, triangle[j].point, vec);
+		float3_array vec = vector_subtract(
+			triangle[i].point, triangle[j].point
+		);
 		if (vector_length(vec) < 0.5f) {
 			continue;
 		}

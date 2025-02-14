@@ -714,7 +714,7 @@ void FreePositionMaps() {
 						continue;
 					}
 					v = map->grid[j].pos;
-					VectorSubtract(v, g_drawsample_origin, dist);
+					dist = vector_subtract(v, g_drawsample_origin);
 					if (dot_product(dist, dist)
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
@@ -881,8 +881,7 @@ bool FindNearestPosition(
 				continue;
 			}
 			float3_array const current_st{ p->best_s, p->best_t, 0 };
-			float3_array v;
-			VectorSubtract(current_st, original_st, v);
+			float3_array v = vector_subtract(current_st, original_st);
 			float const d = vector_length(v);
 
 			if (!found || d < best_dist - ON_EPSILON) {

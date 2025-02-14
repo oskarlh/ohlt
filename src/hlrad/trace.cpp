@@ -564,9 +564,8 @@ int TestLineOpaque(
 ) {
 	opaquemodel_t* thismodel = &opaquemodels[modelnum];
 	float front, back, frac;
-	float3_array p1, p2;
-	VectorSubtract(start, modelorigin, p1);
-	VectorSubtract(stop, modelorigin, p2);
+	float3_array p1 = vector_subtract(start, modelorigin);
+	float3_array p2 = vector_subtract(stop, modelorigin);
 	int axial;
 	for (axial = 0; axial < 3; axial++) {
 		front = p1[axial] - thismodel->maxs[axial];
@@ -681,8 +680,7 @@ bool TestPointOpaque(
 	float3_array const & point
 ) {
 	opaquemodel_t* thismodel = &opaquemodels[modelnum];
-	float3_array newpoint;
-	VectorSubtract(point, modelorigin, newpoint);
+	float3_array newpoint = vector_subtract(point, modelorigin);
 	for (std::size_t axial = 0; axial < 3; ++axial) {
 		if (newpoint[axial] > thismodel->maxs[axial]) {
 			return false;

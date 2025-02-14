@@ -1610,8 +1610,8 @@ static void LoadOpaqueEntities() {
 						float3_array model_center = get_float3_for_key(
 							ent, u8"model_center"
 						);
-						VectorSubtract(
-							light_origin, model_center, origin
+						origin = vector_subtract(
+							light_origin, model_center
 						); // New origin
 					}
 				}
@@ -1773,7 +1773,7 @@ static entity_t* FindTexlightEntity(int facenum) {
 			continue;
 		}
 		float3_array delta{ get_float3_for_key(ent, u8"origin") };
-		VectorSubtract(delta, centroid, delta);
+		delta = vector_subtract(delta, centroid);
 		float dist = vector_length(delta);
 
 		if (has_key_value(&ent, u8"_frange")) {
@@ -1909,8 +1909,8 @@ static void MakePatches() {
 
 		// Allow models to be lit in an alternate location (pt3)
 		if (lightOrigin && modelCenter) {
-			VectorSubtract(
-				lightOrigin.value(), modelCenter.value(), origin
+			origin = vector_subtract(
+				lightOrigin.value(), modelCenter.value()
 			);
 		}
 

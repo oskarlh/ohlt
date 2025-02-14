@@ -167,7 +167,7 @@ static wedge_t* FindEdge(
 	int num_hashneighbors;
 	int hashneighbors[MAX_HASH_NEIGHBORS];
 
-	VectorSubtract(p2, p1, dir);
+	dir = vector_subtract(p2, p1);
 	if (!CanonicalVector(dir)) {
 #if _DEBUG
 		Warning(
@@ -332,11 +332,11 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 
 	restart:
 		// find the last corner
-		VectorSubtract(f->pts[f->numpoints - 1], f->pts[0], dir);
+		dir = vector_subtract(f->pts[f->numpoints - 1], f->pts[0]);
 		normalize_vector(dir);
 		for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--) {
-			VectorSubtract(
-				f->pts[lastcorner - 1], f->pts[lastcorner], test
+			test = vector_subtract(
+				f->pts[lastcorner - 1], f->pts[lastcorner]
 			);
 			normalize_vector(test);
 			v = dot_product(test, dir);
@@ -346,12 +346,12 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		}
 
 		// find the first corner
-		VectorSubtract(f->pts[1], f->pts[0], dir);
+		dir = vector_subtract(f->pts[1], f->pts[0]);
 		normalize_vector(dir);
 		for (firstcorner = 1; firstcorner < f->numpoints - 1;
 			 firstcorner++) {
-			VectorSubtract(
-				f->pts[firstcorner + 1], f->pts[firstcorner], test
+			test = vector_subtract(
+				f->pts[firstcorner + 1], f->pts[firstcorner]
 			);
 			normalize_vector(test);
 			v = dot_product(test, dir);

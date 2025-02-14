@@ -253,9 +253,9 @@ void MakeScales(int const threadnum) {
 				= getPlaneFromFaceNumber(patch2->faceNumber)->normal;
 
 			// calculate transferemnce
-			VectorSubtract(patch2->origin, origin, delta);
+			delta = vector_subtract(patch2->origin, origin);
 			if (useback) {
-				VectorSubtract(patch2->origin, backorigin, delta);
+				delta = vector_subtract(patch2->origin, backorigin);
 			}
 			// move emitter back to its plane
 			delta = vector_fma(normal2, -PATCH_HUNT_OFFSET, delta);
@@ -509,9 +509,9 @@ void MakeRGBScales(int const threadnum) {
 				= getPlaneFromFaceNumber(patch2->faceNumber)->normal;
 
 			// calculate transferemnce
-			VectorSubtract(patch2->origin, origin, delta);
+			delta = vector_subtract(patch2->origin, origin);
 			if (useback) {
-				VectorSubtract(patch2->origin, backorigin, delta);
+				delta = vector_subtract(patch2->origin, backorigin);
 			}
 			// move emitter back to its plane
 			delta = vector_fma(normal2, -PATCH_HUNT_OFFSET, delta);

@@ -29,12 +29,6 @@
 
 using namespace std::literals;
 
-/*
-
- NOTES
-
-*/
-
 int g_numportals = 0;
 unsigned g_portalleafs = 0;
 
@@ -610,7 +604,7 @@ static void LoadPortals(char* portal_image) {
 		}
 	}
 	for (i = 0, p = g_portals; i < g_numportals; i++) {
-		unsigned rval = 0;
+		std::size_t rval = 0;
 
 		token = strtok(nullptr, seperators);
 		CheckNullToken(token);
@@ -638,24 +632,23 @@ static void LoadPortals(char* portal_image) {
 		w->numpoints = numpoints;
 
 		for (j = 0; j < numpoints; j++) {
-			double3_array v;
+			float3_array v;
 			std::size_t rval = 0;
 
 			token = strtok(nullptr, seperators);
 			CheckNullToken(token);
-			rval += sscanf(token, "%lf", &v[0]);
+			rval += sscanf(token, "%f", &v[0]);
 			token = strtok(nullptr, seperators);
 			CheckNullToken(token);
-			rval += sscanf(token, "%lf", &v[1]);
+			rval += sscanf(token, "%f", &v[1]);
 			token = strtok(nullptr, seperators);
 			CheckNullToken(token);
-			rval += sscanf(token, "%lf", &v[2]);
+			rval += sscanf(token, "%f", &v[2]);
 
-			// scanf into double, then assign to float
 			if (rval != 3) {
 				Error("LoadPortals: reading portal %i", i);
 			}
-			w->points[j] = to_float3(v);
+			w->points[j] = v;
 		}
 
 		// calc plane

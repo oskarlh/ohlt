@@ -168,21 +168,21 @@ int AddFaceForVertexNormal(
 	vnum22 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 1 : 0];
 	if (vnum == vnum12 && vnum == vnum21 && vnum != vnum11
 		&& vnum != vnum22) {
-		VectorSubtract(
-			g_dvertexes[vnum11].point, g_dvertexes[vnum].point, vec1
+		vec1 = vector_subtract(
+			g_dvertexes[vnum11].point, g_dvertexes[vnum].point
 		);
-		VectorSubtract(
-			g_dvertexes[vnum22].point, g_dvertexes[vnum].point, vec2
+		vec2 = vector_subtract(
+			g_dvertexes[vnum22].point, g_dvertexes[vnum].point
 		);
 		edgeabsnext = abs(edgenext);
 		edgeendnext = edgenext > 0 ? 0 : 1;
 	} else if (vnum == vnum11 && vnum == vnum22 && vnum != vnum12
 			   && vnum != vnum21) {
-		VectorSubtract(
-			g_dvertexes[vnum12].point, g_dvertexes[vnum].point, vec1
+		vec1 = vector_subtract(
+			g_dvertexes[vnum12].point, g_dvertexes[vnum].point
 		);
-		VectorSubtract(
-			g_dvertexes[vnum21].point, g_dvertexes[vnum].point, vec2
+		vec2 = vector_subtract(
+			g_dvertexes[vnum21].point, g_dvertexes[vnum].point
 		);
 		edgeabsnext = abs(edgenext);
 		edgeendnext = edgenext > 0 ? 1 : 0;
@@ -268,14 +268,14 @@ static bool TranslateTexToTex(
 								   // (possibly with a reflection by
 								   // the edge)
 	edgetotex.v[1] = face_axis[1]; // \ v[0][1] v[1][1] /
-	VectorScale(
-		v_up, len, edgetotex.v[2]
+	edgetotex.v[2] = vector_scale(
+		v_up, len
 	); // encode the length into the 3rd value of the matrix
 	edgetotex.v[3] = face_vert[0]; // Map (0,0) into the origin point
 
 	edgetotex2.v[0] = face2_axis[0];
 	edgetotex2.v[1] = face2_axis[1];
-	VectorScale(v_up, len2, edgetotex2.v[2]);
+	edgetotex2.v[2] = vector_scale(v_up, len2);
 	edgetotex2.v[3] = face2_vert[0];
 
 	if (!InvertMatrix(edgetotex, inv) || !InvertMatrix(edgetotex2, inv2)) {
@@ -848,9 +848,9 @@ static void CalcFaceVectors(lightinfo_t* l) {
 	distscale = 1.0 / distscale;
 
 	for (i = 0; i < 2; i++) {
-		CrossProduct(l->worldtotex[!i], l->facenormal, l->textoworld[i]);
+		l->textoworld[i] = cross_product(l->worldtotex[!i], l->facenormal);
 		len = dot_product(l->textoworld[i], l->worldtotex[i]);
-		VectorScale(l->textoworld[i], 1 / len, l->textoworld[i]);
+		l->textoworld[i] = vector_scale(l->textoworld[i], 1 / len);
 	}
 
 	// calculate texorg on the texture plane
@@ -1377,13 +1377,13 @@ static samplefraginfo_t* CreateSampleFrag(
 	info->head->origin[2] = 0.0;
 	info->head->myorigin = info->head->origin;
 
-	VectorScale(v_s, 1, info->head->rect.planes[0].normal);
+	info->head->rect.planes[0].normal = v_s;
 	info->head->rect.planes[0].dist = square[0][0]; // smin
-	VectorScale(v_s, -1, info->head->rect.planes[1].normal);
+	info->head->rect.planes[1].normal = vector_scale(v_s, -1.0f);
 	info->head->rect.planes[1].dist = -square[1][0]; // smax
-	VectorScale(v_t, 1, info->head->rect.planes[2].normal);
+	info->head->rect.planes[2].normal = v_t;
 	info->head->rect.planes[2].dist = square[0][1]; // tmin
-	VectorScale(v_t, -1, info->head->rect.planes[3].normal);
+	info->head->rect.planes[3].normal = vector_scale(v_t, -1.0f);
 	info->head->rect.planes[3].dist = -square[1][1]; // tmax
 	info->head->myrect = info->head->rect;
 
@@ -1835,14 +1835,13 @@ void CreateDirectLights() {
 					float scale = float_for_key(
 						*g_face_texlights[p->faceNumber], u8"_scale"
 					);
-					VectorScale(dl->intensity, scale, dl->intensity);
+					dl->intensity = vector_scale(dl->intensity, scale);
 				}
 			}
-			VectorScale(dl->intensity, p->area, dl->intensity);
-			VectorScale(dl->intensity, p->exposure, dl->intensity);
-			VectorScale(
-				dl->intensity, 1 / std::numbers::pi_v<float>, dl->intensity
-			);
+			dl->intensity = vector_scale(dl->intensity, p->area);
+			dl->intensity = vector_scale(dl->intensity, p->exposure);
+			dl->intensity
+				= vector_scale(dl->intensity, 1 / std::numbers::pi_v<float>);
 			dl->intensity = vector_multiply(
 				dl->intensity, p->texturereflectivity
 			);
@@ -2017,7 +2016,7 @@ void CreateDirectLights() {
 			}
 			if (maybeE2) { // point towards target
 				dest = get_float3_for_key(maybeE2.value(), u8"origin");
-				VectorSubtract(dest, dl->origin, dl->normal);
+				dl->normal = vector_subtract(dest, dl->origin);
 				normalize_vector(dl->normal);
 			} else { // point down angle
 				float3_array vAngles;
@@ -2770,10 +2769,9 @@ static void GatherSampleLight(
 									dot = lighting_scale
 										* pow(dot, lighting_power);
 								}
-								VectorScale(
+								add_one = vector_scale(
 									l->intensity,
-									dot * l->sunnormalweights[j],
-									add_one
+									dot * l->sunnormalweights[j]
 								);
 								add_one = vector_multiply(
 									add_one, transparency
@@ -2888,10 +2886,9 @@ static void GatherSampleLight(
 									)
 
 								);
-								VectorScale(
+								sky_intensity = vector_scale(
 									sky_intensity,
-									skyweights[j] * g_indirect_sun / 2,
-									sky_intensity
+									skyweights[j] * g_indirect_sun / 2
 								);
 								float3_array add_one;
 								if (lighting_diversify) {
@@ -3445,9 +3442,9 @@ void GetPhongNormal(
 				float3_array s1 = s == 0 ? p1 : p2;
 				float3_array const edgeCenter = midpoint_between(p1, p2);
 
-				VectorSubtract(s1, g_face_centroids[facenum], v1);
-				VectorSubtract(edgeCenter, g_face_centroids[facenum], v2);
-				VectorSubtract(spot, g_face_centroids[facenum], vspot);
+				v1 = vector_subtract(s1, g_face_centroids[facenum]);
+				v2 = vector_subtract(edgeCenter, g_face_centroids[facenum]);
+				vspot = vector_subtract(spot, g_face_centroids[facenum]);
 
 				aa = dot_product(v1, v1);
 				bb = dot_product(v2, v2);
@@ -5205,12 +5202,13 @@ void FinalLightFace(int const facenum) {
 		f = fopen(name, "w");
 		if (f) {
 			int i, j;
-			float3_array v, dist;
 			for (i = 0; i < g_numfaces; ++i) {
 				facelight_t const * fl = &facelight[i];
 				for (j = 0; j < fl->numsamples; ++j) {
-					v = fl->samples[0][j].pos;
-					VectorSubtract(v, g_drawsample_origin, dist);
+					float3_array v = fl->samples[0][j].pos;
+					float3_array dist = vector_subtract(
+						v, g_drawsample_origin
+					);
 					if (dot_product(dist, dist)
 						< g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
@@ -5367,7 +5365,9 @@ void FinalLightFace(int const facenum) {
 			if (k == 0) {
 				final_basiclight[j] = lbi;
 			} else {
-				VectorSubtract(lbi, final_basiclight[j], lbi);
+				lbi[0] -= final_basiclight[j][0];
+				lbi[1] -= final_basiclight[j][1];
+				lbi[2] -= final_basiclight[j][2];
 			}
 			if (k == 0) {
 				if (g_colour_jitter_hack[0] || g_colour_jitter_hack[1]

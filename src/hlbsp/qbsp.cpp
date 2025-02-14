@@ -973,10 +973,12 @@ static bool ProcessModel(bsp_data& bspData) {
 				g_hullnum
 			);
 		} else {
-			double3_array mins;
-			double3_array maxs;
-			VectorSubtract(surfs->mins, g_hull_size[g_hullnum][0], mins);
-			VectorSubtract(surfs->maxs, g_hull_size[g_hullnum][1], maxs);
+			double3_array mins = vector_subtract(
+				surfs->mins, g_hull_size[g_hullnum][0]
+			);
+			double3_array maxs = vector_subtract(
+				surfs->maxs, g_hull_size[g_hullnum][1]
+			);
 			for (std::size_t i = 0; i < 3; ++i) {
 				if (mins[i] > maxs[i]) {
 					double tmp;
@@ -1089,10 +1091,12 @@ static bool ProcessModel(bsp_data& bspData) {
 					hullnum
 				);
 			} else {
-				double3_array mins;
-				double3_array maxs;
-				VectorSubtract(surfs->mins, g_hull_size[hullnum][0], mins);
-				VectorSubtract(surfs->maxs, g_hull_size[hullnum][1], maxs);
+				double3_array mins = vector_subtract(
+					surfs->mins, g_hull_size[hullnum][0]
+				);
+				double3_array maxs = vector_subtract(
+					surfs->maxs, g_hull_size[hullnum][1]
+				);
 				for (std::size_t i = 0; i < 3; ++i) {
 					if (mins[i] > maxs[i]) {
 						double tmp;

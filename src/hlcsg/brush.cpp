@@ -380,7 +380,7 @@ void ExpandBrushWithHullBrush(
 		if (axialbevel[hbf - hb->faces]) {
 			origin = bestvertex;
 		} else {
-			VectorSubtract(bestvertex, hbf->point, origin);
+			origin = vector_subtract(bestvertex, hbf->point);
 		}
 		AddHullPlane(hull, normal, origin, true);
 	}

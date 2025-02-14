@@ -14,7 +14,7 @@ void TraceMesh ::SetupTrace(
 
 	m_vecStart = start;
 	m_vecEnd = end;
-	VectorSubtract(end, start, m_vecTraceDirection);
+	m_vecTraceDirection = vector_subtract(end, start);
 	m_flTraceDistance = normalize_vector(m_vecTraceDirection);
 
 	// build a bounding box of the entire move
@@ -70,8 +70,8 @@ bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
 		return false; // degenerate triangle
 	}
 
-	VectorSubtract(m_vecEnd, m_vecStart, p);
-	VectorSubtract(m_vecStart, facet->triangle[0].point, w);
+	p = vector_subtract(m_vecEnd, m_vecStart);
+	w = vector_subtract(m_vecStart, facet->triangle[0].point);
 
 	float const d1 = -dot_product(n, w);
 	float const d2 = dot_product(n, p);
@@ -96,7 +96,7 @@ bool TraceMesh ::ClipRayToTriangle(mfacet_t const * facet) {
 	float const uv = dot_product(facet->edge1, facet->edge2);
 	float const vv = dot_product(facet->edge2, facet->edge2);
 
-	VectorSubtract(p, facet->triangle[0].point, w);
+	w = vector_subtract(p, facet->triangle[0].point);
 	float const wu = dot_product(w, facet->edge1);
 	float const wv = dot_product(w, facet->edge2);
 	float const d = uv * uv - uu * vv;

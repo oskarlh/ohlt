@@ -1093,8 +1093,9 @@ static void UnparseEntities() {
 						float3_array originB = get_float3_for_key(
 							maybeTargetEnt.value().get(), u8"origin"
 						);
-						float3_array normal;
-						VectorSubtract(originB, originA, normal);
+						float3_array const normal = vector_subtract(
+							originB, originA
+						);
 						vec = angles_for_vector(normal);
 					}
 				}

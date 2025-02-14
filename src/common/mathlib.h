@@ -84,20 +84,6 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 		(dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]; \
 	}
 
-#define VectorSubtract(a, b, c)   \
-	{                             \
-		(c)[0] = (a)[0] - (b)[0]; \
-		(c)[1] = (a)[1] - (b)[1]; \
-		(c)[2] = (a)[2] - (b)[2]; \
-	}
-
-#define VectorScale(a, b, c)   \
-	{                          \
-		(c)[0] = (a)[0] * (b); \
-		(c)[1] = (a)[1] * (b); \
-		(c)[2] = (a)[2] * (b); \
-	}
-
 constexpr auto
 vector_scale(any_vec3 auto const & v, any_vec_element auto scale) noexcept {
 	return std::array{ v[0] * scale, v[1] * scale, v[2] * scale };

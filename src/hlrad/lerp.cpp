@@ -1385,11 +1385,11 @@ static bool TryMakeSquare(localtriangulation_t* lt, int i) {
 	}
 
 	// (p2, p1, p3) must be a triangle
-	VectorSubtract(w1->leftspot, w2->leftspot, v);
+	v = vector_subtract(w1->leftspot, w2->leftspot);
 	if (!GetDirection(v, lt->normal, dir1)) {
 		return false;
 	}
-	VectorSubtract(w3->leftspot, w2->leftspot, v);
+	v = vector_subtract(w3->leftspot, w2->leftspot);
 	if (!GetDirection(v, lt->normal, dir2)) {
 		return false;
 	}

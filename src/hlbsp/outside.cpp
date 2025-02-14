@@ -96,8 +96,7 @@ static void MarkLeakTrail(portal_t* n2) {
 	// Pointfile
 	fprintf(pointfile, "%f %f %f\n", p1[0], p1[1], p1[2]);
 
-	double3_array dir;
-	VectorSubtract(p2, p1, dir);
+	double3_array dir = vector_subtract(p2, p1);
 	len = vector_length(dir);
 	normalize_vector(dir);
 
