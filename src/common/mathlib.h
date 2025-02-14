@@ -75,8 +75,6 @@ constexpr auto vector_average(any_vec3 auto const & v) {
 	return (v[0] + v[1] + v[2]) / 3;
 }
 
-#define DotProduct(x, y) \
-	((x)[0] * (y)[0] + (x)[1] * (y)[1] + (x)[2] * (y)[2])
 #define CrossProduct(a, b, dest)                       \
 	{                                                  \
 		(dest)[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1]; \

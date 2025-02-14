@@ -5,8 +5,6 @@
 #include "qrad.h"
 #include "winding.h"
 
-// #define      ON_EPSILON      0.001
-
 struct tnode_t final {
 	planetype type;
 	float3_array normal;

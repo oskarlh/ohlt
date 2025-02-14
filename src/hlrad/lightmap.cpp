@@ -820,7 +820,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 
 	// calculate a normal to the texture axis.  points can be moved along
 	// this without changing their S/T
-	CrossProduct(tex->vecs[1].xyz, tex->vecs[0].xyz, texnormal);
+	texnormal = cross_product(tex->vecs[1].xyz, tex->vecs[0].xyz);
 	normalize_vector(texnormal);
 
 	// flip it towards plane normal

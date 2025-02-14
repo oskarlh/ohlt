@@ -418,9 +418,12 @@ void CMeshDesc::ConcatTransforms(
 void CMeshDesc::VectorTransform(
 	float3_array const & in1, matrix3x4 const & in2, float3_array& out
 ) {
-	out[0] = DotProduct(in1, in2[0]) + in2[0][3];
-	out[1] = DotProduct(in1, in2[1]) + in2[1][3];
-	out[2] = DotProduct(in1, in2[2]) + in2[2][3];
+	out[0] = dot_product(in1, std::array{ in2[0][0], in2[0][1], in2[0][2] })
+		+ in2[0][3];
+	out[1] = dot_product(in1, std::array{ in2[1][0], in2[1][1], in2[1][2] })
+		+ in2[1][3];
+	out[2] = dot_product(in1, std::array{ in2[2][0], in2[2][1], in2[2][2] })
+		+ in2[2][3];
 }
 
 void CMeshDesc ::StudioCalcBoneQuaterion(

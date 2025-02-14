@@ -317,9 +317,14 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 		faceplane[i] = m.v[i][2];
 	}
 
-	sqrlen1 = DotProduct(texplanes[0], texplanes[0]);
-	sqrlen2 = DotProduct(texplanes[1], texplanes[1]);
-	sqrlen3 = DotProduct(faceplane, faceplane);
+	sqrlen1 = texplanes[0][0] * texplanes[0][0]
+		+ texplanes[0][1] * texplanes[0][1]
+		+ texplanes[0][2] * texplanes[0][2];
+	sqrlen2 = texplanes[1][0] * texplanes[1][0]
+		+ texplanes[1][1] * texplanes[1][1]
+		+ texplanes[1][2] * texplanes[1][2];
+	sqrlen3 = faceplane[0] * faceplane[0] + faceplane[1] * faceplane[1]
+		+ faceplane[2] * faceplane[2];
 	if (sqrlen1 <= NORMAL_EPSILON * NORMAL_EPSILON
 		|| sqrlen2 <= NORMAL_EPSILON * NORMAL_EPSILON
 		|| sqrlen3 <= NORMAL_EPSILON * NORMAL_EPSILON)
@@ -329,7 +334,9 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	}
 
 	CrossProduct(texplanes[0], texplanes[1], normalaxis);
-	det = DotProduct(normalaxis, faceplane);
+	det = dot_product(
+		normalaxis, std::array{ faceplane[0], faceplane[1], faceplane[2] }
+	);
 	if (det * det
 		<= sqrlen1 * sqrlen2 * sqrlen3 * NORMAL_EPSILON * NORMAL_EPSILON)
 	// s gradient, t gradient and face normal are coplanar
