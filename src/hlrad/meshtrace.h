@@ -19,17 +19,17 @@
 
 class TraceMesh final {
   private:
-	float3_array m_vecStart, m_vecEnd;
-	float3_array m_vecStartMins, m_vecEndMins;
-	float3_array m_vecStartMaxs, m_vecEndMaxs;
-	float3_array m_vecAbsMins, m_vecAbsMaxs;
-	float3_array m_vecTraceDirection; // ray direction
-	float m_flTraceDistance;
-	bool m_bHitTriangle;   // now we hit triangle
-	areanode_t* areanodes; // AABB for static meshes
-	mmesh_t* mesh;		   // mesh to trace
-	int checkcount;		   // debug
-	void* m_extradata;	   // pointer to model extradata
+	float3_array m_vecStart{}, m_vecEnd{};
+	float3_array m_vecStartMins{}, m_vecEndMins{};
+	float3_array m_vecStartMaxs{}, m_vecEndMaxs{};
+	float3_array m_vecAbsMins{}, m_vecAbsMaxs{};
+	float3_array m_vecTraceDirection{}; // ray direction
+	float m_flTraceDistance{};
+	bool m_bHitTriangle{};	  // now we hit triangle
+	areanode_t* areanodes{};  // AABB for static meshes
+	mmesh_t* mesh{};		  // mesh to trace
+	int checkcount{};		  // debug
+	std::byte* m_extradata{}; // pointer to model extradata
 
 	inline void ClearBounds(float3_array& mins, float3_array& maxs) {
 		// make bogus range
@@ -87,7 +87,7 @@ class TraceMesh final {
 		float3_array const & end
 	);
 
-	void SetTraceModExtradata(void* data) {
+	void SetTraceModExtradata(std::byte* data) {
 		m_extradata = data;
 	}
 

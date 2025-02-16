@@ -127,18 +127,6 @@ int GetThreadWork() {
 			case 80:
 			case 90:
 			case 100:
-				/*
-							case 5:
-							case 15:
-							case 25:
-							case 35:
-							case 45:
-							case 55:
-							case 65:
-							case 75:
-							case 85:
-							case 95:
-				*/
 				PrintConsole("%d%%...", f);
 			default:
 				break;

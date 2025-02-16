@@ -8,45 +8,46 @@ int g_nummapplanes;
 hullshape_t g_defaulthulls[NUM_HULLS]{};
 std::vector<hullshape_t> g_hullshapes{};
 
-constexpr float DIST_EPSILON = 0.04f;
-
 constexpr float FLOOR_Z = 0.7f; // Quake default
 
 // =====================================================================================
-//  FindIntPlane, fast version (replacement by KGP)
-//	This process could be optimized by placing the planes in a (non hash-)
-// set and using 	half of the inner loop check below as the comparator;
-// I'd expect the speed gain to be 	very large given the change from O(N^2)
+//  FindIntPlane
+// This process could be optimized by placing the planes in a (non hash-)
+// set and using half of the inner loop check below as the comparator;
+// I'd expect the speed gain to be very large given the change from O(N^2)
 // to O(NlogN) to build the set of planes.
 // =====================================================================================
 
 static int
 FindIntPlane(double3_array const & normal, double3_array const & origin) {
-	int returnval;
 	mapplane_t* p;
-	mapplane_t temp;
-	double t;
 
-	returnval = 0;
+	int returnval = 0;
 
 find_plane:
+	// Can I use the "Always put axial planes facing positive first" rule to
+	// my advantage?? And only check every other???
+
 	for (; returnval < g_nummapplanes; returnval++) {
 		// BUG: there might be some multithread issue --vluzacn
-		if (-DIR_EPSILON
-				< (t = normal[0] - g_mapplanes[returnval].normal[0])
-			&& t < DIR_EPSILON
-			&& -DIR_EPSILON
-				< (t = normal[1] - g_mapplanes[returnval].normal[1])
-			&& t < DIR_EPSILON
-			&& -DIR_EPSILON
-				< (t = normal[2] - g_mapplanes[returnval].normal[2])
-			&& t < DIR_EPSILON) {
-			t = dot_product(origin, g_mapplanes[returnval].normal)
-				- g_mapplanes[returnval].dist;
 
-			if (-DIST_EPSILON < t && t < DIST_EPSILON) {
-				return returnval;
-			}
+		// Instead of comparing like this here........I can round
+		// the values and see if the values are equal????
+		// Pros: MUCH easier logic for reducing duplicates
+		// Cons MAYBE: Very close points not matching sometimes, preventing
+		// deduplication
+		// round_to_dir_epsilon
+		if (std::abs(normal[0] - g_mapplanes[returnval].normal[0])
+				< DIR_EPSILON
+			&& std::abs(normal[1] - g_mapplanes[returnval].normal[1])
+				< DIR_EPSILON
+			&& std::abs(normal[2] - g_mapplanes[returnval].normal[2])
+				< DIR_EPSILON
+			&& std::abs(
+				   dot_product(origin, g_mapplanes[returnval].normal)
+				   - g_mapplanes[returnval].dist
+			   ) < DIST_EPSILON) {
+			return returnval;
 		}
 	}
 
@@ -88,11 +89,10 @@ find_plane:
 	(p + 1)->type = p->type;
 	(p + 1)->dist = -p->dist;
 
-	// always put axial planes facing positive first
+	// Always put axial planes facing positive first
 	if (normal[std::size_t(p->type) % 3] < 0) {
-		temp = *p;
-		*p = *(p + 1);
-		*(p + 1) = temp;
+		using std::swap;
+		swap(p[0], p[1]);
 		returnval = g_nummapplanes + 1;
 	} else {
 		returnval = g_nummapplanes;

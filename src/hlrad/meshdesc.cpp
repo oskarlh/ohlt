@@ -3,6 +3,7 @@
 #include "meshdesc.h"
 
 #include "context.h"
+#include "log.h"
 #include "qrad.h"
 #include "time_counter.h"
 
@@ -748,7 +749,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			triangle[2].st[1] = coords[p2 * 2 + 1];
 
 			// add it to mesh
-			AddMeshTrinagle(triangle);
+			AddMeshTriangle(triangle);
 			tris_reduced++;
 		}
 
@@ -782,7 +783,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			triangle[2].st[1] = coords[indices[i + 2] * 2 + 1];
 
 			// add it to mesh
-			AddMeshTrinagle(triangle, textures[indices[i]]);
+			AddMeshTriangle(triangle, textures[indices[i]]);
 		}
 	}
 
@@ -810,7 +811,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	return true;
 }
 
-bool CMeshDesc ::AddMeshTrinagle(
+bool CMeshDesc ::AddMeshTriangle(
 	mvert_t const triangle[3], mstudiotexture_t* texture
 ) {
 	int i;

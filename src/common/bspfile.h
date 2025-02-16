@@ -5,6 +5,7 @@
 #include "external_types/external_types.h"
 #include "internal_types/internal_types.h"
 #include "mathlib.h"
+#include "planes.h"
 #include "wad_texture_name.h"
 
 #include <cstddef>
@@ -24,19 +25,6 @@ constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384;	  // 2048 //vluzacn
 
 constexpr std::ptrdiff_t MAX_MAP_ENTSTRING = 2048 * 1024; //(512*1024)
 // abitrary, 512Kb of string data should be plenty even with TFC FGD's
-
-constexpr std::ptrdiff_t MAX_MAP_PLANES
-	= 32768; // TODO: This can be larger, because although faces can only
-			 // use plane 0~32767, clipnodes can use plane 0-65535.
-			 // --vluzacn
-constexpr std::ptrdiff_t MAX_INTERNAL_MAP_PLANES = 256 * 1024;
-// (from email): I have been building a rather complicated map, and using
-// your latest tools (1.61) it seemed to compile fine.  However, in game,
-// the engine was dropping a lot of faces from almost every FUNC_WALL, and
-// also caused a strange texture phenomenon in software mode (see attached
-// screen shot).  When I compiled with v1.41, I noticed that it hit the
-// MAX_MAP_PLANES limit of 32k.  After deleting some brushes I was able to
-// bring the map under the limit, and all of the previous errors went away.
 
 constexpr std::ptrdiff_t MAX_MAP_NODES = 32767;
 // hard limit (negative short's are used as contents values)
@@ -214,12 +202,6 @@ class miptex_header_and_data_view final {
 
 struct dvertex_t final {
 	std::array<float, 3> point;
-};
-
-struct dplane_t final {
-	std::array<float, 3> normal;
-	float dist;		// Distance from the origin
-	planetype type; // PLANE_X - PLANE_ANYZ ?remove? trivial to regenerate
 };
 
 enum class contents_t : std::int32_t {

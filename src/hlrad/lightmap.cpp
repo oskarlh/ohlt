@@ -2703,504 +2703,457 @@ static void GatherSampleLight(
 
 	for (i = 0; i < 1 + g_dmodels[0].visleafs; i++) {
 		l = directlights[i];
-		if (l) {
-			if (i == 0 ? g_sky_lighting_fix
-					   : pvs[(i - 1) >> 3] & (1 << ((i - 1) & 7))) {
-				for (; l; l = l->next) {
-					// skylights work fundamentally differently than normal
-					// lights
-					if (l->type == emit_skylight) {
-						if (!g_sky_lighting_fix) {
-							if (sky_used) {
-								continue;
-							}
-							sky_used = true;
-						}
-						do // add sun light
+		if (!l) {
+			continue;
+		}
+		bool const x = i == 0 ? g_sky_lighting_fix
+							  : pvs[(i - 1) >> 3] & (1 << ((i - 1) & 7));
+		if (!x) {
+			continue;
+		}
+		for (; l; l = l->next) {
+			// skylights work fundamentally differently than normal
+			// lights
+			if (l->type == emit_skylight) {
+				if (!g_sky_lighting_fix) {
+					if (sky_used) {
+						continue;
+					}
+					sky_used = true;
+				}
+				do // add sun light
+				{
+					// check step
+					step_match = (int) l->topatch;
+					if (step != step_match) {
+						continue;
+					}
+					// check intensity
+					if (!(l->intensity[0] || l->intensity[1]
+						  || l->intensity[2])) {
+						continue;
+					}
+					// loop over the normals
+					for (int j = 0; j < l->numsunnormals; j++) {
+						// make sure the angle is okay
+						dot = -dot_product(normal, l->sunnormals[j]);
+						if (dot <= NORMAL_EPSILON) // ON_EPSILON /
+												   // 10 //--vluzacn
 						{
-							// check step
-							step_match = (int) l->topatch;
-							if (step != step_match) {
-								continue;
-							}
-							// check intensity
-							if (!(l->intensity[0] || l->intensity[1]
-								  || l->intensity[2])) {
-								continue;
-							}
-							// loop over the normals
-							for (int j = 0; j < l->numsunnormals; j++) {
-								// make sure the angle is okay
-								dot = -dot_product(
-									normal, l->sunnormals[j]
-								);
-								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
-														   // 10 //--vluzacn
-								{
-									continue;
-								}
-
-								// search back to see if we can hit a sky
-								// brush
-								delta = vector_scale(
-									l->sunnormals[j], -hlrad_bogus_range
-								);
-								delta = vector_add(pos, delta);
-								float3_array skyhit;
-								skyhit = delta;
-								if (TestLine(pos, delta, skyhit)
-									!= contents_t::SKY) {
-									continue; // occluded
-								}
-
-								float3_array transparency;
-								int opaquestyle;
-								if (TestSegmentAgainstOpaqueList(
-										pos,
-										skyhit,
-										transparency,
-										opaquestyle
-									)) {
-									continue;
-								}
-
-								float3_array add_one;
-								if (lighting_diversify) {
-									dot = lighting_scale
-										* pow(dot, lighting_power);
-								}
-								add_one = vector_scale(
-									l->intensity,
-									dot * l->sunnormalweights[j]
-								);
-								add_one = vector_multiply(
-									add_one, transparency
-								);
-								// add to the total brightness of this
-								// sample
-								style = l->style;
-								if (opaquestyle != -1) {
-									if (style == 0
-										|| style == opaquestyle) {
-										style = opaquestyle;
-									} else {
-										continue; // dynamic light of other
-												  // styles hits this
-												  // toggleable opaque
-												  // entity, then it
-												  // completely vanishes.
-									}
-								}
-								adds[style] = vector_add(
-									adds[style], add_one
-								);
-							} // (loop over the normals)
-						} while (0);
-						do // add sky light
-						{
-							// check step
-							step_match = 0;
-							if (g_softsky) {
-								step_match = 1;
-							}
-							if (g_fastmode) {
-								step_match = 1;
-							}
-							if (step != step_match) {
-								continue;
-							}
-							// check intensity
-							if (g_indirect_sun <= 0.0
-								|| vectors_almost_same(
-									   l->diffuse_intensity, float3_array{}
-								   )
-									&& vectors_almost_same(
-										l->diffuse_intensity2,
-										float3_array{}
-									)) {
-								continue;
-							}
-
-							float3_array sky_intensity;
-
-							// loop over the normals
-							float3_array* skynormals = g_skynormals
-								[g_softsky ? SKYLEVEL_SOFTSKYON
-										   : SKYLEVEL_SOFTSKYOFF];
-							float* skyweights = g_skynormalsizes
-								[g_softsky ? SKYLEVEL_SOFTSKYON
-										   : SKYLEVEL_SOFTSKYOFF];
-							for (int j = 0;
-								 j < g_numskynormals
-									 [g_softsky ? SKYLEVEL_SOFTSKYON
-												: SKYLEVEL_SOFTSKYOFF];
-								 j++) {
-								// make sure the angle is okay
-								dot = -dot_product(normal, skynormals[j]);
-								if (dot <= NORMAL_EPSILON) // ON_EPSILON /
-														   // 10 //--vluzacn
-								{
-									continue;
-								}
-
-								// search back to see if we can hit a sky
-								// brush
-								delta = vector_scale(
-									skynormals[j], -hlrad_bogus_range
-								);
-								delta = vector_add(delta, pos);
-								float3_array skyhit;
-								skyhit = delta;
-								if (TestLine(pos, delta, skyhit)
-									!= contents_t::SKY) {
-									continue; // occluded
-								}
-
-								float3_array transparency;
-								int opaquestyle;
-								if (TestSegmentAgainstOpaqueList(
-										pos,
-										skyhit,
-										transparency,
-										opaquestyle
-									)) {
-									continue;
-								}
-
-								float factor = std::min(
-									std::max(
-										(float) 0.0,
-										(1
-										 - dot_product(
-											 l->normal, skynormals[j]
-										 )) / 2
-									),
-									(float) 1.0
-								); // how far this piece of sky has deviated
-								   // from the sun
-								sky_intensity = vector_fma(
-									l->diffuse_intensity2,
-									factor,
-									vector_scale(
-										l->diffuse_intensity, 1 - factor
-									)
-
-								);
-								sky_intensity = vector_scale(
-									sky_intensity,
-									skyweights[j] * g_indirect_sun / 2
-								);
-								float3_array add_one;
-								if (lighting_diversify) {
-									dot = lighting_scale
-										* pow(dot, lighting_power);
-								}
-								add_one = vector_scale(sky_intensity, dot);
-								add_one = vector_multiply(
-									add_one, transparency
-								);
-								// add to the total brightness of this
-								// sample
-								style = l->style;
-								if (opaquestyle != -1) {
-									if (style == 0
-										|| style == opaquestyle) {
-										style = opaquestyle;
-									} else {
-										continue; // dynamic light of other
-												  // styles hits this
-												  // toggleable opaque
-												  // entity, then it
-												  // completely vanishes.
-									}
-								}
-								adds[style] = vector_add(
-									adds[style], add_one
-								);
-							} // (loop over the normals)
-
-						} while (0);
-
-					} else // not emit_skylight
-					{
-						step_match = (int) l->topatch;
-						if (step != step_match) {
 							continue;
 						}
-						if (!(l->intensity[0] || l->intensity[1]
-							  || l->intensity[2])) {
-							continue;
-						}
-						testline_origin = l->origin;
-						float denominator;
 
-						delta = vector_subtract(l->origin, pos);
-						if (l->type == emit_surface) {
-							// move emitter back to its plane
-							delta = vector_fma(
-								l->normal, -PATCH_HUNT_OFFSET, delta
-							);
-						}
-						dist = normalize_vector(delta);
-						dot = dot_product(delta, normal);
-						//                        if (dot <= 0.0)
-						//                            continue;
-
-						if (dist < 1.0) {
-							dist = 1.0;
+						// search back to see if we can hit a sky
+						// brush
+						delta = vector_scale(
+							l->sunnormals[j], -hlrad_bogus_range
+						);
+						delta = vector_add(pos, delta);
+						float3_array skyhit;
+						skyhit = delta;
+						if (TestLine(pos, delta, skyhit)
+							!= contents_t::SKY) {
+							continue; // occluded
 						}
 
-						denominator = dist * dist * l->fade;
-
-						float3_array add{};
-						switch (l->type) {
-							case emit_point: {
-								if (dot <= NORMAL_EPSILON) {
-									continue;
-								}
-								float denominator = dist * dist * l->fade;
-								if (lighting_diversify) {
-									dot = lighting_scale
-										* pow(dot, lighting_power);
-								}
-								ratio = dot / denominator;
-								add = vector_scale(l->intensity, ratio);
-								break;
-							}
-
-							case emit_surface: {
-								bool light_behind_surface = false;
-								if (dot <= NORMAL_EPSILON) {
-									light_behind_surface = true;
-								}
-								if (lighting_diversify
-									&& !light_behind_surface) {
-									dot = lighting_scale
-										* pow(dot, lighting_power);
-								}
-								dot2 = -dot_product(delta, l->normal);
-								// discard the texlight if the spot is too
-								// close to the texlight plane
-								if (l->texlightgap > 0) {
-									float test;
-
-									test = dot2
-										* dist; // distance from spot
-												// to texlight plane;
-									test -= l->texlightgap
-										* fabs(dot_product(
-											l->normal,
-											texlightgap_textoworld[0]
-										)); // maximum distance reduction if
-											// the spot is allowed to shift
-											// l->texlightgap pixels along s
-											// axis
-									test -= l->texlightgap
-										* fabs(dot_product(
-											l->normal,
-											texlightgap_textoworld[1]
-										)); // maximum distance reduction if
-											// the spot is allowed to shift
-											// l->texlightgap pixels along t
-											// axis
-									if (test < -ON_EPSILON) {
-										continue;
-									}
-								}
-								if (dot2 * dist <= MINIMUM_PATCH_DISTANCE) {
-									continue;
-								}
-								float range = l->patch_emitter_range;
-								if (l->stopdot > 0.0) // stopdot2 > 0.0 or
-													  // stopdot > 0.0
-								{
-									float range_scale;
-									range_scale = 1
-										- l->stopdot2 * l->stopdot2;
-									range_scale = 1
-										/ sqrt(std::max(
-											(float) NORMAL_EPSILON,
-											range_scale
-										));
-									// range_scale = 1 / sin (cone2)
-									range_scale = std::min(
-										range_scale, (float) 2
-									); // restrict this to 2, because
-									   // skylevel has limit.
-									range *= range_scale; // because smaller
-														  // cones are more
-														  // likely to
-														  // create the ugly
-														  // grid effect.
-
-									if (dot2
-										<= l->stopdot2 + NORMAL_EPSILON) {
-										if (dist
-											>= range) // use the old method,
-													  // which will merely
-													  // give 0 in this case
-										{
-											continue;
-										}
-										ratio = 0.0;
-									} else if (dot2 <= l->stopdot) {
-										ratio = dot * dot2
-											* (dot2 - l->stopdot2)
-											/ (dist * dist
-											   * (l->stopdot - l->stopdot2)
-											);
-									} else {
-										ratio = dot * dot2 / (dist * dist);
-									}
-								} else {
-									ratio = dot * dot2 / (dist * dist);
-								}
-
-								// analogous to the one in MakeScales
-								// 0.4f is tested to be able to fully
-								// eliminate bright spots
-								if (ratio * l->patch_area > 0.4f) {
-									ratio = 0.4f / l->patch_area;
-								}
-								if (dist < range
-										- ON_EPSILON) { // do things slow
-									if (light_behind_surface) {
-										dot = 0.0;
-										ratio = 0.0;
-									}
-									GetAlternateOrigin(
-										pos,
-										normal,
-										l->patch,
-										testline_origin
-									);
-									float sightarea;
-									int skylevel
-										= l->patch->emitter_skylevel;
-									if (l->stopdot
-										> 0.0) // stopdot2 > 0.0 or stopdot
-											   // > 0.0
-									{
-										float3_array const & emitnormal
-											= getPlaneFromFaceNumber(
-												  l->patch->faceNumber
-											)
-												  ->normal;
-										if (l->stopdot2
-											>= 0.8) // about 37deg
-										{
-											skylevel += 1; // because the
-														   // range is
-														   // larger
-										}
-										sightarea = CalcSightArea_SpotLight(
-											pos,
-											normal,
-											l->patch->winding,
-											emitnormal,
-											l->stopdot,
-											l->stopdot2,
-											skylevel,
-											lighting_power,
-											lighting_scale
-										); // because we have doubled the
-										   // range
-									} else {
-										sightarea = CalcSightArea(
-											pos,
-											normal,
-											l->patch->winding,
-											skylevel,
-											lighting_power,
-											lighting_scale
-										);
-									}
-
-									float frac = dist / range;
-									frac = (frac - 0.5)
-										* 2; // make a smooth transition
-											 // between the two methods
-									frac = std::max(
-										(float) 0, std::min(frac, (float) 1)
-									);
-
-									float ratio2
-										= (sightarea / l->patch_area
-										); // because l->patch->area has
-										   // been multiplied into
-										   // l->intensity
-									ratio = frac * ratio
-										+ (1 - frac) * ratio2;
-								} else if (light_behind_surface) {
-									continue;
-								}
-								add = vector_scale(l->intensity, ratio);
-								break;
-							}
-
-							case emit_spotlight: {
-								if (dot <= NORMAL_EPSILON) {
-									continue;
-								}
-								dot2 = -dot_product(delta, l->normal);
-								if (dot2 <= l->stopdot2) {
-									continue; // outside light cone
-								}
-
-								// Variable power falloff (1 = inverse
-								// linear, 2 = inverse square
-								float denominator = dist * l->fade;
-								denominator *= dist;
-								if (lighting_diversify) {
-									dot = lighting_scale
-										* pow(dot, lighting_power);
-								}
-								ratio = dot * dot2 / denominator;
-
-								if (dot2 <= l->stopdot) {
-									ratio *= (dot2 - l->stopdot2)
-										/ (l->stopdot - l->stopdot2);
-								}
-								add = vector_scale(l->intensity, ratio);
-								break;
-							}
-
-							default: {
-								hlassume(false, assume_BadLightType);
-								break;
-							}
-						}
-						if (TestLine(pos, testline_origin)
-							!= contents_t::EMPTY) {
-							continue;
-						}
 						float3_array transparency;
 						int opaquestyle;
 						if (TestSegmentAgainstOpaqueList(
-								pos,
-								testline_origin,
-								transparency,
-								opaquestyle
+								pos, skyhit, transparency, opaquestyle
 							)) {
 							continue;
 						}
-						add = vector_multiply(add, transparency);
-						// add to the total brightness of this sample
+
+						float3_array add_one;
+						if (lighting_diversify) {
+							dot = lighting_scale * pow(dot, lighting_power);
+						}
+						add_one = vector_scale(
+							l->intensity, dot * l->sunnormalweights[j]
+						);
+						add_one = vector_multiply(add_one, transparency);
+						// add to the total brightness of this
+						// sample
 						style = l->style;
 						if (opaquestyle != -1) {
 							if (style == 0 || style == opaquestyle) {
 								style = opaquestyle;
 							} else {
-								continue; // dynamic light of other styles
-										  // hits this toggleable opaque
-										  // entity, then it completely
-										  // vanishes.
+								continue; // dynamic light of other
+										  // styles hits this
+										  // toggleable opaque
+										  // entity, then it
+										  // completely vanishes.
 							}
 						}
-						adds[style] = vector_add(adds[style], add);
-					} // end emit_skylight
+						adds[style] = vector_add(adds[style], add_one);
+					} // (loop over the normals)
+				} while (0);
+				do // add sky light
+				{
+					// check step
+					step_match = 0;
+					if (g_softsky) {
+						step_match = 1;
+					}
+					if (g_fastmode) {
+						step_match = 1;
+					}
+					if (step != step_match) {
+						continue;
+					}
+					// check intensity
+					if (g_indirect_sun <= 0.0
+						|| vectors_almost_same(
+							   l->diffuse_intensity, float3_array{}
+						   )
+							&& vectors_almost_same(
+								l->diffuse_intensity2, float3_array{}
+							)) {
+						continue;
+					}
+
+					float3_array sky_intensity;
+
+					// loop over the normals
+					float3_array* skynormals = g_skynormals
+						[g_softsky ? SKYLEVEL_SOFTSKYON
+								   : SKYLEVEL_SOFTSKYOFF];
+					float* skyweights = g_skynormalsizes
+						[g_softsky ? SKYLEVEL_SOFTSKYON
+								   : SKYLEVEL_SOFTSKYOFF];
+					for (int j = 0; j < g_numskynormals
+										[g_softsky ? SKYLEVEL_SOFTSKYON
+												   : SKYLEVEL_SOFTSKYOFF];
+						 j++) {
+						// make sure the angle is okay
+						dot = -dot_product(normal, skynormals[j]);
+						if (dot <= NORMAL_EPSILON) // ON_EPSILON /
+												   // 10 //--vluzacn
+						{
+							continue;
+						}
+
+						// search back to see if we can hit a sky
+						// brush
+						delta = vector_scale(
+							skynormals[j], -hlrad_bogus_range
+						);
+						delta = vector_add(delta, pos);
+						float3_array skyhit;
+						skyhit = delta;
+						if (TestLine(pos, delta, skyhit)
+							!= contents_t::SKY) {
+							continue; // occluded
+						}
+
+						float3_array transparency;
+						int opaquestyle;
+						if (TestSegmentAgainstOpaqueList(
+								pos, skyhit, transparency, opaquestyle
+							)) {
+							continue;
+						}
+
+						float factor = std::min(
+							std::max(
+								(float) 0.0,
+								(1 - dot_product(l->normal, skynormals[j]))
+									/ 2
+							),
+							(float) 1.0
+						); // how far this piece of sky has deviated
+						   // from the sun
+						sky_intensity = vector_fma(
+							l->diffuse_intensity2,
+							factor,
+							vector_scale(l->diffuse_intensity, 1 - factor)
+
+						);
+						sky_intensity = vector_scale(
+							sky_intensity,
+							skyweights[j] * g_indirect_sun / 2
+						);
+						float3_array add_one;
+						if (lighting_diversify) {
+							dot = lighting_scale * pow(dot, lighting_power);
+						}
+						add_one = vector_scale(sky_intensity, dot);
+						add_one = vector_multiply(add_one, transparency);
+						// add to the total brightness of this
+						// sample
+						style = l->style;
+						if (opaquestyle != -1) {
+							if (style == 0 || style == opaquestyle) {
+								style = opaquestyle;
+							} else {
+								continue; // dynamic light of other
+										  // styles hits this
+										  // toggleable opaque
+										  // entity, then it
+										  // completely vanishes.
+							}
+						}
+						adds[style] = vector_add(adds[style], add_one);
+					} // (loop over the normals)
+
+				} while (0);
+
+			} else // not emit_skylight
+			{
+				step_match = (int) l->topatch;
+				if (step != step_match) {
+					continue;
 				}
-			}
+				if (!(l->intensity[0] || l->intensity[1] || l->intensity[2]
+					)) {
+					continue;
+				}
+				testline_origin = l->origin;
+				float denominator;
+
+				delta = vector_subtract(l->origin, pos);
+				if (l->type == emit_surface) {
+					// move emitter back to its plane
+					delta = vector_fma(
+						l->normal, -PATCH_HUNT_OFFSET, delta
+					);
+				}
+				dist = normalize_vector(delta);
+				dot = dot_product(delta, normal);
+				//                        if (dot <= 0.0)
+				//                            continue;
+
+				if (dist < 1.0) {
+					dist = 1.0;
+				}
+
+				denominator = dist * dist * l->fade;
+
+				float3_array add{};
+				switch (l->type) {
+					case emit_point: {
+						if (dot <= NORMAL_EPSILON) {
+							continue;
+						}
+						float denominator = dist * dist * l->fade;
+						if (lighting_diversify) {
+							dot = lighting_scale * pow(dot, lighting_power);
+						}
+						ratio = dot / denominator;
+						add = vector_scale(l->intensity, ratio);
+						break;
+					}
+
+					case emit_surface: {
+						bool light_behind_surface = false;
+						if (dot <= NORMAL_EPSILON) {
+							light_behind_surface = true;
+						}
+						if (lighting_diversify && !light_behind_surface) {
+							dot = lighting_scale * pow(dot, lighting_power);
+						}
+						dot2 = -dot_product(delta, l->normal);
+						// discard the texlight if the spot is too
+						// close to the texlight plane
+						if (l->texlightgap > 0) {
+							float test;
+
+							test = dot2 * dist; // distance from spot
+												// to texlight plane;
+							test -= l->texlightgap
+								* fabs(dot_product(
+									l->normal,
+									texlightgap_textoworld[0]
+								)); // maximum distance reduction if
+									// the spot is allowed to shift
+									// l->texlightgap pixels along s
+									// axis
+							test -= l->texlightgap
+								* fabs(dot_product(
+									l->normal,
+									texlightgap_textoworld[1]
+								)); // maximum distance reduction if
+									// the spot is allowed to shift
+									// l->texlightgap pixels along t
+									// axis
+							if (test < -ON_EPSILON) {
+								continue;
+							}
+						}
+						if (dot2 * dist <= MINIMUM_PATCH_DISTANCE) {
+							continue;
+						}
+						float range = l->patch_emitter_range;
+						if (l->stopdot > 0.0) // stopdot2 > 0.0 or
+											  // stopdot > 0.0
+						{
+							float range_scale;
+							range_scale = 1 - l->stopdot2 * l->stopdot2;
+							range_scale = 1
+								/ sqrt(std::max(
+									(float) NORMAL_EPSILON, range_scale
+								));
+							// range_scale = 1 / sin (cone2)
+							range_scale = std::min(
+								range_scale, (float) 2
+							); // restrict this to 2, because
+							   // skylevel has limit.
+							range *= range_scale; // because smaller
+												  // cones are more
+												  // likely to
+												  // create the ugly
+												  // grid effect.
+
+							if (dot2 <= l->stopdot2 + NORMAL_EPSILON) {
+								if (dist >= range) // use the old method,
+												   // which will merely
+												   // give 0 in this case
+								{
+									continue;
+								}
+								ratio = 0.0;
+							} else if (dot2 <= l->stopdot) {
+								ratio = dot * dot2 * (dot2 - l->stopdot2)
+									/ (dist * dist
+									   * (l->stopdot - l->stopdot2));
+							} else {
+								ratio = dot * dot2 / (dist * dist);
+							}
+						} else {
+							ratio = dot * dot2 / (dist * dist);
+						}
+
+						// analogous to the one in MakeScales
+						// 0.4f is tested to be able to fully
+						// eliminate bright spots
+						if (ratio * l->patch_area > 0.4f) {
+							ratio = 0.4f / l->patch_area;
+						}
+						if (dist < range - ON_EPSILON) { // do things slow
+							if (light_behind_surface) {
+								dot = 0.0;
+								ratio = 0.0;
+							}
+							GetAlternateOrigin(
+								pos, normal, l->patch, testline_origin
+							);
+							float sightarea;
+							int skylevel = l->patch->emitter_skylevel;
+							if (l->stopdot > 0.0) // stopdot2 > 0.0 or
+												  // stopdot > 0.0
+							{
+								float3_array const & emitnormal
+									= getPlaneFromFaceNumber(
+										  l->patch->faceNumber
+									)
+										  ->normal;
+								if (l->stopdot2 >= 0.8) // about 37deg
+								{
+									skylevel += 1; // because the
+												   // range is
+												   // larger
+								}
+								sightarea = CalcSightArea_SpotLight(
+									pos,
+									normal,
+									l->patch->winding,
+									emitnormal,
+									l->stopdot,
+									l->stopdot2,
+									skylevel,
+									lighting_power,
+									lighting_scale
+								); // because we have doubled the
+								   // range
+							} else {
+								sightarea = CalcSightArea(
+									pos,
+									normal,
+									l->patch->winding,
+									skylevel,
+									lighting_power,
+									lighting_scale
+								);
+							}
+
+							float frac = dist / range;
+							frac = (frac - 0.5)
+								* 2; // make a smooth transition
+									 // between the two methods
+							frac = std::max(
+								(float) 0, std::min(frac, (float) 1)
+							);
+
+							float ratio2
+								= (sightarea / l->patch_area
+								); // because l->patch->area has
+								   // been multiplied into
+								   // l->intensity
+							ratio = frac * ratio + (1 - frac) * ratio2;
+						} else if (light_behind_surface) {
+							continue;
+						}
+						add = vector_scale(l->intensity, ratio);
+						break;
+					}
+
+					case emit_spotlight: {
+						if (dot <= NORMAL_EPSILON) {
+							continue;
+						}
+						dot2 = -dot_product(delta, l->normal);
+						if (dot2 <= l->stopdot2) {
+							continue; // outside light cone
+						}
+
+						// Variable power falloff (1 = inverse
+						// linear, 2 = inverse square
+						float denominator = dist * l->fade;
+						denominator *= dist;
+						if (lighting_diversify) {
+							dot = lighting_scale * pow(dot, lighting_power);
+						}
+						ratio = dot * dot2 / denominator;
+
+						if (dot2 <= l->stopdot) {
+							ratio *= (dot2 - l->stopdot2)
+								/ (l->stopdot - l->stopdot2);
+						}
+						add = vector_scale(l->intensity, ratio);
+						break;
+					}
+
+					default: {
+						hlassume(false, assume_BadLightType);
+						break;
+					}
+				}
+				if (TestLine(pos, testline_origin) != contents_t::EMPTY) {
+					continue;
+				}
+				float3_array transparency;
+				int opaquestyle;
+				if (TestSegmentAgainstOpaqueList(
+						pos, testline_origin, transparency, opaquestyle
+					)) {
+					continue;
+				}
+				add = vector_multiply(add, transparency);
+				// add to the total brightness of this sample
+				style = l->style;
+				if (opaquestyle != -1) {
+					if (style == 0 || style == opaquestyle) {
+						style = opaquestyle;
+					} else {
+						continue; // dynamic light of other styles
+								  // hits this toggleable opaque
+								  // entity, then it completely
+								  // vanishes.
+					}
+				}
+				adds[style] = vector_add(adds[style], add);
+			} // end emit_skylight
 		}
 	}
 

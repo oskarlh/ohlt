@@ -69,7 +69,7 @@ static void LoadStudioModel(
 		thdr = (studiohdr_t*) texdata.get();
 
 		// merge textures with main model buffer
-		m->extradata = malloc(
+		m->extradata = (std::byte*) malloc(
 			phdr->length + thdr->length - sizeof(studiohdr_t)
 		); // we don't need two headers
 		memcpy(m->extradata, moddata, phdr->length);

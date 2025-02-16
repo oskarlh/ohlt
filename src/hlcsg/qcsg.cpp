@@ -2180,9 +2180,6 @@ int main(int const argc, char** argv) {
 			CheckForNoClip();
 
 			// createbrush
-			int numT = g_numthreads;
-			//   g_numthreads = 1;
-			//
 			// TODO: Reimplement multi-threading here!
 			for (brush_count brushIndex = 0; brushIndex != g_nummapbrushes;
 				 ++brushIndex) {
@@ -2192,7 +2189,6 @@ int main(int const argc, char** argv) {
 			// NamedRunThreadsOnIndividual(
 			//	g_nummapbrushes, g_estimate, CreateBrush
 			//);
-			g_numthreads = numT;
 			CheckFatal();
 
 			// boundworld

@@ -2,6 +2,7 @@
 // Cached mesh for tracing custom objects
 
 #include "list.h" // simple container
+#include "planes.h"
 #include "studio.h"
 
 #include <memory>
@@ -12,9 +13,6 @@
 #define MAX_FACET_PLANES 32
 #define MAX_PLANES		 524'288 // unsigned short limit
 #define PLANE_HASHES	 (MAX_PLANES >> 2)
-
-#define PLANE_NORMAL_EPSILON 0.00001f
-#define PLANE_DIST_EPSILON	 0.04f
 
 // Compute methods
 enum class trace_method : std::uint8_t {
@@ -113,8 +111,8 @@ class CMeshDesc final {
 	void clear();
 
 	// mesh construction
-	bool InitMeshBuild(char const * debug_name, int numTrinagles);
-	bool AddMeshTrinagle(
+	bool InitMeshBuild(char const * debug_name, int numTriangles);
+	bool AddMeshTriangle(
 		mvert_t const triangle[3], mstudiotexture_t* tex = nullptr
 	);
 	bool FinishMeshBuild();
@@ -235,8 +233,8 @@ struct model_t final {
 	int skin;			// e.g. various alpha-textures
 	trace_method trace_mode;
 
-	void* extradata; // model
-	void* anims;	 // studio animations
+	std::byte* extradata; // model
+	void* anims;		  // studio animations
 
 	CMeshDesc mesh; // cform
 };

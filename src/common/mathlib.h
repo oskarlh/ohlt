@@ -190,11 +190,11 @@ negate_vector(std::array<T, 3> const & v) noexcept {
 
 constexpr bool
 vectors_almost_same(any_vec3 auto const & v1, any_vec3 auto const & v2) {
-	bool const significantDifference0 = std::fabs(v1[0] - v2[0])
+	bool const significantDifference0 = std::abs(v1[0] - v2[0])
 		> EQUAL_EPSILON;
-	bool const significantDifference1 = std::fabs(v1[1] - v2[1])
+	bool const significantDifference1 = std::abs(v1[1] - v2[1])
 		> EQUAL_EPSILON;
-	bool const significantDifference2 = std::fabs(v1[2] - v2[2])
+	bool const significantDifference2 = std::abs(v1[2] - v2[2])
 		> EQUAL_EPSILON;
 	return !significantDifference0 && !significantDifference1
 		&& !significantDifference2;
@@ -203,50 +203,6 @@ vectors_almost_same(any_vec3 auto const & v1, any_vec3 auto const & v2) {
 constexpr bool is_point_finite(any_vec3 auto const & p) noexcept {
 	return std::isfinite(p[0]) && std::isfinite(p[1])
 		&& std::isfinite(p[2]);
-}
-
-//
-// Planetype Math
-//
-
-enum class planetype {
-	plane_x = 0,
-	plane_y,
-	plane_z,
-	plane_anyx,
-	plane_anyy,
-	plane_anyz
-};
-constexpr planetype first_axial{ planetype::plane_x };
-constexpr planetype last_axial{ planetype::plane_z };
-
-constexpr float DIR_EPSILON = 0.0001;
-
-template <std::floating_point T>
-constexpr planetype plane_type_for_normal(std::array<T, 3> const & normal
-) noexcept {
-	T const ax = std::fabs(normal[0]);
-	T const ay = std::fabs(normal[1]);
-	T const az = std::fabs(normal[2]);
-	if (ax > 1.0 - DIR_EPSILON && ay < DIR_EPSILON && az < DIR_EPSILON) {
-		return planetype::plane_x;
-	}
-
-	if (ay > 1.0 - DIR_EPSILON && az < DIR_EPSILON && ax < DIR_EPSILON) {
-		return planetype::plane_y;
-	}
-
-	if (az > 1.0 - DIR_EPSILON && ax < DIR_EPSILON && ay < DIR_EPSILON) {
-		return planetype::plane_z;
-	}
-
-	if ((ax >= ay) && (ax >= az)) {
-		return planetype::plane_anyx;
-	}
-	if ((ay >= ax) && (ay >= az)) {
-		return planetype::plane_anyy;
-	}
-	return planetype::plane_anyz;
 }
 
 std::uint16_t float_to_half(float v);

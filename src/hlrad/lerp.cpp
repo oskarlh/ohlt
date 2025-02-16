@@ -1537,7 +1537,7 @@ static localtriangulation_t* CreateLocalTriangulation(
 	}
 	if (g_drawlerp
 		&& ((int) lt->sortedwedges.size() > 0
-			&& std::fabs(total - 2 * std::numbers::pi_v<float>)
+			&& std::abs(total - 2 * std::numbers::pi_v<float>)
 				> 10 * NORMAL_EPSILON)) {
 		Developer(
 			developer_level::spam,

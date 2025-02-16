@@ -10,7 +10,7 @@
 #include <ranges>
 #include <span>
 
-constexpr float bogus_range = 80000.0;
+constexpr float bogus_range = 80000.0f;
 
 //
 // winding_base Public Methods
