@@ -32,6 +32,8 @@ static void LoadStudioModel(
 	);
 	FlipSlashes(m->name);
 
+	/// TODO: fileContents may be misaligned!!!!! read_binary_file should
+	/// probably return data that'a aligned to std::max_align_t
 	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(
 		m->name
 	);
@@ -39,15 +41,14 @@ static void LoadStudioModel(
 		Warning("LoadStudioModel: couldn't load %s\n", m->name);
 		return;
 	}
-	m->extradata = fileContents.release();
+	m->extradata = std::move(fileContents);
 
-	studiohdr_t* phdr = (studiohdr_t*) m->extradata;
+	studiohdr_t* phdr = (studiohdr_t*) m->extradata.get();
 
 	// well the textures place in separate file (very stupid case)
 	if (phdr->numtextures == 0) {
 		char texname[128], texpath[128];
-		byte* moddata;
-		studiohdr_t *thdr, *newhdr;
+		studiohdr_t* thdr;
 		safe_strncpy(texname, (char const *) modelname.data(), 128);
 		StripExtension(texname);
 
@@ -63,49 +64,49 @@ static void LoadStudioModel(
 			);
 			return;
 		}
-		moddata = (byte*) m->extradata;
-		phdr = (studiohdr_t*) moddata;
 
 		thdr = (studiohdr_t*) texdata.get();
 
-		// merge textures with main model buffer
-		m->extradata = (std::byte*) malloc(
-			phdr->length + thdr->length - sizeof(studiohdr_t)
-		); // we don't need two headers
-		memcpy(m->extradata, moddata, phdr->length);
+		std::size_t const oldLength = phdr->length;
+		std::size_t const newLength = oldLength + thdr->length
+			- sizeof(studiohdr_t
+			); // The -sizeof is because we don't need two headers
+
+		// Merge textures with main model buffer
+		std::unique_ptr<std::byte[]> newBuffer{
+			std::make_unique_for_overwrite<std::byte[]>(newLength)
+		};
+		memcpy(newBuffer.get(), m->extradata.get(), oldLength);
 		memcpy(
-			(byte*) m->extradata + phdr->length,
+			&newBuffer[oldLength],
 			texdata.get() + sizeof(studiohdr_t),
 			thdr->length - sizeof(studiohdr_t)
 		);
+		m->extradata = std::move(newBuffer);
 
 		// merge header
-		newhdr = (studiohdr_t*) m->extradata;
+		phdr = (studiohdr_t*) m->extradata.get();
 
-		newhdr->numskinfamilies = thdr->numskinfamilies;
-		newhdr->numtextures = thdr->numtextures;
-		newhdr->numskinref = thdr->numskinref;
-		newhdr->textureindex = phdr->length;
-		newhdr->skinindex = newhdr->textureindex
-			+ (newhdr->numtextures * sizeof(mstudiotexture_t));
-		newhdr->texturedataindex = newhdr->skinindex
-			+ (newhdr->numskinfamilies * newhdr->numskinref * sizeof(short)
-			);
-		newhdr->length = phdr->length + thdr->length - sizeof(studiohdr_t);
+		phdr->numskinfamilies = thdr->numskinfamilies;
+		phdr->numtextures = thdr->numtextures;
+		phdr->numskinref = thdr->numskinref;
+		phdr->textureindex = oldLength;
+		phdr->skinindex = phdr->textureindex
+			+ (phdr->numtextures * sizeof(mstudiotexture_t));
+		phdr->texturedataindex = phdr->skinindex
+			+ (phdr->numskinfamilies * phdr->numskinref * sizeof(short));
+		phdr->length = oldLength + thdr->length - sizeof(studiohdr_t);
 
 		// and finally merge datapointers for textures
-		for (int i = 0; i < newhdr->numtextures; i++) {
+		for (int i = 0; i < phdr->numtextures; i++) {
 			mstudiotexture_t* ptexture
-				= (mstudiotexture_t*) (((byte*) newhdr)
-									   + newhdr->textureindex);
-			ptexture[i].index += (phdr->length - sizeof(studiohdr_t));
+				= (mstudiotexture_t*) (((byte*) phdr) + phdr->textureindex);
+			ptexture[i].index += (oldLength - sizeof(studiohdr_t));
 			//			printf( "Texture %i [%s]\n", i, ptexture[i].name );
 			// now we can replace offsets with real pointers
 			//			ptexture[i].pixels = (byte *)newhdr +
 			// ptexture[i].index;
 		}
-
-		free(moddata);
 	}
 
 	m->origin = origin;
@@ -202,16 +203,6 @@ void LoadStudioModels() {
 }
 
 void FreeStudioModels() {
-	for (int i = 0; i < models.size(); i++) {
-		model_t& m = models[i];
-
-		// first, delete the mesh
-		m.mesh.FreeMesh();
-
-		// unload the model
-		free(m.extradata);
-	}
-
 	models.clear();
 }
 
@@ -259,7 +250,7 @@ bool TestSegmentAgainstStudioList(
 
 		TraceMesh trm; // a name like Doom3 :-)
 
-		trm.SetTraceModExtradata(m->extradata);
+		trm.SetTraceModExtradata(m->extradata.get());
 		trm.SetTraceMesh(pMesh, pHeadNode);
 		trm.SetupTrace(p1, float3_array{}, float3_array{}, p2);
 

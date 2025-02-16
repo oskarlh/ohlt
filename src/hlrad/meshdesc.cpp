@@ -15,7 +15,10 @@ constexpr float SIMPLIFICATION_FACTOR_HIGH{ 0.15f };
 constexpr float SIMPLIFICATION_FACTOR_MED{ 0.55f };
 constexpr float SIMPLIFICATION_FACTOR_LOW{ 0.85f };
 
-CMeshDesc ::CMeshDesc() { }
+CMeshDesc ::CMeshDesc() :
+	areanodes(
+		std::make_unique_for_overwrite<std::array<areanode_t, AREA_NODES>>()
+	) { }
 
 CMeshDesc ::~CMeshDesc() {
 	FreeMesh();
@@ -47,7 +50,7 @@ builds a uniformly subdivided tree for the given mesh size
 areanode_t* CMeshDesc::CreateAreaNode(
 	int depth, float3_array const & mins, float3_array const & maxs
 ) {
-	areanode_t* anode{ &areanodes[numareanodes++] };
+	areanode_t* anode{ &(*areanodes)[numareanodes++] };
 
 	ClearLink(&anode->facets);
 
@@ -87,8 +90,7 @@ void CMeshDesc::FreeMesh() {
 		return;
 	}
 
-	// single memory block
-	free(m_mesh.planes);
+	m_mesh = {};
 
 	FreeMeshBuild();
 	m_mesh = {};
@@ -125,7 +127,7 @@ bool CMeshDesc ::InitMeshBuild(char const * debug_name, int numTriangles) {
 
 	ClearBounds(m_mesh.mins, m_mesh.maxs);
 
-	areanodes.fill({});
+	areanodes->fill({});
 	numareanodes = 0;
 	m_iNumTris = numTriangles;
 	m_iTotalPlanes = 0;
@@ -464,7 +466,7 @@ void CMeshDesc ::StudioCalcBonePosition(
 }
 
 bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
-	studiohdr_t* phdr = (studiohdr_t*) pModel->extradata;
+	studiohdr_t* phdr = (studiohdr_t*) pModel->extradata.get();
 
 	if (!phdr || phdr->numbones < 1) {
 		Developer(
@@ -1003,7 +1005,7 @@ bool CMeshDesc ::AddMeshTriangle(
 
 void CMeshDesc ::RelinkFacet(mfacet_t* facet) {
 	// find the first node that the facet box crosses
-	areanode_t* node = &areanodes[0];
+	areanode_t* node = &(*areanodes)[0];
 
 	while (1) {
 		if (node->axis == -1) {
@@ -1044,26 +1046,28 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 		+ (sizeof(uint) * m_iTotalPlanes);
 
 	// create non-fragmented memory piece and move mesh
-	byte* buffer = (byte*) malloc(memsize);
-	byte* bufend = buffer + memsize;
+	m_mesh.buffer = std::make_unique_for_overwrite<std::byte[]>(memsize);
+	byte* remainingBufferStorage = (byte*) m_mesh.buffer.get();
+	byte* bufend = remainingBufferStorage + memsize;
 
 	// setup pointers
-	m_mesh.planes = (mplane_t*) buffer; // so we free mem with planes
-	buffer += (sizeof(mplane_t) * m_mesh.numplanes);
-	m_mesh.facets = (mfacet_t*) buffer;
-	buffer += (sizeof(mfacet_t) * m_mesh.numfacets);
+	m_mesh.planes = (mplane_t*)
+		remainingBufferStorage; // so we free mem with planes
+	remainingBufferStorage += (sizeof(mplane_t) * m_mesh.numplanes);
+	m_mesh.facets = (mfacet_t*) remainingBufferStorage;
+	remainingBufferStorage += (sizeof(mfacet_t) * m_mesh.numfacets);
 
 	// setup mesh pointers
 	for (std::size_t i = 0; i < m_mesh.numfacets; ++i) {
-		m_mesh.facets[i].indices = (uint*) buffer;
-		buffer += (sizeof(uint) * facets[i].numplanes);
+		m_mesh.facets[i].indices = (uint*) remainingBufferStorage;
+		remainingBufferStorage += (sizeof(uint) * facets[i].numplanes);
 	}
 
-	if (buffer != bufend) {
+	if (remainingBufferStorage != bufend) {
 		Developer(
 			developer_level::error,
 			"FinishMeshBuild: memory representation error! %p != %p\n",
-			buffer,
+			remainingBufferStorage,
 			bufend
 		);
 	}

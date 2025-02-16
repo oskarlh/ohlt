@@ -20,8 +20,8 @@ constexpr std::ptrdiff_t MAX_MAP_PLANES = 32768;
 constexpr std::ptrdiff_t MAX_INTERNAL_MAP_PLANES = 256 * 1024;
 
 constexpr float PLANE_NORMAL_EPSILON = 0.00001f;
-// constexpr float DIR_EPSILON = 0.0001f;
-constexpr float DIR_EPSILON = 1 / 8192.0f;
+constexpr float DIR_EPSILON = 0.0001f;
+// constexpr float DIR_EPSILON = 1 / 8192.0f;
 constexpr float PLANE_DIST_EPSILON = 0.04f;
 
 constexpr float DIST_EPSILON = 0.04f;

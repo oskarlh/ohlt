@@ -7,9 +7,6 @@
 
 #include <memory>
 
-#define AREA_NODES 32
-#define AREA_DEPTH 4
-
 #define MAX_FACET_PLANES 32
 #define MAX_PLANES		 524'288 // unsigned short limit
 #define PLANE_HASHES	 (MAX_PLANES >> 2)
@@ -46,6 +43,10 @@ struct link_t final {
 	link_t* next;
 };
 
+using areanode_count = std::uint8_t;
+constexpr areanode_count AREA_NODES = 32;
+#define AREA_DEPTH 4
+
 struct areanode_t final {
 	int axis; // -1 = leaf node
 	float dist;
@@ -70,6 +71,10 @@ struct mfacet_t final {
 };
 
 struct mmesh_t final {
+	// Memory for facets (and facets[i].indices) and planes
+	// TODO: Align it correctly
+	std::unique_ptr<std::byte[]> buffer;
+
 	mfacet_t* facets;
 	mplane_t* planes; // Shared plane pool
 	float3_array mins;
@@ -90,9 +95,12 @@ class CMeshDesc final {
   private:
 	mmesh_t m_mesh{};
 	char const * m_debugName{ nullptr }; // just for debug purpoces
-	std::array<areanode_t, AREA_NODES>
-		areanodes; // AABB tree for speedup trace test
-	int numareanodes;
+	std::unique_ptr<std::array<areanode_t, AREA_NODES>>
+		areanodes; // AABB tree for speedup trace test. Only reason it's not
+				   // stored inplace is because we have pointers to it in
+				   // some kind of tree structure. TODO: replace those
+				   // pointers with indexes so we can store the inplace
+	areanode_count numareanodes;
 	bool has_tree;		 // build AABB tree
 	int m_iTotalPlanes;	 // just for stats
 	int m_iNumTris{ 0 }; // if > 0 we are in build mode
@@ -158,7 +166,7 @@ class CMeshDesc final {
 	void RelinkFacet(mfacet_t* facet);
 
 	inline areanode_t* GetHeadNode(void) {
-		return (has_tree) ? &areanodes[0] : nullptr;
+		return (has_tree) ? &(*areanodes)[0] : nullptr;
 	}
 
 	// plane cache
@@ -233,8 +241,8 @@ struct model_t final {
 	int skin;			// e.g. various alpha-textures
 	trace_method trace_mode;
 
-	std::byte* extradata; // model
-	void* anims;		  // studio animations
+	std::unique_ptr<std::byte[]> extradata; // model
+	void* anims;							// studio animations
 
 	CMeshDesc mesh; // cform
 };
