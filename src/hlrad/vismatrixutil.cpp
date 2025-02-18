@@ -275,7 +275,7 @@ void MakeScales(int const threadnum) {
 			}
 
 			if (lighting_diversify && !light_behind_surface) {
-				dot1 = lighting_scale * pow(dot1, lighting_power);
+				dot1 = lighting_scale * std::pow(dot1, lighting_power);
 			}
 			trans = (dot1 * dot2)
 				/ (dist * dist); // Inverse square falloff factoring angle
@@ -469,13 +469,11 @@ void MakeRGBScales(int const threadnum) {
 			);
 			backnormal = negate_vector(normal1);
 		}
-		bool lighting_diversify;
-		float lighting_power;
-		float lighting_scale;
-		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
-		lighting_power = g_lightingconeinfo[miptex].power;
-		lighting_scale = g_lightingconeinfo[miptex].scale;
-		lighting_diversify
+		int const miptex
+			= g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
+		float const lighting_power = g_lightingconeinfo[miptex].power;
+		float const lighting_scale = g_lightingconeinfo[miptex].scale;
+		bool const lighting_diversify
 			= (lighting_power != 1.0 || lighting_scale != 1.0);
 
 		// find out which patch2's will collect light
@@ -531,7 +529,7 @@ void MakeRGBScales(int const threadnum) {
 			}
 
 			if (lighting_diversify && !light_behind_surface) {
-				dot1 = lighting_scale * pow(dot1, lighting_power);
+				dot1 = lighting_scale * std::pow(dot1, lighting_power);
 			}
 			trans_one = (dot1 * dot2)
 				/ (dist * dist); // Inverse square falloff factoring angle

@@ -370,10 +370,8 @@ void LoadTextures() {
 					reflectivity = { rgb[0] * float(1.0 / 255.0),
 									 rgb[1] * float(1.0 / 255.0),
 									 rgb[2] * float(1.0 / 255.0) };
-					for (int k = 0; k < 3; k++) {
-						reflectivity[k] = pow(
-							reflectivity[k], g_texreflectgamma
-						);
+					for (float& r : reflectivity) {
+						r = std::pow(r, g_texreflectgamma);
 					}
 					reflectivity = vector_scale(
 						reflectivity, g_texreflectscale
@@ -838,12 +836,12 @@ static int CQ_MapPoint(
 	}
 	best = node->result;
 	bestdist = 0;
-	for (int k = 0; k < CQ_DIMENSIONS; k++) {
+	for (std::size_t k = 0; k < CQ_DIMENSIONS; ++k) {
 		bestdist += (colors[best][k] - point[k])
 			* (colors[best][k] - point[k]);
 	}
 
-	searchradius = (int) ceil(sqrt((double) bestdist) + 0.1);
+	searchradius = (int) std::ceil(std::sqrt((double) bestdist) + 0.1);
 	CQ_MapPoint_r(
 		&bestdist, &best, searchtree, colors, point, searchradius
 	);

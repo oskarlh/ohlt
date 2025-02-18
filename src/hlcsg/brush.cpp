@@ -46,7 +46,7 @@ find_plane:
 			&& std::abs(
 				   dot_product(origin, g_mapplanes[returnval].normal)
 				   - g_mapplanes[returnval].dist
-			   ) < DIST_EPSILON) {
+			   ) < PLANE_DIST_EPSILON) {
 			return returnval;
 		}
 	}

@@ -19,12 +19,11 @@ constexpr std::ptrdiff_t MAX_MAP_PLANES = 32768;
 // the previous errors went away.
 constexpr std::ptrdiff_t MAX_INTERNAL_MAP_PLANES = 256 * 1024;
 
-constexpr float PLANE_NORMAL_EPSILON = 0.00001f;
-constexpr float DIR_EPSILON = 0.0001f;
-// constexpr float DIR_EPSILON = 1 / 8192.0f;
-constexpr float PLANE_DIST_EPSILON = 0.04f;
+// constexpr float DIR_EPSILON = 0.0001f;
+constexpr float DIR_EPSILON = 1 / 8192.0f;
+constexpr float PLANE_NORMAL_EPSILON = DIR_EPSILON;
 
-constexpr float DIST_EPSILON = 0.04f;
+constexpr float PLANE_DIST_EPSILON = 0.04f;
 
 enum class planetype {
 	plane_x = 0,
@@ -38,7 +37,12 @@ constexpr planetype first_axial{ planetype::plane_x };
 constexpr planetype last_axial{ planetype::plane_z };
 
 constexpr auto round_to_dir_epsilon(std::floating_point auto f) {
-	return std::round(f * (1 / DIR_EPSILON)) * DIR_EPSILON;
+	float const rounded = std::round(f * (1 / DIR_EPSILON)) * DIR_EPSILON;
+	// It doesn't really matter if we output negative zero,
+	// but we might save a byte or two when a .bsp file is compressed if all
+	// zeroes are plain zeroes
+	float const notNegativeZero = 0 + rounded;
+	return rounded;
 }
 
 template <std::floating_point T>

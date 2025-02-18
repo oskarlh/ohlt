@@ -590,7 +590,7 @@ static surface_t* ChoosePlaneFromList(
 		}
 
 		value = crosscount
-			- sqrt(coplanarcount); // Not optimized. --vluzacn
+			- std::sqrt(coplanarcount); // Not optimized. --vluzacn
 		if (coplanarcount == 0) {
 			crosscount += 1;
 		}

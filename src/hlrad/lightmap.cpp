@@ -2441,78 +2441,78 @@ struct triangle_t final {
 
 void CopyToSkynormals(
 	int skylevel,
-	int numpoints,
-	point_t* points,
-	int numedges,
-	edge_t* edges,
-	int numtriangles,
-	triangle_t* triangles
+	std::span<point_t const> points,
+	std::span<edge_t const> edges,
+	std::span<triangle_t const> triangles
 ) {
-	hlassume(numpoints == (1 << (2 * skylevel)) + 2, assume_first);
-	hlassume(numedges == (1 << (2 * skylevel)) * 4 - 4, assume_first);
-	hlassume(numtriangles == (1 << (2 * skylevel)) * 2, assume_first);
-	g_numskynormals[skylevel] = numpoints;
+	hlassume(points.size() == (1 << (2 * skylevel)) + 2, assume_first);
+	hlassume(edges.size() == (1 << (2 * skylevel)) * 4 - 4, assume_first);
+	hlassume(triangles.size() == (1 << (2 * skylevel)) * 2, assume_first);
+	g_numskynormals[skylevel] = points.size();
 	g_skynormals[skylevel] = (float3_array*) malloc(
-		numpoints * sizeof(float3_array)
+		points.size() * sizeof(float3_array)
 	);
-	g_skynormalsizes[skylevel] = (float*) malloc(numpoints * sizeof(float));
+	g_skynormalsizes[skylevel] = (float*) malloc(
+		points.size() * sizeof(float)
+	);
 	hlassume(g_skynormals[skylevel] != nullptr, assume_NoMemory);
 	hlassume(g_skynormalsizes[skylevel] != nullptr, assume_NoMemory);
-	int j, k;
-	for (j = 0; j < numpoints; j++) {
+	for (std::size_t j = 0; j < points.size(); j++) {
 		g_skynormals[skylevel][j] = to_float3(points[j]);
 		g_skynormalsizes[skylevel][j] = 0;
 	}
 	double totalsize = 0;
-	for (j = 0; j < numtriangles; j++) {
-		int pt[3];
-		for (k = 0; k < 3; k++) {
+	for (std::size_t j = 0; j < triangles.size(); j++) {
+		std::array<int, 3> pt;
+		for (std::size_t k = 0; k < 3; k++) {
 			pt[k] = edges[triangles[j].edge[k]].point[triangles[j].dir[k]];
 		}
-		double currentsize;
 		double3_array tmp = cross_product(points[pt[0]], points[pt[1]]);
-		currentsize = dot_product(tmp, points[pt[2]]);
+		double currentsize = dot_product(tmp, points[pt[2]]);
 		hlassume(currentsize > 0, assume_first);
 		g_skynormalsizes[skylevel][pt[0]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[1]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[2]] += currentsize / 3.0;
 		totalsize += currentsize;
 	}
-	for (j = 0; j < numpoints; j++) {
+	for (std::size_t j = 0; j < points.size(); j++) {
 		g_skynormalsizes[skylevel][j] /= totalsize;
 	}
-#if 0
-	printf ("g_numskynormals[%i]=%i\n", skylevel, g_numskynormals[skylevel]);
-	for (j = 0; j < numpoints; j += (numpoints / 20 + 1))
-	{
-		printf ("g_skynormals[%i][%i]=%1.3f,%1.3f,%1.3f g_skynormalsizes[%i][%i]=%f\n",
-			skylevel, j, g_skynormals[skylevel][j][0], g_skynormals[skylevel][j][1], g_skynormals[skylevel][j][2],
-			skylevel, j, g_skynormalsizes[skylevel][j]);
-	}
-#endif
 }
 
 void BuildDiffuseNormals() {
-	int i, j, k;
+	// These arrays are too big to fit in the stack (at least when compiling
+	// with Clang 18 for MacOS)
+	struct BuildDiffuseNormals_data {
+		std::size_t numPoints = 6;
+		std::array<point_t, (1 << (2 * SKYLEVELMAX)) + 2> points;
+
+		std::size_t numEdges = 12;
+		std::array<edge_t, ((1 << (2 * SKYLEVELMAX)) * 4 - 4)> edges;
+
+		std::size_t numTriangles = 8;
+		std::array<triangle_t, (1 << (2 * SKYLEVELMAX)) * 2> triangles;
+	};
+
+	auto data = std::make_unique_for_overwrite<BuildDiffuseNormals_data>();
+	auto& points{ data->points };
+	auto& numPoints{ data->numPoints };
+	auto& edges{ data->edges };
+	auto& numEdges{ data->numEdges };
+	auto& triangles{ data->triangles };
+	auto& numTriangles{ data->numTriangles };
+
 	g_numskynormals[0] = 0;
 	g_skynormals[0] = nullptr; // don't use this
 	g_skynormalsizes[0] = nullptr;
-	int numpoints = 6;
-	point_t* points = (point_t*) malloc(
-		((1 << (2 * SKYLEVELMAX)) + 2) * sizeof(point_t)
-	);
-	hlassume(points != nullptr, assume_NoMemory);
+
 	points[0][0] = 1, points[0][1] = 0, points[0][2] = 0;
 	points[1][0] = -1, points[1][1] = 0, points[1][2] = 0;
 	points[2][0] = 0, points[2][1] = 1, points[2][2] = 0;
 	points[3][0] = 0, points[3][1] = -1, points[3][2] = 0;
 	points[4][0] = 0, points[4][1] = 0, points[4][2] = 1;
 	points[5][0] = 0, points[5][1] = 0, points[5][2] = -1;
-	int numedges = 12;
-	edge_t* edges = (edge_t*) malloc(
-		((1 << (2 * SKYLEVELMAX)) * 4 - 4) * sizeof(edge_t)
-	);
-	hlassume(edges != nullptr, assume_NoMemory);
+
 	edges[0].point[0] = 0, edges[0].point[1] = 2, edges[0].divided = false;
 	edges[1].point[0] = 2, edges[1].point[1] = 1, edges[1].divided = false;
 	edges[2].point[0] = 1, edges[2].point[1] = 3, edges[2].divided = false;
@@ -2527,11 +2527,7 @@ void BuildDiffuseNormals() {
 	edges[10].divided = false;
 	edges[11].point[0] = 1, edges[11].point[1] = 4,
 	edges[11].divided = false;
-	int numtriangles = 8;
-	triangle_t* triangles = (triangle_t*) malloc(
-		((1 << (2 * SKYLEVELMAX)) * 2) * sizeof(triangle_t)
-	);
-	hlassume(triangles != nullptr, assume_NoMemory);
+
 	triangles[0].edge[0] = 0, triangles[0].dir[0] = 0,
 	triangles[0].edge[1] = 4, triangles[0].dir[1] = 0,
 	triangles[0].edge[2] = 8, triangles[0].dir[2] = 0;
@@ -2557,94 +2553,90 @@ void BuildDiffuseNormals() {
 	triangles[7].edge[1] = 6, triangles[7].dir[1] = 0,
 	triangles[7].edge[2] = 9, triangles[7].dir[2] = 1;
 	CopyToSkynormals(
-		1, numpoints, points, numedges, edges, numtriangles, triangles
+		1,
+		std::span(points.data(), numPoints),
+		std::span(edges.data(), numEdges),
+		std::span(triangles.data(), numTriangles)
 	);
-	for (i = 1; i < SKYLEVELMAX; i++) {
-		int oldnumedges = numedges;
-		for (j = 0; j < oldnumedges; j++) {
-			if (!edges[j].divided) {
-				hlassume(
-					numpoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first
-				);
-				point_t mid = vector_add(
-					points[edges[j].point[0]], points[edges[j].point[1]]
-				);
-				double len = sqrt(dot_product(mid, mid));
-				hlassume(len > 0.2, assume_first);
-				mid = vector_scale(mid, 1 / len);
-				int p2 = numpoints;
-				points[numpoints] = mid;
-				numpoints++;
-				hlassume(
-					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
-					assume_first
-				);
-				edges[j].child[0] = numedges;
-				edges[numedges].divided = false;
-				edges[numedges].point[0] = edges[j].point[0];
-				edges[numedges].point[1] = p2;
-				numedges++;
-				hlassume(
-					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
-					assume_first
-				);
-				edges[j].child[1] = numedges;
-				edges[numedges].divided = false;
-				edges[numedges].point[0] = p2;
-				edges[numedges].point[1] = edges[j].point[1];
-				numedges++;
-				edges[j].divided = true;
+	for (std::size_t i = 1; i < SKYLEVELMAX; ++i) {
+		std::size_t oldnumedges = numEdges;
+		for (std::size_t j = 0; j < oldnumedges; ++j) {
+			if (edges[j].divided) {
+				continue;
 			}
+			hlassume(
+				numPoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first
+			);
+			point_t mid = vector_add(
+				points[edges[j].point[0]], points[edges[j].point[1]]
+			);
+			double len = vector_length(mid);
+			hlassume(len > 0.2, assume_first);
+			mid = vector_scale(mid, 1 / len);
+			int p2 = numPoints;
+			points[numPoints] = mid;
+			numPoints++;
+			hlassume(
+				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first
+			);
+			edges[j].child[0] = numEdges;
+			edges[numEdges].divided = false;
+			edges[numEdges].point[0] = edges[j].point[0];
+			edges[numEdges].point[1] = p2;
+			++numEdges;
+			hlassume(
+				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first
+			);
+			edges[j].child[1] = numEdges;
+			edges[numEdges].divided = false;
+			edges[numEdges].point[0] = p2;
+			edges[numEdges].point[1] = edges[j].point[1];
+			++numEdges;
+			edges[j].divided = true;
 		}
-		int oldnumtriangles = numtriangles;
-		for (j = 0; j < oldnumtriangles; j++) {
+		std::size_t oldnumtriangles = numTriangles;
+		for (std::size_t j = 0; j < oldnumtriangles; ++j) {
 			std::array<std::int32_t, 3> mid;
-			for (k = 0; k < 3; k++) {
+			for (std::size_t k = 0; k < 3; ++k) {
 				hlassume(
-					numtriangles < (1 << (2 * SKYLEVELMAX)) * 2,
+					numTriangles < (1 << (2 * SKYLEVELMAX)) * 2,
 					assume_first
 				);
 				mid[k]
 					= edges[edges[triangles[j].edge[k]].child[0]].point[1];
-				triangles[numtriangles].edge[0]
+				triangles[numTriangles].edge[0]
 					= edges[triangles[j].edge[k]]
 						  .child[1 - triangles[j].dir[k]];
-				triangles[numtriangles].dir[0] = triangles[j].dir[k];
-				triangles[numtriangles].edge[1]
+				triangles[numTriangles].dir[0] = triangles[j].dir[k];
+				triangles[numTriangles].edge[1]
 					= edges[triangles[j].edge[(k + 1) % 3]]
 						  .child[triangles[j].dir[(k + 1) % 3]];
-				triangles[numtriangles].dir[1]
+				triangles[numTriangles].dir[1]
 					= triangles[j].dir[(k + 1) % 3];
-				triangles[numtriangles].edge[2] = numedges + k;
-				triangles[numtriangles].dir[2] = 1;
-				numtriangles++;
+				triangles[numTriangles].edge[2] = numEdges + k;
+				triangles[numTriangles].dir[2] = 1;
+				++numTriangles;
 			}
-			for (k = 0; k < 3; k++) {
+			for (std::size_t k = 0; k < 3; ++k) {
 				hlassume(
-					numedges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+					numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
 					assume_first
 				);
-				triangles[j].edge[k] = numedges;
+				triangles[j].edge[k] = numEdges;
 				triangles[j].dir[k] = 0;
-				edges[numedges].divided = false;
-				edges[numedges].point[0] = mid[k];
-				edges[numedges].point[1] = mid[(k + 1) % 3];
-				numedges++;
+				edges[numEdges].divided = false;
+				edges[numEdges].point[0] = mid[k];
+				edges[numEdges].point[1] = mid[(k + 1) % 3];
+				++numEdges;
 			}
 		}
 		CopyToSkynormals(
 			i + 1,
-			numpoints,
-			points,
-			numedges,
-			edges,
-			numtriangles,
-			triangles
+			std::span(points.data(), numPoints),
+			std::span(edges.data(), numEdges),
+			std::span(triangles.data(), numTriangles)
 		);
 	}
-	free(points);
-	free(edges);
-	free(triangles);
 }
 
 static void GatherSampleLight(
@@ -2766,7 +2758,8 @@ static void GatherSampleLight(
 
 						float3_array add_one;
 						if (lighting_diversify) {
-							dot = lighting_scale * pow(dot, lighting_power);
+							dot = lighting_scale
+								* std::pow(dot, lighting_power);
 						}
 						add_one = vector_scale(
 							l->intensity, dot * l->sunnormalweights[j]
@@ -2876,7 +2869,8 @@ static void GatherSampleLight(
 						);
 						float3_array add_one;
 						if (lighting_diversify) {
-							dot = lighting_scale * pow(dot, lighting_power);
+							dot = lighting_scale
+								* std::pow(dot, lighting_power);
 						}
 						add_one = vector_scale(sky_intensity, dot);
 						add_one = vector_multiply(add_one, transparency);
@@ -2938,7 +2932,8 @@ static void GatherSampleLight(
 						}
 						float denominator = dist * dist * l->fade;
 						if (lighting_diversify) {
-							dot = lighting_scale * pow(dot, lighting_power);
+							dot = lighting_scale
+								* std::pow(dot, lighting_power);
 						}
 						ratio = dot / denominator;
 						add = vector_scale(l->intensity, ratio);
@@ -2951,7 +2946,8 @@ static void GatherSampleLight(
 							light_behind_surface = true;
 						}
 						if (lighting_diversify && !light_behind_surface) {
-							dot = lighting_scale * pow(dot, lighting_power);
+							dot = lighting_scale
+								* std::pow(dot, lighting_power);
 						}
 						dot2 = -dot_product(delta, l->normal);
 						// discard the texlight if the spot is too
@@ -2991,7 +2987,7 @@ static void GatherSampleLight(
 							float range_scale;
 							range_scale = 1 - l->stopdot2 * l->stopdot2;
 							range_scale = 1
-								/ sqrt(std::max(
+								/ std::sqrt(std::max(
 									(float) NORMAL_EPSILON, range_scale
 								));
 							// range_scale = 1 / sin (cone2)
@@ -3112,7 +3108,8 @@ static void GatherSampleLight(
 						float denominator = dist * l->fade;
 						denominator *= dist;
 						if (lighting_diversify) {
-							dot = lighting_scale * pow(dot, lighting_power);
+							dot = lighting_scale
+								* std::pow(dot, lighting_power);
 						}
 						ratio = dot * dot2 / denominator;
 
@@ -5266,17 +5263,17 @@ void FinalLightFace(int const facenum) {
 			}
 
 			if (g_colour_qgamma[0] != 1.0) {
-				lb[0] = (float) pow(lb[0] / 256.0f, g_colour_qgamma[0])
+				lb[0] = std::pow(lb[0] / 256.0f, g_colour_qgamma[0])
 					* 256.0f;
 			}
 
 			if (g_colour_qgamma[1] != 1.0) {
-				lb[1] = (float) pow(lb[1] / 256.0f, g_colour_qgamma[1])
+				lb[1] = std::pow(lb[1] / 256.0f, g_colour_qgamma[1])
 					* 256.0f;
 			}
 
 			if (g_colour_qgamma[2] != 1.0) {
-				lb[2] = (float) pow(lb[2] / 256.0f, g_colour_qgamma[2])
+				lb[2] = std::pow(lb[2] / 256.0f, g_colour_qgamma[2])
 					* 256.0f;
 			}
 

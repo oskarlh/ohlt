@@ -764,24 +764,20 @@ float WindingDist(winding_t const * w[2]) {
 	// point to face and edge to face
 	for (int side = 0; side < 2; side++) {
 		float3_array planenormal;
-		float planedist;
-		float3_array* boundnormals;
-		float* bounddists;
 		if (!BestNormalFromWinding(
 				w[!side]->points, w[!side]->numpoints, planenormal
 			)) {
 			continue;
 		}
-		planedist = dot_product(planenormal, w[!side]->points[0]);
-		hlassume(
-			boundnormals = (float3_array*)
-				malloc(w[!side]->numpoints * sizeof(float3_array)),
-			assume_NoMemory
+		float const planedist = dot_product(
+			planenormal, w[!side]->points[0]
 		);
-		hlassume(
-			bounddists = (float*)
-				malloc(w[!side]->numpoints * sizeof(float)),
-			assume_NoMemory
+
+		float3_array* boundnormals = (float3_array*) malloc(
+			w[!side]->numpoints * sizeof(float3_array)
+		);
+		float* bounddists = (float*) malloc(
+			w[!side]->numpoints * sizeof(float)
 		);
 		// build boundaries
 		for (b = 0; b < w[!side]->numpoints; b++) {
@@ -840,7 +836,7 @@ float WindingDist(winding_t const * w[2]) {
 		free(boundnormals);
 		free(bounddists);
 	}
-	return sqrt(minsqrdist);
+	return std::sqrt(minsqrdist);
 }
 
 // AJM: MVD
@@ -930,7 +926,7 @@ void MaxDistVis(int unused) {
 							radius[side] = std::max(radius[side], dist);
 						}
 					}
-					radius[side] = sqrt(radius[side]);
+					radius[side] = std::sqrt(radius[side]);
 				}
 
 				float const dist = distance_between_points(

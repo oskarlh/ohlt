@@ -4,9 +4,10 @@
 #include <type_traits>
 
 // Unlike std::vector, this container doesn't value initializing elements.
-// Use it with types like std::array<float, 3> or bool if the elements will
-// always be written to at least once before being read from. Values should
-// be considered lost after resizing.
+// Use it with types like `std::array<float, 3>` or `bool` if the elements
+// will always be written to at least once before being read from. Values
+// are should be considered lost after resizing (using the function
+// `reset`).
 template <class T>
 class vector_for_overwriting final {
 	static_assert(
@@ -32,8 +33,6 @@ class vector_for_overwriting final {
 	}
 
 	constexpr vector_for_overwriting() noexcept = default;
-	constexpr vector_for_overwriting(vector_for_overwriting const & other
-	) = default;
 
 	constexpr vector_for_overwriting(vector_for_overwriting&& other
 	) noexcept {
@@ -41,10 +40,6 @@ class vector_for_overwriting final {
 	}
 
 	constexpr ~vector_for_overwriting() = default;
-
-	constexpr vector_for_overwriting&
-	operator=(vector_for_overwriting const & other
-	) = default;
 
 	constexpr vector_for_overwriting&
 	operator=(vector_for_overwriting&& other) noexcept {

@@ -154,38 +154,36 @@ float snap_to_winding_noedge(
 	float maxmove
 ) {
 	int pass;
-	int numplanes;
-	dplane_t* planes;
-	int x;
 	float newwidth;
 	float bestwidth;
 	float3_array bestpoint;
 
 	snap_to_winding(w, plane, point);
 
-	planes = (dplane_t*) malloc(w.size() * sizeof(dplane_t));
-	hlassume(planes != nullptr, assume_NoMemory);
-	numplanes = 0;
-	for (x = 0; x < w.size(); x++) {
+	std::unique_ptr<dplane_t[]> planes{
+		std::make_unique_for_overwrite<dplane_t[]>(w.size())
+	};
+	std::size_t numPlanes = 0;
+	for (std::size_t x = 0; x < w.size(); x++) {
 		float3_array const v = vector_subtract(
 			w.point_after(x, 1), w.point(x)
 		);
-		planes[numplanes].normal = cross_product(v, plane.normal);
-		if (!normalize_vector(planes[numplanes].normal)) {
+		planes[numPlanes].normal = cross_product(v, plane.normal);
+		if (!normalize_vector(planes[numPlanes].normal)) {
 			continue;
 		}
-		planes[numplanes].dist = dot_product(
-			w.point(x), planes[numplanes].normal
+		planes[numPlanes].dist = dot_product(
+			w.point(x), planes[numPlanes].normal
 		);
-		numplanes++;
+		numPlanes++;
 	}
 
 	bestwidth = 0;
 	bestpoint = point;
 	newwidth = width;
 
-	for (pass = 0; pass < 5;
-		 pass++) // apply binary search method for 5 iterations to find the
+	for (std::uint8_t pass = 0; pass < 5;
+		 ++pass) // apply binary search method for 5 iterations to find the
 				 // maximal distance that the point can be kept away from
 				 // all the edges
 	{
@@ -194,7 +192,7 @@ float snap_to_winding_noedge(
 		bool failed = true;
 
 		fast_winding newwinding{ w };
-		for (x = 0; x < numplanes && !newwinding.empty(); x++) {
+		for (std::size_t x = 0; x < numPlanes && !newwinding.empty(); ++x) {
 			dplane_t clipplane = planes[x];
 			clipplane.dist += newwidth;
 			newwinding.mutating_clip(
@@ -212,19 +210,21 @@ float snap_to_winding_noedge(
 			}
 		}
 
-		if (!failed) {
+		// Same as `float const multiplier = std::pow(0.5f, pass + 1.0f);`
+		// but faster
+		float const multiplier = 0.5f / (1u << pass);
+
+		if (failed) {
+			newwidth -= width * multiplier;
+		} else {
 			bestwidth = newwidth;
 			bestpoint = newpoint;
 			if (pass == 0) {
 				break;
 			}
-			newwidth += width * pow(0.5, pass + 1);
-		} else {
-			newwidth -= width * pow(0.5, pass + 1);
+			newwidth += width * multiplier;
 		}
 	}
-
-	free(planes);
 
 	point = bestpoint;
 	return bestwidth;
@@ -421,7 +421,7 @@ float CalcSightArea(
 				continue;
 			}
 			if (lighting_power != 1.0) {
-				dot = pow(dot, lighting_power);
+				dot = std::pow(dot, lighting_power);
 			}
 			area += dot * (*psize);
 		}
@@ -496,7 +496,7 @@ float CalcSightArea_SpotLight(
 				continue;
 			}
 			if (lighting_power != 1.0) {
-				dot = pow(dot, lighting_power);
+				dot = std::pow(dot, lighting_power);
 			}
 			dot2 = -dot_product(*pnormal, emitter_normal);
 			if (dot2 <= emitter_stopdot2 + NORMAL_EPSILON) {

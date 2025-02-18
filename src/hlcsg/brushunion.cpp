@@ -132,9 +132,9 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 		double dist = dot_product(plane->normal, midpoint);
 
 		dist -= plane->dist;
-		dist = fabs(dist);
+		dist = std::abs(dist);
 
-		volume += area * dist / 3.0;
+		volume += area * dist / 3;
 	}
 
 	Developer(developer_level::message, "Volume for brush is %f\n", volume);

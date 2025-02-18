@@ -56,7 +56,7 @@ float3_array g_face_offset[MAX_MAP_FACES]; // for rotating bmodels
 
 float g_direct_scale = DEFAULT_DLIGHT_SCALE;
 
-unsigned g_numbounce = DEFAULT_BOUNCE; // 3; /* Originally this was 8 */
+unsigned g_numbounce = DEFAULT_BOUNCE;
 
 static bool g_dumppatches = DEFAULT_DUMPPATCHES;
 
@@ -718,7 +718,7 @@ static void UpdateEmitterInfo(patch_t* patch) {
 			size *= 0.25f;
 			if (area < size * radius * radius) {
 				// stop here
-				radius = sqrt(area / size);
+				radius = std::sqrt(area / size);
 				// just decrease the range to limit the use of the new
 				// method. because when the area is small, the new method
 				// becomes randomized and unstable.
@@ -1246,7 +1246,7 @@ static float getScale(patch_t const * const patch) {
 		// gridplanes will have the same angle (also smaller angle = larger
 		// patch area)
 
-		return sqrt(scale[0] * scale[1]);
+		return std::sqrt(scale[0] * scale[1]);
 	} else {
 		return 1.0;
 	}
@@ -1282,19 +1282,18 @@ static bool getEmitMode(patch_t const * patch) {
 }
 
 static float getChop(patch_t const * const patch) {
-	float rval;
-
 	if (g_face_texlights[patch->faceNumber]) {
 		if (has_key_value(g_face_texlights[patch->faceNumber], u8"_chop")) {
-			rval = float_for_key(
-				*g_face_texlights[patch->faceNumber], u8"_chop"
+			return std::max(
+				1.0f,
+				float_for_key(
+					*g_face_texlights[patch->faceNumber], u8"_chop"
+				)
 			);
-			if (rval < 1.0) {
-				rval = 1.0;
-			}
-			return rval;
 		}
 	}
+
+	float rval;
 	if (!patch->emitmode) {
 		rval = g_chop * getScale(patch);
 	} else {
@@ -1395,10 +1394,8 @@ static void MakePatchForFace(
 			);
 		}
 		texturereflectivity = vector_scale(texturecolor, 1.0f / 255.0f);
-		for (int k = 0; k < 3; k++) {
-			texturereflectivity[k] = pow(
-				texturereflectivity[k], g_texreflectgamma
-			);
+		for (float& tr : texturereflectivity) {
+			tr = std::pow(tr, g_texreflectgamma);
 		}
 		texturereflectivity = vector_scale(
 			texturereflectivity, g_texreflectscale
