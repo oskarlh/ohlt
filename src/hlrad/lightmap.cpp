@@ -2484,13 +2484,13 @@ void BuildDiffuseNormals() {
 	// These arrays are too big to fit in the stack (at least when compiling
 	// with Clang 18 for MacOS)
 	struct BuildDiffuseNormals_data {
-		std::size_t numPoints = 6;
+		std::size_t numPoints;
 		std::array<point_t, (1 << (2 * SKYLEVELMAX)) + 2> points;
 
-		std::size_t numEdges = 12;
+		std::size_t numEdges;
 		std::array<edge_t, ((1 << (2 * SKYLEVELMAX)) * 4 - 4)> edges;
 
-		std::size_t numTriangles = 8;
+		std::size_t numTriangles;
 		std::array<triangle_t, (1 << (2 * SKYLEVELMAX)) * 2> triangles;
 	};
 
@@ -2501,6 +2501,10 @@ void BuildDiffuseNormals() {
 	auto& numEdges{ data->numEdges };
 	auto& triangles{ data->triangles };
 	auto& numTriangles{ data->numTriangles };
+
+	numPoints = 6;
+	numEdges = 12;
+	numTriangles = 8;
 
 	g_numskynormals[0] = 0;
 	g_skynormals[0] = nullptr; // don't use this

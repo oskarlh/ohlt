@@ -38,11 +38,11 @@ find_plane:
 		// deduplication
 		// round_to_dir_epsilon
 		if (std::abs(normal[0] - g_mapplanes[returnval].normal[0])
-				< DIR_EPSILON
+				< PLANE_NORMAL_EPSILON
 			&& std::abs(normal[1] - g_mapplanes[returnval].normal[1])
-				< DIR_EPSILON
+				< PLANE_NORMAL_EPSILON
 			&& std::abs(normal[2] - g_mapplanes[returnval].normal[2])
-				< DIR_EPSILON
+				< PLANE_NORMAL_EPSILON
 			&& std::abs(
 				   dot_product(origin, g_mapplanes[returnval].normal)
 				   - g_mapplanes[returnval].dist
@@ -70,6 +70,20 @@ find_plane:
 	p->normal = normal;
 	normalize_vector(p->normal);
 	p->type = plane_type_for_normal(p->normal);
+	//	planetype ot =
+	// plane_type_for_normal(to_double3(to_float3(p->normal))); 	if
+	// (p->type
+	//!= ot) { 		Log("AAAA %.12f %.12f %.12f %i\n", p->normal[0],
+	//			p->normal[1],
+	//			p->normal[2],
+	//			(int) p->type);
+	//		Log("AAAB %.12f %.12f %.12f %i\n",
+	//			to_float3(p->normal)[0],
+	//			to_float3(p->normal)[1],
+	//			to_float3(p->normal)[2],
+	//			(int) ot);
+	//		Error("w");
+	//	}
 	if (p->type <= last_axial) {
 		for (std::size_t i{ std::size_t(first_axial) };
 			 i <= std::size_t(last_axial);

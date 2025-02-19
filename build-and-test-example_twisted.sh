@@ -25,4 +25,9 @@ export MAP_NAME=example_twisted
 export NUM_THREADS=1
 #export NUM_THREADS=-1
 
-./test-and-compare/test-and-compare.sh ${MAP_NAME} ${NUM_THREADS} ${CSG_ONLY}
+./test-and-compare/test-and-compare.sh ${MAP_NAME} ${NUM_THREADS} ${CSG_ONLY} || echo err
+
+ECHO starting
+
+mv ./test-and-compare/valve/maps/example_twisted.bsp "/Users/oskar.larsson/Library/Application Support/Xash3D/valve/maps/example_twisted.bsp"
+/Applications/Xash3D-FWGS.app/Contents/MacOS/xash3d -dev -console +map example_twisted

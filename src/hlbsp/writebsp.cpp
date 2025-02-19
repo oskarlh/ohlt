@@ -781,6 +781,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 	for (int i = 0; i < g_numplanes; i++) {
 		mapplane_t& mp = g_mapplanes[i];
 		dplane_t& dp = g_dplanes[i];
+		dp = {};
 		dp.normal = to_float3(mp.normal);
 		dp.dist = mp.dist;
 		dp.type = mp.type;

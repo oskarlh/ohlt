@@ -292,7 +292,7 @@ glitches (like -0.00000 cases)
 */
 void CMeshDesc ::CategorizePlane(mplane_t* plane) {
 	plane->signbits = 0;
-	plane->type = 3; // non-axial
+	plane->type = planetype::plane_anyx; // Non-axial
 
 	for (int i = 0; i < 3; i++) {
 		if (plane->normal[i] < 0.0f) {
@@ -305,7 +305,7 @@ void CMeshDesc ::CategorizePlane(mplane_t* plane) {
 				break;
 			}
 		} else if (plane->normal[i] == 1.0f) {
-			plane->type = i;
+			plane->type = planetype(i);
 			plane->signbits = 0;
 			plane->normal = {};
 			plane->normal[i] = 1.0f;

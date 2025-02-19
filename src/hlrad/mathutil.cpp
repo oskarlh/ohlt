@@ -247,6 +247,7 @@ bool intersect_linesegment_plane(
 	return true;
 }
 
+// Unused. TODO: Delete?
 void plane_from_points(
 	float3_array const & p1,
 	float3_array const & p2,
@@ -257,8 +258,10 @@ void plane_from_points(
 	float3_array const delta2 = vector_subtract(p1, p2);
 	float3_array normal = cross_product(delta1, delta2);
 	normalize_vector(normal);
+	plane = {};
 	plane.dist = dot_product(normal, p1);
 	plane.normal = normal;
+	plane.type = plane_type_for_normal(normal);
 }
 
 // LineSegmentIntersectsBounds --vluzacn

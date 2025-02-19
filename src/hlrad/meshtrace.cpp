@@ -233,9 +233,9 @@ bool TraceMesh ::ClipRayToFacet(mfacet_t const * facet) {
 		p = &mesh->planes[facet->indices[i]];
 
 		// push the plane out apropriately for mins/maxs
-		if (p->type < 3) {
-			d1 = m_vecStartMins[p->type] - p->dist;
-			d2 = m_vecEndMins[p->type] - p->dist;
+		if (p->type <= planetype::plane_z) {
+			d1 = m_vecStartMins[std::to_underlying(p->type)] - p->dist;
+			d2 = m_vecEndMins[std::to_underlying(p->type)] - p->dist;
 		} else {
 			switch (p->signbits) {
 				case 0:

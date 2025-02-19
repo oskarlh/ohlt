@@ -28,9 +28,9 @@ using matrix3x4 = std::array<std::array<float, 4>, 3>;
 struct mplane_t final {
 	float3_array normal;
 	float dist;
-	byte type;	   // for fast side tests
-	byte signbits; // signx + (signy<<1) + (signz<<1)
-	byte pad[2];
+	planetype type; // For fast side tests
+	byte signbits;	// signx + (signy<<1) + (signz<<1)
+	std::array<std::byte, 2> paddingAtEnd;
 };
 
 struct hashplane_t final {
@@ -50,13 +50,13 @@ constexpr areanode_count AREA_NODES = 32;
 struct areanode_t final {
 	int axis; // -1 = leaf node
 	float dist;
-	areanode_t* children[2];
+	std::array<areanode_t*, 2> children;
 	link_t facets;
 };
 
 struct mvert_t final {
 	float3_array point;
-	float st[2]; // for alpha-texture test
+	std::array<float, 2> st; // for alpha-texture test
 };
 
 struct mfacet_t final {

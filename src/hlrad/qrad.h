@@ -656,12 +656,6 @@ extern bool intersect_linesegment_plane(
 	float3_array const & p2,
 	float3_array& point
 );
-extern void plane_from_points(
-	float3_array const & p1,
-	float3_array const & p2,
-	float3_array const & p3,
-	dplane_t& plane
-);
 extern bool point_in_winding(
 	fast_winding const & w,
 	dplane_t const & plane,

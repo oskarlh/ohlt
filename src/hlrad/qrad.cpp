@@ -1972,10 +1972,12 @@ static void MakePatches() {
 		}
 	}
 
+	// 1 unit ≈ 1 U.S. inch, and 1 inch = 0.0254 meters
+	constexpr double metersPerUnit = 0.0254;
+	constexpr double squareMetersPerSquareUnit = metersPerUnit
+		* metersPerUnit;
 	Log("%i base patches\n", g_num_patches);
-	Log("%i square feet [%.2f square inches]\n",
-		(int) (totalarea / 144),
-		totalarea);
+	Log("Area: %.1f m²\n", totalarea * squareMetersPerSquareUnit);
 }
 
 // =====================================================================================
@@ -3390,8 +3392,10 @@ void LoadRadFiles(
 	safe_strncpy(mapname_lights, mapDir.c_str(), _MAX_PATH);
 	safe_strncat(mapname_lights, mapfile, _MAX_PATH);
 	safe_strncat(mapname_lights, ext_rad, _MAX_PATH);
-	if (std::filesystem::exists(mapname_lights)) {
-		ReadLightFile(mapname_lights);
+	std::filesystem::path extRadPath{ mapDir / mapfile };
+	extRadPath += ext_rad;
+	if (std::filesystem::exists(extRadPath)) {
+		ReadLightFile(extRadPath.c_str());
 	}
 
 	if (user_rad) {
