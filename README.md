@@ -53,3 +53,6 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 - `-worldextent n` CSG parameter. Extends map geometry limits beyond `+/-32768`.
 - Portal file reformatting for J.A.C.K. map editor, allows for importing the prt file into the editor directly after VIS. Use `-nofixprt` VIS parameter to disable.
 - `-nostudioshadow` RAD parameter to ignore `zhlt_studioshadow` on studiomodels.
+
+
+https://twhl.info/wiki/page/Tutorial:_Total_Map_Optimisation_Part_3_(wpoly,_clipnodes,_engine_limits,_compile_parameters)

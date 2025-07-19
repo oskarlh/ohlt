@@ -31,7 +31,7 @@
 #define DEFAULT_WADTEXTURES			  true
 #define DEFAULT_SKYCLIP				  true
 
-#define DEFAULT_CLIPTYPE clip_simple // clip_legacy //--vluzacn
+#define DEFAULT_CLIPTYPE clip_precise
 
 #define DEFAULT_CLIPNAZI false
 
@@ -301,10 +301,8 @@ extern bool g_bClipNazi;
 #define EnumPrint(a) #a
 
 enum cliptype {
-	clip_smallest,
-	clip_normalized,
-	clip_simple,
 	clip_precise,
+	clip_normalized,
 	clip_legacy
 };
 

@@ -128,10 +128,8 @@ static int PlaneFromPoints(std::array<double3_array, 3> const & points) {
 	return -1;
 }
 
-char const ClipTypeStrings[5][11] = { { "smallest" },
+char const ClipTypeStrings[3][11] = { { "precise" },
 									  { "normalized" },
-									  { "simple" },
-									  { "precise" },
 									  { "legacy" } };
 
 char const * GetClipTypeString(cliptype ct) {
@@ -195,9 +193,7 @@ static void AddHullPlane(
 //
 //  To prevent players from floating 10 units above the floor, the "precise"
 //  hull generation option still uses the plane normal when the Z component
-//  is high enough for the plane to be considered a floor.  The "simple"
-//  hull generation option always uses the full hull distance, resulting in
-//  lower clipnode counts.
+//  is high enough for the plane to be considered a floor.
 //
 //  Bevel planes might be added twice (once from each side of the edge), so
 //  a planenum based check is used to see if each has been added before.
@@ -205,8 +201,8 @@ static void AddHullPlane(
 // Correction: //--vluzacn
 //   Clipnode size depends on complexity of the surface of expanded brushes
 //   as a whole, not number of brush sides. Data from a sample map:
-//     cliptype          simple    precise     legacy normalized   smallest
-//     clipnodecount        971       1089       1202       1232       1000
+//     cliptype          precise     legacy     normalized
+//     clipnodecount        1089       1202           1232
 
 void ExpandBrushWithHullBrush(
 	csg_brush const * brush,
@@ -543,8 +539,7 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 	// on.
 
 	// only executes if cliptype is simple, normalized or precise
-	if (g_cliptype == clip_simple || g_cliptype == clip_precise
-		|| g_cliptype == clip_normalized) {
+	if (g_cliptype == clip_precise || g_cliptype == clip_normalized) {
 		for (bface_t& current_face : brush->hulls[0].faces) {
 			mapplane_t* current_plane = current_face.plane;
 
@@ -878,7 +873,6 @@ restart:
 static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 	int j;
 	int planenum;
-	side_t* s;
 
 	//
 	// if the origin key is set (by an origin brush), offset all of the
@@ -891,7 +885,7 @@ static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 	//
 	// for each side in this brush
 	for (side_count i = 0; i < b.numSides; ++i) {
-		s = &g_brushsides[b.firstSide + i];
+		side_t* s = &g_brushsides[b.firstSide + i];
 		for (std::size_t j = 0; j < 3; ++j) {
 			s->planepts[j] = vector_subtract(s->planepts[j], origin);
 		}

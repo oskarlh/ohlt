@@ -186,23 +186,17 @@ void GetParamsFromEnt(entity_t* mapent) {
 	Log("%30s [ %-9s ]\n",
 		"Clipping Hull Generation",
 		g_noclip ? "off" : "on");
-	// cliptype(choices) : "Clip Hull Type" : 4 = [ 0 : "Smallest" 1 :
-	// "Normalized" 2: "Simple" 3 : "Precise" 4 : "Legacy" ]
 
 	switch (IntForKey(mapent, u8"cliptype")) {
-		case 0:
-			g_cliptype = clip_smallest;
-			break;
+		// 0 was "smallest" (option that has been removed)
 		case 1:
 			g_cliptype = clip_normalized;
 			break;
-		case 2:
-			g_cliptype = clip_simple;
-			break;
-		case 3:
+		// 2 was "simple" (option that has been removed)
+		case 3: // 3 has always been "precise"
 			g_cliptype = clip_precise;
 			break;
-		default:
+		case 4:
 			g_cliptype = clip_legacy;
 			break;
 	}
@@ -1545,7 +1539,7 @@ static void Usage() {
 
 	Log("    -clipeconomy     : turn clipnode economy mode on\n");
 
-	Log("    -cliptype value  : set to smallest, normalized, simple, precise, or legacy (default)\n"
+	Log("    -cliptype value  : set to legacy, normalized, or precise (default)\n"
 	);
 	Log("    -nullfile file   : specify list of entities to retexture with NULL\n"
 	);
@@ -1926,17 +1920,9 @@ int main(int const argc, char** argv) {
 					{
 						++i;
 						if (strings_equal_with_ascii_case_insensitivity(
-								argv[i], "smallest"
+								argv[i], "normalized"
 							)) {
-							g_cliptype = clip_smallest;
-						} else if (strings_equal_with_ascii_case_insensitivity(
-									   argv[i], "normalized"
-								   )) {
 							g_cliptype = clip_normalized;
-						} else if (strings_equal_with_ascii_case_insensitivity(
-									   argv[i], "simple"
-								   )) {
-							g_cliptype = clip_simple;
 						} else if (strings_equal_with_ascii_case_insensitivity(
 									   argv[i], "precise"
 								   )) {
@@ -2186,6 +2172,7 @@ int main(int const argc, char** argv) {
 				csg_brush& brush{ g_mapbrushes[brushIndex] };
 				create_brush(brush, g_entities[brush.entitynum]);
 			}
+
 			// NamedRunThreadsOnIndividual(
 			//	g_nummapbrushes, g_estimate, CreateBrush
 			//);

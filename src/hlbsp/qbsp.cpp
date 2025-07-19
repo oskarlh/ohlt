@@ -924,7 +924,9 @@ static brush_t* ReadBrushes(FILE* file) {
 				}
 				s->wind.push_point(v);
 			}
-			s->wind.reverse_points(); // Why?
+			s->wind.reverse_points(
+			); // TODO: Why? Can this be removed if we also replace
+			   // `planenum ^ 1` with `planenum`?
 			s->next = nullptr;
 			*psn = s;
 			psn = &s->next;
