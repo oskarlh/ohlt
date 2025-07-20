@@ -380,16 +380,11 @@ static surface_t* ChooseMidPlaneFromList(
 	double value;
 	double dist;
 	mapplane_t* plane;
-	surfacetree_t* surfacetree;
-	std::vector<face_t*>::iterator it;
-	face_t* f;
-
-	surfacetree = BuildSurfaceTree(surfaces, ON_EPSILON);
 
 	//
 	// pick the plane that splits the least
 	//
-	bestvalue = 9e30;
+	bestvalue = 6.0 * hlbsp_bogus_range * hlbsp_bogus_range;
 	bestsurface = nullptr;
 
 	for (p = surfaces; p; p = p->next) {
@@ -424,58 +419,18 @@ static surface_t* ChooseMidPlaneFromList(
 				< g_maxnode_size / 2.0 - ON_EPSILON) {
 			continue;
 		}
-		double crosscount = 0;
-		double frontcount = 0;
-		double backcount = 0;
-		double coplanarcount = 0;
-
-		TestSurfaceTree(surfacetree, plane);
-		frontcount += surfacetree->result.frontsize;
-		backcount += surfacetree->result.backsize;
-		for (it = surfacetree->result.middle->begin();
-			 it != surfacetree->result.middle->end();
-			 ++it) {
-			f = *it;
-			if (f->facestyle == face_discardable) {
-				continue;
-			}
-			if (f->planenum == p->planenum
-				|| f->planenum == (p->planenum ^ 1)) {
-				coplanarcount++;
-				continue;
-			}
-			switch (FaceSide(f, plane)) {
-				case face_side::front:
-					frontcount++;
-					break;
-				case face_side::back:
-					backcount++;
-					break;
-				case face_side::on:
-					crosscount++;
-					break;
-				case face_side::cross:
-					// Shouldn't happen
-					break;
+		for (planetype j = planetype::plane_x; j <= planetype::plane_z;
+			 j = planetype(std::size_t(j) + 1)) {
+			if (j == l) {
+				value += (maxs[std::size_t(l)] - dist)
+					* (maxs[std::size_t(l)] - dist);
+				value += (dist - mins[std::size_t(l)])
+					* (dist - mins[std::size_t(l)]);
+			} else {
+				value += 2 * (maxs[std::size_t(j)] - mins[std::size_t(j)])
+					* (maxs[std::size_t(j)] - mins[std::size_t(j)]);
 			}
 		}
-
-		double frontsize = frontcount + 0.5 * coplanarcount
-			+ 0.5 * crosscount;
-		double frontfrac = (maxs[std::size_t(l)] - dist)
-			/ (maxs[std::size_t(l)] - mins[std::size_t(l)]);
-		double backsize = backcount + 0.5 * coplanarcount
-			+ 0.5 * crosscount;
-		double backfrac = (dist - mins[std::size_t(l)])
-			/ (maxs[std::size_t(l)] - mins[std::size_t(l)]);
-		value = crosscount
-			+ 0.1
-				* (frontsize * (log(frontfrac) / log(2.0))
-				   + backsize * (log(backfrac) / log(2.0)));
-		// the first part is how the split will increase the number of faces
-		// the second part is how the split will increase the average depth
-		// of the bsp tree
-
 		if (value > bestvalue) {
 			continue;
 		}
@@ -487,7 +442,6 @@ static surface_t* ChooseMidPlaneFromList(
 		bestsurface = p;
 	}
 
-	DeleteSurfaceTree(surfacetree);
 	if (!bestsurface) {
 		return nullptr;
 	}
