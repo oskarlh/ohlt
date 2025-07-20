@@ -1725,21 +1725,24 @@ int main(int const argc, char** argv) {
 				char strMapEntitiesVoidFile[_MAX_PATH];
 
 				// try looking in the current directory
-				std::filesystem::path strSystemEntitiesVoidFile
-					= ENTITIES_VOID;
+				std::filesystem::path strSystemEntitiesVoidFile{
+					entitiesVoidFilename,
+					std::filesystem::path::generic_format
+				};
 				if (!std::filesystem::exists(strSystemEntitiesVoidFile)) {
 					// try looking in the directory we were run from
 					strSystemEntitiesVoidFile
 						= get_path_to_directory_with_executable(argv)
-						/ ENTITIES_VOID;
+						/ strSystemEntitiesVoidFile;
 				}
 
 				// Set the optional level specific lights filename
 				safe_snprintf(
 					strMapEntitiesVoidFile,
 					_MAX_PATH,
-					"%s" ENTITIES_VOID_EXT,
-					g_Mapname
+					"%s%s",
+					g_Mapname,
+					(char const *) entitiesVoidExt.data()
 				);
 
 				LoadAllowableOutsideList(strSystemEntitiesVoidFile.c_str()

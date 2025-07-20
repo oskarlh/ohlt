@@ -17,8 +17,8 @@
 
 extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
 
-#define ENTITIES_VOID	  "entities.void"
-#define ENTITIES_VOID_EXT ".void"
+constexpr std::u8string_view entitiesVoidFilename(u8"entities.void");
+constexpr std::u8string_view entitiesVoidExt(u8".void");
 
 constexpr double hlbsp_bogus_range = 144000.0;
 
