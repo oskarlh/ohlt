@@ -1007,15 +1007,16 @@ int main(int argc, char** argv) {
 					Log("Unknown option: '%s'\n", argv[i]);
 					Usage();
 				} else {
-					safe_strncpy(g_Mapname, argv[i], _MAX_PATH);
-					FlipSlashes(g_Mapname);
-					StripExtension(g_Mapname);
+					g_Mapname = std::filesystem::path(
+						argv[i], std::filesystem::path::auto_format
+					);
+					g_Mapname.replace_extension(std::filesystem::path{});
 				}
 			}
 
-			std::filesystem::path source;
-			source = g_Mapname;
-			source += u8".bsp";
+			std::filesystem::path source{
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+			};
 
 			if (!std::filesystem::exists(source)) {
 				Log("bspfile '%s' does not exist\n",
@@ -1035,7 +1036,7 @@ int main(int argc, char** argv) {
 			// BEGIN RipEnt
 			time_counter timeCounter;
 
-			ReadBSP(g_Mapname);
+			ReadBSP(g_Mapname.c_str());
 			bool updatebsp = false;
 			if (g_deleteembeddedlightmaps) {
 				DeleteEmbeddedLightmaps();
@@ -1043,22 +1044,22 @@ int main(int argc, char** argv) {
 			}
 			switch (g_mode) {
 				case hl_import:
-					ReadEntities(g_Mapname);
+					ReadEntities(g_Mapname.c_str());
 					updatebsp = true;
 					break;
 				case hl_export:
-					WriteEntities(g_Mapname);
+					WriteEntities(g_Mapname.c_str());
 					break;
 				case hl_undefined:
 					break;
 			}
 			switch (g_texturemode) {
 				case hl_import:
-					ReadTextures(g_Mapname);
+					ReadTextures(g_Mapname.c_str());
 					updatebsp = true;
 					break;
 				case hl_export:
-					WriteTextures(g_Mapname);
+					WriteTextures(g_Mapname.c_str());
 					break;
 				case hl_undefined:
 					break;
@@ -1067,7 +1068,7 @@ int main(int argc, char** argv) {
 				print_bsp_file_sizes(bspGlobals);
 			}
 			if (updatebsp) {
-				WriteBSP(g_Mapname);
+				WriteBSP(g_Mapname.c_str());
 			}
 
 			LogTimeElapsed(timeCounter.get_total());

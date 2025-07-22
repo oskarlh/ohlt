@@ -296,13 +296,13 @@ static bool CheckVisBitVismatrix(
 // MakeScalesVismatrix
 // =====================================================================================
 void MakeScalesVismatrix() {
-	char transferfile[_MAX_PATH];
-
 	hlassume(g_num_patches < MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES);
 
-	safe_snprintf(transferfile, _MAX_PATH, "%s.inc", g_Mapname);
-
-	if (!g_incremental || !readtransfers(transferfile, g_num_patches)) {
+	std::filesystem::path const transferFilePath{
+		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
+	};
+	if (!g_incremental
+		|| !readtransfers(transferFilePath.c_str(), g_num_patches)) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		g_CheckVisBit = CheckVisBitVismatrix;
@@ -320,9 +320,9 @@ void MakeScalesVismatrix() {
 		FreeTransparencyArrays();
 
 		if (g_incremental) {
-			writetransfers(transferfile, g_num_patches);
+			writetransfers(transferFilePath.c_str(), g_num_patches);
 		} else {
-			std::filesystem::remove(transferfile);
+			std::filesystem::remove(transferFilePath);
 		}
 		DumpTransfersMemoryUsage();
 		CreateFinalStyleArrays("dynamic shadow array");

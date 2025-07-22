@@ -114,12 +114,13 @@ void TryOpenWadFiles() {
 	}
 	g_wadfiles_opened = true;
 
-	char filename[_MAX_PATH];
-	safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
-	if (std::filesystem::exists(filename)) {
-		OpenWadFile(filename, true);
+	std::filesystem::path const filePath{
+		path_to_temp_file_with_extension(g_Mapname, u8".wa_").c_str()
+	};
+	if (std::filesystem::exists(filePath)) {
+		OpenWadFile(filePath.c_str(), true);
 	} else {
-		Warning("Couldn't open %s", filename);
+		Warning("Couldn't open %s", filePath.c_str());
 		Log("Opening wad files from directories:\n");
 		if (g_wadDirs.empty()) {
 			Warning("No wad directories have been set.");
@@ -333,7 +334,11 @@ void LoadTextures() {
 		if (g_notextures) {
 			DefaultTexture(tex, wad_texture_name{ u8"default" });
 		} else if (offset < 0 || size < (int) sizeof(miptex_t)) {
-			Warning("Invalid texture data in '%s'.", g_source);
+			Warning(
+				"Invalid texture data in '%s'.",
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+					.c_str()
+			);
 			DefaultTexture(tex, wad_texture_name{ u8"" });
 		} else {
 			miptex_t* mt = (miptex_t*) &g_dtexdata[offset];
@@ -342,7 +347,8 @@ void LoadTextures() {
 					developer_level::message,
 					"Texture '%s': found in '%s'.\n",
 					mt->name.c_str(),
-					g_source
+					path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+						.c_str()
 				);
 				Developer(
 					developer_level::message,

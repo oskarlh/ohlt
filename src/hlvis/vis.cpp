@@ -407,7 +407,6 @@ static void CalcPortalVis() {
 //  SaveVisData
 // =====================================================================================
 void SaveVisData(char const * filename) {
-	int i;
 	FILE* fp = fopen(filename, "wb");
 
 	if (!fp) {
@@ -420,7 +419,7 @@ void SaveVisData(char const * filename) {
 
 	// BUG BUG BUG!
 	// Leaf offsets need to be saved too!!!!
-	for (i = 0; i < g_numleafs; i++) {
+	for (int i = 0; i < g_numleafs; i++) {
 		SafeWrite(fp, &g_dleafs[i].visofs, sizeof(int));
 	}
 
@@ -431,13 +430,12 @@ void SaveVisData(char const * filename) {
 //  CalcVis
 // =====================================================================================
 static void CalcVis() {
-	unsigned i;
-	char visdatafile[_MAX_PATH];
-
-	safe_snprintf(visdatafile, _MAX_PATH, "%s.vdt", g_Mapname);
+	std::filesystem::path const visDataFilePath{
+		path_to_temp_file_with_extension(g_Mapname, u8".vdt").c_str()
+	};
 
 	// Remove this file
-	std::filesystem::remove(visdatafile);
+	std::filesystem::remove(visDataFilePath.c_str());
 
 	NamedRunThreadsOn(g_numportals * 2, g_estimate, BasePortalVis);
 
@@ -446,7 +444,7 @@ static void CalcVis() {
 	CalcPortalVis();
 
 	// Add additional leaves to the uncompressed vis.
-	for (i = 0; i < g_portalleafs; i++) {
+	for (unsigned i = 0; i < g_portalleafs; i++) {
 		if (!g_leafinfos[i].additional_leaves.empty()) {
 			for (int leaf : g_leafinfos[i].additional_leaves) {
 				LeafFlowNeighborAddLeaf(i, leaf, g_leafinfos[i].neighbor);
@@ -458,7 +456,7 @@ static void CalcVis() {
 	//
 	// assemble the leaf vis lists by oring and compressing the portal lists
 	//
-	for (i = 0; i < g_portalleafs; i++) {
+	for (unsigned i = 0; i < g_portalleafs; i++) {
 		LeafFlow(i);
 	}
 
@@ -467,8 +465,8 @@ static void CalcVis() {
 	if (g_maxdistance) {
 		totalvis = 0;
 
-		Log("saving visdata to %s...\n", visdatafile);
-		SaveVisData(visdatafile);
+		Log("saving visdata to %s...\n", visDataFilePath.c_str());
+		SaveVisData(visDataFilePath.c_str());
 
 		// We need to reset the uncompressed variable and portal visbits
 		free(g_uncompressed);
@@ -483,7 +481,7 @@ static void CalcVis() {
 		// after the initial VIS
 		// CalcPortalVis();
 
-		for (i = 0; i < g_portalleafs; i++) {
+		for (unsigned i = 0; i < g_portalleafs; i++) {
 			LeafFlow(i);
 		}
 
@@ -945,8 +943,6 @@ void FixPrt(char const * portalfile) {
 //  main
 // =====================================================================================
 int main(int const argc, char** argv) {
-	char portalfile[_MAX_PATH];
-	char source[_MAX_PATH];
 	std::u8string_view mapname_from_arg;
 
 	g_Program = "HLVIS";
@@ -1044,11 +1040,11 @@ int main(int const argc, char** argv) {
 				Usage();
 			}
 
-			safe_strncpy(
-				g_Mapname, (char const *) mapname_from_arg.data(), _MAX_PATH
+			g_Mapname = std::filesystem::path(
+				mapname_from_arg, std::filesystem::path::auto_format
 			);
-			FlipSlashes(g_Mapname);
-			StripExtension(g_Mapname);
+			g_Mapname.replace_extension(std::filesystem::path{});
+
 			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
@@ -1066,12 +1062,9 @@ int main(int const argc, char** argv) {
 			// BEGIN VIS
 			time_counter timeCounter;
 
-			safe_strncpy(source, g_Mapname, _MAX_PATH);
-			safe_strncat(source, ".bsp", _MAX_PATH);
-			safe_strncpy(portalfile, g_Mapname, _MAX_PATH);
-			safe_strncat(portalfile, ".prt", _MAX_PATH);
-
-			LoadBSPFile(source);
+			LoadBSPFile(
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+			);
 			parse_entities_from_bsp_file();
 			{
 				for (std::size_t i = 0; i < g_numentities; i++) {
@@ -1158,7 +1151,10 @@ int main(int const argc, char** argv) {
 					}
 				}
 			}
-			LoadPortalsByFilename(portalfile);
+			LoadPortalsByFilename(
+				path_to_temp_file_with_extension(g_Mapname, u8".prt")
+					.c_str()
+			);
 
 			Settings();
 			g_uncompressed = (byte*) calloc(g_portalleafs, g_bitbytes);
@@ -1172,14 +1168,18 @@ int main(int const argc, char** argv) {
 
 			if (!g_nofixprt) // seedee
 			{
-				FixPrt(portalfile);
+				FixPrt(path_to_temp_file_with_extension(g_Mapname, u8".prt")
+						   .c_str());
 			}
 
 			if (g_chart) {
 				print_bsp_file_sizes(bspGlobals);
 			}
 
-			WriteBSPFile(source);
+			WriteBSPFile(
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+					.c_str()
+			);
 
 			LogTimeElapsed(timeCounter.get_total());
 

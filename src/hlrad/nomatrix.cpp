@@ -163,13 +163,14 @@ bool CheckVisBitBackwards(
 ////////////////////////////
 
 void MakeScalesNoVismatrix() {
-	char transferfile[_MAX_PATH];
-
 	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
 
-	safe_snprintf(transferfile, _MAX_PATH, "%s.inc", g_Mapname);
+	std::filesystem::path const transferfile{
+		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
+	};
 
-	if (!g_incremental || !readtransfers(transferfile, g_num_patches)) {
+	if (!g_incremental
+		|| !readtransfers(transferfile.c_str(), g_num_patches)) {
 		g_CheckVisBit = CheckVisBitNoVismatrix;
 		if (g_rgb_transfers) {
 			NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);
@@ -178,7 +179,7 @@ void MakeScalesNoVismatrix() {
 		}
 
 		if (g_incremental) {
-			writetransfers(transferfile, g_num_patches);
+			writetransfers(transferfile.c_str(), g_num_patches);
 		} else {
 			std::filesystem::remove(transferfile);
 		}

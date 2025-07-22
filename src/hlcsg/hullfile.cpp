@@ -13,22 +13,17 @@ void LoadHullfile(char const * filename) {
 		return;
 	}
 
-	float x1, y1, z1;
-	float x2, y2, z2;
-	char magic;
-
 	FILE* file = fopen(filename, "r");
 
-	int count;
-	int i;
-
-	magic = (char) fgetc(file);
+	char magic = (char) fgetc(file);
 	rewind(file);
 
 	if (magic == '(') { // Test for old-style hull-file
 
-		for (i = 0; i < NUM_HULLS; i++) {
-			count = fscanf(
+		for (int i = 0; i < NUM_HULLS; i++) {
+			float x1, y1, z1;
+			float x2, y2, z2;
+			int count = fscanf(
 				file,
 				"( %f %f %f ) ( %f %f %f )\n",
 				&x1,
@@ -58,8 +53,9 @@ void LoadHullfile(char const * filename) {
 
 	} else {
 		// Skip hull 0 (visibile polygons)
-		for (i = 1; i < NUM_HULLS; i++) {
-			count = fscanf(file, "%f %f %f\n", &x1, &y1, &z1);
+		for (int i = 1; i < NUM_HULLS; i++) {
+			float x1, y1, z1;
+			int count = fscanf(file, "%f %f %f\n", &x1, &y1, &z1);
 			if (count != 3) {
 				Error(
 					"Could not parse new hull definition file '%s' (%d, %d)\n",

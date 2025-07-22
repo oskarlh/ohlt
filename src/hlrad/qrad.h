@@ -392,7 +392,6 @@ extern float g_smoothing_threshold_2;
 extern float g_smoothing_value_2;
 extern float* g_smoothvalues; //[nummiptex]
 extern bool g_estimate;
-extern char g_source[_MAX_PATH];
 extern float g_fade;
 extern bool g_incremental;
 extern bool g_circus;

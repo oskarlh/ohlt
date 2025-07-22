@@ -1248,8 +1248,9 @@ entity_t* EntityForModel(int const modnum) {
 	snprintf((char*) name.data(), name.size(), "*%i", modnum);
 	// search the entities for one using modnum
 	for (std::size_t i = 0; i < g_numentities; i++) {
-		if (value_for_key(&g_entities[i], u8"model")
-			== std::u8string_view(name.data())) {
+		if (key_value_is(
+				&g_entities[i], u8"model", std::u8string_view(name.data())
+			)) {
 			return &g_entities[i];
 		}
 	}

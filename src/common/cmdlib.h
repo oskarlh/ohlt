@@ -4,6 +4,7 @@
 #include "win32fix.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <ranges>
 #include <stdarg.h>
 #include <stdint.h>

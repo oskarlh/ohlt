@@ -11,8 +11,8 @@
 //
 
 extern char const * g_Program;
-extern char g_Mapname[_MAX_PATH];
-extern char g_Wadpath[_MAX_PATH]; // seedee
+extern std::filesystem::path g_Mapname;
+extern std::filesystem::path g_Wadpath; // This is just the mod folder...
 
 extern developer_level g_developer;
 extern bool g_verbose;
@@ -35,6 +35,10 @@ extern void CheckFatal();
 
 extern void FORMAT_PRINTF(2, 3)
 	Developer(developer_level level, char const * const message, ...);
+
+std::filesystem::path path_to_temp_file_with_extension(
+	std::filesystem::path mapBasePath, std::u8string_view extension
+);
 
 #ifdef _DEBUG
 #define IfDebug(x) (x)

@@ -70,8 +70,6 @@ float g_lightscale = DEFAULT_LIGHTSCALE;
 float g_dlight_threshold
 	= DEFAULT_DLIGHT_THRESHOLD; // was DIRECT_LIGHT constant
 
-char g_source[_MAX_PATH] = "";
-
 char g_vismatfile[_MAX_PATH] = "";
 bool g_incremental = DEFAULT_INCREMENTAL;
 float g_indirect_sun = DEFAULT_INDIRECT_SUN;
@@ -2619,11 +2617,12 @@ static void RadWorld() {
 	// turn each face into a single patch
 	MakePatches();
 	if (g_drawpatch) {
-		char name[_MAX_PATH + 20];
-		snprintf(name, sizeof(name), "%s_patch.pts", g_Mapname);
-		Log("Writing '%s' ...\n", name);
-		FILE* f;
-		f = fopen(name, "w");
+		std::filesystem::path const patchFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8"_patch.pts")
+				.c_str()
+		};
+		Log("Writing '%s' ...\n", patchFilePath.c_str());
+		FILE* f = fopen(patchFilePath.c_str(), "w");
 		if (f) {
 			patch_t const * patch = g_patches;
 			for (std::size_t j = 0; j < g_num_patches; j++, patch++) {
@@ -2653,11 +2652,14 @@ static void RadWorld() {
 	SortPatches(); // Makes the runs in the Transfer Compression really good
 	PairEdges();
 	if (g_drawedge) {
-		char name[_MAX_PATH + 20];
-		snprintf(name, sizeof(name), "%s_edge.pts", g_Mapname);
-		Log("Writing '%s' ...\n", name);
+		std::filesystem::path const edgeFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8"_edge.pts")
+				.c_str()
+		};
+
+		Log("Writing '%s' ...\n", edgeFilePath.c_str());
 		FILE* f;
-		f = fopen(name, "w");
+		f = fopen(edgeFilePath.c_str(), "w");
 		if (f) {
 			edgeshare_t const * es{ g_edgeshare.data() };
 			for (std::size_t j = 0; j < MAX_MAP_EDGES; j++, es++) {
@@ -4048,11 +4050,11 @@ int main(int const argc, char** argv) {
 				g_smoothing_value * (std::numbers::pi_v<float> / 180)
 			);
 
-			safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
-			FlipSlashes(g_Mapname);
-			ExtractFilePath(g_Mapname, temp); // skip mapname
-			ExtractFilePath(temp, g_Wadpath);
-			StripExtension(g_Mapname);
+			g_Mapname = std::filesystem::path(
+				mapname_from_arg, std::filesystem::path::auto_format
+			);
+			g_Mapname.replace_extension(std::filesystem::path{});
+			g_Wadpath = g_Mapname.parent_path().parent_path();
 			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
@@ -4074,8 +4076,10 @@ int main(int const argc, char** argv) {
 
 			// normalise maxlight
 
-			safe_snprintf(g_source, _MAX_PATH, "%s.bsp", g_Mapname);
-			LoadBSPFile(g_source);
+			LoadBSPFile(
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+					.c_str()
+			);
 			parse_entities_from_bsp_file();
 			if (g_fastmode) {
 				g_numbounce = 0;
@@ -4084,7 +4088,7 @@ int main(int const argc, char** argv) {
 			Settings();
 			DeleteEmbeddedLightmaps();
 			LoadTextures();
-			LoadRadFiles(g_Mapname, user_lights, argv[0]);
+			LoadRadFiles(g_Mapname.c_str(), user_lights, argv[0]);
 			ReadCustomChopValue();
 			ReadCustomSmoothValue();
 			ReadTranslucentTextures();
@@ -4132,7 +4136,10 @@ int main(int const argc, char** argv) {
 				print_bsp_file_sizes(bspGlobals);
 			}
 
-			WriteBSPFile(g_source);
+			WriteBSPFile(
+				path_to_temp_file_with_extension(g_Mapname, u8".bsp")
+					.c_str()
+			);
 
 			LogTimeElapsed(timeCounter.get_total());
 			// END RAD

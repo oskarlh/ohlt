@@ -661,17 +661,16 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		l = (dmiptexlump_t*) g_dtexdata.data();
 		data = (std::byte*) &l->dataofs[nummiptex];
 		l->nummiptex = nummiptex;
-		char writewad_name[_MAX_PATH]; // Write temp wad file with processed
-									   // textures
 		FILE* writewad_file;
 		int writewad_maxlumpinfos;
 		wad_lumpinfo* writewad_lumpinfos;
 		wadinfo_t writewad_header;
 
-		safe_snprintf(
-			writewad_name, _MAX_PATH, "%s.wa_", g_Mapname
-		); // Generate temp wad file name based on mapname
-		writewad_file = SafeOpenWrite(writewad_name);
+		// Generate temp wad file with name based on mapname, to contain
+		// processed textures
+		writewad_file = SafeOpenWrite(
+			path_to_temp_file_with_extension(g_Mapname, u8".wa_").c_str()
+		);
 
 		// Malloc for storing lump info
 		writewad_maxlumpinfos = nummiptex;

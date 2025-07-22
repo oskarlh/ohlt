@@ -5,5 +5,5 @@
 
 #include <array>
 
-using hull_sizes = std::array<std::array<double3_array, 2>, NUM_HULLS>;
+using hull_sizes = std::array<std::array<float3_array, 2>, NUM_HULLS>;
 extern hull_sizes const standard_hull_sizes;

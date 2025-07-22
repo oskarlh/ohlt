@@ -353,15 +353,16 @@ static void DumpVismatrixInfo() {
 ////////////////////////////
 
 void MakeScalesSparseVismatrix() {
-	char transferfile[_MAX_PATH];
-
 	hlassume(
 		g_num_patches < MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES
 	);
 
-	safe_snprintf(transferfile, _MAX_PATH, "%s.inc", g_Mapname);
+	std::filesystem::path const transferFilePath{
+		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
+	};
 
-	if (!g_incremental || !readtransfers(transferfile, g_num_patches)) {
+	if (!g_incremental
+		|| !readtransfers(transferFilePath.c_str(), g_num_patches)) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		DumpVismatrixInfo();
@@ -380,9 +381,9 @@ void MakeScalesSparseVismatrix() {
 		FreeTransparencyArrays();
 
 		if (g_incremental) {
-			writetransfers(transferfile, g_num_patches);
+			writetransfers(transferFilePath.c_str(), g_num_patches);
 		} else {
-			std::filesystem::remove(transferfile);
+			std::filesystem::remove(transferFilePath);
 		}
 		// release visibility matrix
 		DumpTransfersMemoryUsage();

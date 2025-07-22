@@ -345,3 +345,15 @@ void SaveFile(
 	SafeWrite(f, buffer, count);
 	fclose(f);
 }
+
+// Meant for strings from entity key-values, strings such as
+// "models/barney.mdl" or "model\\barney.mdl"
+std::filesystem::path
+parse_relative_file_path(std::u8string_view relativeFilePath) {
+	std::u8string withFixedSeparators{ relativeFilePath };
+	std::ranges::replace(withFixedSeparators, u8'\\', u8'/');
+
+	return std::filesystem::path{ withFixedSeparators,
+								  std::filesystem::path::generic_format }
+		.relative_path();
+}

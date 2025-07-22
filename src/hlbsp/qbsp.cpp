@@ -15,6 +15,7 @@
 #include "bsp5.h"
 #include "cli_option_defaults.h"
 #include "hull_size.h"
+#include "log.h"
 #include "time_counter.h"
 #include "utf8.h"
 
@@ -1363,54 +1364,66 @@ static void Settings() {
 // =====================================================================================
 //  ProcessFile
 // =====================================================================================
-static void ProcessFile(char const * const filename, bsp_data& bspData) {
-	int i;
-	char name[_MAX_PATH];
-
+static void
+ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 	// delete existing files
-	g_portfilename = filename;
-	g_portfilename += u8".prt";
+	g_portfilename = path_to_temp_file_with_extension(
+		mapBasePath, u8".prt"
+	);
 	std::filesystem::remove(g_portfilename);
 
-	g_pointfilename = filename;
-	g_pointfilename += u8".pts";
+	g_pointfilename = path_to_temp_file_with_extension(
+		mapBasePath, u8".pts"
+	);
 	std::filesystem::remove(g_pointfilename);
 
-	g_linefilename = filename;
-	g_linefilename += u8".lin";
+	g_linefilename = path_to_temp_file_with_extension(
+		mapBasePath, u8".lin"
+	);
 	std::filesystem::remove(g_linefilename);
 
-	g_extentfilename = filename;
-	g_extentfilename += u8".ext";
+	g_extentfilename = path_to_temp_file_with_extension(
+		mapBasePath, u8".ext"
+	);
 	std::filesystem::remove(g_extentfilename);
 	// open the hull files
-	for (i = 0; i < NUM_HULLS; i++) {
+
+	for (hull_count i = 0; i < NUM_HULLS; ++i) {
 		// mapname.p[0-3]
-		snprintf(name, sizeof(name), "%s.p%i", filename, i);
-		polyfiles[i] = fopen(name, "r");
+		std::filesystem::path polyFilePath{
+			path_to_temp_file_with_extension(
+				mapBasePath, polyFileExtensions[i]
+			)
+		};
+
+		polyfiles[i] = fopen(polyFilePath.c_str(), "r");
 
 		if (!polyfiles[i]) {
-			Error("Can't open %s", name);
+			Error("Can't open %s", polyFilePath.c_str());
 		}
-		snprintf(name, sizeof(name), "%s.b%i", filename, i);
-		brushfiles[i] = fopen(name, "r");
+
+		std::filesystem::path brushFilePath{
+			path_to_temp_file_with_extension(
+				mapBasePath, brushFileExtensions[i]
+			)
+		};
+		brushfiles[i] = fopen(brushFilePath.c_str(), "r");
 		if (!brushfiles[i]) {
-			Error("Can't open %s", name);
+			Error("Can't open %s", brushFilePath.c_str());
 		}
 	}
 	{
-		FILE* f;
-		char name[_MAX_PATH];
-		safe_snprintf(name, _MAX_PATH, "%s.hsz", filename);
-		f = fopen(name, "r");
+		std::filesystem::path filePath{
+			path_to_temp_file_with_extension(mapBasePath, u8".hsz")
+		};
+		FILE* f = fopen(filePath.c_str(), "r");
 		if (!f) {
-			Warning("Couldn't open %s", name);
+			Warning("Couldn't open %s", filePath.c_str());
 		} else {
-			float x1, y1, z1;
-			float x2, y2, z2;
-			for (i = 0; i < NUM_HULLS; i++) {
-				int count;
-				count = fscanf(
+			for (hull_count i = 0; i < NUM_HULLS; i++) {
+				float x1, y1, z1;
+				float x2, y2, z2;
+				int const count = fscanf(
 					f, "%f %f %f %f %f %f\n", &x1, &y1, &z1, &x2, &y2, &z2
 				);
 				if (count != 6) {
@@ -1427,8 +1440,7 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 		}
 	}
 
-	g_bspfilename = filename;
-	g_bspfilename += u8".bsp";
+	g_bspfilename = path_to_temp_file_with_extension(mapBasePath, u8".bsp");
 	// load the output of csg
 	LoadBSPFile(g_bspfilename.c_str());
 	parse_entities_from_bsp_file();
@@ -1436,12 +1448,13 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 	Settings(); // AJM: moved here due to info_compile_parameters entity
 
 	{
-		char name[_MAX_PATH];
-		safe_snprintf(name, _MAX_PATH, "%s.pln", filename);
-		FILE* planefile = fopen(name, "rb");
+		std::filesystem::path planeFilePath{
+			path_to_temp_file_with_extension(mapBasePath, u8".pln")
+		};
+		FILE* planefile = fopen(planeFilePath.c_str(), "rb");
 		if (!planefile) {
-			Warning("Couldn't open %s", name);
-			for (i = 0; i < g_numplanes; i++) {
+			Warning("Couldn't open %s", planeFilePath.c_str());
+			for (int i = 0; i < g_numplanes; i++) {
 				mapplane_t* mp = &g_mapplanes[i];
 				dplane_t* dp = &g_dplanes[i];
 				mp->normal = to_double3(dp->normal);
@@ -1472,20 +1485,24 @@ static void ProcessFile(char const * const filename, bsp_data& bspData) {
 
 	// Because the bsp file has been updated, these polyfiles are no longer
 	// valid.
-	for (i = 0; i < NUM_HULLS; i++) {
-		snprintf(name, sizeof(name), "%s.p%i", filename, i);
+	for (int i = 0; i < NUM_HULLS; i++) {
 		fclose(polyfiles[i]);
 		polyfiles[i] = nullptr;
-		std::filesystem::remove(name);
-		snprintf(name, sizeof(name), "%s.b%i", filename, i);
+		std::filesystem::remove(path_to_temp_file_with_extension(
+			mapBasePath, polyFileExtensions[i]
+		));
 		fclose(brushfiles[i]);
 		brushfiles[i] = nullptr;
-		std::filesystem::remove(name);
+		std::filesystem::remove(path_to_temp_file_with_extension(
+			mapBasePath, brushFileExtensions[i]
+		));
 	}
-	safe_snprintf(name, _MAX_PATH, "%s.hsz", filename);
-	std::filesystem::remove(name);
-	safe_snprintf(name, _MAX_PATH, "%s.pln", filename);
-	std::filesystem::remove(name);
+	std::filesystem::remove(
+		path_to_temp_file_with_extension(mapBasePath, u8".hsz")
+	);
+	std::filesystem::remove(
+		path_to_temp_file_with_extension(mapBasePath, u8".pln")
+	);
 }
 
 // =====================================================================================
@@ -1701,10 +1718,11 @@ int main(int const argc, char** argv) {
 				Log("No mapfile specified\n");
 				Usage();
 			}
+			g_Mapname = std::filesystem::path(
+				mapname_from_arg, std::filesystem::path::auto_format
+			);
+			g_Mapname.replace_extension(std::filesystem::path{});
 
-			safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
-			FlipSlashes(g_Mapname);
-			StripExtension(g_Mapname);
 			OpenLog();
 			atexit(CloseLog);
 			ThreadSetDefault();
@@ -1722,8 +1740,6 @@ int main(int const argc, char** argv) {
 
 			// Load the .void files for allowable entities in the void
 			{
-				char strMapEntitiesVoidFile[_MAX_PATH];
-
 				// try looking in the current directory
 				std::filesystem::path strSystemEntitiesVoidFile{
 					entitiesVoidFilename,
@@ -1736,21 +1752,15 @@ int main(int const argc, char** argv) {
 						/ strSystemEntitiesVoidFile;
 				}
 
-				// Set the optional level specific lights filename
-				safe_snprintf(
-					strMapEntitiesVoidFile,
-					_MAX_PATH,
-					"%s%s",
-					g_Mapname,
-					(char const *) entitiesVoidExt.data()
-				);
+				// Load default entities.void
+				LoadAllowableOutsideList(strSystemEntitiesVoidFile.c_str());
 
-				LoadAllowableOutsideList(strSystemEntitiesVoidFile.c_str()
-				); // default entities.void
-				if (*strMapEntitiesVoidFile) {
-					LoadAllowableOutsideList(strMapEntitiesVoidFile
-					); // automatic mapname.void
-				}
+				// Load the optional level specific lights from
+				// <mapname>.void
+				LoadAllowableOutsideList(path_to_temp_file_with_extension(
+											 g_Mapname, entitiesVoidExt
+				)
+											 .c_str());
 			}
 
 			// BEGIN BSP

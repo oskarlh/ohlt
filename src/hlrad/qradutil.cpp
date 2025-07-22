@@ -713,11 +713,13 @@ void FindFacePositions(int facenum)
 
 void FreePositionMaps() {
 	if (g_drawsample) {
-		char name[_MAX_PATH + 20];
-		snprintf(name, sizeof(name), "%s_positions.pts", g_Mapname);
-		Log("Writing '%s' ...\n", name);
-		FILE* f;
-		f = fopen(name, "w");
+		std::filesystem::path const positionsFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8"_positions.pts")
+				.c_str()
+		};
+
+		Log("Writing '%s' ...\n", positionsFilePath.c_str());
+		FILE* f = fopen(positionsFilePath.c_str(), "w");
 		if (f) {
 			float3_array v, dist;
 			for (std::size_t i = 0; i < g_numfaces; ++i) {

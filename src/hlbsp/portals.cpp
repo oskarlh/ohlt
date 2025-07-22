@@ -351,13 +351,15 @@ void WritePortalfile(node_t* headnode) {
 		Error("Error writing portal file %s", g_portfilename.c_str());
 	}
 	if (g_viewportal) {
-		char filename[_MAX_PATH];
-		safe_snprintf(filename, _MAX_PATH, "%s_portal.pts", g_Mapname);
-		pf_view = fopen(filename, "w");
+		std::filesystem::path viewPortalFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8"_portal.pts")
+		};
+
+		pf_view = fopen(viewPortalFilePath.c_str(), "w");
 		if (!pf_view) {
-			Error("Couldn't open %s", filename);
+			Error("Couldn't open %s", viewPortalFilePath.c_str());
 		}
-		Log("Writing '%s' ...\n", filename);
+		Log("Writing '%s' ...\n", viewPortalFilePath.c_str());
 	}
 
 	fprintf(pf, "%i\n", num_visleafs);

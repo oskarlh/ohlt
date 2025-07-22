@@ -91,7 +91,7 @@ When writing key-values to the .bsp file, in the end compiler-specific key-value
 
 
 				std::filesystem::path wadCfgPath
-					= std::filesystem::path(g_Mapname).parent_path()
+					= std::filesystem::path(g_Mapname).parent_path().parent_path()
 					/ "wad.cfg";
 
 					// Look for wad.cfg relative to exe

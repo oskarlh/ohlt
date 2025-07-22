@@ -832,11 +832,12 @@ static void EmitPlanes() {
 	mp = g_mapplanes.data();
 	dplane_t* dp = g_dplanes.data();
 	{
-		char name[_MAX_PATH];
-		safe_snprintf(name, _MAX_PATH, "%s.pln", g_Mapname);
-		FILE* planeout = fopen(name, "wb");
+		std::filesystem::path planeFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8".pln")
+		};
+		FILE* planeout = fopen(planeFilePath.c_str(), "wb");
 		if (!planeout) {
-			Error("Couldn't open %s", name);
+			Error("Couldn't open %s", planeFilePath.c_str());
 		}
 		SafeWrite(
 			planeout,
@@ -906,7 +907,7 @@ void ReuseModel() {
 			if (strings_equal_with_ascii_case_insensitivity(
 					name, u8"null"
 				)) {
-				set_key_value(&g_entities[i], u8"model", u8"");
+				DeleteKey(&g_entities[i], u8"model");
 				continue;
 			}
 			Error(
@@ -2065,9 +2066,10 @@ int main(int const argc, char** argv) {
 			}
 
 			// handle mapname
-			safe_strncpy(g_Mapname, mapname_from_arg, _MAX_PATH);
-			FlipSlashes(g_Mapname);
-			StripExtension(g_Mapname);
+			g_Mapname = std::filesystem::path(
+				mapname_from_arg, std::filesystem::path::auto_format
+			);
+			g_Mapname.replace_extension(std::filesystem::path{});
 
 			// onlyents
 			if (!g_onlyents) {
@@ -2157,7 +2159,7 @@ int main(int const argc, char** argv) {
 				LoadBSPFile(out);
 
 				// Write it all back out again.
-				WriteBSP(g_Mapname);
+				WriteBSP(g_Mapname.c_str());
 
 				LogTimeElapsed(timeCounter.get_total());
 				return 0;
@@ -2200,47 +2202,56 @@ int main(int const argc, char** argv) {
 
 			// open hull files
 			for (i = 0; i < NUM_HULLS; i++) {
-				char name[_MAX_PATH];
+				std::filesystem::path const polyFilePath{
+					path_to_temp_file_with_extension(
+						g_Mapname, polyFileExtensions[i]
+					)
+				};
 
-				safe_snprintf(name, _MAX_PATH, "%s.p%i", g_Mapname, i);
-
-				out[i] = fopen(name, "w");
-
+				out[i] = fopen(polyFilePath.c_str(), "w");
 				if (!out[i]) {
-					Error("Couldn't open %s", name);
+					Error("Couldn't open %s", polyFilePath.c_str());
 				}
-				safe_snprintf(name, _MAX_PATH, "%s.b%i", g_Mapname, i);
-				out_detailbrush[i] = fopen(name, "w");
+
+				std::filesystem::path const brushFilePath{
+					path_to_temp_file_with_extension(
+						g_Mapname, brushFileExtensions[i]
+					)
+				};
+
+				out_detailbrush[i] = fopen(brushFilePath.c_str(), "w");
 				if (!out_detailbrush[i]) {
-					Error("Couldn't open %s", name);
+					Error("Couldn't open %s", brushFilePath.c_str());
 				}
+
 				if (g_viewsurface) {
-					safe_snprintf(
-						name, _MAX_PATH, "%s_surface%i.pts", g_Mapname, i
-					);
-					out_view[i] = fopen(name, "w");
+					std::filesystem::path const surfaceFilePath{
+						path_to_temp_file_with_extension(
+							g_Mapname, surfaceFileExtensions[i]
+						)
+					};
+					out_view[i] = fopen(surfaceFilePath.c_str(), "w");
 					if (!out[i]) {
-						Error("Counldn't open %s", name);
+						Error("Counldn't open %s", surfaceFilePath.c_str());
 					}
 				}
 			}
 			{
+				std::filesystem::path hullSizeFilePath{
+					path_to_temp_file_with_extension(g_Mapname, u8".hsz")
+				};
 				FILE* f;
-				char name[_MAX_PATH];
-				safe_snprintf(name, _MAX_PATH, "%s.hsz", g_Mapname);
-				f = fopen(name, "w");
+				f = fopen(hullSizeFilePath.c_str(), "w");
 				if (!f) {
-					Error("Couldn't open %s", name);
+					Error("Couldn't open %s", hullSizeFilePath.c_str());
 				}
-				float x1, y1, z1;
-				float x2, y2, z2;
 				for (i = 0; i < NUM_HULLS; i++) {
-					x1 = g_hull_size[i][0][0];
-					y1 = g_hull_size[i][0][1];
-					z1 = g_hull_size[i][0][2];
-					x2 = g_hull_size[i][1][0];
-					y2 = g_hull_size[i][1][1];
-					z2 = g_hull_size[i][1][2];
+					float const x1{ g_hull_size[i][0][0] };
+					float const y1{ g_hull_size[i][0][1] };
+					float const z1{ g_hull_size[i][0][2] };
+					float const x2{ g_hull_size[i][1][0] };
+					float const y2{ g_hull_size[i][1][1] };
+					float const z2{ g_hull_size[i][1][2] };
 					fprintf(
 						f, "%g %g %g %g %g %g\n", x1, y1, z1, x2, y2, z2
 					);
@@ -2266,7 +2277,7 @@ int main(int const argc, char** argv) {
 
 			EmitPlanes();
 
-			WriteBSP(g_Mapname);
+			WriteBSP(g_Mapname.c_str());
 
 			// Debug
 			if constexpr (false) {

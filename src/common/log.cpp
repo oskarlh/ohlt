@@ -1,21 +1,17 @@
 #include "log.h"
 
+#include "cli_option_defaults.h"
 #include "cmdlib.h"
 #include "filelib.h"
 #include "hlassert.h"
 #include "messages.h"
 #include "project_constants.h"
 
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
-
-#include "cli_option_defaults.h"
+#include <filesystem>
 
 char const * g_Program = "Uninitialized variable ::g_Program";
-char g_Mapname[_MAX_PATH] = "Uninitialized variable ::g_Mapname";
-char g_Wadpath[_MAX_PATH] = "Uninitialized variable ::g_Wadpath";
+std::filesystem::path g_Mapname;
+std::filesystem::path g_Wadpath;
 
 developer_level g_developer = cli_option_defaults::developer;
 bool g_verbose = cli_option_defaults::verbose;
@@ -24,108 +20,86 @@ bool g_log = cli_option_defaults::log;
 static FILE* CompileLog = nullptr;
 static bool fatal = false;
 
-FILE* conout = nullptr;
-
 ////////
+
+std::filesystem::path path_to_temp_file_with_extension(
+	std::filesystem::path mapBasePath, std::u8string_view extension
+) {
+	mapBasePath += extension;
+	return mapBasePath;
+}
+
+static std::filesystem::path
+path_to_log_file(std::filesystem::path mapBasePath) {
+	return path_to_temp_file_with_extension(mapBasePath, u8".log");
+}
+
+static std::filesystem::path
+path_to_error_log_file(std::filesystem::path mapBasePath) {
+	return path_to_temp_file_with_extension(mapBasePath, u8".err");
+}
 
 void ResetTmpFiles() {
 	if (g_log) {
-		char filename[_MAX_PATH];
+		constexpr auto extensions = std::to_array<std::u8string_view>({
+			u8".b0",
+			u8".b1",
+			u8".b2",
+			u8".b3",
+			u8".bsp",
+			u8".ext",
+			u8".hsz",
+			u8".inc",
+			u8".lin",
+			u8".p0",
+			u8".p1",
+			u8".p2",
+			u8".p3",
+			u8".pln",
+			u8".prt",
+			u8".pts",
+			u8".wa_",
 
-		safe_snprintf(filename, _MAX_PATH, "%s.bsp", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.inc", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.p0", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.p1", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.p2", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.p3", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.prt", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.pts", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.lin", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.hsz", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.pln", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.b0", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.b1", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.b2", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.b3", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.wa_", g_Mapname);
-		std::filesystem::remove(filename);
-
-		safe_snprintf(filename, _MAX_PATH, "%s.ext", g_Mapname);
-		std::filesystem::remove(filename);
+		});
+		for (auto const & extension : extensions) {
+			std::filesystem::remove(
+				path_to_temp_file_with_extension(g_Mapname, extension)
+			);
+		}
 	}
 }
 
 void ResetLog() {
 	if (g_log) {
-		char logfilename[_MAX_PATH];
-
-		safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);
-		std::filesystem::remove(logfilename);
+		std::filesystem::remove(path_to_log_file(g_Mapname));
 	}
 }
 
 void ResetErrorLog() {
 	if (g_log) {
-		char logfilename[_MAX_PATH];
-
-		safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
-		std::filesystem::remove(logfilename);
+		std::filesystem::remove(path_to_error_log_file(g_Mapname));
 	}
 }
 
 void CheckForErrorLog() {
 	if (g_log) {
-		char logfilename[_MAX_PATH];
-
-		safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
-		if (std::filesystem::exists(logfilename)) {
+		std::filesystem::path const errorFilePath{
+			path_to_error_log_file(g_Mapname)
+		};
+		if (std::filesystem::exists(errorFilePath)) {
 			Log(">> There was a problem compiling the map.\n"
-				">> Check the file %s.log for the cause.\n",
-				g_Mapname);
+				">> Check the files %s and %s for the cause.\n",
+				errorFilePath.c_str(),
+				path_to_log_file(g_Mapname).c_str());
 			exit(1);
 		}
 	}
 }
 
-///////
-
 void LogError(char const * const message) {
 	if (g_log && CompileLog) {
-		char logfilename[_MAX_PATH];
-		FILE* ErrorLog = nullptr;
-
-		safe_snprintf(logfilename, _MAX_PATH, "%s.err", g_Mapname);
-		ErrorLog = fopen(logfilename, "a");
+		std::filesystem::path filePath{ path_to_error_log_file(g_Mapname) };
+		FILE* ErrorLog{ fopen(filePath.c_str(), "a") };
 
 		if (ErrorLog) {
 			fprintf(ErrorLog, "%s: %s\n", g_Program, message);
@@ -136,7 +110,7 @@ void LogError(char const * const message) {
 			fprintf(
 				stderr,
 				"ERROR: Could not open error logfile %s",
-				logfilename
+				filePath.c_str()
 			);
 			fflush(stderr);
 		}
@@ -145,13 +119,12 @@ void LogError(char const * const message) {
 
 void OpenLog() {
 	if (g_log) {
-		char logfilename[_MAX_PATH];
-		safe_snprintf(logfilename, _MAX_PATH, "%s.log", g_Mapname);
-		CompileLog = fopen(logfilename, "a");
+		std::filesystem::path filePath{ path_to_log_file(g_Mapname) };
+		CompileLog = fopen(filePath.c_str(), "a");
 
 		if (!CompileLog) {
 			fprintf(
-				stderr, "ERROR: Could not open logfile %s", logfilename
+				stderr, "ERROR: Could not open logfile %s", filePath.c_str()
 			);
 			fflush(stderr);
 		}

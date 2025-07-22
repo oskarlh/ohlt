@@ -8,7 +8,9 @@ constexpr std::size_t MAX_MODELS = 10000;
 static std::vector<model_t> models;
 
 static void LoadStudioModel(
-	std::u8string_view modelname,
+	std::filesystem::path
+		relativePathToModel, // Example:
+							 // "models/tjb_christmas/hohoho_machinegun.mdl"
 	float3_array const & origin,
 	float3_array const & angles,
 	float3_array const & scale,
@@ -22,18 +24,16 @@ static void LoadStudioModel(
 		);
 		return;
 	}
+
+	std::filesystem::path absolutePathToModel{ g_Wadpath
+											   / relativePathToModel };
+
 	model_t* m = &models.emplace_back();
-	snprintf(
-		m->name,
-		sizeof(m->name),
-		"%s%s",
-		g_Wadpath,
-		(char const *) modelname.data()
-	);
+	snprintf(m->name, sizeof(m->name), "%s", absolutePathToModel.c_str());
 	FlipSlashes(m->name);
 
 	/// TODO: fileContents may be misaligned!!!!! read_binary_file should
-	/// probably return data that'a aligned to std::max_align_t
+	/// probably return data that's aligned to std::max_align_t
 	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(
 		m->name
 	);
@@ -47,25 +47,30 @@ static void LoadStudioModel(
 
 	// well the textures place in separate file (very stupid case)
 	if (phdr->numtextures == 0) {
-		char texname[128], texpath[128];
-		studiohdr_t* thdr;
-		safe_strncpy(texname, (char const *) modelname.data(), 128);
-		StripExtension(texname);
-
-		snprintf(texpath, sizeof(texpath), "%s%sT.mdl", g_Wadpath, texname);
-		FlipSlashes(texpath);
+		std::filesystem::path absolutePathToModelTextureFile{
+			absolutePathToModel
+		};
+		absolutePathToModelTextureFile.replace_extension(
+			std::filesystem::path{}
+		);
+		absolutePathToModelTextureFile += std::filesystem::path{
+			"T.mdl", std::filesystem::path::generic_format
+		};
+		// absolutePathToModelTextureFile looks like this example:
+		// "/games/Half-Life/mymod/models/tjb_christmas/hohoho_machinegunT.mdl"
 
 		auto [readTFileSuccessfully, tFileSize, texdata] = read_binary_file(
-			texpath
+			absolutePathToModelTextureFile
 		);
 		if (!readTFileSuccessfully) {
 			Error(
-				"LoadStudioModel: couldn't load T.mdl file %s\n", texpath
+				"LoadStudioModel: couldn't load T.mdl file %s\n",
+				absolutePathToModelTextureFile.c_str()
 			);
 			return;
 		}
 
-		thdr = (studiohdr_t*) texdata.get();
+		studiohdr_t* thdr = (studiohdr_t*) texdata.get();
 
 		std::size_t const oldLength = phdr->length;
 		std::size_t const newLength = oldLength + thdr->length
@@ -132,7 +137,7 @@ void LoadStudioModels() {
 	}
 
 	for (int i = 0; i < g_numentities; i++) {
-		std::u8string_view model;
+		std::filesystem::path relativePathToModel;
 		float3_array origin, angles;
 
 		entity_t* e = &g_entities[i];
@@ -143,9 +148,11 @@ void LoadStudioModels() {
 				continue; // shadow disabled
 			}
 
-			model = value_for_key(e, u8"model");
+			relativePathToModel = parse_relative_file_path(
+				value_for_key(e, u8"model")
+			);
 
-			if (model.empty()) {
+			if (relativePathToModel.empty()) {
 				Developer(
 					developer_level::warning,
 					"env_static has empty model field\n"
@@ -153,9 +160,11 @@ void LoadStudioModels() {
 				continue;
 			}
 		} else if (IntForKey(e, u8"zhlt_studioshadow")) {
-			model = value_for_key(e, u8"model");
+			relativePathToModel = parse_relative_file_path(
+				value_for_key(e, u8"model")
+			);
 
-			if (model.empty()) {
+			if (relativePathToModel.empty()) {
 				continue;
 			}
 		} else {
@@ -195,7 +204,13 @@ void LoadStudioModels() {
 		}
 
 		LoadStudioModel(
-			model, origin, angles, xform, body, skin, trace_mode
+			relativePathToModel,
+			origin,
+			angles,
+			xform,
+			body,
+			skin,
+			trace_mode
 		);
 	}
 

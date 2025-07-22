@@ -5149,11 +5149,13 @@ void AddPatchLights(int facenum) {
 // =====================================================================================
 void FinalLightFace(int const facenum) {
 	if (facenum == 0 && g_drawsample) {
-		char name[_MAX_PATH + 20];
-		snprintf(name, sizeof(name), "%s_sample.pts", g_Mapname);
-		Log("Writing '%s' ...\n", name);
+		std::filesystem::path const sampleFilePath{
+			path_to_temp_file_with_extension(g_Mapname, u8"_sample.pts")
+				.c_str()
+		};
+		Log("Writing '%s' ...\n", sampleFilePath.c_str());
 		FILE* f;
-		f = fopen(name, "w");
+		f = fopen(sampleFilePath.c_str(), "w");
 		if (f) {
 			int i, j;
 			for (i = 0; i < g_numfaces; ++i) {

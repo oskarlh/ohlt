@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmdlib.h"
+#include "external_types/external_types.h"
 #include "legacy_character_encodings.h"
 
 #include <filesystem>
@@ -34,3 +35,21 @@ void SafeWrite(FILE* f, void const * const buffer, int count);
 void SaveFile(
 	char const * const filename, void const * const buffer, int count
 );
+
+constexpr std::array<std::u8string_view, NUM_HULLS> brushFileExtensions{
+	u8".b0", u8".b1", u8".b2", u8".b3"
+};
+constexpr std::array<std::u8string_view, NUM_HULLS> polyFileExtensions{
+	u8".p0", u8".p1", u8".p2", u8".p3"
+};
+constexpr std::array<std::u8string_view, NUM_HULLS> surfaceFileExtensions{
+	u8"_surface0.pts",
+	u8"_surface1.pts",
+	u8"_surface2.pts",
+	u8"_surface3.pts"
+};
+
+// Meant for strings from .map files, string such as "models/barney.mdl" or
+// "model\\barney.mdl"
+std::filesystem::path
+parse_relative_file_path(std::u8string_view relativeFilePath);
