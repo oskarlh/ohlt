@@ -165,7 +165,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 		Fatal(
 			assume_TOOL_CANCEL,
 			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
-			g_Program
+			(char const *) g_Program.data()
 		);
 		CheckFatal();
 	}
@@ -1526,7 +1526,7 @@ static void Usage() {
 
 	Banner(); // TODO: Call banner from main CSG process?
 
-	Log("\n-= %s Options =-\n\n", g_Program);
+	Log("\n-= %s Options =-\n\n", (char const *) g_Program.data());
 	Log("    -nowadtextures   : Include all used textures into bsp\n");
 	Log("    -wadinclude file : Include specific wad or directory into bsp\n"
 	);
@@ -1619,7 +1619,7 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		return;
 	}
 
-	Log("\nCurrent %s Settings\n", g_Program);
+	Log("\nCurrent %s Settings\n", (char const *) g_Program.data());
 	Log("Name                 |  Setting  |  Default\n"
 		"---------------------|-----------|-------------------------\n");
 
@@ -1796,7 +1796,7 @@ int main(int const argc, char** argv) {
 	char const * mapname_from_arg
 		= nullptr; // mapname path from passed argvar
 
-	g_Program = "HLCSG";
+	g_Program = u8"HLCSG";
 
 	int argcold = argc;
 	char** argvold = argv;

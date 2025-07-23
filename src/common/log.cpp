@@ -9,7 +9,7 @@
 
 #include <filesystem>
 
-char const * g_Program = "Uninitialized variable ::g_Program";
+std::u8string_view g_Program = u8"Uninitialized variable";
 std::filesystem::path g_Mapname;
 std::filesystem::path g_Wadpath;
 
@@ -102,7 +102,12 @@ void LogError(char const * const message) {
 		FILE* ErrorLog{ fopen(filePath.c_str(), "a") };
 
 		if (ErrorLog) {
-			fprintf(ErrorLog, "%s: %s\n", g_Program, message);
+			fprintf(
+				ErrorLog,
+				"%s: %s\n",
+				(char const *) g_Program.data(),
+				message
+			);
 			fflush(ErrorLog);
 			fclose(ErrorLog);
 			ErrorLog = nullptr;
@@ -412,10 +417,9 @@ static void LogCommandLine(int argc, char** argv) {
 // =====================================================================================
 void Banner() {
 	Log((char const *) u8"%s %s %s\n",
-		g_Program,
+		(char const *) g_Program.data(),
 		(char const *) projectVersionString.data(),
 		(char const *) projectPlatformVersion.data());
-	// Log("BUGGY %s (built: %s)\nUse at own risk.\n", g_Program, __DATE__);
 
 	Log((char const *) u8"" PROJECT_NAME "\n"
 					   "By Oskar Larsson Högfeldt ( https://oskar.pm/ )\n"
@@ -430,7 +434,7 @@ void Banner() {
 // =====================================================================================
 void LogStart(int argc, char** argv) {
 	Banner();
-	Log("-----  BEGIN  %s -----\n", g_Program);
+	Log("-----  BEGIN  %s -----\n", (char const *) g_Program.data());
 	LogCommandLine(argc, argv);
 	DisplayDeveloperLevel();
 }
@@ -439,7 +443,8 @@ void LogStart(int argc, char** argv) {
 //  LogEnd
 // =====================================================================================
 void LogEnd() {
-	Log("\n-----   END   %s -----\n\n\n\n", g_Program);
+	Log("\n-----   END   %s -----\n\n\n\n",
+		(char const *) g_Program.data());
 }
 
 // =====================================================================================

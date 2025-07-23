@@ -123,9 +123,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (iTmp == 0) {
 		Fatal(
 			assume_TOOL_CANCEL,
-			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program,
-			g_Program
+			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
+			(char const *) g_Program.data()
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -1222,7 +1221,7 @@ skipclip:
 static void Usage() {
 	Banner();
 
-	Log("\n-= %s Options =-\n\n", g_Program);
+	Log("\n-= %s Options =-\n\n", (char const *) g_Program.data());
 	Log("    -leakonly      : Run BSP only enough to check for LEAKs\n");
 	Log("    -subdivide #   : Sets the face subdivide size\n");
 	Log("    -maxnodesize # : Sets the maximum portal node size\n\n");
@@ -1280,7 +1279,7 @@ static void Settings() {
 		return;
 	}
 
-	Log("\nCurrent %s Settings\n", g_Program);
+	Log("\nCurrent %s Settings\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
 		"-------------------|-----------|-------------------------\n");
 
@@ -1512,7 +1511,7 @@ int main(int const argc, char** argv) {
 	int i;
 	char const * mapname_from_arg = nullptr;
 
-	g_Program = "HLBSP";
+	g_Program = u8"HLBSP";
 
 	int argcold = argc;
 	char** argvold = argv;

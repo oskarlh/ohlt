@@ -131,9 +131,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (iTmp == 0) {
 		Fatal(
 			assume_TOOL_CANCEL,
-			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program,
-			g_Program
+			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
+			(char const *) g_Program.data()
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -709,7 +708,7 @@ static void LoadPortalsByFilename(char const * const filename) {
 static void Usage() {
 	Banner();
 
-	Log("\n-= %s Options =-\n\n", g_Program);
+	Log("\n-= %s Options =-\n\n", (char const *) g_Program.data());
 	Log("    -full           : Full vis\n");
 	Log("    -fast           : Fast vis\n\n");
 	Log("    -nofixprt       : Disables optimization of portal file for import to J.A.C.K. map editor\n\n"
@@ -749,7 +748,7 @@ static void Settings() {
 		return;
 	}
 
-	Log("\n-= Current %s Settings =-\n", g_Program);
+	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
 		"-------------------|-----------|-------------------------\n");
 
@@ -945,7 +944,7 @@ void FixPrt(char const * portalfile) {
 int main(int const argc, char** argv) {
 	std::u8string_view mapname_from_arg;
 
-	g_Program = "HLVIS";
+	g_Program = u8"HLVIS";
 
 	int argcold = argc;
 	char** argvold = argv;

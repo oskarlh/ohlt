@@ -319,9 +319,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (iTmp == 0) {
 		Fatal(
 			assume_TOOL_CANCEL,
-			"%s flag was not checked in info_compile_parameters entity, execution of %s cancelled",
-			g_Program,
-			g_Program
+			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
+			(char const *) g_Program.data()
 		);
 		CheckFatal();
 	} else if (iTmp == 1) {
@@ -2765,7 +2764,7 @@ static void RadWorld() {
 static void Usage() {
 	Banner();
 
-	Log("\n-= %s Options =-\n\n", g_Program);
+	Log("\n-= %s Options =-\n\n", (char const *) g_Program.data());
 	Log("    -waddir folder  : Search this folder for wad files.\n");
 	Log("    -fast           : Fast rad\n");
 	Log("    -vismatrix value: Set vismatrix method to normal, sparse or off.\n"
@@ -2911,7 +2910,7 @@ static void Settings() {
 		return;
 	}
 
-	Log("\n-= Current %s Settings =-\n", g_Program);
+	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name                | Setting             | Default\n"
 		"--------------------|---------------------|-------------------------\n"
 	);
@@ -3456,7 +3455,7 @@ int main(int const argc, char** argv) {
 	char const * user_lights = nullptr;
 	char temp[_MAX_PATH]; // seedee
 
-	g_Program = "HLRAD";
+	g_Program = u8"HLRAD";
 
 	int argcold = argc;
 	char** argvold = argv;

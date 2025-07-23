@@ -835,7 +835,7 @@ static void ReadEntities(char const * const name) {
 
 static void Usage(void) {
 	Banner();
-	Log("\n-= %s Options =-\n\n", g_Program);
+	Log("\n-= %s Options =-\n\n", (char const *) g_Program.data());
 
 	Log("    -export         : Export entity data\n");
 	Log("    -import         : Import entity data\n\n");
@@ -869,7 +869,7 @@ static void Settings() {
 		return;
 	}
 
-	Log("\n-= Current %s Settings =-\n", g_Program);
+	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
 		"-------------------|-----------|-------------------------\n");
 
@@ -933,7 +933,7 @@ static void Settings() {
  * ============
  */
 int main(int argc, char** argv) {
-	g_Program = "RIPENT";
+	g_Program = u8"RIPENT";
 
 	int argcold = argc;
 	char** argvold = argv;

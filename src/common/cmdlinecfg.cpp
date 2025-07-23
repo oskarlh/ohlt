@@ -10,39 +10,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#endif
 
 using namespace std::literals;
 
-char const paramfilename[_MAX_PATH] = "settings.txt";
-char const sepchr = '\n';
-bool error = false;
-#define SEPSTR "\n"
+constexpr std::u8string_view paramfilename = u8"settings.txt";
 
-int plen(char8_t const * p) {
-	int l;
-	for (l = 0;; l++) {
-		if (p[l] == '\0') {
-			return -1;
-		}
-		if (p[l] == sepchr) {
-			return l;
-		}
-	}
+constexpr std::size_t plen(std::u8string_view p) noexcept {
+	return p.find(u8'\n');
 }
 
-bool pvalid(char8_t const * p) {
-	return plen(p) >= 0;
+constexpr bool pvalid(std::u8string_view p) noexcept {
+	return p.contains(u8'\n');
 }
 
 bool pmatch(char8_t const * cmdlineparam, char8_t const * param) {
 	int cl, cstart, cend, pl, pstart, pend, k;
 	cl = plen(cmdlineparam);
 	pl = plen(param);
-	if (cl < 0 || pl < 0) {
+	if (cl == std::u8string_view::npos || pl == std::u8string_view::npos) {
 		return false;
 	}
 	bool anystart = (pl > 0 && param[0] == '*');
@@ -95,7 +80,9 @@ char8_t* findparams(char8_t* cmdlineparams, char8_t* params) {
 	return nullptr;
 }
 
-void addparams(char8_t* cmdline, char8_t* params, unsigned int n) {
+void addparams(
+	char8_t* cmdline, char8_t* params, unsigned int n, bool& error
+) {
 	if (strlen((char const *) cmdline) + strlen((char const *) params) + 1
 		<= n) {
 		strcat((char*) cmdline, (char*) params);
@@ -131,23 +118,27 @@ struct execute_t final {
 };
 
 void parsecommand(
-	execute_t& e, char8_t* cmdline, char8_t* words, unsigned int n
+	execute_t& e,
+	char8_t* cmdline,
+	char8_t* words,
+	unsigned int n,
+	bool& error
 ) {
 	command_t t;
 	if (!pvalid(words)) {
 		return;
 	}
-	if (pmatch(words, u8"#ifdef" SEPSTR)) {
+	if (pmatch(words, u8"#ifdef\n")) {
 		t = command_t::IFDEF;
-	} else if (pmatch(words, u8"#ifndef" SEPSTR)) {
+	} else if (pmatch(words, u8"#ifndef\n")) {
 		t = command_t::IFNDEF;
-	} else if (pmatch(words, u8"#else" SEPSTR)) {
+	} else if (pmatch(words, u8"#else\n")) {
 		t = command_t::ELSE;
-	} else if (pmatch(words, u8"#endif" SEPSTR)) {
+	} else if (pmatch(words, u8"#endif\n")) {
 		t = command_t::ENDIF;
-	} else if (pmatch(words, u8"#define" SEPSTR)) {
+	} else if (pmatch(words, u8"#define\n")) {
 		t = command_t::DEFINE;
-	} else if (pmatch(words, u8"#undef" SEPSTR)) {
+	} else if (pmatch(words, u8"#undef\n")) {
 		t = command_t::UNDEF;
 	} else {
 		return;
@@ -182,7 +173,7 @@ void parsecommand(
 		e.stack--;
 	} else if (!e.skip) {
 		if (t == command_t::DEFINE) {
-			addparams(cmdline, pnext(words), n);
+			addparams(cmdline, pnext(words), n, error);
 		}
 		if (t == command_t::UNDEF) {
 			delparams(cmdline, pnext(words));
@@ -191,7 +182,7 @@ void parsecommand(
 }
 
 char8_t const *
-nextword(char8_t const * s, char8_t* token, unsigned int n) {
+nextword(char8_t const * s, char8_t* token, unsigned int n, bool& error) {
 	unsigned int i;
 	char8_t const * c;
 	bool quote, comment, content;
@@ -229,25 +220,28 @@ nextword(char8_t const * s, char8_t* token, unsigned int n) {
 	return content ? c : nullptr;
 }
 
-void parsearg(int argc, char** argv, char8_t* cmdline, unsigned int n) {
+void parsearg(
+	int argc, char** argv, char8_t* cmdline, unsigned int n, bool& error
+) {
 	int i;
 	strcpy((char*) cmdline, "");
 	strcat((char*) cmdline, "<");
-	strcat((char*) cmdline, g_Program);
+	strcat((char*) cmdline, (char const *) g_Program.data());
 	strcat((char*) cmdline, ">");
-	strcat((char*) cmdline, SEPSTR);
+	strcat((char*) cmdline, "\n");
 	for (i = 1; i < argc; ++i) {
-		if (strlen((char*) cmdline) + strlen(argv[i]) + strlen(SEPSTR) + 1
+		if (strlen((char*) cmdline) + strlen(argv[i]) + u8"\n"sv.length()
+				+ 1
 			<= n) {
 			strcat((char*) cmdline, argv[i]);
-			strcat((char*) cmdline, SEPSTR);
+			strcat((char*) cmdline, "\n");
 		} else {
 			error = true;
 		}
 	}
 }
 
-void unparsearg(int& argc, char**& argv, char8_t* cmdline) {
+void unparsearg(int& argc, char**& argv, char8_t* cmdline, bool& error) {
 	// TODO: Conversion from native encoding to UTF-8 here
 	char8_t* c;
 	int i, j;
@@ -262,12 +256,13 @@ void unparsearg(int& argc, char**& argv, char8_t* cmdline) {
 		return;
 	}
 	for (c = cmdline, i = 0; pvalid(c); c = pnext(c), i++) {
-		argv[i] = (char*) malloc(plen(c) + 1);
+		std::size_t const plenc = plen(c);
+		argv[i] = (char*) malloc(plenc + 1);
 		if (!argv[i]) {
 			error = true;
 			return;
 		}
-		for (j = 0; j < plen(c); j++) {
+		for (j = 0; j < plenc; j++) {
 			argv[i][j] = c[j];
 		}
 		argv[i][j] = '\0';
@@ -277,23 +272,27 @@ void unparsearg(int& argc, char**& argv, char8_t* cmdline) {
 void ParseParamFile(
 	int const argc, char** const argv, int& argcnew, char**& argvnew
 ) {
+	bool error = false;
+
 	// MAXTOKEN is arbitrary. TODO: Replace strings with
 	// std::u8string/std::u8string_view
 	constexpr std::size_t MAXTOKEN = 4444;
 	char8_t token[MAXTOKEN], words[MAXTOKEN], cmdline[MAXTOKEN];
 
 	std::filesystem::path settingsFilePath
-		= get_path_to_directory_with_executable(argv) / paramfilename;
+		= get_path_to_directory_with_executable(argv)
+		/ std::filesystem::path{ paramfilename,
+								 std::filesystem::path::generic_format };
 
 	if (auto f = read_utf8_file(settingsFilePath, true)) {
 		char8_t const * c = f.value().c_str();
 		execute_t e{};
 		words[0] = u8'\0';
 		token[0] = u8'\0';
-		parsearg(argc, argv, cmdline, MAXTOKEN);
+		parsearg(argc, argv, cmdline, MAXTOKEN, error);
 		while (1) {
 			while (1) {
-				c = nextword(c, token, MAXTOKEN);
+				c = nextword(c, token, MAXTOKEN, error);
 				if (token[0] == '#' || !c) {
 					break;
 				}
@@ -301,34 +300,35 @@ void ParseParamFile(
 			if (!c) {
 				break;
 			}
-			if (strlen((char const *) token) + strlen(SEPSTR) + 1
+			if (strlen((char const *) token) + u8"\n"sv.length() + 1
 				<= MAXTOKEN) {
 				strcpy((char*) words, (char*) token);
-				strcat((char*) words, SEPSTR);
+				strcat((char*) words, "\n");
 			} else {
 				error = true;
 				break;
 			}
 			while (1) {
 				char8_t const * c0 = c;
-				c = nextword(c, token, MAXTOKEN);
+				c = nextword(c, token, MAXTOKEN, error);
 				if (token[0] == '#' || !c) {
 					c = c0;
 					break;
 				}
 				if (strlen((char const *) words)
-						+ strlen((char const *) token) + strlen(SEPSTR) + 1
+						+ strlen((char const *) token) + u8"\n"sv.length()
+						+ 1
 					<= MAXTOKEN) {
 					strcat((char*) words, (char*) token);
-					strcat((char*) words, SEPSTR);
+					strcat((char*) words, "\n");
 				} else {
 					error = true;
 					break;
 				}
 			}
-			parsecommand(e, cmdline, words, MAXTOKEN);
+			parsecommand(e, cmdline, words, MAXTOKEN, error);
 		}
-		unparsearg(argcnew, argvnew, cmdline);
+		unparsearg(argcnew, argvnew, cmdline, error);
 		if (error) {
 			argvnew = argv;
 			argcnew = argc;
