@@ -292,7 +292,6 @@ extern bool g_noclip;
 extern bool g_wadtextures;
 extern bool g_skyclip;
 extern bool g_estimate;
-extern char const * g_hullfile;
 
 extern bool g_bUseNullTex;
 
@@ -335,12 +334,12 @@ void CalculateBrushUnions(int brushnum);
 //============================================================================
 // hullfile.cpp
 extern hull_sizes g_hull_size;
-void LoadHullfile(char const * filename);
+void LoadHullfile(std::filesystem::path filePath);
 
 //=============================================================================
 // properties.cpp
 
 #include <set>
 #include <string>
-extern void properties_initialize(char const * filename);
+extern void properties_initialize(std::filesystem::path filePath);
 extern std::set<std::u8string> g_invisible_items;

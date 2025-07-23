@@ -1,19 +1,21 @@
 #include "csg.h"
 #include "hull_size.h"
 
-void LoadHullfile(char const * filename) {
-	if (filename == nullptr) {
+void LoadHullfile(std::filesystem::path filePath) {
+	if (filePath.empty()) {
 		return;
 	}
 
-	if (std::filesystem::exists(filename)) {
-		Log("Loading hull definitions from '%s'\n", filename);
+	if (std::filesystem::exists(filePath)) {
+		Log("Loading hull definitions from '%s'\n", filePath.c_str());
 	} else {
-		Error("Could not find hull definition file '%s'\n", filename);
+		Error(
+			"Could not find hull definition file '%s'\n", filePath.c_str()
+		);
 		return;
 	}
 
-	FILE* file = fopen(filename, "r");
+	FILE* file = fopen(filePath.c_str(), "r");
 
 	char magic = (char) fgetc(file);
 	rewind(file);
@@ -36,7 +38,7 @@ void LoadHullfile(char const * filename) {
 			if (count != 6) {
 				Error(
 					"Could not parse old hull definition file '%s' (%d, %d)\n",
-					filename,
+					filePath.c_str(),
 					i,
 					count
 				);
@@ -59,7 +61,7 @@ void LoadHullfile(char const * filename) {
 			if (count != 3) {
 				Error(
 					"Could not parse new hull definition file '%s' (%d, %d)\n",
-					filename,
+					filePath.c_str(),
 					i,
 					count
 				);

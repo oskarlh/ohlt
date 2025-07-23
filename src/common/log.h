@@ -10,7 +10,7 @@
 // log.c globals
 //
 
-extern std::u8string_view g_Program;
+extern std::u8string g_Program;
 extern std::filesystem::path g_Mapname;
 extern std::filesystem::path g_Wadpath; // This is just the mod folder...
 

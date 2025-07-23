@@ -7,19 +7,21 @@
 
 std::set<std::u8string> g_invisible_items;
 
-void properties_initialize(char const * filename) {
-	if (filename == nullptr) {
+void properties_initialize(std::filesystem::path filePath) {
+	if (filePath.empty()) {
 		return;
 	}
 
-	if (std::filesystem::exists(filename)) {
-		Log("Loading null entity list from '%s'\n", filename);
+	if (std::filesystem::exists(filePath)) {
+		Log("Loading null entity list from '%s'\n", filePath.c_str());
 	} else {
-		Error("Could not find null entity list file '%s'\n", filename);
+		Error(
+			"Could not find null entity list file '%s'\n", filePath.c_str()
+		);
 		return;
 	}
 
-	std::ifstream file(filename, std::ios::in);
+	std::ifstream file(filePath.c_str(), std::ios::in);
 	if (!file) {
 		file.close();
 		return;

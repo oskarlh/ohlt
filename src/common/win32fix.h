@@ -10,14 +10,6 @@
 // Is this needed?
 #include <stdlib.h>
 
-// TODO: Remove all uses of this function
-inline char* c_strdup(char const * from) {
-	std::size_t const numBytes = std::strlen(from) + 1;
-	char* dup = (char*) std::malloc(numBytes);
-	std::ranges::copy(std::span(from, numBytes), dup);
-	return dup;
-}
-
 #ifdef SYSTEM_POSIX
 #define _MAX_PATH 4096
 

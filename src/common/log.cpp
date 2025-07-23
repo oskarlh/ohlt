@@ -9,7 +9,7 @@
 
 #include <filesystem>
 
-std::u8string_view g_Program = u8"Uninitialized variable";
+std::u8string g_Program = u8"Uninitialized variable";
 std::filesystem::path g_Mapname;
 std::filesystem::path g_Wadpath;
 

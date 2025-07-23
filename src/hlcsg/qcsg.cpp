@@ -62,13 +62,13 @@ bool g_skyclip = DEFAULT_SKYCLIP;		   // no sky clipping "-noskyclip"
 bool g_estimate
 	= cli_option_defaults::estimate;	 // progress estimates "-estimate"
 bool g_info = cli_option_defaults::info; // "-info" ?
-char const * g_hullfile = nullptr; // external hullfile "-hullfie sdfsd"
+static std::filesystem::path
+	g_hullfile; // external hullfile "-hullfile sdfsd"
+static std::filesystem::path g_nullfile;
 
 bool g_bUseNullTex = cli_option_defaults::nulltex; // "-nonulltex"
 
 cliptype g_cliptype = DEFAULT_CLIPTYPE; // "-cliptype <value>"
-
-char const * g_nullfile = nullptr;
 
 bool g_bClipNazi = DEFAULT_CLIPNAZI; // "-noclipeconomy"
 
@@ -133,8 +133,11 @@ void GetParamsFromEnt(entity_t* mapent) {
 
 	// hullfile(string) : "Custom Hullfile"
 	if (has_key_value(mapent, u8"hullfile")) {
-		g_hullfile = (char const *) ValueForKey(mapent, u8"hullfile");
-		Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile);
+		g_hullfile = std::filesystem::path{
+			value_for_key(mapent, u8"hullfile"),
+			std::filesystem::path::generic_format
+		};
+		Log("%30s [ %-9s ]\n", "Custom Hullfile", g_hullfile.c_str());
 	}
 
 	// noclipeconomy(choices) : "Strip Uneeded Clipnodes?" : 1 = [ 1 : "Yes"
@@ -1701,10 +1704,10 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		g_skyclip ? "on" : "off",
 		DEFAULT_SKYCLIP ? "on" : "off");
 	Log("hullfile              [ %7s ] [ %7s ]\n",
-		g_hullfile ? g_hullfile : "None",
+		g_hullfile.empty() ? "None" : g_hullfile.c_str(),
 		"None");
 	Log("nullfile              [ %7s ] [ %7s ]\n",
-		g_nullfile ? g_nullfile : "None",
+		g_nullfile.empty() ? "None" : g_nullfile,
 		"None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n",
 		g_nullifytrigger ? "on" : "off",
@@ -1945,7 +1948,9 @@ int main(int const argc, char** argv) {
 						 )) {
 					if (i + 1 < argc) // added "1" .--vluzacn
 					{
-						g_nullfile = argv[++i];
+						g_nullfile = std::filesystem::path{
+							argv[++i], std::filesystem::path::auto_format
+						};
 					} else {
 						Log("Error: -nullfile: expected path to null ent file following parameter\n"
 						);
@@ -1999,7 +2004,9 @@ int main(int const argc, char** argv) {
 						   )) {
 					if (i + 1 < argc) // added "1" .--vluzacn
 					{
-						g_hullfile = argv[++i];
+						g_hullfile = std::filesystem::path{
+							argv[++i], std::filesystem::path::auto_format
+						};
 					} else {
 						Usage();
 					}
@@ -2096,32 +2103,31 @@ int main(int const argc, char** argv) {
 			//  before settings are finalised and printed out, so that the
 			//  info_compile_parameters entity can be dealt with effectively
 			time_counter timeCounter;
-			if (g_hullfile) {
+			if (!g_hullfile.empty() && g_hullfile.is_relative()) {
 				std::filesystem::path test
 					= std::filesystem::path(g_Mapname).parent_path()
 					/ g_hullfile;
 				if (std::filesystem::exists(test)) {
-					g_hullfile = c_strdup(test.c_str());
+					g_hullfile = test;
 				} else {
 					test = get_path_to_directory_with_executable(argv)
 						/ g_hullfile;
 					if (std::filesystem::exists(test)) {
-						g_hullfile = c_strdup(test.c_str());
+						g_hullfile = test;
 					}
 				}
 			}
-			if (g_nullfile) {
+			if (!g_nullfile.empty() && g_nullfile.is_relative()) {
 				std::filesystem::path test
 					= std::filesystem::path(g_Mapname).parent_path()
 					/ g_nullfile;
 				if (std::filesystem::exists(test)) {
-					g_nullfile = c_strdup(test.c_str());
+					g_nullfile = test;
 				} else {
-					std::filesystem::path test
-						= get_path_to_directory_with_executable(argv)
+					test = get_path_to_directory_with_executable(argv)
 						/ g_nullfile;
 					if (std::filesystem::exists(test)) {
-						g_nullfile = c_strdup(test.c_str());
+						g_nullfile = test;
 					}
 				}
 			}
