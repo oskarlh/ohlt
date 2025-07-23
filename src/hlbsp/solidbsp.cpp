@@ -1009,16 +1009,15 @@ static void FreeLeafBrushes(node_t* leaf) {
 #define MAX_LEAF_FACES 16384
 
 static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
-	face_t* f;
 	surface_t* surf;
-	int rank, r;
 
-	rank = -1;
+	int rank = -1;
+	int r;
 	for (surf = planelist; surf; surf = surf->next) {
 		if (!surf->onnode) {
 			continue;
 		}
-		for (f = surf->faces; f; f = f->next) {
+		for (face_t* f = surf->faces; f; f = f->next) {
 			if (f->contents == contents_t::HINT) {
 				f->contents = contents_t::EMPTY;
 			}
@@ -1035,6 +1034,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 		if (!surf->onnode) {
 			continue;
 		}
+		face_t* f;
 		for (f = surf->faces; f; f = f->next) {
 			if (f->detailLevel) {
 				continue;

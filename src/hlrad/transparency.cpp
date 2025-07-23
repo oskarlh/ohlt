@@ -151,14 +151,14 @@ void CreateFinalTransparencyArrays(
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);
 	} else {
-		Log("%-20s: %5.1f bytes\n", print_name, (double) size); //--vluzacn
+		Log("%-20s: %5.1f bytes\n", print_name, (double) size);
 	}
 	Developer(
 		developer_level::message,
 		"\ts_trans_count=%zu\ts_sorted_count=%d\n",
 		transparencyList.size(),
 		s_sorted_count
-	); //--vluzacn
+	);
 }
 
 //===============================================
@@ -293,7 +293,7 @@ void CreateFinalStyleArrays(char const * print_name) {
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);
 	} else {
-		Log("%-20s: %5.1f bytes\n", print_name, (double) size); //--vluzacn
+		Log("%-20s: %5.1f bytes\n", print_name, (double) size);
 	}
 }
 

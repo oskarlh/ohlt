@@ -939,8 +939,7 @@ int main(int const argc, char** argv) {
 			for (std::size_t i = 1; i < argc; i++) {
 				std::u8string_view const arg = (char8_t const *) argv[i];
 				if (arg == u8"-threads") {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						g_numthreads = atoi(argv[++i]);
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
@@ -965,8 +964,7 @@ int main(int const argc, char** argv) {
 				} else if (arg == u8"-nofixprt") {
 					g_nofixprt = true;
 				} else if (arg == u8"-dev") {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						g_developer = (developer_level) atoi(argv[++i]);
 					} else {
 						Usage();
@@ -987,8 +985,7 @@ int main(int const argc, char** argv) {
 				} else if (arg == u8"-nolog") {
 					g_log = false;
 				} else if (arg == u8"-texdata") {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						int x = atoi(argv[++i]) * 1024;
 
 						// if (x > g_max_map_miptex) //--vluzacn
@@ -997,8 +994,7 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (arg == u8"-maxdistance") {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						g_maxdistance = abs(atoi(argv[++i]));
 					} else {
 						Usage();

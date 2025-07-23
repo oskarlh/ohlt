@@ -1,5 +1,6 @@
-#include "cli_option_defaults.h"
 #include "hlbsp.h"
+
+#include "cli_option_defaults.h"
 #include "hull_size.h"
 #include "log.h"
 #include "time_counter.h"
@@ -16,7 +17,7 @@ hull_sizes g_hull_size{ standard_hull_sizes };
 
 static FILE* polyfiles[NUM_HULLS];
 static FILE* brushfiles[NUM_HULLS];
-int g_hullnum = 0;
+hull_count g_hullnum = 0;
 
 static face_t* validfaces[MAX_INTERNAL_MAP_PLANES];
 
@@ -949,7 +950,7 @@ static bool ProcessModel(bsp_data& bspData) {
 
 	//    Log("ProcessModel: %i (%i f)\n", modnum, model->numfaces);
 
-	g_hullnum = 0; // vluzacn
+	g_hullnum = 0;
 	model->mins.fill(99999);
 	model->maxs.fill(-99999);
 	{

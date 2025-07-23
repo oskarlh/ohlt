@@ -275,7 +275,7 @@ extern bool g_chart;
 extern bool g_estimate;
 extern int g_maxnode_size;
 extern int g_subdivide_size;
-extern int g_hullnum;
+extern hull_count g_hullnum;
 extern bool g_bLeakOnly;
 extern bool g_bLeaked;
 extern std::filesystem::path g_portfilename;

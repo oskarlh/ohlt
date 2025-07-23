@@ -428,9 +428,11 @@ static void ReadBSP(char const * const name) {
 static void WriteBSP(char const * const name) {
 	std::filesystem::path filename;
 	filename = name;
-	filename += u8".bsp";
+	filename += std::filesystem::path{
+		u8".bsp", std::filesystem::path::generic_format
+	};
 
-	Log("\nUpdating %s.\n", filename.c_str()); //--vluzacn
+	Log("\nUpdating %s.\n", filename.c_str());
 	WriteBSPFile(filename);
 }
 
