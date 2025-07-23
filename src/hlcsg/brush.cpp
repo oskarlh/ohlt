@@ -1,4 +1,4 @@
-#include "csg.h"
+#include "hlcsg.h"
 #include "utf8.h"
 
 #include <span>
@@ -137,7 +137,7 @@ char const * GetClipTypeString(cliptype ct) {
 }
 
 // =====================================================================================
-//  AddHullPlane (subroutine for replacement of ExpandBrush, KGP)
+//  AddHullPlane (subroutine for replacement of ExpandBrush)
 //  Called to add any and all clip hull planes by the new ExpandBrush.
 // =====================================================================================
 
@@ -167,7 +167,7 @@ static void AddHullPlane(
 }
 
 // =====================================================================================
-//  ExpandBrush (replacement by KGP)
+//  ExpandBrush
 //  Since the six bounding box planes were always added anyway, they've been
 //  moved to an explicit separate step eliminating the need to check for
 //  duplicate planes (which should be using plane numbers instead of the
@@ -1076,7 +1076,7 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 			continue; // overwrite content for this texture
 		}
 
-		// AJM: sky and null types are not to cause mixed face contents
+		// Sky and null types are not to cause mixed face contents
 		if (contents2 == contents_t::SKY) {
 			continue;
 		}

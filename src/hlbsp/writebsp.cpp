@@ -1,6 +1,6 @@
 #include "brink.h"
-#include "bsp5.h"
 #include "bsp_file_sizes.h"
+#include "hlbsp.h"
 #include "hull_size.h"
 #include "wad_structs.h"
 

@@ -1,4 +1,4 @@
-#include "qrad.h"
+#include "hlrad.h"
 
 static dplane_t backplanes[MAX_MAP_PLANES];
 

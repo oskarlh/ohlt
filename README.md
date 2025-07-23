@@ -1,5 +1,5 @@
 # Oskar's Half-Life Tools
-<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT with code contributions from various people. Based on Valve's compile tools, modified with permission.</sub>
+<sub>Half-Life engine map compile tools based on [SDHLT](https://github.com/seedee/SDHLT), VHLT, and ZHLT.</sub>
 
 ![Banner](media/banner.webp)
 
@@ -56,3 +56,6 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 
 
 https://twhl.info/wiki/page/Tutorial:_Total_Map_Optimisation_Part_3_(wpoly,_clipnodes,_engine_limits,_compile_parameters)
+
+## Contributors
+These compile tools contain code by various people including Oskar Larsson Högfeldt, Sean \"Zoner\" Cavanaugh, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike, and seedee. Based on Valve's compile tools, modified with permission.

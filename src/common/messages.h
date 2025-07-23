@@ -11,12 +11,12 @@ struct MessageTable_t final {
 enum assume_msgs {
 	assume_first = 0,
 
-	// generic
+	// Generic
 	assume_NoMemory,
 	assume_ValidPointer,
 	assume_BadWorkcount,
 
-	// qcsg
+	// HLCSG
 	assume_MISSING_BRACKET_IN_TEXTUREDEF,
 	assume_PLANE_WITH_NO_NORMAL,
 	assume_BRUSH_WITH_COPLANAR_FACES,
@@ -31,7 +31,7 @@ enum assume_msgs {
 	assume_MAX_SWITCHED_LIGHTS,
 	assume_MAX_TEXFILES,
 
-	// qbsp
+	// HLBSP
 	assume_LEAK,
 	assume_MAX_LEAF_FACES,
 	assume_MAX_WEDGES,
@@ -39,12 +39,12 @@ enum assume_msgs {
 	assume_MAX_SUPERFACEEDGES,
 	assume_EmptySolid,
 
-	// vis
+	// HLVIS
 	assume_LEAF_PORTAL_SAW_INTO_LEAF,
 	assume_MAX_PORTALS_ON_LEAF,
 	assume_VALID_NETVIS_STATE,
 
-	// qrad
+	// HLRAD
 	assume_MAX_TEXLIGHTS,
 	assume_MAX_PATCHES,
 	assume_TransferError,
@@ -54,7 +54,7 @@ enum assume_msgs {
 	assume_BadLightType,
 	assume_MAX_SINGLEMAP,
 
-	// common
+	// Common
 	assume_THREAD_ERROR,
 	assume_MAX_MAP_PLANES,
 	assume_MAX_MAP_TEXTURES,
@@ -76,10 +76,8 @@ enum assume_msgs {
 	assume_COMPRESSVIS_OVERFLOW,
 	assume_DECOMPRESSVIS_OVERFLOW,
 	assume_MAX_MAP_LEAFS,
-	// AJM: added in
 	assume_TOOL_CANCEL,
 	assume_GENERIC,
-	// KGP: added
 	assume_MAX_MAP_LIGHTING,
 	assume_MAX_INTERNAL_MAP_PLANES,
 	assume_COULD_NOT_LOCATE_WAD,

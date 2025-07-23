@@ -1,19 +1,6 @@
-/*
-
-	CONSTRUCTIVE SOLID GEOMETRY    -aka-    C S G
-
-	Code based on original code from Valve Software,
-	Modified by Sean "Zoner" Cavanaugh (seanc@gearboxsoftware.com) with
-   permission. Modified by Tony "Merl" Moore (merlinis@bigpond.net.au) [AJM]
-	Modified by amckern (amckern@yahoo.com)
-	Modified by vluzacn (vluzacn@163.com)
-	Modified by seedee (cdaniel9000@gmail.com)
-	Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
-
-*/
+#include "hlcsg.h"
 
 #include "bsp_file_sizes.h"
-#include "csg.h"
 #ifdef SYSTEM_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h> //--vluzacn
@@ -1292,11 +1279,9 @@ void WriteBSP(char const * const name) {
 	WriteBSPFile(bspPath);
 }
 
-// AJM: added in
 unsigned int BrushClipHullsDiscarded = 0;
 unsigned int ClipNodesDiscarded = 0;
 
-// AJM: added in function
 static void MarkEntForNoclip(entity_t* ent) {
 	csg_brush* b;
 
@@ -1311,7 +1296,6 @@ static void MarkEntForNoclip(entity_t* ent) {
 	}
 }
 
-// AJM
 // =====================================================================================
 //  CheckForNoClip
 //      marks the noclip flag on any brushes that dont need clipnode
@@ -1778,7 +1762,6 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 	Log("\n");
 }
 
-// AJM: added in
 // =====================================================================================
 //  CSGCleanup
 // =====================================================================================
@@ -1799,7 +1782,7 @@ int main(int const argc, char** argv) {
 	char const * mapname_from_arg
 		= nullptr; // mapname path from passed argvar
 
-	g_Program = u8"HLCSG";
+	g_Program = u8"HLCSG"; // Constructive Solid Geometry
 
 	int argcold = argc;
 	char** argvold = argv;
@@ -2093,15 +2076,11 @@ int main(int const argc, char** argv) {
 			LogStart(argcold, argvold);
 			log_arguments(argc, argv);
 			hlassume(CalcFaceExtents_test(), assume_first);
-			atexit(CSGCleanup); // AJM
+			atexit(CSGCleanup);
 			dtexdata_init();
 			atexit(dtexdata_free);
 
 			// START CSG
-			// AJM: re-arranged some stuff up here so that the mapfile is
-			// loaded
-			//  before settings are finalised and printed out, so that the
-			//  info_compile_parameters entity can be dealt with effectively
 			time_counter timeCounter;
 			if (!g_hullfile.empty() && g_hullfile.is_relative()) {
 				std::filesystem::path test

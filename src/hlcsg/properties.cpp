@@ -1,6 +1,4 @@
-// KGP -- added in for use with HLCSG_NULLIFY_INVISIBLE
-
-#include "csg.h"
+#include "hlcsg.h"
 
 #include <fstream>
 #include <istream>

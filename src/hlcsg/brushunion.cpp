@@ -1,4 +1,4 @@
-#include "csg.h"
+#include "hlcsg.h"
 
 double g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 

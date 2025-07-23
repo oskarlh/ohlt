@@ -1,4 +1,4 @@
-#include "csg.h"
+#include "hlcsg.h"
 #include "hlcsg_settings.h"
 #include "map_entity_parser.h"
 #include "project_constants.h"
@@ -818,6 +818,4 @@ void LoadMapFile(
 	Verbose("%5i brushes\n", g_nummapbrushes);
 	Verbose("%5i map entities \n", g_numentities - num_engine_entities);
 	Verbose("%5i engine entities\n", num_engine_entities);
-
-	// AJM: added in
 }

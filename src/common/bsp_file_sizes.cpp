@@ -387,7 +387,7 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 		if (!wadValue) {
 			Log("Wad files required to run the map: (Couldn't parse wad keyvalue from entity data)\n"
 			);
-		} else // If we have any wads still required //seedee
+		} else // If we have any wads still required
 		{
 			Log("Wad files required to run the map\n");
 			Log("---------------------------------\n");

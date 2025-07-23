@@ -1,4 +1,4 @@
-#include "qrad.h"
+#include "hlrad.h"
 
 #include <numbers>
 
@@ -345,8 +345,7 @@ bool TestSegmentAgainstOpaqueList(
 		opaquestyleout = -1;
 		return true;
 	}
-	if (TestSegmentAgainstStudioList(p1, p2)) // seedee
-	{
+	if (TestSegmentAgainstStudioList(p1, p2)) {
 		scaleout = {};
 		opaquestyleout = -1;
 		return true;

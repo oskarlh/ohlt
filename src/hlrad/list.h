@@ -5,7 +5,7 @@
  *  Fairly typical of the list example you would
  *  find in any c++ book.
  */
-// used by progmesh //seedee
+// used by progmesh
 
 #include <assert.h>
 #include <stdio.h>

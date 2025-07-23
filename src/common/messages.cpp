@@ -1,9 +1,5 @@
 #include "messages.h"
 
-// AJM: because these are repeated, they use up redundant memory.
-//  consequently ive made them into const strings which each occurance can
-//  point to.
-
 // Common descriptions
 char const * const internallimit
 	= "The compiler tool hit an internal limit";
@@ -25,14 +21,14 @@ static MessageTable_t const assumes[assume_last] = {
 	  "This is a message should never be printed.",
 	  contact },
 
-	// generic
+	// Generic
 	{ "Memory allocation failure",
 	  "The program failled to allocate a block of memory.",
 	  "Likely causes are (in order of likeliness) : the partition holding the swapfile is full; swapfile size is smaller than required; memory fragmentation; heap corruption" },
 	{ "NULL Pointer", internalerror, contact },
 	{ "Bad Thread Workcount", internalerror, contact },
 
-	// qcsg
+	// HLCSG
 	{ "Missing '[' in texturedef (U)", maperror, reference },
 	{ "plane with no normal", maperror, reference },
 	{ "brush with coplanar faces", maperror, reference },
@@ -55,7 +51,7 @@ static MessageTable_t const assumes[assume_last] = {
 	  selfexplanitory },
 	{ "Exceeded MAX_TEXFILES", internallimit, contact },
 
-	// qbsp
+	// HLBSP
 	{ "LEAK in the map", maperror, reference },
 	{ "Exceeded MAX_LEAF_FACES",
 	  "This error is almost always caused by an invalid brush, by having huge rooms, or scaling a texture down to extremely small values (between -1 and 1)",
@@ -67,12 +63,12 @@ static MessageTable_t const assumes[assume_last] = {
 	  "A solid entity in the map (func_wall for example) has no brushes.",
 	  "If using Worldcraft, do a check for problems and fix any occurences of 'Empty solid'" },
 
-	// vis
+	// HLVIS
 	{ "Leaf portal saw into leaf", maperror, reference },
 	{ "Exceeded MAX_PORTALS_ON_LEAF", maperror, reference },
 	{ "Invalid client/server state", internalerror, contact },
 
-	// qrad
+	// HLRAD
 	{ "Exceeded MAX_TEXLIGHTS",
 	  "The maximum number of texture lights in use by a single map has been reached",
 	  "Use fewer texture lights." },
@@ -88,7 +84,7 @@ static MessageTable_t const assumes[assume_last] = {
 	{ "Bad Light Type", internalerror, contact },
 	{ "Exceeded MAX_SINGLEMAP", internallimit, contact },
 
-	// common
+	// Common
 	{ "Unable to create thread", internalerror, contact },
 	{ "Exceeded MAX_MAP_PLANES",
 	  "The maximum number of plane definitions has been reached",

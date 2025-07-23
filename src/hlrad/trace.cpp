@@ -1,8 +1,8 @@
 #include "bspfile.h"
 #include "cmdlib.h"
+#include "hlrad.h"
 #include "log.h" //--vluzacn
 #include "mathlib.h"
-#include "qrad.h"
 #include "winding.h"
 
 struct tnode_t final {

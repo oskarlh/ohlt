@@ -1,4 +1,4 @@
-#include "qrad.h"
+#include "hlrad.h"
 
 #ifdef SYSTEM_WIN32
 #include "win32fix.h"

@@ -1,4 +1,4 @@
-#include "csg.h"
+#include "hlcsg.h"
 #include "time_counter.h"
 #include "wad_structs.h"
 
@@ -303,7 +303,7 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 			Log("----------------------------------------------------\n");
 		}
 
-		// AJM: this feature is dependant on autowad. :(
+		// This feature is dependant on autowad. :(
 		// CONSIDER: making it standard?
 		currentwad->totaltextures = wadinfo.numlumps;
 
@@ -527,7 +527,6 @@ void AddAnimatingTextures() {
 
 // =====================================================================================
 //  WriteMiptex
-//     Unified console logging updated //seedee
 // =====================================================================================
 void WriteMiptex(std::filesystem::path const & bspPath) {
 	int len, texsize, totaltexsize = 0;
@@ -761,7 +760,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 }
 
 // =====================================================================================
-//  LogWadUsage //seedee
+//  LogWadUsage
 // =====================================================================================
 void LogWadUsage(wadpath_t* currentwad, int nummiptex) {
 	if (currentwad == nullptr) {

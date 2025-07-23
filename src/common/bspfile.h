@@ -620,9 +620,7 @@ struct bsp_data final {
 	int facesLength{ 0 };
 
 	// Doesn't belong here - it's not something that's written to the BSP
-	int worldExtent{
-		65536
-	}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
+	int worldExtent{ 65536 }; // ENGINE_ENTITY_RANGE; // -worldextent
 
 	std::array<dclipnode_t, MAX_MAP_CLIPNODES> clipNodes{};
 	int clipNodesLength{ 0 };

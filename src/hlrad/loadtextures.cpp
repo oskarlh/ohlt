@@ -1,4 +1,4 @@
-#include "qrad.h"
+#include "hlrad.h"
 #include "wad_structs.h"
 #include "worldspawn_wad_value_parser.h"
 

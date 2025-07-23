@@ -7,8 +7,8 @@
  *  See the header file progmesh.h for a description of this module
  */
 
+#include "hlrad.h"
 #include "meshdesc.h"
-#include "qrad.h"
 
 /*
  *  For the polygon reduction algorithm we use data structures

@@ -264,7 +264,7 @@ enum bbrinklevel_e {
 extern void CullStuff();
 
 //=============================================================================
-// qbsp.c
+// hlbsp.c
 extern bool g_nofill;
 extern bool g_noinsidefill;
 extern bool g_notjunc;

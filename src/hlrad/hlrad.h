@@ -33,7 +33,7 @@
 // exceed 188 if you have set a high value in the "custom appearance" of the
 // light, or if the face receives light from different styles.
 #define DEFAULT_LIMITTHRESHOLD \
-	255.0 // We override to 188 with pre25 argument. //seedee
+	255.0 // We override to 188 with pre25 argument
 #define DEFAULT_TEXSCALE		 true
 #define DEFAULT_CHOP			 64.0
 #define DEFAULT_TEXCHOP			 32.0
@@ -354,7 +354,7 @@ struct minlight_t final {
 using minlight_i = std::vector<minlight_t>::iterator;
 
 //
-// qrad globals
+// HLRAD globals
 //
 
 extern std::vector<minlight_t> s_minlights;
@@ -531,7 +531,7 @@ extern bool CheckVisBitBackwards(
 );
 extern void MdlLightHack(void);
 
-// qradutil.c
+// hlradutil.c
 extern float PatchPlaneDist(patch_t const * const patch);
 extern dleaf_t* PointInLeaf(float3_array const & point);
 extern void MakeBackplanes();

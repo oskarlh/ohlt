@@ -66,7 +66,7 @@ std::array<dface_t, MAX_MAP_FACES>& g_dfaces{ bspGlobals.faces };
 
 int& g_iWorldExtent{
 	bspGlobals.worldExtent
-}; // ENGINE_ENTITY_RANGE; // -worldextent // seedee
+}; // ENGINE_ENTITY_RANGE; // -worldextent
 
 int& g_numclipnodes{ bspGlobals.clipNodesLength };
 std::array<dclipnode_t, MAX_MAP_CLIPNODES>& g_dclipnodes{
@@ -893,7 +893,7 @@ void DeleteEmbeddedLightmaps() {
  * ================
  */
 
-// AJM: each tool should have its own version of GetParamsFromEnt which
+// Each tool should has its own version of GetParamsFromEnt which
 // parseentity calls
 extern void GetParamsFromEnt(entity_t* mapent);
 

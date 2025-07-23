@@ -2,7 +2,7 @@
 
 #include "cli_option_defaults.h"
 #include "compress.h"
-#include "qrad.h"
+#include "hlrad.h"
 
 namespace cli_option_defaults {
 	constexpr bool blockOpaque = true;

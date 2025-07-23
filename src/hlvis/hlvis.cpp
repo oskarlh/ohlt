@@ -1,19 +1,4 @@
-/*
-
-	VISIBLE INFORMATION SET    -aka-    V I S
-
-	Code based on original code from Valve Software,
-	Modified by Sean "Zoner" Cavanaugh (seanc@gearboxsoftware.com) with
-   permission. Modified by Tony "Merl" Moore (merlinis@bigpond.net.au)
-	Contains code by Skyler "Zipster" York (zipster89134@hotmail.com) -
-   Included with permission. Modified by amckern (amckern@yahoo.com)
-	Modified by vluzacn (vluzacn@163.com)
-	Modified by seedee (cdaniel9000@gmail.com)
-	Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
-
-*/
-
-#include "vis.h"
+#include "hlvis.h"
 
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
@@ -39,9 +24,6 @@ int* g_leafstarts;
 int* g_leafcounts;
 int g_leafcount_all;
 
-// AJM: MVD
-//
-
 static byte* vismap;
 static byte* vismap_p;
 static byte* vismap_end; // past visfile
@@ -54,7 +36,7 @@ unsigned g_bitlongs;
 
 bool g_fastvis = DEFAULT_FASTVIS;
 bool g_fullvis = DEFAULT_FULLVIS;
-bool g_nofixprt = DEFAULT_NOFIXPRT; // seedee
+bool g_nofixprt = DEFAULT_NOFIXPRT;
 bool g_estimate = cli_option_defaults::estimate;
 bool g_chart = cli_option_defaults::chart;
 bool g_info = cli_option_defaults::info;
@@ -72,7 +54,6 @@ int g_room_count = 0;
 
 static int totalvis = 0;
 
-// AJM: addded in
 // =====================================================================================
 //  GetParamsFromEnt
 //      this function is called from parseentity when it encounters the
@@ -401,7 +382,6 @@ static void CalcPortalVis() {
 	NamedRunThreadsOn(g_numportals * 2, g_estimate, LeafThread);
 }
 
-// AJM: MVD
 // =====================================================================================
 //  SaveVisData
 // =====================================================================================
@@ -712,7 +692,7 @@ static void Usage() {
 	Log("    -full           : Full vis\n");
 	Log("    -fast           : Fast vis\n\n");
 	Log("    -nofixprt       : Disables optimization of portal file for import to J.A.C.K. map editor\n\n"
-	); // seedee
+	);
 	Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n"
 	);
 	Log("    -chart          : display bsp statitics\n");
@@ -827,7 +807,6 @@ int VisLeafnumForPoint(float3_array const & point) {
 	return -nodenum - 2;
 }
 
-// seedee
 // =====================================================================================
 //  FixPrt
 //      Imports portal file to vector, erases vis cache lines, overwrites
@@ -944,7 +923,7 @@ void FixPrt(char const * portalfile) {
 int main(int const argc, char** argv) {
 	std::u8string_view mapname_from_arg;
 
-	g_Program = u8"HLVIS";
+	g_Program = u8"HLVIS"; // Visible Information Set
 
 	int argcold = argc;
 	char** argvold = argv;
@@ -1165,8 +1144,7 @@ int main(int const argc, char** argv) {
 				g_visdatasize,
 				originalvismapsize);
 
-			if (!g_nofixprt) // seedee
-			{
+			if (!g_nofixprt) {
 				FixPrt(path_to_temp_file_with_extension(g_Mapname, u8".prt")
 						   .c_str());
 			}

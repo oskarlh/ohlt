@@ -97,10 +97,10 @@ set(BSP_DIR ${HLT_DIR}/hlbsp)
 
 set(BSP_SOURCES
     ${BSP_DIR}/brink.cpp
+    ${BSP_DIR}/hlbsp.cpp
     ${BSP_DIR}/merge.cpp
     ${BSP_DIR}/outside.cpp
     ${BSP_DIR}/portals.cpp
-    ${BSP_DIR}/qbsp.cpp
     ${BSP_DIR}/solidbsp.cpp
     ${BSP_DIR}/surfaces.cpp
     ${BSP_DIR}/tjunc.cpp
@@ -109,7 +109,7 @@ set(BSP_SOURCES
 
 set(BSP_HEADERS
     ${BSP_DIR}/brink.h
-    ${BSP_DIR}/bsp5.h
+    ${BSP_DIR}/hlbsp.h
 )
 
 #================
@@ -121,10 +121,10 @@ set(CSG_DIR ${HLT_DIR}/hlcsg)
 set(CSG_SOURCES
     ${CSG_DIR}/brush.cpp
     ${CSG_DIR}/brushunion.cpp
+    ${CSG_DIR}/hlcsg.cpp
     ${CSG_DIR}/hullfile.cpp
     ${CSG_DIR}/map.cpp
     ${CSG_DIR}/properties.cpp
-    ${CSG_DIR}/qcsg.cpp
     ${CSG_DIR}/textures.cpp
     ${CSG_DIR}/wadcfg.cpp
     ${CSG_DIR}/wadpath.cpp
@@ -133,8 +133,8 @@ set(CSG_SOURCES
 set(CSG_HEADERS
     ${CSG_DIR}/csg_types/csg_entity.h
     ${CSG_DIR}/csg_types/csg_types.h
-    ${CSG_DIR}/csg.h
     ${CSG_DIR}/hlcsg_settings.h
+    ${CSG_DIR}/hlcsg.h
     ${CSG_DIR}/wadpath.h
 )
 
@@ -145,20 +145,20 @@ set(CSG_HEADERS
 set(RAD_DIR ${HLT_DIR}/hlrad)
 
 set(RAD_SOURCES
+	${RAD_DIR}/meshdesc.cpp
+	${RAD_DIR}/meshtrace.cpp
+	${RAD_DIR}/studio.cpp
     ${RAD_DIR}/compress.cpp
+    ${RAD_DIR}/hlrad.cpp
+    ${RAD_DIR}/hlradutil.cpp
     ${RAD_DIR}/lerp.cpp
     ${RAD_DIR}/lightmap.cpp
     ${RAD_DIR}/loadtextures.cpp
     ${RAD_DIR}/mathutil.cpp
-	${RAD_DIR}/meshdesc.cpp
-	${RAD_DIR}/meshtrace.cpp
     ${RAD_DIR}/nomatrix.cpp
     ${RAD_DIR}/progmesh.cpp
-    ${RAD_DIR}/qrad.cpp
-    ${RAD_DIR}/qradutil.cpp
     ${RAD_DIR}/rad_cli_option_defaults.h
     ${RAD_DIR}/sparse.cpp
-	${RAD_DIR}/studio.cpp
     ${RAD_DIR}/trace.cpp
     ${RAD_DIR}/transfers.cpp
     ${RAD_DIR}/transparency.cpp
@@ -167,12 +167,12 @@ set(RAD_SOURCES
 )
 
 set(RAD_HEADERS
-    ${RAD_DIR}/compress.h
 	${RAD_DIR}/list.h
 	${RAD_DIR}/meshdesc.h
 	${RAD_DIR}/meshtrace.h
-    ${RAD_DIR}/qrad.h
 	${RAD_DIR}/studio.h
+    ${RAD_DIR}/compress.h
+    ${RAD_DIR}/hlrad.h
 )
 
 #================
@@ -183,11 +183,11 @@ set(VIS_DIR ${HLT_DIR}/hlvis)
 
 set(VIS_SOURCES
     ${VIS_DIR}/flow.cpp
-    ${VIS_DIR}/vis.cpp
+    ${VIS_DIR}/hlvis.cpp
 )
 
 set(VIS_HEADERS
-    ${VIS_DIR}/vis.h
+    ${VIS_DIR}/hlvis.h
 )
 
 #================

@@ -1,19 +1,5 @@
-/*
-
-	BINARY SPACE PARTITION    -aka-    B S P
-
-	Code based on original code from Valve Software,
-	Modified by Sean "Zoner" Cavanaugh (seanc@gearboxsoftware.com) with
-   permission. Modified by Tony "Merl" Moore (merlinis@bigpond.net.au) [AJM]
-	Modified by amckern (amckern@yahoo.com)
-	Modified by vluzacn (vluzacn@163.com)
-	Modified by seedee (cdaniel9000@gmail.com)
-	Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
-
-*/
-
-#include "bsp5.h"
 #include "cli_option_defaults.h"
+#include "hlbsp.h"
 #include "hull_size.h"
 #include "log.h"
 #include "time_counter.h"
@@ -1444,7 +1430,7 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 	LoadBSPFile(g_bspfilename.c_str());
 	parse_entities_from_bsp_file();
 
-	Settings(); // AJM: moved here due to info_compile_parameters entity
+	Settings();
 
 	{
 		std::filesystem::path planeFilePath{

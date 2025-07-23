@@ -1,4 +1,4 @@
-#include "qrad.h"
+#include "hlrad.h"
 #include "utf8.h"
 
 #include <algorithm>
@@ -2659,9 +2659,6 @@ static void GatherSampleLight(
 	float dot, dot2;
 	float dist;
 	float ratio;
-#ifdef HLRAD_OPACITY // AJM
-	float l_opacity;
-#endif
 	int style_index;
 	int step_match;
 	bool sky_used = false;
@@ -5214,14 +5211,10 @@ void FinalLightFace(int const facenum) {
 		return;
 	}
 
-	//
 	// set up the triangulation
 	//
-	//
 	// sample the triangulation
-	//
-	minlight = float_for_key(*g_face_entity[facenum], u8"_minlight")
-		* 255; // seedee
+	minlight = float_for_key(*g_face_entity[facenum], u8"_minlight") * 255;
 	minlight = (minlight > 255) ? 255 : minlight;
 
 	wad_texture_name texname{ get_texture_by_number(f->texinfo) };

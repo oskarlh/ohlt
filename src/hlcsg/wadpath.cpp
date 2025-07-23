@@ -1,6 +1,4 @@
-// AJM: added this file in
-
-#include "csg.h"
+#include "hlcsg.h"
 #include "worldspawn_wad_value_parser.h"
 
 std::vector<wadpath_t*> g_pWadPaths;

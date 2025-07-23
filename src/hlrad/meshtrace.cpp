@@ -2,7 +2,7 @@
 
 #include "meshtrace.h"
 
-#include "qrad.h"
+#include "hlrad.h"
 
 void TraceMesh ::SetupTrace(
 	float3_array const & start,

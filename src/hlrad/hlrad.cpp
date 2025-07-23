@@ -1,20 +1,5 @@
-/*
-
-	R A D I O S I T Y    -aka-    R A D
-
-	Code based on original code from Valve Software,
-	Modified by Sean "Zoner" Cavanaugh (seanc@gearboxsoftware.com) with
-   permission. Modified by Tony "Merl" Moore (merlinis@bigpond.net.au) [AJM]
-	Modified by amckern (amckern@yahoo.com)
-	Modified by vluzacn (vluzacn@163.com)
-	Modified by seedee (cdaniel9000@gmail.com)
-	Modified by Oskar Larsson Högfeldt (AKA Oskar Potatis) (oskar@oskar.pm)
-
-*/
-
-#include "qrad.h"
-
 #include "bsp_file_sizes.h"
+#include "hlrad.h"
 #include "rad_cli_option_defaults.h"
 #include "time_counter.h"
 #include "utf8.h"
@@ -515,9 +500,8 @@ static void ReadLightFile(char const * const filename) {
 		s_texlights.push_back(texlight);
 	}
 	fclose(f); //--vluzacn
-	Log("%u texlights parsed (%s)\n",
-		file_texlights,
-		filename); // readded //seedee
+	Log("%u texlights parsed (%s)\n", file_texlights,
+		filename); // readded
 }
 
 static float3_array LightForTexture(wad_texture_name name) {
@@ -2046,7 +2030,6 @@ static void FreePatches() {
 	unsigned x;
 	patch_t* patch = g_patches;
 
-	// AJM EX
 	// Log("patches: %i of %i (%2.2lf percent)\n", g_num_patches,
 	// MAX_PATCHES, (double)((double)g_num_patches / (double)MAX_PATCHES));
 
@@ -2694,7 +2677,7 @@ static void RadWorld() {
 	BuildDiffuseNormals();
 	// create directlights out of g_patches and lights
 	CreateDirectLights();
-	LoadStudioModels(); // seedee
+	LoadStudioModels();
 	Log("\n");
 
 	// generate a position map for each face
@@ -3244,8 +3227,6 @@ static void Settings() {
 	Log("\n\n");
 }
 
-// AJM: added in
-// add minlights entity //seedee
 // =====================================================================================
 //  ReadInfoTexAndMinlights
 //      try and parse texlight info from the info_texlights entity
@@ -3440,7 +3421,7 @@ void LoadRadFiles(
 			}
 		}
 	}
-	ReadInfoTexAndMinlights(); // AJM + seedee
+	ReadInfoTexAndMinlights();
 }
 
 // =====================================================================================
@@ -3453,9 +3434,9 @@ int main(int const argc, char** argv) {
 	int i;
 	char const * mapname_from_arg = nullptr;
 	char const * user_lights = nullptr;
-	char temp[_MAX_PATH]; // seedee
+	char temp[_MAX_PATH];
 
-	g_Program = u8"HLRAD";
+	g_Program = u8"HLRAD"; // Radiosity
 
 	int argcold = argc;
 	char** argvold = argv;
@@ -3638,7 +3619,7 @@ int main(int const argc, char** argv) {
 						   )) {
 					if (i + 1 < argc) //"1" was added to check if there is
 									  // another argument afterwards
-									  //(expected value) //seedee
+									  //(expected value)
 					{
 						g_limitthreshold = atof(argv[++i]);
 					} else {
@@ -4125,7 +4106,7 @@ int main(int const argc, char** argv) {
 				g_blur = 1.0;
 			}
 			RadWorld();
-			FreeStudioModels(); // seedee
+			FreeStudioModels();
 			FreeOpaqueFaceList();
 			FreePatches();
 			DeleteOpaqueNodes();
