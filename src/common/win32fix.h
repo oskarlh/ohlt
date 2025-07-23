@@ -13,10 +13,6 @@
 #ifdef SYSTEM_POSIX
 #define _MAX_PATH 4096
 
-#define _open  open	 //--vluzacn
-#define _read  read	 //--vluzacn
-#define _close close //--vluzacn
-
 #define FORMAT_PRINTF(STRING_INDEX, FIRST_TO_CHECK)              \
 	__attribute__((format(printf, STRING_INDEX, FIRST_TO_CHECK)) \
 	) //--vluzacn

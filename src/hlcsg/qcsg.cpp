@@ -1707,7 +1707,7 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		g_hullfile.empty() ? "None" : g_hullfile.c_str(),
 		"None");
 	Log("nullfile              [ %7s ] [ %7s ]\n",
-		g_nullfile.empty() ? "None" : g_nullfile,
+		g_nullfile.empty() ? "None" : g_nullfile.c_str(),
 		"None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n",
 		g_nullifytrigger ? "on" : "off",

@@ -185,23 +185,6 @@ void FORMAT_PRINTF(1, 2) Error(char const * const error, ...) {
 	char message2[MAX_ERROR];
 	va_list argptr;
 
-	/*#if defined( SYSTEM_WIN32 ) && !defined( __MINGW32__ ) && !defined(
-   __BORLANDC__ )
-	   {
-		   char* wantint3 = getenv("WANTINT3");
-		   if (wantint3)
-		   {
-			   if (atoi(wantint3))
-			   {
-				   __asm
-				   {
-					   int 3;
-				   }
-			   }
-		   }
-	   }
-   #endif*/
-
 	va_start(argptr, error);
 	vsnprintf(message, MAX_ERROR, error, argptr);
 	va_end(argptr);
