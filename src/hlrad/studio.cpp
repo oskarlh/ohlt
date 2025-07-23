@@ -25,20 +25,21 @@ static void LoadStudioModel(
 		return;
 	}
 
-	std::filesystem::path absolutePathToModel{ g_Wadpath
-											   / relativePathToModel };
-
 	model_t* m = &models.emplace_back();
-	snprintf(m->name, sizeof(m->name), "%s", absolutePathToModel.c_str());
-	FlipSlashes(m->name);
+	// TODO:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Look in valve folder,
+	// _downloads, _addons folders and such
+	m->absolutePathToMainModelFile = { g_Wadpath / relativePathToModel };
 
 	/// TODO: fileContents may be misaligned!!!!! read_binary_file should
 	/// probably return data that's aligned to std::max_align_t
 	auto [readSuccessfully, fileSize, fileContents] = read_binary_file(
-		m->name
+		m->absolutePathToMainModelFile
 	);
 	if (!readSuccessfully) {
-		Warning("LoadStudioModel: couldn't load %s\n", m->name);
+		Warning(
+			"LoadStudioModel: couldn't load %s\n",
+			m->absolutePathToMainModelFile.c_str()
+		);
 		return;
 	}
 	m->extradata = std::move(fileContents);
@@ -48,7 +49,7 @@ static void LoadStudioModel(
 	// well the textures place in separate file (very stupid case)
 	if (phdr->numtextures == 0) {
 		std::filesystem::path absolutePathToModelTextureFile{
-			absolutePathToModel
+			m->absolutePathToMainModelFile
 		};
 		absolutePathToModelTextureFile.replace_extension(
 			std::filesystem::path{}

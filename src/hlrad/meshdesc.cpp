@@ -686,7 +686,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	// member trace mode
 	m_mesh.trace_mode = pModel->trace_mode;
 
-	InitMeshBuild(pModel->name, numTris);
+	InitMeshBuild(pModel->absolutePathToMainModelFile.c_str(), numTris);
 
 	if (simplifyModel) {
 		// begin model simplification
@@ -755,15 +755,11 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			tris_reduced++;
 		}
 
-		char mdlname[64];
-
-		ExtractFileBase(pModel->name, mdlname);
-
 		if (numVerts != verts_reduced) {
 			Developer(
 				developer_level::message,
 				"Model %s simplified ( verts %i -> %i, tris %i -> %i )\n",
-				mdlname,
+				pModel->absolutePathToMainModelFile.c_str(),
 				numVerts,
 				verts_reduced,
 				numTris,
@@ -796,7 +792,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		Developer(
 			developer_level::error,
 			"StudioConstructMesh: failed to build mesh from %s\n",
-			pModel->name
+			pModel->absolutePathToMainModelFile.c_str()
 		);
 		return false;
 	}

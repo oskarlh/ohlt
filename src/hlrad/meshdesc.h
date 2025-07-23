@@ -233,7 +233,7 @@ int MapVertex(int a, int mx, List<int>& map);
 
 // collision description
 struct model_t final {
-	char name[64]; // model name
+	std::filesystem::path absolutePathToMainModelFile;
 	float3_array origin;
 	float3_array angles;
 	float3_array scale; // scale X-Form

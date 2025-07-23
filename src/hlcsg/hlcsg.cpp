@@ -1778,7 +1778,7 @@ int main(int const argc, char** argv) {
 	hlcsg_settings settings{};
 	bsp_data& bspData = bspGlobals;
 	int i;
-	char name[_MAX_PATH]; // mapanme
+	std::filesystem::path sourceFilePath; // The .map
 	char const * mapname_from_arg
 		= nullptr; // mapname path from passed argvar
 
@@ -2054,6 +2054,14 @@ int main(int const argc, char** argv) {
 				Log("No mapfile specified\n");
 				Usage();
 			}
+			sourceFilePath = std::filesystem::path(
+				mapname_from_arg, std::filesystem::path::auto_format
+			);
+			if (!sourceFilePath.has_extension()) {
+				sourceFilePath += std::filesystem::path(
+					u8".map", std::filesystem::path::generic_format
+				);
+			}
 
 			// handle mapname
 			g_Mapname = std::filesystem::path(
@@ -2117,13 +2125,8 @@ int main(int const argc, char** argv) {
 			if (g_bUseNullTex) {
 				properties_initialize(g_nullfile);
 			}
-			safe_strncpy(
-				name, mapname_from_arg, _MAX_PATH
-			); // make a copy of the nap name
-			FlipSlashes(name);
-			DefaultExtension(name, ".map"); // might be .reg
 			Verbose("Loading map file\n");
-			LoadMapFile(settings, name);
+			LoadMapFile(settings, sourceFilePath.c_str());
 			ThreadSetDefault();
 			ThreadSetPriority(g_threadpriority);
 			Settings(bspData, settings);
