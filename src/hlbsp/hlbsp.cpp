@@ -150,17 +150,6 @@ void GetParamsFromEnt(entity_t* mapent) {
 }
 
 // =====================================================================================
-//  Extract File stuff (ExtractFile | ExtractFilePath | ExtractFileBase)
-//
-// With VS 2005 - and the 64 bit build, i had to pull 3 classes over from
-// cmdlib.cpp even with the proper includes to get rid of the lnk2001 error
-//
-// amckern - amckern@yahoo.com
-// =====================================================================================
-
-// Code Deleted. --vluzacn
-
-// =====================================================================================
 //  NewFaceFromFace
 //      Duplicates the non point information of a face, used by SplitFace
 //      and MergeFace.

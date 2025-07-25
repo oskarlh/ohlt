@@ -173,12 +173,7 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 
 			// szSubdir will have a trailing separator
 			safe_snprintf(
-				szTmp,
-				_MAX_PATH,
-				"%s" SYSTEM_SLASH_STR "%s%s",
-				pszWadroot,
-				szSubdir,
-				szFile
+				szTmp, _MAX_PATH, "%s/%s%s", pszWadroot, szSubdir, szFile
 			);
 			texfiles[nTexFiles] = fopen(szTmp, "rb");
 

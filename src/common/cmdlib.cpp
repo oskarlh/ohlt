@@ -12,37 +12,6 @@
 #include <cstring>
 #include <ranges>
 
-// Case-insensitive substring matching
-bool a_contains_b_ignoring_ascii_character_case_differences(
-	std::u8string_view string, std::u8string_view substring
-) {
-	std::u8string string_lowercase
-		= ascii_characters_to_lowercase_in_utf8_string(string);
-	std::u8string substring_lowercase
-		= ascii_characters_to_lowercase_in_utf8_string(substring);
-	return string_lowercase.contains(substring_lowercase);
-}
-
-// Case-insensitive prefix testing
-bool a_starts_with_b_ignoring_ascii_character_case_differences(
-	std::u8string_view string, std::u8string_view prefix
-) {
-	std::u8string string_lowercase
-		= ascii_characters_to_lowercase_in_utf8_string(string);
-	std::u8string prefix_lowercase
-		= ascii_characters_to_lowercase_in_utf8_string(prefix);
-	return string_lowercase.starts_with(prefix_lowercase);
-}
-
-/*--------------------------------------------------------------------
-// New implementation of FlipSlashes, DefaultExtension, StripFilename,
-// StripExtension, ExtractFilePath, ExtractFile, ExtractFileBase, etc.
-----------------------------------------------------------------------*/
-
-// Since all of these functions operate around either the extension
-// or the directory path, centralize getting both numbers here so we
-// can just reference them everywhere else.  Use strrchr to give a
-// speed boost while we're at it.
 inline void getFilePositions(
 	char const * path, int* extension_position, int* directory_position
 ) {
@@ -74,43 +43,11 @@ inline void getFilePositions(
 	}
 }
 
-char* FlipSlashes(char* string) {
-	char* ptr = string;
-	if (SYSTEM_SLASH_CHAR == '\\') {
-		while ((ptr = strchr(ptr, '/'))) {
-			*ptr = SYSTEM_SLASH_CHAR;
-		}
-	} else {
-		while ((ptr = strchr(ptr, '\\'))) {
-			*ptr = SYSTEM_SLASH_CHAR;
-		}
-	}
-	return string;
-}
-
 void DefaultExtension(char* path, char const * extension) {
 	int extension_pos, directory_pos;
 	getFilePositions(path, &extension_pos, &directory_pos);
 	if (extension_pos == -1) {
 		strcat(path, extension);
-	}
-}
-
-void StripFilename(char* path) {
-	int extension_pos, directory_pos;
-	getFilePositions(path, &extension_pos, &directory_pos);
-	if (directory_pos == -1) {
-		path[0] = 0;
-	} else {
-		path[directory_pos] = 0;
-	}
-}
-
-void StripExtension(char* path) {
-	int extension_pos, directory_pos;
-	getFilePositions(path, &extension_pos, &directory_pos);
-	if (extension_pos != -1) {
-		path[extension_pos] = 0;
 	}
 }
 
@@ -137,31 +74,6 @@ void ExtractFile(char const * const path, char* dest) {
 		dest, path + directory_pos + 1, length
 	); // exclude directory slash
 	dest[length] = 0;
-}
-
-void ExtractFileBase(char const * const path, char* dest) {
-	int extension_pos, directory_pos;
-	getFilePositions(path, &extension_pos, &directory_pos);
-	int length = extension_pos == -1 ? strlen(path) : extension_pos;
-
-	length -= directory_pos + 1;
-
-	memcpy(
-		dest, path + directory_pos + 1, length
-	); // exclude directory slash
-	dest[length] = 0;
-}
-
-void ExtractFileExtension(char const * const path, char* dest) {
-	int extension_pos, directory_pos;
-	getFilePositions(path, &extension_pos, &directory_pos);
-	if (extension_pos != -1) {
-		int length = strlen(path) - extension_pos;
-		memcpy(dest, path + extension_pos, length); // include extension '.'
-		dest[length] = 0;
-	} else {
-		dest[0] = 0;
-	}
 }
 
 //-------------------------------------------------------------------
@@ -208,15 +120,4 @@ bool safe_strncat(
 		Warning("safe_strncat passed empty count");
 		return false;
 	}
-}
-
-bool TerminatedString(char const * buffer, int const size) {
-	int x;
-
-	for (x = 0; x < size; x++, buffer++) {
-		if ((*buffer) == 0) {
-			return true;
-		}
-	}
-	return false;
 }

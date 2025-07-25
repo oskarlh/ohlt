@@ -228,3 +228,10 @@ constexpr Number
 string_to_number(std::u8string_view str, Number errorValue = 0) noexcept {
 	return parse_number(str).number;
 }
+
+bool a_starts_with_b_ignoring_ascii_character_case_differences(
+	std::u8string_view string, std::u8string_view substring
+);
+bool a_contains_b_ignoring_ascii_character_case_differences(
+	std::u8string_view string, std::u8string_view substring
+);
