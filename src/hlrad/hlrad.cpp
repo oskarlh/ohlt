@@ -1,5 +1,6 @@
-#include "bsp_file_sizes.h"
 #include "hlrad.h"
+
+#include "bsp_file_sizes.h"
 #include "rad_cli_option_defaults.h"
 #include "time_counter.h"
 #include "utf8.h"

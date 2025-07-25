@@ -284,7 +284,7 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 		= default;
 
 	constexpr ~vector_inplace() noexcept
-		requires(!std::is_trivially_default_constructible_v<T>) {
+		requires(!std::is_trivially_destructible_v<T>) {
 		clear();
 	}
 };

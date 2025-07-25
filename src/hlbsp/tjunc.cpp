@@ -1,36 +1,37 @@
 #include "hlbsp.h"
 
 #include <cstring>
+#include <optional>
+#include <vector>
+
+using wvert_count = std::uint32_t;
+using wedge_count = std::uint32_t;
 
 struct wvert_t final {
 	double t;
-	wvert_t* prev;
-	wvert_t* next;
+	wvert_count prevWvert;
+	wvert_count nextWvert;
 };
 
 struct wedge_t final {
-	wedge_t* next;
+	std::optional<wedge_count> nextWedge;
 	double3_array dir;
 	double3_array origin;
-	wvert_t head;
+	wvert_count headWvert;
 };
 
-static int numwedges;
-static int numwverts;
-static int tjuncs;
-static int tjuncfaces;
+static std::size_t tjuncs;
+static std::size_t tjuncfaces;
 
-#define MAX_WVERTS 0x4'0000
-#define MAX_WEDGES 0x2'0000
-
-static wvert_t wverts[MAX_WVERTS];
-static wedge_t wedges[MAX_WEDGES];
+static std::vector<wvert_t> wverts;
+static std::vector<wedge_t> wedges;
 
 //============================================================================
 
-#define NUM_HASH 4096
+constexpr std::size_t NUM_HASH = 4096;
 
-std::array<wedge_t*, NUM_HASH> wedge_hash;
+// The elements are indicies of the wedges array
+std::array<std::optional<wedge_count>, NUM_HASH> wedge_hash;
 
 constexpr double hash_min{ -8000 };
 static double3_array hash_scale;
@@ -38,7 +39,7 @@ static double3_array hash_scale;
 // in a cyclic way (modulus by hash_numslots) So please don't change the
 // hardcoded hash_min and scale
 static int hash_numslots[3];
-#define MAX_HASH_NEIGHBORS 4
+constexpr std::size_t MAX_HASH_NEIGHBORS = 4;
 
 static void
 InitHash(double3_array const & mins, double3_array const & maxs) {
@@ -66,17 +67,16 @@ InitHash(double3_array const & mins, double3_array const & maxs) {
 }
 
 static int HashVec(
-	double3_array const & vec, int* num_hashneighbors, int* hashneighbors
+	double3_array const & vec,
+	vector_inplace<int, MAX_HASH_NEIGHBORS>& hashneighbors
 ) {
-	int h;
-	int i;
-	int x;
-	int y;
-	int slot[2];
-	double normalized[2];
-	double slotdiff[2];
+	hashneighbors.clear();
 
-	for (i = 0; i < 2; i++) {
+	std::array<int, 2> slot;
+	std::array<double, 2> normalized;
+	std::array<double, 2> slotdiff;
+
+	for (int i = 0; i < 2; ++i) {
 		normalized[i] = hash_scale[i] * (vec[i] - hash_min);
 		slot[i] = (int) floor(normalized[i]);
 		slotdiff[i] = normalized[i] - (double) slot[i];
@@ -86,30 +86,26 @@ static int HashVec(
 			% hash_numslots[i]; // do it twice to handle negative values
 	}
 
-	h = slot[0] * hash_numslots[1] + slot[1];
+	int const h = slot[0] * hash_numslots[1] + slot[1];
 
-	*num_hashneighbors = 0;
-	for (x = -1; x <= 1; x++) {
+	for (int x = -1; x <= 1; ++x) {
 		if ((x == -1 && slotdiff[0] > hash_scale[0] * (2 * ON_EPSILON))
 			|| (x == 1 && slotdiff[0] < 1 - hash_scale[0] * (2 * ON_EPSILON)
 			)) {
 			continue;
 		}
-		for (y = -1; y <= 1; y++) {
+		for (int y = -1; y <= 1; ++y) {
 			if ((y == -1 && slotdiff[1] > hash_scale[1] * (2 * ON_EPSILON))
 				|| (y == 1
 					&& slotdiff[1] < 1 - hash_scale[1] * (2 * ON_EPSILON)
 				)) {
 				continue;
 			}
-			if (*num_hashneighbors >= MAX_HASH_NEIGHBORS) {
-				Error("HashVec: internal error.");
-			}
-			hashneighbors[*num_hashneighbors]
-				= ((slot[0] + x + hash_numslots[0]) % hash_numslots[0])
+			hashneighbors.emplace_back(
+				((slot[0] + x + hash_numslots[0]) % hash_numslots[0])
 					* hash_numslots[1]
-				+ (slot[1] + y + hash_numslots[1]) % hash_numslots[1];
-			(*num_hashneighbors)++;
+				+ (slot[1] + y + hash_numslots[1]) % hash_numslots[1]
+			);
 		}
 	}
 
@@ -146,10 +142,8 @@ static bool CanonicalVector(double3_array& vec) {
 		} else {
 			vec[2] = 0;
 		}
-		//        hlassert(false);
 		return false;
 	}
-	//    hlassert(false);
 	return false;
 }
 
@@ -159,15 +153,7 @@ static wedge_t* FindEdge(
 	double* t1,
 	double* t2
 ) {
-	double3_array origin;
-	double3_array dir;
-	wedge_t* w;
-	double temp;
-	int h;
-	int num_hashneighbors;
-	int hashneighbors[MAX_HASH_NEIGHBORS];
-
-	dir = vector_subtract(p2, p1);
+	double3_array dir = vector_subtract(p2, p1);
 	if (!CanonicalVector(dir)) {
 #if _DEBUG
 		Warning(
@@ -182,80 +168,80 @@ static wedge_t* FindEdge(
 	*t1 = dot_product(p1, dir);
 	*t2 = dot_product(p2, dir);
 
-	origin = vector_fma(dir, -*t1, p1);
+	double3_array const origin = vector_fma(dir, -*t1, p1);
 
 	if (*t1 > *t2) {
-		temp = *t1;
-		*t1 = *t2;
-		*t2 = temp;
+		std::swap(*t1, *t2);
 	}
 
-	h = HashVec(origin, &num_hashneighbors, hashneighbors);
+	vector_inplace<int, MAX_HASH_NEIGHBORS> hashneighbors;
 
-	for (int i = 0; i < num_hashneighbors; ++i) {
-		for (w = wedge_hash[hashneighbors[i]]; w; w = w->next) {
-			if (fabs(w->origin[0] - origin[0]) > EQUAL_EPSILON
-				|| fabs(w->origin[1] - origin[1]) > EQUAL_EPSILON
-				|| fabs(w->origin[2] - origin[2]) > EQUAL_EPSILON) {
+	int h = HashVec(origin, hashneighbors);
+
+	for (int neighbour : hashneighbors) {
+		for (std::optional<wedge_count> maybeWedgeIndex
+			 = wedge_hash[neighbour];
+			 maybeWedgeIndex.has_value();
+			 maybeWedgeIndex = wedges[maybeWedgeIndex.value()].nextWedge) {
+			wedge_t& wedge = wedges[maybeWedgeIndex.value()];
+
+			if (fabs(wedge.origin[0] - origin[0]) > EQUAL_EPSILON
+				|| fabs(wedge.origin[1] - origin[1]) > EQUAL_EPSILON
+				|| fabs(wedge.origin[2] - origin[2]) > EQUAL_EPSILON) {
 				continue;
 			}
-			if (fabs(w->dir[0] - dir[0]) > NORMAL_EPSILON
-				|| fabs(w->dir[1] - dir[1]) > NORMAL_EPSILON
-				|| fabs(w->dir[2] - dir[2]) > NORMAL_EPSILON) {
+			if (fabs(wedge.dir[0] - dir[0]) > NORMAL_EPSILON
+				|| fabs(wedge.dir[1] - dir[1]) > NORMAL_EPSILON
+				|| fabs(wedge.dir[2] - dir[2]) > NORMAL_EPSILON) {
 				continue;
 			}
 
-			return w;
+			return &wedge;
 		}
 	}
 
-	hlassume(numwedges < MAX_WEDGES, assume_MAX_WEDGES);
-	w = &wedges[numwedges];
-	numwedges++;
+	wedge_count const wedgeIndex = wedges.size();
+	wedge_t& wedge = wedges.emplace_back();
 
-	w->next = wedge_hash[h];
-	wedge_hash[h] = w;
+	wedge.nextWedge = wedge_hash[h];
+	wedge_hash[h] = wedgeIndex;
 
-	w->origin = origin;
-	w->dir = dir;
-	w->head.next = w->head.prev = &w->head;
-	w->head.t = 99999;
-	return w;
+	wedge.origin = origin;
+	wedge.dir = dir;
+
+	wvert_count const headWvertIndex = wverts.size();
+	wvert_t& head = wverts.emplace_back();
+	head.nextWvert = head.prevWvert = headWvertIndex;
+	head.t = 99999;
+
+	wedge.headWvert = headWvertIndex;
+	return &wedge;
 }
 
-/*
- * ===============
- * AddVert
- *
- * ===============
- */
-
 static void AddVert(wedge_t const * const w, double const t) {
-	wvert_t* v;
-	wvert_t* newv;
-
-	v = w->head.next;
-	do {
-		if (fabs(v->t - t) < ON_EPSILON) {
+	wvert_count wvertIndex = wverts[w->headWvert].nextWvert;
+	while (true) {
+		wvert_t const & wvert = wverts[wvertIndex];
+		if (fabs(wvert.t - t) < ON_EPSILON) {
 			return;
 		}
-		if (v->t > t) {
+		if (wvert.t > t) {
 			break;
 		}
-		v = v->next;
-	} while (1);
+		wvertIndex = wvert.nextWvert;
+	};
+	wvert_t& v = wverts[wvertIndex];
 
-	// insert a new wvert before v
-	hlassume(numwverts < MAX_WVERTS, assume_MAX_WVERTS);
+	// Insert a new wvert_t before v
 
-	newv = &wverts[numwverts];
-	numwverts++;
+	wvert_count newvIndex = wverts.size();
+	wvert_t& newv = wverts.emplace_back();
 
-	newv->t = t;
-	newv->next = v;
-	newv->prev = v->prev;
-	v->prev->next = newv;
-	v->prev = newv;
+	newv.t = t;
+	newv.nextWvert = wvertIndex;
+	newv.prevWvert = v.prevWvert;
+	wverts[v.prevWvert].nextWvert = newvIndex;
+	v.prevWvert = newvIndex;
 }
 
 /*
@@ -264,11 +250,10 @@ static void AddVert(wedge_t const * const w, double const t) {
  * ===============
  */
 static void AddEdge(double3_array const & p1, double3_array const & p2) {
-	wedge_t* w;
 	double t1;
 	double t2;
 
-	w = FindEdge(p1, p2, &t1, &t2);
+	wedge_t* w = FindEdge(p1, p2, &t1, &t2);
 	AddVert(w, t1);
 	AddVert(w, t2);
 }
@@ -280,10 +265,8 @@ static void AddEdge(double3_array const & p1, double3_array const & p2) {
  * ===============
  */
 static void AddFaceEdges(face_t const * const f) {
-	int i, j;
-
-	for (i = 0; i < f->numpoints; i++) {
-		j = (i + 1) % f->numpoints;
+	for (int i = 0; i < f->numpoints; i++) {
+		int j = (i + 1) % f->numpoints;
 		AddEdge(f->pts[i], f->pts[j]);
 	}
 }
@@ -292,27 +275,15 @@ static void AddFaceEdges(face_t const * const f) {
 
 static byte superfacebuf[1024 * 16];
 static face_t* superface = (face_t*) superfacebuf;
-static int MAX_SUPERFACEEDGES = (sizeof(superfacebuf) - sizeof(face_t)
-								 + sizeof(superface->pts))
+static std::size_t MAX_SUPERFACEEDGES = (sizeof(superfacebuf)
+										 - sizeof(face_t)
+										 + sizeof(superface->pts))
 	/ sizeof(double3_array);
 static face_t* newlist;
 
 static void SplitFaceForTjunc(face_t* f, face_t* original) {
-	int i;
-	face_t* newface;
-	face_t* chain;
-	double3_array dir, test;
-	double v;
-	int firstcorner, lastcorner;
-
-#ifdef _DEBUG
-	static int counter = 0;
-
-	Log("SplitFaceForTjunc %d\n", counter++);
-#endif
-
-	chain = nullptr;
-	do {
+	face_t* chain{ nullptr };
+	while (true) {
 		hlassume(
 			f->original == nullptr, assume_ValidPointer
 		); // "SplitFaceForTjunc: f->original"
@@ -327,18 +298,21 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 			return;
 		}
 
-		tjuncfaces++;
+		++tjuncfaces;
 
 	restart:
 		// find the last corner
-		dir = vector_subtract(f->pts[f->numpoints - 1], f->pts[0]);
+		double3_array dir = vector_subtract(
+			f->pts[f->numpoints - 1], f->pts[0]
+		);
 		normalize_vector(dir);
+		int lastcorner;
 		for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--) {
-			test = vector_subtract(
+			double3_array test = vector_subtract(
 				f->pts[lastcorner - 1], f->pts[lastcorner]
 			);
 			normalize_vector(test);
-			v = dot_product(test, dir);
+			double const v = dot_product(test, dir);
 			if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON) {
 				break;
 			}
@@ -347,13 +321,14 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		// find the first corner
 		dir = vector_subtract(f->pts[1], f->pts[0]);
 		normalize_vector(dir);
+		int firstcorner;
 		for (firstcorner = 1; firstcorner < f->numpoints - 1;
 			 firstcorner++) {
-			test = vector_subtract(
+			double3_array test = vector_subtract(
 				f->pts[firstcorner + 1], f->pts[firstcorner]
 			);
 			normalize_vector(test);
-			v = dot_product(test, dir);
+			double const v = dot_product(test, dir);
 			if (v < 1.0 - ON_EPSILON || v > 1.0 + ON_EPSILON) {
 				break;
 			}
@@ -361,8 +336,8 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 
 		if (firstcorner + 2 >= MAXPOINTS) {
 			// rotate the point winding
-			test = f->pts[0];
-			for (i = 1; i < f->numpoints; i++) {
+			double3_array test = f->pts[0];
+			for (int i = 1; i < f->numpoints; i++) {
 				f->pts[i - 1] = f->pts[i];
 			}
 			f->pts[f->numpoints - 1] = test;
@@ -372,7 +347,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		// cut off as big a piece as possible, less than MAXPOINTS, and not
 		// past lastcorner
 
-		newface = NewFaceFromFace(f);
+		face_t* const newface = NewFaceFromFace(f);
 
 		hlassume(
 			f->original == nullptr, assume_ValidPointer
@@ -391,15 +366,15 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 			newface->numpoints = MAXPOINTS;
 		}
 
-		for (i = 0; i < newface->numpoints; i++) {
+		for (int i = 0; i < newface->numpoints; i++) {
 			newface->pts[i] = f->pts[i];
 		}
 
-		for (i = newface->numpoints - 1; i < f->numpoints; i++) {
+		for (int i = newface->numpoints - 1; i < f->numpoints; i++) {
 			f->pts[i - (newface->numpoints - 2)] = f->pts[i];
 		}
 		f->numpoints -= (newface->numpoints - 2);
-	} while (1);
+	};
 }
 
 /*
@@ -409,32 +384,33 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
  * ===============
  */
 static void FixFaceEdges(face_t* f) {
-	int i;
-	int j;
-	int k;
-	wedge_t* w;
-	wvert_t* v;
-
 	*superface = *f;
 
 restart:
-	for (i = 0; i < superface->numpoints; i++) {
-		j = (i + 1) % superface->numpoints;
+	for (int i = 0; i < superface->numpoints; i++) {
+		int j = (i + 1) % superface->numpoints;
 
 		double t1;
 		double t2;
-		w = FindEdge(superface->pts[i], superface->pts[j], &t1, &t2);
+		wedge_t const * const w = FindEdge(
+			superface->pts[i], superface->pts[j], &t1, &t2
+		);
 
-		for (v = w->head.next; v->t < t1 + ON_EPSILON; v = v->next)
+		wvert_count vIndex;
+		for (vIndex = wverts[w->headWvert].nextWvert;
+			 wverts[vIndex].t < t1 + ON_EPSILON;
+			 vIndex = wverts[vIndex].nextWvert)
 			;
 
-		if (v->t < t2 - ON_EPSILON) {
-			tjuncs++;
+		wvert_t const & v = wverts[vIndex];
+
+		if (v.t < t2 - ON_EPSILON) {
+			++tjuncs;
 			// insert a new vertex here
-			for (k = superface->numpoints; k > j; k--) {
+			for (int k = superface->numpoints; k > j; k--) {
 				superface->pts[k] = superface->pts[k - 1];
 			}
-			superface->pts[j] = vector_fma(w->dir, v->t, w->origin);
+			superface->pts[j] = vector_fma(w->dir, v.t, w->origin);
 			superface->numpoints++;
 			hlassume(
 				superface->numpoints < MAX_SUPERFACEEDGES,
@@ -460,13 +436,11 @@ restart:
 //============================================================================
 
 static void tjunc_find_r(node_t* node) {
-	face_t* f;
-
 	if (node->planenum == PLANENUM_LEAF) {
 		return;
 	}
 
-	for (f = node->faces; f; f = f->next) {
+	for (face_t* f = node->faces; f; f = f->next) {
 		AddFaceEdges(f);
 	}
 
@@ -475,16 +449,13 @@ static void tjunc_find_r(node_t* node) {
 }
 
 static void tjunc_fix_r(node_t* node) {
-	face_t* f;
-	face_t* next;
-
 	if (node->planenum == PLANENUM_LEAF) {
 		return;
 	}
 
 	newlist = nullptr;
-
-	for (f = node->faces; f; f = next) {
+	face_t* next;
+	for (face_t* f = node->faces; f; f = next) {
 		next = f->next;
 		FixFaceEdges(f);
 	}
@@ -502,14 +473,13 @@ static void tjunc_fix_r(node_t* node) {
  * ===========
  */
 void tjunc(node_t* headnode) {
-	double3_array maxs, mins;
-	int i;
-
 	Verbose("---- tjunc ----\n");
 
 	if (g_notjunc) {
 		return;
 	}
+
+	double3_array maxs;
 
 	//
 	// identify all points on common edges
@@ -517,22 +487,25 @@ void tjunc(node_t* headnode) {
 
 	// origin points won't allways be inside the map, so extend the hash
 	// area
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		if (fabs(headnode->maxs[i]) > fabs(headnode->mins[i])) {
 			maxs[i] = fabs(headnode->maxs[i]);
 		} else {
 			maxs[i] = fabs(headnode->mins[i]);
 		}
 	}
-	mins = negate_vector(maxs);
+	double3_array mins = negate_vector(maxs);
 
 	InitHash(mins, maxs);
 
-	numwedges = numwverts = 0;
+	wedges.clear();
+	wverts.clear();
 
 	tjunc_find_r(headnode);
 
-	Verbose("%i world edges  %i edge points\n", numwedges, numwverts);
+	Verbose(
+		"%zu world edges %zu edge points\n", wverts.size(), wverts.size()
+	);
 
 	//
 	// add extra vertexes on edges where needed
@@ -541,6 +514,6 @@ void tjunc(node_t* headnode) {
 
 	tjunc_fix_r(headnode);
 
-	Verbose("%i edges added by tjunctions\n", tjuncs);
-	Verbose("%i faces added by tjunctions\n", tjuncfaces);
+	Verbose("%zu edges added by tjunctions\n", tjuncs);
+	Verbose("%zu faces added by tjunctions\n", tjuncfaces);
 }

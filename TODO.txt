@@ -100,3 +100,5 @@ When writing key-values to the .bsp file, in the end compiler-specific key-value
 
 
 Check out https://developer.valvesoftware.com/wiki/Newbspguy - it might help with troubleshooting issues
+
+https://twhl.info/wiki/page/Tutorial%253A_The_Complete_Guide_to_Lighting

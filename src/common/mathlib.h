@@ -207,3 +207,8 @@ constexpr bool is_point_finite(any_vec3 auto const & p) noexcept {
 
 std::uint16_t float_to_half(float v);
 float half_to_float(std::uint16_t h);
+
+template <std::floating_point T>
+constexpr T fast_sqrt(T x) {
+	return x * x;
+}

@@ -1726,10 +1726,8 @@ void CreateDirectLights() {
 	unsigned i;
 	patch_t* p;
 	directlight_t* dl;
-	dleaf_t* leaf;
 	int leafnum;
 	entity_t* e;
-	float angle;
 	float3_array dest;
 
 	numdlights = 0;
@@ -1766,7 +1764,7 @@ void CreateDirectLights() {
 
 			dl->origin = p->origin;
 
-			leaf = PointInLeaf(dl->origin);
+			dleaf_t* const leaf = PointInLeaf(dl->origin);
 			leafnum = leaf - g_dleafs.data();
 
 			dl->next = directlights[leafnum];
@@ -1849,14 +1847,15 @@ void CreateDirectLights() {
 			dface_t* f = &g_dfaces[p->faceNumber];
 			if (g_face_entity[p->faceNumber] != g_entities.data()
 				&& get_texture_by_number(f->texinfo).is_water()) {
-				directlight_t* dl2;
 				numdlights++;
-				dl2 = (directlight_t*) calloc(1, sizeof(directlight_t));
+				directlight_t* dl2 = (directlight_t*) calloc(
+					1, sizeof(directlight_t)
+				);
 				hlassume(dl2 != nullptr, assume_NoMemory);
 				*dl2 = *dl;
 				dl2->origin = vector_fma(dl->normal, -2.0f, dl->origin);
 				dl2->normal = negate_vector(dl->normal);
-				leaf = PointInLeaf(dl2->origin);
+				dleaf_t* const leaf = PointInLeaf(dl2->origin);
 				leafnum = leaf - g_dleafs.data();
 				dl2->next = directlights[leafnum];
 				directlights[leafnum] = dl2;
@@ -1870,7 +1869,6 @@ void CreateDirectLights() {
 	for (i = 0; i < (unsigned) g_numentities; i++) {
 		char const * pLight;
 		double r, g, b, scaler;
-		float l1;
 		int argCnt;
 
 		e = &g_entities[i];
@@ -1915,7 +1913,7 @@ void CreateDirectLights() {
 
 		dl->origin = get_float3_for_key(*e, u8"origin");
 
-		leaf = PointInLeaf(dl->origin);
+		dleaf_t* const leaf = PointInLeaf(dl->origin);
 		leafnum = leaf - g_dleafs.data();
 
 		dl->next = directlights[leafnum];
@@ -2019,11 +2017,9 @@ void CreateDirectLights() {
 				dl->normal = vector_subtract(dest, dl->origin);
 				normalize_vector(dl->normal);
 			} else { // point down angle
-				float3_array vAngles;
+				float3_array vAngles = get_float3_for_key(*e, u8"angles");
 
-				vAngles = get_float3_for_key(*e, u8"angles");
-
-				angle = float_for_key(*e, u8"angle");
+				float angle = float_for_key(*e, u8"angle");
 				if (angle == ANGLE_UP) {
 					dl->normal[0] = dl->normal[1] = 0;
 					dl->normal[2] = 1;
@@ -2276,11 +2272,11 @@ void CreateDirectLights() {
 
 		if (dl->type != emit_skylight) {
 			// why? --vluzacn
-			l1 = std::max(
-				dl->intensity[0],
-				std::max(dl->intensity[1], dl->intensity[2])
-			);
-			l1 = l1 * l1 / 10;
+			float l1 = fast_sqrt(std::max(
+						   dl->intensity[0],
+						   std::max(dl->intensity[1], dl->intensity[2])
+					   ))
+				/ 10;
 
 			dl->intensity[0] *= l1;
 			dl->intensity[1] *= l1;
@@ -3307,13 +3303,10 @@ static void AddSamplesToPatches(
 void GetPhongNormal(
 	int facenum, float3_array const & spot, float3_array& phongnormal
 ) {
-	int j;
-	int s; // split every edge into two parts
 	dface_t const * f = g_dfaces.data() + facenum;
 	dplane_t const * p = getPlaneFromFace(f);
-	float3_array facenormal;
 
-	facenormal = p->normal;
+	float3_array facenormal{ p->normal };
 	phongnormal = facenormal;
 
 	{
@@ -3326,7 +3319,7 @@ void GetPhongNormal(
 		// generate the point normals for all vertices and do baricentric
 		// triangulation.
 
-		for (j = 0; j < f->numedges; j++) {
+		for (int j = 0; j < f->numedges; j++) {
 			float3_array p1;
 			float3_array p2;
 			float3_array v1;
@@ -3334,12 +3327,6 @@ void GetPhongNormal(
 			float3_array vspot;
 			unsigned prev_edge;
 			unsigned next_edge;
-			int e;
-			int e1;
-			int e2;
-			edgeshare_t* es;
-			edgeshare_t* es1;
-			edgeshare_t* es2;
 			float a1;
 			float a2;
 			float aa;
@@ -3359,13 +3346,13 @@ void GetPhongNormal(
 				next_edge = f->firstedge;
 			}
 
-			e = g_dsurfedges[f->firstedge + j];
-			e1 = g_dsurfedges[prev_edge];
-			e2 = g_dsurfedges[next_edge];
+			int e = g_dsurfedges[f->firstedge + j];
+			int e1 = g_dsurfedges[prev_edge];
+			int e2 = g_dsurfedges[next_edge];
 
-			es = &g_edgeshare[abs(e)];
-			es1 = &g_edgeshare[abs(e1)];
-			es2 = &g_edgeshare[abs(e2)];
+			edgeshare_t* es = &g_edgeshare[abs(e)];
+			edgeshare_t* es1 = &g_edgeshare[abs(e1)];
+			edgeshare_t* es2 = &g_edgeshare[abs(e2)];
 
 			if ((!es->smooth || es->coplanar)
 				&& (!es1->smooth || es1->coplanar)
@@ -3384,7 +3371,8 @@ void GetPhongNormal(
 			// Adjust for origin-based models
 			p1 = vector_add(p1, g_face_offset[facenum]);
 			p2 = vector_add(p2, g_face_offset[facenum]);
-			for (s = 0; s < 2; s++) {
+			// Split every edge into two parts
+			for (std::size_t s = 0; s < 2; ++s) {
 				float3_array s1 = s == 0 ? p1 : p2;
 				float3_array const edgeCenter = midpoint_between(p1, p2);
 
@@ -3439,7 +3427,7 @@ void GetPhongNormal(
 					normalize_vector(phongnormal);
 					break;
 				}
-			} // s=0,1
+			}
 		}
 	}
 }
@@ -3702,14 +3690,14 @@ void CalcLightmap(
 					memset(pvs, 255, (g_dmodels[0].visleafs + 7) / 8);
 				}
 			} else {
-				dleaf_t* leaf = PointInLeaf(spot);
+				dleaf_t* const leaf = PointInLeaf(spot);
 				int thisoffset = leaf->visofs;
 				if (i == 0 || thisoffset != lastoffset) {
 					if (thisoffset == -1) {
 						memset(pvs, 0, (g_dmodels[0].visleafs + 7) / 8);
 					} else {
 						DecompressVis(
-							(byte*) &g_dvisdata[leaf->visofs],
+							(byte const *) &g_dvisdata[leaf->visofs],
 							pvs,
 							sizeof(pvs)
 						);

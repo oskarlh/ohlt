@@ -34,8 +34,6 @@ enum assume_msgs {
 	// HLBSP
 	assume_LEAK,
 	assume_MAX_LEAF_FACES,
-	assume_MAX_WEDGES,
-	assume_MAX_WVERTS,
 	assume_MAX_SUPERFACEEDGES,
 	assume_EmptySolid,
 

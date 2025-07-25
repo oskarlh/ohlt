@@ -56,8 +56,6 @@ static MessageTable_t const assumes[assume_last] = {
 	{ "Exceeded MAX_LEAF_FACES",
 	  "This error is almost always caused by an invalid brush, by having huge rooms, or scaling a texture down to extremely small values (between -1 and 1)",
 	  "Find the invalid brush.  Any imported prefabs, carved brushes, or vertex manipulated brushes should be suspect" },
-	{ "Exceeded MAX_WEDGES", internallimit, contact },
-	{ "Exceeded MAX_WVERTS", internallimit, contact },
 	{ "Exceeded MAX_SUPERFACEEDGES", internallimit, contact },
 	{ "Empty Solid Entity",
 	  "A solid entity in the map (func_wall for example) has no brushes.",
