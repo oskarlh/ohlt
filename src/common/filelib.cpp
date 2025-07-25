@@ -42,7 +42,8 @@ read_binary_file(std::filesystem::path const & filePath) {
 		std::move(
 			buffer.get(), buffer.get() + fileSize, smallerBuffer.get()
 		);
-		std::swap(buffer, smallerBuffer);
+		using std::swap;
+		swap(buffer, smallerBuffer);
 	} else if (!file.good()) {
 		return { false, 0, nullptr };
 	}

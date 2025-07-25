@@ -49,7 +49,7 @@ bool g_nohull2 = false;
 
 bool g_viewportal = false;
 
-std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
+vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
 // =====================================================================================
 //  GetParamsFromEnt
@@ -216,8 +216,8 @@ static void SplitFaceTmp(
 	if (!counts[0] && !counts[1]) {
 		if (in->detailLevel) {
 			// put front face in front node, and back face in back node.
-			mapplane_t const * faceplane = &g_mapplanes[in->planenum];
-			if (dot_product(faceplane->normal, split->normal)
+			mapplane_t const & faceplane = g_mapPlanes[in->planenum];
+			if (dot_product(faceplane.normal, split->normal)
 				> NORMAL_EPSILON) // usually near 1.0 or -1.0
 			{
 				*front = in;
@@ -838,9 +838,9 @@ static surfchain_t* read_surfaces(FILE* file) {
 			}
 			f->pts[i] = v;
 			if (developer_level::megaspam <= g_developer) {
-				mapplane_t const * plane = &g_mapplanes[f->planenum];
+				mapplane_t const & plane = g_mapPlanes[f->planenum];
 				inaccuracy = fabs(
-					dot_product(f->pts[i], plane->normal) - plane->dist
+					dot_product(f->pts[i], plane.normal) - plane.dist
 				);
 				inaccuracy_count++;
 				inaccuracy_total += inaccuracy;
@@ -889,7 +889,7 @@ static brush_t* ReadBrushes(FILE* file) {
 				break;
 			}
 			side_t* s = new side_t{};
-			s->plane = g_mapplanes[planenum ^ 1];
+			s->plane = g_mapPlanes[planenum ^ 1];
 			s->wind = accurate_winding{};
 			s->wind.reserve_point_storage(numpoints);
 			for (int x = 0; x < numpoints; x++) {
@@ -1429,18 +1429,25 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 		FILE* planefile = fopen(planeFilePath.c_str(), "rb");
 		if (!planefile) {
 			Warning("Couldn't open %s", planeFilePath.c_str());
+			g_mapPlanes.clear(); // Unnecessary?
+
 			for (int i = 0; i < g_numplanes; i++) {
-				mapplane_t* mp = &g_mapplanes[i];
-				dplane_t* dp = &g_dplanes[i];
-				mp->normal = to_double3(dp->normal);
-				mp->dist = dp->dist;
-				mp->type = dp->type;
+				mapplane_t& mp = g_mapPlanes.emplace_back();
+				dplane_t const & dp = g_dplanes[i];
+				mp.normal = to_double3(dp.normal);
+				mp.dist = dp.dist;
+				mp.type = dp.type;
 			}
 		} else if (q_filelength(planefile)
 				   == g_numplanes * sizeof(mapplane_t)) {
+			// TODO: The value initialization in .resize() here isn't
+			// actually necessary, as the values are overwritten right
+			// after. Consider adding a version of resize that doesn't
+			// initialize values unless the element type requires it
+			g_mapPlanes.resize(g_numplanes, {});
 			SafeRead(
 				planefile,
-				g_mapplanes.data(),
+				g_mapPlanes.data(),
 				g_numplanes * sizeof(mapplane_t)
 			);
 			fclose(planefile);

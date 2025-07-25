@@ -28,8 +28,6 @@ csg_brush& copy_last_brush_with_sides(csg_brush* lastBrush) {
 	return newBrush;
 }
 
-constexpr float ScaleCorrection = (1.0f / 128.0f);
-
 // =====================================================================================
 //  CheckForInvisible
 //      see if an entity will always be invisible

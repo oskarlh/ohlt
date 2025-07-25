@@ -478,7 +478,7 @@ static void SaveOutside(
 		//              if (mirrorcontents != contents_t::SOLID)
 		{
 			f.planenum ^= 1;
-			f.plane = &g_mapplanes[f.planenum];
+			f.plane = &g_mapPlanes[f.planenum];
 			f.contents = backcontents;
 			f.texinfo = backnull ? -1 : texinfo;
 
@@ -815,11 +815,10 @@ static void CSGBrush(int brushnum) {
 //  EmitPlanes
 // =====================================================================================
 static void EmitPlanes() {
-	int i;
 	mapplane_t* mp;
 
-	g_numplanes = g_nummapplanes;
-	mp = g_mapplanes.data();
+	g_numplanes = g_mapPlanes.size();
+	mp = g_mapPlanes.data();
 	dplane_t* dp = g_dplanes.data();
 	{
 		std::filesystem::path planeFilePath{
@@ -831,12 +830,12 @@ static void EmitPlanes() {
 		}
 		SafeWrite(
 			planeout,
-			g_mapplanes.data(),
-			g_nummapplanes * sizeof(mapplane_t)
+			g_mapPlanes.data(),
+			g_mapPlanes.size() * sizeof(mapplane_t)
 		);
 		fclose(planeout);
 	}
-	for (i = 0; i < g_nummapplanes; i++, mp++, dp++) {
+	for (int i = 0; i < g_mapPlanes.size(); i++, mp++, dp++) {
 		// if (!(mp->redundant))
 		//{
 		//     Log("EmitPlanes: plane %i non redundant\n", i);
@@ -2171,7 +2170,7 @@ int main(int const argc, char** argv) {
 			// boundworld
 			BoundWorld();
 
-			Verbose("%5i map planes\n", g_nummapplanes);
+			Verbose("%5zu map planes\n", g_mapPlanes.size());
 
 			// Set model centers
 			for (i = 0; i < g_numentities; i++) {
@@ -2273,8 +2272,8 @@ int main(int const argc, char** argv) {
 					"Map Plane Usage:\n"
 					"  #  normal             origin             dist   type\n"
 					"    (   x,    y,    z) (   x,    y,    z) (     )\n");
-				for (i = 0; i < g_nummapplanes; i++) {
-					mapplane_t* p = &g_mapplanes[i];
+				for (i = 0; i < g_mapPlanes.size(); i++) {
+					mapplane_t* p = &g_mapPlanes[i];
 
 					Log("%3i (%4.0f, %4.0f, %4.0f) (%4.0f, %4.0f, %4.0f) (%5.0f) %i\n",
 						i,

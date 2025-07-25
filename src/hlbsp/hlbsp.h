@@ -15,7 +15,7 @@
 
 #include <filesystem>
 
-extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
+extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
 constexpr std::u8string_view entitiesVoidFilename(u8"entities.void");
 constexpr std::u8string_view entitiesVoidExt(u8".void");

@@ -1,10 +1,11 @@
 #include "hlcsg.h"
 #include "utf8.h"
+#include "vector_inplace.h"
 
 #include <span>
 
-std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes{};
-int g_nummapplanes;
+vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
+
 hullshape_t g_defaulthulls[NUM_HULLS]{};
 std::vector<hullshape_t> g_hullshapes{};
 
@@ -20,15 +21,13 @@ constexpr float FLOOR_Z = 0.7f; // Quake default
 
 static int
 FindIntPlane(double3_array const & normal, double3_array const & origin) {
-	mapplane_t* p;
-
 	int returnval = 0;
 
 find_plane:
 	// Can I use the "Always put axial planes facing positive first" rule to
 	// my advantage?? And only check every other???
 
-	for (; returnval < g_nummapplanes; returnval++) {
+	for (; returnval < g_mapPlanes.size(); returnval++) {
 		// BUG: there might be some multithread issue --vluzacn
 
 		// Instead of comparing like this here........I can round
@@ -37,22 +36,22 @@ find_plane:
 		// Cons MAYBE: Very close points not matching sometimes, preventing
 		// deduplication
 		// round_to_dir_epsilon
-		if (std::abs(normal[0] - g_mapplanes[returnval].normal[0])
+		if (std::abs(normal[0] - g_mapPlanes[returnval].normal[0])
 				< PLANE_NORMAL_EPSILON
-			&& std::abs(normal[1] - g_mapplanes[returnval].normal[1])
+			&& std::abs(normal[1] - g_mapPlanes[returnval].normal[1])
 				< PLANE_NORMAL_EPSILON
-			&& std::abs(normal[2] - g_mapplanes[returnval].normal[2])
+			&& std::abs(normal[2] - g_mapPlanes[returnval].normal[2])
 				< PLANE_NORMAL_EPSILON
 			&& std::abs(
-				   dot_product(origin, g_mapplanes[returnval].normal)
-				   - g_mapplanes[returnval].dist
+				   dot_product(origin, g_mapPlanes[returnval].normal)
+				   - g_mapPlanes[returnval].dist
 			   ) < PLANE_DIST_EPSILON) {
 			return returnval;
 		}
 	}
 
 	ThreadLock();
-	if (returnval != g_nummapplanes) // make sure we don't race
+	if (returnval != g_mapPlanes.size()) // make sure we don't race
 	{
 		ThreadUnlock();
 		goto find_plane; // check to see if other thread added plane we need
@@ -60,16 +59,17 @@ find_plane:
 
 	// create new planes - double check that we have room for 2 planes
 	hlassume(
-		g_nummapplanes + 1 < MAX_INTERNAL_MAP_PLANES,
+		g_mapPlanes.size() + 1 < MAX_INTERNAL_MAP_PLANES,
 		assume_MAX_INTERNAL_MAP_PLANES
 	);
 
-	p = &g_mapplanes[g_nummapplanes];
+	std::size_t const pAIndex = g_mapPlanes.size();
+	mapplane_t& pA = g_mapPlanes.emplace_back();
 
-	p->origin = origin;
-	p->normal = normal;
-	normalize_vector(p->normal);
-	p->type = plane_type_for_normal(p->normal);
+	pA.origin = origin;
+	pA.normal = normal;
+	normalize_vector(pA.normal);
+	pA.type = plane_type_for_normal(pA.normal);
 	//	planetype ot =
 	// plane_type_for_normal(to_double3(to_float3(p->normal))); 	if
 	// (p->type
@@ -84,35 +84,36 @@ find_plane:
 	//			(int) ot);
 	//		Error("w");
 	//	}
-	if (p->type <= last_axial) {
+	if (pA.type <= last_axial) {
 		for (std::size_t i{ std::size_t(first_axial) };
 			 i <= std::size_t(last_axial);
 			 ++i) {
-			if (i == std::size_t(p->type)) {
-				p->normal[i] = p->normal[i] > 0 ? 1 : -1;
+			if (i == std::size_t(pA.type)) {
+				pA.normal[i] = pA.normal[i] > 0 ? 1 : -1;
 			} else {
-				p->normal[i] = 0;
+				pA.normal[i] = 0;
 			}
 		}
 	}
-	p->dist = dot_product(origin, p->normal);
+	pA.dist = dot_product(origin, pA.normal);
 
-	(p + 1)->origin = origin;
+	std::size_t const pBIndex = g_mapPlanes.size();
+	mapplane_t& pB = g_mapPlanes.emplace_back();
+	pB.origin = origin;
 
-	(p + 1)->normal = negate_vector(p->normal);
-	(p + 1)->type = p->type;
-	(p + 1)->dist = -p->dist;
+	pB.normal = negate_vector(pA.normal);
+	pB.type = pA.type;
+	pB.dist = -pA.dist;
 
 	// Always put axial planes facing positive first
-	if (normal[std::size_t(p->type) % 3] < 0) {
+	if (normal[std::size_t(pA.type) % 3] < 0) {
 		using std::swap;
-		swap(p[0], p[1]);
-		returnval = g_nummapplanes + 1;
+		swap(pA, pB);
+		returnval = pBIndex;
 	} else {
-		returnval = g_nummapplanes;
+		returnval = pAIndex;
 	}
 
-	g_nummapplanes += 2;
 	ThreadUnlock();
 	return returnval;
 }
@@ -160,7 +161,7 @@ static void AddHullPlane(
 	}
 	bface_t new_face{};
 	new_face.planenum = planenum;
-	new_face.plane = &g_mapplanes[planenum];
+	new_face.plane = &g_mapPlanes[planenum];
 	new_face.contents = contents_t::EMPTY;
 	new_face.texinfo = no_texinfo;
 	hull->faces.emplace_back(std::move(new_face));
@@ -794,11 +795,11 @@ void SortSides(brushhull_t* h) {
 		h->faces.begin(),
 		h->faces.end(),
 		[](bface_t const & a, bface_t const & b) {
-			double3_array const normalsA = g_mapplanes[a.planenum].normal;
+			double3_array const normalsA = g_mapPlanes[a.planenum].normal;
 			int axialA = (fabs(normalsA[0]) < NORMAL_EPSILON)
 				+ (fabs(normalsA[1]) < NORMAL_EPSILON)
 				+ (fabs(normalsA[2]) < NORMAL_EPSILON);
-			double3_array const normalsB = g_mapplanes[b.planenum].normal;
+			double3_array const normalsB = g_mapPlanes[b.planenum].normal;
 			int axialB = (fabs(normalsB[0]) < NORMAL_EPSILON)
 				+ (fabs(normalsB[1]) < NORMAL_EPSILON)
 				+ (fabs(normalsB[2]) < NORMAL_EPSILON);
@@ -820,7 +821,7 @@ restart:
 			if (&f == &f2) {
 				continue;
 			}
-			mapplane_t const * p = &g_mapplanes[f2.planenum ^ 1];
+			mapplane_t const * p = &g_mapPlanes[f2.planenum ^ 1];
 			if (!w.Chop(
 					p->normal,
 					p->dist,
@@ -921,7 +922,7 @@ static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 
 		bface_t new_face{};
 		new_face.planenum = planenum;
-		new_face.plane = &g_mapplanes[planenum];
+		new_face.plane = &g_mapPlanes[planenum];
 		new_face.texinfo = g_onlyents
 			? 0
 			: TexinfoForBrushTexture(new_face.plane, &s->td, origin);

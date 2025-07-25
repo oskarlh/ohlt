@@ -101,4 +101,6 @@ When writing key-values to the .bsp file, in the end compiler-specific key-value
 
 Check out https://developer.valvesoftware.com/wiki/Newbspguy - it might help with troubleshooting issues
 
-https://twhl.info/wiki/page/Tutorial%253A_The_Complete_Guide_to_Lighting
+https://twhl.info/wiki/page/Tutorial:_The_Complete_Guide_to_Lighting
+https://twhl.info/wiki/page/Tutorial:_Total_Map_Optimisation_Part_3_(wpoly,_clipnodes,_engine_limits,_compile_parameters)
+

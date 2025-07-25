@@ -316,8 +316,7 @@ extern bool g_nullifytrigger;
 extern double g_tiny_threshold;
 extern double g_BrushUnionThreshold;
 
-extern std::array<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapplanes;
-extern int g_nummapplanes;
+extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
 extern bface_t NewFaceFromFace(bface_t const & in);
 extern bface_t CopyFace(bface_t const & f);

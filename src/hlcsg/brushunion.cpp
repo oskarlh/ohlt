@@ -4,14 +4,14 @@ double g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 
 static accurate_winding
 NewWindingFromPlane(brushhull_t const * const hull, int const planenum) {
-	mapplane_t* plane = &g_mapplanes[planenum];
+	mapplane_t* plane = &g_mapPlanes[planenum];
 	accurate_winding winding{ plane->normal, plane->dist };
 
 	accurate_winding back;
 	accurate_winding front;
 
 	for (bface_t const & face : hull->faces) {
-		plane = &g_mapplanes[face.planenum];
+		plane = &g_mapPlanes[face.planenum];
 		winding.Clip(plane->normal, plane->dist, front, back);
 
 		using std::swap;
@@ -52,7 +52,7 @@ static void AddPlaneToUnion(brushhull_t* hull, int const planenum) {
 			continue;
 		}
 
-		split = &g_mapplanes[planenum];
+		split = &g_mapPlanes[planenum];
 		accurate_winding front;
 		accurate_winding back;
 		face.w.Clip(split->normal, split->dist, front, back);
@@ -127,7 +127,7 @@ static double CalculateSolidVolume(brushhull_t const * const hull) {
 	);
 
 	for (bface_t const & face : hull->faces) {
-		mapplane_t* plane = &g_mapplanes[face.planenum];
+		mapplane_t* plane = &g_mapPlanes[face.planenum];
 		double area = face.w.getArea();
 		double dist = dot_product(plane->normal, midpoint);
 

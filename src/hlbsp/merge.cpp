@@ -24,7 +24,6 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	double3_array delta;
 	double3_array planenormal;
 	double dot;
-	mapplane_t* plane;
 	bool keep1;
 	bool keep2;
 
@@ -86,7 +85,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	// check slope of connected lines
 	// if the slopes are colinear, the point can be removed
 	//
-	plane = &g_mapplanes[f1->planenum];
+	mapplane_t const * const plane = &g_mapPlanes[f1->planenum];
 	planenormal = plane->normal;
 
 	double3_array back{ f1->pts[(i + f1->numpoints - 1) % f1->numpoints] };

@@ -44,7 +44,7 @@ static int WritePlane(int planenum) {
 	}
 	// add plane to BSP
 	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
-	gMappedPlanes[gNumMappedPlanes] = g_mapplanes[planenum];
+	gMappedPlanes[gNumMappedPlanes] = g_mapPlanes[planenum];
 	gPlaneMap.insert(PlaneMap::value_type(planenum, gNumMappedPlanes));
 
 	return gNumMappedPlanes++;
@@ -664,9 +664,9 @@ void FinishBSPFile(bsp_data const & bspData) {
 			free(Map);
 		}
 		Log("Reduced %d planes to %d\n", g_numplanes, gNumMappedPlanes);
-
+		g_mapPlanes.clear();
 		for (int counter = 0; counter < gNumMappedPlanes; counter++) {
-			g_mapplanes[counter] = gMappedPlanes[counter];
+			g_mapPlanes.emplace_back(gMappedPlanes[counter]);
 		}
 		g_numplanes = gNumMappedPlanes;
 	} else {
@@ -779,7 +779,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 	}
 
 	for (int i = 0; i < g_numplanes; i++) {
-		mapplane_t& mp = g_mapplanes[i];
+		mapplane_t const & mp = g_mapPlanes[i];
 		dplane_t& dp = g_dplanes[i];
 		dp = {};
 		dp.normal = to_float3(mp.normal);

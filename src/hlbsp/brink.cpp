@@ -203,8 +203,8 @@ struct btreeface_t final {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+				   // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -1025,7 +1025,7 @@ bclipnode_t* ExpandClipnodes_r(
 	} else {
 		c->isleaf = false;
 		c->planenum = clipnodes[headnode].planenum;
-		c->plane = &g_mapplanes[c->planenum];
+		c->plane = &g_mapPlanes[c->planenum];
 		for (int k = 0; k < 2; k++) {
 			c->children[k] = ExpandClipnodes_r(
 				bclipnodes,
@@ -1345,9 +1345,8 @@ bool AddPartition(
 		for (ei = fi->f->edges->begin(); ei != fi->f->edges->end(); ei++) {
 			for (side = 0; side < 2; side++) {
 				btreepoint_t* tp = GetPointFromEdge(ei->e, side);
-				mapplane_t const * plane = &g_mapplanes[planenum];
-				double dist = dot_product(tp->v, plane->normal)
-					- plane->dist;
+				mapplane_t const & plane = g_mapPlanes[planenum];
+				double dist = dot_product(tp->v, plane.normal) - plane.dist;
 				if (planeside ? dist < -ON_EPSILON : dist > ON_EPSILON) {
 					return false;
 				}

@@ -31,8 +31,8 @@ static node_t* PointInLeaf(node_t* node, double3_array const & point) {
 		return node;
 	}
 
-	d = dot_product(g_mapplanes[node->planenum].normal, point)
-		- g_mapplanes[node->planenum].dist;
+	d = dot_product(g_mapPlanes[node->planenum].normal, point)
+		- g_mapPlanes[node->planenum].dist;
 
 	if (d > 0) {
 		return PointInLeaf(node->children[0], point);

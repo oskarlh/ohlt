@@ -171,7 +171,8 @@ static wedge_t* FindEdge(
 	double3_array const origin = vector_fma(dir, -*t1, p1);
 
 	if (*t1 > *t2) {
-		std::swap(*t1, *t2);
+		using std::swap;
+		swap(*t1, *t2);
 	}
 
 	vector_inplace<int, MAX_HASH_NEIGHBORS> hashneighbors;
