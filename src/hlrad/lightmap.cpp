@@ -2905,7 +2905,6 @@ static void GatherSampleLight(
 					continue;
 				}
 				testline_origin = l->origin;
-				float denominator;
 
 				delta = vector_subtract(l->origin, pos);
 				if (l->type == emit_surface) {
@@ -2923,19 +2922,17 @@ static void GatherSampleLight(
 					dist = 1.0;
 				}
 
-				denominator = dist * dist * l->fade;
-
 				float3_array add{};
 				switch (l->type) {
 					case emit_point: {
 						if (dot <= NORMAL_EPSILON) {
 							continue;
 						}
-						float denominator = dist * dist * l->fade;
 						if (lighting_diversify) {
 							dot = lighting_scale
 								* std::pow(dot, lighting_power);
 						}
+						float const denominator = dist * dist * l->fade;
 						ratio = dot / denominator;
 						add = vector_scale(l->intensity, ratio);
 						break;
@@ -3104,14 +3101,12 @@ static void GatherSampleLight(
 							continue; // outside light cone
 						}
 
-						// Variable power falloff (1 = inverse
-						// linear, 2 = inverse square
-						float denominator = dist * l->fade;
-						denominator *= dist;
+						// Inverse square falloff
 						if (lighting_diversify) {
 							dot = lighting_scale
 								* std::pow(dot, lighting_power);
 						}
+						float const denominator = dist * dist * l->fade;
 						ratio = dot * dot2 / denominator;
 
 						if (dot2 <= l->stopdot) {

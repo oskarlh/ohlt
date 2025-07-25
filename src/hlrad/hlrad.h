@@ -259,7 +259,7 @@ struct directlight_t final {
 	float stopdot2;		 // for spotlights
 
 	// 'Arghrad'-like features
-	float fade; // falloff scaling for linear and inverse square falloff 1.0
+	float fade; // Falloff scaling for inverse square falloff 1.0
 				// = normal, 0.5 = farther, 2.0 = shorter etc
 
 	// -----------------------------------------------------------------------------------
