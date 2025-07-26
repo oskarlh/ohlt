@@ -87,11 +87,10 @@ void AddFaceForVertexNormal_printerror(
 	int const edgeabs, int const edgeend, dface_t* const f
 ) {
 	if (developer_level::warning <= g_developer) {
-		int i, e;
 		Log("AddFaceForVertexNormal - bad face:\n");
 		Log(" edgeabs=%d edgeend=%d\n", edgeabs, edgeend);
-		for (i = 0; i < f->numedges; i++) {
-			e = g_dsurfedges[f->firstedge + i];
+		for (int i = 0; i < f->numedges; i++) {
+			int e = g_dsurfedges[f->firstedge + i];
 			edgeshare_t* es = &g_edgeshare[abs(e)];
 			int v0 = g_dedges[abs(e)].v[0], v1 = g_dedges[abs(e)].v[1];
 			Log(" e=%d v0=%d(%f,%f,%f) v1=%d(%f,%f,%f) share0=%li share1=%li\n",
@@ -160,12 +159,11 @@ int AddFaceForVertexNormal(
 		AddFaceForVertexNormal_printerror(edgeabs, edgeend, f);
 		return -1;
 	}
-	int vnum11, vnum12, vnum21, vnum22;
 	float3_array vec1, vec2;
-	vnum11 = g_dedges[abs(edge)].v[edge > 0 ? 0 : 1];
-	vnum12 = g_dedges[abs(edge)].v[edge > 0 ? 1 : 0];
-	vnum21 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 0 : 1];
-	vnum22 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 1 : 0];
+	int vnum11 = g_dedges[abs(edge)].v[edge > 0 ? 0 : 1];
+	int vnum12 = g_dedges[abs(edge)].v[edge > 0 ? 1 : 0];
+	int vnum21 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 0 : 1];
+	int vnum22 = g_dedges[abs(edgenext)].v[edgenext > 0 ? 1 : 0];
 	if (vnum == vnum12 && vnum == vnum21 && vnum != vnum11
 		&& vnum != vnum22) {
 		vec1 = vector_subtract(
@@ -221,24 +219,21 @@ static bool TranslateTexToTex(
 {
 	matrix_t worldtotex;
 	matrix_t worldtotex2;
-	dedge_t* e;
-	int i;
+
 	dvertex_t* vert[2];
 	float3_array face_vert[2];
 	float3_array face2_vert[2];
 	float3_array face_axis[2];
 	float3_array face2_axis[2];
 	float3_array const v_up = { 0, 0, 1 };
-	float len;
-	float len2;
 	matrix_t edgetotex, edgetotex2;
 	matrix_t inv, inv2;
 
 	TranslateWorldToTex(facenum, worldtotex);
 	TranslateWorldToTex(facenum2, worldtotex2);
 
-	e = &g_dedges[edgenum];
-	for (i = 0; i < 2; i++) {
+	dedge_t* e = &g_dedges[edgenum];
+	for (int i = 0; i < 2; i++) {
 		vert[i] = &g_dvertexes[e->v[i]];
 		face_vert[i] = apply_matrix(worldtotex, vert[i]->point);
 		face_vert[i][2] = 0; // this value is naturally close to 0 assuming
@@ -249,7 +244,7 @@ static bool TranslateTexToTex(
 	}
 
 	face_axis[0] = vector_subtract(face_vert[1], face_vert[0]);
-	len = vector_length(face_axis[0]);
+	float len = vector_length(face_axis[0]);
 	face_axis[1] = cross_product(v_up, face_axis[0]);
 	if (CalcMatrixSign(worldtotex)
 		< 0.0) // the three vectors s, t, facenormal are in reverse order
@@ -258,7 +253,7 @@ static bool TranslateTexToTex(
 	}
 
 	face2_axis[0] = vector_subtract(face2_vert[1], face2_vert[0]);
-	len2 = vector_length(face2_axis[0]);
+	float len2 = vector_length(face2_axis[0]);
 	face2_axis[1] = cross_product(v_up, face2_axis[0]);
 	if (CalcMatrixSign(worldtotex2) < 0.0) {
 		face2_axis[1] = negate_vector(face2_axis[1]);

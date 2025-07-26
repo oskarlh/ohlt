@@ -1434,15 +1434,15 @@ void EmbedLightmapInTextures() {
 				* (texturesize[1] >> miplevel);
 		}
 		miptexsize += 2 + 256 * 3 + 2;
-		miptex_t* miptex = (miptex_t*) malloc(miptexsize);
-		hlassume(miptex != nullptr, assume_NoMemory);
-		*miptex = {};
+		auto miptex{ std::make_unique_for_overwrite<miptex_t[]>(miptexsize
+		) };
+		miptex[0] = {};
 
-		miptex->width = texturesize[0];
-		miptex->height = texturesize[1];
-		byte* p = (byte*) miptex + sizeof(miptex_t);
+		miptex[0].width = texturesize[0];
+		miptex[0].height = texturesize[1];
+		byte* p = (byte*) &miptex[1];
 		for (miplevel = 0; miplevel < MIPLEVELS; miplevel++) {
-			miptex->offsets[miplevel] = p - (byte*) miptex;
+			miptex[0].offsets[miplevel] = p - (byte*) &miptex[0];
 			for (int t = 0; t < (texturesize[1] >> miplevel); t++) {
 				for (int s = 0; s < (texturesize[0] >> miplevel); s++) {
 					byte(*src
@@ -1478,7 +1478,7 @@ void EmbedLightmapInTextures() {
 		p += 256 * 3;
 		*(short*) p = 0;
 		p += 2;
-		if (p != (byte*) miptex + miptexsize) {
+		if (p != (byte*) &miptex[0] + miptexsize) {
 			Error("EmbedLightmapInTextures: internal error");
 		}
 
@@ -1517,7 +1517,7 @@ void EmbedLightmapInTextures() {
 			table[k] = k >= 10 ? 'a' + (k - 10)
 							   : '0' + k; // same order as the ASCII table
 		}
-		unsigned int hash = Hash(miptexsize, miptex);
+		unsigned int hash = Hash(miptexsize, &miptex[0]);
 		embeddedLightmapName[10] = table[(hash / 36 / 36) % 26 + 10];
 		embeddedLightmapName[11] = table[(hash / 36) % 36];
 		embeddedLightmapName[12] = table[(hash) % 36];
@@ -1525,22 +1525,20 @@ void EmbedLightmapInTextures() {
 		embeddedLightmapName[14] = table[(count) % 36];
 		embeddedLightmapName[15] = '\0';
 
-		miptex->name = wad_texture_name{ embeddedLightmapName.begin() };
+		miptex[0].name = wad_texture_name{ embeddedLightmapName.begin() };
 
-		NewTextures_PushTexture(miptexsize, miptex);
+		NewTextures_PushTexture(miptexsize, &miptex[0]);
 		count++;
 		count_bytes += miptexsize;
 		Developer(
 			developer_level::message,
 			"Created texture '%s' for face (texture %s) at (%4.3f %4.3f %4.3f)\n",
-			miptex->name.c_str(),
+			miptex[0].name.c_str(),
 			texname.c_str(),
 			g_face_centroids[i][0],
 			g_face_centroids[i][1],
 			g_face_centroids[i][2]
 		);
-
-		free(miptex);
 
 		CQ_FreeSearchTree(palettetree);
 

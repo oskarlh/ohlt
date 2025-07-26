@@ -197,7 +197,6 @@ inline static winding_t* ClipToSeperators(
 ) {
 	hlvis_plane_t plane;
 	float3_array v1, v2;
-	float d;
 	int counts[3];
 	bool fliptest;
 	winding_t* target = a_target;
@@ -233,7 +232,7 @@ inline static winding_t* ClipToSeperators(
 				{
 					continue;
 				}
-				d = dot_product(source->points[k], plane.normal)
+				float const d = dot_product(source->points[k], plane.normal)
 					- plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so
 									   // we want all
@@ -264,7 +263,8 @@ inline static winding_t* ClipToSeperators(
 				if (k == j) {
 					continue;
 				}
-				d = dot_product(pass->points[k], plane.normal) - plane.dist;
+				float const d = dot_product(pass->points[k], plane.normal)
+					- plane.dist;
 				if (d < -ON_EPSILON) {
 					break;
 				} else if (d > ON_EPSILON) {

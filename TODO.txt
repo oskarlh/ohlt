@@ -104,3 +104,5 @@ Check out https://developer.valvesoftware.com/wiki/Newbspguy - it might help wit
 https://twhl.info/wiki/page/Tutorial:_The_Complete_Guide_to_Lighting
 https://twhl.info/wiki/page/Tutorial:_Total_Map_Optimisation_Part_3_(wpoly,_clipnodes,_engine_limits,_compile_parameters)
 
+node_t::markfaces is an allocated array of pointers, with always at least 1 element, with the last element always being nullptr to mark the end. I should make this a usually_inplace_vector instead (with size 5, 7 or 13 because in testing those seem to be the most common)
+Before I make the above change, I need to change the (de)allocations of node_t they are properly constructed and destructed
