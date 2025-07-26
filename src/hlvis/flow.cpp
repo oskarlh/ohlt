@@ -773,25 +773,29 @@ float WindingDist(winding_t const * w[2]) {
 			planenormal, w[!side]->points[0]
 		);
 
-		float3_array* boundnormals = (float3_array*) malloc(
-			w[!side]->numpoints * sizeof(float3_array)
-		);
-		float* bounddists = (float*) malloc(
-			w[!side]->numpoints * sizeof(float)
-		);
+		if (w[!side]->numpoints > 11) {
+			Error("######e%zu", std::size_t(w[!side]->numpoints));
+		}
+
+		usually_inplace_vector<float3_array, 20> boundnormals;
+		usually_inplace_vector<float, 20> bounddists;
+		boundnormals.reserve(w[!side]->numpoints);
+		bounddists.reserve(w[!side]->numpoints);
 		// build boundaries
 		for (b = 0; b < w[!side]->numpoints; b++) {
 			float3_array const & p1 = w[!side]->points[b];
 			float3_array const & p2
 				= w[!side]->points[(b + 1) % w[!side]->numpoints];
-			boundnormals[b] = cross_product(
-				vector_subtract(p2, p1), planenormal
+
+			boundnormals.emplace_back(
+				cross_product(vector_subtract(p2, p1), planenormal)
 			);
-			if (!normalize_vector(boundnormals[b])) {
-				bounddists[b] = 1.0;
-			} else {
-				bounddists[b] = dot_product(p1, boundnormals[b]);
+
+			float bd{ 1.0 };
+			if (normalize_vector(boundnormals[b])) {
+				bd = dot_product(p1, boundnormals[b]);
 			}
+			bounddists.emplace_back(bd);
 		}
 		for (a = 0; a < w[side]->numpoints; a++) {
 			float3_array const & p = w[side]->points[a];
@@ -833,8 +837,6 @@ float WindingDist(winding_t const * w[2]) {
 				minsqrdist = 0;
 			}
 		}
-		free(boundnormals);
-		free(bounddists);
 	}
 	return std::sqrt(minsqrdist);
 }
@@ -842,7 +844,7 @@ float WindingDist(winding_t const * w[2]) {
 // =====================================================================================
 //  MaxDistVis
 // =====================================================================================
-void MaxDistVis(int unused) {
+void MaxDistVis(int unused_threadnum) {
 	int i, j, k, m;
 	int a, b, c, d;
 	leaf_t* l;

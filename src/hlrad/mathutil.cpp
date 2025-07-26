@@ -381,10 +381,9 @@ float CalcSightArea(
 	float area = 0.0;
 
 	std::size_t numedges = emitter_winding->size();
-	float3_array* edges = (float3_array*) malloc(
-		numedges * sizeof(float3_array)
-	);
-	hlassume(edges != nullptr, assume_NoMemory);
+
+	usually_inplace_vector<float3_array, 20> edges;
+	edges.reserve(numedges);
 	bool error = false;
 	for (std::size_t x = 0; x < numedges; x++) {
 		float3_array const v1 = vector_subtract(
@@ -397,14 +396,14 @@ float CalcSightArea(
 		if (!normalize_vector(normal)) {
 			error = true;
 		}
-		edges[x] = normal;
+		edges.emplace_back(normal);
 	}
 	if (!error) {
 		int i, j;
 		float3_array* pnormal;
 		float* psize;
 		float dot;
-		float3_array* pedge;
+		float3_array const * pedge;
 		for (i = 0,
 			pnormal = g_skynormals[skylevel],
 			psize = g_skynormalsizes[skylevel];
@@ -414,7 +413,8 @@ float CalcSightArea(
 			if (dot <= 0) {
 				continue;
 			}
-			for (j = 0, pedge = edges; j < numedges; j++, pedge++) {
+			for (j = 0, pedge = &edges.front(); j < numedges;
+				 j++, pedge++) {
 				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
@@ -430,7 +430,6 @@ float CalcSightArea(
 		area = area * 4
 			* std::numbers::pi_v<float>; // Convert to absolute sphere area
 	}
-	free(edges);
 	area *= lighting_scale;
 	return area;
 }
@@ -455,10 +454,8 @@ float CalcSightArea_SpotLight(
 	float area = 0.0;
 
 	int numedges = emitter_winding->size();
-	float3_array* edges = (float3_array*) malloc(
-		numedges * sizeof(float3_array)
-	);
-	hlassume(edges != nullptr, assume_NoMemory);
+	usually_inplace_vector<float3_array, 20> edges;
+	edges.reserve(numedges);
 	bool error = false;
 	for (int x = 0; x < numedges; x++) {
 		float3_array const v1 = vector_subtract(
@@ -471,7 +468,7 @@ float CalcSightArea_SpotLight(
 		if (!normalize_vector(normal)) {
 			error = true;
 		}
-		edges[x] = normal;
+		edges.emplace_back(normal);
 	}
 	if (!error) {
 		int i, j;
@@ -479,7 +476,7 @@ float CalcSightArea_SpotLight(
 		float* psize;
 		float dot;
 		float dot2;
-		float3_array* pedge;
+		float3_array const * pedge;
 		for (i = 0,
 			pnormal = g_skynormals[skylevel],
 			psize = g_skynormalsizes[skylevel];
@@ -489,7 +486,8 @@ float CalcSightArea_SpotLight(
 			if (dot <= 0) {
 				continue;
 			}
-			for (j = 0, pedge = edges; j < numedges; j++, pedge++) {
+			for (j = 0, pedge = &edges.front(); j < numedges;
+				 j++, pedge++) {
 				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
@@ -512,7 +510,6 @@ float CalcSightArea_SpotLight(
 		area = area * 4
 			* std::numbers::pi_v<float>; // Convert to absolute sphere area
 	}
-	free(edges);
 	area *= lighting_scale;
 	return area;
 }
