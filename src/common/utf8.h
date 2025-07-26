@@ -4,6 +4,7 @@
 #include <charconv>
 #include <cstdint>
 #include <cstdlib>
+#include <limits>
 #include <memory>
 #include <ranges>
 #include <string>
