@@ -357,7 +357,7 @@ static void SaveOutside(
 ) {
 	for (bface_t& f : outside) {
 		contents_t frontcontents, backcontents;
-		int texinfo = f.texinfo;
+		texinfo_count const texinfo{ f.texinfo };
 		wad_texture_name const texname{
 			GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
 		};
@@ -394,7 +394,7 @@ static void SaveOutside(
 		}
 
 		f.contents = frontcontents;
-		f.texinfo = frontnull ? -1 : texinfo;
+		f.texinfo = frontnull ? no_texinfo : texinfo;
 		if (f.w.getArea() < g_tiny_threshold) {
 			c_tiny++;
 			Verbose(
@@ -424,18 +424,18 @@ static void SaveOutside(
 			wad_texture_name const texname{
 				GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
 			};
-			texinfo_t* tex = &g_texinfo[texinfo];
-
 			if (texinfo != no_texinfo // nullified textures (nullptr, BEVEL,
 									  // aaatrigger, etc.)
-				&& !tex->has_special_flag() // sky
+				&& !g_texinfo[texinfo].has_special_flag() // sky
 				&& !texname.is_skip()
 				&& !texname.is_any_hint(
 				) // HINT and SKIP will be nullified only after hlbsp
 			) {
+				texinfo_t const & tex{ g_texinfo[texinfo] };
+
 				// check for "Malformed face (%d) normal"
 				float3_array texnormal = cross_product(
-					tex->vecs[1].xyz, tex->vecs[0].xyz
+					tex.vecs[1].xyz, tex.vecs[0].xyz
 				);
 				normalize_vector(texnormal);
 				if (fabs(dot_product(texnormal, f.plane->normal))
@@ -454,9 +454,9 @@ static void SaveOutside(
 				for (double3_array const & point : f.w.points()) {
 					for (int j = 0; j < 2; ++j) {
 						double const val = dot_product(
-											   point, tex->vecs[j].xyz
+											   point, tex.vecs[j].xyz
 										   )
-							+ tex->vecs[j].offset;
+							+ tex.vecs[j].offset;
 						if (val < -99999 || val > 999'999) {
 							bad = true;
 						}
