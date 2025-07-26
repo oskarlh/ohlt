@@ -2085,7 +2085,6 @@ int main(int const argc, char** argv) {
 			hlassume(CalcFaceExtents_test(), assume_first);
 			atexit(CSGCleanup);
 			dtexdata_init();
-			atexit(dtexdata_free);
 
 			// START CSG
 			time_counter timeCounter;

@@ -1212,13 +1212,6 @@ void dtexdata_init() {
 	g_dtexdata.resize(g_max_map_miptex, std::byte(0));
 }
 
-void dtexdata_free() {
-	g_dtexdata.clear();
-	g_dtexdata.shrink_to_fit();
-	g_dlightdata.clear();
-	g_dlightdata.shrink_to_fit();
-}
-
 // =====================================================================================
 //  GetTextureByNumber
 //      Touchy function, can fail with a page fault if all the data isnt

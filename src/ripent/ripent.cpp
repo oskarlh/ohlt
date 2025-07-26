@@ -1033,7 +1033,6 @@ int main(int argc, char** argv) {
 			Settings();
 
 			dtexdata_init();
-			atexit(dtexdata_free);
 
 			// BEGIN RipEnt
 			time_counter timeCounter;

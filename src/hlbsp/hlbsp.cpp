@@ -1716,7 +1716,6 @@ int main(int const argc, char** argv) {
 
 			hlassume(CalcFaceExtents_test(), assume_first);
 			dtexdata_init();
-			atexit(dtexdata_free);
 			// Settings();
 			//  END INIT
 

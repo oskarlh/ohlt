@@ -574,7 +574,6 @@ extern std::ptrdiff_t g_max_map_miptex;
 constexpr std::ptrdiff_t g_max_map_lightdata
 	= std::numeric_limits<std::int32_t>::max();
 extern void dtexdata_init();
-extern void dtexdata_free();
 
 extern wad_texture_name get_texture_by_number(texinfo_count texturenumber);
 
