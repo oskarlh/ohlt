@@ -15,6 +15,7 @@
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
 #include "time_counter.h"
+#include "vector_for_overwriting.h"
 #include "wad_structs.h"
 
 #include <cstring>
@@ -436,42 +437,6 @@ static void WriteBSP(char const * const name) {
 	WriteBSPFile(filename);
 }
 
-/*int TextureSize(const miptex_t *tex)
-{
-	int size = 0;
-	int w, h;
-	size += sizeof(miptex_t);
-	w = tex->width, h = tex->height;
-	for (int imip = 0; imip < MIPLEVELS; ++imip, w/=2, h/=2)
-	{
-		size += w * h;
-	}
-	size += 256 * 3 + 4;
-	return size;
-}
-void WriteEmptyTexture(FILE *outwad, const miptex_t *tex)
-{
-	miptex_t outtex;
-	int start, end;
-	int w, h;
-	memcpy (&outtex, tex, sizeof(miptex_t));
-	start = ftell (outwad);
-	fseek (outwad, sizeof(miptex_t), SEEK_CUR);
-	w = tex->width, h = tex->height;
-	for (int imip = 0; imip < MIPLEVELS; ++imip, w/=2, h/=2)
-	{
-		void *tmp = calloc (w * h, 1);
-		outtex.offsets[imip] = ftell (outwad) - start;
-		SafeWrite (outwad, tmp, w * h);
-		free (tmp);
-	}
-	short s = 256;
-	SafeWrite (outwad, &s, sizeof(short));
-	void *tmp = calloc (256 * 3 + 2, 1); // assume width and height are
-multiples of 16 SafeWrite (outwad, tmp, 256 * 3 + 2); free (tmp); end =
-ftell (outwad); fseek (outwad, start, SEEK_SET); SafeWrite (outwad, &outtex,
-sizeof (miptex_t)); fseek (outwad, end, SEEK_SET);
-}*/
 static void WriteTextures(char const * const name) {
 	char wadfilename[_MAX_PATH];
 	FILE* wadfile;
@@ -506,22 +471,14 @@ static void WriteTextures(char const * const name) {
 			g_texdatasize - dataofs
 		);
 
-		wad_lumpinfo* info;
-		info = (wad_lumpinfo*) malloc(
-			((dmiptexlump_t*) g_dtexdata.data())->nummiptex
-			* sizeof(wad_lumpinfo)
-		);
-		hlassume(info != nullptr, assume_NoMemory);
-		std::fill_n(info, header.numlumps, wad_lumpinfo{});
+		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
 
 		for (int i = 0; i < header.numlumps; i++) {
 			int ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[i];
 			int size = 0;
 			if (ofs >= 0) {
 				size = g_texdatasize - ofs;
-				for (int j = 0;
-					 j < ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
-					 ++j) {
+				for (int j = 0; j < header.numlumps; ++j) {
 					if (ofs < ((dmiptexlump_t*) g_dtexdata.data())
 								  ->dataofs[j]
 						&& ofs + size > ((dmiptexlump_t*) g_dtexdata.data())
@@ -532,24 +489,24 @@ static void WriteTextures(char const * const name) {
 					}
 				}
 			}
-			info[i].filepos = ofs - dataofs + wadofs;
-			info[i].disksize = size;
-			info[i].size = size;
-			info[i].type
+			wad_lumpinfo& lumpinf{ info.emplace_back() };
+			lumpinf.filepos = ofs - dataofs + wadofs;
+			lumpinf.disksize = size;
+			lumpinf.size = size;
+			lumpinf.type
 				= (ofs >= 0
 				   && ((miptex_t*) (g_dtexdata.data() + ofs))->offsets[0]
 					   > 0)
 				? 67
 				: 0; // prevent invalid texture from being processed by
 					 // Wally
-			info[i].compression = 0;
-			info[i].name = ofs >= 0
+			lumpinf.compression = 0;
+			lumpinf.name = ofs >= 0
 				? wad_texture_name{ ((miptex_t*) (g_dtexdata.data() + ofs))
 										->name }
 				: wad_texture_name{ u8"texturemissing" };
 		}
-		SafeWrite(wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
-		free(info);
+		SafeWrite(wadfile, info.data(), info.size() * sizeof(wad_lumpinfo));
 	} else {
 		texfile = SafeOpenWrite(texfilename);
 		Log("\nWriting %s.\n", texfilename);
@@ -561,13 +518,6 @@ static void WriteTextures(char const * const name) {
 		header.identification[3] = '3';
 		header.numlumps = 0;
 
-		wad_lumpinfo* info;
-		info = (wad_lumpinfo*) malloc(
-			((dmiptexlump_t*) g_dtexdata.data())->nummiptex
-			* sizeof(wad_lumpinfo)
-		); // might be more than needed
-		hlassume(info != nullptr, assume_NoMemory);
-
 		fprintf(
 			texfile,
 			"%d\r\n",
@@ -575,6 +525,7 @@ static void WriteTextures(char const * const name) {
 		);
 		fseek(wadfile, sizeof(wadinfo_t), SEEK_SET);
 
+		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
 		for (int itex = 0;
 			 itex < ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
 			 ++itex) {
@@ -601,20 +552,14 @@ static void WriteTextures(char const * const name) {
 					included = true;
 				}
 				if (included) {
-					info[header.numlumps] = wad_lumpinfo{};
-					info[header.numlumps].filepos = ftell(wadfile);
+					wad_lumpinfo& lumpinf{ info.emplace_back() };
+					lumpinf.filepos = ftell(wadfile);
 					SafeWrite(wadfile, tex, size);
-					info[header.numlumps].disksize = ftell(wadfile)
-						- info[header.numlumps].filepos;
-					info[header.numlumps].size
-						= info[header.numlumps].disksize;
-					info[header.numlumps].type = 67;
-					info[header.numlumps].compression = 0;
-					info[header.numlumps].name = wad_texture_name{
-						tex->name
-					};
-
-					header.numlumps++;
+					lumpinf.size = lumpinf.disksize = ftell(wadfile)
+						- lumpinf.filepos;
+					lumpinf.type = 67;
+					lumpinf.compression = 0;
+					lumpinf.name = wad_texture_name{ tex->name };
 				}
 				fprintf(texfile, "[%zu]", tex->name.length());
 				SafeWrite(texfile, tex->name.c_str(), tex->name.length());
@@ -622,12 +567,12 @@ static void WriteTextures(char const * const name) {
 			}
 		}
 		header.infotableofs = ftell(wadfile);
-		SafeWrite(wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
+		header.numlumps = info.size();
+		SafeWrite(wadfile, info.data(), info.size() * sizeof(wad_lumpinfo));
 		fseek(wadfile, 0, SEEK_SET);
 		SafeWrite(wadfile, &header, sizeof(wadinfo_t));
 
 		fclose(texfile);
-		free(info);
 	}
 	fclose(wadfile);
 }
@@ -667,19 +612,16 @@ static void ReadTextures(char const * name) {
 			g_texdatasize - dataofs
 		);
 
-		wad_lumpinfo* info;
-		info = (wad_lumpinfo*) malloc(
-			header.numlumps * sizeof(wad_lumpinfo)
+		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
+		info.resize(header.numlumps, {});
+		SafeRead(
+			wadfile, info.data(), header.numlumps * sizeof(wad_lumpinfo)
 		);
-		hlassume(info != nullptr, assume_NoMemory);
-		SafeRead(wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 
 		for (int i = 0; i < header.numlumps; i++) {
 			((dmiptexlump_t*) g_dtexdata.data())->dataofs[i]
 				= info[i].filepos - wadofs + dataofs;
 		}
-
-		free(info);
 	} else {
 		texfile = SafeOpenRead(texfilename);
 		Log("\nReading %s.\n", texfilename);
@@ -688,12 +630,11 @@ static void ReadTextures(char const * name) {
 		SafeRead(wadfile, &header, sizeof(wadinfo_t));
 		fseek(wadfile, header.infotableofs, SEEK_SET);
 
-		wad_lumpinfo* info;
-		info = (wad_lumpinfo*) malloc(
-			header.numlumps * sizeof(wad_lumpinfo)
+		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
+		info.resize(header.numlumps, {});
+		SafeRead(
+			wadfile, info.data(), header.numlumps * sizeof(wad_lumpinfo)
 		);
-		hlassume(info != nullptr, assume_NoMemory);
-		SafeRead(wadfile, info, header.numlumps * sizeof(wad_lumpinfo));
 
 		int nummiptex = 0;
 		if (skipspace(texfile), fscanf(texfile, "%d", &nummiptex) != 1) {
@@ -765,24 +706,21 @@ static void ReadTextures(char const * name) {
 		}
 
 		fclose(texfile);
-		free(info);
 	}
 	fclose(wadfile);
 }
 
 static void WriteEntities(char const * const name) {
-	char* bak_dentdata{};
-	std::filesystem::path filePath;
-	filePath = name;
+	std::filesystem::path filePath{ name };
 	filePath += u8".ent";
 
 	std::filesystem::remove(filePath);
 
-	std::uint32_t const bak_entdatasize{ g_entdatasize };
+	vector_for_overwriting<char> bak_dentdata;
+
 	if (g_parse) {
-		bak_dentdata = (char*) malloc(g_entdatasize);
-		hlassume(bak_dentdata != nullptr, assume_NoMemory);
-		std::memcpy(bak_dentdata, g_dentdata.data(), g_entdatasize);
+		bak_dentdata.reset(g_entdatasize);
+		std::memcpy(bak_dentdata.data(), g_dentdata.data(), g_entdatasize);
 		ParseEntityData("  ", 2, "\r\n", 2, "", 0);
 	}
 
@@ -791,9 +729,10 @@ static void WriteEntities(char const * const name) {
 	SafeWrite(f, g_dentdata.data(), g_entdatasize);
 	fclose(f);
 	if (g_parse) {
-		g_entdatasize = bak_entdatasize;
-		std::memcpy(g_dentdata.data(), bak_dentdata, bak_entdatasize);
-		free(bak_dentdata);
+		g_entdatasize = bak_dentdata.size();
+		std::memcpy(
+			g_dentdata.data(), bak_dentdata.data(), bak_dentdata.size()
+		);
 	}
 }
 
