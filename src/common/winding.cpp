@@ -234,7 +234,7 @@ winding_base<VecElement>::~winding_base() { }
 
 template <std::floating_point VecElement>
 void winding_base<VecElement>::initFromPlane(
-	vec3 const & normal, vec_element const dist
+	vec3 const & normal, vec_element planeDist
 ) {
 	vec_element max, v;
 
@@ -268,7 +268,7 @@ void winding_base<VecElement>::initFromPlane(
 	vup = vector_fma(normal, -v, vup);
 	normalize_vector(vup);
 
-	vec3 org = vector_scale(normal, dist);
+	vec3 org = vector_scale(normal, planeDist);
 
 	vec3 vright = cross_product(vup, normal);
 
@@ -285,9 +285,9 @@ void winding_base<VecElement>::initFromPlane(
 
 template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base(
-	vec3 const & normal, vec_element const dist
+	vec3 const & normal, vec_element planeDist
 ) {
-	initFromPlane(normal, dist);
+	initFromPlane(normal, planeDist);
 }
 
 template <std::floating_point VecElement>
@@ -368,31 +368,34 @@ void winding_base<VecElement>::Clip(
 template <std::floating_point VecElement>
 void winding_base<VecElement>::Clip(
 	vec3 const & normal,
-	vec_element dist,
+	vec_element planeDist,
 	winding_base& front,
 	winding_base& back,
 	vec_element epsilon
 ) const {
-	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
-	auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
+	usually_inplace_vector<vec_element, 32> dists;
+	usually_inplace_vector<face_side, 32> sides;
+	dists.reserve(size() + 1);
+	sides.reserve(size() + 1);
+
 	std::array<std::size_t, 3> counts{};
 
 	// determine sides for each point
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element dot = dot_product(m_Points[i], normal);
-		dot -= dist;
-		dists[i] = dot;
+		vec_element const dot = dot_product(m_Points[i], normal)
+			- planeDist;
+		face_side side{ face_side::on };
 		if (dot > epsilon) {
-			sides[i] = face_side::front;
+			side = face_side::front;
 		} else if (dot < -epsilon) {
-			sides[i] = face_side::back;
-		} else {
-			sides[i] = face_side::on;
+			side = face_side::back;
 		}
-		counts[(std::size_t) sides[i]]++;
+		dists.emplace_back(dot);
+		sides.emplace_back(side);
+		++counts[(std::size_t) side];
 	}
-	sides[size()] = sides[0];
-	dists[size()] = dists[0];
+	dists.push_back(dists.front());
+	sides.push_back(sides.front());
 
 	front.clear();
 	back.clear();
@@ -444,9 +447,9 @@ void winding_base<VecElement>::Clip(
 		for (std::size_t j = 0; j < 3;
 			 j++) { // avoid round off error when possible
 			if (normal[j] == 1) {
-				mid[j] = dist;
+				mid[j] = planeDist;
 			} else if (normal[j] == -1) {
-				mid[j] = -dist;
+				mid[j] = -planeDist;
 			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
 			}
@@ -462,24 +465,24 @@ void winding_base<VecElement>::Clip(
 
 template <std::floating_point VecElement>
 bool winding_base<VecElement>::Chop(
-	vec3 const & normal, vec_element const dist, vec_element epsilon
+	vec3 const & normal, vec_element planeDist, vec_element epsilon
 ) {
 	winding_base f;
 	winding_base b;
 
-	Clip(normal, dist, f, b, epsilon);
+	Clip(normal, planeDist, f, b, epsilon);
 	swap(*this, f);
 	return !empty();
 }
 
 template <std::floating_point VecElement>
 face_side winding_base<VecElement>::WindingOnPlaneSide(
-	vec3 const & normal, vec_element const dist, vec_element epsilon
+	vec3 const & normal, vec_element planeDist, vec_element epsilon
 ) {
 	bool front = false;
 	bool back = false;
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element d = dot_product(m_Points[i], normal) - dist;
+		vec_element d = dot_product(m_Points[i], normal) - planeDist;
 		if (d < -epsilon) {
 			if (front) {
 				return face_side::cross;
@@ -512,30 +515,30 @@ bool winding_base<VecElement>::mutating_clip(
 	bool keepon,
 	vec_element epsilon
 ) {
-	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
-	auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
-	std::size_t counts[3];
-	vec_element dot;
+	usually_inplace_vector<vec_element, 32> dists;
+	usually_inplace_vector<face_side, 32> sides;
+	dists.reserve(size() + 1);
+	sides.reserve(size() + 1);
 
-	counts[0] = counts[1] = counts[2] = 0;
+	std::array<std::size_t, 3> counts{};
 
 	// determine sides for each point
 	// do this exactly, with no epsilon so tiny portals still work
 	for (std::size_t i = 0; i < size(); ++i) {
-		dot = dot_product(m_Points[i], planeNormal);
-		dot -= planeDist;
-		dists[i] = dot;
+		vec_element const dot = dot_product(m_Points[i], planeNormal)
+			- planeDist;
+		face_side side{ face_side::on };
 		if (dot > epsilon) {
-			sides[i] = face_side::front;
+			side = face_side::front;
 		} else if (dot < -epsilon) {
-			sides[i] = face_side::back;
-		} else {
-			sides[i] = face_side::on;
+			side = face_side::back;
 		}
-		++counts[(std::size_t) sides[i]];
+		dists.emplace_back(dot);
+		sides.emplace_back(side);
+		++counts[(std::size_t) side];
 	}
-	sides[size()] = sides[0];
-	dists[size()] = dists[0];
+	dists.push_back(dists.front());
+	sides.push_back(sides.front());
 
 	if (keepon && !counts[0] && !counts[1]) {
 		return true;
@@ -575,7 +578,7 @@ bool winding_base<VecElement>::mutating_clip(
 			tmp = 0;
 		}
 		vec3 const & p2 = m_Points[tmp];
-		dot = dists[i] / (dists[i] - dists[i + 1]);
+		vec_element const dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (std::size_t j = 0; j < 3;
 			 ++j) { // avoid round off error when possible
 			if (planeNormal[j] == 1) {
@@ -615,30 +618,33 @@ template <std::floating_point VecElement>
 winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 	mapplane_t const & split, vec_element epsilon
 ) const {
-	auto dists = std::make_unique_for_overwrite<vec_element[]>(size() + 1);
-	auto sides = std::make_unique_for_overwrite<face_side[]>(size() + 1);
-	std::array<std::size_t, 3> counts{ 0, 0, 0 };
+	usually_inplace_vector<vec_element, 32> dists;
+	usually_inplace_vector<face_side, 32> sides;
+	dists.reserve(size() + 1);
+	sides.reserve(size() + 1);
+
+	std::array<std::size_t, 3> counts{};
 
 	vec_element dotSum = 0;
 
 	// determine sides for each point
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element dot = dot_product(m_Points[i], split.normal);
-		dot -= split.dist;
+		vec_element const dot = dot_product(m_Points[i], split.normal)
+			- split.dist;
 		dotSum += dot;
-		dists[i] = dot;
 
-		face_side side = face_side::on;
+		face_side side{ face_side::on };
 		if (dot > epsilon) {
 			side = face_side::front;
 		} else if (dot < -epsilon) {
 			side = face_side::back;
 		}
-		sides[i] = side;
-		counts[(std::size_t) side]++;
+		dists.emplace_back(dot);
+		sides.emplace_back(side);
+		++counts[(std::size_t) side];
 	}
-	sides[size()] = sides[0];
-	dists[size()] = dists[0];
+	dists.push_back(dists.front());
+	sides.push_back(sides.front());
 
 	if (!counts[(std::size_t) face_side::back]) {
 		if (counts[(std::size_t) face_side::front]) {

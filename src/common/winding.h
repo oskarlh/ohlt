@@ -76,14 +76,14 @@ class winding_base final {
 	) const;
 	void Clip(
 		vec3 const & normal,
-		vec_element dist,
+		vec_element planeDist,
 		winding_base& front,
 		winding_base& back,
 		vec_element epsilon = ON_EPSILON
 	) const;
 	bool Chop(
 		vec3 const & normal,
-		vec_element const dist,
+		vec_element planeDist,
 		vec_element epsilon = ON_EPSILON
 	);
 
@@ -98,7 +98,7 @@ class winding_base final {
 
 	face_side WindingOnPlaneSide(
 		vec3 const & normal,
-		vec_element const dist,
+		vec_element planeDist,
 		vec_element epsilon = ON_EPSILON
 	);
 
@@ -114,7 +114,7 @@ class winding_base final {
 	winding_base(dface_t const & face, vec_element epsilon = ON_EPSILON);
 	winding_base(dplane_t const & face);
 	winding_base(mapplane_t const & face);
-	winding_base(vec3 const & normal, vec_element const dist);
+	winding_base(vec3 const & normal, vec_element dist);
 	winding_base(std::size_t points);
 	winding_base(winding_base const & other);
 	winding_base(winding_base&& other);
@@ -125,7 +125,7 @@ class winding_base final {
 	// Misc
 
   private:
-	void initFromPlane(vec3 const & normal, vec_element const dist);
+	void initFromPlane(vec3 const & normal, vec_element planeDist);
 
   public:
 	inline std::span<vec3 const> points() const noexcept {
