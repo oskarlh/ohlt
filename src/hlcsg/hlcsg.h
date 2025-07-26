@@ -269,7 +269,7 @@ extern texinfo_count TexinfoForBrushTexture(
 	double3_array const & origin
 );
 extern std::optional<wad_texture_name>
-GetTextureByNumber_CSG(int texturenumber);
+GetTextureByNumber_CSG(texinfo_count texturenumber);
 
 //=============================================================================
 // brush.c

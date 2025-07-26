@@ -849,8 +849,9 @@ texinfo_count TexinfoForBrushTexture(
 // Before WriteMiptex(), for each texinfo in g_texinfo, .miptex is a string
 // rather than texture index, so this function should be used instead of
 // GetTextureByNumber.
-std::optional<wad_texture_name> GetTextureByNumber_CSG(int texturenumber) {
-	if (texturenumber == -1) {
+std::optional<wad_texture_name>
+GetTextureByNumber_CSG(texinfo_count texturenumber) {
+	if (texturenumber == no_texinfo) {
 		return std::nullopt;
 	}
 	return texmap_retrieve(g_texinfo[texturenumber].miptex);
