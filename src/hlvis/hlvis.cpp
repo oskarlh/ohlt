@@ -29,7 +29,7 @@ static byte* vismap_p;
 static byte* vismap_end; // past visfile
 static int originalvismapsize;
 
-byte* g_uncompressed; // [bitbytes*portalleafs]
+static std::vector<std::uint8_t> g_uncompressed; // [bitbytes*portalleafs]
 
 unsigned g_bitbytes; // (portalleafs+63)>>3
 unsigned g_bitlongs;
@@ -227,10 +227,8 @@ static void LeafThread(int unused) {
 // Recursively add `add` to `current` visibility leaf.
 std::unordered_map<int, bool> leaf_flow_add_exclude = {};
 
-static void LeafFlowNeighborAddLeaf(
-	int const current, int const add, int const neighbor
-) {
-	auto outbuffer = g_uncompressed + current * g_bitbytes;
+static void LeafFlowNeighborAddLeaf(int current, int add, int neighbor) {
+	auto outbuffer = g_uncompressed.data() + current * g_bitbytes;
 
 	outbuffer[add >> 3] |= (1 << (add & 7));
 	leaf_flow_add_exclude[current] = true;
@@ -259,7 +257,6 @@ static void LeafFlowNeighborAddLeaf(
 // =====================================================================================
 static void LeafFlow(int const leafnum) {
 	leaf_t* leaf;
-	byte* outbuffer;
 	byte compressed[MAX_MAP_LEAFS / 8]{};
 	unsigned i;
 	unsigned j;
@@ -272,7 +269,7 @@ static void LeafFlow(int const leafnum) {
 	//
 	// flow through all portals, collecting visible bits
 	//
-	outbuffer = g_uncompressed + leafnum * g_bitbytes;
+	std::uint8_t* outbuffer = g_uncompressed.data() + leafnum * g_bitbytes;
 	leaf = &g_leafs[leafnum];
 	tmp = 0;
 
@@ -447,8 +444,8 @@ static void CalcVis() {
 		SaveVisData(visDataFilePath.c_str());
 
 		// We need to reset the uncompressed variable and portal visbits
-		free(g_uncompressed);
-		g_uncompressed = (byte*) calloc(g_portalleafs, g_bitbytes);
+		g_uncompressed.clear();
+		g_uncompressed.resize(g_portalleafs * g_bitbytes, 0);
 
 		vismap_p = (byte*) g_dvisdata.data();
 
@@ -1129,7 +1126,7 @@ int main(int const argc, char** argv) {
 			);
 
 			Settings();
-			g_uncompressed = (byte*) calloc(g_portalleafs, g_bitbytes);
+			g_uncompressed.resize(g_portalleafs * g_bitbytes, 0);
 
 			CalcVis();
 
@@ -1154,7 +1151,6 @@ int main(int const argc, char** argv) {
 
 			LogTimeElapsed(timeCounter.get_total());
 
-			free(g_uncompressed);
 			// END VIS
 		}
 	}

@@ -150,7 +150,6 @@ extern leafinfo_t* g_leafinfos;
 extern portal_t* g_portals;
 extern leaf_t* g_leafs;
 
-extern byte* g_uncompressed;
 extern unsigned g_bitbytes;
 extern unsigned g_bitlongs;
 
