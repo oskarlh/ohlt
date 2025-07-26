@@ -30,6 +30,14 @@
 		},
 		{
 			"hidden": true,
+			"name": "base-linux-gcc15",
+
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "g++-15"
+			}
+		},
+		{
+			"hidden": true,
 			"name": "base-macos-clang18-homebrew",
 
 			"cacheVariables": {
@@ -42,6 +50,14 @@
 
 			"cacheVariables": {
 				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/bin/g++-14"
+			}
+		},
+		{
+			"hidden": true,
+			"name": "base-macos-gcc15-homebrew",
+
+			"cacheVariables": {
+				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/bin/g++-15"
 			}
 		},
 		{
@@ -62,12 +78,20 @@
 			"inherits": ["base-debug", "base-linux-gcc14"]
 		},
 		{
+			"name": "debug-linux-gcc15",
+			"inherits": ["base-debug", "base-linux-gcc15"]
+		},
+		{
 			"name": "debug-macos-clang18-homebrew",
 			"inherits": ["base-debug", "base-macos-clang18-homebrew"]
 		},
 		{
 			"name": "debug-macos-gcc14-homebrew",
 			"inherits": ["base-debug", "base-macos-gcc14-homebrew"]
+		},
+		{
+			"name": "debug-macos-gcc15-homebrew",
+			"inherits": ["base-debug", "base-macos-gcc15-homebrew"]
 		},
 		{
 			"name": "debug-windows-msvc",
@@ -83,12 +107,20 @@
 			"inherits": ["base-release", "base-linux-gcc14"]
 		},
 		{
+			"name": "release-linux-gcc15",
+			"inherits": ["base-release", "base-linux-gcc15"]
+		},
+		{
 			"name": "release-macos-clang18-homebrew",
 			"inherits": ["base-release", "base-macos-clang18-homebrew"]
 		},
 		{
 			"name": "release-macos-gcc14-homebrew",
 			"inherits": ["base-release", "base-macos-gcc14-homebrew"]
+		},
+		{
+			"name": "release-macos-gcc15-homebrew",
+			"inherits": ["base-release", "base-macos-gcc15-homebrew"]
 		},
 		{
 			"name": "release-windows-msvc",
@@ -105,12 +137,20 @@
 			"configurePreset": "debug-linux-gcc14"
 		},
 		{
+			"name": "debug-linux-gcc15",
+			"configurePreset": "debug-linux-gcc15"
+		},
+		{
 			"name": "debug-macos-clang18-homebrew",
 			"configurePreset": "debug-macos-clang18-homebrew"
 		},
 		{
 			"name": "debug-macos-gcc14-homebrew",
 			"configurePreset": "debug-macos-gcc14-homebrew"
+		},
+		{
+			"name": "debug-macos-gcc15-homebrew",
+			"configurePreset": "debug-macos-gcc15-homebrew"
 		},
 		{
 			"name": "debug-windows-msvc",
@@ -126,12 +166,20 @@
 			"configurePreset": "release-linux-gcc14"
 		},
 		{
+			"name": "release-linux-gcc15",
+			"configurePreset": "release-linux-gcc15"
+		},
+		{
 			"name": "release-macos-clang18-homebrew",
 			"configurePreset": "release-macos-clang18-homebrew"
 		},
 		{
 			"name": "release-macos-gcc14-homebrew",
 			"configurePreset": "release-macos-gcc14-homebrew"
+		},
+		{
+			"name": "release-macos-gcc15-homebrew",
+			"configurePreset": "release-macos-gcc15-homebrew"
 		},
 		{
 			"name": "release-windows-msvc",
