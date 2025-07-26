@@ -149,15 +149,14 @@ static void PlaneFromWinding(winding_t* w, hlvis_plane_t* plane) {
 //  NewWinding
 // =====================================================================================
 static winding_t* NewWinding(int const points) {
-	winding_t* w;
-	int size;
-
-	if (points > MAX_POINTS_ON_WINDING) {
-		Error("NewWinding: %i points > MAX_POINTS_ON_WINDING", points);
+	if (points > MAX_POINTS_ON_FIXED_WINDING) {
+		Error(
+			"NewWinding: %i points > MAX_POINTS_ON_FIXED_WINDING", points
+		);
 	}
 
-	size = (int) (intptr_t) ((winding_t*) 0)->points[points].data();
-	w = (winding_t*) calloc(1, size);
+	int size = (int) (intptr_t) ((winding_t*) 0)->points[points].data();
+	winding_t* w = (winding_t*) calloc(1, size);
 
 	return w;
 }
@@ -596,7 +595,7 @@ static void LoadPortals(char* portal_image) {
 		if (rval != 3) {
 			Error("LoadPortals: reading portal %i", i);
 		}
-		if (numpoints > MAX_POINTS_ON_WINDING) {
+		if (numpoints > MAX_POINTS_ON_FIXED_WINDING) {
 			Error("LoadPortals: portal %i has too many points", i);
 		}
 		if (((unsigned) leafnums[0] > g_portalleafs)

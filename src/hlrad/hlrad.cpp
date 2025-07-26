@@ -1327,10 +1327,6 @@ static void MakePatchForFace(
 		);
 		return;
 	}
-	if (numpoints > MAX_POINTS_ON_WINDING) {
-		Error("numpoints %d > MAX_POINTS_ON_WINDING", numpoints);
-		return;
-	}
 
 	patch = &g_patches[g_num_patches];
 	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);

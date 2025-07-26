@@ -10,11 +10,6 @@
 
 #include <variant>
 
-#define MAX_POINTS_ON_WINDING 128
-// TODO: FIX THIS STUPID SHIT (MAX_POINTS_ON_WINDING)
-
-#define BASE_WINDING_DISTANCE 9000
-
 enum class face_side {
 	front = 0,
 	back = 1,

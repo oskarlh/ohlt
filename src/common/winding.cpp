@@ -456,12 +456,6 @@ void winding_base<VecElement>::Clip(
 		back.m_Points.emplace_back(mid);
 	}
 
-	if ((front.size() > MAX_POINTS_ON_WINDING)
-		| (back.size() > MAX_POINTS_ON_WINDING
-		)) // | instead of || for branch optimization
-	{
-		Error("winding_base::Clip : MAX_POINTS_ON_WINDING");
-	}
 	front.RemoveColinearPoints(epsilon);
 	back.RemoveColinearPoints(epsilon);
 }

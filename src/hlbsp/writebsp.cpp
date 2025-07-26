@@ -38,7 +38,7 @@ static int WritePlane(int planenum) {
 		return planenum;
 	}
 
-	PlaneMap::iterator item = gPlaneMap.find(planenum);
+	PlaneMap::const_iterator const item = gPlaneMap.find(planenum);
 	if (item != gPlaneMap.end()) {
 		return item->second;
 	}
@@ -84,10 +84,6 @@ static texinfo_count WriteTexinfo(texinfo_count texinfo) {
 static int WriteClipNodes_r(
 	node_t* node, node_t const * portalleaf, clipnodemap_t* outputmap
 ) {
-	int i, c;
-	dclipnode_t* cn;
-	int num;
-
 	if (node->isportalleaf) {
 		if (node->contents == contents_t::SOLID) {
 			free(node);
@@ -97,6 +93,7 @@ static int WriteClipNodes_r(
 		}
 	}
 	if (node->planenum == -1) {
+		int num;
 		if (node->iscontentsdetail) {
 			num = std::to_underlying(contents_t::SOLID);
 		} else {
@@ -107,22 +104,23 @@ static int WriteClipNodes_r(
 		return num;
 	}
 
-	dclipnode_t tmpclipnode; // this clipnode will be inserted into
-							 // g_dclipnodes[c] if it can't be merged
-	cn = &tmpclipnode;
-	c = g_numclipnodes;
+	dclipnode_t tmpclipnode{}; // this clipnode will be inserted into
+							   // g_dclipnodes[c] if it can't be merged
+
+	dclipnode_t* cn = &tmpclipnode;
+	int c = g_numclipnodes;
 	g_numclipnodes++;
 	if (node->planenum & 1) {
 		Error("WriteClipNodes_r: odd planenum");
 	}
 	cn->planenum = WritePlane(node->planenum);
-	for (i = 0; i < 2; i++) {
+	for (std::size_t i = 0; i < 2; ++i) {
 		cn->children[i] = WriteClipNodes_r(
 			node->children[i], portalleaf, outputmap
 		);
 	}
-	clipnodemap_t::iterator output;
-	output = outputmap->find(MakeKey(*cn));
+	clipnodemap_t::const_iterator const output{ outputmap->find(MakeKey(*cn)
+	) };
 	if (g_noclipnodemerge || output == outputmap->end()) {
 		hlassume(c < MAX_MAP_CLIPNODES, assume_MAX_MAP_CLIPNODES);
 		g_dclipnodes[c] = *cn;
