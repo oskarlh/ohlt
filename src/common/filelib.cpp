@@ -132,7 +132,8 @@ try_to_get_canonical_path(std::filesystem::path const & path) {
 
 #ifdef VERSION_LINUX
 std::optional<std::filesystem::path> try_to_get_executable_path_linux() {
-	return try_to_get_canonical_path("/proc/self/exe");
+	return try_to_get_canonical_path(std::filesystem::path{
+		"/proc/self/exe", std::filesystem::path::native_format });
 }
 #endif
 
@@ -170,7 +171,8 @@ std::optional<std::filesystem::path> try_to_get_executable_path_macos() {
 		return std::nullopt;
 	}
 
-	return try_to_get_canonical_path(pathString);
+	return try_to_get_canonical_path(std::filesystem::path{
+		pathString, std::filesystem::path::native_format });
 }
 #endif
 
@@ -214,7 +216,8 @@ std::optional<std::filesystem::path> try_to_get_executable_path_win32() {
 		return std::nullopt;
 	}
 
-	return try_to_get_canonical_path(pathString);
+	return try_to_get_canonical_path(std::filesystem::path{
+		pathString, std::filesystem::path::native_format });
 }
 #endif
 
