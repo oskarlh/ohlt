@@ -82,7 +82,7 @@ areanode_t* CMeshDesc::CreateAreaNode(
 
 void CMeshDesc::clear() {
 	FreeMesh();
-	m_debugName = nullptr;
+	m_debugName.clear();
 }
 
 void CMeshDesc::FreeMesh() {
@@ -96,28 +96,30 @@ void CMeshDesc::FreeMesh() {
 	m_mesh = {};
 }
 
-bool CMeshDesc ::InitMeshBuild(char const * debug_name, int numTriangles) {
+bool CMeshDesc ::InitMeshBuild(std::u8string debug_name, int numTriangles) {
 	if (numTriangles <= 0) {
 		return false;
 	}
 
-	m_debugName = debug_name;
+	m_debugName = std::move(debug_name);
 
 	// perfomance warning
 	if (numTriangles >= 65536) {
-		Log("Error: %s have too many triangles (%i). Mesh cannot be build\n",
-			m_debugName,
+		Log("Error: %s has too many triangles (%i). Mesh cannot be build\n",
+			(char const *) m_debugName.c_str(),
 			numTriangles);
 		return false; // failed to build (too many triangles)
 	} else if (numTriangles >= 32768) {
 		Warning(
-			"%s have too many triangles (%i)\n", m_debugName, numTriangles
+			"%s has too many triangles (%i)\n",
+			(char const *) m_debugName.c_str(),
+			numTriangles
 		);
 	} else if (numTriangles >= 16384) {
 		Developer(
 			developer_level::warning,
-			"%s have too many triangles (%i)\n",
-			m_debugName,
+			"%s has too many triangles (%i)\n",
+			(char const *) m_debugName.c_str(),
 			numTriangles
 		);
 	}
@@ -686,7 +688,10 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	// member trace mode
 	m_mesh.trace_mode = pModel->trace_mode;
 
-	InitMeshBuild(pModel->absolutePathToMainModelFile.c_str(), numTris);
+	InitMeshBuild(
+		pModel->absolutePathToMainModelFile.filename().generic_u8string(),
+		numTris
+	);
 
 	if (simplifyModel) {
 		// begin model simplification
@@ -800,7 +805,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	// g-cont. i'm leave this for debug
 	Verbose(
 		"%s: build time %g secs, size %zuB\n",
-		m_debugName,
+		(char const *) m_debugName.c_str(),
 		timeCounter.get_total(),
 		mesh_size
 	);
@@ -822,7 +827,7 @@ bool CMeshDesc ::AddMeshTriangle(
 		Developer(
 			developer_level::error,
 			"AddMeshTriangle: %s overflow (%i >= %i)\n",
-			m_debugName,
+			(char const *) m_debugName.c_str(),
 			m_mesh.numfacets,
 			m_iNumTris
 		);

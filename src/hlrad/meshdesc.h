@@ -6,6 +6,7 @@
 #include "studio.h"
 
 #include <memory>
+#include <string>
 
 #define MAX_FACET_PLANES 32
 #define MAX_PLANES		 (1 << 19)
@@ -92,7 +93,7 @@ struct model_t; // Forward declaration
 class CMeshDesc final {
   private:
 	mmesh_t m_mesh{};
-	char const * m_debugName{ nullptr }; // just for debug purpoces
+	std::u8string m_debugName{}; // just for debug purpoces
 	std::unique_ptr<std::array<areanode_t, AREA_NODES>>
 		areanodes; // AABB tree for speedup trace test. Only reason it's not
 				   // stored inplace is because we have pointers to it in
@@ -117,7 +118,7 @@ class CMeshDesc final {
 	void clear();
 
 	// mesh construction
-	bool InitMeshBuild(char const * debug_name, int numTriangles);
+	bool InitMeshBuild(std::u8string debug_name, int numTriangles);
 	bool AddMeshTriangle(
 		mvert_t const triangle[3], mstudiotexture_t* tex = nullptr
 	);
