@@ -8,7 +8,7 @@
 #include <memory>
 
 #define MAX_FACET_PLANES 32
-#define MAX_PLANES		 524'288 // unsigned short limit
+#define MAX_PLANES		 (1 << 19)
 #define PLANE_HASHES	 (MAX_PLANES >> 2)
 
 // Compute methods
@@ -18,8 +18,6 @@ enum class trace_method : std::uint8_t {
 	shadow_slow
 };
 
-using word = unsigned short;
-using uint = unsigned int;
 using vec4_t = std::array<float, 4>; // x,y,z,w
 using matrix3x4 = std::array<std::array<float, 4>, 3>;
 
@@ -67,7 +65,7 @@ struct mfacet_t final {
 	float3_array edge1, edge2; // new trace stuff
 	byte numplanes; // because numplanes for each facet can't exceeds
 					// MAX_FACET_PLANES!
-	uint* indices; // a indexes into mesh plane pool
+	unsigned* indices; // a indexes into mesh plane pool
 };
 
 struct mmesh_t final {
@@ -170,7 +168,7 @@ class CMeshDesc final {
 	}
 
 	// plane cache
-	uint AddPlaneToPool(mplane_t const * pl);
+	unsigned AddPlaneToPool(mplane_t const * pl);
 	bool PlaneFromPoints(mvert_t const triangle[3], mplane_t* plane);
 	bool ComparePlanes(
 		mplane_t const * plane, float3_array const & normal, float dist

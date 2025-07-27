@@ -1000,7 +1000,7 @@ static bool ProcessModel(bsp_data& bspData) {
 	model->firstface = g_numfaces;
 	bool novisiblebrushes = false;
 	// model->headnode[0]<0 will crash HL, so must split it.
-	if (nodes->planenum == -1) {
+	if (nodes->is_leaf_node()) {
 		novisiblebrushes = true;
 		if (nodes->markfaces[0] != nullptr) {
 			hlassume(false, assume_EmptySolid);
@@ -1107,7 +1107,7 @@ static bool ProcessModel(bsp_data& bspData) {
 		   content type is the same for both leaves if setting the content
 		   type is invalid.
 		*/
-		if (nodes->planenum == -1) // empty!
+		if (nodes->is_leaf_node()) // empty!
 		{
 			model->headnode[g_hullnum] = std::to_underlying(nodes->contents
 			);

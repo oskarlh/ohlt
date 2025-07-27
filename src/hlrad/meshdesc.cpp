@@ -974,7 +974,7 @@ bool CMeshDesc ::AddMeshTriangle(
 		}
 	}
 
-	facet->indices = (uint*) malloc(sizeof(uint) * numplanes);
+	facet->indices = (unsigned*) malloc(sizeof(unsigned) * numplanes);
 	facet->numplanes = numplanes;
 
 	for (i = 0; i < facet->numplanes; i++) {
@@ -1039,7 +1039,7 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 	}
 	size_t memsize = (sizeof(mfacet_t) * m_mesh.numfacets)
 		+ (sizeof(mplane_t) * m_mesh.numplanes)
-		+ (sizeof(uint) * m_iTotalPlanes);
+		+ (sizeof(unsigned) * m_iTotalPlanes);
 
 	// create non-fragmented memory piece and move mesh
 	m_mesh.buffer = std::make_unique_for_overwrite<std::byte[]>(memsize);
@@ -1055,8 +1055,8 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 
 	// setup mesh pointers
 	for (std::size_t i = 0; i < m_mesh.numfacets; ++i) {
-		m_mesh.facets[i].indices = (uint*) remainingBufferStorage;
-		remainingBufferStorage += (sizeof(uint) * facets[i].numplanes);
+		m_mesh.facets[i].indices = (unsigned*) remainingBufferStorage;
+		remainingBufferStorage += (sizeof(unsigned) * facets[i].numplanes);
 	}
 
 	if (remainingBufferStorage != bufend) {

@@ -234,7 +234,7 @@ get_path_to_directory_with_executable(char** argvForFallback) {
 			  .or_else(try_to_get_executable_path_macos)
 #endif
 #ifdef SYSTEM_WIN32
-			  .or_else(try_to_get_executable_path_windows)
+			  .or_else(try_to_get_executable_path_win32)
 #endif
 			  .or_else([argv0]() -> std::optional<std::filesystem::path> {
 				  if (argv0 == nullptr || argv0[0] == '\0') {
