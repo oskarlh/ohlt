@@ -7,7 +7,7 @@
 
 namespace cli_option_defaults {
 	constexpr bool chart = true;
-	constexpr developer_level developer = developer_level::always;
+	constexpr developer_level developer = developer_level::disabled;
 	constexpr bool estimate = true;
 	constexpr bool info = true;
 	constexpr bool log = true;

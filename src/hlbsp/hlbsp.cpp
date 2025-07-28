@@ -1239,7 +1239,8 @@ static void Usage() {
 	Log("    -verbose       : compile with verbose messages\n");
 	Log("    -noinfo        : Do not show tool configuration information\n"
 	);
-	Log("    -dev #         : compile with developer message\n\n");
+	Log("    -dev %s : compile with developer logging\n\n",
+		(char const *) developer_level_options.data());
 	Log("    mapfile        : The mapfile to compile\n\n");
 
 	exit(1);
@@ -1267,9 +1268,11 @@ static void Settings() {
 	Log("log                 [ %7s ] [ %7s ]\n",
 		g_log ? "on" : "off",
 		cli_option_defaults::log ? "on" : "off");
-	Log("developer           [ %7d ] [ %7d ]\n",
-		(int) g_developer,
-		(int) cli_option_defaults::developer);
+	Log("developer           [ %7s ] [ %7s ]\n",
+		(char const *) name_of_developer_level(g_developer).data(),
+		(char const *)
+			name_of_developer_level(cli_option_defaults::developer)
+				.data());
 	Log("chart               [ %7s ] [ %7s ]\n",
 		g_chart ? "on" : "off",
 		cli_option_defaults::chart ? "on" : "off");
@@ -1562,7 +1565,16 @@ int main(int const argc, char** argv) {
 						 )) {
 					if (i + 1 < argc) // added "1" .--vluzacn
 					{
-						g_developer = (developer_level) atoi(argv[++i]);
+						std::optional<developer_level> dl{
+							developer_level_from_string((char8_t*) argv[++i]
+							)
+						};
+						if (dl) {
+							g_developer = dl.value();
+						} else {
+							Log("Invalid developer level");
+							Usage();
+						}
 					} else {
 						Usage();
 					}

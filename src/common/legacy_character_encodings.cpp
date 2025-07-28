@@ -5,16 +5,16 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <utility>
 
 using namespace std::literals;
 
 static std::array<std::u8string_view, num_legacy_encodings> const
-	encoding_code_names
-	= {
-		  // All lower-case, for the sake of case-insensitive comparisons
-		  u8"windows-1251"sv,
-		  u8"windows-1252"sv
-	  };
+	encoding_code_names{
+		// All lower-case, for the sake of case-insensitive comparisons
+		u8"windows-1251"sv,
+		u8"windows-1252"sv
+	};
 
 static std::array<std::u8string_view, num_legacy_encodings> const
 	encoding_human_names
@@ -35,12 +35,12 @@ legacy_encoding_by_code_name(std::u8string_view name) {
 
 std::u8string_view code_name_of_legacy_encoding(legacy_encoding encoding
 ) noexcept {
-	return encoding_code_names[(std::size_t) encoding];
+	return encoding_code_names[std::to_underlying(encoding)];
 }
 
 std::u8string_view human_name_of_legacy_encoding(legacy_encoding encoding
 ) noexcept {
-	return encoding_human_names[(std::size_t) encoding];
+	return encoding_human_names[std::to_underlying(encoding)];
 }
 
 static std::array<char16_t, 0xBF - 0x80 + 1> const
@@ -99,7 +99,7 @@ legacy_encoding_to_utf8(std::string_view input, legacy_encoding encoding) {
 	output.reserve(input.length() * 3);
 
 	conversion_data const & conversionData
-		= conversion_data_by_encoding[(std::size_t) encoding];
+		= conversion_data_by_encoding[std::to_underlying(encoding)];
 
 	for (char const w : input) {
 		unsigned char const c = (unsigned char) w;

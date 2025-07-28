@@ -30,6 +30,7 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/bspfile.cpp
     ${COMMON_DIR}/cmdlib.cpp
     ${COMMON_DIR}/cmdlinecfg.cpp
+    ${COMMON_DIR}/developer_level.cpp
     ${COMMON_DIR}/filelib.cpp
     ${COMMON_DIR}/hull_size.cpp
     ${COMMON_DIR}/key_value_definitions.cpp
@@ -38,6 +39,7 @@ set(COMMON_SOURCES
     ${COMMON_DIR}/map_entity_parser.cpp
     ${COMMON_DIR}/mathlib.cpp
     ${COMMON_DIR}/messages.cpp
+	${COMMON_DIR}/numeric_string_conversions.cpp
     ${COMMON_DIR}/threads.cpp
     ${COMMON_DIR}/utf8.cpp
     ${COMMON_DIR}/winding.cpp
@@ -70,6 +72,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/mathlib.h
     ${COMMON_DIR}/mathtypes.h
     ${COMMON_DIR}/messages.h
+	${COMMON_DIR}/numeric_string_conversions.h
     ${COMMON_DIR}/parsing.h
     ${COMMON_DIR}/planes.h
     ${COMMON_DIR}/project_constants.h

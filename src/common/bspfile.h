@@ -488,7 +488,7 @@ std::optional<double> clamp_double_key_value(
 
 // Returns `clamp((kv as an unsigned integer), min, max)`.
 // If the key-value does not contain a number, returns std::nullopt
-std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
+std::optional<std::uint64_t> clamp_unsigned_integer_from_string_key_value(
 	entity_t const & ent,
 	std::u8string_view key,
 	std::uint64_t min,
@@ -497,7 +497,7 @@ std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
 
 // Returns `clamp((kv as a signed integer), min, max)`.
 // If the key-value does not contain a number, returns std::nullopt
-std::optional<std::int64_t> clamp_signed_integer_key_value(
+std::optional<std::int64_t> clamp_signed_integer_from_string_key_value(
 	entity_t const & ent,
 	std::u8string_view key,
 	std::int64_t min,
@@ -526,7 +526,7 @@ std::optional<NumberType> numeric_key_value(
 	NumberType min = std::numeric_limits<NumberType>::min(),
 	NumberType max = std::numeric_limits<NumberType>::max()
 ) noexcept {
-	return clamp_unsigned_integer_key_value(ent, key, min, max)
+	return clamp_unsigned_integer_from_string_key_value(ent, key, min, max)
 		.transform([](std::uint64_t result) { return NumberType(result); });
 }
 
@@ -539,7 +539,7 @@ std::optional<NumberType> numeric_key_value(
 	NumberType min = std::numeric_limits<NumberType>::min(),
 	NumberType max = std::numeric_limits<NumberType>::max()
 ) noexcept {
-	return clamp_signed_integer_key_value(ent, key, min, max)
+	return clamp_signed_integer_from_string_key_value(ent, key, min, max)
 		.transform([](std::int64_t result) { return NumberType(result); });
 }
 

@@ -8,6 +8,7 @@
 #include "map_entity_parser.h"
 #include "mathlib.h"
 #include "messages.h"
+#include "numeric_string_conversions.h"
 
 #include <bit>
 #include <charconv>
@@ -1103,7 +1104,7 @@ std::optional<double> clamp_double_key_value(
 	return std::clamp(parsed, min, max);
 }
 
-std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
+std::optional<std::uint64_t> clamp_unsigned_integer_from_string_key_value(
 	entity_t const & ent,
 	std::u8string_view key,
 	std::uint64_t min,
@@ -1111,53 +1112,20 @@ std::optional<std::uint64_t> clamp_unsigned_integer_key_value(
 ) noexcept {
 	std::u8string_view const valueString{ value_for_key(&ent, key) };
 
-	std::uint64_t parsed;
-	std::errc error = std::from_chars(
-						  (char const *) valueString.begin(),
-						  (char const *) valueString.end(),
-						  parsed
-	)
-						  .ec;
-
-	bool const failedBecauseOfNegativeNumber = error
-			== std::errc::invalid_argument
-		&& valueString >= u8"-0" && valueString <= u8"-9";
-
-	if (failedBecauseOfNegativeNumber) [[unlikely]] {
-		parsed = 0;
-	} else if (error == std::errc::result_out_of_range) [[unlikely]] {
-		parsed = std::numeric_limits<std::uint64_t>::max();
-	} else if (error != std::errc{}) {
-		return std::nullopt;
-	}
-	return std::clamp(parsed, min, max);
+	return clamp_unsigned_integer_from_string(
+		value_for_key(&ent, key), min, max
+	);
 }
 
-std::optional<std::int64_t> clamp_signed_integer_key_value(
+std::optional<std::int64_t> clamp_signed_integer_from_string_key_value(
 	entity_t const & ent,
 	std::u8string_view key,
 	std::int64_t min,
 	std::int64_t max
 ) noexcept {
-	std::u8string_view const valueString{ value_for_key(&ent, key) };
-
-	std::int64_t parsed;
-	std::errc error = std::from_chars(
-						  (char const *) valueString.begin(),
-						  (char const *) valueString.end(),
-						  parsed
-	)
-						  .ec;
-
-	if (error == std::errc::result_out_of_range) [[unlikely]] {
-		parsed = valueString.starts_with(u8'-')
-			? std::numeric_limits<std::int64_t>::min()
-			: std::numeric_limits<std::int64_t>::max();
-	} else if (error != std::errc{}) {
-		return std::nullopt;
-	}
-
-	return std::clamp(parsed, min, max);
+	return clamp_signed_integer_from_string(
+		value_for_key(&ent, key), min, max
+	);
 }
 
 float float_for_key(entity_t const & ent, std::u8string_view key) noexcept {

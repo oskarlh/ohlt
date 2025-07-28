@@ -325,31 +325,13 @@ void FORMAT_PRINTF(2, 3)
 //  DisplayDeveloperLevel
 // =====================================================================================
 static void DisplayDeveloperLevel() {
-	char message[MAX_MESSAGE];
+	if (g_developer == developer_level::disabled) {
+		Log("Developer messages disabled.\n");
+		return;
+	}
 
-	safe_strncpy(message, "Developer messages enabled : [", MAX_MESSAGE);
-	if (g_developer >= developer_level::megaspam) {
-		safe_strncat(message, "MegaSpam ", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::spam) {
-		safe_strncat(message, "Spam ", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::fluff) {
-		safe_strncat(message, "Fluff ", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::message) {
-		safe_strncat(message, "Message ", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::warning) {
-		safe_strncat(message, "Warning ", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::error) {
-		safe_strncat(message, "Error", MAX_MESSAGE);
-	}
-	if (g_developer >= developer_level::always) {
-		safe_strncat(message, "]\n", MAX_MESSAGE);
-		Log("%s", message);
-	}
+	Log("Developer messages enabled, logging everything above level: %s\n",
+		(char const *) name_of_developer_level(g_developer).data());
 }
 
 // =====================================================================================
