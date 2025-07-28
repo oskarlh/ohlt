@@ -7,99 +7,50 @@
  */
 // used by progmesh
 
+#include <algorithm>
 #include <assert.h>
 #include <stdio.h>
+#include <vector>
 
 template <class Type>
 class List final {
   public:
-	List(int s = 0);
-	~List();
-	void allocate(int s);
-	void SetSize(int s);
+	List(std::size_t s = 0);
+	void SetSize(std::size_t s);
 	void Add(Type);
 	void AddUnique(Type);
-	int Contains(Type);
-	void Remove(Type);
-	void DelIndex(int i);
-	Type* element;
-	int num;
-	int array_size;
+	std::size_t Contains(Type const &);
+	void Remove(Type const &);
+	void DelIndex(std::size_t i);
+	std::vector<Type> storage;
 
-	Type& operator[](int i) {
-		assert(i >= 0 && i < num);
-		return element[i];
+	std::size_t Size() {
+		return storage.size();
+	}
+
+	Type& operator[](std::size_t i) {
+		return storage[i];
 	}
 };
 
 template <class Type>
-List<Type>::List(int s) {
-	num = 0;
-	array_size = 0;
-	element = nullptr;
-	if (s) {
-		allocate(s);
-	}
+List<Type>::List(std::size_t s) {
+	storage.reserve(s);
 }
 
 template <class Type>
-List<Type>::~List() {
-	delete element;
-}
-
-template <class Type>
-void List<Type>::allocate(int s) {
-	assert(s > 0);
-	assert(s >= num);
-	Type* old = element;
-	array_size = s;
-	element = new Type[array_size]{};
-	assert(element);
-
-	for (int i = 0; i < num; i++) {
-		element[i] = old[i];
-	}
-
-	if (old) {
-		delete old;
-	}
-}
-
-template <class Type>
-void List<Type>::SetSize(int s) {
-	if (s == 0) {
-		if (element) {
-			delete element;
-		}
-	} else {
-		allocate(s);
-	}
-
-	num = s;
+void List<Type>::SetSize(std::size_t s) {
+	storage.resize(s);
 }
 
 template <class Type>
 void List<Type>::Add(Type t) {
-	assert(num <= array_size);
-
-	if (num == array_size) {
-		allocate((array_size) ? array_size * 2 : 16);
-	}
-
-	element[num++] = t;
+	storage.emplace_back(t);
 }
 
 template <class Type>
-int List<Type>::Contains(Type t) {
-	int count = 0;
-
-	for (int i = 0; i < num; i++) {
-		if (element[i] == t) {
-			count++;
-		}
-	}
-
-	return count;
+std::size_t List<Type>::Contains(Type const & t) {
+	return std::ranges::count(storage, t);
 }
 
 template <class Type>
@@ -110,29 +61,13 @@ void List<Type>::AddUnique(Type t) {
 }
 
 template <class Type>
-void List<Type>::DelIndex(int i) {
-	assert(i < num);
-	num--;
-
-	while (i < num) {
-		element[i] = element[i + 1];
-		i++;
-	}
+void List<Type>::DelIndex(std::size_t i) {
+	storage.erase(storage.begin() + i);
 }
 
 template <class Type>
-void List<Type>::Remove(Type t) {
-	int i;
-
-	for (i = 0; i < num; i++) {
-		if (element[i] == t) {
-			break;
-		}
-	}
-
-	DelIndex(i);
-
-	for (i = 0; i < num; i++) {
-		assert(element[i] != t);
-	}
+void List<Type>::Remove(Type const & t) {
+	auto it = std::ranges::find(storage, t);
+	assert(it != storage.end());
+	storage.erase(it);
 }

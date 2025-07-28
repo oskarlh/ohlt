@@ -734,7 +734,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			verts_reduced = int(numVerts * SIMPLIFICATION_FACTOR_HIGH);
 		}
 
-		for (std::int32_t i = 0; i < tris.num; i++) {
+		for (std::int32_t i = 0; i < tris.Size(); i++) {
 			int p0 = MapVertex(tris[i].v[0], verts_reduced, collapse_map);
 			int p1 = MapVertex(tris[i].v[1], verts_reduced, collapse_map);
 			int p2 = MapVertex(tris[i].v[2], verts_reduced, collapse_map);

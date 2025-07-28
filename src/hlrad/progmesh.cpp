@@ -168,9 +168,9 @@ CVertex ::CVertex(float3_array const & v, int _id) {
 }
 
 CVertex ::~CVertex() {
-	assert(face.num == 0);
+	assert(face.Size() == 0);
 
-	while (neighbor.num) {
+	while (neighbor.Size()) {
 		neighbor[0]->neighbor.Remove(this);
 		neighbor.Remove(neighbor[0]);
 	}
@@ -184,7 +184,7 @@ void CVertex ::RemoveIfNonNeighbor(CVertex* n) {
 		return;
 	}
 
-	for (int i = 0; i < face.num; i++) {
+	for (int i = 0; i < face.Size(); i++) {
 		if (face[i]->HasVertex(n)) {
 			return;
 		}
@@ -215,7 +215,7 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 	// find the "sides" triangles that are on the edge uv
 	List<CTriangle*> sides;
 
-	for (i = 0; i < u->face.num; i++) {
+	for (i = 0; i < u->face.Size(); i++) {
 		if (u->face[i]->HasVertex(v)) {
 			sides.Add(u->face[i]);
 		}
@@ -224,10 +224,10 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 	float curvature = 0.0f;
 	// use the triangle facing most away from the sides
 	// to determine our curvature term
-	for (i = 0; i < u->face.num; i++) {
+	for (i = 0; i < u->face.Size(); i++) {
 		float mincurv = 1.0f; // curve for face i and closer side to it
 
-		for (int j = 0; j < sides.num; j++) {
+		for (int j = 0; j < sides.Size(); j++) {
 			float dotprod = dot_product(
 				u->face[i]->normal, sides[j]->normal
 			);
@@ -249,7 +249,7 @@ static void ComputeEdgeCostAtVertex(CVertex* v) {
 	// (in member variable collapse) as well as the value of the
 	// cost (in member variable objdist).
 
-	if (v->neighbor.num == 0) {
+	if (v->neighbor.Size() == 0) {
 		// v doesn't have neighbors so it costs nothing to collapse
 		v->collapse = nullptr;
 		v->objdist = -0.01f;
@@ -260,7 +260,7 @@ static void ComputeEdgeCostAtVertex(CVertex* v) {
 	v->collapse = nullptr;
 
 	// search all neighboring edges for "least cost" edge
-	for (int i = 0; i < v->neighbor.num; i++) {
+	for (int i = 0; i < v->neighbor.Size(); i++) {
 		float dist;
 		dist = ComputeEdgeCollapseCost(v, v->neighbor[i]);
 
@@ -275,7 +275,7 @@ static void ComputeAllEdgeCollapseCosts(void) {
 	// For all the edges, compute the difference it would make
 	// to the model if it was collapsed.  The least of these
 	// per vertex is cached in each vertex object.
-	for (int i = 0; i < vertices.num; i++) {
+	for (int i = 0; i < vertices.Size(); i++) {
 		ComputeEdgeCostAtVertex(vertices[i]);
 	}
 }
@@ -294,38 +294,38 @@ static void Collapse(CVertex* u, CVertex* v) {
 
 	List<CVertex*> tmp;
 	// make tmp a list of all the neighbors of u
-	for (i = 0; i < u->neighbor.num; i++) {
+	for (i = 0; i < u->neighbor.Size(); i++) {
 		tmp.Add(u->neighbor[i]);
 	}
 
 	// delete triangles on edge uv:
-	for (i = u->face.num - 1; i >= 0; i--) {
+	for (i = u->face.Size() - 1; i >= 0; i--) {
 		if (u->face[i]->HasVertex(v)) {
 			delete (u->face[i]);
 		}
 	}
 
 	// update remaining triangles to have v instead of u
-	for (i = u->face.num - 1; i >= 0; i--) {
+	for (i = u->face.Size() - 1; i >= 0; i--) {
 		u->face[i]->ReplaceVertex(u, v);
 	}
 
 	delete u;
 
 	// recompute the edge collapse costs for neighboring vertices
-	for (i = 0; i < tmp.num; i++) {
+	for (i = 0; i < tmp.Size(); i++) {
 		ComputeEdgeCostAtVertex(tmp[i]);
 	}
 }
 
 static void AddVertex(List<float3_array>& vert) {
-	for (int i = 0; i < vert.num; i++) {
+	for (int i = 0; i < vert.Size(); i++) {
 		CVertex* v = new CVertex(vert[i], i);
 	}
 }
 
 static void AddFaces(List<triset>& tri) {
-	for (int i = 0; i < tri.num; i++) {
+	for (int i = 0; i < tri.Size(); i++) {
 		CTriangle* t = new CTriangle(
 			vertices[tri[i].v[0]],
 			vertices[tri[i].v[1]],
@@ -343,7 +343,7 @@ static CVertex* MinimumCostEdge(void) {
 	// Our algorithm could be O(n*lg(n)) instead of O(n*n)
 	CVertex* mn = vertices[0];
 
-	for (int i = 0; i < vertices.num; i++) {
+	for (int i = 0; i < vertices.Size(); i++) {
 		if (vertices[i]->objdist < mn->objdist) {
 			mn = vertices[i];
 		}
@@ -361,24 +361,24 @@ void ProgressiveMesh(
 	AddVertex(vert); // put input data into our data structures
 	AddFaces(tri);
 
-	ComputeAllEdgeCollapseCosts();	   // cache all edge collapse costs
-	permutation.SetSize(vertices.num); // allocate space
-	map.SetSize(vertices.num);		   // allocate space
+	ComputeAllEdgeCollapseCosts();		  // cache all edge collapse costs
+	permutation.SetSize(vertices.Size()); // allocate space
+	map.SetSize(vertices.Size());		  // allocate space
 
 	// reduce the object down to nothing:
-	while (vertices.num > 0) {
+	while (vertices.Size() > 0) {
 		// get the next vertex to collapse
 		CVertex* mn = MinimumCostEdge();
 		// keep track of this vertex, i.e. the collapse ordering
-		permutation[mn->id] = vertices.num - 1;
+		permutation[mn->id] = vertices.Size() - 1;
 		// keep track of vertex to which we collapse to
-		map[vertices.num - 1] = (mn->collapse) ? mn->collapse->id : -1;
+		map[vertices.Size() - 1] = (mn->collapse) ? mn->collapse->id : -1;
 		// Collapse this edge
 		Collapse(mn, mn->collapse);
 	}
 
 	// reorder the map list based on the collapse ordering
-	for (int i = 0; i < map.num; i++) {
+	for (int i = 0; i < map.Size(); i++) {
 		map[i] = (map[i] == -1) ? 0 : permutation[map[i]];
 	}
 
@@ -389,23 +389,23 @@ void ProgressiveMesh(
 void PermuteVertices(
 	List<int>& permutation, List<float3_array>& vert, List<triset>& tris
 ) {
-	assert(permutation.num == vert.num);
+	assert(permutation.Size() == vert.Size());
 
 	// rearrange the vertex list
 	List<float3_array> temp_list;
 
 	int i;
 
-	for (i = 0; i < vert.num; i++) {
+	for (i = 0; i < vert.Size(); i++) {
 		temp_list.Add(vert[i]);
 	}
 
-	for (i = 0; i < vert.num; i++) {
+	for (i = 0; i < vert.Size(); i++) {
 		vert[permutation[i]] = temp_list[i];
 	}
 
 	// update the changes in the entries in the triangle list
-	for (i = 0; i < tris.num; i++) {
+	for (i = 0; i < tris.Size(); i++) {
 		for (int j = 0; j < 3; j++) {
 			tris[i].v[j] = permutation[tris[i].v[j]];
 		}
