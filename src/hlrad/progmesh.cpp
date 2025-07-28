@@ -10,6 +10,8 @@
 #include "hlrad.h"
 #include "meshdesc.h"
 
+#include <vector>
+
 /*
  *  For the polygon reduction algorithm we use data structures
  *  that contain a little bit more information than the usual
@@ -36,12 +38,12 @@ class CTriangle final {
 
 class CVertex final {
   public:
-	float3_array position{}; // location of point in euclidean space
-	int id;					 // place of vertex in original list
-	List<CVertex*> neighbor; // adjacent vertices
-	List<CTriangle*> face;	 // adjacent triangles
-	float objdist;			 // cached cost of collapsing edge
-	CVertex* collapse;		 // candidate vertex for collapse
+	float3_array position{};	  // location of point in euclidean space
+	int id;						  // place of vertex in original list
+	List<CVertex*> neighbor;	  // adjacent vertices
+	std::vector<CTriangle*> face; // adjacent triangles
+	float objdist;				  // cached cost of collapsing edge
+	CVertex* collapse;			  // candidate vertex for collapse
 
 	CVertex(float3_array const & v, int _id);
 	~CVertex();
@@ -63,7 +65,7 @@ CTriangle ::CTriangle(CVertex* v0, CVertex* v1, CVertex* v2) {
 	triangles.Add(this);
 
 	for (int i = 0; i < 3; i++) {
-		vertex[i]->face.Add(this);
+		vertex[i]->face.emplace_back(this);
 
 		for (int j = 0; j < 3; j++) {
 			if (i == j) {
@@ -76,17 +78,16 @@ CTriangle ::CTriangle(CVertex* v0, CVertex* v1, CVertex* v2) {
 }
 
 CTriangle ::~CTriangle() {
-	int i1;
-
 	triangles.Remove(this);
 
-	for (i1 = 0; i1 < 3; i1++) {
+	for (int i1 = 0; i1 < 3; i1++) {
 		if (vertex[i1]) {
-			vertex[i1]->face.Remove(this);
+			vertex[i1]->face.erase(std::ranges::find(vertex[i1]->face, this)
+			);
 		}
 	}
 
-	for (i1 = 0; i1 < 3; i1++) {
+	for (int i1 = 0; i1 < 3; i1++) {
 		int i2 = (i1 + 1) % 3;
 
 		if (!vertex[i1] || !vertex[i2]) {
@@ -136,19 +137,17 @@ void CTriangle ::ReplaceVertex(CVertex* vold, CVertex* vnew) {
 		vertex[2] = vnew;
 	}
 
-	vold->face.Remove(this);
-	assert(!vnew->face.Contains(this));
-	vnew->face.Add(this);
+	vold->face.erase(std::ranges::find(vold->face, this));
+	assert(!std::ranges::contains(vnew->face, this));
+	vnew->face.emplace_back(this);
 
-	int i;
-
-	for (i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++) {
 		vold->RemoveIfNonNeighbor(vertex[i]);
 		vertex[i]->RemoveIfNonNeighbor(vold);
 	}
 
-	for (i = 0; i < 3; i++) {
-		assert(vertex[i]->face.Contains(this) == 1);
+	for (int i = 0; i < 3; i++) {
+		assert(std::ranges::count(vertex[i]->face, this) == 1);
 		for (int j = 0; j < 3; j++) {
 			if (i == j) {
 				continue;
@@ -168,7 +167,7 @@ CVertex ::CVertex(float3_array const & v, int _id) {
 }
 
 CVertex ::~CVertex() {
-	assert(face.Size() == 0);
+	assert(face.empty());
 
 	while (neighbor.Size()) {
 		neighbor[0]->neighbor.Remove(this);
@@ -184,13 +183,11 @@ void CVertex ::RemoveIfNonNeighbor(CVertex* n) {
 		return;
 	}
 
-	for (int i = 0; i < face.Size(); i++) {
-		if (face[i]->HasVertex(n)) {
-			return;
-		}
+	if (std::ranges::none_of(face, [n](CTriangle* tri) {
+			return tri->HasVertex(n);
+		})) {
+		neighbor.Remove(n);
 	}
-
-	neighbor.Remove(n);
 }
 
 static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
@@ -215,7 +212,7 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 	// find the "sides" triangles that are on the edge uv
 	List<CTriangle*> sides;
 
-	for (i = 0; i < u->face.Size(); i++) {
+	for (i = 0; i < u->face.size(); i++) {
 		if (u->face[i]->HasVertex(v)) {
 			sides.Add(u->face[i]);
 		}
@@ -224,7 +221,7 @@ static float ComputeEdgeCollapseCost(CVertex* u, CVertex* v) {
 	float curvature = 0.0f;
 	// use the triangle facing most away from the sides
 	// to determine our curvature term
-	for (i = 0; i < u->face.Size(); i++) {
+	for (i = 0; i < u->face.size(); i++) {
 		float mincurv = 1.0f; // curve for face i and closer side to it
 
 		for (int j = 0; j < sides.Size(); j++) {
@@ -290,42 +287,40 @@ static void Collapse(CVertex* u, CVertex* v) {
 		return;
 	}
 
-	int i;
-
 	List<CVertex*> tmp;
 	// make tmp a list of all the neighbors of u
-	for (i = 0; i < u->neighbor.Size(); i++) {
+	for (int i = 0; i < u->neighbor.Size(); i++) {
 		tmp.Add(u->neighbor[i]);
 	}
 
 	// delete triangles on edge uv:
-	for (i = u->face.Size() - 1; i >= 0; i--) {
+	for (int i = u->face.size() - 1; i >= 0; i--) {
 		if (u->face[i]->HasVertex(v)) {
 			delete (u->face[i]);
 		}
 	}
 
 	// update remaining triangles to have v instead of u
-	for (i = u->face.Size() - 1; i >= 0; i--) {
+	for (int i = u->face.size() - 1; i >= 0; i--) {
 		u->face[i]->ReplaceVertex(u, v);
 	}
 
 	delete u;
 
 	// recompute the edge collapse costs for neighboring vertices
-	for (i = 0; i < tmp.Size(); i++) {
+	for (int i = 0; i < tmp.Size(); i++) {
 		ComputeEdgeCostAtVertex(tmp[i]);
 	}
 }
 
-static void AddVertex(List<float3_array>& vert) {
-	for (int i = 0; i < vert.Size(); i++) {
+static void AddVertex(std::span<float3_array const> vert) {
+	for (int i = 0; i < vert.size(); i++) {
 		CVertex* v = new CVertex(vert[i], i);
 	}
 }
 
-static void AddFaces(List<triset>& tri) {
-	for (int i = 0; i < tri.Size(); i++) {
+static void AddFaces(std::span<triset const> tri) {
+	for (int i = 0; i < tri.size(); i++) {
 		CTriangle* t = new CTriangle(
 			vertices[tri[i].v[0]],
 			vertices[tri[i].v[1]],
@@ -353,17 +348,17 @@ static CVertex* MinimumCostEdge(void) {
 }
 
 void ProgressiveMesh(
-	List<float3_array>& vert,
-	List<triset>& tri,
-	List<int>& map,
-	List<int>& permutation
+	std::span<float3_array const> vert,
+	std::span<triset const> tri,
+	std::vector<int>& map,
+	std::vector<std::size_t>& permutation
 ) {
 	AddVertex(vert); // put input data into our data structures
 	AddFaces(tri);
 
-	ComputeAllEdgeCollapseCosts();		  // cache all edge collapse costs
-	permutation.SetSize(vertices.Size()); // allocate space
-	map.SetSize(vertices.Size());		  // allocate space
+	ComputeAllEdgeCollapseCosts();		 // cache all edge collapse costs
+	permutation.resize(vertices.Size()); // allocate space
+	map.resize(vertices.Size());		 // allocate space
 
 	// reduce the object down to nothing:
 	while (vertices.Size() > 0) {
@@ -378,7 +373,7 @@ void ProgressiveMesh(
 	}
 
 	// reorder the map list based on the collapse ordering
-	for (int i = 0; i < map.Size(); i++) {
+	for (int i = 0; i < map.size(); i++) {
 		map[i] = (map[i] == -1) ? 0 : permutation[map[i]];
 	}
 
@@ -387,32 +382,28 @@ void ProgressiveMesh(
 }
 
 void PermuteVertices(
-	List<int>& permutation, List<float3_array>& vert, List<triset>& tris
+	std::span<std::size_t const> permutation,
+	std::span<float3_array> vert,
+	std::span<triset> tris
 ) {
-	assert(permutation.Size() == vert.Size());
+	assert(permutation.size() == vert.size());
 
 	// rearrange the vertex list
-	List<float3_array> temp_list;
+	std::vector<float3_array> temp_list{ vert.begin(), vert.end() };
 
-	int i;
-
-	for (i = 0; i < vert.Size(); i++) {
-		temp_list.Add(vert[i]);
-	}
-
-	for (i = 0; i < vert.Size(); i++) {
+	for (std::size_t i = 0; i < vert.size(); i++) {
 		vert[permutation[i]] = temp_list[i];
 	}
 
 	// update the changes in the entries in the triangle list
-	for (i = 0; i < tris.Size(); i++) {
+	for (std::size_t i = 0; i < tris.size(); i++) {
 		for (int j = 0; j < 3; j++) {
 			tris[i].v[j] = permutation[tris[i].v[j]];
 		}
 	}
 }
 
-int MapVertex(int a, int mx, List<int>& map) {
+int MapVertex(int a, int mx, std::span<int const> map) {
 	if (mx <= 0) {
 		return 0;
 	}

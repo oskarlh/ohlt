@@ -694,16 +694,17 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	);
 
 	if (simplifyModel) {
-		// begin model simplification
-		List<float3_array> vert; // list of vertices
-		List<triset> tris;		 // list of triangles
-		List<int> collapse_map;	 // to which neighbor each vertex collapses
-		List<int> permutation;	 // permutation list
+		// Begin model simplification
 
-		// build the list of vertices
-		for (std::uint32_t i = 0; i < numVerts; i++) {
-			vert.Add(verts[i]);
-		}
+		// List of vertices
+		std::vector<float3_array> vert{ verts.get(),
+										verts.get() + numVerts };
+		// List of triangles
+		std::vector<triset> tris;
+		// To which neighbor each vertex collapses
+		std::vector<int> collapse_map;
+		// Permutation list
+		std::vector<std::size_t> permutation;
 
 		// build the list of indices
 		for (std::uint32_t i = 0; i < numElems; i += 3) {
@@ -713,7 +714,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			td.v[0] = indices[i + 0];
 			td.v[1] = indices[i + 1];
 			td.v[2] = indices[i + 2];
-			tris.Add(td);
+			tris.emplace_back(td);
 		}
 
 		// do mesh simplification
@@ -734,7 +735,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			verts_reduced = int(numVerts * SIMPLIFICATION_FACTOR_HIGH);
 		}
 
-		for (std::int32_t i = 0; i < tris.Size(); i++) {
+		for (std::int32_t i = 0; i < tris.size(); i++) {
 			int p0 = MapVertex(tris[i].v[0], verts_reduced, collapse_map);
 			int p1 = MapVertex(tris[i].v[1], verts_reduced, collapse_map);
 			int p2 = MapVertex(tris[i].v[2], verts_reduced, collapse_map);

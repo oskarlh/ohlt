@@ -221,15 +221,17 @@ class CMeshDesc final {
 
 // simplification
 void ProgressiveMesh(
-	List<float3_array>& vert,
-	List<triset>& tri,
-	List<int>& map,
-	List<int>& permutation
+	std::span<float3_array const> vert,
+	std::span<triset const> tri,
+	std::vector<int>& map,
+	std::vector<std::size_t>& permutation
 );
 void PermuteVertices(
-	List<int>& permutation, List<float3_array>& vert, List<triset>& tris
+	std::span<std::size_t const> permutation,
+	std::span<float3_array> vert,
+	std::span<triset> tris
 );
-int MapVertex(int a, int mx, List<int>& map);
+int MapVertex(int a, int mx, std::span<int const> map);
 
 // collision description
 struct model_t final {
