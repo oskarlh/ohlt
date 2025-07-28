@@ -8,9 +8,12 @@
 #include <memory>
 #include <string>
 
-#define MAX_FACET_PLANES 32
-#define MAX_PLANES		 (1 << 19)
-#define PLANE_HASHES	 (MAX_PLANES >> 2)
+using mesh_facet_count = std::uint32_t;
+constexpr mesh_facet_count max_mes_facets = 32;
+
+using mesh_plane_count = std::uint32_t;
+constexpr mesh_plane_count max_mesh_planes = (1 << 19);
+constexpr std::size_t mesh_plane_hashes = (max_mesh_planes >> 2);
 
 // Compute methods
 enum class trace_method : std::uint8_t {
@@ -22,8 +25,6 @@ enum class trace_method : std::uint8_t {
 using vec4_t = std::array<float, 4>; // x,y,z,w
 using matrix3x4 = std::array<std::array<float, 4>, 3>;
 
-#define Q_rint(x) ((x) < 0 ? ((int) ((x) - 0.5f)) : ((int) ((x) + 0.5f)))
-
 struct mplane_t final {
 	float3_array normal;
 	float dist;
@@ -34,7 +35,7 @@ struct mplane_t final {
 
 struct hashplane_t final {
 	mplane_t pl;
-	std::uint32_t planePoolIndex;
+	mesh_plane_count planePoolIndex;
 };
 
 struct link_t final {
@@ -78,8 +79,8 @@ struct mmesh_t final {
 	mplane_t* planes; // Shared plane pool
 	float3_array mins;
 	float3_array maxs;
-	std::uint32_t numfacets;
-	std::uint32_t numplanes;
+	mesh_facet_count numfacets;
+	mesh_plane_count numPlanes;
 	trace_method trace_mode; // Trace method
 };
 
@@ -107,7 +108,7 @@ class CMeshDesc final {
 
 	// used only while mesh is constructed
 	std::unique_ptr<mfacet_t[]> facets;
-	std::unique_ptr<std::uint32_t[]> planehash;
+	std::unique_ptr<mesh_plane_count[]> planehash;
 	std::unique_ptr<hashplane_t[]> planepool;
 
   public:

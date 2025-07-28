@@ -17,7 +17,6 @@ class List final {
 	~List();
 	void allocate(int s);
 	void SetSize(int s);
-	void Pack();
 	void Add(Type);
 	void AddUnique(Type);
 	int Contains(Type);
@@ -77,11 +76,6 @@ void List<Type>::SetSize(int s) {
 	}
 
 	num = s;
-}
-
-template <class Type>
-void List<Type>::Pack() {
-	allocate(num);
 }
 
 template <class Type>

@@ -136,8 +136,8 @@ bool CMeshDesc ::InitMeshBuild(std::u8string debug_name, int numTriangles) {
 
 	// create pools for construct mesh
 	facets = std::make_unique<mfacet_t[]>(numTriangles);
-	planehash = std::make_unique<std::uint32_t[]>(PLANE_HASHES);
-	planepool = std::make_unique<hashplane_t[]>(MAX_PLANES);
+	planehash = std::make_unique<mesh_plane_count[]>(mesh_plane_hashes);
+	planepool = std::make_unique<hashplane_t[]>(max_mesh_planes);
 
 	// create default invalid plane for index 0
 	mplane_t badplane{};
@@ -163,17 +163,17 @@ bool CMeshDesc ::PlaneEqual(mplane_t const * p0, mplane_t const * p1) {
 	return false;
 }
 
-std::uint32_t CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
+mesh_plane_count CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
 	int hash;
 
 	// trying to find equal plane
 	hash = (int) fabs(pl->dist);
-	hash &= (PLANE_HASHES - 1);
+	hash &= (mesh_plane_hashes - 1);
 
 	// search the border bins as well
 	for (int i = -1; i <= 1; i++) {
-		int h = (hash + i) & (PLANE_HASHES - 1);
-		for (std::uint32_t p = planehash[h]; p;
+		int h = (hash + i) & (mesh_plane_hashes - 1);
+		for (mesh_plane_count p = planehash[h]; p;
 			 p = planepool[p].planePoolIndex) {
 			if (PlaneEqual(&planepool[p].pl, pl)) {
 				return p; // already exist
@@ -181,17 +181,17 @@ std::uint32_t CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
 		}
 	}
 
-	if (m_mesh.numplanes >= MAX_PLANES) {
+	if (m_mesh.numPlanes >= max_mesh_planes) {
 		Error(
-			"AddPlaneToPool: plane limit exceeded: planes %i, maxplanes %i\n",
-			m_mesh.numplanes,
-			MAX_PLANES
+			"AddPlaneToPool: plane limit exceeded: planes %u, max planes %u\n",
+			m_mesh.numPlanes,
+			max_mesh_planes
 		);
 		return 0; // index of our bad plane
 	}
 
 	// Create a new one
-	std::uint32_t planePoolIndex = m_mesh.numplanes++;
+	mesh_plane_count planePoolIndex = m_mesh.numPlanes++;
 	hashplane_t* p = &planepool[planePoolIndex];
 	p->planePoolIndex = planehash[hash];
 	planehash[hash] = planePoolIndex;
@@ -199,7 +199,7 @@ std::uint32_t CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
 	// record the new plane
 	p->pl = *pl;
 
-	return m_mesh.numplanes - 1;
+	return m_mesh.numPlanes - 1;
 }
 
 /*
@@ -278,8 +278,8 @@ SnapPlaneToGrid
 void CMeshDesc ::SnapPlaneToGrid(mplane_t* plane) {
 	SnapVectorToGrid(plane->normal);
 
-	if (fabs(plane->dist - Q_rint(plane->dist)) < PLANE_DIST_EPSILON) {
-		plane->dist = Q_rint(plane->dist);
+	if (fabs(plane->dist - std::round(plane->dist)) < PLANE_DIST_EPSILON) {
+		plane->dist = std::round(plane->dist);
 	}
 }
 
@@ -849,7 +849,7 @@ bool CMeshDesc ::AddMeshTriangle(
 		return false; // bad plane
 	}
 
-	mplane_t planes[MAX_FACET_PLANES];
+	std::array<mplane_t, max_mes_facets> planes;
 	float3_array normal;
 	int numplanes;
 	float dist;
@@ -1043,7 +1043,7 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 		}
 	}
 	size_t memsize = (sizeof(mfacet_t) * m_mesh.numfacets)
-		+ (sizeof(mplane_t) * m_mesh.numplanes)
+		+ (sizeof(mplane_t) * m_mesh.numPlanes)
 		+ (sizeof(unsigned) * m_iTotalPlanes);
 
 	// create non-fragmented memory piece and move mesh
@@ -1054,7 +1054,7 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 	// setup pointers
 	m_mesh.planes = (mplane_t*)
 		remainingBufferStorage; // so we free mem with planes
-	remainingBufferStorage += (sizeof(mplane_t) * m_mesh.numplanes);
+	remainingBufferStorage += (sizeof(mplane_t) * m_mesh.numPlanes);
 	m_mesh.facets = (mfacet_t*) remainingBufferStorage;
 	remainingBufferStorage += (sizeof(mfacet_t) * m_mesh.numfacets);
 
@@ -1074,7 +1074,7 @@ bool CMeshDesc ::FinishMeshBuild(void) {
 	}
 
 	// copy planes into mesh array (probably aligned block)
-	for (std::size_t i = 0; i < m_mesh.numplanes; ++i) {
+	for (std::size_t i = 0; i < m_mesh.numPlanes; ++i) {
 		m_mesh.planes[i] = planepool[i].pl;
 	}
 
