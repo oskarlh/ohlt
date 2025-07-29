@@ -4,67 +4,130 @@
 #include "internal_types/internal_types.h"
 #include "key_value_definitions.h"
 
+#include <algorithm>
+#include <optional>
+
 entity_key_value const *
 find_key_value(entity_t const & ent, std::u8string_view key) noexcept {
-	auto it = std::ranges::find(
+	auto it = std::ranges::find_if(
 		ent.keyValues,
-		[&key](entity_key_value const & kv) = > { return kv == key; }
+		[&key](entity_key_value const & kv) { return kv.key() == key; }
 	);
 	if (it == ent.keyValues.end()) {
-		return std::nullopt;
+		return nullptr;
 	}
-	return it;
+	return &*it;
 }
 
 entity_key_value*
 find_key_value(entity_t& ent, std::u8string_view key) noexcept {
 	entity_t const & constEnt{ ent };
-	return const_cast<entity_key_value*>(find_key_value(constEnt, value));
+	return const_cast<entity_key_value*>(find_key_value(constEnt, key));
+}
+
+entity_key_value& find_key_value_or_new_element_for_overwriting(
+	entity_t& ent, std::u8string_view key
+) noexcept {
+	entity_key_value* removed{ nullptr };
+	for (entity_key_value& kv : ent.keyValues) {
+		if (kv.key() == key) {
+			return kv;
+		}
+		if (kv.is_removed() && !removed) {
+			removed = &kv;
+		}
+	}
+	if (removed) {
+		return *removed;
+	}
+
+	return ent.keyValues.emplace_back();
+}
+
+void remove_key_value(entity_t& ent, std::u8string_view key) noexcept {
+	entity_key_value* const kv{ find_key_value(ent, key) };
+	if (kv) {
+		kv->remove();
+	}
+}
+
+void replace_key_value(entity_t& ent, entity_key_value keyValue) {
+	find_key_value_or_new_element_for_overwriting(
+		ent, keyValue.key()
+	) = keyValue;
 }
 
 // Invalidated if the entity is deleted or when a new entity is created
-// (since the allocation may invalidate the pointer)
+// (since the allocation may relocate already allocated entities)
 class entity_ref {
+  private:
 	entity_t* ent;
 
   public:
 	template <class KVDef>
-	KVDef::value_type get(KVDef key_value_def) const noexcept {
-		std::u8string_view valueAsString;
+	KVDef::value_type get(KVDef keyValueDef) const noexcept {
 		entity_key_value const * kv{
-			find_key_value(*ent, key_value_def.keyName)
+			find_key_value(*ent, keyValueDef.keyName)
 		};
+		std::u8string_view valueAsString;
 		if (kv) {
 			valueAsString = kv->value();
 		}
-		return key_value_def.get(valueAsString);
+		return keyValueDef.get(valueAsString);
 	}
 
 	template <class KVDef>
-	std::optional<typename KVDef::value_type> get_if_set(KVDef key_value_def
+	bool
+	is(KVDef keyValueDef, KVDef::value_type const & value) const noexcept {
+		return get(keyValueDef) == value;
+	}
+
+	template <class KVDef>
+	std::optional<typename KVDef::value_type> get_if_set(KVDef keyValueDef
 	) const noexcept {
 		entity_key_value const * kv{
-			find_key_value(*ent, key_value_def.keyName)
+			find_key_value(*ent, keyValueDef.keyName)
 		};
 		if (kv == nullptr) {
-			return std::optional;
+			return std::nullopt;
 		}
-		return key_value_def.get(kv->value());
+		return keyValueDef.get(kv->value());
 	}
 
 	template <class KVDef>
-	std::optional<typename KVDef::value_type> has(KVDef key_value_def
+	std::optional<typename KVDef::value_type> has(KVDef keyValueDef
 	) const noexcept {
-		return find_key_value(*ent, key_value_def.keyName) != std::nullopt;
+		return find_key_value(*ent, keyValueDef.keyName) != std::nullopt;
 	}
 
 	template <class KVDef>
 	std::optional<typename KVDef::value_type>
-	copy_from_other_entity(KVDef key_value_def, entity_t const & other) {
+	copy_from_other_entity(KVDef keyValueDef, entity_t const & other) {
 		entity_key_value const * copyFrom = find_key_value(
-			other, key_value_def.keyName
+			other, keyValueDef.keyName
 		);
-		//.....
+		if (copyFrom) {
+			replace_key_value(*ent, *copyFrom);
+		} else {
+			remove_key_value(*ent, keyValueDef.keyName);
+		}
+	}
+
+	template <class KVDef>
+	void set(KVDef keyValueDef, KVDef::value_type const & newValue) {
+		entity_key_value newKeyValue;
+		keyValueDef.set(newKeyValue, newValue);
+
+		if (!newKeyValue.is_removed()) [[likely]] {
+			replace_key_value(*ent, std::move(newValue));
+		} else {
+			remove_key_value(*ent, keyValueDef.keyName);
+		}
+	}
+
+	template <class KVDef>
+	void remove(KVDef keyValueDef) noexcept {
+		remove_key_value(*ent, keyValueDef.keyName);
 	}
 };
 
