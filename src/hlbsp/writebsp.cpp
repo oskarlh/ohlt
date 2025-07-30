@@ -253,11 +253,11 @@ static void WriteFace(face_t* f) {
 	df->planenum = WritePlane(f->planenum);
 	df->side = f->planenum & 1;
 	df->firstedge = g_numsurfedges;
-	df->numedges = f->numpoints;
+	df->numedges = f->pts.size();
 
 	df->texinfo = WriteTexinfo(f->texturenum);
 
-	for (int i = 0; i < f->numpoints; i++) {
+	for (int i = 0; i < f->pts.size(); i++) {
 		int e = f->outputedges[i];
 		hlassume(
 			g_numsurfedges < MAX_MAP_SURFEDGES, assume_MAX_MAP_SURFEDGES
@@ -381,11 +381,11 @@ void OutputEdges_face(face_t* f) {
 		|| textureName.is_env_sky()) {
 		return;
 	}
-	f->outputedges = (int*) malloc(f->numpoints * sizeof(int));
+	f->outputedges = (int*) malloc(f->pts.size() * sizeof(int));
 	hlassume(f->outputedges != nullptr, assume_NoMemory);
 	int i;
-	for (i = 0; i < f->numpoints; i++) {
-		int e = GetEdge(f->pts[i], f->pts[(i + 1) % f->numpoints], f);
+	for (i = 0; i < f->pts.size(); i++) {
+		int e = GetEdge(f->pts[i], f->pts[(i + 1) % f->pts.size()], f);
 		f->outputedges[i] = e;
 	}
 }

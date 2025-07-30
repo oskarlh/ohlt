@@ -27,7 +27,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	bool keep1;
 	bool keep2;
 
-	if (f1->numpoints == -1 || f2->numpoints == -1) {
+	if (f1->freed || f2->freed) {
 		return nullptr;
 	}
 	if (f1->texturenum != f2->texturenum) {
@@ -54,12 +54,12 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	double3_array p2{};
 	j = 0;
 
-	for (i = 0; i < f1->numpoints; i++) {
+	for (i = 0; i < f1->pts.size(); i++) {
 		p1 = f1->pts[i];
-		p2 = f1->pts[(i + 1) % f1->numpoints];
-		for (j = 0; j < f2->numpoints; j++) {
+		p2 = f1->pts[(i + 1) % f1->pts.size()];
+		for (j = 0; j < f2->pts.size(); j++) {
 			double3_array const & p3{ f2->pts[j] };
-			double3_array const & p4{ f2->pts[(j + 1) % f2->numpoints] };
+			double3_array const & p4{ f2->pts[(j + 1) % f2->pts.size()] };
 			for (k = 0; k < 3; k++) {
 				if (fabs(p1[k] - p4[k]) > ON_EPSILON) {
 					break;
@@ -72,12 +72,12 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 				break;
 			}
 		}
-		if (j < f2->numpoints) {
+		if (j < f2->pts.size()) {
 			break;
 		}
 	}
 
-	if (i == f1->numpoints) {
+	if (i == f1->pts.size()) {
 		return nullptr; // no matching edges
 	}
 
@@ -88,12 +88,14 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	mapplane_t const * const plane = &g_mapPlanes[f1->planenum];
 	planenormal = plane->normal;
 
-	double3_array back{ f1->pts[(i + f1->numpoints - 1) % f1->numpoints] };
+	double3_array back{
+		f1->pts[(i + f1->pts.size() - 1) % f1->pts.size()]
+	};
 	delta = vector_subtract(p1, back);
 	normal = cross_product(planenormal, delta);
 	normalize_vector(normal);
 
-	back = f2->pts[(j + 2) % f2->numpoints];
+	back = f2->pts[(j + 2) % f2->pts.size()];
 	delta = vector_subtract(back, p1);
 	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
@@ -101,12 +103,12 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	}
 	keep1 = dot < -CONTINUOUS_EPSILON;
 
-	back = f1->pts[(i + 2) % f1->numpoints];
+	back = f1->pts[(i + 2) % f1->pts.size()];
 	delta = vector_subtract(back, p2);
 	normal = cross_product(planenormal, delta);
 	normalize_vector(normal);
 
-	back = f2->pts[(j + f2->numpoints - 1) % f2->numpoints];
+	back = f2->pts[(j + f2->pts.size() - 1) % f2->pts.size()];
 	delta = vector_subtract(back, p2);
 	dot = dot_product(delta, normal);
 	if (dot > CONTINUOUS_EPSILON) {
@@ -117,7 +119,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	//
 	// build the new polygon
 	//
-	if (f1->numpoints + f2->numpoints > MAXEDGES) {
+	if (f1->pts.size() + f2->pts.size() > MAXEDGES) {
 		//              Error ("TryMerge: too many edges!");
 		return nullptr;
 	}
@@ -125,23 +127,22 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 	newf = NewFaceFromFace(f1);
 
 	// copy first polygon
-	for (k = (i + 1) % f1->numpoints; k != i; k = (k + 1) % f1->numpoints) {
-		if (k == (i + 1) % f1->numpoints && !keep2) {
+	for (k = (i + 1) % f1->pts.size(); k != i;
+		 k = (k + 1) % f1->pts.size()) {
+		if (k == (i + 1) % f1->pts.size() && !keep2) {
 			continue;
 		}
 
-		newf->pts[newf->numpoints] = f1->pts[k];
-		newf->numpoints++;
+		newf->pts.emplace_back(f1->pts[k]);
 	}
 
 	// copy second polygon
-	for (int l = (j + 1) % f2->numpoints; l != j;
-		 l = (l + 1) % f2->numpoints) {
-		if (l == (j + 1) % f2->numpoints && !keep1) {
+	for (int l = (j + 1) % f2->pts.size(); l != j;
+		 l = (l + 1) % f2->pts.size()) {
+		if (l == (j + 1) % f2->pts.size() && !keep1) {
 			continue;
 		}
-		newf->pts[newf->numpoints] = f2->pts[l];
-		newf->numpoints++;
+		newf->pts.emplace_back(f2->pts[l]);
 	}
 
 	return newf;
@@ -161,7 +162,7 @@ static face_t* MergeFaceToList(face_t* face, face_t* list) {
 			continue;
 		}
 		FreeFace(face);
-		f->numpoints = -1; // merged out
+		f->freed = true; // merged out
 		return MergeFaceToList(newf, list);
 	}
 
@@ -180,7 +181,7 @@ static face_t* FreeMergeListScraps(face_t* merged) {
 	head = nullptr;
 	for (; merged; merged = next) {
 		next = merged->next;
-		if (merged->numpoints == -1) {
+		if (merged->freed) {
 			FreeFace(merged);
 		} else {
 			merged->next = head;

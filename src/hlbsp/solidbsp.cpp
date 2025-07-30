@@ -1,4 +1,5 @@
 #include "hlbsp.h"
+#include "mathtypes.h"
 #include "time_counter.h"
 #include "util.h"
 
@@ -26,6 +27,7 @@
 
 //  Each node or leaf will have a set of portals that completely enclose
 //  the volume of the node and pass into an adjacent node.
+#include <utility>
 #include <vector>
 
 int g_maxnode_size = DEFAULT_MAXNODE_SIZE;
@@ -67,12 +69,9 @@ static face_side FaceSide(
 
 	// axial planes are fast
 	if (split->type <= last_axial) {
-		double const * p;
-		// TODO: This pointer logic is ugly, with the p += 3
-		for (i = 0, p = &in->pts[0][(std::size_t) split->type];
-			 i < in->numpoints;
-			 i++, p += 3) {
-			dot = *p - split->dist;
+		double3_array const * p;
+		for (i = 0, p = in->pts.begin(); i < in->pts.size(); i++, ++p) {
+			dot = (*p)[std::to_underlying(split->type)] - split->dist;
 			if (dot > d_front) {
 				d_front = dot;
 			}
@@ -83,8 +82,7 @@ static face_side FaceSide(
 	} else {
 		// sloping planes take longer
 		double3_array const * p;
-		// TODO: This pointer logic is ugly, with the p += 3
-		for (i = 0, p = &in->pts[0]; i < in->numpoints; ++i, ++p) {
+		for (i = 0, p = in->pts.begin(); i < in->pts.size(); ++i, ++p) {
 			dot = dot_product(*p, split->normal);
 			dot -= split->dist;
 			if (dot > d_front) {
@@ -166,7 +164,7 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		 i != node->leaffaces->end();
 		 ++i) {
 		face_t* f = *i;
-		for (int x = 0; x < f->numpoints; x++) {
+		for (int x = 0; x < f->pts.size(); x++) {
 			node->mins = vector_minimums(node->mins, f->pts[x]);
 			node->maxs = vector_maximums(node->maxs, f->pts[x]);
 		}
@@ -213,7 +211,7 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		face_t* f = *i;
 		double low = hlbsp_bogus_range;
 		double high = -hlbsp_bogus_range;
-		for (int x = 0; x < f->numpoints; x++) {
+		for (int x = 0; x < f->pts.size(); x++) {
 			low = std::min(low, f->pts[x][bestaxis]);
 			high = std::max(high, f->pts[x][bestaxis]);
 		}
@@ -654,7 +652,7 @@ static void CalcSurfaceInfo(surface_t* surf) {
 		if (std::to_underlying(f->contents) >= 0) {
 			Error("Bad contents");
 		}
-		for (std::size_t i = 0; i < f->numpoints; ++i) {
+		for (std::size_t i = 0; i < f->pts.size(); ++i) {
 			for (std::size_t j = 0; j < 3; ++j) {
 				if (f->pts[i][j] < surf->mins[j]) {
 					surf->mins[j] = f->pts[i][j];
@@ -1077,7 +1075,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 					g_mapPlanes[f2->planenum].normal[1],
 					g_mapPlanes[f2->planenum].normal[2]
 				);
-				for (int i = 0; i < f2->numpoints; i++) {
+				for (int i = 0; i < f2->pts.size(); i++) {
 					Developer(
 						developer_level::spam,
 						"(%g,%g,%g)\n",

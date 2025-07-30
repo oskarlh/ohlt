@@ -188,7 +188,7 @@ static void SplitFaceTmp(
 	face_t* newf;
 	face_t* new2;
 
-	if (in->numpoints < 0) {
+	if (in->freed) {
 		Error("SplitFace: freed face");
 	}
 	counts[0] = counts[1] = counts[2] = 0;
@@ -196,7 +196,7 @@ static void SplitFaceTmp(
 	double dotSum = 0.0;
 	// This again... We have code like this in accurate_winding repeated
 	// several times determine sides for each point
-	for (i = 0; i < in->numpoints; i++) {
+	for (i = 0; i < in->pts.size(); i++) {
 		dot = dot_product(in->pts[i], split->normal);
 		dot -= split->dist;
 		dotSum += dot;
@@ -254,27 +254,19 @@ static void SplitFaceTmp(
 
 	// distribute the points and generate splits
 
-	for (i = 0; i < in->numpoints; i++) {
-		if (newf->numpoints > MAXEDGES || new2->numpoints > MAXEDGES) {
-			Error("SplitFace: numpoints > MAXEDGES");
-		}
-
+	for (i = 0; i < in->pts.size(); i++) {
 		double3_array const & p1{ in->pts[i] };
 
 		if (sides[i] == face_side::on) {
-			newf->pts[newf->numpoints] = p1;
-			newf->numpoints++;
-			new2->pts[new2->numpoints] = p1;
-			new2->numpoints++;
+			newf->pts.emplace_back(p1);
+			new2->pts.emplace_back(p1);
 			continue;
 		}
 
 		if (sides[i] == face_side::front) {
-			new2->pts[new2->numpoints] = p1;
-			new2->numpoints++;
+			new2->pts.emplace_back(p1);
 		} else {
-			newf->pts[newf->numpoints] = p1;
-			newf->numpoints++;
+			newf->pts.emplace_back(p1);
 		}
 
 		if (sides[i + 1] == face_side::on || sides[i + 1] == sides[i]) {
@@ -282,7 +274,7 @@ static void SplitFaceTmp(
 		}
 
 		// generate a split point
-		double3_array const & p2{ in->pts[(i + 1) % in->numpoints] };
+		double3_array const & p2{ in->pts[(i + 1) % in->pts.size()] };
 
 		double3_array mid;
 		dot = dists[i] / (dists[i] - dists[i + 1]);
@@ -296,35 +288,26 @@ static void SplitFaceTmp(
 			}
 		}
 
-		newf->pts[newf->numpoints] = mid;
-		newf->numpoints++;
-		new2->pts[new2->numpoints] = mid;
-		new2->numpoints++;
+		newf->pts.emplace_back(mid);
+		new2->pts.emplace_back(mid);
 	}
 
-	if (newf->numpoints > MAXEDGES || new2->numpoints > MAXEDGES) {
-		Error("SplitFace: numpoints > MAXEDGES");
-	}
 	{
-		accurate_winding wd{ newf->pts, (std::size_t) newf->numpoints };
+		accurate_winding wd{ std::span{ newf->pts } };
 		wd.RemoveColinearPoints();
-		newf->numpoints = wd.size();
-		for (int x = 0; x < newf->numpoints; x++) {
-			newf->pts[x] = wd.point(x);
-		}
-		if (newf->numpoints == 0) {
+		newf->pts.assign_range(wd.points());
+		if (newf->pts.empty()) {
+			free(*back);
 			*back = nullptr;
 		}
 	}
-	{
-		accurate_winding wd{ new2->pts, std::size_t(new2->numpoints) };
 
+	{
+		accurate_winding wd{ std::span{ new2->pts } };
 		wd.RemoveColinearPoints();
-		new2->numpoints = wd.size();
-		for (int x = 0; x < new2->numpoints; x++) {
-			new2->pts[x] = wd.point(x);
-		}
-		if (new2->numpoints == 0) {
+		new2->pts.assign_range(wd.points());
+		if (new2->pts.empty()) {
+			free(*front);
 			*front = nullptr;
 		}
 	}
@@ -354,10 +337,8 @@ void SplitFace(
 face_t* AllocFace() {
 	face_t* f;
 
-	f = (face_t*) malloc(sizeof(face_t));
+	f = (face_t*) calloc(1, sizeof(face_t));
 	*f = {};
-
-	f->planenum = -1;
 
 	return f;
 }
@@ -615,9 +596,7 @@ static void AddPointToBounds(
 static void AddFaceToBounds(
 	face_t const * const f, double3_array& mins, double3_array& maxs
 ) {
-	int i;
-
-	for (i = 0; i < f->numpoints; i++) {
+	for (int i = 0; i < f->pts.size(); i++) {
 		AddPointToBounds(f->pts[i], mins, maxs);
 	}
 }
@@ -821,13 +800,12 @@ static surfchain_t* read_surfaces(FILE* file) {
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
 		f->contents = contents_t{ contents };
-		f->numpoints = numpoints;
 		f->next = validfaces[planenum];
 		validfaces[planenum] = f;
 
 		set_face_style(f);
 
-		for (int i = 0; i < f->numpoints; i++) {
+		for (int i = 0; i < numpoints; i++) {
 			line++;
 			r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 			if (r != 3) {
@@ -836,7 +814,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 					line
 				);
 			}
-			f->pts[i] = v;
+			f->pts.emplace_back(v);
 			if (developer_level::megaspam <= g_developer) {
 				mapplane_t const & plane = g_mapPlanes[f->planenum];
 				inaccuracy = fabs(

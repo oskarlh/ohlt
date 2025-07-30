@@ -266,8 +266,8 @@ static void AddEdge(double3_array const & p1, double3_array const & p2) {
  * ===============
  */
 static void AddFaceEdges(face_t const * const f) {
-	for (int i = 0; i < f->numpoints; i++) {
-		int j = (i + 1) % f->numpoints;
+	for (int i = 0; i < f->pts.size(); i++) {
+		int j = (i + 1) % f->pts.size();
 		AddEdge(f->pts[i], f->pts[j]);
 	}
 }
@@ -282,6 +282,7 @@ static std::size_t MAX_SUPERFACEEDGES = (sizeof(superfacebuf)
 	/ sizeof(double3_array);
 static face_t* newlist;
 
+//// TODO: IS THIS SPLITTING NECESSARY??????
 static void SplitFaceForTjunc(face_t* f, face_t* original) {
 	face_t* chain{ nullptr };
 	while (true) {
@@ -289,8 +290,8 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 			f->original == nullptr, assume_ValidPointer
 		); // "SplitFaceForTjunc: f->original"
 
-		if (f->numpoints <= MAXPOINTS) { // the face is now small enough
-										 // without more cutting
+		if (f->pts.size() <= MAXPOINTS) { // the face is now small enough
+										  // without more cutting
 			// so copy it back to the original
 			*original = *f;
 			original->original = chain;
@@ -303,12 +304,10 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 
 	restart:
 		// find the last corner
-		double3_array dir = vector_subtract(
-			f->pts[f->numpoints - 1], f->pts[0]
-		);
+		double3_array dir = vector_subtract(f->pts.back(), f->pts.front());
 		normalize_vector(dir);
 		int lastcorner;
-		for (lastcorner = f->numpoints - 1; lastcorner > 0; lastcorner--) {
+		for (lastcorner = f->pts.size() - 1; lastcorner > 0; lastcorner--) {
 			double3_array test = vector_subtract(
 				f->pts[lastcorner - 1], f->pts[lastcorner]
 			);
@@ -323,7 +322,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		dir = vector_subtract(f->pts[1], f->pts[0]);
 		normalize_vector(dir);
 		int firstcorner;
-		for (firstcorner = 1; firstcorner < f->numpoints - 1;
+		for (firstcorner = 1; firstcorner < f->pts.size() - 1;
 			 firstcorner++) {
 			double3_array test = vector_subtract(
 				f->pts[firstcorner + 1], f->pts[firstcorner]
@@ -338,10 +337,10 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		if (firstcorner + 2 >= MAXPOINTS) {
 			// rotate the point winding
 			double3_array test = f->pts[0];
-			for (int i = 1; i < f->numpoints; i++) {
+			for (int i = 1; i < f->pts.size(); i++) {
 				f->pts[i - 1] = f->pts[i];
 			}
-			f->pts[f->numpoints - 1] = test;
+			f->pts.back() = test;
 			goto restart;
 		}
 
@@ -358,23 +357,24 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		chain = newface;
 		newface->next = newlist;
 		newlist = newface;
-		if (f->numpoints - firstcorner <= MAXPOINTS) {
-			newface->numpoints = firstcorner + 2;
+		std::size_t pointsToMoveToNewFace;
+		if (f->pts.size() - firstcorner <= MAXPOINTS) {
+			pointsToMoveToNewFace = firstcorner + 2;
 		} else if (lastcorner + 2 < MAXPOINTS
-				   && f->numpoints - lastcorner <= MAXPOINTS) {
-			newface->numpoints = lastcorner + 2;
+				   && f->pts.size() - lastcorner <= MAXPOINTS) {
+			pointsToMoveToNewFace = lastcorner + 2;
 		} else {
-			newface->numpoints = MAXPOINTS;
+			pointsToMoveToNewFace = MAXPOINTS;
 		}
 
-		for (int i = 0; i < newface->numpoints; i++) {
-			newface->pts[i] = f->pts[i];
-		}
+		newface->pts.assign_range(std::span{ f->pts.begin(),
+											 pointsToMoveToNewFace });
 
-		for (int i = newface->numpoints - 1; i < f->numpoints; i++) {
-			f->pts[i - (newface->numpoints - 2)] = f->pts[i];
-		}
-		f->numpoints -= (newface->numpoints - 2);
+		f->pts.erase(
+			f->pts.begin() + 1,
+
+			f->pts.begin() + 1 + pointsToMoveToNewFace - 2
+		);
 	};
 }
 
@@ -388,8 +388,8 @@ static void FixFaceEdges(face_t* f) {
 	*superface = *f;
 
 restart:
-	for (int i = 0; i < superface->numpoints; i++) {
-		int j = (i + 1) % superface->numpoints;
+	for (int i = 0; i < superface->pts.size(); i++) {
+		int j = (i + 1) % superface->pts.size();
 
 		double t1;
 		double t2;
@@ -408,20 +408,19 @@ restart:
 		if (v.t < t2 - ON_EPSILON) {
 			++tjuncs;
 			// insert a new vertex here
-			for (int k = superface->numpoints; k > j; k--) {
-				superface->pts[k] = superface->pts[k - 1];
-			}
-			superface->pts[j] = vector_fma(w->dir, v.t, w->origin);
-			superface->numpoints++;
+			superface->pts.emplace(
+				superface->pts.begin() + j,
+				vector_fma(w->dir, v.t, w->origin)
+			);
 			hlassume(
-				superface->numpoints < MAX_SUPERFACEEDGES,
+				superface->pts.size() < MAX_SUPERFACEEDGES,
 				assume_MAX_SUPERFACEEDGES
 			);
 			goto restart;
 		}
 	}
 
-	if (superface->numpoints <= MAXPOINTS) {
+	if (superface->pts.size() <= MAXPOINTS) {
 		*f = *superface;
 		f->next = newlist;
 		newlist = f;

@@ -44,7 +44,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			double mins = 99'999'999;
 			double maxs = -99'999'999;
 
-			for (int i = 0; i < f->numpoints; i++) {
+			for (int i = 0; i < f->pts.size(); i++) {
 				double const v = dot_product(f->pts[i], tex.vecs[axis].xyz);
 				if (v < mins) {
 					mins = v;
@@ -75,8 +75,8 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 			if (!front || !back) {
 				Developer(
 					developer_level::spam,
-					"SubdivideFace: didn't split the %d-sided polygon @(%.0f,%.0f,%.0f)",
-					f->numpoints,
+					"SubdivideFace: didn't split the %zu-sided polygon @(%.0f,%.0f,%.0f)",
+					f->pts.size(),
 					f->pts[0][0],
 					f->pts[0][1],
 					f->pts[0][2]

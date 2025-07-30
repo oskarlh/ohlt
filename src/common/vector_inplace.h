@@ -2,6 +2,7 @@
 
 #include "call_finally.h"
 
+#include <algorithm>
 #include <concepts>
 #include <memory>
 #include <ranges>
@@ -72,28 +73,43 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 		if (size() == max_size()) {
 			throw std::bad_alloc();
 		}
-		if (!empty()) {
-			std::move_backward(position, end(), end() + 1);
-			std::destroy_at(position);
+		if (position < end()) {
+			std::move_backward(const_cast<T*>(position), end(), end() + 1);
+			std::destroy_at(const_cast<T*>(position));
 		}
 		T* elementPointer = std::construct_at(
-			position, std::forward<Args>(args)...
+			const_cast<T*>(position), std::forward<Args>(args)...
 		);
+		++vectorSize;
 		return *elementPointer;
 	}
 
 	template <class Range>
 	constexpr void insert_range(T const * position, Range&& range) {
-		std::size_t rangeSize = std::size(range);
-		if (rangeSize > max_size() - size()) {
+		std::size_t const rangeSize = std::size(range);
+		std::size_t const newSize = size() + rangeSize;
+		if (newSize > max_size()) {
 			throw std::bad_alloc();
 		}
-		std::move_backward(position, end(), end() + rangeSize);
+		std::move_backward(
+			const_cast<T*>(position), end(), end() + rangeSize
+		);
 		std::destroy_n(position, rangeSize);
 		// Note: If Range returns rvalues (&&), then this may move instead
 		// of copying, which is great. But that's likely up to the standard
 		// library implementation
 		std::uninitialized_copy_n(std::begin(range), rangeSize, position);
+		vectorSize = newSize;
+	}
+
+	template <class Range>
+	constexpr void assign_range(Range&& range) {
+		std::size_t const rangeSize = std::size(range);
+		if (rangeSize > max_size()) {
+			throw std::bad_alloc();
+		}
+		clear();
+		insert_range(begin(), std::forward<Range>(range));
 	}
 
 	constexpr vector_inplace& operator=(vector_inplace const & other
@@ -198,6 +214,22 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 		return begin() + size();
 	}
 
+	constexpr T const & front() const noexcept {
+		return *begin();
+	}
+
+	constexpr T& front() noexcept {
+		return *begin();
+	}
+
+	constexpr T const & back() const noexcept {
+		return *(end() - 1);
+	}
+
+	constexpr T& back() noexcept {
+		return *(end() - 1);
+	}
+
 	constexpr T& at(std::size_t index) {
 		return *(begin() + index);
 	}
@@ -252,6 +284,13 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 			emplace_back(std::move(other.at(i)));
 		}
 		other.shrink_to(size());
+	}
+
+	constexpr void erase(T const * firstIt, T const * endIt) noexcept {
+		std::size_t const numElementsToErase = endIt - firstIt;
+		std::move(const_cast<T*>(endIt), end(), const_cast<T*>(firstIt));
+		vectorSize -= numElementsToErase;
+		std::destroy_n(end(), numElementsToErase);
 	}
 
 	constexpr bool pop_back() noexcept {

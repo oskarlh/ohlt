@@ -74,11 +74,12 @@ struct face_t final {
 	int* outputedges;		  // used in WriteDrawNodes
 
 	int outputnumber; // only valid for original faces after write surfaces
-	int numpoints;
-	int referenced; // only valid for original faces
+	int referenced;	  // only valid for original faces
 	facestyle_e facestyle;
 
-	double3_array pts[MAXEDGES]; // FIXME: change to use winding_t
+	bool freed;
+	vector_inplace<double3_array, MAXEDGES>
+		pts; // FIXME: change to use winding_t or accurate_winding
 };
 
 struct node_t;
