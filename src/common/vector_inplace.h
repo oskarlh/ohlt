@@ -98,7 +98,9 @@ requires(std::is_nothrow_destructible_v<T>) class vector_inplace final {
 		// Note: If Range returns rvalues (&&), then this may move instead
 		// of copying, which is great. But that's likely up to the standard
 		// library implementation
-		std::uninitialized_copy_n(std::begin(range), rangeSize, position);
+		std::uninitialized_copy_n(
+			std::begin(range), rangeSize, const_cast<T*>(position)
+		);
 		vectorSize = newSize;
 	}
 
