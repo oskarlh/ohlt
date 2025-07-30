@@ -3,7 +3,16 @@
 	"configurePresets": [
 		{
 			"hidden": true,
+			"name": "base-common",
+
+			"cacheVariables": {
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+			}
+		},
+		{
+			"hidden": true,
 			"name": "base-debug",
+			"inherits": ["base-common"],
 
 			"binaryDir": "${sourceDir}/build/${presetName}",
 			"cacheVariables": {
@@ -13,6 +22,7 @@
 		{
 			"hidden": true,
 			"name": "base-release",
+			"inherits": ["base-common"],
 
 			"binaryDir": "${sourceDir}/build/${presetName}",
 			"cacheVariables": {

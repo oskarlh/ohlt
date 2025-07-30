@@ -32,3 +32,21 @@ Desktop.ini
 !/tools/*.wad
 
 *.7z
+
+# VSCode's Cmake extension is configured to copy this file to the project root,
+# it's needed for the Clangd extension to work.
+compile_commands.json
+
+# VSCode's Clangd extensions generates this
+.cache/clangd
+
+# TODO: Remove these from the .gitignore
+/vluzacn_s_zhlt_v30
+/vluzacn_s_zhlt_v31
+/vluzacn_s_zhlt_v32
+/vluzacn_s_zhlt_v33
+/vluzacn_s_zhlt_v34
+/vluzacn-v12
+/vluzacn-v29
+/zhlt34f_x86_sse2
+/sdhlt-tools-win32

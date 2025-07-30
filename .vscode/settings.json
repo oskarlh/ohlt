@@ -1,11 +1,13 @@
 {
-	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "ms-vscode.cpptools",
-	"editor.detectIndentation": false,
-	"editor.insertSpaces": false,
-	"editor.tabSize": 4,
-
 	"[json]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
-	}
+	},
+
+	"clangd.path": "/opt/homebrew/opt/llvm@18/bin/clangd",
+	"cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+	"editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+	"editor.detectIndentation": false,
+	"editor.formatOnSave": true,
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
 }
