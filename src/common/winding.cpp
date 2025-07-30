@@ -193,11 +193,9 @@ template <std::floating_point VecElement>
 winding_base<VecElement>::winding_base() { }
 
 template <std::floating_point VecElement>
-winding_base<VecElement>::winding_base(
-	vec3 const * points, std::size_t numpoints
-) {
-	hlassert(numpoints >= 3);
-	m_Points.assign_range(std::span(points, numpoints));
+winding_base<VecElement>::winding_base(std::span<vec3 const> points) {
+	hlassert(points.size() >= 3);
+	m_Points.assign_range(points);
 }
 
 template <std::floating_point VecElement>
@@ -641,13 +639,13 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 		}
 		dists.emplace_back(dot);
 		sides.emplace_back(side);
-		++counts[(std::size_t) side];
+		++counts[std::to_underlying(side)];
 	}
 	dists.push_back(dists.front());
 	sides.push_back(sides.front());
 
-	if (!counts[(std::size_t) face_side::back]) {
-		if (counts[(std::size_t) face_side::front]) {
+	if (!counts[std::to_underlying(face_side::back)]) {
+		if (counts[std::to_underlying(face_side::front)]) {
 			return one_sided_division_result::all_in_the_front;
 		}
 		if (dotSum > NORMAL_EPSILON) {
@@ -655,7 +653,7 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 		}
 		return one_sided_division_result::all_in_the_back;
 	}
-	if (!counts[(std::size_t) face_side::front]) {
+	if (!counts[std::to_underlying(face_side::front)]) {
 		return one_sided_division_result::all_in_the_back;
 	}
 

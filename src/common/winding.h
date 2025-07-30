@@ -107,10 +107,8 @@ class winding_base final {
 
   public:
 	// Construction
-	winding_base(); // Do nothing :)
-	winding_base(
-		vec3 const * points, std::size_t numpoints
-	); // Create from raw points
+	winding_base();								// Do nothing :)
+	winding_base(std::span<vec3 const> points); // Create from raw points
 	winding_base(dface_t const & face, vec_element epsilon = ON_EPSILON);
 	winding_base(dplane_t const & face);
 	winding_base(mapplane_t const & face);
