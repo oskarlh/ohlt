@@ -1,8 +1,10 @@
+#include "cmdlib.h"
+#include "filelib.h"
 #include "hlcsg.h"
 #include "hlcsg_settings.h"
+#include "log.h"
 #include "map_entity_parser.h"
 #include "project_constants.h"
-#include "utf8.h"
 
 #include <string_view>
 using namespace std::literals;

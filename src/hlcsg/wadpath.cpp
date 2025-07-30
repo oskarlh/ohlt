@@ -1,5 +1,9 @@
-#include "hlcsg.h"
+#include "wadpath.h"
+
+#include "bspfile.h"
 #include "worldspawn_wad_value_parser.h"
+
+#include <vector>
 
 std::vector<wadpath_t*> g_pWadPaths;
 

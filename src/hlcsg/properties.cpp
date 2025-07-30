@@ -1,7 +1,7 @@
 #include "hlcsg.h"
+#include "log.h"
 
 #include <fstream>
-#include <istream>
 
 std::set<std::u8string> g_invisible_items;
 

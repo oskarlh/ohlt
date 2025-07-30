@@ -1,8 +1,7 @@
 #include "hlcsg.h"
-#include "utf8.h"
+#include "log.h"
+#include "threads.h"
 #include "vector_inplace.h"
-
-#include <span>
 
 vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 

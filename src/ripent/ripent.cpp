@@ -13,12 +13,19 @@
 #include "ripent.h"
 
 #include "bsp_file_sizes.h"
+#include "bspfile.h"
 #include "cli_option_defaults.h"
+#include "cmdlib.h"
+#include "cmdlinecfg.h"
+#include "filelib.h"
+#include "hlassert.h"
 #include "log.h"
+#include "messages.h"
 #include "time_counter.h"
 #include "vector_for_overwriting.h"
 #include "vector_inplace.h"
 #include "wad_structs.h"
+#include "win32fix.h"
 
 #include <cstring>
 #include <filesystem>

@@ -1,8 +1,6 @@
 #pragma once
-
-#include "cmdlib.h" //--vluzacn
-
 #include <string>
+#include <vector>
 
 struct wadpath_t final {
 	std::u8string path;

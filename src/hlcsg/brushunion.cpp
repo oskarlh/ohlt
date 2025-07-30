@@ -1,4 +1,6 @@
+#include "hlassert.h"
 #include "hlcsg.h"
+#include "log.h"
 
 double g_BrushUnionThreshold = DEFAULT_BRUSH_UNION_THRESHOLD;
 

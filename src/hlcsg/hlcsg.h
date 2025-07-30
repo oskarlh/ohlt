@@ -2,27 +2,17 @@
 
 #include "bounding_box.h"
 #include "bspfile.h"
-#include "cmdlib.h"
-#include "cmdlinecfg.h"
 #include "csg_types/csg_types.h"
-#include "filelib.h"
 #include "hashing.h"
-#include "hlassert.h"
 #include "hlcsg_settings.h"
 #include "hull_size.h"
 #include "internal_types/internal_types.h"
-#include "log.h"
-#include "mathlib.h"
-#include "messages.h"
 #include "planes.h"
-#include "threads.h"
 #include "vector_inplace.h"
 #include "wadpath.h"
-#include "win32fix.h"
 #include "winding.h"
 
 #include <deque>
-#include <map>
 #include <string>
 
 #define DEFAULT_BRUSH_UNION_THRESHOLD 0.0f

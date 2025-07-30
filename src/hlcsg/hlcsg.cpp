@@ -1,15 +1,15 @@
 #include "hlcsg.h"
 
 #include "bsp_file_sizes.h"
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h> //--vluzacn
-#endif
 #include "cli_option_defaults.h"
+#include "cmdlib.h"
+#include "cmdlinecfg.h"
 #include "filelib.h"
 #include "hlcsg_settings.h"
 #include "legacy_character_encodings.h"
+#include "log.h"
 #include "map_entity_parser.h"
+#include "threads.h"
 #include "time_counter.h"
 #include "utf8.h"
 

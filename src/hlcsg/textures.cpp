@@ -1,8 +1,11 @@
+#include "cmdlib.h"
+#include "filelib.h"
 #include "hlcsg.h"
+#include "log.h"
+#include "threads.h"
 #include "time_counter.h"
 #include "wad_structs.h"
 
-#include <numbers>
 #include <tuple>
 #include <vector>
 

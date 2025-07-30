@@ -1,5 +1,6 @@
 #include "hlcsg.h"
 #include "hull_size.h"
+#include "log.h"
 
 void LoadHullfile(std::filesystem::path filePath) {
 	if (filePath.empty()) {
