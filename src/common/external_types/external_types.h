@@ -1,6 +1,8 @@
 #pragma once
 
+// IWYU pragma: begin_exports
 #include "texinfo.h"
+// IWYU pragma: end_exports
 
 #include <cstddef>
 #include <cstdint>

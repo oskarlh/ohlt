@@ -1,7 +1,6 @@
 #include "bsp_file_sizes.h"
 
 #include "bspfile.h"
-#include "cmdlib.h"
 #include "log.h"
 #include "wad_texture_name.h"
 #include "worldspawn_wad_value_parser.h"

@@ -1,4 +1,5 @@
 #include "hlbsp.h"
+#include "log.h"
 
 //  TryMerge
 //  MergeFaceToList

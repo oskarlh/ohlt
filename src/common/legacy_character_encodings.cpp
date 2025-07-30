@@ -3,8 +3,6 @@
 #include "utf8.h"
 
 #include <array>
-#include <cstdint>
-#include <string>
 #include <utility>
 
 using namespace std::literals;

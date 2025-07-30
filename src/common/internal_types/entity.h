@@ -4,9 +4,6 @@
 #include "../mathtypes.h"
 #include "various.h"
 
-#include <cstdint>
-#include <span>
-
 struct entity_t final {
 	float3_array origin;
 	brush_count firstBrush;

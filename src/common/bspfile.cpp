@@ -1,16 +1,13 @@
 #include "bspfile.h"
 
 #include "cli_option_defaults.h"
-#include "cmdlib.h"
 #include "filelib.h"
-#include "hlassert.h"
 #include "log.h"
 #include "map_entity_parser.h"
-#include "mathlib.h"
+#include "mathtypes.h"
 #include "messages.h"
 #include "numeric_string_conversions.h"
 
-#include <bit>
 #include <charconv>
 #include <cstddef>
 #include <cstring>

@@ -1,6 +1,8 @@
 #include "brink.h"
 
 #include "hlbsp.h"
+#include "log.h"
+#include "messages.h"
 
 #include <cstring>
 #include <list>
@@ -203,8 +205,8 @@ struct btreeface_t final {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite; // when the face is infinite, all its edges must also be
-				   // infinite
+	bool infinite;	// when the face is infinite, all its edges must also be
+					// infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };

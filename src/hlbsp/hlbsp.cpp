@@ -1,6 +1,8 @@
 #include "hlbsp.h"
 
 #include "cli_option_defaults.h"
+#include "cmdlinecfg.h"
+#include "filelib.h"
 #include "hull_size.h"
 #include "log.h"
 #include "time_counter.h"

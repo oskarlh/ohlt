@@ -1,13 +1,10 @@
 #include "winding.h"
 
-#include "cmdlib.h"
 #include "hlassert.h"
 #include "log.h"
 #include "mathlib.h"
 
 #include <algorithm>
-#include <optional>
-#include <ranges>
 #include <span>
 
 constexpr float bogus_range = 80000.0f;

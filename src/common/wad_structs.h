@@ -1,12 +1,9 @@
 #pragma once
 
-#include "util.h"
 #include "wad_texture_name.h"
 
-#include <algorithm>
 #include <array>
-#include <memory>
-#include <string>
+#include <string_view>
 
 struct wadinfo_t final {
 	std::array<char8_t, 4> identification; // Should be WAD3

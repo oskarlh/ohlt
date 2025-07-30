@@ -1,4 +1,6 @@
+#include "hlassert.h"
 #include "hlbsp.h"
+#include "log.h"
 
 #include <cstring>
 

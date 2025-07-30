@@ -16,6 +16,7 @@
 #include "messages.h"
 #include "planes.h"
 #include "threads.h"
+#include "vector_inplace.h"
 #include "wadpath.h"
 #include "win32fix.h"
 #include "winding.h"

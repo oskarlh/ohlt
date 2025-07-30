@@ -1,14 +1,8 @@
 #pragma once
 
-#include "mathtypes.h"
 #include "win32fix.h"
 
-#include <algorithm>
-#include <filesystem>
-#include <ranges>
 #include <stdarg.h>
-#include <stdint.h>
-#include <string>
 
 extern bool FORMAT_PRINTF(3, 4) safe_snprintf(
 	char* const dest, size_t const count, char const * const args, ...

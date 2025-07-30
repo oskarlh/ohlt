@@ -7,7 +7,6 @@
 #include <memory>
 #include <ranges>
 #include <span>
-#include <vector>
 
 // Note: requires manually updating the size integers afterwards
 template <class Value>

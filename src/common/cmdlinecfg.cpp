@@ -1,11 +1,9 @@
 #include "cmdlinecfg.h"
 
-#include "cmdlib.h"
 #include "filelib.h"
 #include "log.h"
 #include "utf8.h"
 
-#include <algorithm>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

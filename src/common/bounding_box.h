@@ -1,7 +1,7 @@
 #pragma once
 
-#include "cmdlib.h"
 #include "hashing.h"
+#include "mathtypes.h"
 
 struct bounding_box final {
 	double3_array mins;

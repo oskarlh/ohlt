@@ -1,6 +1,8 @@
 #pragma once
 
-#include "cmdlib.h" //--vluzacn
+#include <string_view>
+#include <type_traits>
+#include <utility>
 
 void compress_compatability_test(void);
 
@@ -14,10 +16,9 @@ enum class float_type {
 constexpr std::size_t float_type_count = std::size_t(float_type::float8)
 	+ 1;
 
-template <class Num>
-constexpr bool is_valid_float_type(Num num) {
-	return num >= Num(float_type::float32)
-		&& num <= Num(float_type::float8);
+constexpr bool is_valid_float_type(std::underlying_type_t<float_type> num) {
+	return num >= std::to_underlying(float_type::float32)
+		&& num <= std::to_underlying(float_type::float8);
 }
 
 extern std::array<std::u8string_view, float_type_count> const

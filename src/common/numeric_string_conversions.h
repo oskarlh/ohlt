@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <optional>
-#include <string>
+#include <string_view>
 
 std::optional<std::int64_t> clamp_signed_integer_from_string(
 	std::u8string_view valueString, std::int64_t min, std::int64_t max

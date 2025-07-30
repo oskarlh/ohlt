@@ -1,16 +1,8 @@
 #pragma once
 
 #include "bspfile.h"
-#include "cmdlib.h"
-#include "cmdlinecfg.h"
-#include "filelib.h"
-#include "hlassert.h"
 #include "internal_types/internal_types.h"
-#include "log.h"
-#include "mathlib.h"
-#include "messages.h"
-#include "threads.h"
-#include "win32fix.h"
+#include "vector_inplace.h"
 #include "winding.h"
 
 #include <filesystem>

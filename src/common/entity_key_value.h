@@ -5,9 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <limits>
-#include <memory>
-#include <string>
+#include <string_view>
 
 // TODO: Remove 0 termination once we no longer use C strings
 // anywhere

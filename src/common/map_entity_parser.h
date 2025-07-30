@@ -6,7 +6,6 @@
 #include "parsing.h"
 #include "wad_texture_name.h"
 
-#include <algorithm>
 #include <optional>
 #include <span>
 #include <string>

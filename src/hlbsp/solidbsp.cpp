@@ -1,4 +1,7 @@
+#include "developer_level.h"
+#include "hlassert.h"
 #include "hlbsp.h"
+#include "log.h"
 #include "mathtypes.h"
 #include "time_counter.h"
 #include "util.h"

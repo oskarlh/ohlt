@@ -4,13 +4,8 @@
 
 #include "hlassert.h"
 #include "log.h"
-#include "mathlib.h"
-#include "messages.h"
-#include "utf8.h"
 
-#include <bit>
 #include <cstring>
-#include <ranges>
 
 inline void getFilePositions(
 	char const * path, int* extension_position, int* directory_position

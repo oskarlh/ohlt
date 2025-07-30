@@ -1,4 +1,6 @@
+#include "filelib.h"
 #include "hlbsp.h"
+#include "log.h"
 
 #include <algorithm>
 #include <cstring>

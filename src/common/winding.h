@@ -2,11 +2,8 @@
 
 #include "bounding_box.h"
 #include "bspfile.h"
-#include "cmdlib.h"
 #include "mathlib.h"
-#include "mathtypes.h"
 #include "planes.h"
-#include "win32fix.h"
 
 #include <variant>
 

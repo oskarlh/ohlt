@@ -1,8 +1,8 @@
 #include "brink.h"
 #include "bsp_file_sizes.h"
 #include "hlbsp.h"
-#include "hull_size.h"
-#include "wad_structs.h"
+#include "log.h"
+#include "messages.h"
 
 #include <cstring>
 #include <map>

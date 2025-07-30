@@ -8,7 +8,6 @@
 #include <memory>
 #include <ranges>
 #include <string>
-#include <utility>
 
 constexpr bool is_ascii_code_unit(char codeUnit) noexcept {
 	return ((unsigned char) codeUnit) <= 0x7F;

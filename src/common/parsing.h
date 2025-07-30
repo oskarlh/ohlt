@@ -2,7 +2,7 @@
 
 #include "utf8.h"
 
-#include <string>
+#include <string_view>
 
 [[nodiscard]] constexpr std::u8string_view
 skip_ascii_whitespace(std::u8string_view str) noexcept {

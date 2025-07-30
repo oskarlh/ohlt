@@ -1,7 +1,5 @@
 #pragma once
 
-#include "cmdlib.h" //--vluzacn
-
 struct MessageTable_t final {
 	char const * title;
 	char const * text;

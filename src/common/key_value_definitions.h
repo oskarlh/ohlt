@@ -7,7 +7,7 @@
 #include <charconv>
 #include <cmath>
 #include <concepts>
-#include <string>
+#include <string_view>
 
 template <std::floating_point FP>
 constexpr std::size_t chars_needed_for_negative_smallest_fp_in_text =

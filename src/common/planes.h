@@ -1,7 +1,6 @@
 #pragma once
 
 #include "hashing.h"
-#include "mathlib.h"
 #include "mathtypes.h"
 
 #include <array>

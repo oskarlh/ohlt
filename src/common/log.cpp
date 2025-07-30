@@ -2,7 +2,6 @@
 
 #include "cli_option_defaults.h"
 #include "cmdlib.h"
-#include "filelib.h"
 #include "hlassert.h"
 #include "messages.h"
 #include "project_constants.h"

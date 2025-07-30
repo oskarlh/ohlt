@@ -1,6 +1,6 @@
 #pragma once
 #include <optional>
-#include <string>
+#include <string_view>
 
 // TODO: Rename to developer_logging_level
 enum class developer_level {

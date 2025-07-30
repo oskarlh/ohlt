@@ -14,8 +14,10 @@
 
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
+#include "log.h"
 #include "time_counter.h"
 #include "vector_for_overwriting.h"
+#include "vector_inplace.h"
 #include "wad_structs.h"
 
 #include <cstring>

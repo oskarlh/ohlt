@@ -4,9 +4,7 @@
 #include <windows.h>
 #endif
 #include "cli_option_defaults.h"
-#include "cmdlib.h"
 #include "log.h"
-#include "messages.h"
 #include "threads.h"
 
 #include <thread>
@@ -16,8 +14,6 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 #endif
-
-#include "hlassert.h"
 
 std::ptrdiff_t g_numthreads = cli_option_defaults::numberOfThreads;
 q_threadpriority g_threadpriority = cli_option_defaults::threadPriority;

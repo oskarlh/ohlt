@@ -6,7 +6,7 @@
 
 struct common_settings final {
 	bool chart = true;
-	developer_level developer = developer_level::always;
+	developer_level developer = developer_level::disabled;
 	bool estimate = true;
 	bool info = true;
 	bool log = true;

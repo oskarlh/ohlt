@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 constexpr std::u8string_view projectIssueTracker
 	= u8"" PROJECT_ISSUE_TRACKER;

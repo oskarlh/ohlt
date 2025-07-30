@@ -1,12 +1,5 @@
 #include "mathlib.h"
 
-#include "cmdlib.h"
-#include "hlassert.h"
-#include "log.h"
-#include "mathtypes.h"
-#include "messages.h"
-#include "win32fix.h"
-
 std::uint16_t float_to_half(float v) {
 	static_assert(std::numeric_limits<float>::is_iec559);
 

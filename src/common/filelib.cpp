@@ -1,12 +1,10 @@
 #include "filelib.h"
 
 #include "log.h"
-#include "mathlib.h"
-#include "mathtypes.h"
-#include "messages.h"
 #include "utf8.h"
 
 #include <cstring>
+#include <fstream>
 
 // <Opened successfully>, <Size of file>, <File stream>
 std::tuple<bool, std::size_t, std::ifstream> static open_file_and_get_size(

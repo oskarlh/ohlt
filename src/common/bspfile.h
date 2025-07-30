@@ -1,10 +1,9 @@
 #pragma once
 
-#include "cmdlib.h"
 #include "entity_key_value.h"
 #include "external_types/external_types.h"
 #include "internal_types/internal_types.h"
-#include "mathlib.h"
+#include "mathtypes.h"
 #include "planes.h"
 #include "wad_texture_name.h"
 

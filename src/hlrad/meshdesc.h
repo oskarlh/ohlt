@@ -5,6 +5,7 @@
 #include "planes.h"
 #include "studio.h"
 
+#include <filesystem>
 #include <memory>
 #include <string>
 

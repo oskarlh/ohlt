@@ -1,13 +1,12 @@
 #pragma once
 
 #include "external_types/texinfo.h"
-#include "util.h"
+#include "utf8.h"
 
 #include <algorithm>
 #include <array>
-#include <execution>
-#include <memory>
-#include <string>
+#include <span>
+#include <string_view>
 
 // TODO REMOVE THIS - USE ONE COMMON DEFINITION
 #define NUM_HULLS_X 4
