@@ -5,6 +5,8 @@
 
 #include <expected>
 #include <string>
+#include <vector>
+
 using namespace std::literals;
 
 // TODO: Use these with the tools/mods/<modname>/nowadtextures_blocklist.cfg
