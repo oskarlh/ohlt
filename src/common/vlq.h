@@ -1,11 +1,12 @@
 #pragma once
 // TODO: Delete this code if it's no longer needed
 
+#include <algorithm>
 #include <bit>
 #include <concepts>
 #include <limits>
 #include <optional>
-#include <string>
+#include <string_view>
 
 // VLQ is a variable-length integer encoding
 // See https://en.wikipedia.org/wiki/Variable-length_quantity

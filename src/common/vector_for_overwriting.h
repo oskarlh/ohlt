@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
+#include <span>
 #include <type_traits>
 
 // Unlike std::vector, this container doesn't value initializing elements.

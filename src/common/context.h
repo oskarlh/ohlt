@@ -4,7 +4,6 @@
 #include <format>
 #include <fstream>
 #include <iostream>
-#include <tuple>
 
 enum class log_level {
 	verbose,

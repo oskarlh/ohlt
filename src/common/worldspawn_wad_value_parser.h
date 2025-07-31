@@ -2,7 +2,7 @@
 
 #include "filelib.h"
 
-#include <string>
+#include <string_view>
 
 class worldspawn_wad_value_iterator final {
   private:

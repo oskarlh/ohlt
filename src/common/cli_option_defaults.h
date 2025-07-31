@@ -4,6 +4,7 @@
 #include "threads.h"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace cli_option_defaults {
 	constexpr bool chart = true;

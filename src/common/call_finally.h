@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 // RAII helper. The function will be called when the object is destroyed
 template <class Callback>
