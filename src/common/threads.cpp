@@ -1,12 +1,10 @@
-#ifdef SYSTEM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <malloc.h>
-#include <windows.h>
-#endif
-#include "cli_option_defaults.h"
-#include "log.h"
+
 #include "threads.h"
 
+#include "cli_option_defaults.h"
+#include "log.h"
+
+#include <algorithm>
 #include <thread>
 
 #ifdef SYSTEM_POSIX

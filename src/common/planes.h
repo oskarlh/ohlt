@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <concepts>
+#include <cstdint>
 
 // TODO: This can be larger, because although faces can only
 // use plane 0-32767, clipnodes can use plane 0-65535.

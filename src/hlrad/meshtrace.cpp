@@ -4,6 +4,8 @@
 
 #include "mathlib.h"
 
+#include <utility>
+
 void TraceMesh ::SetupTrace(
 	float3_array const & start,
 	float3_array const & mins,
