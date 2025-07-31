@@ -348,7 +348,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		// cut off as big a piece as possible, less than MAXPOINTS, and not
 		// past lastcorner
 
-		face_t* const newface = NewFaceFromFace(f);
+		face_t* const newface = new face_t{ NewFaceFromFace(*f) };
 
 		hlassume(
 			f->original == nullptr, assume_ValidPointer

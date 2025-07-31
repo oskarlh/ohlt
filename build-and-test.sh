@@ -16,7 +16,7 @@ cmake -S . --preset=${DEBUG_OR_RELEASE}-${COMPILER}
 cmake --build --preset=${DEBUG_OR_RELEASE}-${COMPILER}
 
 export MAP_NAME=pool
-#export MAP_NAME=xmastree_tjb
+export MAP_NAME=xmastree_tjb
 #export MAP_NAME=hc
 #export MAP_NAME=example_twisted
 

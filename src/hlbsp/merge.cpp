@@ -125,7 +125,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 		return nullptr;
 	}
 
-	newf = NewFaceFromFace(f1);
+	newf = new face_t{ NewFaceFromFace(*f1) };
 
 	// copy first polygon
 	for (k = (i + 1) % f1->pts.size(); k != i;
@@ -162,7 +162,7 @@ static face_t* MergeFaceToList(face_t* face, face_t* list) {
 		if (!newf) {
 			continue;
 		}
-		FreeFace(face);
+		delete face;
 		f->freed = true; // merged out
 		return MergeFaceToList(newf, list);
 	}
@@ -183,7 +183,7 @@ static face_t* FreeMergeListScraps(face_t* merged) {
 	for (; merged; merged = next) {
 		next = merged->next;
 		if (merged->freed) {
-			FreeFace(merged);
+			delete merged;
 		} else {
 			merged->next = head;
 			head = merged;

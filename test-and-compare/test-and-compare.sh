@@ -23,7 +23,7 @@ else
 	../tools/hlvis -threads ${NUM_THREADS} -noestimate -fast ./valve/maps/${MAP_NAME}
 	../tools/hlrad -threads ${NUM_THREADS} -noestimate -vismatrix sparse ./valve/maps/${MAP_NAME}
 fi
-
+#cp "./valve/maps/${MAP_NAME}${CSG_ONLY}.bsp" "./valve/maps/${MAP_NAME}${CSG_ONLY}-first-compile.bsp"
 if cmp "./valve/maps/${MAP_NAME}${CSG_ONLY}.bsp" "./valve/maps/${MAP_NAME}${CSG_ONLY}-first-compile.bsp"; then
 	echo "Compiled the map successfully :)"
 else

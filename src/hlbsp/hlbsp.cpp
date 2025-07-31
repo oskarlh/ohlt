@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
+#include <memory>
 #include <utility>
 
 using namespace std::literals;
@@ -21,6 +22,7 @@ static FILE* polyfiles[NUM_HULLS];
 static FILE* brushfiles[NUM_HULLS];
 hull_count g_hullnum = 0;
 
+///// TODO: Make it a vector or vector_inplace
 static face_t* validfaces[MAX_INTERNAL_MAP_PLANES];
 
 std::filesystem::path g_bspfilename;
@@ -156,17 +158,15 @@ void GetParamsFromEnt(entity_t* mapent) {
 //      Duplicates the non point information of a face, used by SplitFace
 //      and MergeFace.
 // =====================================================================================
-face_t* NewFaceFromFace(face_t const * const in) {
-	face_t* newf;
+face_t NewFaceFromFace(face_t const & in) {
+	face_t newf{};
 
-	newf = AllocFace();
-
-	newf->planenum = in->planenum;
-	newf->texturenum = in->texturenum;
-	newf->original = in->original;
-	newf->contents = in->contents;
-	newf->facestyle = in->facestyle;
-	newf->detailLevel = in->detailLevel;
+	newf.planenum = in.planenum;
+	newf.texturenum = in.texturenum;
+	newf.original = in.original;
+	newf.contents = in.contents;
+	newf.facestyle = in.facestyle;
+	newf.detailLevel = in.detailLevel;
 
 	return newf;
 }
@@ -251,8 +251,8 @@ static void SplitFaceTmp(
 		return;
 	}
 
-	*back = newf = NewFaceFromFace(in);
-	*front = new2 = NewFaceFromFace(in);
+	*back = newf = new face_t{ NewFaceFromFace(*in) };
+	*front = new2 = new face_t{ NewFaceFromFace(*in) };
 
 	// distribute the points and generate splits
 
@@ -329,7 +329,7 @@ void SplitFace(
 
 	// free the original face now that is is represented by the fragments
 	if (*front && *back) {
-		FreeFace(in);
+		delete in;
 	}
 }
 
@@ -343,32 +343,6 @@ face_t* AllocFace() {
 	*f = {};
 
 	return f;
-}
-
-// =====================================================================================
-//  FreeFace
-// =====================================================================================
-void FreeFace(face_t* f) {
-	free(f);
-}
-
-// =====================================================================================
-//  AllocSurface
-// =====================================================================================
-surface_t* AllocSurface() {
-	surface_t* s;
-
-	s = (surface_t*) malloc(sizeof(surface_t));
-	*s = {};
-
-	return s;
-}
-
-// =====================================================================================
-//  FreeSurface
-// =====================================================================================
-void FreeSurface(surface_t* s) {
-	free(s);
 }
 
 // =====================================================================================
@@ -631,7 +605,7 @@ static surfchain_t* SurflistFromValidFaces() {
 		if (!validfaces[i] && !validfaces[i + 1]) {
 			continue;
 		}
-		n = AllocSurface();
+		n = new surface_t{};
 		n->next = sc->surfaces;
 		sc->surfaces = n;
 		ClearBounds(n->mins, n->maxs);
@@ -692,8 +666,8 @@ bool should_face_have_facestyle_null(
 	return false;
 }
 
-static facestyle_e set_face_style(face_t* f) {
-	wad_texture_name const textureName{ get_texture_by_number(f->texturenum
+static facestyle_e set_face_style(face_t& f) {
+	wad_texture_name const textureName{ get_texture_by_number(f.texturenum
 	) };
 
 	facestyle_e style = face_normal;
@@ -701,14 +675,14 @@ static facestyle_e set_face_style(face_t* f) {
 		style = face_hint;
 	} else if (textureName.is_skip()) {
 		style = face_skip;
-	} else if (should_face_have_facestyle_null(textureName, f->contents)) {
+	} else if (should_face_have_facestyle_null(textureName, f.contents)) {
 		style = face_null;
 	} else if (textureName.is_bevel_hint() || textureName.is_solid_hint()) {
 		style = face_discardable;
 	} else if (textureName.is_env_sky()) {
 		style = face_null;
 	}
-	f->facestyle = style;
+	f.facestyle = style;
 	return style;
 }
 
@@ -720,7 +694,6 @@ static surfchain_t* read_surfaces(FILE* file) {
 	int planenum, numpoints;
 	texinfo_count g_texinfo;
 	std::underlying_type_t<contents_t> contents;
-	face_t* f;
 	double3_array v;
 	int line = 0;
 	double inaccuracy, inaccuracy_count = 0.0, inaccuracy_total = 0.0,
@@ -797,7 +770,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 			continue;
 		}
 
-		f = AllocFace();
+		face_t* f = new face_t{};
 		f->detailLevel = detailLevel;
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
@@ -805,7 +778,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 		f->next = validfaces[planenum];
 		validfaces[planenum] = f;
 
-		set_face_style(f);
+		set_face_style(*f);
 
 		for (int i = 0; i < numpoints; i++) {
 			line++;

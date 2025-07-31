@@ -687,14 +687,14 @@ static void FixDetaillevelForDiscardable(
 		for (pfnext = &s->faces; f = *pfnext, f != nullptr;) {
 			if (!detailLevel.has_value() || f->detailLevel < detailLevel) {
 				*pfnext = f->next;
-				FreeFace(f);
+				delete f;
 			} else {
 				pfnext = &f->next;
 			}
 		}
 		if (!s->faces) {
 			*psnext = s->next;
-			FreeSurface(s);
+			delete s;
 		} else {
 			psnext = &s->next;
 			CalcSurfaceInfo(s);
@@ -794,7 +794,7 @@ makesurfaces:
 	}
 
 	// stuff got split, so allocate one new surface and reuse in
-	news = AllocSurface();
+	news = new surface_t{};
 	*news = *in;
 	news->faces = backlist;
 	*back = news;
@@ -980,9 +980,9 @@ static void FreeLeafSurfs(node_t* leaf) {
 		snext = surf->next;
 		for (f = surf->faces; f; f = fnext) {
 			fnext = f->next;
-			FreeFace(f);
+			delete f;
 		}
-		FreeSurface(surf);
+		delete surf;
 	}
 
 	leaf->surfaces = nullptr;
@@ -1387,7 +1387,7 @@ static void CopyFacesToNode(node_t* node, surface_t* surf) {
 			continue;
 		}
 		if (f->contents != contents_t::SOLID) {
-			newf = AllocFace();
+			newf = new face_t{};
 			*newf = *f;
 			f->original = newf;
 			newf->next = node->faces;

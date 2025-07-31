@@ -711,7 +711,7 @@ struct face_extents {
 };
 
 extern face_extents get_face_extents(int facenum) noexcept;
-extern texinfo_count ParseTexinfoForFace(dface_t const * f);
+extern texinfo_count ParseTexinfoForFace(dface_t const & f);
 extern void DeleteEmbeddedLightmaps();
 
 std::size_t hash_data();

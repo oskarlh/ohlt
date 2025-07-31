@@ -359,7 +359,7 @@ static void FreeDrawNodes_r(node_t* node) {
 	//
 	for (f = node->faces; f; f = next) {
 		next = f->next;
-		FreeFace(f);
+		delete f;
 	}
 
 	free(node);

@@ -6,6 +6,7 @@
 #include "winding.h"
 
 #include <filesystem>
+#include <memory>
 
 extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
@@ -214,14 +215,8 @@ extern void FillInside(node_t* node);
 // misc functions
 extern void GetParamsFromEnt(entity_t* mapent);
 
-extern face_t* AllocFace();
-extern void FreeFace(face_t* f);
-
 extern portal_t* AllocPortal();
 extern void FreePortal(struct portal_t* p);
-
-extern surface_t* AllocSurface();
-extern void FreeSurface(surface_t* s);
 
 extern side_t* NewSideFromSide(side_t const * s);
 extern brush_t* AllocBrush();
@@ -281,7 +276,7 @@ extern bool g_bUseNullTex;
 
 extern bool g_nohull2;
 
-extern face_t* NewFaceFromFace(face_t const * const in);
+extern face_t NewFaceFromFace(face_t const & in);
 extern void SplitFace(
 	face_t* in,
 	mapplane_t const * const split,

@@ -133,7 +133,7 @@ static void FreeDetailNode_r(node_t* n) {
 	face_t *f, *next;
 	for (f = n->faces; f; f = next) {
 		next = f->next;
-		FreeFace(f);
+		delete f;
 	}
 	n->faces = nullptr;
 }
@@ -248,7 +248,7 @@ static node_t* ClearOutFaces_r(node_t* node) {
 			fnext = f->next;
 			if (f->outputnumber == -1) { // never referenced, so free it
 				c_free_faces++;
-				FreeFace(f);
+				delete f;
 			} else {
 				c_keep_faces++;
 				f->next = node->faces;

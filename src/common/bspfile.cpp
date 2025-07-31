@@ -606,17 +606,16 @@ bool CalcFaceExtents_test() {
 face_extents get_face_extents(int facenum) noexcept {
 	face_extents result;
 	dface_t* f;
-	float mins[2], maxs[2], val;
+	float val;
 	int i, j, e;
 	dvertex_t* v;
 	texinfo_t* tex;
 
 	f = &g_dfaces[facenum];
+	std::array<float, 2> mins{ 999'999, 999'999 };
+	std::array<float, 2> maxs{ -999'999, -999'999 };
 
-	mins[0] = mins[1] = 999'999;
-	maxs[0] = maxs[1] = -999'999;
-
-	tex = &g_texinfo[ParseTexinfoForFace(f)];
+	tex = &g_texinfo[ParseTexinfoForFace(*f)];
 
 	for (i = 0; i < f->numedges; i++) {
 		e = g_dsurfedges[f->firstedge + i];
@@ -740,15 +739,11 @@ static texinfo_count ParseImplicitTexinfoFromTexture(int miptex) {
 	return maybeTexinfoIndex.value();
 }
 
-texinfo_count ParseTexinfoForFace(dface_t const * f) {
-	texinfo_count texinfo;
-	int miptex;
-	texinfo_count texinfo2;
-
-	texinfo = f->texinfo;
-	miptex = g_texinfo[texinfo].miptex;
+texinfo_count ParseTexinfoForFace(dface_t const & f) {
+	texinfo_count texinfo = f.texinfo;
+	int miptex = g_texinfo[texinfo].miptex;
 	if (miptex != -1) {
-		texinfo2 = ParseImplicitTexinfoFromTexture(miptex);
+		texinfo_count texinfo2 = ParseImplicitTexinfoFromTexture(miptex);
 		if (texinfo2 != no_texinfo) {
 			texinfo = texinfo2;
 		}
@@ -777,10 +772,10 @@ void DeleteEmbeddedLightmaps() {
 	//         lightmap embedded
 
 	for (int i = 0; i < g_numfaces; i++) {
-		dface_t* f = &g_dfaces[i];
+		dface_t& f = g_dfaces[i];
 		texinfo_count const texinfo = ParseTexinfoForFace(f);
-		if (texinfo != f->texinfo) {
-			f->texinfo = texinfo;
+		if (texinfo != f.texinfo) {
+			f.texinfo = texinfo;
 			countrestoredfaces++;
 		}
 	}
