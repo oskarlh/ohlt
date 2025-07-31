@@ -1,4 +1,6 @@
 #include "hlvis.h"
+#include "log.h"
+#include "threads.h"
 #include "winding.h"
 
 // =====================================================================================

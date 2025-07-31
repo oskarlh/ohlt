@@ -1,11 +1,5 @@
 #include "hlrad.h"
-
-#ifdef SYSTEM_WIN32
-#include "win32fix.h"
-
-#include <fcntl.h>
-#include <sys/stat.h>
-#endif
+#include "log.h"
 
 /*
  * =============

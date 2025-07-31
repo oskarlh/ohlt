@@ -8,8 +8,6 @@
 // used by progmesh
 
 #include <algorithm>
-#include <assert.h>
-#include <stdio.h>
 #include <vector>
 
 template <class Type>
@@ -68,6 +66,6 @@ void List<Type>::DelIndex(std::size_t i) {
 template <class Type>
 void List<Type>::Remove(Type const & t) {
 	auto it = std::ranges::find(storage, t);
-	assert(it != storage.end());
+	// assert(it != storage.end());
 	storage.erase(it);
 }

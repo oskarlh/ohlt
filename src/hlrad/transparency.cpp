@@ -3,6 +3,8 @@
 //
 
 #include "hlrad.h"
+#include "log.h"
+#include "threads.h"
 
 #include <limits>
 

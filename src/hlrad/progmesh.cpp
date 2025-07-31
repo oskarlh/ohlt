@@ -7,7 +7,9 @@
  *  See the header file progmesh.h for a description of this module
  */
 
-#include "hlrad.h"
+#include "hlassert.h"
+#include "list.h"
+#include "mathlib.h"
 #include "meshdesc.h"
 
 #include <vector>
@@ -54,7 +56,7 @@ List<CVertex*> vertices;
 List<CTriangle*> triangles;
 
 CTriangle ::CTriangle(CVertex* v0, CVertex* v1, CVertex* v2) {
-	assert(v0 != v1 && v1 != v2 && v2 != v0);
+	hlassert(v0 != v1 && v1 != v2 && v2 != v0);
 
 	vertex[0] = v0;
 	vertex[1] = v1;
@@ -124,21 +126,21 @@ void CTriangle ::ComputeNormal(void) {
 }
 
 void CTriangle ::ReplaceVertex(CVertex* vold, CVertex* vnew) {
-	assert(vold && vnew);
-	assert(vold == vertex[0] || vold == vertex[1] || vold == vertex[2]);
-	assert(vnew != vertex[0] && vnew != vertex[1] && vnew != vertex[2]);
+	hlassert(vold && vnew);
+	hlassert(vold == vertex[0] || vold == vertex[1] || vold == vertex[2]);
+	hlassert(vnew != vertex[0] && vnew != vertex[1] && vnew != vertex[2]);
 
 	if (vold == vertex[0]) {
 		vertex[0] = vnew;
 	} else if (vold == vertex[1]) {
 		vertex[1] = vnew;
 	} else {
-		assert(vold == vertex[2]);
+		hlassert(vold == vertex[2]);
 		vertex[2] = vnew;
 	}
 
 	vold->face.erase(std::ranges::find(vold->face, this));
-	assert(!std::ranges::contains(vnew->face, this));
+	hlassert(!std::ranges::contains(vnew->face, this));
 	vnew->face.emplace_back(this);
 
 	for (int i = 0; i < 3; i++) {
@@ -147,7 +149,7 @@ void CTriangle ::ReplaceVertex(CVertex* vold, CVertex* vnew) {
 	}
 
 	for (int i = 0; i < 3; i++) {
-		assert(std::ranges::count(vertex[i]->face, this) == 1);
+		hlassert(std::ranges::count(vertex[i]->face, this) == 1);
 		for (int j = 0; j < 3; j++) {
 			if (i == j) {
 				continue;
@@ -167,7 +169,7 @@ CVertex ::CVertex(float3_array const & v, int _id) {
 }
 
 CVertex ::~CVertex() {
-	assert(face.empty());
+	hlassert(face.empty());
 
 	while (neighbor.Size()) {
 		neighbor[0]->neighbor.Remove(this);
@@ -386,7 +388,7 @@ void PermuteVertices(
 	std::span<float3_array> vert,
 	std::span<triset> tris
 ) {
-	assert(permutation.size() == vert.size());
+	hlassert(permutation.size() == vert.size());
 
 	// rearrange the vertex list
 	std::vector<float3_array> temp_list{ vert.begin(), vert.end() };

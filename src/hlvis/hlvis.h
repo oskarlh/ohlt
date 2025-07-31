@@ -1,15 +1,6 @@
 #pragma once
 
 #include "bspfile.h"
-#include "cmdlib.h"
-#include "cmdlinecfg.h"
-#include "filelib.h"
-#include "hlassert.h"
-#include "log.h"
-#include "mathlib.h"
-#include "messages.h"
-#include "threads.h"
-#include "win32fix.h"
 
 #include <unordered_map>
 #include <vector>

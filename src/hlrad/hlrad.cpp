@@ -1,13 +1,23 @@
 #include "hlrad.h"
 
 #include "bsp_file_sizes.h"
+#include "bspfile.h"
+#include "cmdlib.h"
+#include "cmdlinecfg.h"
+#include "compress.h"
+#include "filelib.h"
+#include "log.h"
+#include "mathlib.h"
+#include "messages.h"
 #include "rad_cli_option_defaults.h"
 #include "time_counter.h"
 #include "utf8.h"
+#include "win32fix.h"
+#include "winding.h"
 
 #include <algorithm>
 #include <numbers>
-#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 

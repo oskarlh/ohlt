@@ -7,9 +7,9 @@ export DEBUG_OR_RELEASE=debug
 export DEBUG_OR_RELEASE=release
 
 export COMPILER=default
-#export COMPILER=linux-gcc14
+#export COMPILER=linux-gcc15
 export COMPILER=macos-clang18-homebrew
-#export COMPILER=macos-gcc14-homebrew
+#export COMPILER=macos-gcc15-homebrew
 #export COMPILER=windows-msvc
 
 cmake -S . --preset=${DEBUG_OR_RELEASE}-${COMPILER}

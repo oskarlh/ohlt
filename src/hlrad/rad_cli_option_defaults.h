@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cli_option_defaults.h"
+#include "cli_option_defaults.h" // IWYU pragma: export
 #include "compress.h"
 #include "hlrad.h"
 

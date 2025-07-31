@@ -2,15 +2,20 @@
 
 #include "bsp_file_sizes.h"
 #include "cli_option_defaults.h"
+#include "cmdlinecfg.h"
+#include "filelib.h"
+#include "log.h"
+#include "mathlib.h"
+#include "messages.h"
+#include "threads.h"
 #include "time_counter.h"
-#include "winding.h"
 
 #include <algorithm>
-#include <fstream>	//FixPrt
-#include <iostream> //FixPrt
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <utility>
-#include <vector> //FixPrt
+#include <vector>
 
 using namespace std::literals;
 

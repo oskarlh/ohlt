@@ -1,13 +1,11 @@
 #include "compress.h"
 
-#include "cmdlib.h"
 #include "log.h"
 
 #include <algorithm>
+#include <array>
 #include <bit>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string_view>
 
 using namespace std::literals;
 

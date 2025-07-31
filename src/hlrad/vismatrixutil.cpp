@@ -1,4 +1,6 @@
 #include "hlrad.h"
+#include "log.h"
+#include "threads.h"
 
 #include <numbers>
 
@@ -7,9 +9,9 @@ std::vector<float3_array> g_transparencyList{
 	1, float3_array{ 1.0, 1.0, 1.0 }
 };
 
-size_t g_total_transfer = 0;
-size_t g_transfer_index_bytes = 0;
-size_t g_transfer_data_bytes = 0;
+std::size_t g_total_transfer = 0;
+std::size_t g_transfer_index_bytes = 0;
+std::size_t g_transfer_data_bytes = 0;
 
 constexpr bool ENABLE_COMPRESSED_TRANSFERS = true;
 

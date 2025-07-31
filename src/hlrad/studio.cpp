@@ -1,7 +1,7 @@
 #include "filelib.h"
 #include "hlrad.h"
+#include "log.h"
 #include "meshtrace.h"
-#include "utf8.h"
 
 constexpr std::size_t MAX_MODELS = 10000;
 

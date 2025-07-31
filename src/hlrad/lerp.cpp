@@ -1,4 +1,5 @@
 #include "hlrad.h"
+#include "log.h"
 
 #include <algorithm>
 #include <numbers>

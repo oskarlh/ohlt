@@ -1,4 +1,6 @@
 #include "hlrad.h"
+#include "log.h"
+#include "threads.h"
 
 ////////////////////////////
 // begin old vismat.c

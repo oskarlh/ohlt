@@ -1,4 +1,5 @@
 #include "hlrad.h"
+#include "log.h"
 
 static dplane_t backplanes[MAX_MAP_PLANES];
 

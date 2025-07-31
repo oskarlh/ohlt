@@ -1,4 +1,6 @@
 #include "hlrad.h"
+#include "log.h"
+#include "threads.h"
 
 struct sparse_row_t final {
 	std::uint32_t offset : 24;

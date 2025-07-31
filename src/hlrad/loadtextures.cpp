@@ -1,4 +1,5 @@
 #include "hlrad.h"
+#include "log.h"
 #include "wad_structs.h"
 #include "worldspawn_wad_value_parser.h"
 

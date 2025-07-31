@@ -1,7 +1,6 @@
 #include "bspfile.h"
-#include "cmdlib.h"
 #include "hlrad.h"
-#include "log.h" //--vluzacn
+#include "log.h"
 #include "mathlib.h"
 #include "winding.h"
 

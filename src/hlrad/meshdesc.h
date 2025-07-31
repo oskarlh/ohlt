@@ -1,7 +1,6 @@
 #pragma once
 // Cached mesh for tracing custom objects
 
-#include "list.h" // simple container
 #include "planes.h"
 #include "studio.h"
 
