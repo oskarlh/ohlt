@@ -2,128 +2,13 @@
 
 #include "bspfile.h"
 #include "log.h"
-#include "wad_texture_name.h"
 #include "worldspawn_wad_value_parser.h"
 
-#include <algorithm>
 #include <cstring>
-#include <deque>
 #include <optional>
 #include <string_view>
 
 using namespace std::literals;
-
-constexpr std::int32_t BLOCK_HEIGHT = 128;
-constexpr std::int32_t BLOCK_WIDTH = 128;
-
-struct lightmapblock final {
-	std::array<std::int32_t, BLOCK_WIDTH> allocated = {};
-	bool used = false;
-};
-
-void do_alloc_block(
-	std::deque<lightmapblock>& blocks, std::size_t w, std::size_t h
-) {
-	if (w < 1 || h < 1) {
-		Error("do_alloc_block: internal error.");
-	}
-	std::int32_t best, best2;
-	std::int32_t x{ 0 };
-	for (lightmapblock& block : blocks) {
-		best = BLOCK_HEIGHT;
-		for (std::int32_t i = 0; i < BLOCK_WIDTH - w; i++) {
-			best2 = 0;
-			std::int32_t j;
-			for (j = 0; j < w; j++) {
-				if (block.allocated[i + j] >= best) {
-					break;
-				}
-				if (block.allocated[i + j] > best2) {
-					best2 = block.allocated[i + j];
-				}
-			}
-			if (j == w) {
-				x = i;
-				best = best2;
-			}
-		}
-		if (best + h <= BLOCK_HEIGHT) {
-			block.used = true;
-			for (std::size_t i = 0; i < w; i++) {
-				block.allocated[x + i] = best + h;
-			}
-			return;
-		}
-		bool const isLastBlock = &block == &blocks.back();
-		if (isLastBlock) { // need to allocate a new block
-			if (!block.used) {
-				Warning("CountBlocks: invalid extents %zux%zu", w, h);
-				return;
-			}
-			blocks.emplace_back();
-		}
-	}
-}
-
-std::size_t count_blocks(bsp_data const & bspData) {
-	std::deque<lightmapblock> blocks;
-	blocks.emplace_back();
-	for (int k = 0; k < bspData.facesLength; k++) {
-		dface_t const * f = &bspData.faces[k];
-		wad_texture_name const texname = (wad_texture_name
-		) get_texture_by_number(ParseTexinfoForFace(f));
-		if (texname.is_ordinary_sky() // Sky, no lightmap allocation
-			|| texname.is_water()	  // Water, no lightmap allocation
-			|| g_texinfo[ParseTexinfoForFace(f)].has_special_flag(
-			) // AAATRIGGER, I don't know
-		) {
-			continue;
-		}
-		std::array<int, 2> extents;
-		float3_array point{};
-		{
-			face_extents const bExtents{ get_face_extents(k) };
-			for (std::size_t i = 0; i < 2; ++i) {
-				extents[i] = (bExtents.maxs[i] - bExtents.mins[i])
-					* TEXTURE_STEP;
-			}
-
-			if (f->numedges > 0) {
-				int e = g_dsurfedges[f->firstedge];
-				dvertex_t* v
-					= &g_dvertexes[g_dedges[abs(e)].v[e >= 0 ? 0 : 1]];
-				point = v->point;
-			}
-		}
-		if (extents[0] < 0 || extents[1] < 0
-			|| extents[0]
-				> std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP)
-			|| extents[1]
-				> std::max(512z, MAX_SURFACE_EXTENT * TEXTURE_STEP))
-		// the default restriction from the engine is 512, but place 'max
-		// (512, MAX_SURFACE_EXTENT * TEXTURE_STEP)' here in case someone
-		// raise the limit
-		{
-			Warning(
-				"Bad surface extents %d/%d at position (%.0f,%.0f,%.0f)",
-				extents[0],
-				extents[1],
-				point[0],
-				point[1],
-				point[2]
-			);
-			continue;
-		}
-		do_alloc_block(
-			blocks,
-			(extents[0] / TEXTURE_STEP) + 1,
-			(extents[1] / TEXTURE_STEP) + 1
-		);
-	}
-	return std::ranges::count_if(blocks, [](lightmapblock const & block) {
-		return block.used;
-	});
-}
 
 bool no_wad_textures(bsp_data const & bspData) {
 	int const numtextures = bspGlobals.textureDataByteSize
@@ -263,8 +148,6 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 		? ((dmiptexlump_t*) bspData.textureData.data())->nummiptex
 		: 0;
 	int totalmemory = 0;
-	std::size_t numallocblocks = count_blocks(bspData);
-	std::size_t maxallocblocks = 64;
 	bool nowadtextures = no_wad_textures(bspData
 	); // We don't have this check at hlcsg, because only legacy compile
 	   // tools don't empty "wad" value in "-nowadtextures" compiles.
@@ -366,13 +249,6 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 		bspGlobals.entityDataLength,
 		bspData.entityData.size() * sizeof(bspData.entityData[0])
 	);
-	if (numallocblocks == -1) {
-		Log("* AllocBlock    [ not available ]\n");
-	} else {
-		totalmemory += array_usage(
-			"* AllocBlock", numallocblocks, maxallocblocks, 0
-		);
-	}
 
 	Log("%i textures referenced\n", numtextures);
 
