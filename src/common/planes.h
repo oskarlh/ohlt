@@ -4,6 +4,7 @@
 #include "mathtypes.h"
 
 #include <array>
+#include <cmath>
 #include <concepts>
 
 // TODO: This can be larger, because although faces can only
