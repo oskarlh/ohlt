@@ -717,8 +717,8 @@ static void DivideSurface(
 ) {
 	face_t* facet;
 	face_t* next;
-	face_t* frontlist;
-	face_t* backlist;
+	face_t* frontlist = nullptr;
+	face_t* backlist = nullptr;
 	face_t* frontfrag;
 	face_t* backfrag;
 	surface_t* news;
@@ -733,9 +733,11 @@ static void DivideSurface(
 		if (inplane->dist > split->dist) {
 			*front = in;
 			*back = nullptr;
+			return;
 		} else if (inplane->dist < split->dist) {
 			*front = nullptr;
 			*back = in;
+			return;
 		} else { // split the surface into front and back
 			frontlist = nullptr;
 			backlist = nullptr;
@@ -749,31 +751,26 @@ static void DivideSurface(
 					frontlist = facet;
 				}
 			}
-			goto makesurfaces;
 		}
-		return;
-	}
+	} else {
+		// do a real split.  may still end up entirely on one side
+		// OPTIMIZE: use bounding box for fast test
 
-	// do a real split.  may still end up entirely on one side
-	// OPTIMIZE: use bounding box for fast test
-	frontlist = nullptr;
-	backlist = nullptr;
-
-	for (facet = in->faces; facet; facet = next) {
-		next = facet->next;
-		SplitFace(facet, split, &frontfrag, &backfrag);
-		if (frontfrag) {
-			frontfrag->next = frontlist;
-			frontlist = frontfrag;
-		}
-		if (backfrag) {
-			backfrag->next = backlist;
-			backlist = backfrag;
+		for (facet = in->faces; facet; facet = next) {
+			next = facet->next;
+			SplitFace(facet, split, &frontfrag, &backfrag);
+			if (frontfrag) {
+				frontfrag->next = frontlist;
+				frontlist = frontfrag;
+			}
+			if (backfrag) {
+				backfrag->next = backlist;
+				backlist = backfrag;
+			}
 		}
 	}
 
 	// if nothing actually got split, just move the in plane
-makesurfaces:
 	if (frontlist == nullptr && backlist == nullptr) {
 		*front = nullptr;
 		*back = nullptr;
