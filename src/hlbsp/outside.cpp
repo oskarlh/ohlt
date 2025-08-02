@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <ranges> // IWYU pragma: keep as long as we're using cartesian_product behind an #ifdef __cpp_lib_ranges_cartesian_product
 #include <vector>
 
 //  PointInLeaf
@@ -26,14 +27,12 @@ static int c_keep_faces;
 //  PointInLeaf
 // =====================================================================================
 static node_t* PointInLeaf(node_t* node, double3_array const & point) {
-	double d;
-
 	if (node->isportalleaf) {
 		// Log("PointInLeaf::node->contents == %i\n", node->contents);
 		return node;
 	}
 
-	d = dot_product(g_mapPlanes[node->planenum].normal, point)
+	double const d = dot_product(g_mapPlanes[node->planenum].normal, point)
 		- g_mapPlanes[node->planenum].dist;
 
 	if (d > 0) {
@@ -117,7 +116,6 @@ static void MarkLeakTrail(portal_t* n2) {
 //      If fill is false, just check, don't fill
 // =====================================================================================
 static void FreeDetailNode_r(node_t* n) {
-	int i;
 	if (n->planenum == -1) {
 		if (!(n->isportalleaf && n->contents == contents_t::SOLID)) {
 			free(n->markfaces);
@@ -125,7 +123,7 @@ static void FreeDetailNode_r(node_t* n) {
 		}
 		return;
 	}
-	for (i = 0; i < 2; i++) {
+	for (std::size_t i = 0; i < 2; ++i) {
 		FreeDetailNode_r(n->children[i]);
 		free(n->children[i]);
 		n->children[i] = nullptr;
@@ -209,8 +207,7 @@ static bool RecursiveFillOutside(node_t* l, bool const fill) {
 // =====================================================================================
 static void MarkFacesInside_r(node_t* node) {
 	if (node->planenum == -1) {
-		face_t** fp;
-		for (fp = node->markfaces; *fp; fp++) {
+		for (face_t** fp = node->markfaces; *fp; fp++) {
 			(*fp)->outputnumber = 0;
 		}
 	} else {
@@ -358,16 +355,32 @@ void LoadAllowableOutsideList(char const * const filename) {
 	}
 }
 
+template <class ContainerType>
+auto cartesian_product(ContainerType const & a, ContainerType const & b) {
+#ifdef __cpp_lib_ranges_cartesian_product
+	return std::ranges::views::cartesian_product(a, b);
+#else
+	std::vector<std::tuple<
+		typename ContainerType::value_type,
+		typename ContainerType::value_type>>
+		cartProd;
+	cartProd.reserve(a.size() * b.size());
+	for (auto const & aEl : a) {
+		for (auto const & bEl : b) {
+			cartProd.emplace_back(aEl, bEl);
+		}
+	}
+	return cartProd;
+
+#endif
+}
+
 // =====================================================================================
 //  FillOutside
 // =====================================================================================
 node_t*
 FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 	int s;
-	int i;
-	bool inside;
-	bool ret;
-	double3_array origin;
 
 	Verbose("----- FillOutside ----\n");
 
@@ -383,9 +396,11 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 	// place markers for all entities so
 	// we know if we leak inside
 	//
-	inside = false;
-	for (i = 1; i < g_numentities; i++) {
-		origin = get_double3_for_key(g_entities[i], u8"origin");
+	bool inside = false;
+	for (int i = 1; i < g_numentities; i++) {
+		double3_array origin = get_double3_for_key(
+			g_entities[i], u8"origin"
+		);
 		std::u8string_view const cl = get_classname(g_entities[i]);
 		if (!isClassnameAllowableOutside(cl)) {
 			if (has_key_value(&g_entities[i], u8"origin")) {
@@ -394,21 +409,18 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 				// nudge playerstart around if needed so clipping hulls
 				// allways have a valid point
 				if (cl == u8"info_player_start") {
-					int x, y;
+					std::array<double, 3> offsets{ -16, 0, -16 };
 
-					for (x = -16; x <= 16; x += 16) {
-						for (y = -16; y <= 16; y += 16) {
-							origin[0] += x;
-							origin[1] += y;
-							if (PlaceOccupant(i, origin, node)) {
-								inside = true;
-								goto gotit;
-							}
-							origin[0] -= x;
-							origin[1] -= y;
+					for (auto [xOffset, yOffset] :
+						 cartesian_product(offsets, offsets)) {
+						double3_array originPlusOffset{ origin };
+						originPlusOffset[0] += xOffset;
+						originPlusOffset[1] += yOffset;
+						if (PlaceOccupant(i, originPlusOffset, node)) {
+							inside = true;
+							break;
 						}
 					}
-				gotit:;
 				} else if (PlaceOccupant(i, origin, node)) {
 					inside = true;
 				}
@@ -452,7 +464,9 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 		}
 	}
 
-	ret = RecursiveFillOutside(g_outside_node.portals->nodes[s], false);
+	bool ret = RecursiveFillOutside(
+		g_outside_node.portals->nodes[s], false
+	);
 
 	if (leakfile) {
 		fclose(pointfile);
@@ -460,7 +474,9 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 	}
 
 	if (ret) {
-		origin = get_double3_for_key(g_entities[hit_occupied], u8"origin");
+		double3_array origin = get_double3_for_key(
+			g_entities[hit_occupied], u8"origin"
+		);
 		{
 			Warning(
 				"=== LEAK in hull %i ===\nEntity %s @ (%4.0f,%4.0f,%4.0f)",
@@ -541,9 +557,8 @@ void ResetMark_r(node_t* node) {
 void MarkOccupied_r(node_t* node) {
 	if (node->empty == 1) {
 		node->empty = 0;
-		portal_t* p;
 		int s;
-		for (p = node->portals; p; p = p->next[!s]) {
+		for (portal_t* p = node->portals; p; p = p->next[!s]) {
 			s = (p->nodes[0] == node);
 			MarkOccupied_r(p->nodes[s]);
 		}
@@ -562,16 +577,15 @@ void RemoveUnused_r(node_t* node) {
 }
 
 void FillInside(node_t* node) {
-	int i;
 	g_outside_node.empty = 0;
 	ResetMark_r(node);
-	for (i = 1; i < g_numentities; i++) {
+	for (entity_count i = 1; i < g_numentities; i++) {
 		if (has_key_value(&g_entities[i], u8"origin")) {
-			double3_array origin;
-			node_t* innode;
-			origin = get_double3_for_key(g_entities[i], u8"origin");
+			double3_array origin = get_double3_for_key(
+				g_entities[i], u8"origin"
+			);
 			origin[2] += 1;
-			innode = PointInLeaf(node, origin);
+			node_t* innode = PointInLeaf(node, origin);
 			MarkOccupied_r(innode);
 			origin[2] -= 2;
 			innode = PointInLeaf(node, origin);
