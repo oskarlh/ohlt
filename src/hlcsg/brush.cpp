@@ -22,39 +22,39 @@ static int
 FindIntPlane(double3_array const & normal, double3_array const & origin) {
 	int returnval = 0;
 
-find_plane:
-	// Can I use the "Always put axial planes facing positive first" rule to
-	// my advantage?? And only check every other???
+	bool mapPlanesWasUpdated;
+	do {
+		// Can I use the "Always put axial planes facing positive first"
+		// rule to my advantage?? And only check every other???
 
-	for (; returnval < g_mapPlanes.size(); returnval++) {
-		// BUG: there might be some multithread issue --vluzacn
+		for (; returnval < g_mapPlanes.size(); returnval++) {
+			// BUG: there might be some multithread issue --vluzacn
 
-		// Instead of comparing like this here........I can round
-		// the values and see if the values are equal????
-		// Pros: MUCH easier logic for reducing duplicates
-		// Cons MAYBE: Very close points not matching sometimes, preventing
-		// deduplication
-		// round_to_dir_epsilon
-		if (std::abs(normal[0] - g_mapPlanes[returnval].normal[0])
-				< PLANE_NORMAL_EPSILON
-			&& std::abs(normal[1] - g_mapPlanes[returnval].normal[1])
-				< PLANE_NORMAL_EPSILON
-			&& std::abs(normal[2] - g_mapPlanes[returnval].normal[2])
-				< PLANE_NORMAL_EPSILON
-			&& std::abs(
-				   dot_product(origin, g_mapPlanes[returnval].normal)
-				   - g_mapPlanes[returnval].dist
-			   ) < PLANE_DIST_EPSILON) {
-			return returnval;
+			// Instead of comparing like this here........I can round
+			// the values and see if the values are equal????
+			// Pros: MUCH easier logic for reducing duplicates
+			// Cons MAYBE: Very close points not matching sometimes,
+			// preventing deduplication round_to_dir_epsilon
+			if (std::abs(normal[0] - g_mapPlanes[returnval].normal[0])
+					< PLANE_NORMAL_EPSILON
+				&& std::abs(normal[1] - g_mapPlanes[returnval].normal[1])
+					< PLANE_NORMAL_EPSILON
+				&& std::abs(normal[2] - g_mapPlanes[returnval].normal[2])
+					< PLANE_NORMAL_EPSILON
+				&& std::abs(
+					   dot_product(origin, g_mapPlanes[returnval].normal)
+					   - g_mapPlanes[returnval].dist
+				   ) < PLANE_DIST_EPSILON) {
+				return returnval;
+			}
 		}
-	}
 
-	ThreadLock();
-	if (returnval != g_mapPlanes.size()) // make sure we don't race
-	{
+		ThreadLock(); // make sure we don't race
+		mapPlanesWasUpdated = returnval
+			!= g_mapPlanes.size(
+			); // check to see if other thread added plane we need
 		ThreadUnlock();
-		goto find_plane; // check to see if other thread added plane we need
-	}
+	} while (mapPlanesWasUpdated);
 
 	// create new planes - double check that we have room for 2 planes
 	hlassume(
