@@ -1,5 +1,6 @@
 #include "hlbsp.h"
 
+#include "bspfile.h"
 #include "cli_option_defaults.h"
 #include "cmdlinecfg.h"
 #include "filelib.h"
@@ -20,9 +21,6 @@ hull_sizes g_hull_size{ standard_hull_sizes };
 static FILE* polyfiles[NUM_HULLS];
 static FILE* brushfiles[NUM_HULLS];
 hull_count g_hullnum = 0;
-
-///// TODO: Make it a vector or vector_inplace
-static face_t* validfaces[MAX_INTERNAL_MAP_PLANES];
 
 std::filesystem::path g_bspfilename;
 std::filesystem::path g_pointfilename;
@@ -573,9 +571,9 @@ static void ClearBounds(double3_array& mins, double3_array& maxs) {
 //  SurflistFromValidFaces
 //      blah
 // =====================================================================================
-static surfchain_t* SurflistFromValidFaces() {
+static surfchain_t*
+SurflistFromValidFaces(std::span<face_t*> validFacesByPlane) {
 	surface_t* n;
-	int i;
 	face_t* f;
 	face_t* next;
 	surfchain_t* sc;
@@ -585,8 +583,8 @@ static surfchain_t* SurflistFromValidFaces() {
 	sc->surfaces = nullptr;
 
 	// grab planes from both sides
-	for (i = 0; i < g_numplanes; i += 2) {
-		if (!validfaces[i] && !validfaces[i + 1]) {
+	for (int i = 0; i < g_numplanes; i += 2) {
+		if (!validFacesByPlane[i] && !validFacesByPlane[i + 1]) {
 			continue;
 		}
 		n = new surface_t{};
@@ -598,14 +596,14 @@ static surfchain_t* SurflistFromValidFaces() {
 		n->planenum = i;
 
 		n->faces = nullptr;
-		for (f = validfaces[i]; f; f = next) {
+		for (f = validFacesByPlane[i]; f; f = next) {
 			next = f->next;
 			f->next = n->faces;
 			n->faces = f;
 			AddFaceToBounds(f, n->mins, n->maxs);
 			n->detailLevel = std::min(n->detailLevel, f->detailLevel);
 		}
-		for (f = validfaces[i + 1]; f; f = next) {
+		for (f = validFacesByPlane[i + 1]; f; f = next) {
 			next = f->next;
 			f->next = n->faces;
 			n->faces = f;
@@ -616,8 +614,8 @@ static surfchain_t* SurflistFromValidFaces() {
 		AddPointToBounds(n->mins, sc->mins, sc->maxs);
 		AddPointToBounds(n->maxs, sc->mins, sc->maxs);
 
-		validfaces[i] = nullptr;
-		validfaces[i + 1] = nullptr;
+		validFacesByPlane[i] = nullptr;
+		validFacesByPlane[i + 1] = nullptr;
 	}
 
 	// merge all possible polygons
@@ -650,7 +648,7 @@ bool should_face_have_facestyle_null(
 	return false;
 }
 
-static facestyle_e set_face_style(face_t& f) {
+static facestyle_e which_style_for_face(face_t const & f) {
 	wad_texture_name const textureName{ get_texture_by_number(f.texturenum
 	) };
 
@@ -666,7 +664,6 @@ static facestyle_e set_face_style(face_t& f) {
 	} else if (textureName.is_env_sky()) {
 		style = face_null;
 	}
-	f.facestyle = style;
 	return style;
 }
 
@@ -682,6 +679,10 @@ static surfchain_t* read_surfaces(FILE* file) {
 	int line = 0;
 	double inaccuracy, inaccuracy_count = 0.0, inaccuracy_total = 0.0,
 					   inaccuracy_max = 0.0;
+
+	///// TODO: Make it a vector or vector_inplace
+	std::vector<face_t*> validFacesByPlane; // Index type: plane_count
+	validFacesByPlane.resize(g_numplanes, nullptr);
 
 	// read in the polygons
 	while (1) {
@@ -759,10 +760,10 @@ static surfchain_t* read_surfaces(FILE* file) {
 		f->planenum = planenum;
 		f->texturenum = g_texinfo;
 		f->contents = contents_t{ contents };
-		f->next = validfaces[planenum];
-		validfaces[planenum] = f;
+		f->facestyle = which_style_for_face(*f);
 
-		set_face_style(*f);
+		f->next = validFacesByPlane[planenum];
+		validFacesByPlane[planenum] = f;
 
 		for (int i = 0; i < numpoints; i++) {
 			line++;
@@ -787,7 +788,7 @@ static surfchain_t* read_surfaces(FILE* file) {
 		fscanf(file, "\n");
 	}
 
-	return SurflistFromValidFaces();
+	return SurflistFromValidFaces(validFacesByPlane);
 }
 
 static brush_t* ReadBrushes(FILE* file) {

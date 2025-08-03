@@ -66,11 +66,7 @@ static FILE* pointfile;
 static FILE* linefile;
 
 static void MarkLeakTrail(bsp_portal_t* n2) {
-	int i;
-	float len;
-	bsp_portal_t* n1;
-
-	n1 = prevleaknode;
+	bsp_portal_t* n1 = prevleaknode;
 	prevleaknode = n2;
 
 	if (!n1) {
@@ -96,12 +92,12 @@ static void MarkLeakTrail(bsp_portal_t* n2) {
 	fprintf(pointfile, "%f %f %f\n", p1[0], p1[1], p1[2]);
 
 	double3_array dir = vector_subtract(p2, p1);
-	len = vector_length(dir);
+	double len = vector_length(dir);
 	normalize_vector(dir);
 
 	while (len > 2) {
 		fprintf(pointfile, "%f %f %f\n", p1[0], p1[1], p1[2]);
-		for (i = 0; i < 3; i++) {
+		for (std::size_t i = 0; i < 3; ++i) {
 			p1[i] += dir[i] * 2;
 		}
 		len -= 2;
@@ -213,15 +209,11 @@ static void MarkFacesInside_r(node_t* node) {
 }
 
 static node_t* ClearOutFaces_r(node_t* node) {
-	face_t* f;
-	face_t* fnext;
-	bsp_portal_t* p;
-
 	// mark the node and all it's faces, so they
 	// can be removed if no children use them
 
 	node->valid = 0; // will be set if any children touch it
-	for (f = node->faces; f; f = f->next) {
+	for (face_t* f = node->faces; f; f = f->next) {
 		f->outputnumber = -1;
 	}
 
@@ -234,10 +226,10 @@ static node_t* ClearOutFaces_r(node_t* node) {
 		node->children[1] = ClearOutFaces_r(node->children[1]);
 
 		// free any faces not in open child leafs
-		f = node->faces;
+		face_t* f = node->faces;
 		node->faces = nullptr;
 
-		for (; f; f = fnext) {
+		for (face_t* fnext; f; f = fnext) {
 			fnext = f->next;
 			if (f->outputnumber == -1) { // never referenced, so free it
 				c_free_faces++;
@@ -282,7 +274,7 @@ static node_t* ClearOutFaces_r(node_t* node) {
 		// this node is still inside
 
 		// mark all the nodes used as portals
-		for (p = node->portals; p;) {
+		for (bsp_portal_t* p = node->portals; p;) {
 			if (p->onnode) {
 				p->onnode->valid = 1;
 			}
@@ -376,8 +368,6 @@ auto cartesian_product(ContainerType const & a, ContainerType const & b) {
 // =====================================================================================
 node_t*
 FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
-	int s;
-
 	Verbose("----- FillOutside ----\n");
 
 	if (g_nofill) {
@@ -440,7 +430,7 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 		return node;
 	}
 
-	s = !(g_outside_node.portals->nodes[1] == &g_outside_node);
+	int s = !(g_outside_node.portals->nodes[1] == &g_outside_node);
 
 	// first check to see if an occupied leaf is hit
 	outleafs = 0;

@@ -8,6 +8,7 @@
 #include <span>
 
 constexpr float bogus_range = 80000.0f;
+static_assert(bogus_range < bogus_range + 0.2f * ON_EPSILON);
 
 //
 // winding_base Public Methods

@@ -12,15 +12,8 @@
 // But we choose this big epsilon to tolerate the imprecision caused by
 // Hammer. Basically, this is a balance between precision and flexibility.
 constexpr float NORMAL_EPSILON{ 0.00001f };
-constexpr float ON_EPSILON{
-	0.04f
-}; // We should ensure that (float)BOGUS_RANGE <
-   // (float)(BOGUS_RANGE + 0.2 * ON_EPSILON)
+constexpr float ON_EPSILON{ 0.04f };
 constexpr float EQUAL_EPSILON{ 0.004f };
-
-//
-// Vector Math
-//
 
 constexpr auto
 dot_product(any_vec3 auto const & a, any_vec3 auto const & b) noexcept {
