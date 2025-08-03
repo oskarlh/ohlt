@@ -3,6 +3,7 @@
 #include "bspfile.h"
 #include "cli_option_defaults.h"
 #include "cmdlinecfg.h"
+#include "external_types/external_types.h"
 #include "filelib.h"
 #include "hull_size.h"
 #include "log.h"
@@ -17,9 +18,6 @@
 using namespace std::literals;
 
 hull_sizes g_hull_size{ standard_hull_sizes };
-
-static FILE* polyfiles[NUM_HULLS];
-static FILE* brushfiles[NUM_HULLS];
 
 std::filesystem::path g_bspfilename;
 std::filesystem::path g_pointfilename;
@@ -669,7 +667,8 @@ static facestyle_e which_style_for_face(face_t const & f) {
 // =====================================================================================
 //  read_surfaces
 // =====================================================================================
-static surfchain_t* read_surfaces(FILE* file) {
+static surfchain_t* read_surfaces(std::optional<FILE*> fileUnlessSkippedHull
+) {
 	detail_level detailLevel;
 	int planenum, numpoints;
 	texinfo_count g_texinfo;
@@ -684,118 +683,122 @@ static surfchain_t* read_surfaces(FILE* file) {
 	validFacesByPlane.resize(g_numplanes, nullptr);
 
 	// read in the polygons
-	while (1) {
-		if (file == polyfiles[2] && g_nohull2) {
-			break;
-		}
-		line++;
-		int r = fscanf(
-			file,
-			"%hu %i %hu %i %i\n",
-			&detailLevel,
-			&planenum,
-			&g_texinfo,
-			&contents,
-			&numpoints
-		);
-		if (r == 0 || r == -1) {
-			return nullptr;
-		}
-		if (planenum == -1) // end of model
-		{
-			Developer(
-				developer_level::megaspam,
-				"inaccuracy: average %.8f max %.8f\n",
-				inaccuracy_total / inaccuracy_count,
-				inaccuracy_max
+	if (fileUnlessSkippedHull.has_value()) {
+		FILE* file = fileUnlessSkippedHull.value();
+		while (1) {
+			line++;
+			int r = fscanf(
+				file,
+				"%hu %i %hu %i %i\n",
+				&detailLevel,
+				&planenum,
+				&g_texinfo,
+				&contents,
+				&numpoints
 			);
-			break;
-		}
-		if (r != 5) {
-			Error("read_surfaces (line %i): scanf failure", line);
-		}
-		if (numpoints > MAXPOINTS) {
-			Error(
-				"read_surfaces (line %i): %i > MAXPOINTS\nThis is caused by a face with too many verticies (typically found on end-caps of high-poly cylinders)\n",
-				line,
-				numpoints
-			);
-		}
-		if (planenum > g_numplanes) {
-			Error(
-				"read_surfaces (line %i): %i > g_numplanes\n",
-				line,
-				planenum
-			);
-		}
-		if (g_texinfo != no_texinfo && g_texinfo > g_numtexinfo) {
-			Error(
-				"read_surfaces (line %i): %i > g_numtexinfo",
-				line,
-				g_texinfo
-			);
-		}
+			if (r == 0 || r == -1) {
+				return nullptr;
+			}
+			if (planenum == -1) // end of model
+			{
+				Developer(
+					developer_level::megaspam,
+					"inaccuracy: average %.8f max %.8f\n",
+					inaccuracy_total / inaccuracy_count,
+					inaccuracy_max
+				);
+				break;
+			}
+			if (r != 5) {
+				Error("read_surfaces (line %i): scanf failure", line);
+			}
+			if (numpoints > MAXPOINTS) {
+				Error(
+					"read_surfaces (line %i): %i > MAXPOINTS\nThis is caused by a face with too many verticies (typically found on end-caps of high-poly cylinders)\n",
+					line,
+					numpoints
+				);
+			}
+			if (planenum > g_numplanes) {
+				Error(
+					"read_surfaces (line %i): %i > g_numplanes\n",
+					line,
+					planenum
+				);
+			}
+			if (g_texinfo != no_texinfo && g_texinfo > g_numtexinfo) {
+				Error(
+					"read_surfaces (line %i): %i > g_numtexinfo",
+					line,
+					g_texinfo
+				);
+			}
 
-		if ((get_texture_by_number(g_texinfo)).is_skip()) {
-			Verbose("read_surfaces (line %i): skipping a surface", line);
+			if ((get_texture_by_number(g_texinfo)).is_skip()) {
+				Verbose(
+					"read_surfaces (line %i): skipping a surface", line
+				);
+
+				for (int i = 0; i < numpoints; i++) {
+					line++;
+					// Verbose("skipping line %d", line);
+					r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
+					if (r != 3) {
+						Error(
+							"::read_surfaces (face_skip), fscanf of points failed at line %i",
+							line
+						);
+					}
+				}
+				fscanf(file, "\n");
+				continue;
+			}
+
+			face_t* f = new face_t{};
+			f->detailLevel = detailLevel;
+			f->planenum = planenum;
+			f->texturenum = g_texinfo;
+			f->contents = contents_t{ contents };
+			f->facestyle = which_style_for_face(*f);
+
+			f->next = validFacesByPlane[planenum];
+			validFacesByPlane[planenum] = f;
 
 			for (int i = 0; i < numpoints; i++) {
 				line++;
-				// Verbose("skipping line %d", line);
 				r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
 				if (r != 3) {
 					Error(
-						"::read_surfaces (face_skip), fscanf of points failed at line %i",
+						"::read_surfaces (face_normal), fscanf of points failed at line %i",
 						line
 					);
 				}
+				f->pts.emplace_back(v);
+				if (developer_level::megaspam <= g_developer) {
+					mapplane_t const & plane = g_mapPlanes[f->planenum];
+					inaccuracy = fabs(
+						dot_product(f->pts[i], plane.normal) - plane.dist
+					);
+					inaccuracy_count++;
+					inaccuracy_total += inaccuracy;
+					inaccuracy_max = std::max(inaccuracy, inaccuracy_max);
+				}
 			}
 			fscanf(file, "\n");
-			continue;
 		}
-
-		face_t* f = new face_t{};
-		f->detailLevel = detailLevel;
-		f->planenum = planenum;
-		f->texturenum = g_texinfo;
-		f->contents = contents_t{ contents };
-		f->facestyle = which_style_for_face(*f);
-
-		f->next = validFacesByPlane[planenum];
-		validFacesByPlane[planenum] = f;
-
-		for (int i = 0; i < numpoints; i++) {
-			line++;
-			r = fscanf(file, "%lf %lf %lf\n", &v[0], &v[1], &v[2]);
-			if (r != 3) {
-				Error(
-					"::read_surfaces (face_normal), fscanf of points failed at line %i",
-					line
-				);
-			}
-			f->pts.emplace_back(v);
-			if (developer_level::megaspam <= g_developer) {
-				mapplane_t const & plane = g_mapPlanes[f->planenum];
-				inaccuracy = fabs(
-					dot_product(f->pts[i], plane.normal) - plane.dist
-				);
-				inaccuracy_count++;
-				inaccuracy_total += inaccuracy;
-				inaccuracy_max = std::max(inaccuracy, inaccuracy_max);
-			}
-		}
-		fscanf(file, "\n");
 	}
 
 	return SurflistFromValidFaces(validFacesByPlane);
 }
 
-static brush_t* ReadBrushes(FILE* file) {
+static brush_t* ReadBrushes(std::optional<FILE*> fileUnlessSkippedHull) {
 	brush_t* brushes = nullptr;
+	if (!fileUnlessSkippedHull.has_value()) {
+		return brushes;
+	}
+
+	FILE* file = fileUnlessSkippedHull.value();
 	while (1) {
-		if (file == brushfiles[2] && g_nohull2) {
-			break;
-		}
 		int r;
 		int brushinfo;
 		r = fscanf(file, "%i\n", &brushinfo);
@@ -851,26 +854,25 @@ static brush_t* ReadBrushes(FILE* file) {
 // =====================================================================================
 //  ProcessModel
 // =====================================================================================
-static bool ProcessModel(bsp_data& bspData) {
-	brush_t* detailbrushes;
-	node_t* nodes;
-	dmodel_t* model;
-	int startleafs;
-
-	surfchain_t* surfs = read_surfaces(polyfiles[0]);
+static bool ProcessModel(
+	bsp_data& bspData,
+	std::span<std::optional<FILE*>, NUM_HULLS> brushFiles,
+	std::span<std::optional<FILE*>, NUM_HULLS> polyFiles
+) {
+	surfchain_t* surfs = read_surfaces(polyFiles[0]);
 
 	if (!surfs) {
 		return false; // all models are done
 	}
-	detailbrushes = ReadBrushes(brushfiles[0]);
+	brush_t* detailbrushes = ReadBrushes(brushFiles[0]);
 
 	hlassume(
 		bspData.mapModelsLength < MAX_MAP_MODELS, assume_MAX_MAP_MODELS
 	);
 
-	startleafs = g_numleafs;
+	int startleafs = g_numleafs;
 	int modnum = bspData.mapModelsLength;
-	model = &bspData.mapModels[modnum];
+	dmodel_t* model = &bspData.mapModels[modnum];
 	g_nummodels++;
 
 	//    Log("ProcessModel: %i (%i f)\n", modnum, model->numfaces);
@@ -910,7 +912,7 @@ static bool ProcessModel(bsp_data& bspData) {
 	}
 
 	// SolidBSP generates a node tree
-	nodes = SolidBSP(surfs, detailbrushes, modnum == 0, hullNum);
+	node_t* nodes = SolidBSP(surfs, detailbrushes, modnum == 0, hullNum);
 
 	// build all the portals in the bsp tree
 	// some portals are solid polygons, and some are paths to other leafs
@@ -996,8 +998,8 @@ static bool ProcessModel(bsp_data& bspData) {
 	if (!skipClip) {
 		// the clipping hulls are simpler
 		for (hullNum = 1; hullNum < NUM_HULLS; hullNum++) {
-			surfs = read_surfaces(polyfiles[hullNum]);
-			detailbrushes = ReadBrushes(brushfiles[hullNum]);
+			surfs = read_surfaces(polyFiles[hullNum]);
+			detailbrushes = ReadBrushes(brushFiles[hullNum]);
 			{
 				if (surfs->mins[0] > surfs->maxs[0]) {
 					Developer(
@@ -1309,18 +1311,12 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 	std::filesystem::remove(g_extentfilename);
 	// open the hull files
 
+	std::array<std::optional<FILE*>, NUM_HULLS> brushFiles;
+	std::array<std::optional<FILE*>, NUM_HULLS> polyFiles;
+
 	for (hull_count i = 0; i < NUM_HULLS; ++i) {
-		// mapname.p[0-3]
-		std::filesystem::path polyFilePath{
-			path_to_temp_file_with_extension(
-				mapBasePath, polyFileExtensions[i]
-			)
-		};
-
-		polyfiles[i] = fopen(polyFilePath.c_str(), "r");
-
-		if (!polyfiles[i]) {
-			Error("Can't open %s", polyFilePath.c_str());
+		if (g_nohull2 && i == 2) {
+			continue;
 		}
 
 		std::filesystem::path brushFilePath{
@@ -1328,10 +1324,24 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 				mapBasePath, brushFileExtensions[i]
 			)
 		};
-		brushfiles[i] = fopen(brushFilePath.c_str(), "r");
-		if (!brushfiles[i]) {
+		FILE* brushFile = fopen(brushFilePath.c_str(), "r");
+		if (!brushFile) {
 			Error("Can't open %s", brushFilePath.c_str());
 		}
+		brushFiles[i] = brushFile;
+
+		std::filesystem::path polyFilePath{
+			path_to_temp_file_with_extension(
+				mapBasePath, polyFileExtensions[i]
+			)
+		};
+
+		FILE* polyFile = fopen(polyFilePath.c_str(), "r");
+		if (!polyFile) {
+			Error("Can't open %s", polyFilePath.c_str());
+		}
+
+		polyFiles[i] = polyFile;
 	}
 	{
 		std::filesystem::path filePath{
@@ -1405,7 +1415,7 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 	BeginBSPFile();
 
 	// process each model individually
-	while (ProcessModel(bspData))
+	while (ProcessModel(bspData, brushFiles, polyFiles))
 		;
 
 	// write the updated bsp file out
@@ -1414,13 +1424,18 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 	// Because the bsp file has been updated, these polyfiles are no longer
 	// valid.
 	for (int i = 0; i < NUM_HULLS; i++) {
-		fclose(polyfiles[i]);
-		polyfiles[i] = nullptr;
+		if (polyFiles[i].has_value()) {
+			fclose(polyFiles[i].value());
+			polyFiles[i] = std::nullopt;
+		}
 		std::filesystem::remove(path_to_temp_file_with_extension(
 			mapBasePath, polyFileExtensions[i]
 		));
-		fclose(brushfiles[i]);
-		brushfiles[i] = nullptr;
+
+		if (brushFiles[i].has_value()) {
+			fclose(brushFiles[i].value());
+			brushFiles[i] = std::nullopt;
+		}
 		std::filesystem::remove(path_to_temp_file_with_extension(
 			mapBasePath, brushFileExtensions[i]
 		));
