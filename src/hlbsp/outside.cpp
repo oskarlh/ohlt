@@ -61,14 +61,14 @@ static bool PlaceOccupant(
 // =====================================================================================
 //  MarkLeakTrail
 // =====================================================================================
-static portal_t* prevleaknode;
+static bsp_portal_t* prevleaknode;
 static FILE* pointfile;
 static FILE* linefile;
 
-static void MarkLeakTrail(portal_t* n2) {
+static void MarkLeakTrail(bsp_portal_t* n2) {
 	int i;
 	float len;
-	portal_t* n1;
+	bsp_portal_t* n1;
 
 	n1 = prevleaknode;
 	prevleaknode = n2;
@@ -180,7 +180,7 @@ static bool RecursiveFillOutside(node_t* l, bool const fill) {
 	}
 	outleafs++;
 
-	for (portal_t* p = l->portals; p;) {
+	for (bsp_portal_t* p = l->portals; p;) {
 		int s = (p->nodes[0] == l);
 
 		if (RecursiveFillOutside(
@@ -215,7 +215,7 @@ static void MarkFacesInside_r(node_t* node) {
 static node_t* ClearOutFaces_r(node_t* node) {
 	face_t* f;
 	face_t* fnext;
-	portal_t* p;
+	bsp_portal_t* p;
 
 	// mark the node and all it's faces, so they
 	// can be removed if no children use them
@@ -554,7 +554,7 @@ void MarkOccupied_r(node_t* node) {
 	if (node->empty == 1) {
 		node->empty = 0;
 		int s;
-		for (portal_t* p = node->portals; p; p = p->next[!s]) {
+		for (bsp_portal_t* p = node->portals; p; p = p->next[!s]) {
 			s = (p->nodes[0] == node);
 			MarkOccupied_r(p->nodes[s]);
 		}

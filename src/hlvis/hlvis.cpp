@@ -22,7 +22,7 @@ using namespace std::literals;
 int g_numportals = 0;
 unsigned g_portalleafs = 0;
 
-portal_t* g_portals;
+vis_portal_t* g_portals;
 
 leaf_t* g_leafs;
 int* g_leafstarts;
@@ -174,10 +174,10 @@ static winding_t* NewWinding(int const points) {
 //      Returns the portals from the least complex, so the later ones can
 //      reuse the earlier information.
 // =====================================================================================
-static portal_t* GetNextPortal() {
+static vis_portal_t* GetNextPortal() {
 	int j;
-	portal_t* p;
-	portal_t* tp;
+	vis_portal_t* p;
+	vis_portal_t* tp;
 	int min;
 
 	{
@@ -211,7 +211,7 @@ static portal_t* GetNextPortal() {
 // =====================================================================================
 
 static void LeafThread(int unused) {
-	portal_t* p;
+	vis_portal_t* p;
 
 	while (1) {
 		if (!(p = GetNextPortal())) {
@@ -269,7 +269,7 @@ static void LeafFlow(int const leafnum) {
 	int tmp;
 	int numvis;
 	byte* dest;
-	portal_t* p;
+	vis_portal_t* p;
 
 	//
 	// flow through all portals, collecting visible bits
@@ -509,7 +509,9 @@ static void LoadPortals(char* portal_image) {
 	g_bitlongs = g_bitbytes / sizeof(long);
 
 	// each file portal is split into two memory portals
-	g_portals = (portal_t*) calloc(2 * g_numportals, sizeof(portal_t));
+	g_portals = (vis_portal_t*) calloc(
+		2 * g_numportals, sizeof(vis_portal_t)
+	);
 	g_leafs = (leaf_t*) calloc(g_portalleafs, sizeof(leaf_t));
 	g_leafinfos = (leafinfo_t*) calloc(g_portalleafs, sizeof(leafinfo_t));
 	g_leafcounts = (int*) calloc(g_portalleafs, sizeof(int));
@@ -579,7 +581,7 @@ static void LoadPortals(char* portal_image) {
 		}
 	}
 
-	portal_t* p = g_portals;
+	vis_portal_t* p = g_portals;
 	for (int i = 0; i < g_numportals; i++) {
 		std::size_t rval = 0;
 

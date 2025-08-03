@@ -6,7 +6,6 @@
 #include "winding.h"
 
 #include <filesystem>
-#include <memory>
 
 extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
@@ -113,7 +112,7 @@ struct brush_t
 		// to prevent some strange brushes in the func_detail from clipping
 		// away the entire boundsbrush making the func_detail invisible.
 
-struct portal_t;
+struct bsp_portal_t;
 
 struct node_t final {
 	surface_t* surfaces;
@@ -142,7 +141,7 @@ struct node_t final {
 	// information for leafs
 	contents_t contents; // leaf nodes (0 for decision nodes)
 	face_t** markfaces;	 // leaf nodes only, point to node faces
-	portal_t* portals;
+	bsp_portal_t* portals;
 	int visleafnum; // -1 = solid
 	int valid;		// for flood filling
 	int occupied;	// light number in leaf for outside filling
@@ -172,19 +171,18 @@ GetEdge(double3_array const & p1, double3_array const & p2, face_t* f);
 //=============================================================================
 // portals.c
 
-// TODO: Rename! HLVIS also has a portal_t
-struct portal_t final {
+struct bsp_portal_t final {
 	mapplane_t plane;
 	node_t* onnode;	  // NULL = outside box
 	node_t* nodes[2]; // [0] = front side of plane
-	portal_t* next[2];
+	bsp_portal_t* next[2];
 	accurate_winding* winding;
 };
 
 extern node_t g_outside_node; // portals outside the world face this
 
-extern void AddPortalToNodes(portal_t* p, node_t* front, node_t* back);
-extern void RemovePortalFromNode(portal_t* portal, node_t* l);
+extern void AddPortalToNodes(bsp_portal_t* p, node_t* front, node_t* back);
+extern void RemovePortalFromNode(bsp_portal_t* portal, node_t* l);
 extern void MakeHeadnodePortals(
 	node_t* node, double3_array const & mins, double3_array const & maxs
 );
@@ -215,8 +213,8 @@ extern void FillInside(node_t* node);
 // misc functions
 extern void GetParamsFromEnt(entity_t* mapent);
 
-extern portal_t* AllocPortal();
-extern void FreePortal(struct portal_t* p);
+extern bsp_portal_t* AllocPortal();
+extern void FreePortal(struct bsp_portal_t* p);
 
 extern side_t* NewSideFromSide(side_t const * s);
 extern brush_t* AllocBrush();

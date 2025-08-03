@@ -34,8 +34,8 @@ enum vstatus_t {
 	stat_done	  // Process completed
 };
 
-// TODO: Rename! HLBSP also has a portal_t
-struct portal_t final {
+// TODO: Rename! HLBSP also has a vis_portal_t
+struct vis_portal_t final {
 	hlvis_plane_t plane; // normal pointing into neighbor
 	int leaf;			 // neighbor
 	winding_t* winding;
@@ -63,7 +63,7 @@ struct passage_t final {
 struct leaf_t final {
 	unsigned numportals;
 	passage_t* passages;
-	portal_t* portals[MAX_PORTALS_ON_LEAF];
+	vis_portal_t* portals[MAX_PORTALS_ON_LEAF];
 };
 
 struct pstack_t final {
@@ -71,7 +71,7 @@ struct pstack_t final {
 	pstack_t* head;
 
 	leaf_t* leaf;
-	portal_t* portal; // portal exiting
+	vis_portal_t* portal; // portal exiting
 	winding_t* source;
 	winding_t* pass;
 
@@ -88,7 +88,7 @@ struct threaddata_t final {
 	byte* leafvis; // bit string
 	//      byte            fullportal[MAX_PORTALS/8];              // bit
 	//      string
-	portal_t* base;
+	vis_portal_t* base;
 	pstack_t pstack_head;
 };
 
@@ -138,7 +138,7 @@ struct leafinfo_t final {
 
 extern leafinfo_t* g_leafinfos;
 
-extern portal_t* g_portals;
+extern vis_portal_t* g_portals;
 extern leaf_t* g_leafs;
 
 extern unsigned g_bitbytes;
@@ -151,5 +151,5 @@ extern void BasePortalVis(int threadnum);
 extern void MaxDistVis(int threadnum);
 // extern void		PostMaxDistVis(int threadnum);
 
-extern void PortalFlow(portal_t* p);
+extern void PortalFlow(vis_portal_t* p);
 extern void CalcAmbientSounds();

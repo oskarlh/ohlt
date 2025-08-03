@@ -12,7 +12,7 @@ node_t g_outside_node; // portals outside the world face this
  * AddPortalToNodes
  * =============
  */
-void AddPortalToNodes(portal_t* p, node_t* front, node_t* back) {
+void AddPortalToNodes(bsp_portal_t* p, node_t* front, node_t* back) {
 	if (p->nodes[0] || p->nodes[1]) {
 		Error("AddPortalToNode: allready included");
 	}
@@ -31,9 +31,9 @@ void AddPortalToNodes(portal_t* p, node_t* front, node_t* back) {
  * RemovePortalFromNode
  * =============
  */
-void RemovePortalFromNode(portal_t* portal, node_t* l) {
-	portal_t** pp;
-	portal_t* t;
+void RemovePortalFromNode(bsp_portal_t* portal, node_t* l) {
+	bsp_portal_t** pp;
+	bsp_portal_t* t;
 
 	// remove reference to the current portal
 	pp = &l->portals;
@@ -78,8 +78,8 @@ void MakeHeadnodePortals(
 	node_t* node, double3_array const & mins, double3_array const & maxs
 ) {
 	std::array<double3_array, 2> bounds;
-	portal_t* p;
-	portal_t* portals[6];
+	bsp_portal_t* p;
+	bsp_portal_t* portals[6];
 	mapplane_t bplanes[6];
 
 	// pad with some space so there will never be null volume leafs
@@ -142,7 +142,7 @@ static int num_visportals;
 
 static void WritePortalFile_r(node_t const * const node) {
 	int i;
-	portal_t* p;
+	bsp_portal_t* p;
 	accurate_winding* w;
 	mapplane_t plane2;
 
@@ -279,7 +279,7 @@ static void WritePortalFile_r(node_t const * const node) {
  * ================
  */
 static void NumberLeafs_r(node_t* node) {
-	portal_t* p;
+	bsp_portal_t* p;
 
 	if (!node->isportalleaf) { // decision node
 		node->visleafnum = -99;
@@ -379,8 +379,8 @@ void WritePortalfile(node_t* headnode) {
 //===================================================
 
 void FreePortals(node_t* node) {
-	portal_t* p;
-	portal_t* nextp;
+	bsp_portal_t* p;
+	bsp_portal_t* nextp;
 
 	if (!node->isportalleaf) {
 		FreePortals(node->children[0]);

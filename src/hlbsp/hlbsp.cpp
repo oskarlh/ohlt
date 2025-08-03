@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
-#include <memory>
 #include <utility>
 
 using namespace std::literals;
@@ -62,14 +61,12 @@ vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 //      version of this to handle its own specific settings.
 // =====================================================================================
 void GetParamsFromEnt(entity_t* mapent) {
-	int iTmp;
-
 	Log("\nCompile Settings detected from info_compile_parameters entity\n"
 	);
 
 	// verbose(choices) : "Verbose compile messages" : 0 = [ 0 : "Off" 1 :
 	// "On" ]
-	iTmp = IntForKey(mapent, u8"verbose");
+	int iTmp = IntForKey(mapent, u8"verbose");
 	if (iTmp == 1) {
 		g_verbose = true;
 	} else if (iTmp == 0) {
@@ -348,10 +345,10 @@ face_t* AllocFace() {
 // =====================================================================================
 //  AllocPortal
 // =====================================================================================
-portal_t* AllocPortal() {
-	portal_t* p;
+bsp_portal_t* AllocPortal() {
+	bsp_portal_t* p;
 
-	p = (portal_t*) malloc(sizeof(portal_t));
+	p = (bsp_portal_t*) malloc(sizeof(bsp_portal_t));
 	*p = {};
 
 	return p;
@@ -360,7 +357,7 @@ portal_t* AllocPortal() {
 // =====================================================================================
 //  FreePortal
 // =====================================================================================
-void FreePortal(portal_t* p) // consider: inline
+void FreePortal(bsp_portal_t* p) // consider: inline
 {
 	free(p);
 }

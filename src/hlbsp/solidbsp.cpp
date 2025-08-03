@@ -1157,8 +1157,8 @@ static void MakeLeaf(node_t* leafnode) {
 //      nodes can be removed later.
 // =====================================================================================
 static void MakeNodePortal(node_t* node) {
-	portal_t* new_portal;
-	portal_t* p;
+	bsp_portal_t* new_portal;
+	bsp_portal_t* p;
 	mapplane_t* plane;
 	mapplane_t clipplane;
 	accurate_winding* w;
@@ -1210,8 +1210,8 @@ static void MakeNodePortal(node_t* node) {
 //      children have portals instead of node.
 // =====================================================================================
 static void SplitNodePortals(node_t* node) {
-	portal_t* p;
-	portal_t* next_portal;
+	bsp_portal_t* p;
+	bsp_portal_t* next_portal;
 	node_t* f;
 	node_t* b;
 	node_t* other_node;
@@ -1263,7 +1263,7 @@ static void SplitNodePortals(node_t* node) {
 			) {
 				// The winding is split
 				using std::swap;
-				portal_t* new_portal = AllocPortal();
+				bsp_portal_t* new_portal = AllocPortal();
 				*new_portal = *p;
 				new_portal->winding = new accurate_winding{};
 				swap(*new_portal->winding, arg.back);
@@ -1292,8 +1292,8 @@ static void SplitNodePortals(node_t* node) {
 static bool CalcNodeBounds(
 	node_t* node, double3_array& validmins, double3_array& validmaxs
 ) {
-	portal_t* p;
-	portal_t* next_portal;
+	bsp_portal_t* p;
+	bsp_portal_t* next_portal;
 	int side = 0;
 
 	if (node->isdetail) {

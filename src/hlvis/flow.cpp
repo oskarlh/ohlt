@@ -340,10 +340,10 @@ inline static void RecursiveLeafFlow(
 
 	// check all portals for flowing into other leafs
 	unsigned i;
-	portal_t** plist = leaf->portals;
+	vis_portal_t** plist = leaf->portals;
 
 	for (i = 0; i < leaf->numportals; i++, plist++) {
-		portal_t* p = *plist;
+		vis_portal_t* p = *plist;
 
 		{
 			unsigned const offset = p->leaf >> 3;
@@ -493,7 +493,7 @@ inline static void RecursiveLeafFlow(
 // =====================================================================================
 //  PortalFlow
 // =====================================================================================
-void PortalFlow(portal_t* p) {
+void PortalFlow(vis_portal_t* p) {
 	if (p->status != stat_working) {
 		Error("PortalFlow: reflowed");
 	}
@@ -529,7 +529,7 @@ static void SimpleFlood(
 ) {
 	unsigned i;
 	leaf_t* leaf;
-	portal_t* p;
+	vis_portal_t* p;
 
 	{
 		unsigned const offset = leafnum >> 3;
@@ -561,8 +561,8 @@ constexpr std::size_t PORTALSEE_SIZE = MAX_PORTALS * 2;
 // =====================================================================================
 void BasePortalVis(int unused) {
 	int i, j, k;
-	portal_t* tp;
-	portal_t* p;
+	vis_portal_t* tp;
+	vis_portal_t* p;
 	float d;
 	winding_t* w;
 	byte portalsee[PORTALSEE_SIZE];
