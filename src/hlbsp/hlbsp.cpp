@@ -868,13 +868,12 @@ static brush_t* ReadBrushes(FILE* file) {
 //  ProcessModel
 // =====================================================================================
 static bool ProcessModel(bsp_data& bspData) {
-	surfchain_t* surfs;
 	brush_t* detailbrushes;
 	node_t* nodes;
 	dmodel_t* model;
 	int startleafs;
 
-	surfs = read_surfaces(polyfiles[0]);
+	surfchain_t* surfs = read_surfaces(polyfiles[0]);
 
 	if (!surfs) {
 		return false; // all models are done
@@ -998,6 +997,7 @@ static bool ProcessModel(bsp_data& bspData) {
 	model->numfaces = g_numfaces - model->firstface;
 	model->visleafs = g_numleafs - startleafs;
 
+	bool skipClip = false;
 	if (g_noclip) {
 		// Store empty content type in headnode pointers to
 		//  signify lack of clipping information in a way that doesn't crash
@@ -1005,94 +1005,100 @@ static bool ProcessModel(bsp_data& bspData) {
 		model->headnode[1] = std::to_underlying(contents_t::EMPTY);
 		model->headnode[2] = std::to_underlying(contents_t::EMPTY);
 		model->headnode[3] = std::to_underlying(contents_t::EMPTY);
-		goto skipclip;
+		skipClip = true;
 	}
 
-	// the clipping hulls are simpler
-	for (g_hullnum = 1; g_hullnum < NUM_HULLS; g_hullnum++) {
-		surfs = read_surfaces(polyfiles[g_hullnum]);
-		detailbrushes = ReadBrushes(brushfiles[g_hullnum]);
-		{
-			int hullnum = g_hullnum;
-			if (surfs->mins[0] > surfs->maxs[0]) {
-				Developer(
-					developer_level::message,
-					"model %d hull %d empty\n",
-					modnum,
-					hullnum
-				);
-			} else {
-				double3_array mins = vector_subtract(
-					surfs->mins, g_hull_size[hullnum][0]
-				);
-				double3_array maxs = vector_subtract(
-					surfs->maxs, g_hull_size[hullnum][1]
-				);
-				for (std::size_t i = 0; i < 3; ++i) {
-					if (mins[i] > maxs[i]) {
-						double tmp;
-						tmp = (mins[i] + maxs[i]) / 2;
-						mins[i] = tmp;
-						maxs[i] = tmp;
+	if (!skipClip) {
+		// the clipping hulls are simpler
+		for (g_hullnum = 1; g_hullnum < NUM_HULLS; g_hullnum++) {
+			surfs = read_surfaces(polyfiles[g_hullnum]);
+			detailbrushes = ReadBrushes(brushfiles[g_hullnum]);
+			{
+				int hullnum = g_hullnum;
+				if (surfs->mins[0] > surfs->maxs[0]) {
+					Developer(
+						developer_level::message,
+						"model %d hull %d empty\n",
+						modnum,
+						hullnum
+					);
+				} else {
+					double3_array mins = vector_subtract(
+						surfs->mins, g_hull_size[hullnum][0]
+					);
+					double3_array maxs = vector_subtract(
+						surfs->maxs, g_hull_size[hullnum][1]
+					);
+					for (std::size_t i = 0; i < 3; ++i) {
+						if (mins[i] > maxs[i]) {
+							double tmp;
+							tmp = (mins[i] + maxs[i]) / 2;
+							mins[i] = tmp;
+							maxs[i] = tmp;
+						}
+					}
+					for (std::size_t i = 0; i < 3; ++i) {
+						model->maxs[i] = std::max(
+							model->maxs[i], (float) maxs[i]
+						);
+						model->mins[i] = std::min(
+							model->mins[i], (float) mins[i]
+						);
 					}
 				}
-				for (std::size_t i = 0; i < 3; ++i) {
-					model->maxs[i] = std::max(
-						model->maxs[i], (float) maxs[i]
-					);
-					model->mins[i] = std::min(
-						model->mins[i], (float) mins[i]
-					);
-				}
+			}
+			nodes = SolidBSP(surfs, detailbrushes, modnum == 0);
+			if (g_nummodels == 1
+				&& !g_nofill) // assume non-world bmodels are simple
+			{
+				nodes = FillOutside(nodes, (g_bLeaked != true), g_hullnum);
+			}
+			FreePortals(nodes);
+			/*
+				KGP 12/31/03 - need to test that the head clip node isn't
+			empty; if it is we need to set model->headnode equal to the
+			content type of the head, or create a trivial single-node case
+			where the content type is the same for both leaves if setting
+			the content type is invalid.
+			*/
+			if (nodes->is_leaf_node()) // empty!
+			{
+				model->headnode[g_hullnum] = std::to_underlying(
+					nodes->contents
+				);
+			} else {
+				model->headnode[g_hullnum] = g_numclipnodes;
+				WriteClipNodes(nodes);
 			}
 		}
-		nodes = SolidBSP(surfs, detailbrushes, modnum == 0);
-		if (g_nummodels == 1
-			&& !g_nofill) // assume non-world bmodels are simple
-		{
-			nodes = FillOutside(nodes, (g_bLeaked != true), g_hullnum);
-		}
-		FreePortals(nodes);
-		/*
-			KGP 12/31/03 - need to test that the head clip node isn't empty;
-		   if it is we need to set model->headnode equal to the content type
-		   of the head, or create a trivial single-node case where the
-		   content type is the same for both leaves if setting the content
-		   type is invalid.
-		*/
-		if (nodes->is_leaf_node()) // empty!
-		{
-			model->headnode[g_hullnum] = std::to_underlying(nodes->contents
-			);
-		} else {
-			model->headnode[g_hullnum] = g_numclipnodes;
-			WriteClipNodes(nodes);
-		}
 	}
-skipclip:
 
-{
-	entity_t* ent;
-	ent = EntityForModel(modnum);
-	if (ent != &g_entities[0] && has_key_value(ent, u8"zhlt_minsmaxs")) {
-		double3_array const origin = get_double3_for_key(*ent, u8"origin");
-		double3_array mins, maxs;
-		if (sscanf(
-				(char const *) value_for_key(ent, u8"zhlt_minsmaxs").data(),
-				"%lf %lf %lf %lf %lf %lf",
-				&mins[0],
-				&mins[1],
-				&mins[2],
-				&maxs[0],
-				&maxs[1],
-				&maxs[2]
-			)
-			== 6) {
-			model->mins = to_float3(vector_subtract(mins, origin));
-			model->maxs = to_float3(vector_subtract(maxs, origin));
+	{
+		entity_t* ent;
+		ent = EntityForModel(modnum);
+		if (ent != &g_entities[0]
+			&& has_key_value(ent, u8"zhlt_minsmaxs")) {
+			double3_array const origin = get_double3_for_key(
+				*ent, u8"origin"
+			);
+			double3_array mins, maxs;
+			if (sscanf(
+					(char const *) value_for_key(ent, u8"zhlt_minsmaxs")
+						.data(),
+					"%lf %lf %lf %lf %lf %lf",
+					&mins[0],
+					&mins[1],
+					&mins[2],
+					&maxs[0],
+					&maxs[1],
+					&maxs[2]
+				)
+				== 6) {
+				model->mins = to_float3(vector_subtract(mins, origin));
+				model->maxs = to_float3(vector_subtract(maxs, origin));
+			}
 		}
 	}
-}
 	Developer(
 		developer_level::message,
 		"model %d - mins=(%g,%g,%g) maxs=(%g,%g,%g)\n",
