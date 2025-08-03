@@ -1,15 +1,12 @@
 #pragma once
 
-#include "external_types/texinfo.h"
+#include "external_types/external_types.h"
 #include "utf8.h"
 
 #include <algorithm>
 #include <array>
 #include <span>
 #include <string_view>
-
-// TODO REMOVE THIS - USE ONE COMMON DEFINITION
-#define NUM_HULLS_X 4
 
 constexpr std::size_t
 	embedded_lightmap_texture_name_original_texinfo_index_starts_at
@@ -404,8 +401,7 @@ class wad_texture_name final {
 
 	constexpr bool is_clip_hull() const noexcept {
 		return starts_with_constant(u8"cliphull") && units[8 + 1] >= u'0'
-			&& units[8 + 1] <= (u'0' + NUM_HULLS_X)
-			&& units[8 + 2] == u8'\0';
+			&& units[8 + 1] <= (u'0' + NUM_HULLS) && units[8 + 2] == u8'\0';
 	}
 
 	constexpr std::optional<std::uint8_t>
