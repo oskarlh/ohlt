@@ -154,7 +154,8 @@ extern void SubdivideFace(face_t* f, face_t** prevptr);
 extern node_t* SolidBSP(
 	surfchain_t const * const surfhead,
 	brush_t* detailbrushes,
-	bool report_progress
+	bool report_progress,
+	hull_count hullNum
 );
 
 //=============================================================================
@@ -259,7 +260,6 @@ extern bool g_chart;
 extern bool g_estimate;
 extern int g_maxnode_size;
 extern int g_subdivide_size;
-extern hull_count g_hullnum;
 extern bool g_bLeakOnly;
 extern bool g_bLeaked;
 extern std::filesystem::path g_portfilename;

@@ -20,7 +20,6 @@ hull_sizes g_hull_size{ standard_hull_sizes };
 
 static FILE* polyfiles[NUM_HULLS];
 static FILE* brushfiles[NUM_HULLS];
-hull_count g_hullnum = 0;
 
 std::filesystem::path g_bspfilename;
 std::filesystem::path g_pointfilename;
@@ -876,7 +875,8 @@ static bool ProcessModel(bsp_data& bspData) {
 
 	//    Log("ProcessModel: %i (%i f)\n", modnum, model->numfaces);
 
-	g_hullnum = 0;
+	hull_count hullNum = 0;
+
 	model->mins.fill(99999);
 	model->maxs.fill(-99999);
 	{
@@ -885,14 +885,14 @@ static bool ProcessModel(bsp_data& bspData) {
 				developer_level::fluff,
 				"model %d hull %d empty\n",
 				modnum,
-				g_hullnum
+				hullNum
 			);
 		} else {
 			double3_array mins = vector_subtract(
-				surfs->mins, g_hull_size[g_hullnum][0]
+				surfs->mins, g_hull_size[hullNum][0]
 			);
 			double3_array maxs = vector_subtract(
-				surfs->maxs, g_hull_size[g_hullnum][1]
+				surfs->maxs, g_hull_size[hullNum][1]
 			);
 			for (std::size_t i = 0; i < 3; ++i) {
 				if (mins[i] > maxs[i]) {
@@ -910,7 +910,7 @@ static bool ProcessModel(bsp_data& bspData) {
 	}
 
 	// SolidBSP generates a node tree
-	nodes = SolidBSP(surfs, detailbrushes, modnum == 0);
+	nodes = SolidBSP(surfs, detailbrushes, modnum == 0, hullNum);
 
 	// build all the portals in the bsp tree
 	// some portals are solid polygons, and some are paths to other leafs
@@ -995,24 +995,23 @@ static bool ProcessModel(bsp_data& bspData) {
 
 	if (!skipClip) {
 		// the clipping hulls are simpler
-		for (g_hullnum = 1; g_hullnum < NUM_HULLS; g_hullnum++) {
-			surfs = read_surfaces(polyfiles[g_hullnum]);
-			detailbrushes = ReadBrushes(brushfiles[g_hullnum]);
+		for (hullNum = 1; hullNum < NUM_HULLS; hullNum++) {
+			surfs = read_surfaces(polyfiles[hullNum]);
+			detailbrushes = ReadBrushes(brushfiles[hullNum]);
 			{
-				int hullnum = g_hullnum;
 				if (surfs->mins[0] > surfs->maxs[0]) {
 					Developer(
 						developer_level::message,
 						"model %d hull %d empty\n",
 						modnum,
-						hullnum
+						hullNum
 					);
 				} else {
 					double3_array mins = vector_subtract(
-						surfs->mins, g_hull_size[hullnum][0]
+						surfs->mins, g_hull_size[hullNum][0]
 					);
 					double3_array maxs = vector_subtract(
-						surfs->maxs, g_hull_size[hullnum][1]
+						surfs->maxs, g_hull_size[hullNum][1]
 					);
 					for (std::size_t i = 0; i < 3; ++i) {
 						if (mins[i] > maxs[i]) {
@@ -1032,11 +1031,11 @@ static bool ProcessModel(bsp_data& bspData) {
 					}
 				}
 			}
-			nodes = SolidBSP(surfs, detailbrushes, modnum == 0);
+			nodes = SolidBSP(surfs, detailbrushes, modnum == 0, hullNum);
 			if (g_nummodels == 1
 				&& !g_nofill) // assume non-world bmodels are simple
 			{
-				nodes = FillOutside(nodes, (g_bLeaked != true), g_hullnum);
+				nodes = FillOutside(nodes, (g_bLeaked != true), hullNum);
 			}
 			FreePortals(nodes);
 			/*
@@ -1048,11 +1047,11 @@ static bool ProcessModel(bsp_data& bspData) {
 			*/
 			if (nodes->is_leaf_node()) // empty!
 			{
-				model->headnode[g_hullnum] = std::to_underlying(
+				model->headnode[hullNum] = std::to_underlying(
 					nodes->contents
 				);
 			} else {
-				model->headnode[g_hullnum] = g_numclipnodes;
+				model->headnode[hullNum] = g_numclipnodes;
 				WriteClipNodes(nodes);
 			}
 		}

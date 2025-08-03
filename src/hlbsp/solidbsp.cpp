@@ -1001,7 +1001,8 @@ static void FreeLeafBrushes(node_t* leaf) {
 // =====================================================================================
 #define MAX_LEAF_FACES 16384
 
-static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
+static void
+LinkLeafFaces(surface_t* planelist, node_t* leafnode, hull_count hullNum) {
 	surface_t* surf;
 
 	int rank = -1;
@@ -1056,7 +1057,7 @@ static void LinkLeafFaces(surface_t* planelist, node_t* leafnode) {
 			leafnode->maxs[0],
 			leafnode->maxs[1],
 			leafnode->maxs[2],
-			g_hullnum,
+			hullNum,
 			g_nummodels - 1,
 			(ent ? (char const *) get_classname(*ent).data() : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"origin").data()
@@ -1396,7 +1397,7 @@ static void CopyFacesToNode(node_t* node, surface_t* surf) {
 // =====================================================================================
 //  BuildBspTree_r
 // =====================================================================================
-static void BuildBspTree_r(node_t* node) {
+static void BuildBspTree_r(node_t* node, hull_count hullNum) {
 	bool midsplit;
 	surface_t* allsurfs;
 	double3_array validmins, validmaxs;
@@ -1427,7 +1428,7 @@ static void BuildBspTree_r(node_t* node) {
 	}
 	if (!node->isdetail && (!split || split->detailLevel > 0)) {
 		node->isportalleaf = true;
-		LinkLeafFaces(node->surfaces, node); // set contents
+		LinkLeafFaces(node->surfaces, node, hullNum); // set contents
 		if (node->contents == contents_t::SOLID) {
 			split = nullptr;
 		}
@@ -1497,8 +1498,8 @@ static void BuildBspTree_r(node_t* node) {
 	}
 
 	// recursively do the children
-	BuildBspTree_r(node->children[0]);
-	BuildBspTree_r(node->children[1]);
+	BuildBspTree_r(node->children[0], hullNum);
+	BuildBspTree_r(node->children[1], hullNum);
 	UpdateStatus();
 }
 
@@ -1511,12 +1512,13 @@ static void BuildBspTree_r(node_t* node) {
 node_t* SolidBSP(
 	surfchain_t const * const surfhead,
 	brush_t* detailbrushes,
-	bool report_progress
+	bool report_progress,
+	hull_count hullNum
 ) {
 	ResetStatus(report_progress);
 	time_counter timeCounter;
 	if (report_progress) {
-		Log("SolidBSP [hull %d] ", g_hullnum);
+		Log("SolidBSP [hull %u] ", hullNum);
 	} else {
 		Verbose("----- SolidBSP -----\n");
 	}
@@ -1533,7 +1535,7 @@ node_t* SolidBSP(
 	MakeHeadnodePortals(headnode, surfhead->mins, surfhead->maxs);
 
 	// recursively partition everything
-	BuildBspTree_r(headnode);
+	BuildBspTree_r(headnode, hullNum);
 
 	if (report_progress) {
 		Log("%d (%.2f seconds)\n", ++g_numProcessed, timeCounter.get_total()
