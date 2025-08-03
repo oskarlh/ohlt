@@ -231,8 +231,6 @@ extern void CalcBrushBounds(
 	brush_t const * b, double3_array& mins, double3_array& maxs
 );
 
-extern node_t* AllocNode();
-
 extern bool should_face_have_facestyle_null(
 	wad_texture_name textureName, contents_t faceContents
 ) noexcept;

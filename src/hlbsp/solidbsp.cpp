@@ -1446,8 +1446,8 @@ static void BuildBspTree_r(node_t* node) {
 	node->faces = nullptr;
 	CopyFacesToNode(node, split);
 
-	node->children[0] = AllocNode();
-	node->children[1] = AllocNode();
+	node->children[0] = new node_t{};
+	node->children[1] = new node_t{};
 	node->children[0]->isdetail = split->detailLevel > 0;
 	node->children[1]->isdetail = split->detailLevel > 0;
 
@@ -1513,8 +1513,6 @@ node_t* SolidBSP(
 	brush_t* detailbrushes,
 	bool report_progress
 ) {
-	node_t* headnode;
-
 	ResetStatus(report_progress);
 	time_counter timeCounter;
 	if (report_progress) {
@@ -1523,7 +1521,7 @@ node_t* SolidBSP(
 		Verbose("----- SolidBSP -----\n");
 	}
 
-	headnode = AllocNode();
+	node_t* headnode = new node_t{};
 	headnode->surfaces = surfhead->surfaces;
 	headnode->detailbrushes = detailbrushes;
 	headnode->isdetail = false;

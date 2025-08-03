@@ -534,19 +534,6 @@ void CalcBrushBounds(
 }
 
 // =====================================================================================
-//  AllocNode
-//      blah
-// =====================================================================================
-node_t* AllocNode() {
-	node_t* n;
-
-	n = (node_t*) malloc(sizeof(node_t));
-	*n = {};
-
-	return n;
-}
-
-// =====================================================================================
 //  AddPointToBounds
 // =====================================================================================
 static void AddPointToBounds(
@@ -961,7 +948,7 @@ static bool ProcessModel(bsp_data& bspData) {
 			Error("No valid planes.\n");
 		}
 		nodes->planenum = 0; // arbitrary plane
-		nodes->children[0] = AllocNode();
+		nodes->children[0] = new node_t{};
 		nodes->children[0]->planenum = -1;
 		nodes->children[0]->contents = contents_t::EMPTY;
 		nodes->children[0]->isdetail = false;
@@ -973,7 +960,7 @@ static bool ProcessModel(bsp_data& bspData) {
 		);
 		nodes->children[0]->mins = {};
 		nodes->children[0]->maxs = {};
-		nodes->children[1] = AllocNode();
+		nodes->children[1] = new node_t{};
 		nodes->children[1]->planenum = -1;
 		nodes->children[1]->contents = contents_t::EMPTY;
 		nodes->children[1]->isdetail = false;

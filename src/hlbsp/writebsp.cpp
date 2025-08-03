@@ -86,7 +86,7 @@ static int WriteClipNodes_r(
 ) {
 	if (node->isportalleaf) {
 		if (node->contents == contents_t::SOLID) {
-			free(node);
+			delete node;
 			return std::to_underlying(contents_t::SOLID);
 		} else {
 			portalleaf = node;
@@ -100,7 +100,7 @@ static int WriteClipNodes_r(
 			num = std::to_underlying(portalleaf->contents);
 		}
 		free(node->markfaces);
-		free(node);
+		delete node;
 		return num;
 	}
 
@@ -134,7 +134,7 @@ static int WriteClipNodes_r(
 		c = output->second; // use existing clipnode
 	}
 
-	free(node);
+	delete node;
 	return c;
 }
 
@@ -344,11 +344,7 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 //  FreeDrawNodes_r
 // =====================================================================================
 static void FreeDrawNodes_r(node_t* node) {
-	int i;
-	face_t* f;
-	face_t* next;
-
-	for (i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++) {
 		if (node->children[i]->planenum != -1) {
 			FreeDrawNodes_r(node->children[i]);
 		}
@@ -357,12 +353,13 @@ static void FreeDrawNodes_r(node_t* node) {
 	//
 	// free the faces on the node
 	//
-	for (f = node->faces; f; f = next) {
+	face_t* next;
+	for (face_t* f = node->faces; f; f = next) {
 		next = f->next;
 		delete f;
 	}
 
-	free(node);
+	delete node;
 }
 
 // =====================================================================================

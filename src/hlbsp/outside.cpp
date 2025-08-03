@@ -48,9 +48,7 @@ static node_t* PointInLeaf(node_t* node, double3_array const & point) {
 static bool PlaceOccupant(
 	int const num, double3_array const & point, node_t* headnode
 ) {
-	node_t* n;
-
-	n = PointInLeaf(headnode, point);
+	node_t* n = PointInLeaf(headnode, point);
 	if (n->contents == contents_t::SOLID) {
 		return false;
 	}
@@ -123,13 +121,14 @@ static void FreeDetailNode_r(node_t* n) {
 		}
 		return;
 	}
+
 	for (std::size_t i = 0; i < 2; ++i) {
 		FreeDetailNode_r(n->children[i]);
-		free(n->children[i]);
+		delete n->children[i];
 		n->children[i] = nullptr;
 	}
-	face_t *f, *next;
-	for (f = n->faces; f; f = next) {
+	face_t* next;
+	for (face_t* f = n->faces; f; f = next) {
 		next = f->next;
 		delete f;
 	}
@@ -154,9 +153,6 @@ static int hit_occupied;
 static int backdraw;
 
 static bool RecursiveFillOutside(node_t* l, bool const fill) {
-	portal_t* p;
-	int s;
-
 	if ((l->contents == contents_t::SOLID)
 		|| (l->contents == contents_t::SKY)) {
 		/*if (l->contents != contents_t::SOLID)
@@ -184,8 +180,8 @@ static bool RecursiveFillOutside(node_t* l, bool const fill) {
 	}
 	outleafs++;
 
-	for (p = l->portals; p;) {
-		s = (p->nodes[0] == l);
+	for (portal_t* p = l->portals; p;) {
+		int s = (p->nodes[0] == l);
 
 		if (RecursiveFillOutside(
 				p->nodes[s], fill
