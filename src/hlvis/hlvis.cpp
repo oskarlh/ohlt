@@ -141,7 +141,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 // =====================================================================================
 //  PlaneFromWinding
 // =====================================================================================
-static void PlaneFromWinding(winding_t* w, hlvis_plane_t* plane) {
+static void PlaneFromWinding(winding_t const * w, hlvis_plane_t* plane) {
 	// calc plane
 	float3_array const v1 = vector_subtract(w->points[2], w->points[1]);
 	float3_array const v2 = vector_subtract(w->points[0], w->points[1]);
@@ -483,17 +483,14 @@ static inline void CheckNullToken(char const * const token) {
 //  LoadPortals
 // =====================================================================================
 static void LoadPortals(char* portal_image) {
-	int i, j;
-	portal_t* p;
 	leaf_t* l;
 	int numpoints;
 	winding_t* w;
-	int leafnums[2];
+	std::array<int, 2> leafnums;
 	hlvis_plane_t plane;
 	char const * const seperators = " ()\r\n\t";
-	char* token;
 
-	token = strtok(portal_image, seperators);
+	char const * token = strtok(portal_image, seperators);
 	CheckNullToken(token);
 	if (!sscanf(token, "%u", &g_portalleafs)) {
 		Error("LoadPortals: failed to read header: number of leafs");
@@ -534,7 +531,7 @@ static void LoadPortals(char* portal_image) {
 		);
 	}
 	g_leafcount_all = 0;
-	for (i = 0; i < g_portalleafs; i++) {
+	for (int i = 0; i < g_portalleafs; i++) {
 		unsigned rval = 0;
 		token = strtok(nullptr, seperators);
 		CheckNullToken(token);
@@ -554,8 +551,8 @@ static void LoadPortals(char* portal_image) {
 			g_dmodels[0].visleafs
 		);
 	}
-	for (i = 0; i < g_portalleafs; i++) {
-		for (j = 0; j < g_overview_count; j++) {
+	for (int i = 0; i < g_portalleafs; i++) {
+		for (int j = 0; j < g_overview_count; j++) {
 			int d = g_overview[j].visleafnum - g_leafstarts[i];
 			if (0 <= d && d < g_leafcounts[i]) {
 				if (g_overview[j].reverse) {
@@ -566,7 +563,7 @@ static void LoadPortals(char* portal_image) {
 			}
 		}
 
-		for (j = 0; j < g_room_count; j++) {
+		for (int j = 0; j < g_room_count; j++) {
 			int d1 = g_room[j].visleafnum - g_leafstarts[i];
 
 			if (0 <= d1 && d1 < g_leafcounts[i]) {
@@ -581,7 +578,9 @@ static void LoadPortals(char* portal_image) {
 			}
 		}
 	}
-	for (i = 0, p = g_portals; i < g_numportals; i++) {
+
+	portal_t* p = g_portals;
+	for (int i = 0; i < g_numportals; i++) {
 		std::size_t rval = 0;
 
 		token = strtok(nullptr, seperators);
@@ -609,7 +608,7 @@ static void LoadPortals(char* portal_image) {
 		w->original = true;
 		w->numpoints = numpoints;
 
-		for (j = 0; j < numpoints; j++) {
+		for (int j = 0; j < numpoints; j++) {
 			float3_array v;
 			std::size_t rval = 0;
 
@@ -656,7 +655,7 @@ static void LoadPortals(char* portal_image) {
 
 		p->winding = NewWinding(w->numpoints);
 		p->winding->numpoints = w->numpoints;
-		for (j = 0; j < w->numpoints; j++) {
+		for (int j = 0; j < w->numpoints; j++) {
 			p->winding->points[j] = w->points[w->numpoints - 1 - j];
 		}
 

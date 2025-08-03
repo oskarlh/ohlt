@@ -847,45 +847,32 @@ float WindingDist(winding_t const * w[2]) {
 //  MaxDistVis
 // =====================================================================================
 void MaxDistVis(int unused_threadnum) {
-	int i, j, k, m;
-	int a, b, c, d;
-	leaf_t* l;
-	leaf_t* tl;
-	hlvis_plane_t* boundary = nullptr;
-	float3_array delta;
-
-	float new_dist;
-
-	unsigned offset_l;
-	unsigned bit_l;
-
-	unsigned offset_tl;
-	unsigned bit_tl;
-
 	while (1) {
-		i = GetThreadWork();
+		int i = GetThreadWork();
 		if (i == -1) {
 			break;
 		}
 
-		l = &g_leafs[i];
+		leaf_t* l = &g_leafs[i];
 
-		for (j = i + 1, tl = g_leafs + j; j < g_portalleafs; j++, tl++) {
-			offset_l = i >> 3;
-			bit_l = (1 << (i & 7));
+		for (int j = i + 1; j < g_portalleafs; j++) {
+			leaf_t* tl = g_leafs + j;
 
-			offset_tl = j >> 3;
-			bit_tl = (1 << (j & 7));
+			unsigned offset_l = i >> 3;
+			unsigned bit_l = (1 << (i & 7));
+
+			unsigned offset_tl = j >> 3;
+			unsigned bit_tl = (1 << (j & 7));
 
 			{
 				bool visible = false;
-				for (k = 0; k < l->numportals; k++) {
+				for (int k = 0; k < l->numportals; k++) {
 					if (l->portals[k]->visbits[offset_tl] & bit_tl) {
 						visible = true;
 					}
 				}
-				for (m = 0; m < tl->numportals; m++) {
-					if (tl->portals[m]->visbits[offset_l] & bit_l) {
+				for (int k = 0; k < tl->numportals; k++) {
+					if (tl->portals[k]->visbits[offset_l] & bit_l) {
 						visible = true;
 					}
 				}
@@ -896,14 +883,14 @@ void MaxDistVis(int unused_threadnum) {
 
 			// rough check
 			{
-				winding_t const * w;
 				leaf_t const * leaf[2] = { l, tl };
 				std::array<float3_array, 2> center{};
 				std::array<int, 2> count{};
 				for (std::size_t side = 0; side < 2; ++side) {
-					for (a = 0; a < leaf[side]->numportals; a++) {
-						w = leaf[side]->portals[a]->winding;
-						for (b = 0; b < w->numpoints; b++) {
+					for (int a = 0; a < leaf[side]->numportals; a++) {
+						winding_t const * w
+							= leaf[side]->portals[a]->winding;
+						for (int b = 0; b < w->numpoints; b++) {
 							center[side] = vector_add(
 								center[side], w->points[b]
 							);
@@ -919,9 +906,10 @@ void MaxDistVis(int unused_threadnum) {
 					center[side] = vector_scale(
 						center[side], 1.0f / float(count[side])
 					);
-					for (a = 0; a < leaf[side]->numportals; a++) {
-						w = leaf[side]->portals[a]->winding;
-						for (b = 0; b < w->numpoints; b++) {
+					for (int a = 0; a < leaf[side]->numportals; a++) {
+						winding_t const * w
+							= leaf[side]->portals[a]->winding;
+						for (int b = 0; b < w->numpoints; b++) {
 							float3_array const v = vector_subtract(
 								w->points[b], center[side]
 							);
@@ -948,13 +936,12 @@ void MaxDistVis(int unused_threadnum) {
 			// exact check
 			{
 				float mindist = INFINITY;
-				float dist;
-				for (k = 0; k < l->numportals; k++) {
-					for (m = 0; m < tl->numportals; m++) {
+				for (int k = 0; k < l->numportals; k++) {
+					for (int m = 0; m < tl->numportals; m++) {
 						winding_t const * w[2];
 						w[0] = l->portals[k]->winding;
 						w[1] = tl->portals[m]->winding;
-						dist = WindingDist(w);
+						float dist = WindingDist(w);
 						mindist = std::min(dist, mindist);
 					}
 				}
@@ -967,21 +954,16 @@ void MaxDistVis(int unused_threadnum) {
 
 		Work:
 			ThreadLock();
-			for (k = 0; k < l->numportals; k++) {
+			for (int k = 0; k < l->numportals; k++) {
 				l->portals[k]->visbits[offset_tl] &= ~bit_tl;
 			}
-			for (m = 0; m < tl->numportals; m++) {
-				tl->portals[m]->visbits[offset_l] &= ~bit_l;
+			for (int k = 0; k < tl->numportals; k++) {
+				tl->portals[k]->visbits[offset_l] &= ~bit_l;
 			}
 			ThreadUnlock();
 
 		NoWork:
 			continue; // Hack to keep label from causing compile error
 		}
-	}
-
-	// Release potential memory
-	if (boundary) {
-		delete[] boundary;
 	}
 }
