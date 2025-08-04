@@ -959,9 +959,11 @@ void parse_entities_from_bsp_file() {
 static entity_key_value const * get_key_value_pointer(
 	entity_t const & ent, std::u8string_view key
 ) noexcept {
-	for (entity_key_value const & kv : ent.keyValues) {
-		if (!kv.is_removed() && kv.key() == key) {
-			return &kv;
+	if (!key.empty()) {
+		for (entity_key_value const & kv : ent.keyValues) {
+			if (kv.key() == key) {
+				return &kv;
+			}
 		}
 	}
 	return nullptr;
