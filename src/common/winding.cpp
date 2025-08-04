@@ -655,6 +655,8 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 		return one_sided_division_result::all_in_the_back;
 	}
 
+	// Distribute the points and generate splits
+
 	winding_base back;
 	winding_base front;
 	back.m_Points.reserve(size() + 4);
@@ -667,9 +669,11 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 			front.m_Points.emplace_back(p1);
 			back.m_Points.emplace_back(p1);
 			continue;
-		} else if (sides[i] == face_side::front) {
+		}
+
+		if (sides[i] == face_side::front) {
 			front.m_Points.emplace_back(p1);
-		} else if (sides[i] == face_side::back) {
+		} else {
 			back.m_Points.emplace_back(p1);
 		}
 

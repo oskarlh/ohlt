@@ -173,39 +173,36 @@ static void SplitFaceTmp(
 	face_t** front,
 	face_t** back
 ) {
-	double dists[MAXEDGES + 1];
-	face_side sides[MAXEDGES + 1];
-	int counts[3];
-	double dot;
-	int i;
-	int j;
-	face_t* newf;
-	face_t* new2;
-
 	if (in->freed) {
 		Error("SplitFace: freed face");
 	}
-	counts[0] = counts[1] = counts[2] = 0;
+
+	usually_inplace_vector<double, 32> dists;
+	usually_inplace_vector<face_side, 32> sides;
+	std::array<std::size_t, 3> counts{};
+	face_t* newf;
+	face_t* new2;
 
 	double dotSum = 0.0;
 	// This again... We have code like this in accurate_winding repeated
 	// several times determine sides for each point
-	for (i = 0; i < in->pts.size(); i++) {
-		dot = dot_product(in->pts[i], split->normal);
-		dot -= split->dist;
+	for (std::size_t i = 0; i < in->pts.size(); i++) {
+		double const dot = dot_product(in->pts[i], split->normal)
+			- split->dist;
 		dotSum += dot;
-		dists[i] = dot;
+
+		face_side side{ face_side::on };
 		if (dot > ON_EPSILON) {
-			sides[i] = face_side::front;
+			side = face_side::front;
 		} else if (dot < -ON_EPSILON) {
-			sides[i] = face_side::back;
-		} else {
-			sides[i] = face_side::on;
+			side = face_side::back;
 		}
-		counts[std::size_t(sides[i])]++;
+		dists.emplace_back(dot);
+		sides.emplace_back(side);
+		++counts[std::to_underlying(side)];
 	}
-	sides[i] = sides[0];
-	dists[i] = dists[0];
+	dists.push_back(dists.front());
+	sides.push_back(sides.front());
 
 	if (!counts[0] && !counts[1]) {
 		if (in->detailLevel) {
@@ -246,9 +243,9 @@ static void SplitFaceTmp(
 	*back = newf = new face_t{ NewFaceFromFace(*in) };
 	*front = new2 = new face_t{ NewFaceFromFace(*in) };
 
-	// distribute the points and generate splits
+	// Distribute the points and generate splits
 
-	for (i = 0; i < in->pts.size(); i++) {
+	for (std::size_t i = 0; i < in->pts.size(); i++) {
 		double3_array const & p1{ in->pts[i] };
 
 		if (sides[i] == face_side::on) {
@@ -271,8 +268,9 @@ static void SplitFaceTmp(
 		double3_array const & p2{ in->pts[(i + 1) % in->pts.size()] };
 
 		double3_array mid;
-		dot = dists[i] / (dists[i] - dists[i + 1]);
-		for (j = 0; j < 3; j++) { // avoid round off error when possible
+		double dot = dists[i] / (dists[i] - dists[i + 1]);
+		for (std::size_t j = 0; j < 3;
+			 j++) { // avoid round off error when possible
 			if (split->normal[j] == 1) {
 				mid[j] = split->dist;
 			} else if (split->normal[j] == -1) {
@@ -286,24 +284,20 @@ static void SplitFaceTmp(
 		new2->pts.emplace_back(mid);
 	}
 
-	{
-		accurate_winding wd{ std::span{ newf->pts } };
-		wd.RemoveColinearPoints();
-		newf->pts.assign_range(wd.points());
-		if (newf->pts.empty()) {
-			free(*back);
-			*back = nullptr;
-		}
+	accurate_winding backWinding{ std::span{ newf->pts } };
+	backWinding.RemoveColinearPoints();
+	newf->pts.assign_range(backWinding.points());
+	if (newf->pts.empty()) {
+		delete *back;
+		*back = nullptr;
 	}
 
-	{
-		accurate_winding wd{ std::span{ new2->pts } };
-		wd.RemoveColinearPoints();
-		new2->pts.assign_range(wd.points());
-		if (new2->pts.empty()) {
-			free(*front);
-			*front = nullptr;
-		}
+	accurate_winding frontWinding{ std::span{ new2->pts } };
+	frontWinding.RemoveColinearPoints();
+	new2->pts.assign_range(frontWinding.points());
+	if (new2->pts.empty()) {
+		delete *front;
+		*front = nullptr;
 	}
 }
 
