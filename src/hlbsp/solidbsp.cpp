@@ -715,13 +715,8 @@ static void DivideSurface(
 	surface_t** front,
 	surface_t** back
 ) {
-	face_t* facet;
-	face_t* next;
 	face_t* frontlist = nullptr;
 	face_t* backlist = nullptr;
-	face_t* frontfrag;
-	face_t* backfrag;
-	surface_t* news;
 
 	mapplane_t const * const inplane = &g_mapPlanes[in->planenum];
 
@@ -741,7 +736,8 @@ static void DivideSurface(
 		} else { // split the surface into front and back
 			frontlist = nullptr;
 			backlist = nullptr;
-			for (facet = in->faces; facet; facet = next) {
+			face_t* next;
+			for (face_t* facet = in->faces; facet; facet = next) {
 				next = facet->next;
 				if (facet->planenum & 1) {
 					facet->next = backlist;
@@ -756,16 +752,19 @@ static void DivideSurface(
 		// do a real split.  may still end up entirely on one side
 		// OPTIMIZE: use bounding box for fast test
 
-		for (facet = in->faces; facet; facet = next) {
+		face_t* next;
+		for (face_t* facet = in->faces; facet; facet = next) {
 			next = facet->next;
-			SplitFace(facet, split, &frontfrag, &backfrag);
-			if (frontfrag) {
-				frontfrag->next = frontlist;
-				frontlist = frontfrag;
+			face_t* frontFragment;
+			face_t* backFragment;
+			SplitFace(facet, split, &frontFragment, &backFragment);
+			if (frontFragment) {
+				frontFragment->next = frontlist;
+				frontlist = frontFragment;
 			}
-			if (backfrag) {
-				backfrag->next = backlist;
-				backlist = backfrag;
+			if (backFragment) {
+				backFragment->next = backlist;
+				backlist = backFragment;
 			}
 		}
 	}
@@ -791,16 +790,16 @@ static void DivideSurface(
 	}
 
 	// stuff got split, so allocate one new surface and reuse in
-	news = new surface_t{};
-	*news = *in;
-	news->faces = backlist;
-	*back = news;
+	surface_t* newSurface = new surface_t{};
+	*newSurface = *in;
+	newSurface->faces = backlist;
+	*back = newSurface;
 
 	in->faces = frontlist;
 	*front = in;
 
 	// recalc bboxes and flags
-	CalcSurfaceInfo(news);
+	CalcSurfaceInfo(newSurface);
 	CalcSurfaceInfo(in);
 }
 
@@ -1263,12 +1262,12 @@ static void SplitNodePortals(node_t* node) {
 				accurate_winding::split_division_result& arg
 			) {
 				// The winding is split
-				using std::swap;
 				bsp_portal_t* new_portal = AllocPortal();
 				*new_portal = *p;
-				new_portal->winding = new accurate_winding{};
-				swap(*new_portal->winding, arg.back);
-				swap(*p->winding, arg.front);
+				new_portal->winding = new accurate_winding{
+					std::move(arg.back)
+				};
+				*(p->winding) = std::move(arg.front);
 
 				if (side == 0) {
 					AddPortalToNodes(p, f, other_node);

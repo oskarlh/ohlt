@@ -7,8 +7,10 @@
 #include "filelib.h"
 #include "hull_size.h"
 #include "log.h"
+#include "mathtypes.h"
 #include "time_counter.h"
 #include "utf8.h"
+#include "util.h"
 
 #include <algorithm>
 #include <cstring>
@@ -164,144 +166,6 @@ face_t NewFaceFromFace(face_t const & in) {
 }
 
 // =====================================================================================
-//  SplitFaceTmp
-//      blah
-// =====================================================================================
-static void SplitFaceTmp(
-	face_t* in,
-	mapplane_t const * const split,
-	face_t** front,
-	face_t** back
-) {
-	if (in->freed) {
-		Error("SplitFace: freed face");
-	}
-
-	usually_inplace_vector<double, 32> dists;
-	usually_inplace_vector<face_side, 32> sides;
-	std::array<std::size_t, 3> counts{};
-	face_t* newf;
-	face_t* new2;
-
-	double dotSum = 0.0;
-	// This again... We have code like this in accurate_winding repeated
-	// several times determine sides for each point
-	for (std::size_t i = 0; i < in->pts.size(); i++) {
-		double const dot = dot_product(in->pts[i], split->normal)
-			- split->dist;
-		dotSum += dot;
-
-		face_side side{ face_side::on };
-		if (dot > ON_EPSILON) {
-			side = face_side::front;
-		} else if (dot < -ON_EPSILON) {
-			side = face_side::back;
-		}
-		dists.emplace_back(dot);
-		sides.emplace_back(side);
-		++counts[std::to_underlying(side)];
-	}
-	dists.push_back(dists.front());
-	sides.push_back(sides.front());
-
-	if (!counts[0] && !counts[1]) {
-		if (in->detailLevel) {
-			// put front face in front node, and back face in back node.
-			mapplane_t const & faceplane = g_mapPlanes[in->planenum];
-			if (dot_product(faceplane.normal, split->normal)
-				> NORMAL_EPSILON) // usually near 1.0 or -1.0
-			{
-				*front = in;
-				*back = nullptr;
-			} else {
-				*front = nullptr;
-				*back = in;
-			}
-		} else {
-			// not func_detail. front face and back face need to pair.
-			if (dotSum > NORMAL_EPSILON) {
-				*front = in;
-				*back = nullptr;
-			} else {
-				*front = nullptr;
-				*back = in;
-			}
-		}
-		return;
-	}
-	if (!counts[0]) {
-		*front = nullptr;
-		*back = in;
-		return;
-	}
-	if (!counts[1]) {
-		*front = in;
-		*back = nullptr;
-		return;
-	}
-
-	*back = newf = new face_t{ NewFaceFromFace(*in) };
-	*front = new2 = new face_t{ NewFaceFromFace(*in) };
-
-	// Distribute the points and generate splits
-
-	for (std::size_t i = 0; i < in->pts.size(); i++) {
-		double3_array const & p1{ in->pts[i] };
-
-		if (sides[i] == face_side::on) {
-			newf->pts.emplace_back(p1);
-			new2->pts.emplace_back(p1);
-			continue;
-		}
-
-		if (sides[i] == face_side::front) {
-			new2->pts.emplace_back(p1);
-		} else {
-			newf->pts.emplace_back(p1);
-		}
-
-		if (sides[i + 1] == face_side::on || sides[i + 1] == sides[i]) {
-			continue;
-		}
-
-		// generate a split point
-		double3_array const & p2{ in->pts[(i + 1) % in->pts.size()] };
-
-		double3_array mid;
-		double dot = dists[i] / (dists[i] - dists[i + 1]);
-		for (std::size_t j = 0; j < 3;
-			 j++) { // avoid round off error when possible
-			if (split->normal[j] == 1) {
-				mid[j] = split->dist;
-			} else if (split->normal[j] == -1) {
-				mid[j] = -split->dist;
-			} else {
-				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
-			}
-		}
-
-		newf->pts.emplace_back(mid);
-		new2->pts.emplace_back(mid);
-	}
-
-	accurate_winding backWinding{ std::span{ newf->pts } };
-	backWinding.RemoveColinearPoints();
-	newf->pts.assign_range(backWinding.points());
-	if (newf->pts.empty()) {
-		delete *back;
-		*back = nullptr;
-	}
-
-	accurate_winding frontWinding{ std::span{ new2->pts } };
-	frontWinding.RemoveColinearPoints();
-	new2->pts.assign_range(frontWinding.points());
-	if (new2->pts.empty()) {
-		delete *front;
-		*front = nullptr;
-	}
-}
-
-// =====================================================================================
 //  SplitFace
 //      blah
 // =====================================================================================
@@ -311,12 +175,46 @@ void SplitFace(
 	face_t** front,
 	face_t** back
 ) {
-	SplitFaceTmp(in, split, front, back);
-
-	// free the original face now that is is represented by the fragments
-	if (*front && *back) {
-		delete in;
+	if (in->freed) {
+		Error("SplitFace: freed face");
 	}
+	*front = nullptr;
+	*back = nullptr;
+
+	accurate_winding inWinding{ std::span{ in->pts } };
+
+	std::optional<double> dotSumOverrideForFuncDetail;
+
+	if (in->detailLevel) {
+		// Put front face in front node, and back face in back node.
+		mapplane_t const & faceplane = g_mapPlanes[in->planenum];
+		dotSumOverrideForFuncDetail = dot_product(
+			faceplane.normal, split->normal
+		);
+	}
+
+	visit_with(
+		inWinding.Divide(*split, dotSumOverrideForFuncDetail),
+		[&in,
+		 &front,
+		 &back](accurate_winding::one_sided_division_result backOrFront) {
+			face_t** out = backOrFront
+					== accurate_winding::one_sided_division_result::
+						all_in_the_back
+				? back
+				: front;
+			*out = in;
+		},
+		[&in, &front, &back](accurate_winding::split_division_result& arg) {
+			// The winding is split
+
+			*back = new face_t{ NewFaceFromFace(*in) };
+			*front = new face_t{ NewFaceFromFace(*in) };
+			delete in;
+			(*back)->pts.assign_range(arg.back.points());
+			(*front)->pts.assign_range(arg.front.points());
+		}
+	);
 }
 
 // =====================================================================================

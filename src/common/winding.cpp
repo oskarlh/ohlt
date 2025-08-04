@@ -612,7 +612,10 @@ bool winding_base<VecElement>::mutating_clip(
  */
 template <std::floating_point VecElement>
 winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
-	mapplane_t const & split, vec_element epsilon
+	mapplane_t const & split,
+	std::optional<VecElement> dotSumOverrideForFuncDetail,
+	vec_element epsilon
+
 ) const {
 	usually_inplace_vector<vec_element, 32> dists;
 	usually_inplace_vector<face_side, 32> sides;
@@ -646,7 +649,7 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 		if (counts[std::to_underlying(face_side::front)]) {
 			return one_sided_division_result::all_in_the_front;
 		}
-		if (dotSum > NORMAL_EPSILON) {
+		if (dotSumOverrideForFuncDetail.value_or(dotSum) > NORMAL_EPSILON) {
 			return one_sided_division_result::all_in_the_front;
 		}
 		return one_sided_division_result::all_in_the_back;
