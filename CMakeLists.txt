@@ -226,7 +226,6 @@ add_compile_definitions(
     PROJECT_VERSION="${CMAKE_PROJECT_VERSION}"
 )
 
-
 #================
 # System config
 #================
@@ -246,6 +245,20 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
     message("${CMAKE_PROJECT_NAME} > Configuring for ${CMAKE_SYSTEM_NAME}")
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	
+    add_compile_options(
+		-O2
+	)
+
+# Enable address santizier:
+#	add_compile_options(
+#		-O1
+#		-fsanitize=address
+#		-fno-omit-frame-pointer
+#    )
+#	add_link_options(-fsanitize=address)
+
+
     add_compile_definitions(
         PLATFORM_VERSION="MacOS"
         VERSION_MACOS
@@ -272,6 +285,10 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # Enable experimental standard library features in Clang.
 # We need this for std::jthread in Clang < v20.
 add_compile_options("$<$<CXX_COMPILER_ID:Clang>:-fexperimental-library>")
+
+# Enable LTO
+# // TODO: Just enable this
+# set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 #================
 # Targets

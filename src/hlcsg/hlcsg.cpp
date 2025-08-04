@@ -935,7 +935,7 @@ static void SetLightStyles() {
 	entity_t* e;
 	int i, j;
 	char value[10];
-	std::array<std::u8string_view, MAX_SWITCHED_LIGHTS> lighttargets;
+	std::array<std::u8string, MAX_SWITCHED_LIGHTS> lighttargets;
 
 	bool newtexlight = false;
 
@@ -988,7 +988,7 @@ static void SetLightStyles() {
 				t = u8"";
 			}
 		}
-		if (!t[0]) {
+		if (t.empty()) {
 			continue;
 		}
 

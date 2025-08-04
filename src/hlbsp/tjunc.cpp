@@ -232,12 +232,12 @@ static void AddVert(wedge_t const * const w, double const t) {
 		}
 		wvertIndex = wvert.nextWvert;
 	};
-	wvert_t& v = wverts[wvertIndex];
 
 	// Insert a new wvert_t before v
 
 	wvert_count newvIndex = wverts.size();
 	wvert_t& newv = wverts.emplace_back();
+	wvert_t& v = wverts[wvertIndex];
 
 	newv.t = t;
 	newv.nextWvert = wvertIndex;
