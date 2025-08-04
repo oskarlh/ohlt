@@ -340,7 +340,10 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 		// abs (v3) < epsilon
 		{
 			m_Points.erase(m_Points.begin() + i);
-			i = -1;
+			i -= 2;
+			if (i == -2) {
+				i = -1;
+			}
 		}
 	}
 }
