@@ -15,12 +15,11 @@
 #include <deque>
 #include <string>
 
-#define DEFAULT_BRUSH_UNION_THRESHOLD 0.0f
-#define DEFAULT_TINY_THRESHOLD		  0.0
-#define DEFAULT_NOCLIP				  false
-#define DEFAULT_ONLYENTS			  false
-#define DEFAULT_WADTEXTURES			  true
-#define DEFAULT_SKYCLIP				  true
+#define DEFAULT_TINY_THRESHOLD 0.0
+#define DEFAULT_NOCLIP		   false
+#define DEFAULT_ONLYENTS	   false
+#define DEFAULT_WADTEXTURES	   true
+#define DEFAULT_SKYCLIP		   true
 
 #define DEFAULT_CLIPTYPE clip_precise
 
@@ -305,7 +304,6 @@ extern bool g_nolightopt;
 extern bool g_nullifytrigger;
 
 extern double g_tiny_threshold;
-extern double g_BrushUnionThreshold;
 
 extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
@@ -316,10 +314,6 @@ extern std::vector<bface_t>
 CopyFaceList(std::vector<bface_t> const & faceList);
 
 extern void GetParamsFromEnt(entity_t* mapent);
-
-//=============================================================================
-// brushunion.c
-void CalculateBrushUnions(int brushnum);
 
 //============================================================================
 // hullfile.cpp

@@ -124,7 +124,6 @@ set(CSG_DIR ${HLT_DIR}/hlcsg)
 
 set(CSG_SOURCES
     ${CSG_DIR}/brush.cpp
-    ${CSG_DIR}/brushunion.cpp
     ${CSG_DIR}/hlcsg.cpp
     ${CSG_DIR}/hullfile.cpp
     ${CSG_DIR}/map.cpp

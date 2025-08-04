@@ -1536,8 +1536,6 @@ static void Usage() {
 	);
 	Log("    -tiny #          : minmum brush face surface area before it is discarded\n"
 	);
-	Log("    -brushunion #    : threshold to warn about overlapping brushes\n\n"
-	);
 	Log("    -hullfile file   : Reads in custom collision hull dimensions\n"
 	);
 	Log("    -wadcfgfile file : wad configuration file\n");
@@ -1720,24 +1718,6 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 			default_tiny_penetration);
 	}
 
-	// calc union threshold
-	{
-		char brush_union[10];
-		char default_brush_union[10];
-
-		safe_snprintf(
-			brush_union, sizeof(brush_union), "%3.3f", g_BrushUnionThreshold
-		);
-		safe_snprintf(
-			default_brush_union,
-			sizeof(default_brush_union),
-			"%3.3f",
-			DEFAULT_BRUSH_UNION_THRESHOLD
-		);
-		Log("brush union threshold [ %7s ] [ %7s ]\n",
-			brush_union,
-			default_brush_union);
-	}
 	{
 		char buf1[10];
 		char buf2[10];
@@ -1976,15 +1956,6 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-brushunion"
-						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
-						g_BrushUnionThreshold = (float) atof(argv[++i]);
-					} else {
-						Usage();
-					}
-				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-tiny"
 						   )) {
 					if (i + 1 < argc) // added "1" .--vluzacn
@@ -2188,14 +2159,6 @@ int main(int const argc, char** argv) {
 				SetModelCenters(i
 				); // NamedRunThreadsOnIndividual(g_numentities, g_estimate,
 				   // SetModelCenters); //--vluzacn
-			}
-
-			// Calc brush unions
-			if ((g_BrushUnionThreshold > 0.0)
-				&& (g_BrushUnionThreshold <= 100.0)) {
-				NamedRunThreadsOnIndividual(
-					g_nummapbrushes, g_estimate, CalculateBrushUnions
-				);
 			}
 
 			// open hull files
