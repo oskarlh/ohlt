@@ -339,12 +339,8 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 		// v2 == k * v1 + v3 && abs (v3) < epsilon || v1 == k * v2 + v3 &&
 		// abs (v3) < epsilon
 		{
-			for (; i < size() - 1; i++) {
-				m_Points[i] = m_Points[i + 1];
-			}
-			m_Points.pop_back();
+			m_Points.erase(m_Points.begin() + i);
 			i = -1;
-			continue;
 		}
 	}
 }

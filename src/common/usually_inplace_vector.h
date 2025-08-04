@@ -169,13 +169,20 @@ struct external_storage final {
 		elementCount = newSize;
 	}
 
+	constexpr void erase(value_type* firstIt, value_type* endIt) noexcept {
+		std::size_t const numElementsToErase = endIt - firstIt;
+		std::move(endIt, end(), firstIt);
+		std::destroy_n(end(), numElementsToErase);
+		elementCount -= numElementsToErase;
+	}
+
 	constexpr void clear() noexcept {
 		reduce_size_to(0);
 	}
 
 	// Precondition: size() != 0
 	constexpr void pop_back() noexcept {
-		begin()->~value_type();
+		(end() - 1)->~value_type();
 		--elementCount;
 	}
 
@@ -284,13 +291,20 @@ struct inplace_storage final {
 		sizeOrExternalStorageMark = newSize;
 	}
 
+	constexpr void erase(value_type* firstIt, value_type* endIt) noexcept {
+		std::size_t const numElementsToErase = endIt - firstIt;
+		std::move(endIt, end(), firstIt);
+		std::destroy_n(end(), numElementsToErase);
+		sizeOrExternalStorageMark -= numElementsToErase;
+	}
+
 	constexpr void clear() {
 		reduce_size_to(0);
 	}
 
 	// Precondition: size() != 0
 	constexpr void pop_back() noexcept {
-		begin()->~value_type();
+		(end() - 1)->~value_type();
 		--sizeOrExternalStorageMark;
 	}
 
@@ -575,6 +589,22 @@ requires(
 
 	constexpr value_type& push_back(value_type const & val) {
 		return emplace_back(val);
+	}
+
+	constexpr void
+	erase(const_iterator firstIt, const_iterator endIt) noexcept {
+		if (stored_inplace()) [[likely]] {
+			return storage.inplaceStorage.erase(
+				const_cast<iterator>(firstIt), const_cast<iterator>(endIt)
+			);
+		}
+		return storage.externalStorage.erase(
+			const_cast<iterator>(firstIt), const_cast<iterator>(endIt)
+		);
+	}
+
+	constexpr void erase(const_iterator firstIt) noexcept {
+		erase(firstIt, firstIt + 1);
 	}
 
 	constexpr void push_back(value_type const & val, std::size_t n) {
