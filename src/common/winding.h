@@ -100,7 +100,7 @@ class winding_base final {
 		vec3 const & normal,
 		vec_element planeDist,
 		vec_element epsilon = ON_EPSILON
-	);
+	) const;
 
   private:
 	void getPlane(vec3& normal, vec_element& dist) const;

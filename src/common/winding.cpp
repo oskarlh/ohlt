@@ -474,7 +474,7 @@ bool winding_base<VecElement>::Chop(
 template <std::floating_point VecElement>
 face_side winding_base<VecElement>::WindingOnPlaneSide(
 	vec3 const & normal, vec_element planeDist, vec_element epsilon
-) {
+) const {
 	bool front = false;
 	bool back = false;
 	for (std::size_t i = 0; i < size(); i++) {
