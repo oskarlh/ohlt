@@ -16,9 +16,9 @@ constexpr bool has_wad_identification(wadinfo_t const & wadHeader) {
 }
 
 struct wad_lumpinfo final { // Lump info in WAD
-	std::int32_t filepos;
-	std::int32_t disksize;
-	std::int32_t size; // Uncompressed
+	std::int32_t filepos;	// TODO: Should this be unsigned?
+	std::int32_t disksize;	// TODO: This should probably be unsigned
+	std::int32_t size;		// Uncompressed
 	std::uint8_t type;
 	std::uint8_t compression; // Unsupported
 

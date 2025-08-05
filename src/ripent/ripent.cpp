@@ -458,129 +458,81 @@ static void WriteTextures(char const * const name) {
 	FILE* texfile;
 	safe_snprintf(texfilename, _MAX_PATH, "%s.tex", name);
 	std::filesystem::remove(texfilename);
-	if (!g_textureparse) {
-		int dataofs = (int) (intptr_t)
-			& ((dmiptexlump_t*) NULL)
-				  ->dataofs[((dmiptexlump_t*) g_dtexdata.data())
-								->nummiptex];
-		int wadofs = sizeof(wadinfo_t);
 
-		wadinfo_t header;
-		header.identification[0] = 'W';
-		header.identification[1] = 'A';
-		header.identification[2] = 'D';
-		header.identification[3] = '3';
-		header.numlumps = ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
-		header.infotableofs = g_texdatasize - dataofs + wadofs;
-		SafeWrite(wadfile, &header, wadofs);
-
-		SafeWrite(
-			wadfile,
-			(byte*) g_dtexdata.data() + dataofs,
-			g_texdatasize - dataofs
-		);
-
-		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
-
-		for (int i = 0; i < header.numlumps; i++) {
-			int ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[i];
-			int size = 0;
-			if (ofs >= 0) {
-				size = g_texdatasize - ofs;
-				for (int j = 0; j < header.numlumps; ++j) {
-					if (ofs < ((dmiptexlump_t*) g_dtexdata.data())
-								  ->dataofs[j]
-						&& ofs + size > ((dmiptexlump_t*) g_dtexdata.data())
-											->dataofs[j]) {
-						size = ((dmiptexlump_t*) g_dtexdata.data())
-								   ->dataofs[j]
-							- ofs;
-					}
-				}
-			}
-			wad_lumpinfo& lumpinf{ info.emplace_back() };
-			lumpinf.filepos = ofs - dataofs + wadofs;
-			lumpinf.disksize = size;
-			lumpinf.size = size;
-			lumpinf.type
-				= (ofs >= 0
-				   && ((miptex_t*) (g_dtexdata.data() + ofs))->offsets[0]
-					   > 0)
-				? 67
-				: 0; // prevent invalid texture from being processed by
-					 // Wally
-			lumpinf.compression = 0;
-			lumpinf.name = ofs >= 0
-				? wad_texture_name{ ((miptex_t*) (g_dtexdata.data() + ofs))
-										->name }
-				: wad_texture_name{ u8"texturemissing" };
-		}
-		SafeWrite(wadfile, info.data(), info.size() * sizeof(wad_lumpinfo));
-	} else {
+	if (g_textureparse) {
 		texfile = SafeOpenWrite(texfilename);
 		Log("\nWriting %s.\n", texfilename);
+	}
 
-		wadinfo_t header;
-		header.identification[0] = 'W';
-		header.identification[1] = 'A';
-		header.identification[2] = 'D';
-		header.identification[3] = '3';
-		header.numlumps = 0;
+	int dataofs = (int) (intptr_t)
+		& ((dmiptexlump_t*) NULL)
+			  ->dataofs[((dmiptexlump_t*) g_dtexdata.data())->nummiptex];
+	int wadofs = sizeof(wadinfo_t);
 
-		fprintf(
-			texfile,
-			"%d\r\n",
-			((dmiptexlump_t*) g_dtexdata.data())->nummiptex
-		);
-		fseek(wadfile, sizeof(wadinfo_t), SEEK_SET);
+	wadinfo_t header{};
+	header.identification[0] = 'W';
+	header.identification[1] = 'A';
+	header.identification[2] = 'D';
+	header.identification[3] = '3';
+	std::uint32_t const numMipTex
+		= ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
+	header.infotableofs = g_texdatasize - dataofs + wadofs;
 
-		vector_inplace<wad_lumpinfo, MIPLEVELS> info;
-		for (int itex = 0;
-			 itex < ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
-			 ++itex) {
-			int ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[itex];
-			miptex_t* tex = (miptex_t*) (g_dtexdata.data() + ofs);
-			if (ofs < 0) {
-				fprintf(texfile, "[-1]\r\n");
+	std::vector<wad_lumpinfo> info;
+	info.reserve(numMipTex);
+
+	for (int i = 0; i < numMipTex; i++) {
+		std::uint32_t const ofs
+			= ((dmiptexlump_t const *) g_dtexdata.data())->dataofs[i];
+
+		miptex_t const * const tex = (miptex_t const *) (g_dtexdata.data()
+														 + ofs);
+		bool included = tex->offsets[0] > 0;
+
+		if (g_textureparse) {
+			SafeWrite(texfile, tex->name.c_str(), tex->name.length());
+			fprintf(texfile, " %d %d", tex->width, tex->height);
+			if (included) {
+				fprintf(texfile, " (included in the .bsp)\n");
 			} else {
-				int size = g_texdatasize - ofs;
-				for (int j = 0;
-					 j < ((dmiptexlump_t*) g_dtexdata.data())->nummiptex;
-					 ++j) {
-					if (ofs < ((dmiptexlump_t*) g_dtexdata.data())
-								  ->dataofs[j]
-						&& ofs + size > ((dmiptexlump_t*) g_dtexdata.data())
-											->dataofs[j]) {
-						size = ((dmiptexlump_t*) g_dtexdata.data())
-								   ->dataofs[j]
-							- ofs;
-					}
-				}
-				bool included = false;
-				if (tex->offsets[0] > 0) {
-					included = true;
-				}
-				if (included) {
-					wad_lumpinfo& lumpinf{ info.emplace_back() };
-					lumpinf.filepos = ftell(wadfile);
-					SafeWrite(wadfile, tex, size);
-					lumpinf.size = lumpinf.disksize = ftell(wadfile)
-						- lumpinf.filepos;
-					lumpinf.type = 67;
-					lumpinf.compression = 0;
-					lumpinf.name = wad_texture_name{ tex->name };
-				}
-				fprintf(texfile, "[%zu]", tex->name.length());
-				SafeWrite(texfile, tex->name.c_str(), tex->name.length());
-				fprintf(texfile, " %d %d\r\n", tex->width, tex->height);
+				fprintf(texfile, " (NOT included in the .bsp)\n");
 			}
 		}
-		header.infotableofs = ftell(wadfile);
-		header.numlumps = info.size();
-		SafeWrite(wadfile, info.data(), info.size() * sizeof(wad_lumpinfo));
-		fseek(wadfile, 0, SEEK_SET);
-		SafeWrite(wadfile, &header, sizeof(wadinfo_t));
 
+		if (!included) {
+			continue;
+		}
+
+		std::uint32_t size = g_texdatasize - ofs;
+		for (int j = 0; j < numMipTex; ++j) {
+			if (ofs < ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]
+				&& ofs + size
+					> ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]) {
+				size = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]
+					- ofs;
+			}
+		}
+
+		wad_lumpinfo& lumpinf{ info.emplace_back() };
+		lumpinf.filepos = ofs - dataofs + wadofs;
+		lumpinf.disksize = size;
+		lumpinf.size = size;
+		lumpinf.type = 67;
+		lumpinf.compression = 0;
+		lumpinf.name = tex->name;
+	}
+
+	header.numlumps = numMipTex;
+
+	SafeWrite(wadfile, &header, wadofs);
+	SafeWrite(
+		wadfile,
+		(byte*) g_dtexdata.data() + dataofs,
+		g_texdatasize - dataofs
+	);
+	SafeWrite(wadfile, info.data(), info.size() * sizeof(wad_lumpinfo));
+
+	if (g_textureparse) {
 		fclose(texfile);
 	}
 	fclose(wadfile);

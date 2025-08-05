@@ -534,7 +534,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 		}
 		{
 			dmiptexlump_t* l = (dmiptexlump_t*) g_dtexdata.data();
-			int& g_nummiptex = l->nummiptex;
+			std::int32_t& g_nummiptex = l->nummiptex;
 			bool* Used = (bool*) calloc(g_nummiptex, sizeof(bool));
 			int Num = 0, Size = 0;
 			int* Map = (int*) malloc(g_nummiptex * sizeof(int));

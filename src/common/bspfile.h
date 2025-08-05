@@ -102,8 +102,11 @@ struct dmodel_t final {
 };
 
 struct dmiptexlump_t final {
+	// TODO: Should these be unsigned? I think hlbsp's FinishBSPFile writes
+	// -1 in some cases? Look into it
 	std::int32_t nummiptex;
-	std::int32_t dataofs[4]; // [nummiptex]
+	std::int32_t dataofs[1]; // Important: It's actually
+							 // dataofs[nummiptex]
 };
 
 constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored
