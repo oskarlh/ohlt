@@ -522,7 +522,7 @@ static void WriteTextures(char const * const name) {
 		lumpinf.name = tex->name;
 	}
 
-	header.numlumps = numMipTex;
+	header.numlumps = info.size();
 
 	SafeWrite(wadfile, &header, wadofs);
 	SafeWrite(

@@ -534,13 +534,12 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 	g_texdatasize = 0;
 
 	time_counter timeCounter;
-	{
-		if (!TEX_InitFromWad(bspPath)) {
-			return;
-		}
 
-		AddAnimatingTextures();
+	if (!TEX_InitFromWad(bspPath)) {
+		return;
 	}
+
+	AddAnimatingTextures();
 
 	Verbose(
 		"TEX_InitFromWad & AddAnimatingTextures elapsed time = %.8fs\n",
