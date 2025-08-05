@@ -183,18 +183,18 @@ void SplitFace(
 
 	accurate_winding inWinding{ std::span{ in->pts } };
 
-	std::optional<double> dotSumOverrideForFuncDetail;
+	std::optional<double> distOverrideForFuncDetail;
 
 	if (in->detailLevel) {
 		// Put front face in front node, and back face in back node.
 		mapplane_t const & faceplane = g_mapPlanes[in->planenum];
-		dotSumOverrideForFuncDetail = dot_product(
+		distOverrideForFuncDetail = dot_product(
 			faceplane.normal, split->normal
 		);
 	}
 
 	visit_with(
-		inWinding.Divide(*split, dotSumOverrideForFuncDetail),
+		inWinding.Divide(*split, distOverrideForFuncDetail),
 		[&in,
 		 &front,
 		 &back](accurate_winding::one_sided_division_result backOrFront) {

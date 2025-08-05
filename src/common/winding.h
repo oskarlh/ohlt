@@ -91,8 +91,7 @@ class winding_base final {
 		= std::variant<one_sided_division_result, split_division_result>;
 	division_result Divide(
 		mapplane_t const & split,
-		std::optional<VecElement> dotSumOverrideForFuncDetail
-		= std::nullopt,
+		std::optional<VecElement> distOverrideForFuncDetail = std::nullopt,
 		vec_element epsilon = ON_EPSILON
 	) const;
 
