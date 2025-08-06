@@ -452,7 +452,7 @@ static void WriteTextures(char const * const name) {
 	safe_snprintf(wadfilename, _MAX_PATH, "%s.wad", name);
 	std::filesystem::remove(wadfilename);
 	wadfile = SafeOpenWrite(wadfilename);
-	Log("\nWriting %s.\n", wadfilename);
+	Log("Writing %s.\n", wadfilename);
 
 	char texfilename[_MAX_PATH];
 	safe_snprintf(texfilename, _MAX_PATH, "%s.tex", name);
@@ -535,7 +535,7 @@ static void WriteTextures(char const * const name) {
 		return;
 	}
 	FILE* texfile = SafeOpenWrite(texfilename);
-	Log("\nWriting %s.\n", texfilename);
+	Log("Writing %s.\n", texfilename);
 	fprintf(
 		texfile,
 		"%zu textures included in the .bsp and exported to the .wad file\n",
@@ -577,12 +577,16 @@ inline void skipline(FILE* f) {
 	fscanf(f, "%*[^\r\n]s");
 }
 
+// TODO: Rewrite this so -textureimport only replaces textures.
+// (Except for animated/tiled textures, for those we might need to add and
+// remove textures based on the new number of frames/tiles).
+// Any textures not in the .wad should be made external
 static void ReadTextures(char const * name) {
 	char wadfilename[_MAX_PATH];
 	FILE* wadfile;
 	safe_snprintf(wadfilename, _MAX_PATH, "%s.wad", name);
 	wadfile = SafeOpenRead(wadfilename);
-	Log("\nReading %s.\n", wadfilename);
+	Log("Reading %s.\n", wadfilename);
 
 	wadinfo_t header;
 	int wadofs = sizeof(wadinfo_t);
