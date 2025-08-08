@@ -5164,19 +5164,14 @@ void FinalLightFace(int const facenum) {
 		}
 	}
 	int i, j, k;
-	facelight_t* fl;
 	sample_t* samp;
-	float minlight;
 	int lightstyles;
 	dface_t* f;
-	float3_array* original_basiclight;
-	std::array<int, 3>* final_basiclight;
-	std::array<int, 3> lbi;
 
 	float temp_rand;
 
 	f = &g_dfaces[facenum];
-	fl = &facelight[facenum];
+	facelight_t* fl = &facelight[facenum];
 
 	if (g_texinfo[f->texinfo].has_special_flag()) {
 		return; // non-lit texture
@@ -5188,54 +5183,46 @@ void FinalLightFace(int const facenum) {
 		}
 	}
 
-	if (!lightstyles) {
-		return;
-	}
-
 	// set up the triangulation
 	//
 	// sample the triangulation
-	minlight = float_for_key(*g_face_entity[facenum], u8"_minlight") * 255;
+	float minlight = float_for_key(*g_face_entity[facenum], u8"_minlight")
+		* 255;
 	minlight = (minlight > 255) ? 255 : minlight;
 
 	wad_texture_name texname{ get_texture_by_number(f->texinfo) };
 	minlight = texname.get_minlight().value_or(minlight);
 
-	minlight_i it;
-
-	for (it = s_minlights.begin(); it != s_minlights.end(); it++) {
+	for (minlight_i it = s_minlights.begin(); it != s_minlights.end();
+		 it++) {
 		if (texname == it->name) {
 			float minlightValue = it->value * 255.0f;
 			minlight = static_cast<int>(minlightValue);
 			minlight = (minlight > 255) ? 255 : minlight;
 		}
 	}
-	original_basiclight = (float3_array*) calloc(
-		fl->numsamples, sizeof(float3_array)
-	);
-	final_basiclight = (std::array<int, 3>*) calloc(
-		fl->numsamples, sizeof(std::array<int, 3>)
-	);
-	hlassume(original_basiclight != nullptr, assume_NoMemory);
-	hlassume(final_basiclight != nullptr, assume_NoMemory);
-	for (k = 0; k < lightstyles; k++) {
-		samp = fl->samples[k];
-		for (j = 0; j < fl->numsamples; j++, samp++) {
+	for (j = 0; j < fl->numsamples; j++) {
+		float3_array original_basiclight;
+		std::array<int, 3> final_basiclight;
+
+		for (k = 0; k < lightstyles; k++) {
+			samp = fl->samples[k] + j;
+
 			if (f->styles[0] != 0) {
 				Warning("wrong f->styles[0]");
 			}
 			float3_array lb = vector_maximums(samp->light, float3_array{});
 			if (k == 0) {
-				original_basiclight[j] = lb;
+				original_basiclight = lb;
 			} else {
-				lb = vector_add(lb, original_basiclight[j]);
+				lb = vector_add(lb, original_basiclight);
 			}
-			// colour lightscale:
+			// Colour lightscale:
 			lb[0] *= g_colour_lightscale[0];
 			lb[1] *= g_colour_lightscale[1];
 			lb[2] *= g_colour_lightscale[2];
 
-			// clip from the bottom first
+			// Clip from the bottom first
 			for (i = 0; i < 3; i++) {
 				if (lb[i] < minlight) {
 					lb[i] = minlight;
@@ -5286,18 +5273,21 @@ void FinalLightFace(int const facenum) {
 				}
 			}
 			// ------------------------------------------------------------------------
+			std::array<std::int32_t, 3>
+				lbi; // TODO: Does this need 32 bits? And does it need to be
+					 // signed
 			for (i = 0; i < 3; ++i) {
-				lbi[i] = (int) floor(lb[i] + 0.5);
+				lbi[i] = (std::int32_t) std::lround(lb[i]);
 				if (lbi[i] < 0) {
 					lbi[i] = 0;
 				}
 			}
 			if (k == 0) {
-				final_basiclight[j] = lbi;
+				final_basiclight = lbi;
 			} else {
-				lbi[0] -= final_basiclight[j][0];
-				lbi[1] -= final_basiclight[j][1];
-				lbi[2] -= final_basiclight[j][2];
+				lbi[0] -= final_basiclight[0];
+				lbi[1] -= final_basiclight[1];
+				lbi[2] -= final_basiclight[2];
 			}
 			if (k == 0) {
 				if (g_colour_jitter_hack[0] || g_colour_jitter_hack[1]
@@ -5318,13 +5308,8 @@ void FinalLightFace(int const facenum) {
 					}
 				}
 			}
-			for (i = 0; i < 3; ++i) {
-				if (lbi[i] < 0) {
-					lbi[i] = 0;
-				}
-				if (lbi[i] > 255) {
-					lbi[i] = 255;
-				}
+			for (std::int32_t& v : lbi) {
+				v = std::clamp(v, 0, 255);
 			}
 			{
 				std::byte* colors
@@ -5337,8 +5322,6 @@ void FinalLightFace(int const facenum) {
 			}
 		}
 	}
-	free(original_basiclight);
-	free(final_basiclight);
 }
 
 static float3_array totallight_default = { 0, 0, 0 };

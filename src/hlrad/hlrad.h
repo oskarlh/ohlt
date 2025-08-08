@@ -53,9 +53,6 @@
 #define DEFAULT_ALLOW_OPAQUES	 true
 #define DEFAULT_ALLOW_SPREAD	 true
 
-// ------------------------------------------------------------------------
-// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-
 #define DEFAULT_COLOUR_GAMMA_RED   0.55
 #define DEFAULT_COLOUR_GAMMA_GREEN 0.55
 #define DEFAULT_COLOUR_GAMMA_BLUE  0.55
@@ -72,13 +69,9 @@
 #define DEFAULT_JITTER_HACK_GREEN 0.0
 #define DEFAULT_JITTER_HACK_BLUE  0.0
 
-// ------------------------------------------------------------------------
-
-// O_o ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Changes by Jussi Kivilinna <hullu@unitedadmins.com>
 // [http://hullu.xtragaming.com/] Transparency light support for bounced
-// light(transfers) is extreamly slow for 'vismatrix' and 'sparse' atm. Only
-// recommended to be used with 'nomatrix' mode
+// light(transfers) is extremely slow for 'vismatrix' and 'sparse' at the
+// moment. Only recommended to be used with 'nomatrix' mode
 #define DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT false
 
 // RGB Transfers support for HLRAD .. to be used with
