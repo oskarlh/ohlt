@@ -1242,20 +1242,22 @@ static void SplitNodePortals(node_t* node) {
 
 		visit_with(
 			pWinding.Divide(*plane),
-			[&b, &f, &other_node, &p, &side](
-				accurate_winding::one_sided_division_result backOrFront
+			[&p, &other_node, &side, &b](
+				all_in_the_back_winding_division_result
 			) {
-				node_t* nodeToPush
-					= (backOrFront
-							   == accurate_winding::
-								   one_sided_division_result::
-									   all_in_the_back
-						   ? b
-						   : f);
 				if (side == 0) {
-					AddPortalToNodes(p, nodeToPush, other_node);
+					AddPortalToNodes(p, b, other_node);
 				} else {
-					AddPortalToNodes(p, other_node, nodeToPush);
+					AddPortalToNodes(p, other_node, b);
+				}
+			},
+			[&p, &other_node, &side, &f](
+				all_in_the_front_winding_division_result
+			) {
+				if (side == 0) {
+					AddPortalToNodes(p, f, other_node);
+				} else {
+					AddPortalToNodes(p, other_node, f);
 				}
 			},
 			[&b, &f, &other_node, &p, &side](

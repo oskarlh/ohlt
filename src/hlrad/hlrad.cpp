@@ -12,6 +12,7 @@
 #include "rad_cli_option_defaults.h"
 #include "time_counter.h"
 #include "utf8.h"
+#include "util.h"
 #include "win32fix.h"
 #include "winding.h"
 
@@ -806,23 +807,56 @@ static void cutWindingWithGrid(
 	{
 		g_numwindings = 0;
 		for (int i = 1; i < gridsizeA; i++) {
-			float dist;
 			fast_winding front;
 			fast_winding back;
 
-			dist = gridstartA + i * gridchopA;
-			winding->Clip(plA->normal, dist, front, back);
+			float const dist = gridstartA + i * gridchopA;
 
-			if (!front
-				|| front.WindingOnPlaneSide(plA->normal, dist, epsilon)
-					== face_side::on) // ended
-			{
+			bool ended = false;
+			bool didNotBegin = false;
+
+			visit_with(
+				winding->Divide(
+					plA->normal,
+					dist,
+					0 // TODO: !!! Can I delete this 0?????
+				),
+				[&ended](all_in_the_back_winding_division_result) {
+					ended = true;
+				},
+				[&didNotBegin](all_in_the_front_winding_division_result) {
+					didNotBegin = true; // Did not begin
+				},
+				[&ended,
+				 &didNotBegin,
+				 &plA,
+				 &dist,
+				 &epsilon,
+				 &front,
+				 &back](fast_winding::split_division_result& arg) {
+					ended = arg.front.WindingOnPlaneSide(
+								plA->normal, dist, epsilon
+							)
+						== face_side::on;
+					if (ended) {
+						return;
+					}
+					didNotBegin = arg.back.WindingOnPlaneSide(
+									  plA->normal, dist, epsilon
+								  )
+						== face_side::on;
+					if (didNotBegin) {
+						return;
+					}
+					front = std::move(arg.front);
+					back = std::move(arg.back);
+				}
+			);
+
+			if (ended) {
 				break;
 			}
-			if (!back
-				|| back.WindingOnPlaneSide(plA->normal, dist, epsilon)
-					== face_side::on) // didn't begin
-			{
+			if (didNotBegin) {
 				continue;
 			}
 
@@ -844,23 +878,57 @@ static void cutWindingWithGrid(
 			windingArray[i] = nullptr;
 
 			for (int j = 1; j < gridsizeB; j++) {
-				float dist;
 				fast_winding front;
 				fast_winding back;
-
-				dist = gridstartB + j * gridchopB;
+				float const dist = gridstartB + j * gridchopB;
 				strip->Clip(plB->normal, dist, front, back);
 
-				if (!front
-					|| front.WindingOnPlaneSide(plB->normal, dist, epsilon)
-						== face_side::on) // ended
-				{
+				bool ended = false;
+				bool didNotBegin = false;
+
+				visit_with(
+					strip->Divide(
+						plB->normal,
+						dist,
+						0 // TODO: !!! Can I delete this 0?????
+					),
+					[&ended](all_in_the_back_winding_division_result) {
+						ended = true;
+					},
+					[&didNotBegin](all_in_the_front_winding_division_result
+					) {
+						didNotBegin = true; // Did not begin
+					},
+					[&ended,
+					 &didNotBegin,
+					 &plB,
+					 &dist,
+					 &epsilon,
+					 &front,
+					 &back](fast_winding::split_division_result& arg) {
+						ended = arg.front.WindingOnPlaneSide(
+									plB->normal, dist, epsilon
+								)
+							== face_side::on;
+						if (ended) {
+							return;
+						}
+						didNotBegin = arg.back.WindingOnPlaneSide(
+										  plB->normal, dist, epsilon
+									  )
+							== face_side::on;
+						if (didNotBegin) {
+							return;
+						}
+						front = std::move(arg.front);
+						back = std::move(arg.back);
+					}
+				);
+
+				if (ended) {
 					break;
 				}
-				if (!back
-					|| back.WindingOnPlaneSide(plB->normal, dist, epsilon)
-						== face_side::on) // didn't begin
-				{
+				if (didNotBegin) {
 					continue;
 				}
 

@@ -3,6 +3,7 @@
 #include "hlassert.h"
 #include "log.h"
 #include "mathlib.h"
+#include "mathtypes.h"
 
 #include <algorithm>
 #include <span>
@@ -350,26 +351,14 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 
 template <std::floating_point VecElement>
 void winding_base<VecElement>::Clip(
-	dplane_t const & plane,
-	winding_base& front,
-	winding_base& back,
-	vec_element epsilon
-) const {
-	Clip(
-		to_vec3<vec_element>(plane.normal), plane.dist, front, back, epsilon
-	);
-}
-
-template <std::floating_point VecElement>
-void winding_base<VecElement>::Clip(
 	vec3 const & normal,
 	vec_element planeDist,
 	winding_base& front,
 	winding_base& back,
 	vec_element epsilon
 ) const {
-	usually_inplace_vector<vec_element, 32> dists;
-	usually_inplace_vector<face_side, 32> sides;
+	usually_inplace_vector<vec_element, 64> dists;
+	usually_inplace_vector<face_side, 64> sides;
 	dists.reserve(size() + 1);
 	sides.reserve(size() + 1);
 
@@ -510,8 +499,8 @@ bool winding_base<VecElement>::mutating_clip(
 	bool keepon,
 	vec_element epsilon
 ) {
-	usually_inplace_vector<vec_element, 32> dists;
-	usually_inplace_vector<face_side, 32> sides;
+	usually_inplace_vector<vec_element, 64> dists;
+	usually_inplace_vector<face_side, 64> sides;
 	dists.reserve(size() + 1);
 	sides.reserve(size() + 1);
 
@@ -611,13 +600,14 @@ bool winding_base<VecElement>::mutating_clip(
  */
 template <std::floating_point VecElement>
 winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
-	mapplane_t const & split,
-	std::optional<VecElement> distOverrideForFuncDetail,
+	vec3 const & dividingPlaneNormal,
+	vec_element dividingPlaneDist,
+	std::optional<vec_element> distOverrideForFuncDetail,
 	vec_element epsilon
 
 ) const {
-	usually_inplace_vector<vec_element, 32> dists;
-	usually_inplace_vector<face_side, 32> sides;
+	usually_inplace_vector<vec_element, 64> dists;
+	usually_inplace_vector<face_side, 64> sides;
 	dists.reserve(size() + 1);
 	sides.reserve(size() + 1);
 
@@ -627,8 +617,10 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 
 	// determine sides for each point
 	for (std::size_t i = 0; i < size(); i++) {
-		vec_element const dot = dot_product(m_Points[i], split.normal)
-			- split.dist;
+		vec_element const dot = dot_product(
+									m_Points[i], dividingPlaneNormal
+								)
+			- dividingPlaneDist;
 		dotSum += dot;
 
 		face_side side{ face_side::on };
@@ -646,15 +638,39 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 
 	if (!counts[std::to_underlying(face_side::back)]) {
 		if (counts[std::to_underlying(face_side::front)]) {
-			return one_sided_division_result::all_in_the_front;
+			return all_in_the_front_winding_division_result{};
 		}
 		if (distOverrideForFuncDetail.value_or(dotSum) > NORMAL_EPSILON) {
-			return one_sided_division_result::all_in_the_front;
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			//	Error("eee");
+			return all_in_the_front_winding_division_result{};
 		}
-		return one_sided_division_result::all_in_the_back;
+		return all_in_the_back_winding_division_result{};
 	}
 	if (!counts[std::to_underlying(face_side::front)]) {
-		return one_sided_division_result::all_in_the_back;
+		return all_in_the_back_winding_division_result{};
 	}
 
 	// Distribute the points and generate splits
@@ -693,10 +709,10 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 		vec_element dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (std::size_t j = 0; j < 3;
 			 j++) { // avoid round off error when possible
-			if (split.normal[j] == 1) {
-				mid[j] = split.dist;
-			} else if (split.normal[j] == -1) {
-				mid[j] = -split.dist;
+			if (dividingPlaneNormal[j] == 1) {
+				mid[j] = dividingPlaneDist;
+			} else if (dividingPlaneNormal[j] == -1) {
+				mid[j] = -dividingPlaneDist;
 			} else {
 				mid[j] = p1[j] + dot * (p2[j] - p1[j]);
 			}
@@ -710,13 +726,28 @@ winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
 	back.RemoveColinearPoints(epsilon);
 
 	if (!front) {
-		return one_sided_division_result::all_in_the_back;
+		return all_in_the_back_winding_division_result{};
 	}
 	if (!back) {
-		return one_sided_division_result::all_in_the_front;
+		return all_in_the_front_winding_division_result{};
 	}
 	return split_division_result{ .back = std::move(back),
 								  .front = std::move(front) };
+}
+
+template <std::floating_point VecElement>
+winding_base<VecElement>::division_result winding_base<VecElement>::Divide(
+	mapplane_t const & dividingPlane,
+	std::optional<vec_element> distOverrideForFuncDetail,
+	vec_element epsilon
+
+) const {
+	return Divide(
+		to_vec3<vec_element>(dividingPlane.normal),
+		vec_element(dividingPlane.dist),
+		distOverrideForFuncDetail,
+		epsilon
+	);
 }
 
 // Unused??

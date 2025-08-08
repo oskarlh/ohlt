@@ -195,15 +195,11 @@ void SplitFace(
 
 	visit_with(
 		inWinding.Divide(*split, distOverrideForFuncDetail),
-		[&in,
-		 &front,
-		 &back](accurate_winding::one_sided_division_result backOrFront) {
-			face_t** out = backOrFront
-					== accurate_winding::one_sided_division_result::
-						all_in_the_back
-				? back
-				: front;
-			*out = in;
+		[&in, &back](all_in_the_back_winding_division_result) {
+			*back = in;
+		},
+		[&in, &front](all_in_the_front_winding_division_result) {
+			*front = in;
 		},
 		[&in, &front, &back](accurate_winding::split_division_result& arg) {
 			// The winding is split

@@ -12,6 +12,7 @@
 #include "threads.h"
 #include "time_counter.h"
 #include "utf8.h"
+#include "util.h"
 
 #include <numbers>
 #include <string_view>
@@ -673,10 +674,20 @@ static void CSGBrush(int brushnum) {
 					if (f.planenum == (f2.planenum ^ 1)) {
 						continue;
 					}
-					accurate_winding frontw;
-					accurate_winding backw;
-					w.Clip(f2.plane->normal, f2.plane->dist, frontw, backw);
-					w = std::move(backw);
+
+					visit_with(
+						w.Divide(
+							*f2.plane,
+							0 // TODO: !!! Can I delete this 0?????
+						),
+						[](all_in_the_back_winding_division_result) {},
+						[&w](all_in_the_front_winding_division_result) {
+							w.clear();
+						},
+						[&w](accurate_winding::split_division_result& arg) {
+							w = std::move(arg.back);
+						}
+					);
 					if (w.empty()) {
 						break;
 					}
@@ -701,13 +712,30 @@ static void CSGBrush(int brushnum) {
 						}
 						if (valid >= 2) { // this splitplane forms an edge
 							accurate_winding frontw;
-							accurate_winding backw;
-							f.w.Clip(
-								f2.plane->normal,
-								f2.plane->dist,
-								frontw,
-								backw
+							accurate_winding& fwinding{ f.w };
+
+							visit_with(
+								fwinding.Divide(
+									*f2.plane,
+									0 // TODO: !!! Can I delete this 0?????
+								),
+								[](all_in_the_back_winding_division_result
+								) {},
+								[&fwinding, &frontw](
+									all_in_the_front_winding_division_result
+								) {
+									using std::swap;
+									swap(fwinding, frontw);
+								},
+								[&fwinding, &frontw](
+									accurate_winding::split_division_result&
+										arg
+								) {
+									fwinding = std::move(arg.back);
+									frontw = std::move(arg.front);
+								}
 							);
+
 							if (frontw) {
 								bface_t front{ NewFaceFromFace(f) };
 								front.w = std::move(frontw);
@@ -715,9 +743,8 @@ static void CSGBrush(int brushnum) {
 
 								outside.emplace_back(std::move(front));
 							}
-							if (backw) {
-								f.w = std::move(backw);
-								f.bounds = f.w.getBounds();
+							if (fwinding) {
+								f.bounds = fwinding.getBounds();
 							} else {
 								skip = true;
 								break;

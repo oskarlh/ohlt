@@ -14,9 +14,9 @@ enum class face_side {
 	cross = 3
 };
 
-enum class one_sided_winding_division_result {
-	all_in_the_back,
-	all_in_the_front
+enum struct all_in_the_back_winding_division_result {
+};
+enum struct all_in_the_front_winding_division_result {
 };
 
 template <class W>
@@ -66,12 +66,6 @@ class winding_base final {
 		vec_element epsilon = ON_EPSILON
 	);
 	void Clip(
-		dplane_t const & split,
-		winding_base& front,
-		winding_base& back,
-		vec_element epsilon = ON_EPSILON
-	) const;
-	void Clip(
 		vec3 const & normal,
 		vec_element planeDist,
 		winding_base& front,
@@ -83,15 +77,21 @@ class winding_base final {
 		vec_element planeDist,
 		vec_element epsilon = ON_EPSILON
 	);
-
-	using one_sided_division_result = one_sided_winding_division_result;
 	using split_division_result
 		= split_winding_division_result_template<winding_base>;
-	using division_result
-		= std::variant<one_sided_division_result, split_division_result>;
+	using division_result = std::variant<
+		all_in_the_back_winding_division_result,
+		all_in_the_front_winding_division_result,
+		split_division_result>;
 	division_result Divide(
-		mapplane_t const & split,
-		std::optional<VecElement> distOverrideForFuncDetail = std::nullopt,
+		vec3 const & dividingPlaneNormal,
+		vec_element dividingPlaneDist,
+		std::optional<vec_element> distOverrideForFuncDetail = std::nullopt,
+		vec_element epsilon = ON_EPSILON
+	) const;
+	division_result Divide(
+		mapplane_t const & dividingPlane,
+		std::optional<vec_element> distOverrideForFuncDetail = std::nullopt,
 		vec_element epsilon = ON_EPSILON
 	) const;
 
