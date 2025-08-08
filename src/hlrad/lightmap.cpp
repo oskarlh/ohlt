@@ -2,6 +2,7 @@
 #include "hlassert.h"
 #include "hlrad.h"
 #include "log.h"
+#include "mathtypes.h"
 #include "threads.h"
 
 #include <algorithm>
@@ -5202,9 +5203,6 @@ void FinalLightFace(int const facenum) {
 		}
 	}
 	for (j = 0; j < fl->numsamples; j++) {
-		float3_array original_basiclight;
-		std::array<int, 3> final_basiclight;
-
 		for (k = 0; k < lightstyles; k++) {
 			samp = fl->samples[k] + j;
 
@@ -5212,11 +5210,7 @@ void FinalLightFace(int const facenum) {
 				Warning("wrong f->styles[0]");
 			}
 			float3_array lb = vector_maximums(samp->light, float3_array{});
-			if (k == 0) {
-				original_basiclight = lb;
-			} else {
-				lb = vector_add(lb, original_basiclight);
-			}
+
 			// Colour lightscale:
 			lb[0] *= g_colour_lightscale[0];
 			lb[1] *= g_colour_lightscale[1];
@@ -5244,18 +5238,6 @@ void FinalLightFace(int const facenum) {
 					* 256.0f;
 			}
 
-			// Two different ways of adding noise to the lightmap -
-			// colour jitter (red, green and blue channels are
-			// independent), and mono jitter (monochromatic noise). For
-			// simulating dithering, on the cheap. :)
-
-			// Tends to create seams between adjacent polygons, so not
-			// ideal.
-
-			// Got really weird results when it was set to limit values
-			// to 256.0f - it was as if r, g or b could wrap, going
-			// close to zero.
-
 			// clip from the top
 			{
 				float max = vector_max_element(lb);
@@ -5273,41 +5255,14 @@ void FinalLightFace(int const facenum) {
 				}
 			}
 			// ------------------------------------------------------------------------
-			std::array<std::int32_t, 3>
-				lbi; // TODO: Does this need 32 bits? And does it need to be
-					 // signed
+			std::array<std::int32_t, 3> lbi;
 			for (i = 0; i < 3; ++i) {
 				lbi[i] = (std::int32_t) std::lround(lb[i]);
 				if (lbi[i] < 0) {
 					lbi[i] = 0;
 				}
 			}
-			if (k == 0) {
-				final_basiclight = lbi;
-			} else {
-				lbi[0] -= final_basiclight[0];
-				lbi[1] -= final_basiclight[1];
-				lbi[2] -= final_basiclight[2];
-			}
-			if (k == 0) {
-				if (g_colour_jitter_hack[0] || g_colour_jitter_hack[1]
-					|| g_colour_jitter_hack[2]) {
-					for (i = 0; i < 3; i++) {
-						lbi[i] += g_colour_jitter_hack[i]
-							* ((float) rand() / float(RAND_MAX) - 0.5f);
-					}
-				}
-				if (g_jitter_hack[0] || g_jitter_hack[1]
-					|| g_jitter_hack[2]) {
-					// TODO: Consider using std::philox_engine or a similar
-					// RNG here instead, one that's built for
-					// multithreading.
-					temp_rand = (float) rand() / float(RAND_MAX) - 0.5f;
-					for (i = 0; i < 3; i++) {
-						lbi[i] += g_jitter_hack[i] * temp_rand;
-					}
-				}
-			}
+
 			for (std::int32_t& v : lbi) {
 				v = std::clamp(v, 0, 255);
 			}

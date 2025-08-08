@@ -61,14 +61,6 @@
 #define DEFAULT_COLOUR_LIGHTSCALE_GREEN 2.0 // 1.0 //vluzacn
 #define DEFAULT_COLOUR_LIGHTSCALE_BLUE	2.0 // 1.0 //vluzacn
 
-#define DEFAULT_COLOUR_JITTER_HACK_RED	 0.0
-#define DEFAULT_COLOUR_JITTER_HACK_GREEN 0.0
-#define DEFAULT_COLOUR_JITTER_HACK_BLUE	 0.0
-
-#define DEFAULT_JITTER_HACK_RED	  0.0
-#define DEFAULT_JITTER_HACK_GREEN 0.0
-#define DEFAULT_JITTER_HACK_BLUE  0.0
-
 // [http://hullu.xtragaming.com/] Transparency light support for bounced
 // light(transfers) is extremely slow for 'vismatrix' and 'sparse' at the
 // moment. Only recommended to be used with 'nomatrix' mode
@@ -388,9 +380,6 @@ extern std::vector<opaqueList_t> g_opaque_face_list;
 
 extern float3_array g_colour_qgamma;
 extern float3_array g_colour_lightscale;
-
-extern float3_array g_colour_jitter_hack;
-extern float3_array g_jitter_hack;
 
 struct lighting_cone_power_and_scale final {
 	float power{ 1.0 };

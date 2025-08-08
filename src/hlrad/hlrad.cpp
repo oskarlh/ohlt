@@ -88,12 +88,6 @@ float3_array g_colour_qgamma = { DEFAULT_COLOUR_GAMMA_RED,
 float3_array g_colour_lightscale = { DEFAULT_COLOUR_LIGHTSCALE_RED,
 									 DEFAULT_COLOUR_LIGHTSCALE_GREEN,
 									 DEFAULT_COLOUR_LIGHTSCALE_BLUE };
-float3_array g_colour_jitter_hack = { DEFAULT_COLOUR_JITTER_HACK_RED,
-									  DEFAULT_COLOUR_JITTER_HACK_GREEN,
-									  DEFAULT_COLOUR_JITTER_HACK_BLUE };
-float3_array g_jitter_hack = { DEFAULT_JITTER_HACK_RED,
-							   DEFAULT_JITTER_HACK_GREEN,
-							   DEFAULT_JITTER_HACK_BLUE };
 
 bool g_customshadow_with_bouncelight
 	= DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT;
@@ -2901,10 +2895,6 @@ static void Usage() {
 	);
 	Log("   -colourscale r g b  : Sets different lightscale values for r, g ,b\n"
 	);
-	Log("   -colourjitter r g b : Adds noise, independent colours, for dithering\n"
-	);
-	Log("   -jitter r g b       : Adds noise, monochromatic, for dithering\n"
-	);
 	// Log("-= End of unofficial features! =-\n\n" );
 
 	// ------------------------------------------------------------------------
@@ -3183,48 +3173,6 @@ static void Settings() {
 	Log("dump                 [ %17s ] [ %17s ]\n",
 		g_dumppatches ? "on" : "off",
 		DEFAULT_DUMPPATCHES ? "on" : "off");
-
-	// ------------------------------------------------------------------------
-	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-	// displays information on all the brand-new features :)
-
-	Log("\n");
-	safe_snprintf(
-		buf1,
-		sizeof(buf1),
-		"%3.1f %3.1f %3.1f",
-		g_colour_jitter_hack[0],
-		g_colour_jitter_hack[1],
-		g_colour_jitter_hack[2]
-	);
-	safe_snprintf(
-		buf2,
-		sizeof(buf2),
-		"%3.1f %3.1f %3.1f",
-		DEFAULT_COLOUR_JITTER_HACK_RED,
-		DEFAULT_COLOUR_JITTER_HACK_GREEN,
-		DEFAULT_COLOUR_JITTER_HACK_BLUE
-	);
-	Log("colour jitter        [ %17s ] [ %17s ]\n", buf1, buf2);
-	safe_snprintf(
-		buf1,
-		sizeof(buf1),
-		"%3.1f %3.1f %3.1f",
-		g_jitter_hack[0],
-		g_jitter_hack[1],
-		g_jitter_hack[2]
-	);
-	safe_snprintf(
-		buf2,
-		sizeof(buf2),
-		"%3.1f %3.1f %3.1f",
-		DEFAULT_JITTER_HACK_RED,
-		DEFAULT_JITTER_HACK_GREEN,
-		DEFAULT_JITTER_HACK_BLUE
-	);
-	Log("monochromatic jitter [ %17s ] [ %17s ]\n", buf1, buf2);
-
-	// ------------------------------------------------------------------------
 
 	Log("\n");
 	Log("custom shadows with bounce light\n"
@@ -3891,60 +3839,26 @@ int main(int const argc, char** argv) {
 							"expected three color values after '-colourscale'\n"
 						);
 					}
-				}
-
-				else if (strings_equal_with_ascii_case_insensitivity(
-							 argv[i], u8"-colourjitter"
-						 )) {
-					if (i + 3 < argc) {
-						g_colour_jitter_hack[0] = (float) atof(argv[++i]);
-						g_colour_jitter_hack[1] = (float) atof(argv[++i]);
-						g_colour_jitter_hack[2] = (float) atof(argv[++i]);
-					} else {
-						Error(
-							"expected three color values after '-colourjitter'\n"
-						);
-					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-jitter"
+							   argv[i], u8"-customshadowwithbounce"
 						   )) {
-					if (i + 3 < argc) {
-						g_jitter_hack[0] = (float) atof(argv[++i]);
-						g_jitter_hack[1] = (float) atof(argv[++i]);
-						g_jitter_hack[2] = (float) atof(argv[++i]);
-					} else {
-						Error(
-							"expected three color values after '-jitter'\n"
-						);
-					}
-				}
-
-				// ------------------------------------------------------------------------
-
-				else if (strings_equal_with_ascii_case_insensitivity(
-							 argv[i], u8"-customshadowwithbounce"
-						 )) {
 					g_customshadow_with_bouncelight = true;
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-rgbtransfers"
 						   )) {
 					g_rgb_transfers = true;
-				}
-
-				else if (strings_equal_with_ascii_case_insensitivity(
-							 argv[i], u8"-bscale"
-						 )) {
+				} else if (strings_equal_with_ascii_case_insensitivity(
+							   argv[i], u8"-bscale"
+						   )) {
 					Error("'-bscale' is obsolete.");
 					if (i + 1 < argc) {
 						g_transtotal_hack = (float) atof(argv[++i]);
 					} else {
 						Usage();
 					}
-				}
-
-				else if (strings_equal_with_ascii_case_insensitivity(
-							 argv[i], u8"-minlight"
-						 )) {
+				} else if (strings_equal_with_ascii_case_insensitivity(
+							   argv[i], u8"-minlight"
+						   )) {
 					if (i + 1 < argc) {
 						int v = atoi(argv[++i]);
 						v = std::max(0, std::min(v, 255));
