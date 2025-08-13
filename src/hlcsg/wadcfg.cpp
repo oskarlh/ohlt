@@ -20,7 +20,7 @@ parse_nowadtextures_blocklist(std::u8string_view fileContents) {
 	while (true) {
 		std::u8string_view const word = next_word(remaining);
 		if (word.empty()) {
-			return std::move(wads);
+			return wads;
 		}
 		wads.emplace_back(word);
 	}
