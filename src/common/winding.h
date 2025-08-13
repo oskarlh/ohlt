@@ -5,24 +5,11 @@
 #include "mathlib.h"
 #include "planes.h"
 
-#include <variant>
-
 enum class face_side {
 	front = 0,
 	back = 1,
 	on = 2,
 	cross = 3
-};
-
-enum struct all_in_the_back_winding_division_result {
-};
-enum struct all_in_the_front_winding_division_result {
-};
-
-template <class W>
-struct split_winding_division_result_template final {
-	W back{};
-	W front{};
 };
 
 template <std::floating_point VecElement>
@@ -52,7 +39,8 @@ class winding_base final {
 		return !empty();
 	}
 
-	void clear(bool shrinkToFit = false);
+	void clear();
+	void shrink_to_fit();
 
 	void pushPoint(vec3 const & newpoint);
 	std::size_t size() const;
@@ -77,20 +65,19 @@ class winding_base final {
 		vec_element planeDist,
 		vec_element epsilon = ON_EPSILON
 	);
-	using split_division_result
-		= split_winding_division_result_template<winding_base>;
-	using division_result = std::variant<
-		all_in_the_back_winding_division_result,
-		all_in_the_front_winding_division_result,
-		split_division_result>;
-	division_result Divide(
+
+	void clip(
 		vec3 const & dividingPlaneNormal,
 		vec_element dividingPlaneDist,
+		winding_base& back,
+		winding_base& front,
 		std::optional<vec_element> distOverrideForFuncDetail = std::nullopt,
 		vec_element epsilon = ON_EPSILON
 	) const;
-	division_result Divide(
+	void clip(
 		mapplane_t const & dividingPlane,
+		winding_base& back,
+		winding_base& front,
 		std::optional<vec_element> distOverrideForFuncDetail = std::nullopt,
 		vec_element epsilon = ON_EPSILON
 	) const;

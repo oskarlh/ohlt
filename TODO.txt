@@ -2,6 +2,8 @@ Just some notes. Please ignore...
 
 https://developer.valvesoftware.com/wiki/Miptex
 
+https://web.archive.org/web/20130624030744/http://forums.svencoop.com/showthread.php/38059-ARCHIVE-Custom-ZHLT-by-vluzacn
+
 
 TEX_InitFromWad():
 I should add .wad file lookups in:
@@ -115,3 +117,22 @@ SplitFaceTmp()
 FaceSide()
 
 Find out if SplitFaceForTjunc is necessary
+
+Was
+HLBSP_SPLITFACE_FIX
+necessary?
+https://github.com/FreeSlave/vhlt/blob/master/common/winding.cpp
+If not, we can remove it. Try to figure out when it was introduced https://web.archive.org/web/20130624030744/http://forums.svencoop.com/showthread.php/38059-ARCHIVE-Custom-ZHLT-by-vluzacn
+
+
+Understanding BSP trees & collision detection:
+https://www.youtube.com/watch?v=wLHXn8IlAiA
+He has several of these great videos https://www.youtube.com/@MattsRamblings
+
+
+TODO: Make g_dlightdata's element type int8_rgb.
+But keep in mind!!!
+When loading g_dlightdata from a .bsp, you should check that the size is divisible by 3, and if not, pad it.
+	auto lightingData = get_lump_data<lump_id::lighting>(header);
+	g_dlightdata.assign(lightingData.begin(), lightingData.end());
+	

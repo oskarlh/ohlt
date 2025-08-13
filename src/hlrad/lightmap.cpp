@@ -1,11 +1,15 @@
+#include "bspfile.h"
+#include "color.h"
 #include "developer_level.h"
 #include "hlassert.h"
 #include "hlrad.h"
 #include "log.h"
+#include "mathlib.h"
 #include "mathtypes.h"
 #include "threads.h"
 
 #include <algorithm>
+#include <array>
 #include <numbers>
 #include <span>
 
@@ -14,8 +18,6 @@ std::array<float3_array, MAX_MAP_EDGES>
 	g_face_centroids; // BUG: should this be MAX_MAP_FACES instead of
 					  // MAX_MAP_EDGES???
 bool g_sky_lighting_fix = DEFAULT_SKY_LIGHTING_FIX;
-
-// #define TEXTURE_STEP   16.0
 
 // =====================================================================================
 //  PairEdges
@@ -1711,7 +1713,7 @@ struct sample_t final {
 
 struct facelight_t final {
 	int numsamples;
-	sample_t* samples[MAXLIGHTMAPS];
+	std::array<sample_t*, MAXLIGHTMAPS> samples;
 };
 
 static directlight_t* directlights[MAX_MAP_LEAFS];
@@ -1724,7 +1726,6 @@ static int numdlights;
 void CreateDirectLights() {
 	unsigned i;
 	patch_t* p;
-	directlight_t* dl;
 	int leafnum;
 	entity_t* e;
 	float3_array dest;
@@ -1757,7 +1758,9 @@ void CreateDirectLights() {
 			)) // LRC
 		{
 			numdlights++;
-			dl = (directlight_t*) calloc(1, sizeof(directlight_t));
+			directlight_t* dl = (directlight_t*) calloc(
+				1, sizeof(directlight_t)
+			);
 
 			hlassume(dl != nullptr, assume_NoMemory);
 
@@ -1866,7 +1869,6 @@ void CreateDirectLights() {
 	// entities
 	//
 	for (i = 0; i < (unsigned) g_numentities; i++) {
-		char const * pLight;
 		double r, g, b, scaler;
 		int argCnt;
 
@@ -1906,7 +1908,9 @@ void CreateDirectLights() {
 		}
 
 		numdlights++;
-		dl = (directlight_t*) calloc(1, sizeof(directlight_t));
+		directlight_t* dl = (directlight_t*) calloc(
+			1, sizeof(directlight_t)
+		);
 
 		hlassume(dl != nullptr, assume_NoMemory);
 
@@ -1937,16 +1941,19 @@ void CreateDirectLights() {
 			}
 		}
 		dl->topatch = false;
-		if (IntForKey(e, u8"_fast") == 1) {
+		if (bool_key_value(*e, u8"_fast") == 1) {
 			dl->topatch = true;
 		}
 		if (g_fastmode) {
 			dl->topatch = true;
 		}
-		pLight = (char const *) ValueForKey(e, u8"_light");
+		char const * lightString
+			= (char const *) value_for_key(e, u8"_light").data();
 		// scanf into doubles, then assign, so it is float size independent
 		r = g = b = scaler = 0;
-		argCnt = sscanf(pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler);
+		argCnt = sscanf(
+			lightString, "%lf %lf %lf %lf", &r, &g, &b, &scaler
+		);
 		dl->intensity[0] = (float) r;
 		if (argCnt == 1) {
 			// The R,G,B values are all equal.
@@ -1965,11 +1972,11 @@ void CreateDirectLights() {
 				dl->intensity[2] = dl->intensity[2] / 255 * (float) scaler;
 			}
 		} else {
-			Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
+			Log("light at (%f,%f,%f) has bad or missing '_light' value: '%s'\n",
 				dl->origin[0],
 				dl->origin[1],
 				dl->origin[2],
-				pLight);
+				lightString);
 			continue;
 		}
 
@@ -2069,10 +2076,17 @@ void CreateDirectLights() {
 				//
 				// What does _sky do for spotlights, anyway?
 				// -----------------------------------------------------------------------------------
-				pLight = (char const *) ValueForKey(e, u8"_diffuse_light");
+				char const * diffuseLightString
+					= (char const *) value_for_key(e, u8"_diffuse_light")
+						  .data();
 				r = g = b = scaler = 0;
 				argCnt = sscanf(
-					pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler
+					diffuseLightString,
+					"%lf %lf %lf %lf",
+					&r,
+					&g,
+					&b,
+					&scaler
 				);
 				dl->diffuse_intensity[0] = (float) r;
 				if (argCnt == 1) {
@@ -2104,10 +2118,16 @@ void CreateDirectLights() {
 					dl->diffuse_intensity[2] = dl->intensity[2];
 				}
 				// -----------------------------------------------------------------------------------
-				pLight = (char const *) ValueForKey(e, u8"_diffuse_light2");
+				char const * diffuseLight2String = (char const *)
+					ValueForKey(e, u8"_diffuse_light2");
 				r = g = b = scaler = 0;
 				argCnt = sscanf(
-					pLight, "%lf %lf %lf %lf", &r, &g, &b, &scaler
+					diffuseLight2String,
+					"%lf %lf %lf %lf",
+					&r,
+					&g,
+					&b,
+					&scaler
 				);
 				dl->diffuse_intensity2[0] = (float) r;
 				if (argCnt == 1) {
@@ -2285,9 +2305,8 @@ void CreateDirectLights() {
 
 	int countnormallights = 0, countfastlights = 0;
 	{
-		int l;
-		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
-			for (dl = directlights[l]; dl; dl = dl->next) {
+		for (int l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
+			for (directlight_t* dl = directlights[l]; dl; dl = dl->next) {
 				switch (dl->type) {
 					case emit_surface:
 					case emit_point:
@@ -2350,6 +2369,7 @@ void CreateDirectLights() {
 		int l;
 		for (l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
 			directlight_t** pdl;
+			directlight_t* dl;
 			for (dl = directlights[l], pdl = &directlights[l]; dl;
 				 dl = *pdl) {
 				if (dl->type == emit_skylight) {
@@ -2361,6 +2381,7 @@ void CreateDirectLights() {
 				}
 			}
 		}
+		directlight_t* dl;
 		while ((dl = directlights[0]) != nullptr) {
 			// since they are in leaf 0, they won't emit a light anyway
 			directlights[0] = dl->next;
@@ -4452,8 +4473,7 @@ void PrecompLightmapOffsets() {
 	facelight_t* fl;
 	int lightstyles;
 
-	int i;			// LRC
-	patch_t* patch; // LRC
+	patch_t* patch;
 
 	std::size_t newLightDataSize = 0;
 
@@ -5034,35 +5054,6 @@ void FreeFacelightDependencyList() {
 }
 
 // =====================================================================================
-//  ScaleDirectLights
-// =====================================================================================
-void ScaleDirectLights() {
-	int facenum;
-	dface_t* f;
-	facelight_t* fl;
-	int i;
-	int k;
-	sample_t* samp;
-
-	for (facenum = 0; facenum < g_numfaces; facenum++) {
-		f = &g_dfaces[facenum];
-
-		if (g_texinfo[f->texinfo].has_special_flag()) {
-			continue;
-		}
-
-		fl = &facelight[facenum];
-
-		for (k = 0; k < MAXLIGHTMAPS && f->styles[k] != 255; k++) {
-			for (i = 0; i < fl->numsamples; i++) {
-				samp = &fl->samples[k][i];
-				samp->light = vector_scale(samp->light, g_direct_scale);
-			}
-		}
-	}
-}
-
-// =====================================================================================
 //  AddPatchLights
 //    This function is run multithreaded
 // =====================================================================================
@@ -5164,9 +5155,7 @@ void FinalLightFace(int const facenum) {
 			Log("Error.\n");
 		}
 	}
-	int i, j, k;
 	sample_t* samp;
-	int lightstyles;
 	dface_t* f;
 
 	float temp_rand;
@@ -5178,32 +5167,33 @@ void FinalLightFace(int const facenum) {
 		return; // non-lit texture
 	}
 
+	int lightstyles;
 	for (lightstyles = 0; lightstyles < MAXLIGHTMAPS; lightstyles++) {
 		if (f->styles[lightstyles] == 255) {
 			break;
 		}
 	}
 
-	// set up the triangulation
-	//
-	// sample the triangulation
-	float minlight = float_for_key(*g_face_entity[facenum], u8"_minlight")
-		* 255;
-	minlight = (minlight > 255) ? 255 : minlight;
+	float_color_element minLight = std::max(
+		(float) g_minlight,
+		float_for_key(*g_face_entity[facenum], u8"_minlight")
+	);
 
-	wad_texture_name texname{ get_texture_by_number(f->texinfo) };
-	minlight = texname.get_minlight().value_or(minlight);
+	wad_texture_name const texname{ get_texture_by_number(f->texinfo) };
+	minLight = std::max(minLight, texname.get_minlight().value_or(0.0f));
 
 	for (minlight_i it = s_minlights.begin(); it != s_minlights.end();
-		 it++) {
+		 ++it) {
 		if (texname == it->name) {
-			float minlightValue = it->value * 255.0f;
-			minlight = static_cast<int>(minlightValue);
-			minlight = (minlight > 255) ? 255 : minlight;
+			minLight = std::max(minLight, it->value);
+			break;
 		}
 	}
-	for (j = 0; j < fl->numsamples; j++) {
-		for (k = 0; k < lightstyles; k++) {
+
+	minLight = std::clamp(minLight, 0.0f, 1.0f);
+
+	for (int k = 0; k < lightstyles; k++) {
+		for (int j = 0; j < fl->numsamples; j++) {
 			samp = fl->samples[k] + j;
 
 			if (f->styles[0] != 0) {
@@ -5211,70 +5201,45 @@ void FinalLightFace(int const facenum) {
 			}
 			float3_array lb = vector_maximums(samp->light, float3_array{});
 
-			// Colour lightscale:
-			lb[0] *= g_colour_lightscale[0];
-			lb[1] *= g_colour_lightscale[1];
-			lb[2] *= g_colour_lightscale[2];
+			lb = vector_scale(lb, g_lighting_scale);
 
-			// Clip from the bottom first
-			for (i = 0; i < 3; i++) {
-				if (lb[i] < minlight) {
-					lb[i] = minlight;
-				}
-			}
+			lb[0] = std::pow(lb[0] / 255.0f, g_lighting_gamma);
+			lb[1] = std::pow(lb[1] / 255.0f, g_lighting_gamma);
+			lb[2] = std::pow(lb[2] / 255.0f, g_lighting_gamma);
 
-			if (g_colour_qgamma[0] != 1.0) {
-				lb[0] = std::pow(lb[0] / 256.0f, g_colour_qgamma[0])
-					* 256.0f;
-			}
-
-			if (g_colour_qgamma[1] != 1.0) {
-				lb[1] = std::pow(lb[1] / 256.0f, g_colour_qgamma[1])
-					* 256.0f;
-			}
-
-			if (g_colour_qgamma[2] != 1.0) {
-				lb[2] = std::pow(lb[2] / 256.0f, g_colour_qgamma[2])
-					* 256.0f;
-			}
-
-			// clip from the top
+			// Clamp values
 			{
 				float max = vector_max_element(lb);
-				if (g_limitthreshold >= 0 && max > g_limitthreshold) {
-					if (!g_drawoverload) {
-						lb = vector_scale(lb, g_limitthreshold / max);
-					}
+				float const maxLight = g_limitthreshold / 255.0f;
+				bool const isOverbright = max > maxLight;
+				if (isOverbright) {
+					// Make it just fullbright - since HL no longer supports
+					// overbright lighting (gl_overbright)
+					lb = vector_scale(lb, maxLight / max);
 				} else if (g_drawoverload) {
-					lb = vector_scale(lb, 0.1f); // darken good points
-				}
-			}
-			for (i = 0; i < 3; ++i) {
-				if (lb[i] < g_minlight) {
-					lb[i] = g_minlight;
-				}
-			}
-			// ------------------------------------------------------------------------
-			std::array<std::int32_t, 3> lbi;
-			for (i = 0; i < 3; ++i) {
-				lbi[i] = (std::int32_t) std::lround(lb[i]);
-				if (lbi[i] < 0) {
-					lbi[i] = 0;
+					// Darken points that are not fullbright
+					lb = vector_scale(lb, 0.1f);
+				} else if (max < minLight) {
+					if (max > 0) {
+						lb = vector_scale(lb, minLight / max);
+					} else {
+						lb = { minLight, minLight, minLight };
+					}
 				}
 			}
 
-			for (std::int32_t& v : lbi) {
-				v = std::clamp(v, 0, 255);
-			}
-			{
-				std::byte* colors
-					= &g_dlightdata
-						  [f->lightofs + k * fl->numsamples * 3 + j * 3];
+			std::byte* colors
+				= &g_dlightdata
+					  [f->lightofs + k * fl->numsamples * 3 + j * 3];
 
-				colors[0] = (std::byte) lbi[0];
-				colors[1] = (std::byte) lbi[1];
-				colors[2] = (std::byte) lbi[2];
+			int8_rgb lbi;
+			for (int i = 0; i < 3; ++i) {
+				lbi[i] = (std::uint8_t
+				) std::lround(std::clamp(lb[i], 0.0f, 1.0f) * 255);
 			}
+			colors[0] = (std::byte) lbi[0];
+			colors[1] = (std::byte) lbi[1];
+			colors[2] = (std::byte) lbi[2];
 		}
 	}
 }

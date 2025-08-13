@@ -1,11 +1,13 @@
 #include "hlcsg.h"
 
 #include "bsp_file_sizes.h"
+#include "bspfile.h"
 #include "cli_option_defaults.h"
 #include "cmdlib.h"
 #include "cmdlinecfg.h"
 #include "filelib.h"
 #include "hlcsg_settings.h"
+#include "internal_types/various.h"
 #include "legacy_character_encodings.h"
 #include "log.h"
 #include "map_entity_parser.h"
@@ -71,8 +73,6 @@ bool g_viewsurface = false;
 //      parses entity keyvalues for setting information
 // =====================================================================================
 void GetParamsFromEnt(entity_t* mapent) {
-	char szTmp[256];
-
 	Log("\nCompile Settings detected from info_compile_parameters entity\n"
 	);
 
@@ -116,6 +116,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (texdataValue > g_max_map_miptex) {
 		g_max_map_miptex = texdataValue;
 	}
+	char szTmp[256];
 	snprintf(szTmp, sizeof(szTmp), "%td", g_max_map_miptex);
 	Log("%30s [ %-9s ]\n", "Texture Data Memory", szTmp);
 
@@ -230,8 +231,6 @@ bface_t NewFaceFromFace(bface_t const & in) {
 static void WriteFace(
 	int const hull, bface_t const * const f, detail_level detailLevel
 ) {
-	unsigned int i;
-
 	ThreadLock();
 	if (!hull) {
 		c_csgfaces++;
@@ -252,7 +251,7 @@ static void WriteFace(
 	);
 
 	// for each of the points on the face
-	for (i = 0; i < w.size(); i++) {
+	for (std::size_t i = 0; i < w.size(); i++) {
 		// write the co-ords
 		fprintf(
 			out[hull],
@@ -278,7 +277,7 @@ static void WriteFace(
 				center2[1],
 				center2[2]
 			);
-			for (i = 0; i < w.size(); i++) {
+			for (std::size_t i = 0; i < w.size(); i++) {
 				double3_array const & p1{ w.point(i) };
 				double3_array const & p2{ w.point((i + 1) % w.size()) };
 
@@ -675,19 +674,11 @@ static void CSGBrush(int brushnum) {
 						continue;
 					}
 
-					visit_with(
-						w.Divide(
-							*f2.plane,
-							0 // TODO: !!! Can I delete this 0?????
-						),
-						[](all_in_the_back_winding_division_result) {},
-						[&w](all_in_the_front_winding_division_result) {
-							w.clear();
-						},
-						[&w](accurate_winding::split_division_result& arg) {
-							w = std::move(arg.back);
-						}
-					);
+					accurate_winding backWinding;
+					accurate_winding frontWinding;
+					w.clip(*f2.plane, backWinding, frontWinding);
+					w = std::move(backWinding);
+
 					if (w.empty()) {
 						break;
 					}
@@ -711,40 +702,28 @@ static void CSGBrush(int brushnum) {
 							}
 						}
 						if (valid >= 2) { // this splitplane forms an edge
-							accurate_winding frontw;
-							accurate_winding& fwinding{ f.w };
 
-							visit_with(
-								fwinding.Divide(
-									*f2.plane,
-									0 // TODO: !!! Can I delete this 0?????
-								),
-								[](all_in_the_back_winding_division_result
-								) {},
-								[&fwinding, &frontw](
-									all_in_the_front_winding_division_result
-								) {
-									using std::swap;
-									swap(fwinding, frontw);
-								},
-								[&fwinding, &frontw](
-									accurate_winding::split_division_result&
-										arg
-								) {
-									fwinding = std::move(arg.back);
-									frontw = std::move(arg.front);
+							accurate_winding backWinding;
+							accurate_winding frontWinding;
+							f.w.clip(*f2.plane, backWinding, frontWinding);
+
+							if (frontWinding) {
+								if (backWinding) {
+									f.w = std::move(backWinding);
+								} else {
+									f.w.clear();
 								}
-							);
-
-							if (frontw) {
+							}
+							if (frontWinding) {
 								bface_t front{ NewFaceFromFace(f) };
-								front.w = std::move(frontw);
+								front.w = std::move(frontWinding);
 								front.bounds = front.w.getBounds();
 
 								outside.emplace_back(std::move(front));
 							}
-							if (fwinding) {
-								f.bounds = fwinding.getBounds();
+
+							if (f.w) {
+								f.bounds = f.w.getBounds();
 							} else {
 								skip = true;
 								break;
@@ -1070,20 +1049,17 @@ static float3_array angles_for_vector(float3_array const & vector) {
 }
 
 static void UnparseEntities() {
-	char8_t* buf;
-	char8_t* end;
 	char line[4096]; // TODO: Replace. 4096 is arbitrary
-	int i;
 
-	buf = g_dentdata.data();
-	end = buf;
+	char8_t* buf = g_dentdata.data();
+	char8_t* end = buf;
 	*end = 0;
 
-	for (i = 0; i < g_numentities; i++) {
+	for (int i = 0; i < g_numentities; i++) {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"info_sunlight")
 			|| classname_is(mapent, u8"light_environment")) {
-			float3_array vec{};
+			float3_array vec;
 			{
 				vec = get_float3_for_key(*mapent, u8"angles");
 				float pitch = float_for_key(*mapent, u8"pitch");
@@ -1116,10 +1092,7 @@ static void UnparseEntities() {
 			set_key_value(mapent, u8"angles", (char8_t const *) stmp);
 			DeleteKey(mapent, u8"pitch");
 
-			if (!strcmp(
-					(char const *) ValueForKey(mapent, u8"classname"),
-					"info_sunlight"
-				)) {
+			if (classname_is(mapent, u8"info_sunlight")) {
 				if (g_numentities == MAX_MAP_ENTITIES) {
 					Error("g_numentities == MAX_MAP_ENTITIES");
 				}
@@ -1131,7 +1104,7 @@ static void UnparseEntities() {
 			}
 		}
 	}
-	for (i = 0; i < g_numentities; i++) {
+	for (int i = 0; i < g_numentities; i++) {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"light_shadow")
 			|| classname_is(mapent, u8"light_bounce")) {
@@ -1149,7 +1122,7 @@ static void UnparseEntities() {
 		}
 	}
 	// ugly code
-	for (i = 0; i < g_numentities; i++) {
+	for (int i = 0; i < g_numentities; i++) {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"light_surface")) {
 			if (key_value_is_empty(mapent, u8"_tex")) {
@@ -1172,13 +1145,12 @@ static void UnparseEntities() {
 		}
 	}
 	if (!g_nolightopt) {
-		int i, j;
 		int count = 0;
 		std::unique_ptr<bool[]> lightneedcompare = std::make_unique<bool[]>(
 			g_numentities
 		);
 		hlassume(lightneedcompare != nullptr, assume_NoMemory);
-		for (i = g_numentities - 1; i > -1; i--) {
+		for (int i = g_numentities - 1; i > -1; i--) {
 			entity_t* ent = &g_entities[i];
 			std::u8string_view const classname = get_classname(*ent);
 			std::u8string_view const targetname = value_for_key(
@@ -1190,6 +1162,7 @@ static void UnparseEntities() {
 					&& classname != u8"light_environment") {
 				continue;
 			}
+			int j;
 			for (j = i + 1; j < g_numentities; j++) {
 				if (!lightneedcompare[j]) {
 					continue;
@@ -1214,7 +1187,7 @@ static void UnparseEntities() {
 			Log("%d redundant named lights optimized.\n", count);
 		}
 	}
-	for (i = 0; i < g_numentities; i++) {
+	for (int i = 0; i < g_numentities; i++) {
 		if (g_entities[i].keyValues.empty()) {
 			// Ent got removed
 			continue;
@@ -1351,7 +1324,7 @@ static void CheckForNoClip() {
 
 		std::u8string_view entclassname = get_classname(*ent);
 		spawnflags = atoi((char const *) ValueForKey(ent, u8"spawnflags"));
-		int skin = IntForKey(ent, u8"skin"); // vluzacn
+		int skin = IntForKey(ent, u8"skin");
 
 		if (skin == -16) {
 			continue;
@@ -1386,8 +1359,6 @@ static void CheckForNoClip() {
 // =====================================================================================
 
 static void ProcessModels() {
-	int type;
-	int placed;
 	contents_t contents;
 	csg_brush temp;
 
@@ -1408,7 +1379,7 @@ static void ProcessModels() {
 		}
 		contents_t placedcontents;
 		bool b_placedcontents = false;
-		for (placed = 0; placed < g_entities[i].numbrushes;) {
+		for (brush_count placed = 0; placed < g_entities[i].numbrushes;) {
 			bool b_contents = false;
 			for (int j = 0; j < g_entities[i].numbrushes; j++) {
 				csg_brush* brush = &temps[j];

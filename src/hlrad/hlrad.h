@@ -3,46 +3,32 @@
 #include "bspfile.h"
 #include "compress.h"
 #include "mathlib.h"
+#include "wad_texture_name.h"
 #include "winding.h"
 
-#include <string>
 #include <vector>
 
-#define DEFAULT_PRE25UPDATE	  false
 #define DEFAULT_FASTMODE	  false
 #define DEFAULT_LERP_ENABLED  true
-#define DEFAULT_STUDIOSHADOW  true // seedee
+#define DEFAULT_STUDIOSHADOW  true
 #define DEFAULT_FADE		  1.0
 #define DEFAULT_BOUNCE		  8
 #define DEFAULT_DUMPPATCHES	  false
 #define DEFAULT_AMBIENT_RED	  0.0
 #define DEFAULT_AMBIENT_GREEN 0.0
 #define DEFAULT_AMBIENT_BLUE  0.0
-// 188 is the fullbright threshold for Goldsrc before 25th anniversary,
-// regardless of the brightness and gamma settings in the graphic options.
-// This is no longer necessary However, hlrad can only control the light
-// values of each single light style. So the final in-game brightness may
-// exceed 188 if you have set a high value in the "custom appearance" of the
-// light, or if the face receives light from different styles.
-#define DEFAULT_LIMITTHRESHOLD \
-	255.0 // We override to 188 with pre25 argument
+
+// Lightmap pixels with a component value above 188 is clamped down.
+// Hopefully one day Valve will fix gl_overbright and we can use up to 255.
+constexpr int8_color_element DEFAULT_LIMITTHRESHOLD = 188;
+
 #define DEFAULT_TEXSCALE		 true
 #define DEFAULT_CHOP			 64.0
 #define DEFAULT_TEXCHOP			 32.0
-#define DEFAULT_LIGHTSCALE		 2.0 // 1.0 //vluzacn
 #define DEFAULT_DLIGHT_THRESHOLD 10.0
-#define DEFAULT_DLIGHT_SCALE	 1.0 // 2.0 //vluzacn
 #define DEFAULT_SMOOTHING_VALUE	 50.0
 #define DEFAULT_SMOOTHING2_VALUE 0
 #define DEFAULT_INCREMENTAL		 false
-
-// ------------------------------------------------------------------------
-// Changes by Adam Foster - afoster@compsoc.man.ac.uk
-
-// superseded by DEFAULT_COLOUR_LIGHTSCALE_*
-
-// superseded by DEFAULT_COLOUR_GAMMA_*
-// ------------------------------------------------------------------------
 
 #define DEFAULT_INDIRECT_SUN	 1.0
 #define DEFAULT_EXTRA			 false
@@ -53,13 +39,10 @@
 #define DEFAULT_ALLOW_OPAQUES	 true
 #define DEFAULT_ALLOW_SPREAD	 true
 
-#define DEFAULT_COLOUR_GAMMA_RED   0.55
-#define DEFAULT_COLOUR_GAMMA_GREEN 0.55
-#define DEFAULT_COLOUR_GAMMA_BLUE  0.55
+// TODO: Increase these
+#define DEFAULT_LIGHTING_GAMMA 0.55
 
-#define DEFAULT_COLOUR_LIGHTSCALE_RED	2.0 // 1.0 //vluzacn
-#define DEFAULT_COLOUR_LIGHTSCALE_GREEN 2.0 // 1.0 //vluzacn
-#define DEFAULT_COLOUR_LIGHTSCALE_BLUE	2.0 // 1.0 //vluzacn
+#define DEFAULT_LIGHTING_SCALE 2.0 // 1.0 //vluzacn
 
 // [http://hullu.xtragaming.com/] Transparency light support for bounced
 // light(transfers) is extremely slow for 'vismatrix' and 'sparse' at the
@@ -324,7 +307,7 @@ extern void LoadTextures();
 extern void EmbedLightmapInTextures();
 
 struct minlight_t final {
-	std::u8string name;
+	wad_texture_name name;
 	float value;
 }; // info_minlights
 
@@ -345,7 +328,6 @@ extern patch_t* g_patches; // shrinked to its real size, because 1048576
 						   // patches * 256 bytes = 256MB will be too big
 extern unsigned g_num_patches;
 
-extern float g_lightscale;
 extern float g_dlight_threshold;
 extern float g_coring;
 extern int g_lerp_enabled;
@@ -357,8 +339,7 @@ extern void MakeShadowSplits();
 extern bool g_fastmode;
 extern bool g_extra;
 extern float3_array g_ambient;
-extern float g_direct_scale;
-extern float g_limitthreshold;
+extern int8_color_element g_limitthreshold;
 extern bool g_drawoverload;
 extern unsigned g_numbounce;
 extern float g_qgamma;
@@ -378,8 +359,8 @@ extern float g_chop;	// Chop value for normal textures
 extern float g_texchop; // Chop value for texture lights
 extern std::vector<opaqueList_t> g_opaque_face_list;
 
-extern float3_array g_colour_qgamma;
-extern float3_array g_colour_lightscale;
+extern float g_lighting_gamma;
+extern float g_lighting_scale;
 
 struct lighting_cone_power_and_scale final {
 	float power{ 1.0 };
@@ -390,7 +371,7 @@ extern bool g_customshadow_with_bouncelight;
 extern bool g_rgb_transfers;
 
 extern float g_transtotal_hack;
-extern unsigned char g_minlight;
+extern float_color_element g_minlight;
 extern float_type g_transfer_compress_type;
 extern vector_type g_rgbtransfer_compress_type;
 extern bool g_softsky;
@@ -436,7 +417,6 @@ extern void BuildFacelights(int facenum);
 extern void PrecompLightmapOffsets();
 extern void ReduceLightmap();
 extern void FinalLightFace(int facenum);
-extern void ScaleDirectLights();			 // run before AddPatchLights
 extern void CreateFacelightDependencyList(); // run before AddPatchLights
 extern void AddPatchLights(int facenum);
 extern void FreeFacelightDependencyList();

@@ -502,3 +502,7 @@ void FORMAT_PRINTF(1, 2) PrintConsole(char const * const warning, ...) {
 
 	fprintf(stdout, "%s", message);
 }
+
+void FlushConsole() {
+	fflush(stdout);
+}

@@ -51,6 +51,7 @@ set(COMMON_HEADERS
     ${COMMON_DIR}/bsp_file_sizes.h
     ${COMMON_DIR}/bspfile.h
     ${COMMON_DIR}/call_finally.h
+	${COMMON_DIR}/color.h
     ${COMMON_DIR}/common_settings.h
     ${COMMON_DIR}/context.h
     ${COMMON_DIR}/cmdlib.h

@@ -10,7 +10,9 @@
 //
 
 extern std::u8string g_Program;
-extern std::filesystem::path g_Mapname;
+extern std::filesystem::path
+	g_Mapname; // This is the path to the .map/.bsp file, but without the
+			   // file extension
 extern std::filesystem::path g_Wadpath; // This is just the mod folder...
 
 extern developer_level g_developer;
@@ -39,32 +41,26 @@ std::filesystem::path path_to_temp_file_with_extension(
 	std::filesystem::path mapBasePath, std::u8string_view extension
 );
 
-#ifdef _DEBUG
-#define IfDebug(x) (x)
-#else
-#define IfDebug(x)
-#endif
-
-extern void FORMAT_PRINTF(1, 2)
-	PrintConsole(char const * const message, ...);
-extern void FORMAT_PRINTF(1, 2) Verbose(char const * const message, ...);
-extern void FORMAT_PRINTF(1, 2) Log(char const * const message, ...);
-extern void FORMAT_PRINTF(1, 2) Error(char const * const error, ...);
-extern void FORMAT_PRINTF(2, 3)
+void FlushConsole();
+void FORMAT_PRINTF(1, 2) PrintConsole(char const * const message, ...);
+void FORMAT_PRINTF(1, 2) Verbose(char const * const message, ...);
+void FORMAT_PRINTF(1, 2) Log(char const * const message, ...);
+void FORMAT_PRINTF(1, 2) Error(char const * const error, ...);
+void FORMAT_PRINTF(2, 3)
 	Fatal(assume_msgs msgid, char const * const error, ...);
-extern void FORMAT_PRINTF(1, 2) Warning(char const * const warning, ...);
+void FORMAT_PRINTF(1, 2) Warning(char const * const warning, ...);
 
-extern void FORMAT_PRINTF(1, 2) PrintOnce(char const * const message, ...);
+void FORMAT_PRINTF(1, 2) PrintOnce(char const * const message, ...);
 
-extern void LogStart(int const argc, char** argv);
-extern void LogEnd();
-extern void Banner();
+void LogStart(int const argc, char** argv);
+void LogEnd();
+void Banner();
 
-extern void LogTimeElapsed(float elapsed_time);
+void LogTimeElapsed(float elapsed_time);
 
 // Note: The first element in argv is skipped since that's usually
 // the executable path
 void log_arguments(int argc, char** argv);
 
 // Should be in hlassert.h, but well so what
-extern void hlassume(bool exp, assume_msgs msgid);
+void hlassume(bool exp, assume_msgs msgid);

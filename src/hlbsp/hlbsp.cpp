@@ -10,7 +10,7 @@
 #include "mathtypes.h"
 #include "time_counter.h"
 #include "utf8.h"
-#include "util.h"
+#include "winding.h"
 
 #include <algorithm>
 #include <cstring>
@@ -193,24 +193,27 @@ void SplitFace(
 		);
 	}
 
-	visit_with(
-		inWinding.Divide(*split, distOverrideForFuncDetail),
-		[&in, &back](all_in_the_back_winding_division_result) {
-			*back = in;
-		},
-		[&in, &front](all_in_the_front_winding_division_result) {
-			*front = in;
-		},
-		[&in, &front, &back](accurate_winding::split_division_result& arg) {
-			// The winding is split
+	accurate_winding backWinding;
+	accurate_winding frontWinding;
+	inWinding.clip(
+		*split, backWinding, frontWinding, distOverrideForFuncDetail
+	);
 
+	if (frontWinding) {
+		if (backWinding) {
+			// The winding is split
 			*back = new face_t{ NewFaceFromFace(*in) };
 			*front = new face_t{ NewFaceFromFace(*in) };
+
 			delete in;
-			(*back)->pts.assign_range(arg.back.points());
-			(*front)->pts.assign_range(arg.front.points());
+			(*back)->pts.assign_range(backWinding.points());
+			(*front)->pts.assign_range(frontWinding.points());
+		} else {
+			*front = in;
 		}
-	);
+	} else {
+		*back = in;
+	}
 }
 
 // =====================================================================================

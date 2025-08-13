@@ -15,7 +15,7 @@ if [ "$CSG_ONLY" = "-csg-only" ]; then
 	cp ./valve/maps/${MAP_NAME}.map ./valve/maps/${MAP_NAME}${CSG_ONLY}.map
 fi
 #lldb -- program-here
-../tools/hlcsg -threads ${NUM_THREADS} -noestimate ./valve/maps/${MAP_NAME}${CSG_ONLY}
+../tools/hlcsg -threads ${NUM_THREADS} -noestimate ./valve/maps/${MAP_NAME}${CSG_ONLY} -wadinclude two
 if [ "$CSG_ONLY" = "-csg-only" ]; then
 	echo "CSG only"
 else

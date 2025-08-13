@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.h"
 #include "external_types/external_types.h"
 #include "utf8.h"
 
@@ -496,17 +497,18 @@ class wad_texture_name final {
 			&& units[1] <= u8'9';
 	}
 
-	constexpr std::optional<std::uint8_t> get_minlight() const noexcept {
+	constexpr std::optional<float_color_element>
+	get_minlight() const noexcept {
 		if (has_minlight()) {
-			std::uint8_t minlight = 0;
+			std::uint8_t minLightOctet = 0;
 			for (char8_t c : std::span(&units[1], &units[4])) {
 				if (c < u8'0' || c > u8'9') {
 					break;
 				}
-				minlight *= 10;
-				minlight += c;
+				minLightOctet *= 10;
+				minLightOctet += c;
 			}
-			return minlight;
+			return minLightOctet / 255.0f;
 		}
 		return std::nullopt;
 	}

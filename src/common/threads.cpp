@@ -122,6 +122,7 @@ int GetThreadWork() {
 			case 90:
 			case 100:
 				PrintConsole("%d%%...", f);
+				FlushConsole();
 			default:
 				break;
 		}

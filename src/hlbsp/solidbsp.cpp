@@ -1240,36 +1240,19 @@ static void SplitNodePortals(node_t* node) {
 		// plane
 		accurate_winding& pWinding = *p->winding;
 
-		visit_with(
-			pWinding.Divide(*plane),
-			[&p, &other_node, &side, &b](
-				all_in_the_back_winding_division_result
-			) {
-				if (side == 0) {
-					AddPortalToNodes(p, b, other_node);
-				} else {
-					AddPortalToNodes(p, other_node, b);
-				}
-			},
-			[&p, &other_node, &side, &f](
-				all_in_the_front_winding_division_result
-			) {
-				if (side == 0) {
-					AddPortalToNodes(p, f, other_node);
-				} else {
-					AddPortalToNodes(p, other_node, f);
-				}
-			},
-			[&b, &f, &other_node, &p, &side](
-				accurate_winding::split_division_result& arg
-			) {
+		accurate_winding backWinding;
+		accurate_winding frontWinding;
+		pWinding.clip(*plane, backWinding, frontWinding);
+
+		if (frontWinding) {
+			if (backWinding) {
 				// The winding is split
 				bsp_portal_t* new_portal = AllocPortal();
 				*new_portal = *p;
 				new_portal->winding = new accurate_winding{
-					std::move(arg.back)
+					std::move(backWinding)
 				};
-				*(p->winding) = std::move(arg.front);
+				*(p->winding) = std::move(frontWinding);
 
 				if (side == 0) {
 					AddPortalToNodes(p, f, other_node);
@@ -1278,8 +1261,20 @@ static void SplitNodePortals(node_t* node) {
 					AddPortalToNodes(p, other_node, f);
 					AddPortalToNodes(new_portal, other_node, b);
 				}
+			} else {
+				if (side == 0) {
+					AddPortalToNodes(p, f, other_node);
+				} else {
+					AddPortalToNodes(p, other_node, f);
+				}
 			}
-		);
+		} else {
+			if (side == 0) {
+				AddPortalToNodes(p, b, other_node);
+			} else {
+				AddPortalToNodes(p, other_node, b);
+			}
+		}
 	}
 
 	node->portals = nullptr;

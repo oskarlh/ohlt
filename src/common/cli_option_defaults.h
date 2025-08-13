@@ -1,10 +1,10 @@
 #pragma once
 
+#include "color.h"
 #include "developer_level.h"
 #include "threads.h"
 
 #include <cstddef>
-#include <cstdint>
 
 namespace cli_option_defaults {
 	constexpr bool chart = true;
@@ -12,7 +12,7 @@ namespace cli_option_defaults {
 	constexpr bool estimate = true;
 	constexpr bool info = true;
 	constexpr bool log = true;
-	constexpr std::uint8_t minLight = 0;
+	constexpr float_color_element minLight = 0.0f;
 	constexpr bool nulltex = true;
 	constexpr std::ptrdiff_t numberOfThreads = -1;
 	constexpr bool verbose = false;

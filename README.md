@@ -48,7 +48,6 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 
 ### Compile parameters
 
-- `-pre25` RAD parameter overrides light clipping threshold limiter to `188`. Use this when creating maps for the legacy pre-25th anniversary engine without worrying about other parameters.
 - `-extra` RAD parameter now sets `-bounce 12` for a higher quality of lighting simulation.
 - `-worldextent n` CSG parameter. Extends map geometry limits beyond `+/-32768`.
 - Portal file reformatting for J.A.C.K. map editor, allows for importing the prt file into the editor directly after VIS. Use `-nofixprt` VIS parameter to disable.
