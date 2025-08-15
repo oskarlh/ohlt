@@ -224,8 +224,11 @@ struct hullbrush_t final {
 
 struct hullshape_t final {
 	std::u8string id;
-	hullbrush_t** brushes;
-	int numbrushes; // must be 0 or 1
+	// TODO: An older comment said numbrushes (now brushes.size()) must be 0
+	// or 1... that's odd. Don't know if that's true. If it is true we don't
+	// need brushes to be a vector. I think this is related to
+	// https://twhl.info/wiki/page/info_hullshape
+	std::vector<hullbrush_t*> brushes;
 	bool disabled;
 };
 

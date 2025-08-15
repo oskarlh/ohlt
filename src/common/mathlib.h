@@ -180,6 +180,12 @@ negate_vector(std::array<T, 3> const & v) noexcept {
 	return { T(0.0) - v[0], T(0.0) - v[1], T(0.0) - v[2] };
 }
 
+template <std::floating_point T>
+[[nodiscard]] constexpr std::array<T, 3>
+vector_abs(std::array<T, 3> const & v) noexcept {
+	return { std::abs(v[0]), std::abs(v[1]), std::abs(v[2]) };
+}
+
 constexpr bool
 vectors_almost_same(any_vec3 auto const & v1, any_vec3 auto const & v2) {
 	bool const significantDifference0 = std::abs(v1[0] - v2[0])
