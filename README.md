@@ -36,7 +36,7 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 
 ### Entities
 
-- *info_portal* and *info_leaf* ared used to create a portal from the leaf the *info_portal* is inside, to the selected leaf the *info_leaf* is inside. Forces target leaf to be visible from the current one, making all entities visible.
+- *info_portal* and *info_leaf* are used to create a portal from the leaf the *info_portal* is inside, to the selected leaf the *info_leaf* is inside. Forces target leaf to be visible from the current one, making all entities visible.
 - *info_minlights* used to set minlights for textures, works on world geometry too. Works similarly to `_minlight` but per-texture.
 
 ### Textures

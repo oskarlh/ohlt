@@ -17,13 +17,11 @@ parse_nowadtextures_blocklist(std::u8string_view fileContents) {
 	std::u8string_view remaining{ fileContents };
 	std::vector<std::u8string> wads;
 
-	while (true) {
-		std::u8string_view const word = next_word(remaining);
-		if (word.empty()) {
-			return wads;
-		}
+	std::u8string_view word;
+	while (!(word = next_word(remaining)).empty()) {
 		wads.emplace_back(word);
 	}
+	return wads;
 }
 
 std::optional<std::vector<std::u8string>>

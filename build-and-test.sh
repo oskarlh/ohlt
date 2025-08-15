@@ -31,5 +31,5 @@ export NUM_THREADS=1
 
 cp ./test-and-compare/valve/maps/${MAP_NAME}${CSG_ONLY}.bsp "/Users/oskar.larsson/Library/Application Support/CrossOver/Bottles/Steam/drive_c/Program Files (x86)/Steam/steamapps/common/Half-Life/valve_downloads/maps/${MAP_NAME}.bsp"
 cp ./test-and-compare/valve/maps/${MAP_NAME}${CSG_ONLY}.bsp "/Users/oskar.larsson/Library/Application Support/Xash3D/valve/maps/${MAP_NAME}.bsp"
-# /Applications/Xash3D-FWGS.app/Contents/MacOS/xash3d -dev -console +map ${MAP_NAME}
+#/Applications/Xash3D-FWGS.app/Contents/MacOS/xash3d -dev -console +map ${MAP_NAME}
 #./launch-hl-in-crossover.sh -novid +map ${MAP_NAME}

@@ -27,8 +27,16 @@ std::filesystem::path g_linefilename;
 std::filesystem::path g_portfilename;
 std::filesystem::path g_extentfilename;
 
-// command line flags
-bool g_noopt = DEFAULT_NOOPT; // don't optimize BSP on write
+// An optimization option that
+// could previously be disabled by
+// -noopt
+bool g_reduceTexinfo = cli_option_defaults::reduceTexinfo;
+
+// Don't optimize BSP on write.
+// Previously be disabled by
+// -noopt
+bool g_optimizePlanes = cli_option_defaults::optimizePlanes;
+
 bool g_noclipnodemerge = DEFAULT_NOCLIPNODEMERGE;
 bool g_nofill = DEFAULT_NOFILL; // dont fill "-nofill"
 bool g_noinsidefill = DEFAULT_NOINSIDEFILL;
@@ -119,12 +127,12 @@ void GetParamsFromEnt(entity_t* mapent) {
 	}
 	Log("%30s [ %-9s ]\n", "Leakonly Mode", g_bLeakOnly ? "on" : "off");
 
-	iTmp = IntForKey(mapent, u8"noopt");
-	if (iTmp == 0) {
-		g_noopt = false;
-	} else {
-		g_noopt = true;
-	}
+	//	iTmp = IntForKey(mapent, u8"noopt");
+	//	if (iTmp == 0) {
+	//		g_noopt = false;
+	//	} else {
+	//		g_noopt = true;
+	//	}
 
 	/*
 	nocliphull(choices) : "Generate clipping hulls" : 0 =
@@ -1046,7 +1054,9 @@ static void Usage() {
 	Log("    -nofill        : Don't fill outside (will mask LEAKs) (not for final runs)\n"
 	);
 	Log("    -noinsidefill  : Don't fill empty spaces\n");
-	Log("    -noopt         : Don't optimize planes on BSP write   (not for final runs)\n"
+	Log("    -no-optimize-planes : Don't optimize planes on BSP write (not for final runs)\n"
+	);
+	Log("    -no-reduce-texinfo : Don't reduce texinfo (not for final runs)\n"
 	);
 	Log("    -noclipnodemerge: Don't optimize clipnodes\n");
 	Log("    -texdata #     : Alter maximum texture memory limit (in kb)\n"
@@ -1144,9 +1154,12 @@ static void Settings() {
 	Log("noinsidefill        [ %7s ] [ %7s ]\n",
 		g_noinsidefill ? "on" : "off",
 		DEFAULT_NOINSIDEFILL ? "on" : "off");
-	Log("noopt               [ %7s ] [ %7s ]\n",
-		g_noopt ? "on" : "off",
-		DEFAULT_NOOPT ? "on" : "off");
+	Log("optimize planes [ %7s ] [ %7s ]\n",
+		g_optimizePlanes ? "on" : "off",
+		cli_option_defaults::optimizePlanes ? "on" : "off");
+	Log("reduce texinfo [ %7s ] [ %7s ]\n",
+		g_reduceTexinfo ? "on" : "off",
+		cli_option_defaults::reduceTexinfo ? "on" : "off");
 	Log("no clipnode merging [ %7s ] [ %7s ]\n",
 		g_noclipnodemerge ? "on" : "off",
 		DEFAULT_NOCLIPNODEMERGE ? "on" : "off");
@@ -1468,12 +1481,14 @@ int main(int const argc, char** argv) {
 							 argv[i], u8"-nohull2"
 						 )) {
 					g_nohull2 = true;
-				}
-
-				else if (strings_equal_with_ascii_case_insensitivity(
-							 argv[i], u8"-noopt"
-						 )) {
-					g_noopt = true;
+				} else if (strings_equal_with_ascii_case_insensitivity(
+							   argv[i], u8"-no-reduce-texinfo"
+						   )) {
+					g_reduceTexinfo = false;
+				} else if (strings_equal_with_ascii_case_insensitivity(
+							   argv[i], u8"-no-optimize-planes"
+						   )) {
+					g_optimizePlanes = false;
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-noclipnodemerge"
 						   )) {

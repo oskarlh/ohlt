@@ -14,7 +14,6 @@
 #include "threads.h"
 #include "time_counter.h"
 #include "utf8.h"
-#include "util.h"
 
 #include <numbers>
 #include <string_view>

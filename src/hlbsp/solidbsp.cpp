@@ -4,7 +4,6 @@
 #include "log.h"
 #include "mathtypes.h"
 #include "time_counter.h"
-#include "util.h"
 
 #include <cstring>
 

@@ -15,6 +15,8 @@ namespace cli_option_defaults {
 	constexpr float_color_element minLight = 0.0f;
 	constexpr bool nulltex = true;
 	constexpr std::ptrdiff_t numberOfThreads = -1;
+	constexpr bool optimizePlanes = true;
+	constexpr bool reduceTexinfo = true;
 	constexpr bool verbose = false;
 	constexpr q_threadpriority threadPriority
 		= q_threadpriority::eThreadPriorityNormal;

@@ -11,7 +11,8 @@ using PlaneMap = std::map<int, int>;
 static PlaneMap gPlaneMap;
 static int gNumMappedPlanes;
 static mapplane_t gMappedPlanes[MAX_MAP_PLANES];
-extern bool g_noopt;
+extern bool g_optimizePlanes;
+extern bool g_reduceTexinfo;
 
 using texinfomap_t = std::map<texinfo_count, texinfo_count>;
 static texinfo_count g_nummappedtexinfo;
@@ -34,7 +35,7 @@ inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
 static int WritePlane(int planenum) {
 	planenum = planenum & (~1);
 
-	if (g_noopt) {
+	if (!g_optimizePlanes) {
 		return planenum;
 	}
 
@@ -42,7 +43,7 @@ static int WritePlane(int planenum) {
 	if (item != gPlaneMap.end()) {
 		return item->second;
 	}
-	// add plane to BSP
+	// Add plane to BSP
 	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
 	gMappedPlanes[gNumMappedPlanes] = g_mapPlanes[planenum];
 	gPlaneMap.insert(PlaneMap::value_type(planenum, gNumMappedPlanes));
@@ -55,7 +56,7 @@ static texinfo_count WriteTexinfo(texinfo_count texinfo) {
 		Error("Bad texinfo number %d.\n", texinfo);
 	}
 
-	if (g_noopt) {
+	if (!g_reduceTexinfo) {
 		return texinfo;
 	}
 
@@ -522,7 +523,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 			g_numclipnodes + count_mergedclipnodes,
 			g_numclipnodes);
 	}
-	if (!g_noopt) {
+	if (g_reduceTexinfo) {
 		{
 			Log("Reduced %d texinfos to %d\n",
 				g_numtexinfo,
