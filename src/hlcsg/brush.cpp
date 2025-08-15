@@ -213,7 +213,6 @@ void ExpandBrushWithHullBrush(
 	brushhull_t* hull
 ) {
 	auto axialbevel = std::make_unique<bool[]>(hb->numfaces);
-	bool warned = false;
 
 	// check for collisions of face-vertex type. face-edge type is also
 	// permitted. face-face type is excluded.
@@ -277,6 +276,8 @@ void ExpandBrushWithHullBrush(
 		}
 		AddHullPlane(hull, normal, origin, true);
 	}
+
+	bool warned = false;
 
 	// check for edge-edge type. edge-face type and face-edge type are
 	// excluded.
@@ -1194,17 +1195,11 @@ void create_brush(csg_brush& b, csg_entity const & ent) {
 hullbrush_t CreateHullBrush(csg_brush const & b) {
 	constexpr std::size_t MAXSIZE = 256;
 
-	int numplanes = 0;
-	mapplane_t planes[MAXSIZE];
-	accurate_winding* w[MAXSIZE];
-	int numedges;
-	hullbrushedge_t edges[MAXSIZE];
-	int numvertexes;
-	hullbrushvertex_t vertexes[MAXSIZE];
 	bool failed = false;
 
-	// planes
-
+	// Planes
+	int numplanes = 0;
+	mapplane_t planes[MAXSIZE];
 	double3_array origin = get_double3_for_key(
 		g_entities[b.entitynum], u8"origin"
 	);
@@ -1260,9 +1255,9 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 	}
 
 	// windings
-
+	std::vector<accurate_winding> windings;
 	for (std::size_t i = 0; i < numplanes; i++) {
-		w[i] = new accurate_winding(planes[i].normal, planes[i].dist);
+		windings.emplace_back(planes[i].normal, planes[i].dist);
 		for (std::size_t j = 0; j < numplanes; j++) {
 			if (j == i) {
 				continue;
@@ -1270,25 +1265,28 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 			double dist;
 			double3_array const normal = negate_vector(planes[j].normal);
 			dist = -planes[j].dist;
-			if (!w[i]->Chop(normal, dist)) {
+			if (!windings[i].Chop(normal, dist)) {
 				failed = true;
 				break;
 			}
 		}
 	}
 
-	// edges
-	numedges = 0;
+	// Edges
+	int numedges = 0;
+	hullbrushedge_t edges[MAXSIZE];
 	for (std::size_t i = 0; i < numplanes; i++) {
-		for (int e = 0; e < w[i]->size(); e++) {
+		for (int e = 0; e < windings[i].size(); e++) {
 			hullbrushedge_t* edge;
 			if (numedges >= MAXSIZE) {
 				failed = true;
 				continue;
 			}
 			edge = &edges[numedges];
-			edge->vertexes[0] = w[i]->point((e + 1) % w[i]->size());
-			edge->vertexes[1] = w[i]->point(e);
+			edge->vertexes[0] = windings[i].point(
+				(e + 1) % windings[i].size()
+			);
+			edge->vertexes[1] = windings[i].point(e);
 			edge->point = edge->vertexes[0];
 			edge->delta = vector_subtract(
 				edge->vertexes[1], edge->vertexes[0]
@@ -1301,13 +1299,15 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 			std::size_t found{ 0 };
 			std::size_t j;
 			for (std::size_t k = 0; k < numplanes; ++k) {
-				for (int e2 = 0; e2 < w[k]->size(); e2++) {
+				for (int e2 = 0; e2 < windings[k].size(); e2++) {
 					if (vectors_almost_same(
-							w[k]->point((e2 + 1) % w[k]->size()),
+							windings[k].point(
+								(e2 + 1) % windings[k].size()
+							),
 							edge->vertexes[1]
 						)
 						&& vectors_almost_same(
-							w[k]->point(e2), edge->vertexes[0]
+							windings[k].point(e2), edge->vertexes[0]
 						)) {
 						++found;
 						edge->normals[1] = planes[k].normal;
@@ -1344,27 +1344,28 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 		}
 	}
 
-	// vertexes
-	numvertexes = 0;
+	// Vertices
+	int numvertices = 0;
+	hullbrushvertex_t vertices[MAXSIZE];
 	for (std::size_t i = 0; i < numplanes; ++i) {
-		for (int e = 0; e < w[i]->size(); e++) {
-			double3_array const & v = w[i]->point(e);
+		for (int e = 0; e < windings[i].size(); e++) {
+			double3_array const & v = windings[i].point(e);
 			std::size_t j;
-			for (j = 0; j < numvertexes; j++) {
-				if (vectors_almost_same(vertexes[j].point, v)) {
+			for (j = 0; j < numvertices; j++) {
+				if (vectors_almost_same(vertices[j].point, v)) {
 					break;
 				}
 			}
-			if (j < numvertexes) {
+			if (j < numvertices) {
 				continue;
 			}
-			if (numvertexes > MAXSIZE) {
+			if (numvertices > MAXSIZE) {
 				failed = true;
 				continue;
 			}
 
-			vertexes[numvertexes].point = v;
-			numvertexes++;
+			vertices[numvertices].point = v;
+			numvertices++;
 
 			for (std::size_t k = 0; k < numplanes; k++) {
 				if (fabs(dot_product(v, planes[k].normal) - planes[k].dist)
@@ -1400,14 +1401,14 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 	for (std::size_t i = 0; i < numplanes; i++) {
 		hullbrushface_t* f = &hb.faces[i];
 		f->normal = planes[i].normal;
-		f->point = w[i]->point(0);
-		f->numvertexes = w[i]->size();
+		f->point = windings[i].point(0);
+		f->numvertexes = windings[i].size();
 		f->vertexes = (double3_array*) malloc(
 			f->numvertexes * sizeof(double3_array)
 		);
 		hlassume(f->vertexes != nullptr, assume_NoMemory);
-		for (std::size_t k = 0; k < w[i]->size(); ++k) {
-			f->vertexes[k] = w[i]->point(k);
+		for (std::size_t k = 0; k < windings[i].size(); ++k) {
+			f->vertexes[k] = windings[i].point(k);
 		}
 	}
 
@@ -1418,13 +1419,13 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 	hlassume(hb.edges != nullptr, assume_NoMemory);
 	memcpy(hb.edges, edges, hb.numedges * sizeof(hullbrushedge_t));
 
-	hb.numvertexes = numvertexes;
+	hb.numvertexes = numvertices;
 	hb.vertexes = (hullbrushvertex_t*) malloc(
 		hb.numvertexes * sizeof(hullbrushvertex_t)
 	);
 	hlassume(hb.vertexes != nullptr, assume_NoMemory);
 	memcpy(
-		hb.vertexes, vertexes, hb.numvertexes * sizeof(hullbrushvertex_t)
+		hb.vertexes, vertices, hb.numvertexes * sizeof(hullbrushvertex_t)
 	);
 
 	Developer(
@@ -1437,10 +1438,6 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 		hb.numedges,
 		hb.numvertexes
 	);
-
-	for (std::size_t i = 0; i < numplanes; i++) {
-		delete w[i];
-	}
 
 	return hb;
 }
