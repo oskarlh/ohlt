@@ -277,9 +277,6 @@ add_parsed_entity_result add_parsed_entity(
 			continue;
 		}
 
-		if (isInfoHullshape) {
-			continue;
-		}
 		if (b.contents == contents_t::BOUNDINGBOX) {
 			if (has_key_value(&mapent, u8"zhlt_minsmaxs")) {
 				Error(
@@ -389,7 +386,6 @@ add_parsed_entity_result add_parsed_entity(
 	{
 		bool ent_move_b = false, ent_scale_b = false, ent_gscale_b = false;
 		double3_array ent_move{};
-		double3_array ent_scale_origin;
 		double ent_scale = 1;
 		double ent_gscale = 1;
 
@@ -432,7 +428,9 @@ add_parsed_entity_result add_parsed_entity(
 			}
 			DeleteKey(&mapent, u8"zhlt_transform");
 		}
-		ent_scale_origin = get_double3_for_key(mapent, u8"origin");
+		double3_array ent_scale_origin = get_double3_for_key(
+			mapent, u8"origin"
+		);
 
 		if (ent_move_b || ent_scale_b || ent_gscale_b) {
 			// Scaling hack
@@ -689,9 +687,7 @@ add_parsed_entity_result add_parsed_entity(
 		for (std::size_t i = 1; i < entityNumber; i++) {
 			g_entities[i].firstBrush += newbrushes;
 		}
-		// TODO: Is this `mapent = {};` actually necessary?
 		mapent = {};
-
 		return { .entityAdded = false,
 				 .brushesAdded = newbrushes,
 				 .sidesAdded = sidesAdded };
@@ -704,7 +700,7 @@ add_parsed_entity_result add_parsed_entity(
 		);
 		int defaulthulls = IntForKey(&mapent, u8"defaulthulls");
 		CreateHullShape(entityNumber, disabled, id, defaulthulls);
-		//	DeleteCurrentEntity(&mapent);
+		mapent = {};
 		return { .entityAdded = false, .brushesAdded = 0, .sidesAdded = 0 };
 	}
 	if (fabs(mapent.origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON

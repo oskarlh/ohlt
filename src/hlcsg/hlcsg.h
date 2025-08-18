@@ -196,8 +196,7 @@ struct hullbrushface_t final {
 	double3_array normal;
 	double3_array point;
 
-	std::int32_t numvertexes;
-	double3_array* vertexes;
+	std::vector<double3_array> vertices;
 };
 
 struct hullbrushedge_t final {
@@ -214,21 +213,14 @@ struct hullbrushvertex_t final {
 };
 
 struct hullbrush_t final {
-	int numfaces;
-	hullbrushface_t* faces;
-	int numedges;
-	hullbrushedge_t* edges;
-	int numvertexes;
-	hullbrushvertex_t* vertexes;
+	std::vector<hullbrushface_t> faces;
+	std::vector<hullbrushedge_t> edges;
+	std::vector<hullbrushvertex_t> vertices;
 };
 
 struct hullshape_t final {
 	std::u8string id;
-	// TODO: An older comment said numbrushes (now brushes.size()) must be 0
-	// or 1... that's odd. Don't know if that's true. If it is true we don't
-	// need brushes to be a vector. I think this is related to
-	// https://twhl.info/wiki/page/info_hullshape
-	std::vector<hullbrush_t*> brushes;
+	std::optional<hullbrush_t> hullBrush;
 	bool disabled;
 };
 

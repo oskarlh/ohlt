@@ -206,13 +206,13 @@ static void AddHullPlane(
 //     cliptype          precise     legacy     normalized
 //     clipnodecount        1089       1202           1232
 
-void ExpandBrushWithHullBrush(
+static void ExpandBrushWithHullBrush(
 	csg_brush const * brush,
 	brushhull_t const * hull0,
-	hullbrush_t const * hb,
+	hullbrush_t const & hb,
 	brushhull_t* hull
 ) {
-	auto axialbevel = std::make_unique<bool[]>(hb->numfaces);
+	auto axialbevel = std::make_unique<bool[]>(hb.faces.size());
 
 	// check for collisions of face-vertex type. face-edge type is also
 	// permitted. face-face type is excluded.
@@ -223,8 +223,9 @@ void ExpandBrushWithHullBrush(
 
 		// check for coplanar hull brush face
 		hullbrushface_t const * hbf;
-		for (hbf = hb->faces; hbf < hb->faces + hb->numfaces; hbf++) {
-			if (-dot_product(hbf->normal, brushface.normal)
+		bool doContinue = false;
+		for (hullbrushface_t const & hbf : hb.faces) {
+			if (-dot_product(hbf.normal, brushface.normal)
 				< 1 - ON_EPSILON) {
 				continue;
 			}
@@ -233,39 +234,39 @@ void ExpandBrushWithHullBrush(
 			double dotmax;
 			dotmin = g_iWorldExtent;
 			dotmax = -g_iWorldExtent;
-			hlassume(hbf->numvertexes >= 1, assume_first);
-			for (double3_array* v = hbf->vertexes;
-				 v < hbf->vertexes + hbf->numvertexes;
-				 v++) {
-				double dot;
-				dot = dot_product(*v, brushface.normal);
+			hlassume(hbf.vertices.size() >= 1, assume_first);
+			for (double3_array const & v : hbf.vertices) {
+				double dot = dot_product(v, brushface.normal);
 				dotmin = std::min(dotmin, dot);
 				dotmax = std::max(dotmax, dot);
 			}
 			if (dotmax - dotmin <= EQUAL_EPSILON) {
+				if (f.bevel) {
+					std::size_t hbfIndex = &hbf - &hb.faces.front();
+					axialbevel[hbfIndex] = true;
+				}
+				// the same plane will be added in the last stage
+				doContinue = true;
 				break;
 			}
 		}
-		if (hbf < hb->faces + hb->numfaces) {
-			if (f.bevel) {
-				axialbevel[hbf - hb->faces] = true;
-			}
-			continue; // the same plane will be added in the last stage
+		if (doContinue) {
+			continue;
 		}
 
 		// find the impact point
 		double3_array bestvertex{};
 		double bestdist = g_iWorldExtent;
-		hlassume(hb->numvertexes >= 1, assume_first);
-		for (hullbrushvertex_t const * hbv = hb->vertexes;
-			 hbv < hb->vertexes + hb->numvertexes;
-			 hbv++) {
-			if (hbv == hb->vertexes
-				|| dot_product(hbv->point, brushface.normal)
+		hlassume(hb.vertices.size() >= 1, assume_first);
+		bool first = true;
+		for (hullbrushvertex_t const & hbv : hb.vertices) {
+			if (first
+				|| dot_product(hbv.point, brushface.normal)
 					< bestdist - NORMAL_EPSILON) {
-				bestdist = dot_product(hbv->point, brushface.normal);
-				bestvertex = hbv->point;
+				bestdist = dot_product(hbv.point, brushface.normal);
+				bestvertex = hbv.point;
 			}
+			first = false;
 		}
 
 		// Add hull plane for this face
@@ -332,14 +333,12 @@ void ExpandBrushWithHullBrush(
 			brushedge.delta = vector_scale(brushedge.delta, len);
 
 			// check for each edge in the hullbrush
-			for (hullbrushedge_t const * hbe = hb->edges;
-				 hbe < hb->edges + hb->numedges;
-				 hbe++) {
+			for (hullbrushedge_t const & hbe : hb.edges) {
 				double dot[4];
-				dot[0] = dot_product(hbe->delta, brushedge.normals[0]);
-				dot[1] = dot_product(hbe->delta, brushedge.normals[1]);
-				dot[2] = dot_product(brushedge.delta, hbe->normals[0]);
-				dot[3] = dot_product(brushedge.delta, hbe->normals[1]);
+				dot[0] = dot_product(hbe.delta, brushedge.normals[0]);
+				dot[1] = dot_product(hbe.delta, brushedge.normals[1]);
+				dot[2] = dot_product(brushedge.delta, hbe.normals[0]);
+				dot[3] = dot_product(brushedge.delta, hbe.normals[1]);
 				if (dot[0] <= ON_EPSILON || dot[1] >= -ON_EPSILON
 					|| dot[2] <= ON_EPSILON || dot[3] >= -ON_EPSILON) {
 					continue;
@@ -352,14 +351,14 @@ void ExpandBrushWithHullBrush(
 				// can reach here
 				double3_array e1 = brushedge.delta;
 				normalize_vector(e1);
-				double3_array e2 = hbe->delta;
+				double3_array e2 = hbe.delta;
 				normalize_vector(e2);
 				double3_array normal = cross_product(e1, e2);
 				if (!normalize_vector(normal)) {
 					continue;
 				}
 				double3_array origin = vector_subtract(
-					brushedge.point, hbe->point
+					brushedge.point, hbe.point
 				);
 				AddHullPlane(hull, normal, origin, true);
 			}
@@ -368,9 +367,7 @@ void ExpandBrushWithHullBrush(
 
 	// check for vertex-face type. edge-face type and face-face type are
 	// permitted.
-	for (hullbrushface_t const * hbf = hb->faces;
-		 hbf < hb->faces + hb->numfaces;
-		 hbf++) {
+	for (hullbrushface_t const & hbf : hb.faces) {
 		// find the impact point
 		double3_array bestvertex;
 		double bestdist = g_iWorldExtent;
@@ -379,21 +376,22 @@ void ExpandBrushWithHullBrush(
 		}
 		for (bface_t const & f : hull0->faces) {
 			for (double3_array const & v : f.w.points()) {
-				if (dot_product(v, hbf->normal)
+				if (dot_product(v, hbf.normal)
 					< bestdist - NORMAL_EPSILON) {
-					bestdist = dot_product(v, hbf->normal);
+					bestdist = dot_product(v, hbf.normal);
 					bestvertex = v;
 				}
 			}
 		}
 
 		// add hull plane for this face
-		double3_array normal = negate_vector(hbf->normal);
+		double3_array normal = negate_vector(hbf.normal);
 		double3_array origin;
-		if (axialbevel[hbf - hb->faces]) {
+		std::size_t hbfIndex = &hbf - &hb.faces.front();
+		if (axialbevel[hbfIndex]) {
 			origin = bestvertex;
 		} else {
-			origin = vector_subtract(bestvertex, hbf->point);
+			origin = vector_subtract(bestvertex, hbf.point);
 		}
 		AddHullPlane(hull, normal, origin, true);
 	}
@@ -431,11 +429,14 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 	}
 
 	if (!hs->disabled) {
-		if (hs->brushes.empty()) {
+		if (!hs->hullBrush.has_value()) {
 			return; // leave this hull of this brush empty (noclip)
 		}
 		ExpandBrushWithHullBrush(
-			brush, &brush->hulls[0], hs->brushes[0], &brush->hulls[hullnum]
+			brush,
+			&brush->hulls[0],
+			hs->hullBrush.value(),
+			&brush->hulls[hullnum]
 		);
 
 		return;
@@ -1390,106 +1391,34 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 		);
 	}
 
-	// copy to hull brush
+	// Copy to hull brush
 	hullbrush_t hb{};
-
-	hb.numfaces = numplanes;
-	hb.faces = (hullbrushface_t*) malloc(
-		hb.numfaces * sizeof(hullbrushface_t)
-	);
-	hlassume(hb.faces != nullptr, assume_NoMemory);
+	hb.faces.reserve(numplanes);
 	for (std::size_t i = 0; i < numplanes; i++) {
-		hullbrushface_t* f = &hb.faces[i];
+		hullbrushface_t* f = &hb.faces.emplace_back();
 		f->normal = planes[i].normal;
 		f->point = windings[i].point(0);
-		f->numvertexes = windings[i].size();
-		f->vertexes = (double3_array*) malloc(
-			f->numvertexes * sizeof(double3_array)
-		);
-		hlassume(f->vertexes != nullptr, assume_NoMemory);
-		for (std::size_t k = 0; k < windings[i].size(); ++k) {
-			f->vertexes[k] = windings[i].point(k);
-		}
+		f->vertices.assign_range(windings[i].points()
+		); // TODO: Should we just make f->vertices's type
+		   // accurate_winding?? then we can just move the winding there
 	}
 
-	hb.numedges = numedges;
-	hb.edges = (hullbrushedge_t*) malloc(
-		hb.numedges * sizeof(hullbrushedge_t)
-	);
-	hlassume(hb.edges != nullptr, assume_NoMemory);
-	memcpy(hb.edges, edges, hb.numedges * sizeof(hullbrushedge_t));
+	hb.edges.assign_range(std::span{ edges, edges + numedges });
 
-	hb.numvertexes = numvertices;
-	hb.vertexes = (hullbrushvertex_t*) malloc(
-		hb.numvertexes * sizeof(hullbrushvertex_t)
-	);
-	hlassume(hb.vertexes != nullptr, assume_NoMemory);
-	memcpy(
-		hb.vertexes, vertices, hb.numvertexes * sizeof(hullbrushvertex_t)
-	);
+	hb.vertices.assign_range(std::span{ vertices, vertices + numvertices });
 
 	Developer(
 		developer_level::message,
-		"info_hullshape @ (%.0f,%.0f,%.0f): %d faces, %d edges, %d vertexes.\n",
+		"info_hullshape @ (%.0f,%.0f,%.0f): %zu faces, %zu edges, %zu vertexes.\n",
 		origin[0],
 		origin[1],
 		origin[2],
-		hb.numfaces,
-		hb.numedges,
-		hb.numvertexes
+		hb.faces.size(),
+		hb.edges.size(),
+		hb.vertices.size()
 	);
 
 	return hb;
-}
-
-hullbrush_t CopyHullBrush(hullbrush_t const & hb) {
-	hullbrush_t hb2{ hb };
-	hb2.faces = (hullbrushface_t*) malloc(
-		hb.numfaces * sizeof(hullbrushface_t)
-	);
-	hlassume(hb2.faces != nullptr, assume_NoMemory);
-	memcpy(hb2.faces, hb.faces, hb.numfaces * sizeof(hullbrushface_t));
-	hb2.edges = (hullbrushedge_t*) malloc(
-		hb.numedges * sizeof(hullbrushedge_t)
-	);
-	hlassume(hb2.edges != nullptr, assume_NoMemory);
-	memcpy(hb2.edges, hb.edges, hb.numedges * sizeof(hullbrushedge_t));
-	hb2.vertexes = (hullbrushvertex_t*) malloc(
-		hb.numvertexes * sizeof(hullbrushvertex_t)
-	);
-	hlassume(hb2.vertexes != nullptr, assume_NoMemory);
-	memcpy(
-		hb2.vertexes,
-		hb.vertexes,
-		hb.numvertexes * sizeof(hullbrushvertex_t)
-	);
-	for (int i = 0; i < hb.numfaces; i++) {
-		hullbrushface_t* f2 = &hb2.faces[i];
-		hullbrushface_t const * f = &hb.faces[i];
-		f2->vertexes = (double3_array*) malloc(
-			f->numvertexes * sizeof(double3_array)
-		);
-		hlassume(f2->vertexes != nullptr, assume_NoMemory);
-		memcpy(
-			f2->vertexes,
-			f->vertexes,
-			f->numvertexes * sizeof(double3_array)
-		);
-	}
-	return hb2;
-}
-
-void DeleteHullBrush(hullbrush_t* hb) {
-	for (hullbrushface_t* hbf = hb->faces; hbf < hb->faces + hb->numfaces;
-		 hbf++) {
-		if (hbf->vertexes) {
-			free(hbf->vertexes);
-		}
-	}
-	free(hb->faces);
-	free(hb->edges);
-	free(hb->vertexes);
-	free(hb);
 }
 
 void InitDefaultHulls() {
@@ -1509,7 +1438,7 @@ void CreateHullShape(
 	}
 	hullshape_t& hs = g_hullshapes.emplace_back(hullshape_t{
 		.id = std::u8string{ id },
-		.brushes = {},
+		.hullBrush = std::nullopt,
 		.disabled = disabled,
 	});
 
@@ -1519,35 +1448,28 @@ void CreateHullShape(
 			continue;
 		}
 
-		hullbrush_t* hb = (hullbrush_t*) malloc(sizeof(hullbrush_t));
-		*hb = CreateHullBrush(b);
-		hs.brushes.emplace_back(hb);
+		if (hs.hullBrush.has_value()) {
+			csg_brush* b = &g_mapbrushes[entity.firstBrush];
+			Error(
+				"Entity %i, Brush %i: Too many brushes in info_hullshape.",
+				b->originalentitynum,
+				b->originalbrushnum
+			);
+		}
+
+		hs.hullBrush = CreateHullBrush(b);
 	}
-	if (hs.brushes.size() >= 2) {
-		csg_brush* b = &g_mapbrushes[entity.firstBrush];
+
+	if (!hs.hullBrush.has_value()) {
 		Error(
-			"Entity %i, Brush %i: Too many brushes in info_hullshape.",
-			b->originalentitynum,
-			b->originalbrushnum
+			"info_hullshape without a brush. Every info_hullshape needs ONE origin brush and ONE regular brush defining the shape."
 		);
 	}
 
 	for (hull_count h = 0; h < NUM_HULLS; h++) {
 		if (defaulthulls & (1 << h)) {
 			hullshape_t* target = &g_defaulthulls[h];
-			target->id = hs.id;
-			target->disabled = hs.disabled;
-			for (hullbrush_t* const & brush : target->brushes) {
-				DeleteHullBrush(brush);
-			}
-			target->brushes.clear();
-			for (hullbrush_t const * const & brush : hs.brushes) {
-				hullbrush_t* brushCopy = (hullbrush_t*) malloc(
-					sizeof(hullbrush_t)
-				);
-				*brushCopy = CopyHullBrush(*brush);
-				target->brushes.emplace_back(brushCopy);
-			}
+			*target = hs;
 		}
 	}
 }
