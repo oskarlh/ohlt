@@ -694,8 +694,6 @@ static texinfo_count ParseImplicitTexinfoFromTexture(int miptex) {
 	int numtextures = g_texdatasize
 		? ((dmiptexlump_t*) g_dtexdata.data())->nummiptex
 		: 0;
-	int offset;
-	int size;
 
 	if (miptex < 0 || miptex >= numtextures) {
 		Warning(
@@ -706,8 +704,8 @@ static texinfo_count ParseImplicitTexinfoFromTexture(int miptex) {
 		);
 		return -1;
 	}
-	offset = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[miptex];
-	size = g_texdatasize - offset;
+	int offset = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[miptex];
+	int size = g_texdatasize - offset;
 	if (offset < 0
 		|| g_dtexdata.data() + offset
 			< (std::byte const *) &((dmiptexlump_t const *) g_dtexdata.data(
@@ -782,8 +780,8 @@ void DeleteEmbeddedLightmaps() {
 
 	// Step 2: remove redundant texinfo
 	{
-		bool* texinfoused = (bool*) malloc(g_numtexinfo * sizeof(bool));
-		hlassume(texinfoused != nullptr, assume_NoMemory);
+		std::vector<bool> texinfoused;
+		texinfoused.resize(g_numtexinfo, false);
 
 		for (texinfo_count i = 0; i < g_numtexinfo; ++i) {
 			texinfoused[i] = false;
@@ -814,18 +812,15 @@ void DeleteEmbeddedLightmaps() {
 			countremovedtexinfos++;
 		}
 		g_numtexinfo = i; // shrink g_texinfo
-		free(texinfoused);
 	}
 
 	// Step 3: remove redundant textures
 	{
 		int numremaining; // number of remaining textures
-		bool* textureused = (bool*) malloc(numtextures * sizeof(bool));
-		hlassume(textureused != nullptr, assume_NoMemory);
 
-		for (int i = 0; i < numtextures; i++) {
-			textureused[i] = false;
-		}
+		std::vector<bool> textureused;
+		textureused.resize(numtextures, false);
+
 		for (int i = 0; i < g_numtexinfo; i++) {
 			auto const miptex = g_texinfo[i].miptex;
 
@@ -843,7 +838,6 @@ void DeleteEmbeddedLightmaps() {
 			countremovedtextures++;
 		}
 		numremaining = i + 1;
-		free(textureused);
 
 		if (numremaining < numtextures) {
 			dmiptexlump_t* texdata = (dmiptexlump_t*) g_dtexdata.data();

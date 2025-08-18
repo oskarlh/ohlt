@@ -59,14 +59,18 @@ bool pmatch(char8_t const * cmdlineparam, char8_t const * param) {
 	return false;
 }
 
-char8_t* pnext(char8_t* p) {
+static char8_t* pnext(char8_t* p) {
+	return p + (plen(p) + 1);
+}
+
+static char8_t const * pnext(char8_t const * p) {
 	return p + (plen(p) + 1);
 }
 
 char8_t* findparams(char8_t* cmdlineparams, char8_t* params) {
-	char8_t *c1, *c, *p;
-	for (c1 = cmdlineparams; pvalid(c1); c1 = pnext(c1)) {
-		for (c = c1, p = params; pvalid(p); c = pnext(c), p = pnext(p)) {
+	for (char8_t* c1 = cmdlineparams; pvalid(c1); c1 = pnext(c1)) {
+		char8_t* p = params;
+		for (char8_t* c = c1; pvalid(p); c = pnext(c), p = pnext(p)) {
 			if (!pvalid(c) || !pmatch(c, p)) {
 				break;
 			}
@@ -122,10 +126,11 @@ void parsecommand(
 	unsigned int n,
 	bool& error
 ) {
-	command_t t;
 	if (!pvalid(words)) {
 		return;
 	}
+
+	command_t t;
 	if (pmatch(words, u8"#ifdef\n")) {
 		t = command_t::IFDEF;
 	} else if (pmatch(words, u8"#ifndef\n")) {
@@ -241,10 +246,10 @@ void parsearg(
 
 void unparsearg(int& argc, char**& argv, char8_t* cmdline, bool& error) {
 	// TODO: Conversion from native encoding to UTF-8 here
-	char8_t* c;
+
 	int i, j;
 	i = 0;
-	for (c = cmdline; pvalid(c); c = pnext(c)) {
+	for (char8_t const * c = cmdline; pvalid(c); c = pnext(c)) {
 		i++;
 	}
 	argc = i;
@@ -253,7 +258,7 @@ void unparsearg(int& argc, char**& argv, char8_t* cmdline, bool& error) {
 		error = true;
 		return;
 	}
-	for (c = cmdline, i = 0; pvalid(c); c = pnext(c), i++) {
+	for (char8_t *c = cmdline, i = 0; pvalid(c); c = pnext(c), i++) {
 		std::size_t const plenc = plen(c);
 		argv[i] = (char*) malloc(plenc + 1);
 		if (!argv[i]) {

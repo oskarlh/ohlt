@@ -89,7 +89,6 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 					u8"wad"sv.length()
 				)) {
 				std::size_t len = quotes[3] - (quotes[2] + 1);
-				char* value = (char*) malloc(len + 1);
 				char8_t const * start
 					= (char8_t const *) &bspData.entityData[quotes[2] + 1];
 				return std::u8string(start, start + len);

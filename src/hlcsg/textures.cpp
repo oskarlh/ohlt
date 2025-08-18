@@ -624,7 +624,6 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 	timeCounter.restart();
 	{
-		int i;
 		texinfo_t* tx = g_texinfo.data();
 
 		// Sort them FIRST by wadfile and THEN by name for most efficient
@@ -638,7 +637,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 		// Sleazy Hack 104 Pt 2 - After sorting the miptex array, reset the
 		// texinfos to point to the right miptexs
-		for (i = 0; i < g_numtexinfo; i++, tx++) {
+		for (int i = 0; i < g_numtexinfo; i++, tx++) {
 			wad_texture_name miptex_name{ texmap_retrieve(tx->miptex) };
 			tx->miptex = FindMiptex(miptex_name);
 		}
