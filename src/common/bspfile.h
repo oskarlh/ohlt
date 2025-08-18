@@ -461,6 +461,7 @@ extern char8_t const *
 ValueForKey(entity_t const * const ent, std::u8string_view key);
 std::u8string_view
 value_for_key(entity_t const * const ent, std::u8string_view key);
+std::u8string_view get_targetname(entity_t const & ent);
 bool has_key_value(entity_t const * const ent, std::u8string_view key);
 bool key_value_is_empty(entity_t const * const ent, std::u8string_view key);
 bool key_value_is(

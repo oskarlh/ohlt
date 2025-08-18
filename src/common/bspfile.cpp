@@ -1028,6 +1028,10 @@ value_for_key(entity_t const * ent, std::u8string_view key) {
 	return u8"";
 }
 
+std::u8string_view get_targetname(entity_t const & ent) {
+	return value_for_key(&ent, u8"targetname");
+}
+
 bool has_key_value(entity_t const * ent, std::u8string_view key) {
 	return !key_value_is_empty(ent, key);
 }

@@ -127,7 +127,6 @@ static int FindMiptex(wad_texture_name name) {
 //  TEX_InitFromWad
 // =====================================================================================
 static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
-	wadinfo_t wadinfo;
 	std::u8string_view pszWadFile;
 	char const * pszWadroot;
 	wadpath_t* currentwad;
@@ -219,6 +218,7 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 		// temp assignment to make things cleaner:
 		texfile = texfiles[nTexFiles];
 
+		wadinfo_t wadinfo;
 		// read in this wadfiles information
 		SafeRead(texfile, &wadinfo, sizeof(wadinfo));
 

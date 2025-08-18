@@ -551,9 +551,9 @@ static void CSGBrush(int brushnum) {
 		if (!bh1->faces.empty()
 			&& (hull ? b1.clipNodeDetailLevel : b1.detailLevel)) {
 			switch (b1.contents) {
-				case contents_t::ORIGIN:
 				case contents_t::BOUNDINGBOX:
 				case contents_t::HINT:
+				case contents_t::ORIGIN:
 				case contents_t::TOEMPTY:
 					break;
 				default:
@@ -1781,7 +1781,7 @@ int main(int const argc, char** argv) {
 			g_WadInclude.push_back(u8"sdhlt.wad"); // seedee's HLT
 			g_WadInclude.push_back(u8"zhlt.wad");  // Zoner's HLT
 
-			InitDefaultHulls();
+			init_default_hulls();
 
 			// detect argv
 			for (i = 1; i < argc; i++) {

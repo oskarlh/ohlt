@@ -5,17 +5,24 @@
 #include "mathlib.h"
 #include "mathtypes.h"
 #include "threads.h"
+#include "util.h"
 #include "vector_inplace.h"
 
 vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 
-hullshape_t g_defaulthulls[NUM_HULLS]{};
+std::array<hullshape_t, NUM_HULLS> g_defaulthulls{};
 std::vector<hullshape_t> g_hullshapes{};
+
+void init_default_hulls() {
+	for (hullshape_t& dh : g_defaulthulls) {
+		dh.disabled = true;
+	}
+}
 
 constexpr float FLOOR_Z = 0.7f; // Quake default
 
 // =====================================================================================
-//  FindIntPlane
+//  find_int_plane
 // This process could be optimized by placing the planes in a (non hash-)
 // set and using half of the inner loop check below as the comparator;
 // I'd expect the speed gain to be very large given the change from O(N^2)
@@ -23,7 +30,7 @@ constexpr float FLOOR_Z = 0.7f; // Quake default
 // =====================================================================================
 
 static int
-FindIntPlane(double3_array const & normal, double3_array const & origin) {
+find_int_plane(double3_array const & normal, double3_array const & origin) {
 	int returnval = 0;
 
 	bool mapPlanesWasUpdated;
@@ -125,7 +132,7 @@ static int PlaneFromPoints(std::array<double3_array, 3> const & points) {
 	double3_array normal = cross_product(v1, v2);
 
 	if (normalize_vector(normal)) {
-		return FindIntPlane(normal, points[0]);
+		return find_int_plane(normal, points[0]);
 	}
 	return -1;
 }
@@ -139,8 +146,8 @@ char const * GetClipTypeString(cliptype ct) {
 }
 
 // =====================================================================================
-//  AddHullPlane (subroutine for replacement of ExpandBrush)
-//  Called to add any and all clip hull planes by the new ExpandBrush.
+//  AddHullPlane (subroutine for replacement of expand_brush)
+//  Called to add any and all clip hull planes by the new expand_brush.
 // =====================================================================================
 
 static void AddHullPlane(
@@ -149,7 +156,7 @@ static void AddHullPlane(
 	double3_array const & origin,
 	bool const check_planenum
 ) {
-	int planenum = FindIntPlane(normal, origin);
+	int planenum = find_int_plane(normal, origin);
 	// check to see if this plane is already in the brush (optional to speed
 	// up cases where we know the plane hasn't been added yet, like axial
 	// case)
@@ -169,7 +176,7 @@ static void AddHullPlane(
 }
 
 // =====================================================================================
-//  ExpandBrush
+//  expand_brush
 //  Since the six bounding box planes were always added anyway, they've been
 //  moved to an explicit separate step eliminating the need to check for
 //  duplicate planes (which should be using plane numbers instead of the
@@ -206,7 +213,7 @@ static void AddHullPlane(
 //     cliptype          precise     legacy     normalized
 //     clipnodecount        1089       1202           1232
 
-static void ExpandBrushWithHullBrush(
+static void expand_brush_with_hullbrush(
 	csg_brush const * brush,
 	brushhull_t const * hull0,
 	hullbrush_t const & hb,
@@ -221,7 +228,7 @@ static void ExpandBrushWithHullBrush(
 		brushface.normal = f.plane->normal;
 		brushface.point = f.plane->origin;
 
-		// check for coplanar hull brush face
+		// Check for coplanar hull brush face
 		hullbrushface_t const * hbf;
 		bool doContinue = false;
 		for (hullbrushface_t const & hbf : hb.faces) {
@@ -229,11 +236,9 @@ static void ExpandBrushWithHullBrush(
 				< 1 - ON_EPSILON) {
 				continue;
 			}
-			// now test precisely
-			double dotmin;
-			double dotmax;
-			dotmin = g_iWorldExtent;
-			dotmax = -g_iWorldExtent;
+			// Now test precisely
+			double dotmin = g_iWorldExtent;
+			double dotmax = -g_iWorldExtent;
 			hlassume(hbf.vertices.size() >= 1, assume_first);
 			for (double3_array const & v : hbf.vertices) {
 				double dot = dot_product(v, brushface.normal);
@@ -245,7 +250,7 @@ static void ExpandBrushWithHullBrush(
 					std::size_t hbfIndex = &hbf - &hb.faces.front();
 					axialbevel[hbfIndex] = true;
 				}
-				// the same plane will be added in the last stage
+				// The same plane will be added in the last stage
 				doContinue = true;
 				break;
 			}
@@ -313,7 +318,7 @@ static void ExpandBrushWithHullBrush(
 			if (found != 1) {
 				if (!warned) {
 					Warning(
-						"ExpandBrushWithHullBrush: Illegal Brush (edge without opposite face): Entity %i, Brush %i\n",
+						"expand_brush_with_hullbrush: Illegal Brush (edge without opposite face): Entity %i, Brush %i\n",
 						brush->originalentitynum,
 						brush->originalbrushnum
 					);
@@ -369,11 +374,12 @@ static void ExpandBrushWithHullBrush(
 	// permitted.
 	for (hullbrushface_t const & hbf : hb.faces) {
 		// find the impact point
-		double3_array bestvertex;
-		double bestdist = g_iWorldExtent;
+
 		if (hull0->faces.empty()) {
 			continue;
 		}
+		double3_array bestvertex;
+		double bestdist = g_iWorldExtent;
 		for (bface_t const & f : hull0->faces) {
 			for (double3_array const & v : f.w.points()) {
 				if (dot_product(v, hbf.normal)
@@ -397,7 +403,7 @@ static void ExpandBrushWithHullBrush(
 	}
 }
 
-void ExpandBrush(csg_brush* brush, int const hullnum) {
+void expand_brush(csg_brush* brush, int const hullnum) {
 	hullshape_t const * hs = &g_defaulthulls[hullnum];
 	{ // look up the name of its hull shape in g_hullshapes[]
 		std::u8string const & name = brush->hullshapes[hullnum];
@@ -432,7 +438,7 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 		if (!hs->hullBrush.has_value()) {
 			return; // leave this hull of this brush empty (noclip)
 		}
-		ExpandBrushWithHullBrush(
+		expand_brush_with_hullbrush(
 			brush,
 			&brush->hulls[0],
 			hs->hullBrush.value(),
@@ -617,7 +623,7 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 				if (!foundOtherFace) {
 					if (hullnum == 1 && !warned) {
 						Warning(
-							"ExpandBrush: Illegal Brush (edge without opposite face): Entity %i, Brush %i\n",
+							"expand_brush: Illegal Brush (edge without opposite face): Entity %i, Brush %i\n",
 							brush->originalentitynum,
 							brush->originalbrushnum
 						);
@@ -789,7 +795,7 @@ void ExpandBrush(csg_brush* brush, int const hullnum) {
 }
 
 // =====================================================================================
-//  MakeHullFaces
+//  make_hullfaces
 // =====================================================================================
 void SortSides(brushhull_t* h) {
 	// The only reason it's a stable sort is so we get identical .bsp files
@@ -811,16 +817,16 @@ void SortSides(brushhull_t* h) {
 	);
 }
 
-void MakeHullFaces(csg_brush const * const b, brushhull_t* h) {
-	SortSides(h);
+static void make_hullfaces(csg_brush const & b, brushhull_t& h) {
+	SortSides(&h);
 
 restart:
-	h->bounds = empty_bounding_box;
+	h.bounds = empty_bounding_box;
 
 	// for each face in this brushes hull
-	for (bface_t& f : h->faces) {
+	for (bface_t& f : h.faces) {
 		accurate_winding w{ f.plane->normal, f.plane->dist };
-		for (bface_t const & f2 : h->faces) {
+		for (bface_t const & f2 : h.faces) {
 			if (&f == &f2) {
 				continue;
 			}
@@ -828,7 +834,7 @@ restart:
 			if (!w.Chop(
 					p->normal,
 					p->dist,
-					NORMAL_EPSILON // fix "invalid brush" in ExpandBrush
+					NORMAL_EPSILON // fix "invalid brush" in expand_brush
 				)) // Nothing left to chop (getArea will return 0 for us in
 				   // this case for below)
 			{
@@ -837,35 +843,33 @@ restart:
 		}
 		w.RemoveColinearPoints(ON_EPSILON);
 		if (w.getArea() < 0.1) {
-			std::size_t const index{
-				std::size_t(&f - &(h->faces.front()))
-			};
-			h->faces.erase(h->faces.begin() + index);
+			std::size_t const index{ std::size_t(&f - &(h.faces.front())) };
+			h.faces.erase(h.faces.begin() + index);
 			goto restart;
 		} else {
 			f.w = w;
 			f.contents = contents_t::EMPTY;
 			for (std::size_t i = 0; i < w.size(); ++i) {
-				add_to_bounding_box(h->bounds, w.point(i));
+				add_to_bounding_box(h.bounds, w.point(i));
 			}
 		}
 	}
 
 	for (std::size_t i = 0; i < 3; ++i) {
-		if (h->bounds.mins[i] < -g_iWorldExtent / 2
-			|| h->bounds.maxs[i] > g_iWorldExtent / 2) {
+		if (h.bounds.mins[i] < -g_iWorldExtent / 2
+			|| h.bounds.maxs[i] > g_iWorldExtent / 2) {
 			Fatal(
 				assume_BRUSH_OUTSIDE_WORLD,
 				"Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
-				b->originalentitynum,
-				b->originalbrushnum,
+				b.originalentitynum,
+				b.originalbrushnum,
 				g_iWorldExtent / 2,
-				h->bounds.mins[0],
-				h->bounds.mins[1],
-				h->bounds.mins[2],
-				h->bounds.maxs[0],
-				h->bounds.maxs[1],
-				h->bounds.maxs[2]
+				h.bounds.mins[0],
+				h.bounds.mins[1],
+				h.bounds.mins[2],
+				h.bounds.maxs[0],
+				h.bounds.maxs[1],
+				h.bounds.maxs[2]
 			);
 		}
 	}
@@ -1158,7 +1162,7 @@ void create_brush(csg_brush& b, csg_entity const & ent) {
 
 	// HULL 0
 	MakeBrushPlanes(b, ent);
-	MakeHullFaces(&b, &b.hulls[0]);
+	make_hullfaces(b, b.hulls[0]);
 
 	if (contents == contents_t::HINT) {
 		return;
@@ -1178,8 +1182,8 @@ void create_brush(csg_brush& b, csg_entity const & ent) {
 	if (b.cliphull) {
 		for (std::size_t h = 1; h < NUM_HULLS; ++h) {
 			if (b.cliphull & (1 << h)) {
-				ExpandBrush(&b, h);
-				MakeHullFaces(&b, &b.hulls[h]);
+				expand_brush(&b, h);
+				make_hullfaces(b, b.hulls[h]);
 			}
 		}
 		b.contents = contents_t::SOLID;
@@ -1187,8 +1191,8 @@ void create_brush(csg_brush& b, csg_entity const & ent) {
 		b.hulls[0].faces.clear();
 	} else if (!b.noclip) {
 		for (std::size_t h = 1; h < NUM_HULLS; ++h) {
-			ExpandBrush(&b, h);
-			MakeHullFaces(&b, &b.hulls[h]);
+			expand_brush(&b, h);
+			make_hullfaces(b, b.hulls[h]);
 		}
 	}
 }
@@ -1421,19 +1425,16 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 	return hb;
 }
 
-void InitDefaultHulls() {
-	for (hull_count h = 0; h < NUM_HULLS; ++h) {
-		hullshape_t* hs = &g_defaulthulls[h];
-		hs->id.clear();
-		hs->disabled = true;
-	}
-}
+void create_hullshape(csg_entity const & fromInfoHullshapeEntity) {
+	bool const disabled = bool_key_value(
+		fromInfoHullshapeEntity, u8"disabled"
+	);
+	std::u8string_view const id = get_targetname(fromInfoHullshapeEntity);
+	hull_bitset defaulthulls
+		= IntForKey(&fromInfoHullshapeEntity, u8"defaulthulls")
+		& all_hulls_bitset;
 
-void CreateHullShape(
-	int entitynum, bool disabled, std::u8string_view id, int defaulthulls
-) {
-	entity_t& entity = g_entities[entitynum];
-	if (!has_key_value(&entity, u8"origin")) {
+	if (!has_key_value(&fromInfoHullshapeEntity, u8"origin")) {
 		Warning("info_hullshape with no ORIGIN brush.");
 	}
 	hullshape_t& hs = g_hullshapes.emplace_back(hullshape_t{
@@ -1442,14 +1443,18 @@ void CreateHullShape(
 		.disabled = disabled,
 	});
 
-	for (entity_local_brush_count i = 0; i < entity.numbrushes; i++) {
-		csg_brush const & b = g_mapbrushes[entity.firstBrush + i];
+	for (entity_local_brush_count i = 0;
+		 i < fromInfoHullshapeEntity.numbrushes;
+		 i++) {
+		csg_brush const & b
+			= g_mapbrushes[fromInfoHullshapeEntity.firstBrush + i];
 		if (b.contents == contents_t::ORIGIN) {
 			continue;
 		}
 
 		if (hs.hullBrush.has_value()) {
-			csg_brush* b = &g_mapbrushes[entity.firstBrush];
+			csg_brush* b
+				= &g_mapbrushes[fromInfoHullshapeEntity.firstBrush];
 			Error(
 				"Entity %i, Brush %i: Too many brushes in info_hullshape.",
 				b->originalentitynum,
@@ -1466,10 +1471,7 @@ void CreateHullShape(
 		);
 	}
 
-	for (hull_count h = 0; h < NUM_HULLS; h++) {
-		if (defaulthulls & (1 << h)) {
-			hullshape_t* target = &g_defaulthulls[h];
-			*target = hs;
-		}
+	for (hull_count hullNumber : indicies_of_set_bits(defaulthulls)) {
+		g_defaulthulls[hullNumber] = hs;
 	}
 }

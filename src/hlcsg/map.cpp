@@ -694,12 +694,7 @@ add_parsed_entity_result add_parsed_entity(
 	}
 
 	if (isInfoHullshape) {
-		bool const disabled = bool_key_value(mapent, u8"disabled");
-		std::u8string_view const id = value_for_key(
-			&mapent, u8"targetname"
-		);
-		int defaulthulls = IntForKey(&mapent, u8"defaulthulls");
-		CreateHullShape(entityNumber, disabled, id, defaulthulls);
+		create_hullshape(mapent);
 		mapent = {};
 		return { .entityAdded = false, .brushesAdded = 0, .sidesAdded = 0 };
 	}

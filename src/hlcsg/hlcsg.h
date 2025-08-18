@@ -88,7 +88,7 @@ struct bface_t final {
 	contents_t contents;
 	contents_t backcontents;
 	bool used;	// just for face counting
-	bool bevel; // used for ExpandBrush
+	bool bevel; // used for expand_brush
 };
 
 namespace std {
@@ -230,11 +230,7 @@ struct hullshape_t final {
 extern int g_nummapbrushes;
 extern csg_brush g_mapbrushes[MAX_MAP_BRUSHES];
 
-extern int g_numbrushsides;
 extern side_t g_brushsides[MAX_MAP_SIDES];
-
-extern hullshape_t g_defaulthulls[NUM_HULLS];
-extern std::vector<hullshape_t> g_hullshapes;
 
 extern void
 LoadMapFile(hlcsg_settings const & settings, char const * const filename);
@@ -263,10 +259,8 @@ extern csg_brush* Brush_LoadEntity(entity_t* ent, int hullnum);
 extern contents_t CheckBrushContents(csg_brush const * const b);
 
 extern void create_brush(csg_brush& b, csg_entity const & ent);
-extern void CreateHullShape(
-	int entitynum, bool disabled, std::u8string_view id, int defaulthulls
-);
-extern void InitDefaultHulls();
+extern void create_hullshape(csg_entity const & fromInfoHullshapeEntity);
+extern void init_default_hulls();
 
 //=============================================================================
 // csg.c
