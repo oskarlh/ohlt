@@ -136,11 +136,6 @@ using rgb_transfer_data_t = unsigned char;
 #define MAX_VISMATRIX_PATCHES        65535
 #define MAX_SPARSE_VISMATRIX_PATCHES MAX_PATCHES
 
-enum ePatchFlags {
-	ePatchFlagNull = 0,
-	ePatchFlagOutside = 1
-};
-
 struct patch_t final {
 	patch_t* next;       // next in face
 	float3_array origin; // Center centroid of winding (cached info
@@ -167,7 +162,7 @@ struct patch_t final {
 	rgb_transfer_data_t* tRGBData;
 
 	int faceNumber;
-	ePatchFlags flags;
+	bool outsideWorld;
 	bool translucent_b; // gather light from behind
 	float3_array translucent_v;
 	float3_array texturereflectivity;

@@ -56,15 +56,15 @@ bounding_box_state test_all(
 	bounding_box const & thisBox, bounding_box const & otherBox
 ) noexcept {
 	if (test_disjoint(thisBox, otherBox)) {
-		return disjoint;
+		return bounding_box_state::disjoint;
 	}
 	if (test_subset(thisBox, otherBox)) {
-		return subset;
+		return bounding_box_state::subset;
 	}
 	if (test_superset(thisBox, otherBox)) {
-		return superset;
+		return bounding_box_state::superset;
 	}
-	return in_union;
+	return bounding_box_state::in_union;
 }
 
 void set_bounding_box(

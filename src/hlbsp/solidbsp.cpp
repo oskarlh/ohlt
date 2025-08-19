@@ -170,7 +170,7 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 			node->mins = vector_minimums(node->mins, f->pts[x]);
 			node->maxs = vector_maximums(node->maxs, f->pts[x]);
 		}
-		if (f->facestyle == face_discardable) {
+		if (f->facestyle == facestyle_e::face_discardable) {
 			node->size_discardable++;
 		}
 	}
@@ -219,7 +219,7 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		}
 		if (low < dist1 + ON_EPSILON && high > dist2 - ON_EPSILON) {
 			node->nodefaces->push_back(f);
-			if (f->facestyle == face_discardable) {
+			if (f->facestyle == facestyle_e::face_discardable) {
 				node->nodefaces_discardablesize++;
 			}
 		} else if (low >= dist1 && high <= dist2) {
@@ -502,7 +502,7 @@ static surface_t* ChoosePlaneFromList(
 		mapplane_t const & plane = g_mapPlanes[p->planenum];
 
 		for (f = p->faces; f; f = f->next) {
-			if (f->facestyle == face_discardable) {
+			if (f->facestyle == facestyle_e::face_discardable) {
 				continue;
 			}
 			coplanarcount++;
@@ -519,7 +519,7 @@ static surface_t* ChoosePlaneFromList(
 				    || f->planenum == (p->planenum ^ 1)) {
 					continue;
 				}
-				if (f->facestyle == face_discardable) {
+				if (f->facestyle == facestyle_e::face_discardable) {
 					FaceSide(f, &plane, &epsilonsplit);
 					continue;
 				}
@@ -593,7 +593,7 @@ std::optional<detail_level> CalcSplitDetaillevel(node_t const * node) {
 			continue;
 		}
 		for (face_t const * f = s->faces; f; f = f->next) {
-			if (f->facestyle == face_discardable) {
+			if (f->facestyle == facestyle_e::face_discardable) {
 				continue;
 			}
 			bestDetailLevel = std::min(bestDetailLevel, f->detailLevel);
@@ -1376,7 +1376,7 @@ static void CopyFacesToNode(node_t* node, surface_t* surf) {
 	node->surfaces = nullptr;
 	node->faces = nullptr;
 	for (f = surf->faces; f; f = f->next) {
-		if (f->facestyle == face_discardable) {
+		if (f->facestyle == facestyle_e::face_discardable) {
 			continue;
 		}
 		if (f->contents != contents_t::SOLID) {

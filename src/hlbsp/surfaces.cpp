@@ -26,18 +26,18 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 		return;
 	}
 
-	if (f->facestyle == face_hint) {
+	if (f->facestyle == facestyle_e::face_hint) {
 		return;
 	}
-	if (f->facestyle == face_skip) {
+	if (f->facestyle == facestyle_e::face_skip) {
 		return;
 	}
 
-	if (f->facestyle == face_null) {
+	if (f->facestyle == facestyle_e::face_null) {
 		return; // ideally these should have their tex_special flag set, so
 		        // its here jic
 	}
-	if (f->facestyle == face_discardable) {
+	if (f->facestyle == facestyle_e::face_discardable) {
 		return;
 	}
 

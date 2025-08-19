@@ -28,7 +28,7 @@ struct hlvis_plane_t final {
 	float dist;
 };
 
-enum vstatus_t {
+enum class vstatus_t {
 	stat_none,    // No status
 	stat_working, // Currently working
 	stat_done     // Process completed

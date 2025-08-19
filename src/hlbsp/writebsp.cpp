@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <map>
+#include <utility>
 
 using PlaneMap = std::map<int, int>;
 static PlaneMap gPlaneMap;
@@ -692,7 +693,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 		) malloc(MAX_MAP_MODELS * sizeof(int[NUM_HULLS]));
 		hlassume(headnode != nullptr, assume_NoMemory);
 
-		int i, j, level;
+		int i, j;
 		for (i = 0; i < g_nummodels; i++) {
 			dmodel_t* m = &g_dmodels[i];
 			Developer(developer_level::message, " model %d\n", i);
@@ -702,14 +703,16 @@ void FinishBSPFile(bsp_data const & bspData) {
 				);
 			}
 		}
-		for (level = BrinkAny; level > BrinkNone; level--) {
+		bbrinklevel level;
+		for (level = bbrinklevel::any; level > bbrinklevel::none;
+		     level = bbrinklevel(std::to_underlying(level) - 1)) {
 			numclipnodes = 0;
 			count_mergedclipnodes = 0;
 			for (i = 0; i < g_nummodels; i++) {
 				for (j = 1; j < NUM_HULLS; j++) {
 					if (!FixBrinks(
 							brinkinfo[i][j],
-							(bbrinklevel_e) level,
+							level,
 							headnode[i][j],
 							clipnodes,
 							MAX_MAP_CLIPNODES,
@@ -732,12 +735,12 @@ void FinishBSPFile(bsp_data const & bspData) {
 				DeleteBrinkinfo(brinkinfo[i][j]);
 			}
 		}
-		if (level == BrinkNone) {
+		if (level == bbrinklevel::none) {
 			Warning(
 				"No brinks have been fixed because clipnode data is almost full."
 			);
 		} else {
-			if (level != BrinkAny) {
+			if (level != bbrinklevel::any) {
 				Warning(
 					"Not all brinks have been fixed because clipnode data is almost full."
 				);

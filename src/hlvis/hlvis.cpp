@@ -190,14 +190,15 @@ static vis_portal_t* GetNextPortal() {
 		p = nullptr;
 
 		for (j = 0, tp = g_portals; j < g_numportals * 2; j++, tp++) {
-			if (tp->nummightsee < min && tp->status == stat_none) {
+			if (tp->nummightsee < min
+			    && tp->status == vstatus_t::stat_none) {
 				min = tp->nummightsee;
 				p = tp;
 			}
 		}
 
 		if (p) {
-			p->status = stat_working;
+			p->status = vstatus_t::stat_working;
 		}
 
 		ThreadUnlock();
@@ -283,7 +284,7 @@ static void LeafFlow(int const leafnum) {
 
 	for (i = 0; i < leaf->numportals; i++) {
 		p = leaf->portals[i];
-		if (p->status != stat_done) {
+		if (p->status != vstatus_t::stat_done) {
 			Error("portal not done (leaf %d)", leafnum);
 		}
 
@@ -375,7 +376,7 @@ static void CalcPortalVis() {
 	if (g_fastvis) {
 		for (std::size_t i = 0; i < g_numportals * 2; i++) {
 			g_portals[i].visbits = g_portals[i].mightsee;
-			g_portals[i].status = stat_done;
+			g_portals[i].status = vstatus_t::stat_done;
 		}
 		return;
 	}

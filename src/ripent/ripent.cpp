@@ -17,23 +17,24 @@
 #include <cstring>
 #include <filesystem>
 
-enum hl_types {
-	hl_undefined = -1,
-	hl_export = 0,
-	hl_import = 1
+enum class hl_types {
+	hl_undefined,
+	hl_export,
+	hl_import
 };
 
-static hl_types g_mode = hl_undefined;
-static hl_types g_texturemode = hl_undefined;
+static hl_types g_mode = hl_types::hl_undefined;
+static hl_types g_texturemode = hl_types::hl_undefined;
 
-bool g_chart = cli_option_defaults::chart;
-bool g_info = cli_option_defaults::info;
-bool g_parse = ripent_cli_option_defaults::parse;
-bool g_textureparse = ripent_cli_option_defaults::textureParse;
+static bool g_chart = cli_option_defaults::chart;
+static bool g_info = cli_option_defaults::info;
+static bool g_parse = ripent_cli_option_defaults::parse;
+static bool g_textureparse = ripent_cli_option_defaults::textureParse;
 
-bool g_writeextentfile = DEFAULT_WRITEEXTENTFILE;
+static bool g_writeextentfile = ripent_cli_option_defaults::writeExtentFile;
 
-bool g_deleteembeddedlightmaps = DEFAULT_DELETEEMBEDDEDLIGHTMAPS;
+static bool g_deleteembeddedlightmaps
+	= ripent_cli_option_defaults::deleteEmbeddedLightMaps;
 
 // Scans entity data starting  at iIndex for cToken.  Every time a \n char
 // is encountered iLine is incremented.  If iToken is not null, the index
@@ -700,13 +701,13 @@ static void Settings() {
 	    cli_option_defaults::max_map_miptex);
 
 	switch (g_mode) {
-		case hl_import:
+		case hl_types::hl_import:
 			tmp = "Import";
 			break;
-		case hl_export:
+		case hl_types::hl_export:
 			tmp = "Export";
 			break;
-		case hl_undefined:
+		case hl_types::hl_undefined:
 		default:
 			tmp = "N/A";
 			break;
@@ -720,13 +721,13 @@ static void Settings() {
 	    g_parse ? "on" : "off",
 	    DEFAULT_PARSE ? "on" : "off");
 	switch (g_texturemode) {
-		case hl_import:
+		case hl_types::hl_import:
 			tmp = "Import";
 			break;
-		case hl_export:
+		case hl_types::hl_export:
 			tmp = "Export";
 			break;
-		case hl_undefined:
+		case hl_types::hl_undefined:
 		default:
 			tmp = "N/A";
 			break;
@@ -768,11 +769,11 @@ int main(int argc, char** argv) {
 				if (strings_equal_with_ascii_case_insensitivity(
 						argv[i], u8"-import"
 					)) {
-					g_mode = hl_import;
+					g_mode = hl_types::hl_import;
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-export"
 						   )) {
-					g_mode = hl_export;
+					g_mode = hl_types::hl_export;
 				}
 				// g_parse: command line switch (-parse).
 				else if (strings_equal_with_ascii_case_insensitivity(
@@ -802,11 +803,11 @@ int main(int argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-textureimport"
 						   )) {
-					g_texturemode = hl_import;
+					g_texturemode = hl_types::hl_import;
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-textureexport"
 						   )) {
-					g_texturemode = hl_export;
+					g_texturemode = hl_types::hl_export;
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-textureparse"
 						   )) {
@@ -819,8 +820,7 @@ int main(int argc, char** argv) {
 							   argv[i], u8"-deleteembeddedlightmaps"
 						   )) {
 					g_deleteembeddedlightmaps = true;
-				} else if (argv[i][0] == '-') //--vluzacn
-				{
+				} else if (argv[i][0] == '-') {
 					Log("Unknown option: '%s'\n", argv[i]);
 					Usage();
 				} else {
@@ -859,25 +859,25 @@ int main(int argc, char** argv) {
 				updatebsp = true;
 			}
 			switch (g_mode) {
-				case hl_import:
+				case hl_types::hl_import:
 					ReadEntities(g_Mapname.c_str());
 					updatebsp = true;
 					break;
-				case hl_export:
+				case hl_types::hl_export:
 					WriteEntities(g_Mapname.c_str());
 					break;
-				case hl_undefined:
+				case hl_types::hl_undefined:
 					break;
 			}
 			switch (g_texturemode) {
-				case hl_import:
+				case hl_types::hl_import:
 					ReadTextures(g_Mapname.c_str());
 					updatebsp = true;
 					break;
-				case hl_export:
+				case hl_types::hl_export:
 					WriteTextures(g_Mapname.c_str());
 					break;
-				case hl_undefined:
+				case hl_types::hl_undefined:
 					break;
 			}
 			if (g_chart) {
@@ -888,7 +888,6 @@ int main(int argc, char** argv) {
 			}
 
 			LogTimeElapsed(timeCounter.get_total());
-			// END RipEnt
 		}
 	}
 

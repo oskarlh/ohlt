@@ -23,7 +23,7 @@ constexpr bounding_box empty_bounding_box{
 	.maxs = double3_array{ -999999999.999, -999999999.999, -999999999.999 }
 };
 
-enum bounding_box_state {
+enum class bounding_box_state {
 	disjoint, // neither boxes touch
 	in_union, // this box intersects with the other box
 	subset,   // this box is inside the other box

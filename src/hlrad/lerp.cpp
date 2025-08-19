@@ -755,7 +755,6 @@ void InterpolateSampleLight(
 
 		int i;
 		int j;
-		int n;
 		facetriangulation_t const * ft2;
 		localtriangulation_t const * lt;
 		float3_array spot;
@@ -819,11 +818,11 @@ void InterpolateSampleLight(
 			for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
 				weight = localinterps[i]->points[j].weight
 					* localweights[i];
-				if (g_patches[localinterps[i]->points[j].patchnum].flags
-				    == ePatchFlagOutside) {
+				if (g_patches[localinterps[i]->points[j].patchnum]
+				        .outsideWorld) {
 					weight *= 0.01;
 				}
-				n = (int) maininterp.points.size();
+				std::size_t n = maininterp.points.size();
 				maininterp.points.resize(n + 1);
 				maininterp.points[n].patchnum
 					= localinterps[i]->points[j].patchnum;
@@ -850,11 +849,11 @@ void InterpolateSampleLight(
 				}
 				for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
 					weight = localinterps[i]->points[j].weight;
-					if (g_patches[localinterps[i]->points[j].patchnum].flags
-					    == ePatchFlagOutside) {
+					if (g_patches[localinterps[i]->points[j].patchnum]
+					        .outsideWorld) {
 						weight *= 0.01;
 					}
-					n = (int) maininterp.points.size();
+					std::size_t n = maininterp.points.size();
 					maininterp.points.resize(n + 1);
 					maininterp.points[n].patchnum
 						= localinterps[i]->points[j].patchnum;
@@ -894,8 +893,8 @@ void InterpolateSampleLight(
 
 					maininterp.totalweight = 0;
 					for (j = 0; j < (int) maininterp.points.size(); j++) {
-						if (g_patches[maininterp.points[j].patchnum].flags
-						    == ePatchFlagOutside) {
+						if (g_patches[maininterp.points[j].patchnum]
+						        .outsideWorld) {
 							maininterp.points[j].weight *= 0.01;
 						}
 						maininterp.totalweight

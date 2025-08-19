@@ -23,7 +23,7 @@ void replace_key_value(entity_t& ent, entity_key_value keyValue);
 
 // Invalidated if the entity is deleted or when a new entity is created
 // (since the allocation may relocate already allocated entities)
-class entity_ref {
+class entity_ref final {
   private:
 	entity_t* ent;
 

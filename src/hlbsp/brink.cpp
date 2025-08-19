@@ -14,7 +14,8 @@
 // then send then down the bsp tree to determine which leafs may incorrectly
 // block the movement.
 
-// The image of a typical buggy brink (with type BrinkFloorBlocking):
+// The image of a typical buggy brink (with type
+// bbrinklevel::floor_blocking):
 //
 //                brinkstoppoint
 //        x------------x
@@ -205,8 +206,8 @@ struct btreeface_t final {
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite; // when the face is infinite, all its edges must also be
-	               // infinite
+	bool infinite;  // when the face is infinite, all its edges must also be
+	                // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -1331,7 +1332,7 @@ bool AddPartition(
 	int planenum,
 	bool planeside,
 	contents_t content,
-	bbrinklevel_e brinktype
+	bbrinklevel brinktype
 ) {
 	// make sure we won't do any harm
 	btreeface_l::iterator fi;
@@ -1583,11 +1584,13 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 				bool planeside = transitionside[!side]
 					? smovement->nodeside
 					: !smovement->nodeside;
-				bbrinklevel_e brinktype;
+				bbrinklevel brinktype;
 				brinktype = isfloor
-					? (blocking ? BrinkFloorBlocking : BrinkFloor)
-					: onfloor ? (blocking ? BrinkWallBlocking : BrinkWall)
-							  : BrinkAny;
+					? (blocking ? bbrinklevel::floor_blocking
+				                : bbrinklevel::floor)
+					: onfloor ? (blocking ? bbrinklevel::wall_blocking
+				                          : bbrinklevel::wall)
+							  : bbrinklevel::any;
 				if (!AddPartition(
 						clipnode,
 						planenum,
@@ -1682,19 +1685,19 @@ void SortPartitions(bbrinkinfo_t* info
 				continue;
 			}
 			switch (current->type) {
-				case BrinkFloorBlocking:
+				case bbrinklevel::floor_blocking:
 					countfloorblocking++;
 					break;
-				case BrinkFloor:
+				case bbrinklevel::floor:
 					countfloor++;
 					break;
-				case BrinkWallBlocking:
+				case bbrinklevel::wall_blocking:
 					countwallblocking++;
 					break;
-				case BrinkWall:
+				case bbrinklevel::wall:
 					countwall++;
 					break;
-				case BrinkAny:
+				case bbrinklevel::any:
 					countany++;
 					break;
 				default:
@@ -1746,7 +1749,7 @@ inline clipnodemap_t::key_type MakeKey(dclipnode_t const & c) {
 bool FixBrinks_r_r(
 	bclipnode_t const * clipnode,
 	bpartition_t const * p,
-	bbrinklevel_e level,
+	bbrinklevel level,
 	int& headnode_out,
 	dclipnode_t* begin,
 	dclipnode_t* end,
@@ -1796,7 +1799,7 @@ bool FixBrinks_r_r(
 
 bool FixBrinks_r(
 	bclipnode_t const * clipnode,
-	bbrinklevel_e level,
+	bbrinklevel level,
 	int& headnode_out,
 	dclipnode_t* begin,
 	dclipnode_t* end,
@@ -1859,7 +1862,7 @@ bool FixBrinks_r(
 
 bool FixBrinks(
 	bbrinkinfo_t const * brinkinfo,
-	bbrinklevel_e level,
+	bbrinklevel level,
 	int& headnode_out,
 	dclipnode_t* clipnodes_out,
 	int maxsize,

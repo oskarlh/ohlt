@@ -47,12 +47,12 @@ constexpr float SIDESPACE = 24;
 	                     // because it can be split more later
 #define MAXNODESIZE 1024 // Valve default is 1024
 
-enum facestyle_e {
+enum class facestyle_e {
 	face_normal = 0,
 	face_hint,
 	face_skip,
 	face_null,
-	face_discardable, // contents must not differ between front and back
+	face_discardable, // Contents must not differ between front and back
 };
 
 struct face_t final {
@@ -234,13 +234,13 @@ extern bool should_face_have_facestyle_null(
 ) noexcept;
 #define BRINK_FLOOR_THRESHOLD 0.7
 
-enum bbrinklevel_e {
-	BrinkNone = 0,
-	BrinkFloorBlocking,
-	BrinkFloor,
-	BrinkWallBlocking,
-	BrinkWall,
-	BrinkAny,
+enum class bbrinklevel : std::uint8_t {
+	none = 0,
+	floor_blocking,
+	floor,
+	wall_blocking,
+	wall,
+	any,
 };
 
 //=============================================================================

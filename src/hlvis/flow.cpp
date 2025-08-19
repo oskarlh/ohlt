@@ -362,7 +362,7 @@ inline static void RecursiveLeafFlow(
 		{
 			long* test;
 
-			if (p->status == stat_done) {
+			if (p->status == vstatus_t::stat_done) {
 				test = (long*) p->visbits;
 			} else {
 				test = (long*) p->mightsee;
@@ -494,7 +494,7 @@ inline static void RecursiveLeafFlow(
 //  PortalFlow
 // =====================================================================================
 void PortalFlow(vis_portal_t* p) {
-	if (p->status != stat_working) {
+	if (p->status != vstatus_t::stat_working) {
 		Error("PortalFlow: reflowed");
 	}
 
@@ -513,7 +513,7 @@ void PortalFlow(vis_portal_t* p) {
 	}
 	RecursiveLeafFlow(p->leaf, &data, &data.pstack_head);
 
-	p->status = stat_done;
+	p->status = vstatus_t::stat_done;
 }
 
 // =====================================================================================

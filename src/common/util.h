@@ -80,7 +80,7 @@ class indicies_of_set_bits_iterator final {
 	}
 };
 
-class indicies_of_set_bits_view
+class indicies_of_set_bits_view final
 	: public std::ranges::view_interface<indicies_of_set_bits_view> {
   private:
 	indicies_of_set_bits_iterator beginning;

@@ -635,13 +635,13 @@ static bool PlacePatchInside(patch_t* patch) {
 
 	if (found) {
 		patch->origin = bestpoint;
-		patch->flags = ePatchFlagNull;
+		patch->outsideWorld = false;
 		return true;
 	} else {
 		patch->origin = vector_fma(
 			plane->normal, PATCH_HUNT_OFFSET, center
 		);
-		patch->flags = ePatchFlagOutside;
+		patch->outsideWorld = true;
 		Developer(
 			developer_level::fluff,
 			"Patch @ (%4.3f %4.3f %4.3f) outside world\n",
@@ -2512,7 +2512,7 @@ static void RadWorld() {
 		FILE* f = fopen(patchFilePath.c_str(), "w");
 		if (f) {
 			for (patch_t& patch : g_patches) {
-				if (patch.flags == ePatchFlagOutside) {
+				if (patch.outsideWorld) {
 					continue;
 				}
 

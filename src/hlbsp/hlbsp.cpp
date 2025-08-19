@@ -548,17 +548,17 @@ static facestyle_e which_style_for_face(face_t const & f) {
 	wad_texture_name const textureName{ get_texture_by_number(f.texturenum
 	) };
 
-	facestyle_e style = face_normal;
+	facestyle_e style = facestyle_e::face_normal;
 	if (textureName.is_ordinary_hint()) {
-		style = face_hint;
+		style = facestyle_e::face_hint;
 	} else if (textureName.is_skip()) {
-		style = face_skip;
+		style = facestyle_e::face_skip;
 	} else if (should_face_have_facestyle_null(textureName, f.contents)) {
-		style = face_null;
+		style = facestyle_e::face_null;
 	} else if (textureName.is_bevel_hint() || textureName.is_solid_hint()) {
-		style = face_discardable;
+		style = facestyle_e::face_discardable;
 	} else if (textureName.is_env_sky()) {
-		style = face_null;
+		style = facestyle_e::face_null;
 	}
 	return style;
 }

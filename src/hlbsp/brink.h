@@ -10,7 +10,7 @@ struct btreeface_t;  // 2d object
 struct btreeleaf_t;  // 3d object
 
 struct bpartition_t final {
-	bbrinklevel_e type;
+	bbrinklevel type;
 	bpartition_t* next;
 	int planenum;
 	contents_t content;
@@ -97,7 +97,7 @@ extern bbrinkinfo_t*
 CreateBrinkinfo(dclipnode_t const * clipnodes, int headnode);
 extern bool FixBrinks(
 	bbrinkinfo_t const * brinkinfo,
-	bbrinklevel_e level,
+	bbrinklevel level,
 	int& headnode_out,
 	dclipnode_t* clipnodes_out,
 	int maxsize,
