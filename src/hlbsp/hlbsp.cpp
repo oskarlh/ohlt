@@ -766,7 +766,8 @@ static bool ProcessModel(
 	brush_t* detailbrushes = ReadBrushes(brushFiles[0]);
 
 	hlassume(
-		bspData.mapModelsLength < MAX_MAP_MODELS, assume_msg::MAX_MAP_MODELS
+		bspData.mapModelsLength < MAX_MAP_MODELS,
+		assume_msg::exceeded_MAX_MAP_MODELS
 	);
 
 	int startleafs = g_numleafs;

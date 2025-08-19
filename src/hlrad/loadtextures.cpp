@@ -902,7 +902,7 @@ void NewTextures_Write() {
 			  ->dataofs[texdata->nummiptex + g_newtextures_num];
 	hlassume(
 		g_texdatasize + (newdataaddr - dataaddr) <= g_max_map_miptex,
-		assume_msg::MAX_MAP_MIPTEX
+		assume_msg::exceeded_MAX_MAP_MIPTEX
 	);
 	memmove(newdataaddr, dataaddr, datasize);
 	g_texdatasize += newdataaddr - dataaddr;
@@ -916,12 +916,12 @@ void NewTextures_Write() {
 
 	hlassume(
 		texdata->nummiptex + g_newtextures_num < MAX_MAP_TEXTURES,
-		assume_msg::MAX_MAP_TEXTURES
+		assume_msg::exceeded_MAX_MAP_TEXTURES
 	);
 	for (i = 0; i < g_newtextures_num; i++) {
 		hlassume(
 			g_texdatasize + g_newtextures_size[i] <= g_max_map_miptex,
-			assume_msg::MAX_MAP_MIPTEX
+			assume_msg::exceeded_MAX_MAP_MIPTEX
 		);
 		memcpy(
 			g_dtexdata.data() + g_texdatasize,
@@ -1408,7 +1408,7 @@ void EmbedLightmapInTextures() {
 
 		hlassume(
 			g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
-			assume_msg::INITIAL_MAX_MAP_TEXINFO
+			assume_msg::exceeded_INITIAL_MAX_MAP_TEXINFO
 		);
 		f->texinfo = g_numtexinfo;
 		texinfo_t* info = &g_texinfo[g_numtexinfo];

@@ -4657,7 +4657,7 @@ void PrecompLightmapOffsets() {
 		newLightDataSize += fl->numsamples * 3 * lightstyles;
 		hlassume(
 			newLightDataSize <= g_max_map_lightdata,
-			assume_msg::MAX_MAP_LIGHTING
+			assume_msg::exceeded_MAX_MAP_LIGHTING
 		); // lightdata
 	}
 	g_dlightdata.resize(newLightDataSize, std::byte(0));
@@ -4717,7 +4717,7 @@ void ReduceLightmap() {
 			hlassume(
 				g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1)
 					<= g_max_map_lightdata,
-				assume_msg::MAX_MAP_LIGHTING
+				assume_msg::exceeded_MAX_MAP_LIGHTING
 			);
 
 			std::span toAppend{

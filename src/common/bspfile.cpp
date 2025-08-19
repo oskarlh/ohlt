@@ -281,10 +281,13 @@ get_lump_data(dheader_t const * header) {
 	// Special handling for tex and lightdata to keep things from
 	// exploding
 	if (LumpId == lump_id::textures) {
-		hlassume(g_max_map_miptex > length, assume_msg::MAX_MAP_MIPTEX);
+		hlassume(
+			g_max_map_miptex > length, assume_msg::exceeded_MAX_MAP_MIPTEX
+		);
 	} else if (LumpId == lump_id::lighting) {
 		hlassume(
-			g_max_map_lightdata > length, assume_msg::MAX_MAP_LIGHTING
+			g_max_map_lightdata > length,
+			assume_msg::exceeded_MAX_MAP_LIGHTING
 		);
 	}
 

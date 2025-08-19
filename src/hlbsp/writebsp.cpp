@@ -45,7 +45,10 @@ static int WritePlane(int planenum) {
 		return item->second;
 	}
 	// Add plane to BSP
-	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_msg::MAX_MAP_PLANES);
+	hlassume(
+		gNumMappedPlanes < MAX_MAP_PLANES,
+		assume_msg::exceeded_MAX_MAP_PLANES
+	);
 	gMappedPlanes[gNumMappedPlanes] = g_mapPlanes[planenum];
 	gPlaneMap.insert(PlaneMap::value_type(planenum, gNumMappedPlanes));
 
@@ -69,7 +72,7 @@ static texinfo_count WriteTexinfo(texinfo_count texinfo) {
 
 	hlassume(
 		g_nummappedtexinfo < FINAL_MAX_MAP_TEXINFO,
-		assume_msg::FINAL_MAX_MAP_TEXINFO
+		assume_msg::exceeded_FINAL_MAX_MAP_TEXINFO
 	);
 	texinfo_count const c = g_nummappedtexinfo;
 	g_mappedtexinfo[g_nummappedtexinfo] = g_texinfo[texinfo];
@@ -124,7 +127,9 @@ static int WriteClipNodes_r(
 	clipnodemap_t::const_iterator const output{ outputmap->find(MakeKey(*cn)
 	) };
 	if (g_noclipnodemerge || output == outputmap->end()) {
-		hlassume(c < MAX_MAP_CLIPNODES, assume_msg::MAX_MAP_CLIPNODES);
+		hlassume(
+			c < MAX_MAP_CLIPNODES, assume_msg::exceeded_MAX_MAP_CLIPNODES
+		);
 		g_dclipnodes[c] = *cn;
 		(*outputmap)[MakeKey(*cn)] = c;
 	} else {
@@ -161,7 +166,9 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 	int leafnum = g_numleafs;
 
 	// emit a leaf
-	hlassume(g_numleafs < MAX_MAP_LEAFS, assume_msg::MAX_MAP_LEAFS);
+	hlassume(
+		g_numleafs < MAX_MAP_LEAFS, assume_msg::exceeded_MAX_MAP_LEAFS
+	);
 	leaf_p = &g_dleafs[g_numleafs];
 	g_numleafs++;
 
@@ -213,7 +220,7 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 			g_dmarksurfaces[g_nummarksurfaces] = f->outputnumber;
 			hlassume(
 				g_nummarksurfaces < MAX_MAP_MARKSURFACES,
-				assume_msg::MAX_MAP_MARKSURFACES
+				assume_msg::exceeded_MAX_MAP_MARKSURFACES
 			);
 			g_nummarksurfaces++;
 			f = f->original; // grab tjunction split faces
@@ -249,7 +256,9 @@ static void WriteFace(face_t* f) {
 	f->outputnumber = g_numfaces;
 
 	df = &g_dfaces[g_numfaces];
-	hlassume(g_numfaces < MAX_MAP_FACES, assume_msg::MAX_MAP_FACES);
+	hlassume(
+		g_numfaces < MAX_MAP_FACES, assume_msg::exceeded_MAX_MAP_FACES
+	);
 	g_numfaces++;
 
 	df->planenum = WritePlane(f->planenum);
@@ -263,7 +272,7 @@ static void WriteFace(face_t* f) {
 		int e = f->outputedges[i];
 		hlassume(
 			g_numsurfedges < MAX_MAP_SURFEDGES,
-			assume_msg::MAX_MAP_SURFEDGES
+			assume_msg::exceeded_MAX_MAP_SURFEDGES
 		);
 		g_dsurfedges[g_numsurfedges] = e;
 		g_numsurfedges++;
@@ -300,7 +309,9 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 	int nodenum = g_numnodes;
 
 	// emit a node
-	hlassume(g_numnodes < MAX_MAP_NODES, assume_msg::MAX_MAP_NODES);
+	hlassume(
+		g_numnodes < MAX_MAP_NODES, assume_msg::exceeded_MAX_MAP_NODES
+	);
 	n = &g_dnodes[g_numnodes];
 	g_numnodes++;
 
@@ -673,9 +684,12 @@ void FinishBSPFile(bsp_data const & bspData) {
 	} else {
 		hlassume(
 			g_numtexinfo < FINAL_MAX_MAP_TEXINFO,
-			assume_msg::FINAL_MAX_MAP_TEXINFO
+			assume_msg::exceeded_FINAL_MAX_MAP_TEXINFO
 		);
-		hlassume(g_numplanes < MAX_MAP_PLANES, assume_msg::MAX_MAP_PLANES);
+		hlassume(
+			g_numplanes < MAX_MAP_PLANES,
+			assume_msg::exceeded_MAX_MAP_PLANES
+		);
 	}
 
 	if (!g_nobrink) {

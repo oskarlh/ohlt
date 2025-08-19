@@ -50,7 +50,7 @@ static int texmap_store(wad_texture_name texname)
 {
 	hlassume(
 		numtexmap < INITIAL_MAX_MAP_TEXINFO,
-		assume_msg::INITIAL_MAX_MAP_TEXINFO
+		assume_msg::exceeded_INITIAL_MAX_MAP_TEXINFO
 	); // This error should never appear.
 
 	int i = numtexmap;
@@ -114,7 +114,9 @@ static int FindMiptex(wad_texture_name name) {
 		}
 	}
 
-	hlassume(nummiptex < MAX_MAP_TEXTURES, assume_msg::MAX_MAP_TEXTURES);
+	hlassume(
+		nummiptex < MAX_MAP_TEXTURES, assume_msg::exceeded_MAX_MAP_TEXTURES
+	);
 	int const new_miptex_num = nummiptex;
 	miptex[new_miptex_num].lump_info.name = name;
 	++nummiptex;
@@ -433,7 +435,7 @@ static int LoadLump(
 			miptex_t* miptex = (miptex_t*) dest;
 			hlassume(
 				(int) sizeof(miptex_t) <= dest_maxsize,
-				assume_msg::MAX_MAP_MIPTEX
+				assume_msg::exceeded_MAX_MAP_MIPTEX
 			);
 			SafeRead(texfiles[source->iTexFile], dest, sizeof(miptex_t));
 
@@ -471,7 +473,7 @@ static int LoadLump(
 			// Load the entire texture here so the BSP contains the texture
 			hlassume(
 				source->lump_info.disksize <= dest_maxsize,
-				assume_msg::MAX_MAP_MIPTEX
+				assume_msg::exceeded_MAX_MAP_MIPTEX
 			);
 			SafeRead(
 				texfiles[source->iTexFile], dest, source->lump_info.disksize
@@ -730,7 +732,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 				hlassume(
 					totaltexsize < g_max_map_miptex,
-					assume_msg::MAX_MAP_MIPTEX
+					assume_msg::exceeded_MAX_MAP_MIPTEX
 				);
 			}
 			data += len;
@@ -839,7 +841,7 @@ texinfo_count TexinfoForBrushTexture(
 
 	hlassume(
 		g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
-		assume_msg::INITIAL_MAX_MAP_TEXINFO
+		assume_msg::exceeded_INITIAL_MAX_MAP_TEXINFO
 	);
 
 	*tc = tx;

@@ -2486,7 +2486,8 @@ static void ExtendLightmapBuffer() {
 	}
 	if (maxsize >= g_dlightdata.size()) {
 		hlassume(
-			maxsize <= g_max_map_lightdata, assume_msg::MAX_MAP_LIGHTING
+			maxsize <= g_max_map_lightdata,
+			assume_msg::exceeded_MAX_MAP_LIGHTING
 		);
 
 		g_dlightdata.resize(maxsize, std::byte(0));

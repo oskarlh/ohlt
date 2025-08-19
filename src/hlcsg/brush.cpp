@@ -68,7 +68,7 @@ find_int_plane(double3_array const & normal, double3_array const & origin) {
 	// create new planes - double check that we have room for 2 planes
 	hlassume(
 		g_mapPlanes.size() + 1 < MAX_INTERNAL_MAP_PLANES,
-		assume_msg::MAX_INTERNAL_MAP_PLANES
+		assume_msg::exceeded_MAX_INTERNAL_MAP_PLANES
 	);
 
 	std::size_t const pAIndex = g_mapPlanes.size();

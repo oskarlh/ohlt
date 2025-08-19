@@ -415,7 +415,7 @@ restart:
 			);
 			hlassume(
 				superface->pts.size() < MAX_SUPERFACEEDGES,
-				assume_msg::MAX_SUPERFACEEDGES
+				assume_msg::exceeded_MAX_SUPERFACEEDGES
 			);
 			goto restart;
 		}

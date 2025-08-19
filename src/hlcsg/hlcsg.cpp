@@ -1006,7 +1006,7 @@ static void SetLightStyles() {
 		if (j == stylenum) {
 			hlassume(
 				stylenum < MAX_SWITCHED_LIGHTS,
-				assume_msg::MAX_SWITCHED_LIGHTS
+				assume_msg::exceeded_MAX_SWITCHED_LIGHTS
 			);
 			lighttargets[j] = t;
 			stylenum++;
