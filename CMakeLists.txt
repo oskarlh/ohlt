@@ -205,7 +205,7 @@ set(RIPENT_SOURCES
 )
 
 set(RIPENT_HEADERS
-    ${RIPENT_DIR}/ripent.h
+    ${RIPENT_DIR}/ripent_cli_option_defaults.h
 )
 
 #================

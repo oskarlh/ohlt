@@ -54,4 +54,4 @@ To implement these into your own fgd file for SmartEdit, use the template at the
 - `-nostudioshadow` RAD parameter to ignore `zhlt_studioshadow` on studiomodels.
 
 ## Contributors
-These compile tools contain code by various people including Oskar Larsson Högfeldt, Sean \"Zoner\" Cavanaugh, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike, and seedee. Based on Valve's compile tools, modified with permission.
+These compile tools contain code by various people including Oskar Larsson Högfeldt AKA Oskar_Potatis, Sean "Zoner" Cavanaugh, Ryan "Nemesis" Gregg, amckern, Tony "Merl" Moore, Vluzacn, Uncle Mike, and seedee. Based on Valve's compile tools, modified with permission.

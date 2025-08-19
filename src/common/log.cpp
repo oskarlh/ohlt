@@ -387,7 +387,7 @@ void Banner() {
 
 	Log((char const *) u8"" PROJECT_NAME "\n"
 	                   "By Oskar Larsson Högfeldt AKA Oskar_Potatis ( https://oskar.pm/ )\n"
-	                   "Based on code modifications by Sean \"Zoner\" Cavanaugh, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike, and seedee.\n"
+	                   "Based on code modifications by Sean \"Zoner\" Cavanaugh, Ryan \"Nemesis\" Gregg, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike and seedee.\n"
 	                   "Based on Valve's compile tools, modified with permission.\n"
 	                   "Submit detailed bug reports to %s\n",
 	    (char const *) projectIssueTracker.data());

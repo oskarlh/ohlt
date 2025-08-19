@@ -1,17 +1,3 @@
-/***
- *
- *	Copyright (c) 1998, Valve LLC. All rights reserved.
- *
- *	This product contains software technology licensed from Id
- *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software,
- *Inc. All Rights Reserved.
- *
- ****/
-
-// csg4.c
-
-#include "ripent.h"
-
 #include "bsp_file_sizes.h"
 #include "bspfile.h"
 #include "cli_option_defaults.h"
@@ -21,6 +7,7 @@
 #include "hlassert.h"
 #include "log.h"
 #include "messages.h"
+#include "ripent_cli_option_defaults.h"
 #include "time_counter.h"
 #include "vector_for_overwriting.h"
 #include "wad_structs.h"
@@ -39,22 +26,15 @@ enum hl_types {
 static hl_types g_mode = hl_undefined;
 static hl_types g_texturemode = hl_undefined;
 
-// g_parse: command line switch (-parse).
-// Added by: Ryan Gregg aka Nem
-bool g_parse = DEFAULT_PARSE;
-bool g_textureparse = DEFAULT_TEXTUREPARSE;
-
 bool g_chart = cli_option_defaults::chart;
-
 bool g_info = cli_option_defaults::info;
+bool g_parse = ripent_cli_option_defaults::parse;
+bool g_textureparse = ripent_cli_option_defaults::textureParse;
 
 bool g_writeextentfile = DEFAULT_WRITEEXTENTFILE;
 
 bool g_deleteembeddedlightmaps = DEFAULT_DELETEEMBEDDEDLIGHTMAPS;
 
-// ScanForToken()
-// Added by: Ryan Gregg aka Nem
-//
 // Scans entity data starting  at iIndex for cToken.  Every time a \n char
 // is encountered iLine is incremented.  If iToken is not null, the index
 // cToken was found at is inserted into it.
@@ -110,9 +90,6 @@ bool ScanForToken(
 using CEntityPairList = std::list<char*>;
 using CEntityList = std::list<CEntityPairList*>;
 
-// ParseEntityData()
-// Added by: Ryan Gregg aka Nem
-//
 // Pareses and reformats entity data stripping all non essential
 // formatting  and using the formatting  options passed through this
 // function.  The length is specified because in some cases (i.e. the
@@ -647,7 +624,7 @@ static void ReadEntities(char const * const name) {
 
 	{
 		FILE* f = SafeOpenRead(filename);
-		Log("\nReading %s.\n", filename); // Added by Nem.
+		Log("\nReading %s.\n", filename);
 
 		g_entdatasize = q_filelength(f);
 
@@ -662,11 +639,7 @@ static void ReadEntities(char const * const name) {
 		fclose(f);
 
 		if (g_dentdata[g_entdatasize - 1] != u8'\0') {
-			//            Log("g_dentdata[g_entdatasize-1] = %d\n",
-			//            g_dentdata[g_entdatasize-1]);
-
-			if (g_parse) // Added by Nem.
-			{
+			if (g_parse) {
 				ParseEntityData("", 0, "\n", 1, "\0", 1);
 			} else if (g_dentdata[g_entdatasize - 1] != u8'\0') {
 				g_dentdata[g_entdatasize] = u8'\0';
@@ -802,7 +775,6 @@ int main(int argc, char** argv) {
 					g_mode = hl_export;
 				}
 				// g_parse: command line switch (-parse).
-				// Added by: Ryan Gregg aka Nem
 				else if (strings_equal_with_ascii_case_insensitivity(
 							 argv[i], u8"-parse"
 						 )) {
