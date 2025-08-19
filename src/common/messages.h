@@ -1,10 +1,11 @@
 #pragma once
 #include <cstdint>
+#include <string_view>
 
 struct MessageTable_t final {
-	char const * title;
-	char const * text;
-	char const * howto;
+	std::u8string_view title;
+	std::u8string_view text;
+	std::u8string_view howto;
 };
 
 enum class assume_msg : std::uint8_t {
@@ -80,4 +81,4 @@ enum class assume_msg : std::uint8_t {
 	last
 };
 
-MessageTable_t const & get_assume(assume_msg id);
+MessageTable_t const & get_assume(assume_msg id) noexcept;

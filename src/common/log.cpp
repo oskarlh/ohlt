@@ -223,9 +223,9 @@ void FORMAT_PRINTF(2, 3)
 
 		PrintOnce(
 			"%s\nDescription: %s\nHow to fix: %s\n",
-			msg.title,
-			msg.text,
-			msg.howto
+			(char const *) msg.title.data(),
+			(char const *) msg.text.data(),
+			(char const *) msg.howto.data()
 		);
 	}
 
@@ -417,9 +417,9 @@ void hlassume(bool exp, assume_msg msgid) {
 	MessageTable_t const & msg = get_assume(msgid);
 	Error(
 		"%s\nDescription: %s\nHow to fix: %s\n",
-		msg.title,
-		msg.text,
-		msg.howto
+		(char const *) msg.title.data(),
+		(char const *) msg.text.data(),
+		(char const *) msg.howto.data()
 	);
 }
 
