@@ -106,7 +106,7 @@ static int WriteClipNodes_r(
 	}
 
 	dclipnode_t tmpclipnode{}; // this clipnode will be inserted into
-							   // g_dclipnodes[c] if it can't be merged
+	                           // g_dclipnodes[c] if it can't be merged
 
 	dclipnode_t* cn = &tmpclipnode;
 	int c = g_numclipnodes;
@@ -234,13 +234,13 @@ static void WriteFace(face_t* f) {
 	) };
 
 	if (textureName.is_ordinary_hint() || textureName.is_skip()
-		|| should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces()
-		|| f->texturenum == no_texinfo
-		|| f->referenced
-			== 0 // this face is not referenced by any nonsolid leaf because
-				 // it is completely covered by func_details
-		|| textureName.is_env_sky()) {
+	    || should_face_have_facestyle_null(textureName, f->contents)
+	    || textureName.marks_discardable_faces()
+	    || f->texturenum == no_texinfo
+	    || f->referenced
+	        == 0 // this face is not referenced by any nonsolid leaf because
+	             // it is completely covered by func_details
+	    || textureName.is_env_sky()) {
 		f->outputnumber = -1;
 		return;
 	}
@@ -373,10 +373,10 @@ void OutputEdges_face(face_t* f) {
 	) };
 
 	if (textureName.is_ordinary_hint() || textureName.is_skip()
-		|| should_face_have_facestyle_null(textureName, f->contents)
-		|| textureName.marks_discardable_faces()
-		|| f->texturenum == no_texinfo || f->referenced == 0
-		|| textureName.is_env_sky()) {
+	    || should_face_have_facestyle_null(textureName, f->contents)
+	    || textureName.marks_discardable_faces()
+	    || f->texturenum == no_texinfo || f->referenced == 0
+	    || textureName.is_env_sky()) {
 		return;
 	}
 	f->outputedges = (int*) malloc(f->pts.size() * sizeof(int));
@@ -410,7 +410,7 @@ OutputEdges_r(node_t* node, detail_level detailLevel) {
 			node->children[i], detailLevel
 		);
 		if (!next.has_value()
-			|| (r.has_value() && r.value() < next.value())) {
+		    || (r.has_value() && r.value() < next.value())) {
 			next = r;
 		}
 	}
@@ -431,7 +431,7 @@ static void RemoveCoveredFaces_r(node_t* node) {
 			face_t** fp;
 			for (fp = node->markfaces; *fp; fp++) {
 				for (face_t* f = *fp; f;
-					 f = f->original) // for each tjunc subface
+				     f = f->original) // for each tjunc subface
 				{
 					f->referenced++; // mark the face as referenced
 				}
@@ -520,14 +520,14 @@ void FinishBSPFile(bsp_data const & bspData) {
 	);
 	if (!g_noclipnodemerge) {
 		Log("Reduced %d clipnodes to %d\n",
-			g_numclipnodes + count_mergedclipnodes,
-			g_numclipnodes);
+		    g_numclipnodes + count_mergedclipnodes,
+		    g_numclipnodes);
 	}
 	if (g_reduceTexinfo) {
 		{
 			Log("Reduced %d texinfos to %d\n",
-				g_numtexinfo,
-				g_nummappedtexinfo);
+			    g_numtexinfo,
+			    g_nummappedtexinfo);
 			for (int i = 0; i < g_nummappedtexinfo; i++) {
 				g_texinfo[i] = g_mappedtexinfo[i];
 			}
@@ -559,7 +559,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 				for (int j = 0; j < g_nummiptex; j++) {
 					int lumpsize = l->dataofs[j] - l->dataofs[i];
 					if (l->dataofs[j] == -1 || lumpsize < 0
-						|| lumpsize == 0 && j <= i) {
+					    || lumpsize == 0 && j <= i) {
 						continue;
 					}
 					if (lumpsize < lumpsizes[i]) {
@@ -586,16 +586,16 @@ void FinishBSPFile(bsp_data const & bspData) {
 				}
 				if (Used[i] == true) {
 					miptex_t* m = (miptex_t*) ((std::byte*) l
-											   + l->dataofs[i]);
+					                           + l->dataofs[i]);
 					wad_texture_name name{ m->name };
 					if (!name.is_animation_frame() && !name.is_tile()) {
 						continue;
 					}
 
 					for (bool alternateAnimation :
-						 std::array{ false, true }) {
+					     std::array{ false, true }) {
 						for (std::size_t frameNumber = 0; frameNumber < 10;
-							 ++frameNumber) {
+						     ++frameNumber) {
 							name.set_animation_frame_or_tile_number(
 								frameNumber, alternateAnimation
 							);
@@ -607,7 +607,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 								}
 								miptex_t const * m2
 									= (miptex_t*) ((byte*) l + l->dataofs[k]
-									);
+								    );
 								if (name == m2->name) {
 									Used[k] = true;
 								}
@@ -647,10 +647,10 @@ void FinishBSPFile(bsp_data const & bspData) {
 			}
 			std::memcpy(&l->dataofs[Num], newdata, newdatasize);
 			Log("Reduced %d texdatas to %d (%d bytes to %d)\n",
-				g_nummiptex,
-				Num,
-				g_texdatasize,
-				Size);
+			    g_nummiptex,
+			    Num,
+			    g_texdatasize,
+			    Size);
 			g_nummiptex = Num;
 			g_texdatasize = Size;
 		skipReduceTexdata:;
@@ -682,7 +682,7 @@ void FinishBSPFile(bsp_data const & bspData) {
 		);
 		hlassume(clipnodes != nullptr, assume_NoMemory);
 		std::array<bbrinkinfo_t*, NUM_HULLS>* brinkinfo; //[MAX_MAP_MODELS]
-		int(*headnode)[NUM_HULLS];						 //[MAX_MAP_MODELS]
+		int(*headnode)[NUM_HULLS];                       //[MAX_MAP_MODELS]
 		brinkinfo = (std::array<bbrinkinfo_t*, NUM_HULLS>*) malloc(
 			MAX_MAP_MODELS * sizeof(std::array<bbrinkinfo_t*, NUM_HULLS>)
 		);
@@ -748,8 +748,8 @@ void FinishBSPFile(bsp_data const & bspData) {
 				count_mergedclipnodes
 			);
 			Log("Increased %d clipnodes to %d.\n",
-				g_numclipnodes,
-				numclipnodes);
+			    g_numclipnodes,
+			    numclipnodes);
 			g_numclipnodes = numclipnodes;
 			std::memcpy(
 				g_dclipnodes.data(),

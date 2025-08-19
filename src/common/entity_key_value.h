@@ -61,7 +61,7 @@ class entity_key_value final {
 		std::span<char8_t const> allData = storage.span();
 		return {
 			allData.begin() + keyLength + 1, // +1 for null
-			allData.end() - 1				 // -1 for null
+			allData.end() - 1                // -1 for null
 		};
 	}
 
@@ -80,7 +80,7 @@ class entity_key_value final {
 			return;
 		}
 
-		storage.reduce_size_to(keyLength + 1);				// +1 for null
+		storage.reduce_size_to(keyLength + 1);              // +1 for null
 		storage.reserve(keyLength + newValue.length() + 2); // +2 for nulls
 		storage.append_range(newValue);
 		storage.emplace_back(u8'\0');

@@ -52,12 +52,12 @@ bool TraceMesh ::ClipRayToBox(
 	);
 
 	float const d = std::max({ std::min(t0[0], t1[0]),
-							   std::min(t0[1], t1[1]),
-							   std::min(t0[2], t1[2]) });
+	                           std::min(t0[1], t1[1]),
+	                           std::min(t0[2], t1[2]) });
 
 	float const t = std::min({ std::max(t0[0], t1[0]),
-							   std::max(t0[1], t1[1]),
-							   std::max(t0[2], t1[2]) });
+	                           std::max(t0[1], t1[1]),
+	                           std::max(t0[2], t1[2]) });
 
 	return (t >= 0.0f) && (t >= d);
 }
@@ -172,7 +172,7 @@ bool TraceMesh ::ClipRayToFace(mfacet_t const * facet) {
 
 	// try to avoid double shadows near triangle seams
 	if (u < -ASLF_EPSILON || u > (1.0f + ASLF_EPSILON) || v < -ASLF_EPSILON
-		|| (u + v) > (1.0f + ASLF_EPSILON)) {
+	    || (u + v) > (1.0f + ASLF_EPSILON)) {
 		return false;
 	}
 
@@ -348,7 +348,7 @@ bool TraceMesh ::ClipRayToFacet(mfacet_t const * facet) {
 	}
 
 	if (((enterfrac - FRAC_EPSILON) <= leavefrac) && (enterfrac > -1.0f)
-		&& (enterfrac < 1.0f)) {
+	    && (enterfrac < 1.0f)) {
 		return true;
 	}
 
@@ -410,7 +410,7 @@ void TraceMesh ::ClipToLinks(areanode_t* node) {
 
 bool TraceMesh ::DoTrace(void) {
 	if (!mesh
-		|| !BoundsIntersect(
+	    || !BoundsIntersect(
 			mesh->mins, mesh->maxs, m_vecAbsMins, m_vecAbsMaxs
 		)) {
 		return false; // invalid mesh or no intersection

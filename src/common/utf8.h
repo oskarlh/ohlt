@@ -33,9 +33,9 @@ inline bool validate_utf8(Range&& string) noexcept {
 	// Skip past ASCII code units, eight at a time
 	bool allAscii = true;
 	for (unsigned char const * eightsEnd = it
-			 + (std::size_t(end - it) / 8) * 8;
-		 allAscii && it != eightsEnd;
-		 it += 8) {
+	         + (std::size_t(end - it) / 8) * 8;
+	     allAscii && it != eightsEnd;
+	     it += 8) {
 		using eight_units = char8_t[8];
 		static_assert(
 			std::numeric_limits<unsigned char>::digits * 8
@@ -181,7 +181,7 @@ parse_number(std::string_view str) noexcept {
 
 	if (fromCharsResult.ec == std::errc{}) [[likely]] {
 		return { .number = number,
-				 .remainingText = { fromCharsResult.ptr, str.end() } };
+			     .remainingText = { fromCharsResult.ptr, str.end() } };
 	}
 	return { .number = std::nullopt, .remainingText = str };
 }
@@ -204,7 +204,7 @@ parse_number(std::string_view str) noexcept {
 		return { .number = std::nullopt, .remainingText = {} };
 	}
 	return { .number = number,
-			 .remainingText = str.substr(numCharsParsed) };
+		     .remainingText = str.substr(numCharsParsed) };
 }
 
 template <class Number = std::int32_t>
@@ -213,8 +213,8 @@ parse_number(std::u8string_view str) noexcept {
 	auto const res = parse_number<Number>(std::string_view{
 		(char const *) str.begin(), (char const *) str.end() });
 	return { .number = res.number,
-			 .remainingText = { (char8_t const *) res.remainingText.begin(),
-								res.remainingText.length() } };
+		     .remainingText = { (char8_t const *) res.remainingText.begin(),
+		                        res.remainingText.length() } };
 }
 
 template <class Number = std::int32_t>

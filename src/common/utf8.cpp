@@ -20,7 +20,7 @@ namespace utf8_internal {
 		do {
 			unsigned char const continuingCodeUnit = *it;
 			if (continuingCodeUnit < 0b1000'0000
-				|| continuingCodeUnit > 0b1011'1111) [[unlikely]] {
+			    || continuingCodeUnit > 0b1011'1111) [[unlikely]] {
 				return false;
 			}
 			++it;

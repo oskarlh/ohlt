@@ -256,9 +256,9 @@ static bool CalcWeight(
 		ratio = 1.0;
 	} else if (dist >= len - ON_EPSILON) {
 		istoofar = false; // if we change this "false" to "true", we will
-						  // see many places turned "green" in "-drawlerp"
-						  // mode
-		ratio = 1.0;	  // in order to prevent excessively small weight
+		                  // see many places turned "green" in "-drawlerp"
+		                  // mode
+		ratio = 1.0;      // in order to prevent excessively small weight
 	} else {
 		istoofar = false;
 		ratio = dist / len;
@@ -294,7 +294,7 @@ static void CalcInterpolation_Square(
 	w2 = &lt->sortedwedges[(i + 1) % (int) lt->sortedwedges.size()];
 	w3 = &lt->sortedwedges[(i + 2) % (int) lt->sortedwedges.size()];
 	if (w1->shape != localtriangulation_t::Wedge::eSquareLeft
-		|| w2->shape != localtriangulation_t::Wedge::eSquareRight) {
+	    || w2->shape != localtriangulation_t::Wedge::eSquareRight) {
 		Error("CalcInterpolation_Square: internal error: not square.");
 	}
 
@@ -487,7 +487,7 @@ static void CalcInterpolation(
 	}
 
 	if ((int) lt->sortedwedges.size()
-		== 0) // this local triangulation only has center patch
+	    == 0) // this local triangulation only has center patch
 	{
 		interp.isbiased = true;
 		interp.totalweight = 1.0;
@@ -556,11 +556,11 @@ static void CalcInterpolation(
 					interp.points[1].patchnum = wnext->leftpatchnum;
 					interp.points[1].weight = frac;
 				} else if (w->shape
-						   == localtriangulation_t::Wedge::eSquareLeft) {
+				           == localtriangulation_t::Wedge::eSquareLeft) {
 					i = w - &lt->sortedwedges[0];
 					CalcInterpolation_Square(lt, i, spot, interp);
 				} else if (w->shape
-						   == localtriangulation_t::Wedge::eSquareRight) {
+				           == localtriangulation_t::Wedge::eSquareRight) {
 					i = w - &lt->sortedwedges[0];
 					i = (i - 1 + (int) lt->sortedwedges.size())
 						% (int) lt->sortedwedges.size();
@@ -647,8 +647,8 @@ static void CalcInterpolation(
 			float ratio;
 
 			if (dot_product(spot, w->wedgenormal)
-				< 0) // the spot is closer to the left edge than the right
-					 // edge
+			    < 0) // the spot is closer to the left edge than the right
+			         // edge
 			{
 				len = dot_product(w->leftspot, w->leftdirection);
 				dist = dot_product(spot, w->leftdirection);
@@ -683,7 +683,7 @@ static void CalcInterpolation(
 					interp.points[1].weight = ratio;
 				}
 			} else // the spot is closer to the right edge than the left
-				   // edge
+			       // edge
 			{
 				len = dot_product(wnext->leftspot, wnext->leftdirection);
 				dist = dot_product(spot, wnext->leftdirection);
@@ -779,11 +779,11 @@ void InterpolateSampleLight(
 		localinterps.resize(0);
 		if (g_lerp_enabled) {
 			for (i = 0; i < (int) ft->neighbors.size();
-				 i++) // for this face and each of its neighbors
+			     i++) // for this face and each of its neighbors
 			{
 				ft2 = g_facetriangulations[ft->neighbors[i]];
 				for (j = 0; j < (int) ft2->localtriangulations.size();
-					 j++) // for each patch on that face
+				     j++) // for each patch on that face
 				{
 					lt = ft2->localtriangulations[j];
 					if (!CalcAdaptedSpot(lt, position, surface, spot)) {
@@ -820,7 +820,7 @@ void InterpolateSampleLight(
 				weight = localinterps[i]->points[j].weight
 					* localweights[i];
 				if (g_patches[localinterps[i]->points[j].patchnum].flags
-					== ePatchFlagOutside) {
+				    == ePatchFlagOutside) {
 					weight *= 0.01;
 				}
 				n = (int) maininterp.points.size();
@@ -851,7 +851,7 @@ void InterpolateSampleLight(
 				for (j = 0; j < (int) localinterps[i]->points.size(); j++) {
 					weight = localinterps[i]->points[j].weight;
 					if (g_patches[localinterps[i]->points[j].patchnum].flags
-						== ePatchFlagOutside) {
+					    == ePatchFlagOutside) {
 						weight *= 0.01;
 					}
 					n = (int) maininterp.points.size();
@@ -895,7 +895,7 @@ void InterpolateSampleLight(
 					maininterp.totalweight = 0;
 					for (j = 0; j < (int) maininterp.points.size(); j++) {
 						if (g_patches[maininterp.points[j].patchnum].flags
-							== ePatchFlagOutside) {
+						    == ePatchFlagOutside) {
 							maininterp.points[j].weight *= 0.01;
 						}
 						maininterp.totalweight
@@ -957,7 +957,7 @@ static bool TestLineSegmentIntersectWall(
 		back = dot_product(p2, wall->normal)
 			- dot_product(wall->points[0], wall->normal);
 		if (front > ON_EPSILON && back > ON_EPSILON
-			|| front < -ON_EPSILON && back < -ON_EPSILON) {
+		    || front < -ON_EPSILON && back < -ON_EPSILON) {
 			continue;
 		}
 		dot1 = dot_product(p1, wall->direction);
@@ -1043,7 +1043,7 @@ static void GatherPatches(
 		facenum2 = lt->neighborfaces[i];
 		dp2 = getPlaneFromFaceNumber(facenum2);
 		for (patch2 = g_face_patches[facenum2]; patch2;
-			 patch2 = patch2->next) {
+		     patch2 = patch2->next) {
 			patchnum2 = patch2 - &g_patches.front();
 
 			point.leftpatchnum = patchnum2;
@@ -1051,11 +1051,11 @@ static void GatherPatches(
 
 			// Do permission tests using the original position of the patch
 			if (patchnum2 == lt->patchnum
-				|| point_in_winding(lt->winding, lt->plane, v)) {
+			    || point_in_winding(lt->winding, lt->plane, v)) {
 				continue;
 			}
 			if (facenum2 != facetrian->facenum
-				&& TestLineSegmentIntersectWall(facetrian, lt->center, v)) {
+			    && TestLineSegmentIntersectWall(facetrian, lt->center, v)) {
 				continue;
 			}
 			if (TestFarPatch(lt, v, *patch2->winding)) {
@@ -1069,7 +1069,7 @@ static void GatherPatches(
 			if (GetDirection(
 					point.leftspot, lt->normal, point.leftdirection
 				)
-				<= 2 * ON_EPSILON) {
+			    <= 2 * ON_EPSILON) {
 				continue;
 			}
 			points.push_back(point);
@@ -1155,11 +1155,11 @@ static void PurgePatches(localtriangulation_t* lt) {
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
-				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
-							+ NORMAL_EPSILON
-					&& dot_product(points[next[cur]].leftspot, v)
-						>= dot_product(points[cur].leftspot, v)
-							- ON_EPSILON / 2) {
+			    || GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
+			                + NORMAL_EPSILON
+			        && dot_product(points[next[cur]].leftspot, v)
+			            >= dot_product(points[cur].leftspot, v)
+			                - ON_EPSILON / 2) {
 				// remove next patch
 				valid[next[cur]] = 0;
 				next[cur] = next[next[cur]];
@@ -1186,11 +1186,11 @@ static void PurgePatches(localtriangulation_t* lt) {
 				lt->normal
 			);
 			if (fabs(angle) <= (1.0 * std::numbers::pi_v<float> / 180)
-				|| GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
-							+ NORMAL_EPSILON
-					&& dot_product(points[prev[cur]].leftspot, v)
-						>= dot_product(points[cur].leftspot, v)
-							- ON_EPSILON / 2) {
+			    || GetAngleDiff(angle, 0) <= std::numbers::pi_v<float>
+			                + NORMAL_EPSILON
+			        && dot_product(points[prev[cur]].leftspot, v)
+			            >= dot_product(points[cur].leftspot, v)
+			                - ON_EPSILON / 2) {
 				// remove previous patch
 				valid[prev[cur]] = 0;
 				prev[cur] = prev[prev[cur]];
@@ -1304,7 +1304,7 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 		n = 1;
 		for (j = 0; j < (int) spots.size(); j++) {
 			if (NORMAL_EPSILON <= angles[j].first
-				&& angles[j].first <= angle - NORMAL_EPSILON) {
+			    && angles[j].first <= angle - NORMAL_EPSILON) {
 				arc_spots[n] = spots[angles[j].second];
 				arc_angles[n] = angles[j].first;
 				next[n] = n + 1;
@@ -1322,7 +1322,7 @@ static void PlaceHullPoints(localtriangulation_t* lt) {
 		for (j = 1; next[j] != -1; j = next[j]) {
 			while (prev[j] != -1) {
 				if (arc_angles[next[j]] - arc_angles[prev[j]]
-					<= std::numbers::pi_v<float> + NORMAL_EPSILON) {
+				    <= std::numbers::pi_v<float> + NORMAL_EPSILON) {
 					frac = GetFrac(
 						arc_spots[prev[j]].spot,
 						arc_spots[next[j]].spot,
@@ -1374,7 +1374,7 @@ static bool TryMakeSquare(localtriangulation_t* lt, int i) {
 
 	// (o, p1, p2) and (o, p2, p3) must be triangles and not in a square
 	if (w1->shape != localtriangulation_t::Wedge::eTriangular
-		|| w2->shape != localtriangulation_t::Wedge::eTriangular) {
+	    || w2->shape != localtriangulation_t::Wedge::eTriangular) {
 		return false;
 	}
 
@@ -1492,9 +1492,9 @@ static localtriangulation_t* CreateLocalTriangulation(
 			w->leftdirection, wnext->leftdirection, lt->normal
 		);
 		if (g_drawlerp
-			&& ((int) lt->sortedwedges.size() >= 2
-				&& fabs(angle) <= (0.9f * std::numbers::pi_v<float> / 180)
-			)) {
+		    && ((int) lt->sortedwedges.size() >= 2
+		        && fabs(angle) <= (0.9f * std::numbers::pi_v<float> / 180)
+		    )) {
 			Developer(
 				developer_level::spam,
 				"Debug: triangulation: internal error 9.\n"
@@ -1537,9 +1537,9 @@ static localtriangulation_t* CreateLocalTriangulation(
 		}
 	}
 	if (g_drawlerp
-		&& ((int) lt->sortedwedges.size() > 0
-			&& std::abs(total - 2 * std::numbers::pi_v<float>)
-				> 10 * NORMAL_EPSILON)) {
+	    && ((int) lt->sortedwedges.size() > 0
+	        && std::abs(total - 2 * std::numbers::pi_v<float>)
+	            > 10 * NORMAL_EPSILON)) {
 		Developer(
 			developer_level::spam,
 			"Debug: triangulation: internal error 11.\n"
@@ -1613,7 +1613,7 @@ static void FindNeighbors(facetriangulation_t* facetrian) {
 				facenum2 = f2 - g_dfaces.data();
 				dp2 = getPlaneFromFace(f2);
 				if (dot_product(dp->normal, dp2->normal)
-					< -NORMAL_EPSILON) {
+				    < -NORMAL_EPSILON) {
 					continue;
 				}
 				for (j = 0; j < (int) facetrian->neighbors.size(); j++) {
@@ -1787,7 +1787,7 @@ void FreeTriangulations() {
 			facetrian = g_facetriangulations[i];
 
 			for (j = 0; j < (int) facetrian->localtriangulations.size();
-				 j++) {
+			     j++) {
 				FreeLocalTriangulation(facetrian->localtriangulations[j]);
 			}
 

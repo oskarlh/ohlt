@@ -31,7 +31,7 @@ class winding_base final {
 	bounding_box getBounds() const;
 	vec3 getCenter() const noexcept;
 	void Check(vec_element epsilon = ON_EPSILON)
-		const;			// Developer check for validity
+		const;          // Developer check for validity
 	bool Valid() const; // Runtime/user/normal check for validity
 	bool empty() const;
 
@@ -93,7 +93,7 @@ class winding_base final {
 
   public:
 	// Construction
-	winding_base();								// Do nothing :)
+	winding_base();                             // Do nothing :)
 	winding_base(std::span<vec3 const> points); // Create from raw points
 	winding_base(dface_t const & face, vec_element epsilon = ON_EPSILON);
 	winding_base(dplane_t const & face);

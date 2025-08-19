@@ -16,7 +16,7 @@ bool no_wad_textures(bsp_data const & bspData) {
 		: 0;
 	for (int i = 0; i < numtextures; i++) {
 		int const offset = ((dmiptexlump_t const *)
-								bspData.textureData.data())
+		                        bspData.textureData.data())
 							   ->dataofs[i];
 		std::size_t size = bspGlobals.textureDataByteSize - offset;
 		if (offset < 0 || size < sizeof(miptex_t)) {
@@ -40,9 +40,9 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 	for (std::size_t linestart = 0; linestart < bspData.entityDataLength;) {
 		std::size_t lineend;
 		for (lineend = linestart; lineend < bspData.entityDataLength;
-			 lineend++) {
+		     lineend++) {
 			if (bspData.entityData[lineend] == u8'\r'
-				|| bspData.entityData[lineend] == u8'\n') {
+			    || bspData.entityData[lineend] == u8'\n') {
 				break;
 			}
 		}
@@ -79,11 +79,11 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 				quotes[i] = j;
 			}
 			if (i != 4 || quotes[0] != linestart
-				|| quotes[3] != lineend - 1) {
+			    || quotes[3] != lineend - 1) {
 				return std::nullopt;
 			}
 			if (quotes[1] - (quotes[0] + 1) == (int) u8"wad"sv.length()
-				&& !strncmp(
+			    && !strncmp(
 					(char const *) &bspData.entityData[quotes[0] + 1],
 					"wad",
 					u8"wad"sv.length()
@@ -95,9 +95,9 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 			}
 		}
 		for (linestart = lineend; linestart < bspData.entityDataLength;
-			 linestart++) {
+		     linestart++) {
 			if (bspData.entityData[linestart] != u8'\r'
-				&& bspData.entityData[linestart] != u8'\n') {
+			    && bspData.entityData[linestart] != u8'\n') {
 				break;
 			}
 		}
@@ -114,12 +114,12 @@ static int array_usage(
 	float percentage = maxitems ? items * 100.0 / maxitems : 0.0;
 
 	Log("%-13s %7i/%-7i %8i/%-8i (%4.1f%%)\n",
-		szItem,
-		items,
-		maxitems,
-		items * itemsize,
-		maxitems * itemsize,
-		percentage);
+	    szItem,
+	    items,
+	    maxitems,
+	    items * itemsize,
+	    maxitems * itemsize,
+	    percentage);
 
 	return items * itemsize;
 }
@@ -130,10 +130,10 @@ static int global_usage(
 	float percentage = maxstorage ? itemstorage * 100.0 / maxstorage : 0.0;
 
 	Log("%-13s    [variable]   %8i/%-8i (%4.1f%%)\n",
-		szItem,
-		itemstorage,
-		maxstorage,
-		percentage);
+	    szItem,
+	    itemstorage,
+	    maxstorage,
+	    percentage);
 
 	return itemstorage;
 }
@@ -252,7 +252,7 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 	Log("%i textures referenced\n", numtextures);
 
 	Log("=== Total BSP file data space used: %d bytes ===\n\n",
-		totalmemory);
+	    totalmemory);
 
 	if (nowadtextures) {
 		Log("No wad files required to run the map\n");
@@ -266,9 +266,9 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 			Log("Wad files required to run the map\n");
 			Log("---------------------------------\n");
 			for (std::u8string_view wadFilename :
-				 worldspawn_wad_value_parser(wadValue.value())) {
+			     worldspawn_wad_value_parser(wadValue.value())) {
 				Log("%s\n",
-					(char const *) std::u8string(wadFilename).c_str());
+				    (char const *) std::u8string(wadFilename).c_str());
 			}
 			Log("---------------------------------\n\n");
 		}

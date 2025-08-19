@@ -15,7 +15,7 @@ constexpr std::size_t
 constexpr std::size_t
 	embedded_lightmap_texture_name_original_texinfo_index_length
 	= 5; // TODO: Reduce it to just enough for INITIAL_MAX_MAP_TEXINFO to
-		 // fit
+         // fit
 
 constexpr std::size_t wad_texture_name_max_length_without_last_null = 15;
 constexpr std::size_t wad_texture_name_max_length_with_last_null = 1
@@ -120,7 +120,7 @@ class wad_texture_name final {
 	static constexpr std::optional<wad_texture_name>
 	make_if_legal_name(std::u8string_view str) noexcept {
 		if (str.size() >= wad_texture_name_max_length_with_last_null
-			|| str.contains(u8'\0')) {
+		    || str.contains(u8'\0')) {
 			return std::nullopt;
 		}
 
@@ -133,7 +133,7 @@ class wad_texture_name final {
 	// TODO: Delete
 	constexpr wad_texture_name(std::string_view str) :
 		wad_texture_name(std::u8string_view{ (char8_t const *) str.data(),
-											 str.length() }) { }
+	                                         str.length() }) { }
 
 	constexpr std::u8string_view string_view() const noexcept {
 		return std::u8string_view{ units.begin(), length() };
@@ -237,7 +237,7 @@ class wad_texture_name final {
 	constexpr bool is_any_content_type() const noexcept {
 		return starts_with_constant(u8"cont")
 			&& (is_contentempty() || is_contentsky() || is_contentsolid()
-				|| is_contentwater());
+		        || is_contentwater());
 	}
 
 	constexpr bool is_aaatrigger() const noexcept {
@@ -292,7 +292,7 @@ class wad_texture_name final {
 		if (is_any_embedded_lightmap()) {
 			texinfo_count result = 0;
 			for (char8_t c :
-				 original_texinfo_index_for_embedded_lightmap_as_string()) {
+			     original_texinfo_index_for_embedded_lightmap_as_string()) {
 				result *= 10;
 				result += c - u8'0';
 			}
@@ -377,7 +377,7 @@ class wad_texture_name final {
 	constexpr bool is_animation_frame() const noexcept {
 		return starts_with_constant(u8"+")
 			&& ((units[1] >= u8'0' && units[1] <= u8'9')
-				|| (units[1] >= u8'a' && units[1] <= u8'j'));
+		        || (units[1] >= u8'a' && units[1] <= u8'j'));
 	}
 
 	constexpr std::optional<std::pair<std::uint8_t, bool>>
@@ -460,10 +460,10 @@ class wad_texture_name final {
 	constexpr bool is_water_with_current() const noexcept {
 		return starts_with_constant(u8"!cur")
 			&& (is_water_with_current_0() || is_water_with_current_90()
-				|| is_water_with_current_180()
-				|| is_water_with_current_270()
-				|| is_water_with_current_down()
-				|| is_water_with_current_up());
+		        || is_water_with_current_180()
+		        || is_water_with_current_270()
+		        || is_water_with_current_down()
+		        || is_water_with_current_up());
 	}
 
 	// Used when compiling with -notextures

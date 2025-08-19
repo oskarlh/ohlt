@@ -8,10 +8,10 @@
 	{                                                                          \
 		if (!(exp)) {                                                          \
 			Log("\n***** ERROR *****\nAssume '%s' failed\n at %s:%d\n %s\n\n", \
-				#exp,                                                          \
-				__FILE__,                                                      \
-				__LINE__,                                                      \
-				message);                                                      \
+			    #exp,                                                          \
+			    __FILE__,                                                      \
+			    __LINE__,                                                      \
+			    message);                                                      \
 			exit(-1);                                                          \
 		}                                                                      \
 	}

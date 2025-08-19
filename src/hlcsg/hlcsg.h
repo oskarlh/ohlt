@@ -16,18 +16,18 @@
 #include <string>
 
 #define DEFAULT_TINY_THRESHOLD 0.0
-#define DEFAULT_NOCLIP		   false
-#define DEFAULT_ONLYENTS	   false
-#define DEFAULT_WADTEXTURES	   true
-#define DEFAULT_SKYCLIP		   true
+#define DEFAULT_NOCLIP         false
+#define DEFAULT_ONLYENTS       false
+#define DEFAULT_WADTEXTURES    true
+#define DEFAULT_SKYCLIP        true
 
 #define DEFAULT_CLIPTYPE clip_precise
 
 #define DEFAULT_CLIPNAZI false
 
-#define DEFAULT_SCALESIZE	   -1.0 // dont scale
-#define DEFAULT_RESETLOG	   true
-#define DEFAULT_NOLIGHTOPT	   false
+#define DEFAULT_SCALESIZE      -1.0 // dont scale
+#define DEFAULT_RESETLOG       true
+#define DEFAULT_NOLIGHTOPT     false
 #define DEFAULT_NULLIFYTRIGGER true
 
 struct valve220_vects final {
@@ -82,13 +82,13 @@ namespace std {
 struct bface_t final {
 	accurate_winding w;
 	mapplane_t* plane; // Appears to be non-owning since NewFaceFromFace
-					   // just copies the pointer
+	                   // just copies the pointer
 	bounding_box bounds;
 	std::uint16_t planenum;
 	texinfo_count texinfo;
 	contents_t contents;
 	contents_t backcontents;
-	bool used;	// just for face counting
+	bool used;  // just for face counting
 	bool bevel; // used for expand_brush
 };
 
@@ -156,7 +156,7 @@ struct csg_brush
 	detail_level
 		chopDown; // Allow this brush to chop brushes of lower detail level
 	detail_level chopUp; // Allow this brush to be chopped by brushes of
-						 // higher detail level
+	                     // higher detail level
 	detail_level clipNodeDetailLevel;
 	coplanar_priority coplanarPriority;
 	std::array<std::u8string, NUM_HULLS> hullshapes;
@@ -206,7 +206,7 @@ struct hullbrushedge_t final {
 
 	double3_array vertexes[2];
 	double3_array delta; // delta has the same direction as
-						 // cross_product(normals[0], normals[1])
+	                     // cross_product(normals[0], normals[1])
 };
 
 struct hullbrushvertex_t final {

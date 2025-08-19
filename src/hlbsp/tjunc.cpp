@@ -91,15 +91,15 @@ static int HashVec(
 
 	for (int x = -1; x <= 1; ++x) {
 		if ((x == -1 && slotdiff[0] > hash_scale[0] * (2 * ON_EPSILON))
-			|| (x == 1 && slotdiff[0] < 1 - hash_scale[0] * (2 * ON_EPSILON)
-			)) {
+		    || (x == 1 && slotdiff[0] < 1 - hash_scale[0] * (2 * ON_EPSILON)
+		    )) {
 			continue;
 		}
 		for (int y = -1; y <= 1; ++y) {
 			if ((y == -1 && slotdiff[1] > hash_scale[1] * (2 * ON_EPSILON))
-				|| (y == 1
-					&& slotdiff[1] < 1 - hash_scale[1] * (2 * ON_EPSILON)
-				)) {
+			    || (y == 1
+			        && slotdiff[1] < 1 - hash_scale[1] * (2 * ON_EPSILON)
+			    )) {
 				continue;
 			}
 			hashneighbors.emplace_back(
@@ -182,19 +182,19 @@ static wedge_t* FindEdge(
 
 	for (int neighbour : hashneighbors) {
 		for (std::optional<wedge_count> maybeWedgeIndex
-			 = wedge_hash[neighbour];
-			 maybeWedgeIndex.has_value();
-			 maybeWedgeIndex = wedges[maybeWedgeIndex.value()].nextWedge) {
+		     = wedge_hash[neighbour];
+		     maybeWedgeIndex.has_value();
+		     maybeWedgeIndex = wedges[maybeWedgeIndex.value()].nextWedge) {
 			wedge_t& wedge = wedges[maybeWedgeIndex.value()];
 
 			if (fabs(wedge.origin[0] - origin[0]) > EQUAL_EPSILON
-				|| fabs(wedge.origin[1] - origin[1]) > EQUAL_EPSILON
-				|| fabs(wedge.origin[2] - origin[2]) > EQUAL_EPSILON) {
+			    || fabs(wedge.origin[1] - origin[1]) > EQUAL_EPSILON
+			    || fabs(wedge.origin[2] - origin[2]) > EQUAL_EPSILON) {
 				continue;
 			}
 			if (fabs(wedge.dir[0] - dir[0]) > NORMAL_EPSILON
-				|| fabs(wedge.dir[1] - dir[1]) > NORMAL_EPSILON
-				|| fabs(wedge.dir[2] - dir[2]) > NORMAL_EPSILON) {
+			    || fabs(wedge.dir[1] - dir[1]) > NORMAL_EPSILON
+			    || fabs(wedge.dir[2] - dir[2]) > NORMAL_EPSILON) {
 				continue;
 			}
 
@@ -278,8 +278,8 @@ static void AddFaceEdges(face_t const * const f) {
 static byte superfacebuf[1024 * 16];
 static face_t* superface = (face_t*) superfacebuf;
 static std::size_t MAX_SUPERFACEEDGES = (sizeof(superfacebuf)
-										 - sizeof(face_t)
-										 + sizeof(superface->pts))
+                                         - sizeof(face_t)
+                                         + sizeof(superface->pts))
 	/ sizeof(double3_array);
 static face_t* newlist;
 
@@ -292,7 +292,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		); // "SplitFaceForTjunc: f->original"
 
 		if (f->pts.size() <= MAXPOINTS) { // the face is now small enough
-										  // without more cutting
+			                              // without more cutting
 			// so copy it back to the original
 			*original = *f;
 			original->original = chain;
@@ -324,7 +324,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		normalize_vector(dir);
 		int firstcorner;
 		for (firstcorner = 1; firstcorner < f->pts.size() - 1;
-			 firstcorner++) {
+		     firstcorner++) {
 			double3_array test = vector_subtract(
 				f->pts[firstcorner + 1], f->pts[firstcorner]
 			);
@@ -362,14 +362,14 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		if (f->pts.size() - firstcorner <= MAXPOINTS) {
 			pointsToMoveToNewFace = firstcorner + 2;
 		} else if (lastcorner + 2 < MAXPOINTS
-				   && f->pts.size() - lastcorner <= MAXPOINTS) {
+		           && f->pts.size() - lastcorner <= MAXPOINTS) {
 			pointsToMoveToNewFace = lastcorner + 2;
 		} else {
 			pointsToMoveToNewFace = MAXPOINTS;
 		}
 
 		newface->pts.assign_range(std::span{ f->pts.begin(),
-											 pointsToMoveToNewFace });
+		                                     pointsToMoveToNewFace });
 
 		f->pts.erase(
 			f->pts.begin() + 1,
@@ -400,8 +400,8 @@ restart:
 
 		wvert_count vIndex;
 		for (vIndex = wverts[w->headWvert].nextWvert;
-			 wverts[vIndex].t < t1 + ON_EPSILON;
-			 vIndex = wverts[vIndex].nextWvert)
+		     wverts[vIndex].t < t1 + ON_EPSILON;
+		     vIndex = wverts[vIndex].nextWvert)
 			;
 
 		wvert_t const & v = wverts[vIndex];

@@ -9,11 +9,11 @@
 
 // Studio limits
 constexpr std::int32_t MAXSTUDIOSKINS = 128; // Total textures
-constexpr std::size_t MAXSTUDIOBONES = 128;	 // Total bones actually used
+constexpr std::size_t MAXSTUDIOBONES = 128;  // Total bones actually used
 
 // lighting & rendermode options
-#define STUDIO_NF_CHROME	  0x0002
-#define STUDIO_NF_ADDITIVE	  0x0020 // rendering with additive mode
+#define STUDIO_NF_CHROME      0x0002
+#define STUDIO_NF_ADDITIVE    0x0020 // rendering with additive mode
 #define STUDIO_NF_TRANSPARENT 0x0040 // use texture with alpha channel
 #define STUDIO_NF_UV_COORDS \
 	(1 << 31) // using half-float coords instead of ST
@@ -28,7 +28,7 @@ struct studiohdr_t final {
 	std::int32_t length;
 
 	float3_array eyeposition; // ideal eye position
-	float3_array min;		  // ideal movement hull size
+	float3_array min;         // ideal movement hull size
 	float3_array max;
 
 	float3_array bbmin; // clipping bounding box
@@ -87,10 +87,10 @@ struct studioseqhdr_t final {
 // bones
 struct mstudiobone_t final {
 	std::array<char, 32> name; // bone name for symbolic links
-	std::int32_t parent;	   // parent bone
-	std::int32_t flags;		   // ??
+	std::int32_t parent;       // parent bone
+	std::int32_t flags;        // ??
 	std::array<std::int32_t, 6>
-		bonecontroller;			// bone controller index, -1 == none
+		bonecontroller;         // bone controller index, -1 == none
 	std::array<float, 6> value; // Default DoF values
 	std::array<float, 6> scale; // Scale for delta DoF values
 };
@@ -98,16 +98,16 @@ struct mstudiobone_t final {
 // demand loaded sequence groups
 struct mstudioseqgroup_t final {
 	std::array<char, 32> label; // Textual name
-	std::array<char, 64> name;	// File name
-	std::uint32_t unused;		// Was the "cache" index pointer
-	std::int32_t data;			// Hack for group 0
+	std::array<char, 64> name;  // File name
+	std::uint32_t unused;       // Was the "cache" index pointer
+	std::int32_t data;          // Hack for group 0
 };
 
 // sequence descriptions
 struct mstudioseqdesc_t final {
 	std::array<char, 32> label; // sequence label
 
-	float fps;			// frames per second
+	float fps;          // frames per second
 	std::int32_t flags; // looping/non-looping flags
 
 	std::int32_t activity;
@@ -133,17 +133,17 @@ struct mstudioseqdesc_t final {
 	std::int32_t numblends;
 	std::int32_t
 		animindex; // mstudioanim_t pointer relative to start of sequence
-				   // group data [blend][bone][X, Y, Z, XR, YR, ZR]
+	               // group data [blend][bone][X, Y, Z, XR, YR, ZR]
 
 	std::array<std::int32_t, 2> blendtype; // X, Y, Z, XR, YR, ZR
-	std::array<float, 2> blendstart;	   // starting value
-	std::array<float, 2> blendend;		   // ending value
+	std::array<float, 2> blendstart;       // starting value
+	std::array<float, 2> blendend;         // ending value
 	std::int32_t blendparent;
 
 	std::int32_t seqgroup; // sequence group for demand loading
 
 	std::int32_t entrynode; // transition node at entry
-	std::int32_t exitnode;	// transition node at exit
+	std::int32_t exitnode;  // transition node at exit
 	std::int32_t nodeflags; // transition rules
 
 	std::int32_t nextseq; // auto advancing sequences
@@ -218,14 +218,14 @@ struct mstudiomodel_t final {
 	std::int32_t nummesh;
 	std::int32_t meshindex;
 
-	std::int32_t numverts;		// number of unique vertices
+	std::int32_t numverts;      // number of unique vertices
 	std::int32_t vertinfoindex; // vertex bone info
-	std::int32_t vertindex;		// vertex float3_array
-	std::int32_t numnorms;		// number of unique surface normals
+	std::int32_t vertindex;     // vertex float3_array
+	std::int32_t numnorms;      // number of unique surface normals
 	std::int32_t norminfoindex; // normal bone info
-	std::int32_t normindex;		// normal float3_array
+	std::int32_t normindex;     // normal float3_array
 
-	std::int32_t numgroups;	 // UNUSED
+	std::int32_t numgroups;  // UNUSED
 	std::int32_t groupindex; // UNUSED
 };
 
@@ -234,6 +234,6 @@ struct mstudiomesh_t final {
 	std::int32_t numtris;
 	std::int32_t triindex;
 	std::int32_t skinref;
-	std::int32_t numnorms;	// per mesh normals
+	std::int32_t numnorms;  // per mesh normals
 	std::int32_t normindex; // UNUSED!
 };

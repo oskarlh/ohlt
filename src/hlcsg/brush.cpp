@@ -50,7 +50,7 @@ find_int_plane(double3_array const & normal, double3_array const & origin) {
 				vector_subtract(normal, g_mapPlanes[returnval].normal)
 			);
 			if (vector_max_element(absDiffs) < PLANE_NORMAL_EPSILON
-				&& std::abs(
+			    && std::abs(
 					   dot_product(origin, g_mapPlanes[returnval].normal)
 					   - g_mapPlanes[returnval].dist
 				   ) < PLANE_DIST_EPSILON) {
@@ -94,8 +94,8 @@ find_int_plane(double3_array const & normal, double3_array const & origin) {
 	//	}
 	if (pA.type <= last_axial) {
 		for (std::size_t i{ std::size_t(first_axial) };
-			 i <= std::size_t(last_axial);
-			 ++i) {
+		     i <= std::size_t(last_axial);
+		     ++i) {
 			if (i == std::size_t(pA.type)) {
 				pA.normal[i] = pA.normal[i] > 0 ? 1 : -1;
 			} else {
@@ -138,8 +138,8 @@ static int PlaneFromPoints(std::array<double3_array, 3> const & points) {
 }
 
 char const ClipTypeStrings[3][11] = { { "precise" },
-									  { "normalized" },
-									  { "legacy" } };
+	                                  { "normalized" },
+	                                  { "legacy" } };
 
 char const * GetClipTypeString(cliptype ct) {
 	return ClipTypeStrings[ct];
@@ -233,7 +233,7 @@ static void expand_brush_with_hullbrush(
 		bool doContinue = false;
 		for (hullbrushface_t const & hbf : hb.faces) {
 			if (-dot_product(hbf.normal, brushface.normal)
-				< 1 - ON_EPSILON) {
+			    < 1 - ON_EPSILON) {
 				continue;
 			}
 			// Now test precisely
@@ -266,8 +266,8 @@ static void expand_brush_with_hullbrush(
 		bool first = true;
 		for (hullbrushvertex_t const & hbv : hb.vertices) {
 			if (first
-				|| dot_product(hbv.point, brushface.normal)
-					< bestdist - NORMAL_EPSILON) {
+			    || dot_product(hbv.point, brushface.normal)
+			        < bestdist - NORMAL_EPSILON) {
 				bestdist = dot_product(hbv.point, brushface.normal);
 				bestvertex = hbv.point;
 			}
@@ -307,7 +307,7 @@ static void expand_brush_with_hullbrush(
 							f2.w.point((j + 1) % f2.w.size()),
 							brushedge.vertexes[1]
 						)
-						&& vectors_almost_same(
+					    && vectors_almost_same(
 							f2.w.point(j), brushedge.vertexes[0]
 						)) {
 						brushedge.normals[1] = f2.plane->normal;
@@ -345,7 +345,7 @@ static void expand_brush_with_hullbrush(
 				dot[2] = dot_product(brushedge.delta, hbe.normals[0]);
 				dot[3] = dot_product(brushedge.delta, hbe.normals[1]);
 				if (dot[0] <= ON_EPSILON || dot[1] >= -ON_EPSILON
-					|| dot[2] <= ON_EPSILON || dot[3] >= -ON_EPSILON) {
+				    || dot[2] <= ON_EPSILON || dot[3] >= -ON_EPSILON) {
 					continue;
 				}
 
@@ -383,7 +383,7 @@ static void expand_brush_with_hullbrush(
 		for (bface_t const & f : hull0->faces) {
 			for (double3_array const & v : f.w.points()) {
 				if (dot_product(v, hbf.normal)
-					< bestdist - NORMAL_EPSILON) {
+				    < bestdist - NORMAL_EPSILON) {
 					bestdist = dot_product(v, hbf.normal);
 					bestvertex = v;
 				}
@@ -452,8 +452,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 
 	// Non-axial bevel testing results
 	bool axialbevel[std::size_t(last_axial) + 1][2] = { { false, false },
-														{ false, false },
-														{ false, false } };
+		                                                { false, false },
+		                                                { false, false } };
 
 	brushhull_t* hull = &brush->hulls[hullnum];
 
@@ -468,9 +468,9 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 			if (current_face.bevel) {
 				axialbevel[std::size_t(current_plane->type
 				)][(current_plane->normal[std::size_t(current_plane->type)]
-							> 0
-						? 1
-						: 0)]
+				            > 0
+				        ? 1
+				        : 0)]
 					= true;
 			}
 			continue;
@@ -516,21 +516,21 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 			origin[1] += 0;
 			origin[2] += g_hull_size[hullnum][1][2];
 		} else if (g_cliptype == clip_legacy
-				   || g_cliptype == clip_normalized) {
+		           || g_cliptype == clip_normalized) {
 			if (normal[0]) {
 				origin[0] += normal[0]
 					* (normal[0] > 0 ? g_hull_size[hullnum][1][0]
-									 : -g_hull_size[hullnum][0][0]);
+				                     : -g_hull_size[hullnum][0][0]);
 			}
 			if (normal[1]) {
 				origin[1] += normal[1]
 					* (normal[1] > 0 ? g_hull_size[hullnum][1][1]
-									 : -g_hull_size[hullnum][0][1]);
+				                     : -g_hull_size[hullnum][0][1]);
 			}
 			if (normal[2]) {
 				origin[2] += normal[2]
 					* (normal[2] > 0 ? g_hull_size[hullnum][1][2]
-									 : -g_hull_size[hullnum][0][2]);
+				                     : -g_hull_size[hullnum][0][2]);
 			}
 		} else {
 			origin[0] += g_hull_size[hullnum][(normal[0] > 0 ? 1 : 0)][0];
@@ -572,7 +572,7 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 
 			accurate_winding const & winding = current_face.w;
 			for (counter = 0; counter < (winding.size());
-				 counter++) // for each edge
+			     counter++) // for each edge
 			{
 				double3_array const edge_start{ winding.point(counter) };
 				double3_array const edge_end{
@@ -595,15 +595,15 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 					bool end_found{ false };
 					accurate_winding const & other_winding{ other_face.w };
 					for (counter2 = 0; counter2 < other_winding.size();
-						 counter2++) {
+					     counter2++) {
 						if (!start_found
-							&& vectors_almost_same(
+						    && vectors_almost_same(
 								other_winding.point(counter2), edge_start
 							)) {
 							start_found = true;
 						}
 						if (!end_found
-							&& vectors_almost_same(
+						    && vectors_almost_same(
 								other_winding.point(counter2), edge_end
 							)) {
 							end_found = true;
@@ -638,8 +638,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 				// can be safely ignored
 				for (dir = 0; dir < 3; dir++) {
 					if (current_plane->normal[dir]
-							* other_plane->normal[dir]
-						< -NORMAL_EPSILON) // sign changed, add bevel
+					        * other_plane->normal[dir]
+					    < -NORMAL_EPSILON) // sign changed, add bevel
 					{
 						// pick direction of bevel edge by looking at normal
 						// of existing planes
@@ -657,9 +657,9 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 						// normalize to length 1
 						normalize_vector(normal);
 						if (fabs(normal[(dir + 1) % 3]) <= NORMAL_EPSILON
-							|| fabs(normal[(dir + 2) % 3])
-								<= NORMAL_EPSILON) { // coincide with axial
-													 // plane
+						    || fabs(normal[(dir + 2) % 3])
+						        <= NORMAL_EPSILON) { // coincide with axial
+							                         // plane
 							continue;
 						}
 
@@ -669,7 +669,7 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 						// unrolled loop - legacy never hits this point, so
 						// don't test for it
 						if (g_cliptype == clip_precise
-							&& normal[2] > FLOOR_Z) {
+						    && normal[2] > FLOOR_Z) {
 							origin[0] += 0;
 							origin[1] += 0;
 							origin[2] += g_hull_size[hullnum][1][2];
@@ -677,20 +677,20 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 							if (normal[0]) {
 								origin[0] += normal[0]
 									* (normal[0] > 0
-										   ? g_hull_size[hullnum][1][0]
-										   : -g_hull_size[hullnum][0][0]);
+								           ? g_hull_size[hullnum][1][0]
+								           : -g_hull_size[hullnum][0][0]);
 							}
 							if (normal[1]) {
 								origin[1] += normal[1]
 									* (normal[1] > 0
-										   ? g_hull_size[hullnum][1][1]
-										   : -g_hull_size[hullnum][0][1]);
+								           ? g_hull_size[hullnum][1][1]
+								           : -g_hull_size[hullnum][0][1]);
 							}
 							if (normal[2]) {
 								origin[2] += normal[2]
 									* (normal[2] > 0
-										   ? g_hull_size[hullnum][1][2]
-										   : -g_hull_size[hullnum][0][2]);
+								           ? g_hull_size[hullnum][1][2]
+								           : -g_hull_size[hullnum][0][2]);
 							}
 						} else // simple or precise for non-floors
 						{
@@ -732,8 +732,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_x)][0]
-			 ? brush->hulls[0].bounds.mins
-			 : origin),
+	         ? brush->hulls[0].bounds.mins
+	         : origin),
 		false
 	);
 	normal[0] = 0;
@@ -742,8 +742,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_y)][0]
-			 ? brush->hulls[0].bounds.mins
-			 : origin),
+	         ? brush->hulls[0].bounds.mins
+	         : origin),
 		false
 	);
 	normal[1] = 0;
@@ -752,8 +752,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_z)][0]
-			 ? brush->hulls[0].bounds.mins
-			 : origin),
+	         ? brush->hulls[0].bounds.mins
+	         : origin),
 		false
 	);
 
@@ -768,8 +768,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_x)][1]
-			 ? brush->hulls[0].bounds.maxs
-			 : origin),
+	         ? brush->hulls[0].bounds.maxs
+	         : origin),
 		false
 	);
 	normal[0] = 0;
@@ -778,8 +778,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_y)][1]
-			 ? brush->hulls[0].bounds.maxs
-			 : origin),
+	         ? brush->hulls[0].bounds.maxs
+	         : origin),
 		false
 	);
 	normal[1] = 0;
@@ -788,8 +788,8 @@ void expand_brush(csg_brush* brush, int const hullnum) {
 		hull,
 		normal,
 		(axialbevel[std::size_t(planetype::plane_z)][1]
-			 ? brush->hulls[0].bounds.maxs
-			 : origin),
+	         ? brush->hulls[0].bounds.maxs
+	         : origin),
 		false
 	);
 }
@@ -836,7 +836,7 @@ restart:
 					p->dist,
 					NORMAL_EPSILON // fix "invalid brush" in expand_brush
 				)) // Nothing left to chop (getArea will return 0 for us in
-				   // this case for below)
+			       // this case for below)
 			{
 				break;
 			}
@@ -857,7 +857,7 @@ restart:
 
 	for (std::size_t i = 0; i < 3; ++i) {
 		if (h.bounds.mins[i] < -g_iWorldExtent / 2
-			|| h.bounds.maxs[i] > g_iWorldExtent / 2) {
+		    || h.bounds.maxs[i] > g_iWorldExtent / 2) {
 			Fatal(
 				assume_BRUSH_OUTSIDE_WORLD,
 				"Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
@@ -999,7 +999,7 @@ static contents_t TextureContents(wad_texture_name name) {
 	}
 
 	if (name.is_solid_hint() || name.is_bevel_hint()
-		|| name.is_ordinary_null() || name.is_ordinary_bevel()) {
+	    || name.is_ordinary_null() || name.is_ordinary_bevel()) {
 		return contents_t::CONTENTS_NULL;
 	}
 	if (name.is_splitface()) {
@@ -1078,9 +1078,9 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 		wad_texture_name const textureNameB{ s->td.name };
 		contents_t const contents2 = TextureContents(textureNameB);
 		if (assigned && !textureNameB.is_any_content_type()
-			&& !textureNameB.is_skip() && contents2 != contents_t::ORIGIN
-			&& contents2 != contents_t::HINT
-			&& contents2 != contents_t::BOUNDINGBOX) {
+		    && !textureNameB.is_skip() && contents2 != contents_t::ORIGIN
+		    && contents2 != contents_t::HINT
+		    && contents2 != contents_t::BOUNDINGBOX) {
 			continue; // overwrite content for this texture
 		}
 
@@ -1110,9 +1110,9 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 
 	// check to make sure we dont have an origin brush as part of worldspawn
 	if ((b->entitynum == 0)
-		|| classname_is(&g_entities[b->entitynum], u8"func_group")) {
+	    || classname_is(&g_entities[b->entitynum], u8"func_group")) {
 		if (contents == contents_t::ORIGIN && b->entitynum == 0
-			|| contents == contents_t::BOUNDINGBOX) {
+		    || contents == contents_t::BOUNDINGBOX) {
 			Fatal(
 				assume_BRUSH_NOT_ALLOWED_IN_WORLD,
 				"Entity %i, Brush %i: %s brushes not allowed in world\n(did you forget to tie this origin brush to a rotating entity?)",
@@ -1218,7 +1218,7 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 			p[j] = vector_subtract(s->planepts[j], origin);
 			for (std::size_t k = 0; k < 3; ++k) {
 				if (fabs(p[j][k] - floor(p[j][k] + 0.5)) <= ON_EPSILON
-					&& p[j][k] != floor(p[j][k] + 0.5)) {
+				    && p[j][k] != floor(p[j][k] + 0.5)) {
 					Warning(
 						"Entity %i, Brush %i: vertex (%4.8f %4.8f %4.8f) of an info_hullshape entity is slightly off-grid.",
 						b.originalentitynum,
@@ -1311,7 +1311,7 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 							),
 							edge->vertexes[1]
 						)
-						&& vectors_almost_same(
+					    && vectors_almost_same(
 							windings[k].point(e2), edge->vertexes[0]
 						)) {
 						++found;
@@ -1328,15 +1328,15 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 					dot_product(edge->vertexes[0], edge->normals[0])
 					- planes[i].dist
 				) > NORMAL_EPSILON
-				|| fabs(
+			    || fabs(
 					   dot_product(edge->vertexes[1], edge->normals[0])
 					   - planes[i].dist
 				   ) > NORMAL_EPSILON
-				|| fabs(
+			    || fabs(
 					   dot_product(edge->vertexes[0], edge->normals[1])
 					   - planes[j].dist
 				   ) > NORMAL_EPSILON
-				|| fabs(
+			    || fabs(
 					   dot_product(edge->vertexes[1], edge->normals[1])
 					   - planes[j].dist
 				   ) > NORMAL_EPSILON) {
@@ -1374,12 +1374,12 @@ hullbrush_t CreateHullBrush(csg_brush const & b) {
 
 			for (std::size_t k = 0; k < numplanes; k++) {
 				if (fabs(dot_product(v, planes[k].normal) - planes[k].dist)
-					< ON_EPSILON) {
+				    < ON_EPSILON) {
 					if (fabs(
 							dot_product(v, planes[k].normal)
 							- planes[k].dist
 						)
-						> NORMAL_EPSILON) {
+					    > NORMAL_EPSILON) {
 						failed = true;
 					}
 				}
@@ -1444,8 +1444,8 @@ void create_hullshape(csg_entity const & fromInfoHullshapeEntity) {
 	});
 
 	for (entity_local_brush_count i = 0;
-		 i < fromInfoHullshapeEntity.numbrushes;
-		 i++) {
+	     i < fromInfoHullshapeEntity.numbrushes;
+	     i++) {
 		csg_brush const & b
 			= g_mapbrushes[fromInfoHullshapeEntity.firstBrush + i];
 		if (b.contents == contents_t::ORIGIN) {

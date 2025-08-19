@@ -38,7 +38,7 @@ static void TestPatchToFace(
 		dplane_t const * plane2 = getPlaneFromFaceNumber(facenum);
 
 		if (dot_product(patch->origin, plane2->normal)
-			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
+		    > PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 			dplane_t const * plane = getPlaneFromFaceNumber(
 				patch->faceNumber
@@ -56,7 +56,7 @@ static void TestPatchToFace(
 				//  && v2 is visible from v1
 				if (m > patchnum) {
 					if (patch2->leafnum == 0
-						|| !(
+					    || !(
 							pvs[(patch2->leafnum - 1) >> 3]
 							& (1 << ((patch2->leafnum - 1) & 7))
 						)) {
@@ -75,7 +75,7 @@ static void TestPatchToFace(
 						origin2 = patch2->origin;
 					}
 					if (dot_product(origin2, plane->normal)
-						<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
+					    <= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
 					if (dist < patch->emitter_range - ON_EPSILON) {
@@ -86,8 +86,8 @@ static void TestPatchToFace(
 						origin1 = patch->origin;
 					}
 					if (dot_product(origin1, plane2->normal)
-						<= PatchPlaneDist(patch2)
-							+ MINIMUM_PATCH_DISTANCE) {
+					    <= PatchPlaneDist(patch2)
+					        + MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
 					if (TestLine(origin1, origin2) != contents_t::EMPTY) {
@@ -109,7 +109,7 @@ static void TestPatchToFace(
 					unsigned bitset = bitpos + m;
 
 					if (g_customshadow_with_bouncelight
-						&& !vectors_almost_same(
+					    && !vectors_almost_same(
 							transparency, float3_array{ 1.0, 1.0, 1.0 }
 						))
 					// zhlt3.4: if(g_customshadow_with_bouncelight &&
@@ -184,7 +184,7 @@ static void BuildVisLeafs(int threadnum) {
 		//
 		for (facenum = 0; facenum < g_numfaces; facenum++) {
 			for (patch = g_face_patches[facenum]; patch;
-				 patch = patch->next) {
+			     patch = patch->next) {
 				if (patch->leafnum != i) {
 					continue;
 				}
@@ -196,7 +196,7 @@ static void BuildVisLeafs(int threadnum) {
 				bitpos = patchnum * g_num_patches;
 #endif
 				for (facenum2 = facenum + 1; facenum2 < g_numfaces;
-					 facenum2++) {
+				     facenum2++) {
 					TestPatchToFace(
 						patchnum,
 						facenum2,
@@ -304,7 +304,7 @@ void MakeScalesVismatrix() {
 		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
 	};
 	if (!g_incremental
-		|| !readtransfers(transferFilePath.c_str(), g_patches.size())) {
+	    || !readtransfers(transferFilePath.c_str(), g_patches.size())) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		g_CheckVisBit = CheckVisBitVismatrix;

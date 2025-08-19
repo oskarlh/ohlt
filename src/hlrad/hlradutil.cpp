@@ -21,11 +21,11 @@ dleaf_t* PointInLeaf_Worst_r(int nodenum, float3_array const & point) {
 			result[0] = PointInLeaf_Worst_r(node->children[0], point);
 			result[1] = PointInLeaf_Worst_r(node->children[1], point);
 			if (result[0] == g_dleafs.data()
-				|| result[0]->contents == contents_t::SOLID) {
+			    || result[0]->contents == contents_t::SOLID) {
 				return result[0];
 			}
 			if (result[1] == g_dleafs.data()
-				|| result[1]->contents == contents_t::SOLID) {
+			    || result[1]->contents == contents_t::SOLID) {
 				return result[1];
 			}
 			if (result[0]->contents == contents_t::SKY) {
@@ -206,9 +206,9 @@ dleaf_t* HuntForWorld(
 					}
 					if (dist < best_dist) {
 						if ((leaf = PointInLeaf_Worst(current_point))
-							!= g_dleafs.data()) {
+						    != g_dleafs.data()) {
 							if ((leaf->contents != contents_t::SKY)
-								&& (leaf->contents != contents_t::SOLID)) {
+							    && (leaf->contents != contents_t::SOLID)) {
 								if (x || y || z) {
 									// dist = best_dist;
 									best_dist = dist;
@@ -327,8 +327,8 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	sqrlen3 = faceplane[0] * faceplane[0] + faceplane[1] * faceplane[1]
 		+ faceplane[2] * faceplane[2];
 	if (sqrlen1 <= NORMAL_EPSILON * NORMAL_EPSILON
-		|| sqrlen2 <= NORMAL_EPSILON * NORMAL_EPSILON
-		|| sqrlen3 <= NORMAL_EPSILON * NORMAL_EPSILON)
+	    || sqrlen2 <= NORMAL_EPSILON * NORMAL_EPSILON
+	    || sqrlen3 <= NORMAL_EPSILON * NORMAL_EPSILON)
 	// s gradient, t gradient or face normal is too close to 0
 	{
 		return false;
@@ -342,7 +342,7 @@ bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 		normalaxis, std::array{ faceplane[0], faceplane[1], faceplane[2] }
 	);
 	if (det * det
-		<= sqrlen1 * sqrlen2 * sqrlen3 * NORMAL_EPSILON * NORMAL_EPSILON)
+	    <= sqrlen1 * sqrlen2 * sqrlen3 * NORMAL_EPSILON * NORMAL_EPSILON)
 	// s gradient, t gradient and face normal are coplanar
 	{
 		return false;
@@ -403,7 +403,7 @@ struct positionmap_t final {
 	float3_array face_centroid;
 	float3_array texcentroid;
 	float3_array start; // s_start, t_start, 0
-	float3_array step;	// s_step, t_step, 0
+	float3_array step;  // s_step, t_step, 0
 };
 
 static positionmap_t g_face_positions[MAX_MAP_FACES];
@@ -447,7 +447,7 @@ static bool IsPositionValid(
 	}
 
 	if (doedgetest
-		&& !point_in_winding_noedge(
+	    && !point_in_winding_noedge(
 			*map->facewindingwithoffset,
 			map->faceplanewithoffset,
 			pos,
@@ -486,7 +486,7 @@ static bool IsPositionValid(
 		if (TestSegmentAgainstOpaqueList(
 				pos, test, transparency, opaquestyle
 			) == true
-			|| opaquestyle != -1) {
+		    || opaquestyle != -1) {
 			return false;
 		}
 	}
@@ -515,7 +515,7 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 	clipplanes[3].dist = -tmax;
 
 	p.nudged = true; // it's nudged unless it can get its position directly
-					 // from its s,t
+	                 // from its s,t
 	fast_winding zone{ *map->texwinding };
 	for (int x = 0; x < 4 && zone.size() > 0; x++) {
 		zone.mutating_clip(clipplanes[x].normal, clipplanes[x].dist, false);
@@ -559,10 +559,10 @@ static void CalcSinglePosition(positionmap_t* map, int is, int it) {
 
 	constexpr std::size_t numNudges = 12;
 	std::array<float3_array, 12> const nudgeList{
-		float3_array{ 0.1, 0, 0 },	   float3_array{ -0.1, 0, 0 },
-		float3_array{ 0, 0.1, 0 },	   float3_array{ 0, -0.1, 0 },
-		float3_array{ 0.3, 0, 0 },	   float3_array{ -0.3, 0, 0 },
-		float3_array{ 0, 0.3, 0 },	   float3_array{ 0, -0.3, 0 },
+		float3_array{ 0.1, 0, 0 },     float3_array{ -0.1, 0, 0 },
+		float3_array{ 0, 0.1, 0 },     float3_array{ 0, -0.1, 0 },
+		float3_array{ 0.3, 0, 0 },     float3_array{ -0.3, 0, 0 },
+		float3_array{ 0, 0.3, 0 },     float3_array{ 0, -0.3, 0 },
 		float3_array{ 0.3, 0.3, 0 },   float3_array{ -0.3, 0.3, 0 },
 		float3_array{ -0.3, -0.3, 0 }, float3_array{ 0.3, -0.3, 0 }
 	};
@@ -689,7 +689,7 @@ void FindFacePositions(int facenum)
 	map->w = imaxs[0] - imins[0] + 1;
 	map->h = imaxs[1] - imins[1] + 1;
 	if (map->w <= 0 || map->h <= 0
-		|| (double) map->w * (double) map->h > 99'999'999) {
+	    || (double) map->w * (double) map->h > 99'999'999) {
 		delete map->facewinding;
 		map->facewinding = nullptr;
 		delete map->facewindingwithoffset;
@@ -735,7 +735,7 @@ void FreePositionMaps() {
 					v = map->grid[j].pos;
 					dist = vector_subtract(v, g_drawsample_origin);
 					if (dot_product(dist, dist)
-						< g_drawsample_radius * g_drawsample_radius) {
+					    < g_drawsample_radius * g_drawsample_radius) {
 						for (float3_array const & p : pos) {
 							fprintf(
 								f,
@@ -836,8 +836,8 @@ bool FindNearestPosition(
 				);
 
 				if (!found || !p->nudged && best_nudged
-					|| p->nudged == best_nudged
-						&& d < best_dist - 2 * ON_EPSILON) {
+				    || p->nudged == best_nudged
+				        && d < best_dist - 2 * ON_EPSILON) {
 					found = true;
 					best_is = is;
 					best_it = it;

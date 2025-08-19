@@ -5,11 +5,11 @@ parsed_brush parsed_brushes_iterator::operator*() const noexcept {
 		.entityLocalBrushNumber = entityLocalBrushNumber,
 		.sides
 		= std::span{ parsedBrushesContainer->sides.begin()
-						 + parsedBrushesContainer->firstSideNumberPerBrush
-							   [entityLocalBrushNumber],
-					 parsedBrushesContainer->sides.begin()
-						 + parsedBrushesContainer->firstSideNumberPerBrush
-							   [entityLocalBrushNumber + 1] }
+		                 + parsedBrushesContainer->firstSideNumberPerBrush
+		                       [entityLocalBrushNumber],
+		             parsedBrushesContainer->sides.begin()
+		                 + parsedBrushesContainer->firstSideNumberPerBrush
+		                       [entityLocalBrushNumber + 1] }
 	};
 }
 
@@ -90,14 +90,14 @@ map_entity_parser::parse_quoted_string(std::u8string& quotedStringBuffer
 			);
 
 			if (nextSpecial == std::u8string_view::npos
-				|| nextSpecial >= remainingInput.size() - 1) [[unlikely]] {
+			    || nextSpecial >= remainingInput.size() - 1) [[unlikely]] {
 				return std::nullopt;
 			}
 			isBackslash = remainingInput[nextSpecial] == u8'\\';
 			escapedCharacter = remainingInput[nextSpecial + 1];
 			foundEscapeSequence = isBackslash
 				&& (escapedCharacter == u8'\\' || escapedCharacter == u8'"'
-				);
+			    );
 		} while (isBackslash && !foundEscapeSequence);
 
 		std::u8string_view const untilSpecial = remainingInput.substr(
@@ -174,7 +174,7 @@ wad_texture_name map_entity_parser::parse_texture_name() noexcept {
 			return wad_texture_name{};
 		}
 		textureName = std::u8string_view{ remainingInput.begin(),
-										  nameLength };
+			                              nameLength };
 		remainingInput = remainingInput.substr(nameLength);
 	}
 	skip_whitespace_and_comments(remainingInput);
@@ -223,15 +223,15 @@ bool map_entity_parser::parse_sides(std::vector<parsed_side>& out
 		}
 
 		double3_array const uAxis{ maybeU.value()[0],
-								   maybeU.value()[1],
-								   maybeU.value()[2] };
+			                       maybeU.value()[1],
+			                       maybeU.value()[2] };
 
 		double3_array const vAxis{ maybeV.value()[0],
-								   maybeV.value()[1],
-								   maybeV.value()[2] };
+			                       maybeV.value()[1],
+			                       maybeV.value()[2] };
 
 		std::array<double, 2> const shift{ maybeU.value()[3],
-										   maybeV.value()[3] };
+			                               maybeV.value()[3] };
 
 		out.push_back(parsed_side{
 			.textureName = textureName,
@@ -314,7 +314,7 @@ parse_entity_outcome map_entity_parser::parse_entity(parsed_entity& ent
 	skip_whitespace_and_comments(remainingInput);
 
 	if (remainingInput.empty()
-		|| (remainingInput.length() == 1 && remainingInput[0] == u8'\0')) {
+	    || (remainingInput.length() == 1 && remainingInput[0] == u8'\0')) {
 		ent.free_memory();
 		return parse_entity_outcome::reached_end;
 	}
@@ -324,7 +324,7 @@ parse_entity_outcome map_entity_parser::parse_entity(parsed_entity& ent
 		skip_whitespace_and_comments(remainingInput);
 
 		if (parse_key_values(ent.keyValues) && parse_brushes(ent.brushes)
-			&& try_to_skip_one(remainingInput, u8'}') // Entity end
+		    && try_to_skip_one(remainingInput, u8'}') // Entity end
 		) [[likely]] {
 			ent.entityNumber = numParsedEntities++;
 			return parse_entity_outcome::entity_parsed;

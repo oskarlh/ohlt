@@ -150,9 +150,9 @@ static int backdraw;
 
 static bool RecursiveFillOutside(node_t* l, bool const fill) {
 	if ((l->contents == contents_t::SOLID)
-		|| (l->contents == contents_t::SKY)) {
+	    || (l->contents == contents_t::SKY)) {
 		/*if (l->contents != contents_t::SOLID)
-			Log("RecursiveFillOutside::l->contents == %i \n",
+		    Log("RecursiveFillOutside::l->contents == %i \n",
 		   l->contents);*/
 
 		return false;
@@ -247,7 +247,7 @@ static node_t* ClearOutFaces_r(node_t* node) {
 
 			// if both children are solid, just make this node solid
 			if (node->children[0]->contents == contents_t::SOLID
-				&& node->children[1]->contents == contents_t::SOLID) {
+			    && node->children[1]->contents == contents_t::SOLID) {
 				node->contents = contents_t::SOLID;
 				node->planenum = -1;
 				node->isportalleaf = true;
@@ -398,7 +398,7 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 					std::array<double, 3> offsets{ -16, 0, -16 };
 
 					for (auto [xOffset, yOffset] :
-						 cartesian_product(offsets, offsets)) {
+					     cartesian_product(offsets, offsets)) {
 						double3_array originPlusOffset{ origin };
 						originPlusOffset[0] += xOffset;
 						originPlusOffset[1] += yOffset;
@@ -529,7 +529,7 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 void ResetMark_r(node_t* node) {
 	if (node->isportalleaf) {
 		if (node->contents == contents_t::SOLID
-			|| node->contents == contents_t::SKY) {
+		    || node->contents == contents_t::SKY) {
 			node->empty = 0;
 		} else {
 			node->empty = 1;

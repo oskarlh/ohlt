@@ -26,7 +26,7 @@ constexpr bounding_box empty_bounding_box{
 enum bounding_box_state {
 	disjoint, // neither boxes touch
 	in_union, // this box intersects with the other box
-	subset,	  // this box is inside the other box
+	subset,   // this box is inside the other box
 	superset, // this box is completly envelops the other box
 };
 

@@ -25,9 +25,9 @@ bool point_in_winding(
 			- dot_product(w.point(x), normal);
 
 		if (dist < 0.0
-			&& (epsilon == 0.0
-				|| dist * dist
-					> epsilon * epsilon * dot_product(normal, normal))) {
+		    && (epsilon == 0.0
+		        || dist * dist
+		            > epsilon * epsilon * dot_product(normal, normal))) {
 			return false;
 		}
 	}
@@ -62,7 +62,7 @@ bool point_in_winding_noedge(
 			- dot_product(w.point(x), normal);
 
 		if (dist < 0.0
-			|| dist * dist <= width * width * dot_product(normal, normal)) {
+		    || dist * dist <= width * width * dot_product(normal, normal)) {
 			return false;
 		}
 	}
@@ -183,9 +183,9 @@ float snap_to_winding_noedge(
 	newwidth = width;
 
 	for (std::uint8_t pass = 0; pass < 5;
-		 ++pass) // apply binary search method for 5 iterations to find the
-				 // maximal distance that the point can be kept away from
-				 // all the edges
+	     ++pass) // apply binary search method for 5 iterations to find the
+	             // maximal distance that the point can be kept away from
+	             // all the edges
 	{
 		float3_array newpoint;
 
@@ -205,7 +205,7 @@ float snap_to_winding_noedge(
 			snap_to_winding(newwinding, plane, newpoint);
 
 			if (distance_between_points(newpoint, point)
-				<= maxmove + ON_EPSILON) {
+			    <= maxmove + ON_EPSILON) {
 				failed = false;
 			}
 		}
@@ -336,8 +336,8 @@ bool TestSegmentAgainstOpaqueList(
 			continue;
 		}
 		if (g_opaque_face_list[x].style != -1
-			&& (opaquestyleout == -1
-				|| g_opaque_face_list[x].style == opaquestyleout)) {
+		    && (opaquestyleout == -1
+		        || g_opaque_face_list[x].style == opaquestyleout)) {
 			opaquestyleout = g_opaque_face_list[x].style;
 			continue;
 		}
@@ -352,7 +352,7 @@ bool TestSegmentAgainstOpaqueList(
 	}
 	if (scaleout[0] < 0.01 && scaleout[1] < 0.01 && scaleout[2] < 0.01) {
 		return true; // so much shadowing that result is same as with normal
-					 // opaque face
+		             // opaque face
 	}
 	return false;
 }
@@ -405,16 +405,16 @@ float CalcSightArea(
 		float dot;
 		float3_array const * pedge;
 		for (i = 0,
-			pnormal = g_skynormals[skylevel],
-			psize = g_skynormalsizes[skylevel];
-			 i < g_numskynormals[skylevel];
-			 i++, pnormal++, psize++) {
+		    pnormal = g_skynormals[skylevel],
+		    psize = g_skynormalsizes[skylevel];
+		     i < g_numskynormals[skylevel];
+		     i++, pnormal++, psize++) {
 			dot = dot_product(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
 			}
 			for (j = 0, pedge = &edges.front(); j < numedges;
-				 j++, pedge++) {
+			     j++, pedge++) {
 				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
@@ -478,16 +478,16 @@ float CalcSightArea_SpotLight(
 		float dot2;
 		float3_array const * pedge;
 		for (i = 0,
-			pnormal = g_skynormals[skylevel],
-			psize = g_skynormalsizes[skylevel];
-			 i < g_numskynormals[skylevel];
-			 i++, pnormal++, psize++) {
+		    pnormal = g_skynormals[skylevel],
+		    psize = g_skynormalsizes[skylevel];
+		     i < g_numskynormals[skylevel];
+		     i++, pnormal++, psize++) {
 			dot = dot_product(*pnormal, receiver_normal);
 			if (dot <= 0) {
 				continue;
 			}
 			for (j = 0, pedge = &edges.front(); j < numedges;
-				 j++, pedge++) {
+			     j++, pedge++) {
 				if (dot_product(*pnormal, *pedge) <= 0) {
 					break;
 				}
@@ -535,7 +535,7 @@ void GetAlternateOrigin(
 
 	w = *patch->winding;
 	if (w.WindingOnPlaneSide(clipplane.normal, clipplane.dist)
-		!= face_side::cross) {
+	    != face_side::cross) {
 		origin = patch->origin;
 	} else {
 		w.mutating_clip(clipplane.normal, clipplane.dist, false);

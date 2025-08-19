@@ -28,7 +28,7 @@ octets_required_for_unsigned_vlq_encoding_of(UInt integer) noexcept {
 template <std::unsigned_integral UInt, std::unsigned_integral Octet>
 constexpr Octet* encode_unsigned_vlq(UInt integer, Octet* octets) noexcept {
 	std::size_t shift = octets_required_for_unsigned_vlq_encoding_of(integer
-						)
+	                    )
 		* 7;
 
 	do {

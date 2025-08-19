@@ -30,7 +30,7 @@ using namespace std::literals;
 */
 
 static FILE* out[NUM_HULLS]; // pointer to each of the hull out files (.p0,
-							 // .p1, ect.)
+                             // .p1, ect.)
 static FILE* out_view[NUM_HULLS];
 static FILE* out_detailbrush[NUM_HULLS];
 static int c_tiny;
@@ -43,13 +43,13 @@ hull_sizes g_hull_size{ standard_hull_sizes };
 
 double g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
 
-bool g_noclip = DEFAULT_NOCLIP;			   // no clipping hull "-noclip"
-bool g_onlyents = DEFAULT_ONLYENTS;		   // onlyents mode "-onlyents"
+bool g_noclip = DEFAULT_NOCLIP;            // no clipping hull "-noclip"
+bool g_onlyents = DEFAULT_ONLYENTS;        // onlyents mode "-onlyents"
 bool g_wadtextures = DEFAULT_WADTEXTURES;  // "-nowadtextures"
 bool g_chart = cli_option_defaults::chart; // show chart "-chart"
-bool g_skyclip = DEFAULT_SKYCLIP;		   // no sky clipping "-noskyclip"
+bool g_skyclip = DEFAULT_SKYCLIP;          // no sky clipping "-noskyclip"
 bool g_estimate
-	= cli_option_defaults::estimate;	 // progress estimates "-estimate"
+	= cli_option_defaults::estimate;     // progress estimates "-estimate"
 bool g_info = cli_option_defaults::info; // "-info" ?
 static std::filesystem::path
 	g_hullfile; // external hullfile "-hullfile sdfsd"
@@ -85,8 +85,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
 	Log("%30s [ %-9s ]\n",
-		"Verbose Compile Messages",
-		g_verbose ? "on" : "off");
+	    "Verbose Compile Messages",
+	    g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
 	// ]
@@ -96,8 +96,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_estimate = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Estimate Compile Times",
-		g_estimate ? "on" : "off");
+	    "Estimate Compile Times",
+	    g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
 	// -1 : "Low" ]
@@ -137,15 +137,15 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_bClipNazi = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Clipnode Economy Mode",
-		g_bClipNazi ? "on" : "off");
+	    "Clipnode Economy Mode",
+	    g_bClipNazi ? "on" : "off");
 
 	/*
 	hlcsg(choices) : "HLCSG" : 1 =
 	[
-		1 : "Normal"
-		2 : "Onlyents"
-		0 : "Off"
+	    1 : "Normal"
+	    2 : "Onlyents"
+	    0 : "Off"
 	]
 	*/
 	int const hlcsgValue = IntForKey(mapent, u8"hlcsg");
@@ -165,8 +165,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	/*
 	nocliphull(choices) : "Generate clipping hulls" : 0 =
 	[
-		0 : "Yes"
-		1 : "No"
+	    0 : "Yes"
+	    1 : "No"
 	]
 	*/
 	if (IntForKey(mapent, u8"nocliphull") == 1) {
@@ -175,8 +175,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_noclip = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Clipping Hull Generation",
-		g_noclip ? "off" : "on");
+	    "Clipping Hull Generation",
+	    g_noclip ? "off" : "on");
 
 	switch (IntForKey(mapent, u8"cliptype")) {
 		// 0 was "smallest" (option that has been removed)
@@ -195,8 +195,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	/*
 	noskyclip(choices) : "No Sky Clip" : 0 =
 	[
-		1 : "On"
-		0 : "Off"
+	    1 : "On"
+	    0 : "Off"
 	]
 	*/
 	if (IntForKey(mapent, u8"noskyclip") == 1) {
@@ -205,8 +205,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_skyclip = true;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Sky brush clip generation",
-		g_skyclip ? "on" : "off");
+	    "Sky brush clip generation",
+	    g_skyclip ? "on" : "off");
 
 	///////////////
 	Log("\n");
@@ -383,7 +383,7 @@ static void SaveOutside(
 			backnull = !specialTextureForHlbsp;
 		}
 		if (texname.marks_discardable_faces()
-			&& frontcontents != backcontents) {
+		    && frontcontents != backcontents) {
 			// NOT actually discardable, so remove BEVELHINT/SOLIDHINT
 			// texture name and behave like NULL
 			frontnull = backnull = true;
@@ -424,10 +424,10 @@ static void SaveOutside(
 				GetTextureByNumber_CSG(texinfo).value_or(wad_texture_name{})
 			};
 			if (texinfo != no_texinfo // nullified textures (nullptr, BEVEL,
-									  // aaatrigger, etc.)
-				&& !g_texinfo[texinfo].has_special_flag() // sky
-				&& !texname.is_skip()
-				&& !texname.is_any_hint(
+			                          // aaatrigger, etc.)
+			    && !g_texinfo[texinfo].has_special_flag() // sky
+			    && !texname.is_skip()
+			    && !texname.is_any_hint(
 				) // HINT and SKIP will be nullified only after hlbsp
 			) {
 				texinfo_t const & tex{ g_texinfo[texinfo] };
@@ -438,7 +438,7 @@ static void SaveOutside(
 				);
 				normalize_vector(texnormal);
 				if (fabs(dot_product(texnormal, f.plane->normal))
-					<= NORMAL_EPSILON) {
+				    <= NORMAL_EPSILON) {
 					Warning(
 						"Entity %i, Brush %i: Malformed texture alignment (texture %s): Texture axis perpendicular to face.",
 						b.originalentitynum,
@@ -549,7 +549,7 @@ static void CSGBrush(int brushnum) {
 	for (int hull = 0; hull < NUM_HULLS; hull++) {
 		brushhull_t* bh1 = &b1.hulls[hull];
 		if (!bh1->faces.empty()
-			&& (hull ? b1.clipNodeDetailLevel : b1.detailLevel)) {
+		    && (hull ? b1.clipNodeDetailLevel : b1.detailLevel)) {
 			switch (b1.contents) {
 				case contents_t::BOUNDINGBOX:
 				case contents_t::HINT:
@@ -594,24 +594,24 @@ static void CSGBrush(int brushnum) {
 				continue;
 			}
 			if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
-					 : (std::int64_t(b2.detailLevel)
-							- std::int64_t(b2.chopDown)
-						> std::int64_t(b1.detailLevel)
-							+ std::int64_t(b1.chopUp))) {
+			         : (std::int64_t(b2.detailLevel)
+			                - std::int64_t(b2.chopDown)
+			            > std::int64_t(b1.detailLevel)
+			                + std::int64_t(b1.chopUp))) {
 				continue; // You can't chop
 			}
 			if (b2.contents == b1.contents
-				&& (hull
-						? (b2.clipNodeDetailLevel != b1.clipNodeDetailLevel)
-						: (b2.detailLevel != b1.detailLevel))) {
+			    && (hull
+			            ? (b2.clipNodeDetailLevel != b1.clipNodeDetailLevel)
+			            : (b2.detailLevel != b1.detailLevel))) {
 				overwrite
 					= (hull ? (b2.clipNodeDetailLevel
-							   < b1.clipNodeDetailLevel)
-							: (b2.detailLevel < b1.detailLevel));
+				               < b1.clipNodeDetailLevel)
+				            : (b2.detailLevel < b1.detailLevel));
 			}
 			if (b2.contents == b1.contents && hull == 0
-				&& b2.detailLevel == b1.detailLevel
-				&& b2.coplanarPriority != b1.coplanarPriority) {
+			    && b2.detailLevel == b1.detailLevel
+			    && b2.coplanarPriority != b1.coplanarPriority) {
 				overwrite = b2.coplanarPriority > b1.coplanarPriority;
 			}
 
@@ -640,14 +640,14 @@ static void CSGBrush(int brushnum) {
 					continue;
 				}
 				if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
-						 : (b2.detailLevel > b1.detailLevel)) {
+				         : (b2.detailLevel > b1.detailLevel)) {
 					wad_texture_name const texname{
 						GetTextureByNumber_CSG(f.texinfo).value_or(
 							wad_texture_name{}
 						)
 					};
 					if (f.texinfo == no_texinfo || texname.is_skip()
-						|| texname.is_any_hint()) {
+					    || texname.is_any_hint()) {
 						// should not nullify the fragment inside detail
 						// brush
 						outside.emplace_back(std::move(f));
@@ -687,7 +687,7 @@ static void CSGBrush(int brushnum) {
 					bool skip{ false };
 					for (bface_t const & f2 : bh2.faces) {
 						if (f.planenum == f2.planenum
-							|| f.planenum == (f2.planenum ^ 1)) {
+						    || f.planenum == (f2.planenum ^ 1)) {
 							continue;
 						}
 						int valid = 0;
@@ -751,15 +751,15 @@ static void CSGBrush(int brushnum) {
 				// face left inside brush2
 
 				if (hull ? (b2.clipNodeDetailLevel > b1.clipNodeDetailLevel)
-						 : (b2.detailLevel > b1.detailLevel
-						   )) { // don't chop or set contents, only nullify
+				         : (b2.detailLevel > b1.detailLevel
+				           )) { // don't chop or set contents, only nullify
 					f.texinfo = -1;
 					outside.emplace_back(std::move(f));
 					continue;
 				}
 				if ((hull ? b2.clipNodeDetailLevel < b1.clipNodeDetailLevel
-						  : b2.detailLevel < b1.detailLevel)
-					&& b2.contents == contents_t::SOLID) {
+				          : b2.detailLevel < b1.detailLevel)
+				    && b2.contents == contents_t::SOLID) {
 					// Real solid
 					continue;
 				}
@@ -780,26 +780,26 @@ static void CSGBrush(int brushnum) {
 						f.backcontents = b2.contents;
 					}
 					if (!(f.contents == contents_t::SOLID
-						  && f.backcontents == contents_t::SOLID
-						  && !GetTextureByNumber_CSG(f.texinfo)
-								  .value_or(wad_texture_name{})
-								  .is_solid_hint()
-						  && !GetTextureByNumber_CSG(f.texinfo)
-								  .value_or(wad_texture_name{})
-								  .is_bevel_hint())) {
+					      && f.backcontents == contents_t::SOLID
+					      && !GetTextureByNumber_CSG(f.texinfo)
+					              .value_or(wad_texture_name{})
+					              .is_solid_hint()
+					      && !GetTextureByNumber_CSG(f.texinfo)
+					              .value_or(wad_texture_name{})
+					              .is_bevel_hint())) {
 						outside.emplace_back(std::move(f));
 					}
 					continue;
 				}
 				if (b1.contents > b2.contents
-					|| b1.contents == b2.contents
-						&& GetTextureByNumber_CSG(f.texinfo)
-							   .value_or(wad_texture_name{})
-							   .is_solid_hint()
-					|| b1.contents == b2.contents
-						&& GetTextureByNumber_CSG(f.texinfo)
-							   .value_or(wad_texture_name{})
-							   .is_bevel_hint()) {
+				    || b1.contents == b2.contents
+				        && GetTextureByNumber_CSG(f.texinfo)
+				               .value_or(wad_texture_name{})
+				               .is_solid_hint()
+				    || b1.contents == b2.contents
+				        && GetTextureByNumber_CSG(f.texinfo)
+				               .value_or(wad_texture_name{})
+				               .is_bevel_hint()) {
 					// Inside a water brush
 					f.contents = b2.contents;
 					outside.emplace_back(std::move(f));
@@ -879,8 +879,8 @@ static void SetModelNumbers() {
 void ReuseModel() {
 	int i;
 	for (i = g_numentities - 1; i >= 1;
-		 i--) // so it won't affect the remaining entities in the loop when
-			  // we move this entity backward
+	     i--) // so it won't affect the remaining entities in the loop when
+	          // we move this entity backward
 	{
 		std::u8string_view name = value_for_key(
 			&g_entities[i], u8"zhlt_usemodel"
@@ -975,8 +975,8 @@ static void SetLightStyles() {
 					stylenum++;
 					continue;
 				case -3: // (HACK) a piggyback texlight: switched on and off
-						 // by triggering a real light that has the same
-						 // name
+				         // by triggering a real light that has the same
+				         // name
 					set_key_value(
 						e, u8"style", u8"0"
 					); // just in case the level designer didn't give it a
@@ -1057,7 +1057,7 @@ static void UnparseEntities() {
 	for (int i = 0; i < g_numentities; i++) {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"info_sunlight")
-			|| classname_is(mapent, u8"light_environment")) {
+		    || classname_is(mapent, u8"light_environment")) {
 			float3_array vec;
 			{
 				vec = get_float3_for_key(*mapent, u8"angles");
@@ -1106,7 +1106,7 @@ static void UnparseEntities() {
 	for (int i = 0; i < g_numentities; i++) {
 		entity_t* mapent = &g_entities[i];
 		if (classname_is(mapent, u8"light_shadow")
-			|| classname_is(mapent, u8"light_bounce")) {
+		    || classname_is(mapent, u8"light_bounce")) {
 			set_key_value(
 				mapent, u8"convertfrom", ValueForKey(mapent, u8"classname")
 			);
@@ -1114,8 +1114,8 @@ static void UnparseEntities() {
 				mapent,
 				u8"classname",
 				(has_key_value(mapent, u8"convertto")
-					 ? value_for_key(mapent, u8"convertto")
-					 : u8"light"sv)
+			         ? value_for_key(mapent, u8"convertto")
+			         : u8"light"sv)
 			);
 			DeleteKey(mapent, u8"convertto");
 		}
@@ -1157,8 +1157,8 @@ static void UnparseEntities() {
 			);
 			int style = IntForKey(ent, u8"style");
 			if (!targetname[0]
-				|| classname != u8"light" && classname != u8"light_spot"
-					&& classname != u8"light_environment") {
+			    || classname != u8"light" && classname != u8"light_spot"
+			        && classname != u8"light_environment") {
 				continue;
 			}
 			int j;
@@ -1240,7 +1240,7 @@ void LoadWadValue() {
 	map_entity_parser parser{ { g_dentdata.data(), g_entdatasize } };
 	parsed_entity parsedEntity;
 	if (parser.parse_entity(parsedEntity)
-		!= parse_entity_outcome::entity_parsed) {
+	    != parse_entity_outcome::entity_parsed) {
 		Error("Failed to parse worldspawn");
 	}
 	auto wadKvIt = std::ranges::find_if(
@@ -1284,8 +1284,8 @@ static void MarkEntForNoclip(entity_t* ent) {
 	csg_brush* b;
 
 	for (std::size_t i = ent->firstBrush;
-		 i < ent->firstBrush + ent->numbrushes;
-		 ++i) {
+	     i < ent->firstBrush + ent->numbrushes;
+	     ++i) {
 		b = &g_mapbrushes[i];
 		b->noclip = true;
 
@@ -1329,22 +1329,22 @@ static void CheckForNoClip() {
 			continue;
 		}
 		if (entclassname == u8"env_bubbles"
-			|| entclassname == u8"func_illusionary"
-			|| ((spawnflags & 8)
-				&& (entclassname == u8"func_train"
-					|| entclassname == u8"func_door"
-					|| entclassname == u8"func_water"
-					|| entclassname == u8"func_door_rotating"
-					|| entclassname == u8"func_pendulum"
-					|| entclassname == u8"func_train"
-					|| entclassname == u8"func_tracktrain"
-					|| entclassname == u8"func_vehicle"))
-			|| (skin != 0)
-				&& (entclassname == u8"func_door"
-					|| entclassname == u8"func_water")
-			|| (spawnflags & 2) && (entclassname == u8"func_conveyor")
-			|| (spawnflags & 1) && (entclassname == u8"func_rot_button")
-			|| (spawnflags & 64) && (entclassname == u8"func_rotating")) {
+		    || entclassname == u8"func_illusionary"
+		    || ((spawnflags & 8)
+		        && (entclassname == u8"func_train"
+		            || entclassname == u8"func_door"
+		            || entclassname == u8"func_water"
+		            || entclassname == u8"func_door_rotating"
+		            || entclassname == u8"func_pendulum"
+		            || entclassname == u8"func_train"
+		            || entclassname == u8"func_tracktrain"
+		            || entclassname == u8"func_vehicle"))
+		    || (skin != 0)
+		        && (entclassname == u8"func_door"
+		            || entclassname == u8"func_water")
+		    || (spawnflags & 2) && (entclassname == u8"func_conveyor")
+		    || (spawnflags & 1) && (entclassname == u8"func_rot_button")
+		    || (spawnflags & 64) && (entclassname == u8"func_rotating")) {
 			MarkEntForNoclip(ent);
 			count++;
 		}
@@ -1437,7 +1437,7 @@ static void SetModelCenters(int entitynum) {
 	bounding_box bounds;
 
 	if ((entitynum == 0)
-		|| (e->numbrushes == 0)) { // skip worldspawn and point entities
+	    || (e->numbrushes == 0)) { // skip worldspawn and point entities
 		return;
 	}
 
@@ -1448,9 +1448,9 @@ static void SetModelCenters(int entitynum) {
 	}
 
 	for (i = e->firstBrush, last = e->firstBrush + e->numbrushes; i < last;
-		 i++) {
+	     i++) {
 		if (g_mapbrushes[i].contents != contents_t::ORIGIN
-			&& g_mapbrushes[i].contents != contents_t::BOUNDINGBOX) {
+		    && g_mapbrushes[i].contents != contents_t::BOUNDINGBOX) {
 			add_to_bounding_box(bounds, g_mapbrushes[i].hulls[0].bounds);
 		}
 	}
@@ -1515,9 +1515,9 @@ static void Usage() {
 	);
 	Log("    -noclip          : don't create clipping hull\n");
 	Log("    -legacy-map-encoding : Legacy character encoding such as %s to use if the .map is not in UTF-8\n",
-		(char const *)
-			code_name_of_legacy_encoding(defaultSettings.legacyMapEncoding)
-				.data());
+	    (char const *)
+	        code_name_of_legacy_encoding(defaultSettings.legacyMapEncoding)
+	            .data());
 	Log("    -force-legacy-map-encoding : Always use the -legacy-map-encoding character encoding for the .map instead of UTF-8\n"
 	);
 
@@ -1563,7 +1563,7 @@ static void Usage() {
 	Log("    -nolightopt      : don't optimize engine light entities\n");
 
 	Log("    -dev %s : compile with developer logging\n\n",
-		(char const *) developer_level_options.data());
+	    (char const *) developer_level_options.data());
 
 	Log("    -scale #         : Scale the world. Use at your own risk.\n");
 	Log("    -worldextent #   : Extend map geometry limits beyond +/-32768.\n"
@@ -1603,34 +1603,34 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 
 	Log("\nCurrent %s Settings\n", (char const *) g_Program.data());
 	Log("Name                 |  Setting  |  Default\n"
-		"---------------------|-----------|-------------------------\n");
+	    "---------------------|-----------|-------------------------\n");
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
 	Log("verbose               [ %7s ] [ %7s ]\n",
-		g_verbose ? "on" : "off",
-		cli_option_defaults::verbose ? "on" : "off");
+	    g_verbose ? "on" : "off",
+	    cli_option_defaults::verbose ? "on" : "off");
 	Log("log                   [ %7s ] [ %7s ]\n",
-		g_log ? "on" : "off",
-		cli_option_defaults::log ? "on" : "off");
+	    g_log ? "on" : "off",
+	    cli_option_defaults::log ? "on" : "off");
 	Log("reset logfile         [ %7s ] [ %7s ]\n",
-		g_resetlog ? "on" : "off",
-		DEFAULT_RESETLOG ? "on" : "off");
+	    g_resetlog ? "on" : "off",
+	    DEFAULT_RESETLOG ? "on" : "off");
 
 	Log("developer             [ %7s ] [ %7s ]\n",
-		(char const *) name_of_developer_level(g_developer).data(),
-		(char const *)
-			name_of_developer_level(cli_option_defaults::developer)
-				.data());
+	    (char const *) name_of_developer_level(g_developer).data(),
+	    (char const *)
+	        name_of_developer_level(cli_option_defaults::developer)
+	            .data());
 	Log("chart                 [ %7s ] [ %7s ]\n",
-		g_chart ? "on" : "off",
-		cli_option_defaults::chart ? "on" : "off");
+	    g_chart ? "on" : "off",
+	    cli_option_defaults::chart ? "on" : "off");
 	Log("estimate              [ %7s ] [ %7s ]\n",
-		g_estimate ? "on" : "off",
-		cli_option_defaults::estimate ? "on" : "off");
+	    g_estimate ? "on" : "off",
+	    cli_option_defaults::estimate ? "on" : "off");
 	Log("max texture memory    [ %7td ] [ %7td ]\n",
-		g_max_map_miptex,
-		cli_option_defaults::max_map_miptex);
+	    g_max_map_miptex,
+	    cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
 		case q_threadpriority::eThreadPriorityNormal:
@@ -1650,49 +1650,49 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 	// HLCSG Specific Settings
 
 	Log(".map legacy encoding  [ %7s ] [ %7s ]\n",
-		(char const *)
-			human_name_of_legacy_encoding(settings.legacyMapEncoding)
-				.data(),
-		(char const *)
-			human_name_of_legacy_encoding(defaultSettings.legacyMapEncoding)
-				.data());
+	    (char const *)
+	        human_name_of_legacy_encoding(settings.legacyMapEncoding)
+	            .data(),
+	    (char const *)
+	        human_name_of_legacy_encoding(defaultSettings.legacyMapEncoding)
+	            .data());
 	Log("force .map legacy enc.[ %7s ] [ %7s ]\n",
-		settings.forceLegacyMapEncoding ? "on" : "off",
-		defaultSettings.forceLegacyMapEncoding ? "on" : "off");
+	    settings.forceLegacyMapEncoding ? "on" : "off",
+	    defaultSettings.forceLegacyMapEncoding ? "on" : "off");
 	Log("noclip                [ %7s ] [ %7s ]\n",
-		g_noclip ? "on" : "off",
-		DEFAULT_NOCLIP ? "on" : "off");
+	    g_noclip ? "on" : "off",
+	    DEFAULT_NOCLIP ? "on" : "off");
 
 	Log("null texture stripping[ %7s ] [ %7s ]\n",
-		g_bUseNullTex ? "on" : "off",
-		cli_option_defaults::nulltex ? "on" : "off");
+	    g_bUseNullTex ? "on" : "off",
+	    cli_option_defaults::nulltex ? "on" : "off");
 
 	Log("clipnode economy mode [ %7s ] [ %7s ]\n",
-		g_bClipNazi ? "on" : "off",
-		DEFAULT_CLIPNAZI ? "on" : "off");
+	    g_bClipNazi ? "on" : "off",
+	    DEFAULT_CLIPNAZI ? "on" : "off");
 
 	Log("clip hull type        [ %7s ] [ %7s ]\n",
-		GetClipTypeString(g_cliptype),
-		GetClipTypeString(DEFAULT_CLIPTYPE));
+	    GetClipTypeString(g_cliptype),
+	    GetClipTypeString(DEFAULT_CLIPTYPE));
 
 	Log("onlyents              [ %7s ] [ %7s ]\n",
-		g_onlyents ? "on" : "off",
-		DEFAULT_ONLYENTS ? "on" : "off");
+	    g_onlyents ? "on" : "off",
+	    DEFAULT_ONLYENTS ? "on" : "off");
 	Log("wadtextures           [ %7s ] [ %7s ]\n",
-		g_wadtextures ? "on" : "off",
-		DEFAULT_WADTEXTURES ? "on" : "off");
+	    g_wadtextures ? "on" : "off",
+	    DEFAULT_WADTEXTURES ? "on" : "off");
 	Log("skyclip               [ %7s ] [ %7s ]\n",
-		g_skyclip ? "on" : "off",
-		DEFAULT_SKYCLIP ? "on" : "off");
+	    g_skyclip ? "on" : "off",
+	    DEFAULT_SKYCLIP ? "on" : "off");
 	Log("hullfile              [ %7s ] [ %7s ]\n",
-		g_hullfile.empty() ? "None" : g_hullfile.c_str(),
-		"None");
+	    g_hullfile.empty() ? "None" : g_hullfile.c_str(),
+	    "None");
 	Log("nullfile              [ %7s ] [ %7s ]\n",
-		g_nullfile.empty() ? "None" : g_nullfile.c_str(),
-		"None");
+	    g_nullfile.empty() ? "None" : g_nullfile.c_str(),
+	    "None");
 	Log("nullify trigger       [ %7s ] [ %7s ]\n",
-		g_nullifytrigger ? "on" : "off",
-		DEFAULT_NULLIFYTRIGGER ? "on" : "off");
+	    g_nullifytrigger ? "on" : "off",
+	    DEFAULT_NULLIFYTRIGGER ? "on" : "off");
 	// calc min surface area
 	{
 		char tiny_penetration[10];
@@ -1711,8 +1711,8 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 			DEFAULT_TINY_THRESHOLD
 		);
 		Log("min surface area      [ %7s ] [ %7s ]\n",
-			tiny_penetration,
-			default_tiny_penetration);
+		    tiny_penetration,
+		    default_tiny_penetration);
 	}
 
 	{
@@ -1732,11 +1732,11 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 		Log("map scaling           [ %7s ] [ %7s ]\n", buf1, buf2);
 	}
 	Log("light name optimize   [ %7s ] [ %7s ]\n",
-		!g_nolightopt ? "on" : "off",
-		!DEFAULT_NOLIGHTOPT ? "on" : "off");
+	    !g_nolightopt ? "on" : "off",
+	    !DEFAULT_NOLIGHTOPT ? "on" : "off");
 	Log("world extent          [ %7d ] [ %7d ]\n",
-		bspData.worldExtent,
-		65536);
+	    bspData.worldExtent,
+	    65536);
 
 	Log("\n");
 }
@@ -1794,7 +1794,7 @@ int main(int const argc, char** argv) {
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
 							Log("Expected value below %zu for '-threads'\n",
-								MAX_THREADS);
+							    MAX_THREADS);
 							Usage();
 						}
 					} else {
@@ -2136,7 +2136,7 @@ int main(int const argc, char** argv) {
 			// createbrush
 			// TODO: Reimplement multi-threading here!
 			for (brush_count brushIndex = 0; brushIndex != g_nummapbrushes;
-				 ++brushIndex) {
+			     ++brushIndex) {
 				csg_brush& brush{ g_mapbrushes[brushIndex] };
 				create_brush(brush, g_entities[brush.entitynum]);
 			}
@@ -2240,22 +2240,22 @@ int main(int const argc, char** argv) {
 			// Debug
 			if constexpr (false) {
 				Log("\n---------------------------------------\n"
-					"Map Plane Usage:\n"
-					"  #  normal             origin             dist   type\n"
-					"    (   x,    y,    z) (   x,    y,    z) (     )\n");
+				    "Map Plane Usage:\n"
+				    "  #  normal             origin             dist   type\n"
+				    "    (   x,    y,    z) (   x,    y,    z) (     )\n");
 				for (i = 0; i < g_mapPlanes.size(); i++) {
 					mapplane_t* p = &g_mapPlanes[i];
 
 					Log("%3i (%4.0f, %4.0f, %4.0f) (%4.0f, %4.0f, %4.0f) (%5.0f) %i\n",
-						i,
-						p->normal[1],
-						p->normal[2],
-						p->normal[3],
-						p->origin[1],
-						p->origin[2],
-						p->origin[3],
-						p->dist,
-						(int) p->type);
+					    i,
+					    p->normal[1],
+					    p->normal[2],
+					    p->normal[3],
+					    p->origin[1],
+					    p->origin[2],
+					    p->origin[3],
+					    p->dist,
+					    (int) p->type);
 				}
 				Log("---------------------------------------\n\n");
 			}

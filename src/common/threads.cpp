@@ -138,7 +138,6 @@ q_threadfunction workfunction;
 
 static void ThreadWorkerFunction(int) {
 	int work;
-
 	while ((work = GetThreadWork()) != -1) {
 		workfunction(work);
 	}
@@ -281,7 +280,7 @@ void RunThreadsOn(int workcnt, bool showpacifier, q_threadfunction func) {
 				ThreadEntryStub,
 				(void*) (intptr_t) i
 			)
-			== -1) {
+		    == -1) {
 			Error("pthread_create failed");
 		}
 	}

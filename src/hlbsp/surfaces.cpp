@@ -35,7 +35,7 @@ void SubdivideFace(face_t* f, face_t** prevptr) {
 
 	if (f->facestyle == face_null) {
 		return; // ideally these should have their tex_special flag set, so
-				// its here jic
+		        // its here jic
 	}
 	if (f->facestyle == face_discardable) {
 		return;
@@ -196,16 +196,16 @@ static int HashVec(
 	*num_hashneighbors = 0;
 	for (x = -1; x <= 1; x++) {
 		if ((x == -1 && slotdiff[0] > hash_scale[0] * (2 * POINT_EPSILON))
-			|| (x == 1
-				&& slotdiff[0] < 1 - hash_scale[0] * (2 * POINT_EPSILON))) {
+		    || (x == 1
+		        && slotdiff[0] < 1 - hash_scale[0] * (2 * POINT_EPSILON))) {
 			continue;
 		}
 		for (y = -1; y <= 1; y++) {
 			if ((y == -1
-				 && slotdiff[1] > hash_scale[1] * (2 * POINT_EPSILON))
-				|| (y == 1
-					&& slotdiff[1] < 1 - hash_scale[1] * (2 * POINT_EPSILON)
-				)) {
+			     && slotdiff[1] > hash_scale[1] * (2 * POINT_EPSILON))
+			    || (y == 1
+			        && slotdiff[1] < 1 - hash_scale[1] * (2 * POINT_EPSILON)
+			    )) {
 				continue;
 			}
 			if (*num_hashneighbors >= MAX_HASH_NEIGHBORS) {
@@ -244,8 +244,8 @@ static int GetVertex(double3_array const & in, int const planenum) {
 	for (i = 0; i < num_hashneighbors; i++) {
 		for (hv = hashverts[hashneighbors[i]]; hv; hv = hv->next) {
 			if (fabs(hv->point[0] - vert[0]) < POINT_EPSILON
-				&& fabs(hv->point[1] - vert[1]) < POINT_EPSILON
-				&& fabs(hv->point[2] - vert[2]) < POINT_EPSILON) {
+			    && fabs(hv->point[1] - vert[1]) < POINT_EPSILON
+			    && fabs(hv->point[2] - vert[2]) < POINT_EPSILON) {
 				hv->numedges++;
 				if (hv->numplanes == 3) {
 					return hv->num; // allready known to be a corner
@@ -305,9 +305,9 @@ int GetEdge(double3_array const & p1, double3_array const & p2, face_t* f) {
 	for (i = firstmodeledge; i < g_numedges; i++) {
 		edge = &g_dedges[i];
 		if (v1 == edge->v[1] && v2 == edge->v[0] && !edgefaces[i][1]
-			&& edgefaces[i][0]->contents == f->contents
-			&& edgefaces[i][0]->planenum != (f->planenum ^ 1)
-			&& edgefaces[i][0]->contents == f->contents) {
+		    && edgefaces[i][0]->contents == f->contents
+		    && edgefaces[i][0]->planenum != (f->planenum ^ 1)
+		    && edgefaces[i][0]->contents == f->contents) {
 			edgefaces[i][1] = f;
 			return -i;
 		}

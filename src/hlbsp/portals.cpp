@@ -168,9 +168,9 @@ static void WritePortalFile_r(node_t const * const node) {
 				// side orders if needed
 				w->getPlane(plane2);
 				if (dot_product(p->plane.normal, plane2.normal)
-					< 1.0 - ON_EPSILON) { // backwards...
+				    < 1.0 - ON_EPSILON) { // backwards...
 					if (dot_product(p->plane.normal, plane2.normal)
-						> -1.0 + ON_EPSILON) {
+					    > -1.0 + ON_EPSILON) {
 						Warning("Colinear portal @");
 						w->Print();
 					} else {
@@ -289,7 +289,7 @@ static void NumberLeafs_r(node_t* node) {
 	}
 
 	if (node->contents
-		== contents_t::SOLID) { // solid block, viewpoint never inside
+	    == contents_t::SOLID) { // solid block, viewpoint never inside
 		node->visleafnum = -1;
 		return;
 	}
@@ -310,7 +310,7 @@ static void NumberLeafs_r(node_t* node) {
 }
 
 static int CountChildLeafs_r(node_t* node) {
-	if (node->planenum == -1) {		  // dleaf
+	if (node->planenum == -1) {       // dleaf
 		if (node->iscontentsdetail) { // solid
 			return 0;
 		} else {
@@ -373,7 +373,7 @@ void WritePortalfile(node_t* headnode) {
 		fclose(pf_view);
 	}
 	Log("BSP generation successful, writing portal file '%s'\n",
-		g_portfilename.c_str());
+	    g_portfilename.c_str());
 }
 
 //===================================================

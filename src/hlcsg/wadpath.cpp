@@ -43,7 +43,7 @@ void GetUsedWads() {
 	std::u8string_view wadValue = value_for_key(&g_entities[0], u8"wad");
 
 	for (std::u8string_view wadFilename :
-		 worldspawn_wad_value_parser(wadValue)) {
+	     worldspawn_wad_value_parser(wadValue)) {
 		PushWadPath(wadFilename, true);
 	}
 }

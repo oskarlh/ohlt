@@ -34,7 +34,7 @@ static bool CheckVisBitNoVismatrix(
 		);
 
 		if (dot_product(patch->origin, plane2->normal)
-			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
+		    > PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 
 			dplane_t const * plane = getPlaneFromFaceNumber(
@@ -59,7 +59,7 @@ static bool CheckVisBitNoVismatrix(
 				origin2 = patch2->origin;
 			}
 			if (dot_product(origin2, plane->normal)
-				<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
+			    <= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
 			if (dist < patch->emitter_range - ON_EPSILON) {
@@ -70,7 +70,7 @@ static bool CheckVisBitNoVismatrix(
 				origin1 = patch->origin;
 			}
 			if (dot_product(origin1, plane2->normal)
-				<= PatchPlaneDist(patch2) + MINIMUM_PATCH_DISTANCE) {
+			    <= PatchPlaneDist(patch2) + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
 			if (TestLine(origin1, origin2) != contents_t::EMPTY) {
@@ -115,7 +115,7 @@ bool CheckVisBitBackwards(
 		);
 
 		if (dot_product(backorigin, emitplane->normal)
-			> (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE)) {
+		    > (PatchPlaneDist(emitpatch) + MINIMUM_PATCH_DISTANCE)) {
 			float3_array transparency = { 1.0, 1.0, 1.0 };
 			int opaquestyle = -1;
 
@@ -132,8 +132,8 @@ bool CheckVisBitBackwards(
 				emitorigin = emitpatch->origin;
 			}
 			if (dot_product(emitorigin, backnormal)
-				<= dot_product(backorigin, backnormal)
-					+ MINIMUM_PATCH_DISTANCE) {
+			    <= dot_product(backorigin, backnormal)
+			        + MINIMUM_PATCH_DISTANCE) {
 				return false;
 			}
 			if (TestLine(backorigin, emitorigin) != contents_t::EMPTY) {
@@ -172,7 +172,7 @@ void MakeScalesNoVismatrix() {
 	};
 
 	if (!g_incremental
-		|| !readtransfers(transferfile.c_str(), g_patches.size())) {
+	    || !readtransfers(transferfile.c_str(), g_patches.size())) {
 		g_CheckVisBit = CheckVisBitNoVismatrix;
 		if (g_rgb_transfers) {
 			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeRGBScales);

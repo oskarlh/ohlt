@@ -108,8 +108,8 @@ inline winding_t* ChopWinding(
 		}
 
 		if ((sides[i + 1] == face_side::on)
-			| (sides[i + 1] == sides[i]
-			)) // | instead of || for branch optimization
+		    | (sides[i + 1] == sides[i]
+		    )) // | instead of || for branch optimization
 		{
 			continue;
 		}
@@ -166,8 +166,8 @@ AddPlane(pstack_t* const stack, hlvis_plane_t const * const split) {
 	if (stack->clipPlaneCount) {
 		for (j = 0; j < stack->clipPlaneCount; j++) {
 			if (fabs((stack->clipPlane[j]).dist - split->dist)
-					<= EQUAL_EPSILON
-				&& vectors_almost_same(
+			        <= EQUAL_EPSILON
+			    && vectors_almost_same(
 					(stack->clipPlane[j]).normal, split->normal
 				)) {
 				return;
@@ -230,19 +230,19 @@ inline static winding_t* ClipToSeperators(
 			std::size_t k;
 			for (k = 0; k < numpoints; ++k) {
 				if ((k == i)
-					| (k == l)) // | instead of || for branch optimization
+				    | (k == l)) // | instead of || for branch optimization
 				{
 					continue;
 				}
 				float const d = dot_product(source->points[k], plane.normal)
 					- plane.dist;
 				if (d < -ON_EPSILON) { // source is on the negative side, so
-									   // we want all
+					                   // we want all
 					// pass and target on the positive side
 					fliptest = false;
 					break;
 				} else if (d > ON_EPSILON) { // source is on the positive
-											 // side, so we want all
+					                         // side, so we want all
 					// pass and target on the negative side
 					fliptest = true;
 					break;
@@ -377,7 +377,7 @@ inline static void RecursiveLeafFlow(
 
 					unsigned j;
 					for (j = 0; j < bitlongs;
-						 j++, test++, might++, prevmight++) {
+					     j++, test++, might++, prevmight++) {
 						(*might) = (*prevmight) & (*test);
 					}
 				}
@@ -428,7 +428,7 @@ inline static void RecursiveLeafFlow(
 		}
 
 		if (!prevstack->pass) { // the second leaf can only be blocked if
-								// coplanar
+			                    // coplanar
 			RecursiveLeafFlow(p->leaf, thread, &stack);
 			continue;
 		}
@@ -458,7 +458,7 @@ inline static void RecursiveLeafFlow(
 		if (stack.clipPlaneCount > 0) {
 			unsigned j;
 			for (j = 0; j < stack.clipPlaneCount && stack.pass != nullptr;
-				 j++) {
+			     j++) {
 				stack.pass = ChopWinding(
 					stack.pass, &stack, &(stack.clipPlane[j])
 				);
@@ -699,9 +699,9 @@ float WindingDist(winding_t const * w[2]) {
 				}
 				frac = dot_product(p, delta) - dot_product(p1, delta);
 				if (frac <= ON_EPSILON
-					|| frac
-						>= (dot_product(p2, delta) - dot_product(p1, delta))
-							- ON_EPSILON) {
+				    || frac
+				        >= (dot_product(p2, delta) - dot_product(p1, delta))
+				            - ON_EPSILON) {
 					// p1 or p2 is closest to p
 					continue;
 				}
@@ -741,17 +741,17 @@ float WindingDist(winding_t const * w[2]) {
 				delta2, normal
 			); // same direction as delta1
 			if (normalize_vector(normal1) <= ON_EPSILON
-				|| normalize_vector(normal2) <= ON_EPSILON) {
+			    || normalize_vector(normal2) <= ON_EPSILON) {
 				continue;
 			}
 			if (dot_product(p3, normal1)
-					>= dot_product(p1, normal1) - ON_EPSILON
-				|| dot_product(p4, normal1)
-					<= dot_product(p1, normal1) + ON_EPSILON
-				|| dot_product(p1, normal2)
-					>= dot_product(p3, normal2) - ON_EPSILON
-				|| dot_product(p2, normal2)
-					<= dot_product(p3, normal2) + ON_EPSILON) {
+			        >= dot_product(p1, normal1) - ON_EPSILON
+			    || dot_product(p4, normal1)
+			        <= dot_product(p1, normal1) + ON_EPSILON
+			    || dot_product(p1, normal2)
+			        >= dot_product(p3, normal2) - ON_EPSILON
+			    || dot_product(p2, normal2)
+			        <= dot_product(p3, normal2) + ON_EPSILON) {
 				// the edges are not crossing when viewed along normal
 				continue;
 			}
@@ -803,7 +803,7 @@ float WindingDist(winding_t const * w[2]) {
 			float3_array const & p = w[side]->points[a];
 			for (b = 0; b < w[!side]->numpoints; b++) {
 				if (dot_product(p, boundnormals[b]) - bounddists[b]
-					>= -ON_EPSILON) {
+				    >= -ON_EPSILON) {
 					break;
 				}
 			}
@@ -823,13 +823,13 @@ float WindingDist(winding_t const * w[2]) {
 			float dist1 = dot_product(p1, planenormal) - planedist;
 			float dist2 = dot_product(p2, planenormal) - planedist;
 			if (dist1 > ON_EPSILON && dist2 < -ON_EPSILON
-				|| dist1 < -ON_EPSILON && dist2 > ON_EPSILON) {
+			    || dist1 < -ON_EPSILON && dist2 > ON_EPSILON) {
 				float frac = dist1 / (dist1 - dist2);
 				float3_array delta = vector_subtract(p2, p1);
 				float3_array v = vector_fma(delta, frac, p1);
 				for (b = 0; b < w[!side]->numpoints; b++) {
 					if (dot_product(v, boundnormals[b]) - bounddists[b]
-						>= -ON_EPSILON) {
+					    >= -ON_EPSILON) {
 						break;
 					}
 				}
@@ -924,11 +924,11 @@ void MaxDistVis(int unused_threadnum) {
 					center[0], center[1]
 				);
 				if (std::max(dist - radius[0] - radius[1], (float) 0)
-					>= g_maxdistance - ON_EPSILON) {
+				    >= g_maxdistance - ON_EPSILON) {
 					goto Work;
 				}
 				if (dist + radius[0] + radius[1]
-					< g_maxdistance - ON_EPSILON) {
+				    < g_maxdistance - ON_EPSILON) {
 					goto NoWork;
 				}
 			}

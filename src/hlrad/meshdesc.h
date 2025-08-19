@@ -29,7 +29,7 @@ struct mplane_t final {
 	float3_array normal;
 	float dist;
 	planetype type; // For fast side tests
-	byte signbits;	// signx + (signy<<1) + (signz<<1)
+	byte signbits;  // signx + (signy<<1) + (signz<<1)
 	std::array<std::byte, 2> paddingAtEnd;
 };
 
@@ -60,13 +60,13 @@ struct mvert_t final {
 };
 
 struct mfacet_t final {
-	link_t area;			   // linked to a division node or leaf
+	link_t area;               // linked to a division node or leaf
 	mstudiotexture_t* texture; // valid for alpha-testing surfaces
-	mvert_t triangle[3];	   // store triangle points
+	mvert_t triangle[3];       // store triangle points
 	float3_array mins, maxs;   // an individual size of each facet
 	float3_array edge1, edge2; // new trace stuff
 	byte numplanes; // because numplanes for each facet can't exceeds
-					// MAX_FACET_PLANES!
+	                // MAX_FACET_PLANES!
 	unsigned* indices; // a indexes into mesh plane pool
 };
 
@@ -97,14 +97,14 @@ class CMeshDesc final {
 	std::u8string m_debugName{}; // just for debug purpoces
 	std::unique_ptr<std::array<areanode_t, AREA_NODES>>
 		areanodes; // AABB tree for speedup trace test. Only reason it's not
-				   // stored inplace is because we have pointers to it in
-				   // some kind of tree structure. TODO: replace those
-				   // pointers with indexes so we can store the inplace
+	               // stored inplace is because we have pointers to it in
+	               // some kind of tree structure. TODO: replace those
+	               // pointers with indexes so we can store the inplace
 	areanode_count numareanodes;
-	bool has_tree;		 // build AABB tree
-	int m_iTotalPlanes;	 // just for stats
+	bool has_tree;       // build AABB tree
+	int m_iTotalPlanes;  // just for stats
 	int m_iNumTris{ 0 }; // if > 0 we are in build mode
-	size_t mesh_size;	 // mesh total size
+	size_t mesh_size;    // mesh total size
 
 	// used only while mesh is constructed
 	std::unique_ptr<mfacet_t[]> facets;
@@ -208,11 +208,11 @@ class CMeshDesc final {
 		float3_array const & trace_mins, float3_array const & trace_maxs
 	) {
 		if (m_mesh.mins[0] > trace_maxs[0] || m_mesh.mins[1] > trace_maxs[1]
-			|| m_mesh.mins[2] > trace_maxs[2]) {
+		    || m_mesh.mins[2] > trace_maxs[2]) {
 			return false;
 		}
 		if (m_mesh.maxs[0] < trace_mins[0] || m_mesh.maxs[1] < trace_mins[1]
-			|| m_mesh.maxs[2] < trace_mins[2]) {
+		    || m_mesh.maxs[2] < trace_mins[2]) {
 			return false;
 		}
 		return true;
@@ -239,12 +239,12 @@ struct model_t final {
 	float3_array origin;
 	float3_array angles;
 	float3_array scale; // scale X-Form
-	int body;			// sets by level-designer
-	int skin;			// e.g. various alpha-textures
+	int body;           // sets by level-designer
+	int skin;           // e.g. various alpha-textures
 	trace_method trace_mode;
 
 	std::unique_ptr<std::byte[]> extradata; // model
-	void* anims;							// studio animations
+	void* anims;                            // studio animations
 
 	CMeshDesc mesh; // cform
 };

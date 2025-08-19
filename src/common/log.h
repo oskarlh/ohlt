@@ -12,7 +12,7 @@
 extern std::u8string g_Program;
 extern std::filesystem::path
 	g_Mapname; // This is the path to the .map/.bsp file, but without the
-			   // file extension
+               // file extension
 extern std::filesystem::path g_Wadpath; // This is just the mod folder...
 
 extern developer_level g_developer;

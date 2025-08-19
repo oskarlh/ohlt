@@ -79,8 +79,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
 	Log("%30s [ %-9s ]\n",
-		"Verbose Compile Messages",
-		g_verbose ? "on" : "off");
+	    "Verbose Compile Messages",
+	    g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
 	// ]
@@ -90,8 +90,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_estimate = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Estimate Compile Times",
-		g_estimate ? "on" : "off");
+	    "Estimate Compile Times",
+	    g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
 	// -1 : "Low" ]
@@ -107,10 +107,10 @@ void GetParamsFromEnt(entity_t* mapent) {
 	/*
 	hlvis(choices) : "HLVIS" : 2 =
 	[
-		0 : "Off"
-		1 : "Fast"
-		2 : "Normal"
-		3 : "Full"
+	    0 : "Off"
+	    1 : "Fast"
+	    2 : "Normal"
+	    3 : "Full"
 	]
 	*/
 	iTmp = IntForKey(mapent, u8"hlvis");
@@ -299,13 +299,13 @@ static void LeafFlow(int const leafnum) {
 			tmp = 1;
 			Warning("Leaf portals saw into leaf");
 			Log("    Problem at portal between leaves %i and %i:\n   ",
-				leafnum,
-				p->leaf);
+			    leafnum,
+			    p->leaf);
 			for (k = 0; k < p->winding->numpoints; k++) {
 				Log("    (%4.3f %4.3f %4.3f)\n",
-					p->winding->points[k][0],
-					p->winding->points[k][1],
-					p->winding->points[k][2]);
+				    p->winding->points[k][0],
+				    p->winding->points[k][1],
+				    p->winding->points[k][2]);
 			}
 			Log("\n");
 		}
@@ -466,7 +466,7 @@ static void CalcVis() {
 		}
 
 		Log("average maxdistance leafs visible: %i\n",
-			totalvis / g_portalleafs);
+		    totalvis / g_portalleafs);
 	}
 }
 
@@ -523,9 +523,9 @@ static void LoadPortals(char* portal_image) {
 	vismap_end = vismap + MAX_MAP_VISIBILITY;
 
 	if (g_portalleafs
-		> MAX_MAP_LEAFS) { // this may cause hlvis to overflow, because
-						   // numportalleafs can be larger than g_numleafs
-						   // in some special cases
+	    > MAX_MAP_LEAFS) { // this may cause hlvis to overflow, because
+		                   // numportalleafs can be larger than g_numleafs
+		                   // in some special cases
 		Error(
 			"Too many portalleafs (g_portalleafs(%d) > MAX_MAP_LEAFS(%zd)).",
 			g_portalleafs,
@@ -545,8 +545,8 @@ static void LoadPortals(char* portal_image) {
 		g_leafcount_all += g_leafcounts[i];
 	}
 	if (g_leafcount_all
-		!= g_dmodels[0]
-			   .visleafs) { // internal error (this should never happen)
+	    != g_dmodels[0]
+	           .visleafs) { // internal error (this should never happen)
 		Error(
 			"Corrupted leaf mapping (g_leafcount_all(%d) != g_dmodels[0].visleafs(%d)).",
 			g_leafcount_all,
@@ -602,7 +602,7 @@ static void LoadPortals(char* portal_image) {
 			Error("LoadPortals: portal %i has too many points", i);
 		}
 		if (((unsigned) leafnums[0] > g_portalleafs)
-			|| ((unsigned) leafnums[1] > g_portalleafs)) {
+		    || ((unsigned) leafnums[1] > g_portalleafs)) {
 			Error("LoadPortals: reading portal %i", i);
 		}
 
@@ -715,7 +715,7 @@ static void Usage() {
 	Log("    -noinfo         : Do not show tool configuration information\n"
 	);
 	Log("    -dev %s : compile with developer logging\n\n",
-		(char const *) developer_level_options.data());
+	    (char const *) developer_level_options.data());
 	Log("    mapfile         : The mapfile to compile\n\n");
 
 	exit(1);
@@ -733,34 +733,34 @@ static void Settings() {
 
 	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
-		"-------------------|-----------|-------------------------\n");
+	    "-------------------|-----------|-------------------------\n");
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
 	Log("verbose             [ %7s ] [ %7s ]\n",
-		g_verbose ? "on" : "off",
-		cli_option_defaults::verbose ? "on" : "off");
+	    g_verbose ? "on" : "off",
+	    cli_option_defaults::verbose ? "on" : "off");
 	Log("log                 [ %7s ] [ %7s ]\n",
-		g_log ? "on" : "off",
-		cli_option_defaults::log ? "on" : "off");
+	    g_log ? "on" : "off",
+	    cli_option_defaults::log ? "on" : "off");
 	Log("developer           [ %7s ] [ %7s ]\n",
-		(char const *) name_of_developer_level(g_developer).data(),
-		(char const *)
-			name_of_developer_level(cli_option_defaults::developer)
-				.data());
+	    (char const *) name_of_developer_level(g_developer).data(),
+	    (char const *)
+	        name_of_developer_level(cli_option_defaults::developer)
+	            .data());
 	Log("chart               [ %7s ] [ %7s ]\n",
-		g_chart ? "on" : "off",
-		cli_option_defaults::chart ? "on" : "off");
+	    g_chart ? "on" : "off",
+	    cli_option_defaults::chart ? "on" : "off");
 	Log("estimate            [ %7s ] [ %7s ]\n",
-		g_estimate ? "on" : "off",
-		cli_option_defaults::estimate ? "on" : "off");
+	    g_estimate ? "on" : "off",
+	    cli_option_defaults::estimate ? "on" : "off");
 	Log("max texture memory  [ %7td ] [ %7td ]\n",
-		g_max_map_miptex,
-		cli_option_defaults::max_map_miptex);
+	    g_max_map_miptex,
+	    cli_option_defaults::max_map_miptex);
 
 	Log("max vis distance    [ %7d ] [ %7d ]\n",
-		g_maxdistance,
-		DEFAULT_MAXDISTANCE_RANGE);
+	    g_maxdistance,
+	    DEFAULT_MAXDISTANCE_RANGE);
 
 	switch (g_threadpriority) {
 		case q_threadpriority::eThreadPriorityNormal:
@@ -779,14 +779,14 @@ static void Settings() {
 
 	// HLVIS Specific Settings
 	Log("fast vis            [ %7s ] [ %7s ]\n",
-		g_fastvis ? "on" : "off",
-		DEFAULT_FASTVIS ? "on" : "off");
+	    g_fastvis ? "on" : "off",
+	    DEFAULT_FASTVIS ? "on" : "off");
 	Log("full vis            [ %7s ] [ %7s ]\n",
-		g_fullvis ? "on" : "off",
-		DEFAULT_FULLVIS ? "on" : "off");
+	    g_fullvis ? "on" : "off",
+	    DEFAULT_FULLVIS ? "on" : "off");
 	Log("nofixprt            [ %7s ] [ %7s ]\n",
-		g_nofixprt ? "on" : "off",
-		DEFAULT_NOFIXPRT ? "on" : "off");
+	    g_nofixprt ? "on" : "off",
+	    DEFAULT_NOFIXPRT ? "on" : "off");
 
 	Log("\n\n");
 }
@@ -826,7 +826,7 @@ void FixPrt(char const * portalfile) {
 	if (!inputFileStream) // If import fails
 	{
 		Log("Failed reading portal file '%s', skipping optimization for J.A.C.K. map editor\n",
-			portalfile);
+		    portalfile);
 		return;
 	}
 
@@ -850,8 +850,8 @@ void FixPrt(char const * portalfile) {
 		[](std::string const & s) {
 			return s.find('(')
 				!= std::string::npos; // Point iterator to the first string
-									  // that contains portal coordinates,
-									  // which has a bracket
+		                              // that contains portal coordinates,
+		                              // which has a bracket
 		}
 	);
 
@@ -863,15 +863,15 @@ void FixPrt(char const * portalfile) {
 		skipFix = true;
 	}
 	if (itPortalCoords
-		== prtVector.end()) // If it didn't find any line containing an
-							// opening bracket (the portal coordinates)
+	    == prtVector.end()) // If it didn't find any line containing an
+	                        // opening bracket (the portal coordinates)
 	{
 		Log("No portal coordinates detected in file\n");
 		skipFix = true;
 	}
 	if (itPortalCoords
-		== prtVector.begin()) // If the first line contains an opening
-							  // bracket (possible portal coordinates)
+	    == prtVector.begin()) // If the first line contains an opening
+	                          // bracket (possible portal coordinates)
 	{
 		Log("Unexpected possible portal coordinates at line 1\n");
 		skipFix = true;
@@ -881,7 +881,7 @@ void FixPrt(char const * portalfile) {
 		return;
 	}
 	prtVector.erase( // Deletes from string 3 until string before portal
-					 // coordinates
+	                 // coordinates
 		prtVector.begin() + 2,
 		itPortalCoords
 	);
@@ -890,13 +890,13 @@ void FixPrt(char const * portalfile) {
 	); // Count lines after optimization
 
 	Log("Reduced %zu lines to %zu\n",
-		portalFileLines,
-		optimizedPortalFileLines);
+	    portalFileLines,
+	    optimizedPortalFileLines);
 
 	// Print contents of vector
 	/*
 	for (std::string& line : prtVector)
-		Log("%s\n", line.c_str());
+	    Log("%s\n", line.c_str());
 	*/
 
 	std::ofstream outputFileStream; // Output to .prt file
@@ -911,11 +911,11 @@ void FixPrt(char const * portalfile) {
 		outputFileStream.close();
 
 		Log("Optimization for J.A.C.K. map editor successful, writing portal file '%s'\n",
-			portalfile);
+		    portalfile);
 	} else // If open fails
 	{
 		Log("Failed writing portal file '%s', skipping optimization for J.A.C.K. map editor\n",
-			portalfile);
+		    portalfile);
 		return;
 	}
 
@@ -949,7 +949,7 @@ int main(int const argc, char** argv) {
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
 							Log("Expected value below %zu for '-threads'\n",
-								MAX_THREADS);
+							    MAX_THREADS);
 							Usage();
 						}
 					} else {
@@ -1014,11 +1014,11 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (!arg.starts_with(u8'-')
-						   && mapname_from_arg.empty()) {
+				           && mapname_from_arg.empty()) {
 					mapname_from_arg = arg;
 				} else {
 					Log("Unknown option \"%s\"\n",
-						(char const *) arg.data());
+					    (char const *) arg.data());
 					Usage();
 				}
 			}
@@ -1059,7 +1059,7 @@ int main(int const argc, char** argv) {
 						= get_classname(g_entities[i]);
 
 					if (current_entity_classname
-						== u8"info_overview_point") {
+					    == u8"info_overview_point") {
 						if (g_overview_count < g_overview_max) {
 							float3_array const p{ get_float3_for_key(
 								g_entities[i], u8"origin"
@@ -1072,7 +1072,7 @@ int main(int const argc, char** argv) {
 							g_overview_count++;
 						}
 					} else if (current_entity_classname
-							   == u8"info_portal") {
+					           == u8"info_portal") {
 						if (g_room_count < g_room_max) {
 							float3_array const room_origin{
 								get_float3_for_key(
@@ -1107,7 +1107,7 @@ int main(int const argc, char** argv) {
 										u8"classname",
 										u8"info_leaf"
 									)
-									&& key_value_is(
+								    && key_value_is(
 										&g_entities[j],
 										u8"targetname",
 										target
@@ -1150,12 +1150,12 @@ int main(int const argc, char** argv) {
 
 			g_visdatasize = vismap_p - (byte*) g_dvisdata.data();
 			Log("g_visdatasize:%i  compressed from %i\n",
-				g_visdatasize,
-				originalvismapsize);
+			    g_visdatasize,
+			    originalvismapsize);
 
 			if (!g_nofixprt) {
 				FixPrt(path_to_temp_file_with_extension(g_Mapname, u8".prt")
-						   .c_str());
+				           .c_str());
 			}
 
 			if (g_chart) {

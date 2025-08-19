@@ -87,9 +87,9 @@ void CheckForErrorLog() {
 		};
 		if (std::filesystem::exists(errorFilePath)) {
 			Log(">> There was a problem compiling the map.\n"
-				">> Check the files %s and %s for the cause.\n",
-				errorFilePath.c_str(),
-				path_to_log_file(g_Mapname).c_str());
+			    ">> Check the files %s and %s for the cause.\n",
+			    errorFilePath.c_str(),
+			    path_to_log_file(g_Mapname).c_str());
 			exit(1);
 		}
 	}
@@ -171,7 +171,7 @@ void CheckFatal() {
 	}
 }
 
-#define MAX_ERROR	2048
+#define MAX_ERROR   2048
 #define MAX_WARNING 2048
 #define MAX_MESSAGE 2048
 
@@ -330,7 +330,7 @@ static void DisplayDeveloperLevel() {
 	}
 
 	Log("Developer messages enabled, logging everything above level: %s\n",
-		(char const *) name_of_developer_level(g_developer).data());
+	    (char const *) name_of_developer_level(g_developer).data());
 }
 
 // =====================================================================================
@@ -381,16 +381,16 @@ static void LogCommandLine(int argc, char** argv) {
 // =====================================================================================
 void Banner() {
 	Log((char const *) u8"%s %s %s\n",
-		(char const *) g_Program.data(),
-		(char const *) projectVersionString.data(),
-		(char const *) projectPlatformVersion.data());
+	    (char const *) g_Program.data(),
+	    (char const *) projectVersionString.data(),
+	    (char const *) projectPlatformVersion.data());
 
 	Log((char const *) u8"" PROJECT_NAME "\n"
-					   "By Oskar Larsson Högfeldt AKA Oskar_Potatis ( https://oskar.pm/ )\n"
-					   "Based on code modifications by Sean \"Zoner\" Cavanaugh, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike, and seedee.\n"
-					   "Based on Valve's compile tools, modified with permission.\n"
-					   "Submit detailed bug reports to %s\n",
-		(char const *) projectIssueTracker.data());
+	                   "By Oskar Larsson Högfeldt AKA Oskar_Potatis ( https://oskar.pm/ )\n"
+	                   "Based on code modifications by Sean \"Zoner\" Cavanaugh, amckern, Tony \"Merl\" Moore, Vluzacn, Uncle Mike, and seedee.\n"
+	                   "Based on Valve's compile tools, modified with permission.\n"
+	                   "Submit detailed bug reports to %s\n",
+	    (char const *) projectIssueTracker.data());
 }
 
 // =====================================================================================
@@ -408,7 +408,7 @@ void LogStart(int argc, char** argv) {
 // =====================================================================================
 void LogEnd() {
 	Log("\n-----   END   %s -----\n\n\n\n",
-		(char const *) g_Program.data());
+	    (char const *) g_Program.data());
 }
 
 // =====================================================================================
@@ -469,22 +469,22 @@ void LogTimeElapsed(float elapsed_time) {
 
 	if (days) {
 		Log("%.2f seconds elapsed [%ud %uh %um %us]\n",
-			elapsed_time,
-			days,
-			hours,
-			minutes,
-			seconds);
+		    elapsed_time,
+		    days,
+		    hours,
+		    minutes,
+		    seconds);
 	} else if (hours) {
 		Log("%.2f seconds elapsed [%uh %um %us]\n",
-			elapsed_time,
-			hours,
-			minutes,
-			seconds);
+		    elapsed_time,
+		    hours,
+		    minutes,
+		    seconds);
 	} else if (minutes) {
 		Log("%.2f seconds elapsed [%um %us]\n",
-			elapsed_time,
-			minutes,
-			seconds);
+		    elapsed_time,
+		    minutes,
+		    seconds);
 	} else {
 		Log("%.2f seconds elapsed\n", elapsed_time);
 	}

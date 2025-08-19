@@ -30,7 +30,7 @@ constexpr std::size_t chars_needed_for_negative_largest_fp_in_text =
 template <std::floating_point FP>
 constexpr std::size_t max_chars_needed_for_fp_in_text = std::
 	max(chars_needed_for_negative_smallest_fp_in_text<FP>,
-		chars_needed_for_negative_largest_fp_in_text<FP>);
+        chars_needed_for_negative_largest_fp_in_text<FP>);
 
 struct bool_key_value_def {
 	std::u8string_view keyName;
@@ -61,8 +61,8 @@ struct integer_key_value_def {
 			char8_t,
 			std::numeric_limits<Int>::digits10 + 2
 			// +1 for "-" and +1 because digits10 only includes
-			// digits that can have any value (so the '2' in 255 for
-			// std::uint8_t isn't included)
+		    // digits that can have any value (so the '2' in 255 for
+		    // std::uint8_t isn't included)
 			>
 			chars;
 
@@ -180,7 +180,7 @@ struct fp_key_value_def {
 	template <std::floating_point OtherFP>
 	fp_key_value_def<OtherFP> as() const noexcept {
 		return { .keyName = keyName,
-				 .defaultValue = OtherFP(defaultValue) };
+			     .defaultValue = OtherFP(defaultValue) };
 	}
 };
 
@@ -196,7 +196,7 @@ struct vec3_key_value_def {
 			char8_t,
 			max_chars_needed_for_fp_in_text<FP> * 3
 				+ 3 // 2 spaces between, and 1 extra at the end for simpler
-					// logic
+		            // logic
 			>
 			chars;
 
@@ -259,7 +259,7 @@ struct vec3_key_value_def {
 	template <std::floating_point OtherFP>
 	vec3_key_value_def<OtherFP> as() const noexcept {
 		return { .keyName = keyName,
-				 .defaultValue = to_vec3<OtherFP>(defaultValue) };
+			     .defaultValue = to_vec3<OtherFP>(defaultValue) };
 	}
 };
 

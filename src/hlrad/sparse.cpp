@@ -161,7 +161,7 @@ static void TestPatchToFace(
 		dplane_t const * plane2 = getPlaneFromFaceNumber(facenum);
 
 		if (dot_product(patch->origin, plane2->normal)
-			> PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
+		    > PatchPlaneDist(patch2) + ON_EPSILON - patch->emitter_range) {
 			// we need to do a real test
 			dplane_t const * plane = getPlaneFromFaceNumber(
 				patch->faceNumber
@@ -179,7 +179,7 @@ static void TestPatchToFace(
 				//  && v2 is visible from v1
 				if (m > patchnum) {
 					if (patch2->leafnum == 0
-						|| !(
+					    || !(
 							pvs[(patch2->leafnum - 1) >> 3]
 							& (1 << ((patch2->leafnum - 1) & 7))
 						)) {
@@ -197,7 +197,7 @@ static void TestPatchToFace(
 						origin2 = patch2->origin;
 					}
 					if (dot_product(origin2, plane->normal)
-						<= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
+					    <= PatchPlaneDist(patch) + MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
 					if (dist < patch->emitter_range - ON_EPSILON) {
@@ -208,8 +208,8 @@ static void TestPatchToFace(
 						origin1 = patch->origin;
 					}
 					if (dot_product(origin1, plane2->normal)
-						<= PatchPlaneDist(patch2)
-							+ MINIMUM_PATCH_DISTANCE) {
+					    <= PatchPlaneDist(patch2)
+					        + MINIMUM_PATCH_DISTANCE) {
 						continue;
 					}
 					if (TestLine(origin1, origin2) != contents_t::EMPTY) {
@@ -227,7 +227,7 @@ static void TestPatchToFace(
 					}
 
 					if (g_customshadow_with_bouncelight
-						&& !vectors_almost_same(
+					    && !vectors_almost_same(
 							transparency, float3_array{ 1.0, 1.0, 1.0 }
 						)) {
 						AddTransparencyToRawArray(
@@ -292,7 +292,7 @@ static void BuildVisLeafs(int threadnum) {
 		//
 		for (int facenum = 0; facenum < g_numfaces; facenum++) {
 			for (patch_t const * patch = g_face_patches[facenum]; patch;
-				 patch = patch->next) {
+			     patch = patch->next) {
 				if (patch->leafnum != i) {
 					continue;
 				}
@@ -301,7 +301,7 @@ static void BuildVisLeafs(int threadnum) {
 					uncompressedcolumn[m] = false;
 				}
 				for (int facenum2 = facenum + 1; facenum2 < g_numfaces;
-					 facenum2++) {
+				     facenum2++) {
 					TestPatchToFace(
 						patchnum,
 						facenum2,
@@ -346,8 +346,8 @@ static void DumpVismatrixInfo() {
 	}
 
 	Log("%-20s: %5.1f megs\n",
-		"visibility matrix",
-		total_vismatrix_memory / (1024 * 1024.0));
+	    "visibility matrix",
+	    total_vismatrix_memory / (1024 * 1024.0));
 }
 
 //
@@ -364,7 +364,7 @@ void MakeScalesSparseVismatrix() {
 	};
 
 	if (!g_incremental
-		|| !readtransfers(transferFilePath.c_str(), g_patches.size())) {
+	    || !readtransfers(transferFilePath.c_str(), g_patches.size())) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		DumpVismatrixInfo();

@@ -5,9 +5,9 @@
 #include <list>
 
 struct btreepoint_t; // 0d object
-struct btreeedge_t;	 // 1d object
-struct btreeface_t;	 // 2d object
-struct btreeleaf_t;	 // 3d object
+struct btreeedge_t;  // 1d object
+struct btreeface_t;  // 2d object
+struct btreeleaf_t;  // 3d object
 
 struct bpartition_t final {
 	bbrinklevel_e type;
@@ -20,7 +20,7 @@ struct bpartition_t final {
 struct bclipnode_t final {
 	mapplane_t const * plane;
 	bclipnode_t* children[2]; // children[0] is the front side of the plane
-							  // (face_side::front = 0)
+	                          // (face_side::front = 0)
 	bpartition_t* partitions;
 	btreeleaf_t* treeleaf;
 

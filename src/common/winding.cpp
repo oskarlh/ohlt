@@ -337,10 +337,10 @@ void winding_base<VecElement>::RemoveColinearPoints(vec_element epsilon) {
 		vec3 const v2 = vector_subtract(p3, p2);
 		// v1 or v2 might be close to 0
 		if (dot_product(v1, v2) * dot_product(v1, v2)
-			>= dot_product(v1, v1) * dot_product(v2, v2)
-				- epsilon * epsilon
-					* (dot_product(v1, v1) + dot_product(v2, v2)
-					   + epsilon * epsilon))
+		    >= dot_product(v1, v1) * dot_product(v2, v2)
+		        - epsilon * epsilon
+		            * (dot_product(v1, v1) + dot_product(v2, v2)
+		               + epsilon * epsilon))
 		// v2 == k * v1 + v3 && abs (v3) < epsilon || v1 == k * v2 + v3 &&
 		// abs (v3) < epsilon
 		{
@@ -417,8 +417,8 @@ void winding_base<VecElement>::Clip(
 		}
 
 		if ((sides[i + 1] == face_side::on)
-			| (sides[i + 1] == sides[i]
-			)) // | instead of || for branch optimization
+		    | (sides[i + 1] == sides[i]
+		    )) // | instead of || for branch optimization
 		{
 			continue;
 		}
@@ -433,7 +433,7 @@ void winding_base<VecElement>::Clip(
 		vec_element dot = dists[i] / (dists[i] - dists[i + 1]);
 
 		for (std::size_t j = 0; j < 3;
-			 j++) { // avoid round off error when possible
+		     j++) { // avoid round off error when possible
 			if (normal[j] == 1) {
 				mid[j] = planeDist;
 			} else if (normal[j] == -1) {
@@ -531,7 +531,7 @@ bool winding_base<VecElement>::mutating_clip(
 	// NORMAL_EPSILON` check... should it?
 
 	if (keepon && !counts[std::to_underlying(face_side::front)]
-		&& !counts[std::to_underlying(face_side::back)]) {
+	    && !counts[std::to_underlying(face_side::back)]) {
 		return true;
 	}
 
@@ -570,7 +570,7 @@ bool winding_base<VecElement>::mutating_clip(
 		vec3 const & p2 = point(tmp);
 		vec_element const dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (std::size_t j = 0; j < 3;
-			 ++j) { // avoid round off error when possible
+		     ++j) { // avoid round off error when possible
 			if (planeNormal[j] == 1) {
 				mid[j] = planeDist;
 			} else if (planeNormal[j] == -1) {
@@ -685,7 +685,7 @@ void winding_base<VecElement>::clip(
 		vec3 const & p2 = point(tmp);
 		vec_element dot = dists[i] / (dists[i] - dists[i + 1]);
 		for (std::size_t j = 0; j < 3;
-			 j++) { // avoid round off error when possible
+		     j++) { // avoid round off error when possible
 			if (dividingPlaneNormal[j] == 1) {
 				mid[j] = dividingPlaneDist;
 			} else if (dividingPlaneNormal[j] == -1) {

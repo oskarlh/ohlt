@@ -128,7 +128,7 @@ void ParseEntityData(
 	CEntityList EntityList; // Parsed entities.
 
 	int iIndex = 0; // Current char in g_dentdata.
-	int iLine = 0;	// Current line in g_dentdata.
+	int iLine = 0;  // Current line in g_dentdata.
 
 	char cError[256] = "";
 
@@ -235,8 +235,8 @@ void ParseEntityData(
 		int iNewLength = 0;
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end();
-			 ++i) {
+		     i != EntityList.end();
+		     ++i) {
 			// Opening brace.
 			iNewLength += 1;
 
@@ -246,8 +246,8 @@ void ParseEntityData(
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end();
-				 ++j) {
+			     j != EntityPairList->end();
+			     ++j) {
 				// Tab.
 				iNewLength += iTabLength;
 
@@ -303,8 +303,8 @@ void ParseEntityData(
 		Log("Formating entity data.\n\n");
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end();
-			 ++i) {
+		     i != EntityList.end();
+		     ++i) {
 			// Opening brace.
 			g_dentdata[g_entdatasize] = u8'{';
 			g_entdatasize += 1;
@@ -318,8 +318,8 @@ void ParseEntityData(
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end();
-				 ++j) {
+			     j != EntityPairList->end();
+			     ++j) {
 				// Tab.
 				std::memcpy(&g_dentdata[g_entdatasize], cTab, iTabLength);
 				g_entdatasize += iTabLength;
@@ -375,13 +375,13 @@ void ParseEntityData(
 		//
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end();
-			 ++i) {
+		     i != EntityList.end();
+		     ++i) {
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end();
-				 ++j) {
+			     j != EntityPairList->end();
+			     ++j) {
 				delete[] *j;
 			}
 
@@ -395,13 +395,13 @@ void ParseEntityData(
 		//
 
 		for (CEntityList::iterator i = EntityList.begin();
-			 i != EntityList.end();
-			 ++i) {
+		     i != EntityList.end();
+		     ++i) {
 			CEntityPairList* EntityPairList = *i;
 
 			for (CEntityPairList::iterator j = EntityPairList->begin();
-				 j != EntityPairList->end();
-				 ++j) {
+			     j != EntityPairList->end();
+			     ++j) {
 				delete[] *j;
 			}
 
@@ -503,8 +503,8 @@ static void WriteTextures(char const * const name) {
 		std::uint32_t size = g_texdatasize - ofs;
 		for (int j = 0; j < numMipTex; ++j) {
 			if (ofs < ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]
-				&& ofs + size
-					> ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]) {
+			    && ofs + size
+			        > ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]) {
 				size = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[j]
 					- ofs;
 			}
@@ -716,15 +716,15 @@ static void Settings() {
 
 	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
-		"-------------------|-----------|-------------------------\n");
+	    "-------------------|-----------|-------------------------\n");
 
 	// ZHLT Common Settings
 	Log("chart               [ %7s ] [ %7s ]\n",
-		g_chart ? "on" : "off",
-		cli_option_defaults::chart ? "on" : "off");
+	    g_chart ? "on" : "off",
+	    cli_option_defaults::chart ? "on" : "off");
 	Log("max texture memory  [ %7td ] [ %7td ]\n",
-		g_max_map_miptex,
-		cli_option_defaults::max_map_miptex);
+	    g_max_map_miptex,
+	    cli_option_defaults::max_map_miptex);
 
 	switch (g_mode) {
 		case hl_import:
@@ -744,8 +744,8 @@ static void Settings() {
 	// RipEnt Specific Settings
 	Log("mode                [ %7s ] [ %7s ]\n", tmp, "N/A");
 	Log("parse               [ %7s ] [ %7s ]\n",
-		g_parse ? "on" : "off",
-		DEFAULT_PARSE ? "on" : "off");
+	    g_parse ? "on" : "off",
+	    DEFAULT_PARSE ? "on" : "off");
 	switch (g_texturemode) {
 		case hl_import:
 			tmp = "Import";
@@ -760,14 +760,14 @@ static void Settings() {
 	}
 	Log("texture mode        [ %7s ] [ %7s ]\n", tmp, "N/A");
 	Log("texture parse       [ %7s ] [ %7s ]\n",
-		g_textureparse ? "on" : "off",
-		DEFAULT_TEXTUREPARSE ? "on" : "off");
+	    g_textureparse ? "on" : "off",
+	    DEFAULT_TEXTUREPARSE ? "on" : "off");
 	Log("write extent file   [ %7s ] [ %7s ]\n",
-		g_writeextentfile ? "on" : "off",
-		DEFAULT_WRITEEXTENTFILE ? "on" : "off");
+	    g_writeextentfile ? "on" : "off",
+	    DEFAULT_WRITEEXTENTFILE ? "on" : "off");
 	Log("delete rad textures [ %7s ] [ %7s ]\n",
-		g_deleteembeddedlightmaps ? "on" : "off",
-		DEFAULT_DELETEEMBEDDEDLIGHTMAPS ? "on" : "off");
+	    g_deleteembeddedlightmaps ? "on" : "off",
+	    DEFAULT_DELETEEMBEDDEDLIGHTMAPS ? "on" : "off");
 
 	Log("\n\n");
 }
@@ -865,7 +865,7 @@ int main(int argc, char** argv) {
 
 			if (!std::filesystem::exists(source)) {
 				Log("bspfile '%s' does not exist\n",
-					source.c_str()); //--vluzacn
+				    source.c_str()); //--vluzacn
 				Usage();
 			}
 

@@ -10,7 +10,7 @@ static std::vector<model_t> models;
 static void LoadStudioModel(
 	std::filesystem::path
 		relativePathToModel, // Example:
-							 // "models/tjb_christmas/hohoho_machinegun.mdl"
+                             // "models/tjb_christmas/hohoho_machinegun.mdl"
 	float3_array const & origin,
 	float3_array const & angles,
 	float3_array const & scale,
@@ -76,7 +76,7 @@ static void LoadStudioModel(
 		std::size_t const oldLength = phdr->length;
 		std::size_t const newLength = oldLength + thdr->length
 			- sizeof(studiohdr_t
-			); // The -sizeof is because we don't need two headers
+		    ); // The -sizeof is because we don't need two headers
 
 		// Merge textures with main model buffer
 		std::unique_ptr<std::byte[]> newBuffer{

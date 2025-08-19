@@ -4,7 +4,7 @@
 
 using byte = unsigned char;
 
-using float3_array = std::array<float, 3>;	 // x, y, z
+using float3_array = std::array<float, 3>;   // x, y, z
 using double3_array = std::array<double, 3>; // x, y, z
 
 template <class T>
@@ -49,8 +49,8 @@ template <std::floating_point OutElement, std::floating_point InElement>
 constexpr std::array<OutElement, 3>
 to_vec3(std::array<InElement, 3> const & input) noexcept {
 	return std::array{ OutElement(input[0]),
-					   OutElement(input[1]),
-					   OutElement(input[2]) };
+		               OutElement(input[1]),
+		               OutElement(input[2]) };
 }
 
 template <std::floating_point OutElement, std::floating_point InElement>

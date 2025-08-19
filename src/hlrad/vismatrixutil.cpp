@@ -82,7 +82,7 @@ static transfer_index_t* CompressTransferIndicies(
 		transfer_raw_index_t* raw = tRaw;
 		transfer_raw_index_t* end = tRaw + rawSize
 			- 1; // -1 since we are comparing current with next and get
-				 // errors when bumping into the 'end'
+		         // errors when bumping into the 'end'
 
 		unsigned compressed_count_1 = 0;
 
@@ -224,7 +224,7 @@ void MakeScales(int const threadnum) {
 
 		std::vector<patch_t>::const_iterator patch2;
 		for (j = 0, patch2 = g_patches.begin(); patch2 < g_patches.end();
-			 j++, patch2++) {
+		     j++, patch2++) {
 			float dot1;
 			float dot2;
 
@@ -235,10 +235,10 @@ void MakeScales(int const threadnum) {
 			if (!g_CheckVisBit(
 					i, j, transparency, fastfind_index, g_transparencyList
 				)
-				|| (i == j)) {
+			    || (i == j)) {
 				if (patch->translucent_b) {
 					if ((i == j)
-						|| !CheckVisBitBackwards(
+					    || !CheckVisBitBackwards(
 							i, j, backorigin, backnormal, transparency
 						)) {
 						continue;
@@ -279,7 +279,7 @@ void MakeScales(int const threadnum) {
 			}
 			trans = (dot1 * dot2)
 				/ (dist * dist); // Inverse square falloff factoring angle
-								 // between patch normals
+			                     // between patch normals
 			if (trans * patch2->area > 0.8f) {
 				trans = 0.8f / patch2->area;
 			}
@@ -308,12 +308,12 @@ void MakeScales(int const threadnum) {
 				float frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition
-											 // between the two methods
+				                             // between the two methods
 				frac = std::max((float) 0, std::min(frac, (float) 1));
 				trans = frac * trans
 					+ (1 - frac)
 						* (sightarea / patch2->area
-						); // because later we will multiply this back
+				        ); // because later we will multiply this back
 			} else {
 				if (light_behind_surface) {
 					continue;
@@ -371,10 +371,10 @@ void MakeScales(int const threadnum) {
 
 				float f;
 				for (x = 0; x < patch->iData;
-					 x++,
-					t1
-					 += float_size[(std::size_t) g_transfer_compress_type],
-					t2++) {
+				     x++,
+				    t1
+				     += float_size[(std::size_t) g_transfer_compress_type],
+				    t2++) {
 					f = (*t2) * total;
 					float_compress(g_transfer_compress_type, t1, f);
 				}
@@ -483,7 +483,7 @@ void MakeRGBScales(int const threadnum) {
 
 		std::vector<patch_t>::const_iterator patch2;
 		for (j = 0, patch2 = g_patches.begin(); patch2 != g_patches.end();
-			 j++, patch2++) {
+		     j++, patch2++) {
 			float dot1;
 			float dot2;
 			float3_array transparency = { 1.0, 1.0, 1.0 };
@@ -492,12 +492,12 @@ void MakeRGBScales(int const threadnum) {
 			if (!g_CheckVisBit(
 					i, j, transparency, fastfind_index, g_transparencyList
 				)
-				|| (i == j)) {
+			    || (i == j)) {
 				if (patch->translucent_b) {
 					if (!CheckVisBitBackwards(
 							i, j, backorigin, backnormal, transparency
 						)
-						|| (i == j)) {
+					    || (i == j)) {
 						continue;
 					}
 					useback = true;
@@ -536,7 +536,7 @@ void MakeRGBScales(int const threadnum) {
 			}
 			trans_one = (dot1 * dot2)
 				/ (dist * dist); // Inverse square falloff factoring angle
-								 // between patch normals
+			                     // between patch normals
 
 			if (trans_one * patch2->area > 0.8f) {
 				trans_one = 0.8f / patch2->area;
@@ -566,12 +566,12 @@ void MakeRGBScales(int const threadnum) {
 				float frac;
 				frac = dist / patch2->emitter_range;
 				frac = (frac - 0.5f) * 2.0f; // make a smooth transition
-											 // between the two methods
+				                             // between the two methods
 				frac = std::max((float) 0, std::min(frac, (float) 1));
 				trans_one = frac * trans_one
 					+ (1 - frac)
 						* (sightarea / patch2->area
-						); // because later we will multiply this back
+				        ); // because later we will multiply this back
 			} else if (light_behind_surface) {
 				continue;
 			}
@@ -632,9 +632,9 @@ void MakeRGBScales(int const threadnum) {
 
 				float3_array f;
 				for (x = 0; x < patch->iData; x++,
-					t1 += vector_size[(std::size_t
-					) g_rgbtransfer_compress_type],
-					++t2) {
+				    t1 += vector_size[(std::size_t
+				    ) g_rgbtransfer_compress_type],
+				    ++t2) {
 					f = vector_scale(*t2, total);
 					vector_compress(
 						g_rgbtransfer_compress_type, t1, f[0], f[1], f[2]
@@ -667,40 +667,40 @@ void MakeRGBScales(int const threadnum) {
 void DumpTransfersMemoryUsage() {
 	if (g_total_transfer > 1000 * 1000) {
 		Log("Transfer Lists : %11.0f : %8.2fM transfers\n",
-			(float) g_total_transfer,
-			(float) g_total_transfer / (1000.0f * 1000.0f));
+		    (float) g_total_transfer,
+		    (float) g_total_transfer / (1000.0f * 1000.0f));
 	} else if (g_total_transfer > 1000) {
 		Log("Transfer Lists : %11.0f : %8.2fk transfers\n",
-			(float) g_total_transfer,
-			(float) g_total_transfer / 1000.0f);
+		    (float) g_total_transfer,
+		    (float) g_total_transfer / 1000.0f);
 	} else {
 		Log("Transfer Lists : %11.0f transfers\n",
-			(float) g_total_transfer);
+		    (float) g_total_transfer);
 	}
 
 	if (g_transfer_index_bytes > 1024 * 1024) {
 		Log("       Indices : %11.0f : %8.2fM bytes\n",
-			(double) g_transfer_index_bytes,
-			(double) g_transfer_index_bytes / (1024.0f * 1024.0f));
+		    (double) g_transfer_index_bytes,
+		    (double) g_transfer_index_bytes / (1024.0f * 1024.0f));
 	} else if (g_transfer_index_bytes > 1024) {
 		Log("       Indices : %11.0f : %8.2fk bytes\n",
-			(double) g_transfer_index_bytes,
-			(double) g_transfer_index_bytes / 1024.0f);
+		    (double) g_transfer_index_bytes,
+		    (double) g_transfer_index_bytes / 1024.0f);
 	} else {
 		Log("       Indices : %11.0f bytes\n",
-			(double) g_transfer_index_bytes);
+		    (double) g_transfer_index_bytes);
 	}
 
 	if (g_transfer_data_bytes > 1024 * 1024) {
 		Log("          Data : %11.0f : %8.2fM bytes\n",
-			(double) g_transfer_data_bytes,
-			(double) g_transfer_data_bytes / (1024.0f * 1024.0f));
+		    (double) g_transfer_data_bytes,
+		    (double) g_transfer_data_bytes / (1024.0f * 1024.0f));
 	} else if (g_transfer_data_bytes > 1024) {
 		Log("          Data : %11.0f : %8.2fk bytes\n",
-			(double) g_transfer_data_bytes,
-			(double) g_transfer_data_bytes / 1024.0f);
+		    (double) g_transfer_data_bytes,
+		    (double) g_transfer_data_bytes / 1024.0f);
 	} else {
 		Log("          Data : %11.0f bytes\n",
-			(double) g_transfer_data_bytes);
+		    (double) g_transfer_data_bytes);
 	}
 }

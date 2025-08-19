@@ -64,15 +64,15 @@ CreateBrink(double3_array const & start, double3_array const & stop) {
 
 void PrintBrink(bbrink_t const & b) {
 	Log("direction %f %f %f start %f %f %f stop %f %f %f\n",
-		b.direction[0],
-		b.direction[1],
-		b.direction[2],
-		b.start[0],
-		b.start[1],
-		b.start[2],
-		b.stop[0],
-		b.stop[1],
-		b.stop[2]);
+	    b.direction[0],
+	    b.direction[1],
+	    b.direction[2],
+	    b.start[0],
+	    b.start[1],
+	    b.start[2],
+	    b.stop[0],
+	    b.stop[1],
+	    b.stop[2]);
 	Log("numnodes %d\n", b.numnodes);
 	for (int i = 0; i < b.numnodes; i++) {
 		bbrinknode_t const * n = &b.nodes[i];
@@ -80,13 +80,13 @@ void PrintBrink(bbrink_t const & b) {
 			Log("leaf[%d] content %d\n", i, std::to_underlying(n->content));
 		} else {
 			Log("node[%d]-[%d:%d] plane %f %f %f %f\n",
-				i,
-				n->children[0],
-				n->children[1],
-				n->plane->normal[0],
-				n->plane->normal[1],
-				n->plane->normal[2],
-				n->plane->dist);
+			    i,
+			    n->children[0],
+			    n->children[1],
+			    n->plane->normal[0],
+			    n->plane->normal[1],
+			    n->plane->normal[2],
+			    n->plane->dist);
 		}
 	}
 }
@@ -186,27 +186,27 @@ struct btreepoint_t final {
 };
 
 struct btreeedge_t final {
-	btreeface_l* faces;		// this is a reversed reference
-	bbrink_t* brink;		// not defined for infinite edges
+	btreeface_l* faces;     // this is a reversed reference
+	bbrink_t* brink;        // not defined for infinite edges
 	btreepoint_r points[2]; // pointing from points[1] to points[0]
 	face_side tmp_side;
 	bool infinite; // both points are infinite (i.e. this edge lies on the
-				   // bounding box)
+	               // bounding box)
 	bool tmp_tested;
 	bool tmp_onleaf[2];
 };
 
 struct btreeface_t final {
 	mapplane_t const * plane; // not defined for infinite face
-	btreeedge_l* edges;	  // empty faces are allowed (in order to preserve
-						  // topological correctness)
+	btreeedge_l* edges;   // empty faces are allowed (in order to preserve
+	                      // topological correctness)
 	btreeleaf_r leafs[2]; // pointing from leafs[0] to leafs[1] // this is a
-						  // reversed reference
+	                      // reversed reference
 
 	int planenum;
 	face_side tmp_side;
-	bool infinite;	// when the face is infinite, all its edges must also be
-					// infinite
+	bool infinite; // when the face is infinite, all its edges must also be
+	               // infinite
 	bool planeside; // if ture, this face is pointing at -plane->normal
 	bool tmp_tested;
 };
@@ -421,7 +421,7 @@ void RemoveEdgeFromList(btreeedge_l* el, btreeedge_t* te, bool side) {
 		if (ei->e == te && ei->side == side) {
 			el->erase(ei);
 			return; // only remove one copy if there are many (in order to
-					// preserve topological correctness)
+			        // preserve topological correctness)
 		}
 	}
 	PrintOnce("RemoveEdgeFromList: internal error: edge not found.");
@@ -608,7 +608,7 @@ void SplitTreeLeaf(
 	for (fi = tl->faces->begin(); fi != tl->faces->end(); fi++) {
 		btreeface_t* tf = fi->f;
 		for (ei = tf->edges->begin(); ei != tf->edges->end();
-			 restart ? restart = false, ei = tf->edges->begin() : ei++) {
+		     restart ? restart = false, ei = tf->edges->begin() : ei++) {
 			btreeedge_t* te = ei->e;
 			if (te->tmp_tested) // splitted
 			{
@@ -621,7 +621,7 @@ void SplitTreeLeaf(
 				if (te->tmp_side == face_side::on) {
 					te->tmp_side = tp->tmp_side;
 				} else if (tp->tmp_side != face_side::on
-						   && tp->tmp_side != te->tmp_side) {
+				           && tp->tmp_side != te->tmp_side) {
 					te->tmp_side = face_side::cross;
 				}
 			}
@@ -680,7 +680,7 @@ void SplitTreeLeaf(
 
 	// split each face
 	for (fi = tl->faces->begin(); fi != tl->faces->end();
-		 restart ? restart = false, fi = tl->faces->begin() : fi++) {
+	     restart ? restart = false, fi = tl->faces->begin() : fi++) {
 		btreeface_t* tf = fi->f;
 		if (tf->tmp_tested) {
 			continue;
@@ -691,7 +691,7 @@ void SplitTreeLeaf(
 			if (tf->tmp_side == face_side::on) {
 				tf->tmp_side = ei->e->tmp_side;
 			} else if (ei->e->tmp_side != face_side::on
-					   && ei->e->tmp_side != tf->tmp_side) {
+			           && ei->e->tmp_side != tf->tmp_side) {
 				tf->tmp_side = face_side::cross;
 			}
 		}
@@ -737,8 +737,8 @@ void SplitTreeLeaf(
 						btreepoint_t* p = GetPointFromEdge(e, side);
 						vertexes[p]
 							+= ((bool) side == ei->side ? 1 : -1
-							); // the default value is 0 if vertexes[p] does
-							   // not exist
+						    ); // the default value is 0 if vertexes[p] does
+						       // not exist
 						vertex = vertexes.find(p);
 						if (vertex->second == 0) {
 							vertexes.erase(vertex);
@@ -755,13 +755,13 @@ void SplitTreeLeaf(
 
 			while (1) {
 				for (vertex = vertexes.begin(); vertex != vertexes.end();
-					 vertex++) {
+				     vertex++) {
 					if (vertex->second > 0) {
 						break;
 					}
 				}
 				for (vertex2 = vertexes.begin(); vertex2 != vertexes.end();
-					 vertex2++) {
+				     vertex2++) {
 					if (vertex2->second < 0) {
 						break;
 					}
@@ -782,7 +782,7 @@ void SplitTreeLeaf(
 					);
 				}
 				if (vertex->first->tmp_side != face_side::on
-					|| vertex2->first->tmp_side != face_side::on) {
+				    || vertex2->first->tmp_side != face_side::on) {
 					PrintOnce(
 						"SplitTreeLeaf: internal error: tmp_side != face_side::on"
 					);
@@ -797,7 +797,7 @@ void SplitTreeLeaf(
 						CreateBrink(vertex2->first->v, vertex->first->v)
 					};
 					if (GetLeafFromFace(tf, tf->planeside)->infinite
-						|| GetLeafFromFace(tf, !tf->planeside)->infinite) {
+					    || GetLeafFromFace(tf, !tf->planeside)->infinite) {
 						PrintOnce(
 							"SplitTreeLeaf: internal error: an infinite object contains a finite object"
 						);
@@ -847,7 +847,7 @@ void SplitTreeLeaf(
 			if (tmp_side == face_side::on) {
 				tmp_side = fi->f->tmp_side;
 			} else if (fi->f->tmp_side != face_side::on
-					   && fi->f->tmp_side != tmp_side) {
+			           && fi->f->tmp_side != tmp_side) {
 				tmp_side = face_side::cross;
 			}
 		}
@@ -864,17 +864,17 @@ void SplitTreeLeaf(
 
 			// fi is unusable now
 			if (tf->tmp_side == face_side::front
-				|| (tf->tmp_side == face_side::on
-					&& tmp_side != face_side::back)) {
+			    || (tf->tmp_side == face_side::on
+			        && tmp_side != face_side::back)) {
 				AttachFaceToLeaf(front, tf, side);
 			} else if (tf->tmp_side == face_side::back
-					   || (tf->tmp_side == face_side::on
-						   && tmp_side == face_side::back)) {
+			           || (tf->tmp_side == face_side::on
+			               && tmp_side == face_side::back)) {
 				AttachFaceToLeaf(back, tf, side);
 
 				if (tmp_side == face_side::cross) {
 					for (ei = tf->edges->begin(); ei != tf->edges->end();
-						 ei++) {
+					     ei++) {
 						edges[ei->e] += (ei->side == (bool) side ? 1 : -1);
 						edge = edges.find(ei->e);
 						if (edge->second == 0) {
@@ -915,10 +915,10 @@ void SplitTreeLeaf(
 		btreeleaf_t* frontback[2]{ front, back };
 		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end();
-				 fi++) {
+			     fi != frontback[side]->faces->end();
+			     fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
-					 ei++) {
+				     ei++) {
 					ei->e->tmp_onleaf[0] = ei->e->tmp_onleaf[1] = false;
 					ei->e->tmp_tested = false;
 				}
@@ -926,20 +926,20 @@ void SplitTreeLeaf(
 		}
 		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end();
-				 fi++) {
+			     fi != frontback[side]->faces->end();
+			     fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
-					 ei++) {
+				     ei++) {
 					ei->e->tmp_onleaf[side] = true;
 				}
 			}
 		}
 		for (std::size_t side = 0; side < 2; ++side) {
 			for (fi = frontback[side]->faces->begin();
-				 fi != frontback[side]->faces->end();
-				 fi++) {
+			     fi != frontback[side]->faces->end();
+			     fi++) {
 				for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
-					 ei++) {
+				     ei++) {
 					if (ei->e->tmp_tested) {
 						continue;
 					}
@@ -1102,10 +1102,10 @@ void ClearMarks_r(bclipnode_t* node) {
 		btreeface_l::iterator fi;
 		btreeedge_l::iterator ei;
 		for (fi = node->treeleaf->faces->begin();
-			 fi != node->treeleaf->faces->end();
-			 fi++) {
+		     fi != node->treeleaf->faces->end();
+		     fi++) {
 			for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
-				 ei++) {
+			     ei++) {
 				ei->e->tmp_tested = false;
 			}
 		}
@@ -1120,10 +1120,10 @@ void CollectBrinks_r(bclipnode_t* node, int& numbrinks, bbrink_t** brinks) {
 		btreeface_l::iterator fi;
 		btreeedge_l::iterator ei;
 		for (fi = node->treeleaf->faces->begin();
-			 fi != node->treeleaf->faces->end();
-			 fi++) {
+		     fi != node->treeleaf->faces->end();
+		     fi++) {
 			for (ei = fi->f->edges->begin(); ei != fi->f->edges->end();
-				 ei++) {
+			     ei++) {
 				if (ei->e->tmp_tested) {
 					continue;
 				}
@@ -1133,7 +1133,7 @@ void CollectBrinks_r(bclipnode_t* node, int& numbrinks, bbrink_t** brinks) {
 						brinks[numbrinks] = ei->e->brink;
 						brinks[numbrinks]->edge = ei->e;
 						for (int i = 0; i < brinks[numbrinks]->numnodes;
-							 i++) {
+						     i++) {
 							bbrinknode_t* node
 								= &brinks[numbrinks]->nodes[i];
 							if (node->isleaf && !node->clipnode->isleaf) {
@@ -1191,9 +1191,9 @@ struct bcircle_t final {
 	double3_array axis;
 	double3_array basenormal;
 	int numwedges[2]; // the front and back side of nodes[0]
-	bwedge_t wedges[2][MAXBRINKWEDGES];		// in counterclosewise order
+	bwedge_t wedges[2][MAXBRINKWEDGES];     // in counterclosewise order
 	bsurface_t surfaces[2][MAXBRINKWEDGES]; // the surface between two
-											// adjacent wedges
+	                                        // adjacent wedges
 };
 
 bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
@@ -1290,7 +1290,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 				w->prev->normal, w->next->normal
 			);
 			if (!normalize_vector(v)
-				|| dot_product(v, c->axis) < 1 - 0.01) {
+			    || dot_product(v, c->axis) < 1 - 0.01) {
 				return false;
 			}
 		}
@@ -1301,27 +1301,27 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 void PrintCircle(bcircle_t const * c) {
 	Log("axis %f %f %f\n", c->axis[0], c->axis[1], c->axis[2]);
 	Log("basenormal %f %f %f\n",
-		c->basenormal[0],
-		c->basenormal[1],
-		c->basenormal[2]);
+	    c->basenormal[0],
+	    c->basenormal[1],
+	    c->basenormal[2]);
 	Log("numwedges %d %d\n", c->numwedges[0], c->numwedges[1]);
 	for (int side = 0; side < 2; side++) {
 		for (int i = 0; i < c->numwedges[side]; i++) {
 			bwedge_t const * w = &c->wedges[side][i];
 			bsurface_t const * s = &c->surfaces[side][i];
 			Log("surface[%d][%d] nodenum %d nodeside %d normal %f %f %f\n",
-				side,
-				i,
-				s->nodenum,
-				s->nodeside,
-				s->normal[0],
-				s->normal[1],
-				s->normal[2]);
+			    side,
+			    i,
+			    s->nodenum,
+			    s->nodeside,
+			    s->normal[0],
+			    s->normal[1],
+			    s->normal[2]);
 			Log("wedge[%d][%d] nodenum %d content %d\n",
-				side,
-				i,
-				w->nodenum,
-				std::to_underlying(w->content));
+			    side,
+			    i,
+			    w->nodenum,
+			    std::to_underlying(w->content));
 		}
 	}
 }
@@ -1342,8 +1342,8 @@ bool AddPartition(
 	}
 	bool onback = false;
 	for (fi = clipnode->treeleaf->faces->begin();
-		 fi != clipnode->treeleaf->faces->end();
-		 fi++) {
+	     fi != clipnode->treeleaf->faces->end();
+	     fi++) {
 		for (ei = fi->f->edges->begin(); ei != fi->f->edges->end(); ei++) {
 			for (side = 0; side < 2; side++) {
 				btreepoint_t* tp = GetPointFromEdge(ei->e, side);
@@ -1360,7 +1360,7 @@ bool AddPartition(
 	}
 	if (!onback) {
 		return false; // the whole leaf is on the plane, or the leaf doesn't
-					  // consist of any vertex
+		              // consist of any vertex
 	}
 	bpartition_t* p = new bpartition_t{};
 	hlassume(p != nullptr, assume_NoMemory);
@@ -1435,12 +1435,12 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 		for (side = 0; side < 2; side++) {
 			transitionfound[side] = 0;
 			for (j = 1; j < c.numwedges[side];
-				 j++) // we will later consider the surfaces on the first
-					  // split
+			     j++) // we will later consider the surfaces on the first
+			          // split
 			{
 				bsurface_t* s = &c.surfaces[side][j];
 				if ((s->prev->content == contents_t::SOLID)
-					!= (s->next->content == contents_t::SOLID)) {
+				    != (s->next->content == contents_t::SOLID)) {
 					transitionfound[side]++;
 					transitionpos[side] = s;
 					transitionside[side]
@@ -1457,10 +1457,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 		}
 
 		if (transitionfound[0] > 1 || transitionfound[1] > 1
-			|| (c.surfaces[0][0].prev->content == contents_t::SOLID)
-				!= (c.surfaces[0][0].next->content == contents_t::SOLID)
-			|| (c.surfaces[1][0].prev->content == contents_t::SOLID)
-				!= (c.surfaces[1][0].next->content == contents_t::SOLID)) {
+		    || (c.surfaces[0][0].prev->content == contents_t::SOLID)
+		        != (c.surfaces[0][0].next->content == contents_t::SOLID)
+		    || (c.surfaces[1][0].prev->content == contents_t::SOLID)
+		        != (c.surfaces[1][0].next->content == contents_t::SOLID)) {
 			// there must at least 3 transition surfaces now, which is too
 			// complicated. just leave it unfixed
 			if (g_developer >= developer_level::megaspam) {
@@ -1505,14 +1505,14 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					continue;
 				}
 				for (btreeedge_l::iterator ei = tp->edges->begin();
-					 ei != tp->edges->end();
-					 ei++) {
+				     ei != tp->edges->end();
+				     ei++) {
 					for (btreeface_l::iterator fi = ei->e->faces->begin();
-						 fi != ei->e->faces->end();
-						 fi++) {
+					     fi != ei->e->faces->end();
+					     fi++) {
 						if (fi->f->infinite
-							|| GetLeafFromFace(fi->f, false)->infinite
-							|| GetLeafFromFace(fi->f, true)->infinite) {
+						    || GetLeafFromFace(fi->f, false)->infinite
+						    || GetLeafFromFace(fi->f, true)->infinite) {
 							PrintOnce(
 								"AnalyzeBrinks: internal error: an infinite object contains a finite object"
 							);
@@ -1525,13 +1525,13 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 																   : 1.0
 							);
 							if (dot_product(normal, vup)
-									> BRINK_FLOOR_THRESHOLD
-								&& GetLeafFromFace(fi->f, side3)
-										->clipnode->content
-									== contents_t::SOLID
-								&& GetLeafFromFace(fi->f, !side3)
-										->clipnode->content
-									!= contents_t::SOLID) {
+							        > BRINK_FLOOR_THRESHOLD
+							    && GetLeafFromFace(fi->f, side3)
+							            ->clipnode->content
+							        == contents_t::SOLID
+							    && GetLeafFromFace(fi->f, !side3)
+							            ->clipnode->content
+							        != contents_t::SOLID) {
 								onfloor = true;
 							}
 						}
@@ -1545,10 +1545,10 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 			bsurface_t* smovement = transitionpos[side];
 			bsurface_t* s;
 			for (s = transitionside[!side] ? &c.surfaces[!side][0]
-										   : &c.surfaces[side][0];
-				 ;
-				 s = transitionside[!side] ? s->next->next
-										   : s->prev->prev) {
+			                               : &c.surfaces[side][0];
+			     ;
+			     s = transitionside[!side] ? s->next->next
+			                               : s->prev->prev) {
 				bwedge_t* w = transitionside[!side] ? s->next : s->prev;
 				bsurface_t* snext = transitionside[!side] ? w->next
 														  : w->prev;
@@ -1562,8 +1562,8 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 					break;
 				}
 				if (snext
-					== (transitionside[!side] ? &c.surfaces[side][0]
-											  : &c.surfaces[!side][0])) {
+				    == (transitionside[!side] ? &c.surfaces[side][0]
+				                              : &c.surfaces[!side][0])) {
 					Developer(
 						developer_level::error,
 						"AnalyzeBrinks: surface past 0\n"
@@ -1665,15 +1665,15 @@ void SortPartitions(bbrinkinfo_t* info
 			}
 			for (pp = &clipnode->partitions; *pp; pp = &(*pp)->next) {
 				if ((*pp)->planenum > current->planenum
-					|| ((*pp)->planenum == current->planenum
-						&& (*pp)->planeside >= current->planeside
-					)) // normally the planeside should be identical
+				    || ((*pp)->planenum == current->planenum
+				        && (*pp)->planeside >= current->planeside
+				    )) // normally the planeside should be identical
 				{
 					break;
 				}
 			}
 			if (*pp && (*pp)->planenum == current->planenum
-				&& (*pp)->planeside == current->planeside) {
+			    && (*pp)->planeside == current->planeside) {
 				(*pp)->type = std::min(
 					(*pp)->type, current->type
 				); // pick the lowest (most important) level from the

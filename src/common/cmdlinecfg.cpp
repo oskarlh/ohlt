@@ -40,7 +40,7 @@ bool pmatch(char8_t const * cmdlineparam, char8_t const * param) {
 			if (cend - cstart == pend - pstart) {
 				for (k = 0; k < cend - cstart; ++k) {
 					if (tolower(cmdlineparam[k + cstart])
-						!= tolower(param[k + pstart])) {
+					    != tolower(param[k + pstart])) {
 						break;
 					}
 				}
@@ -86,7 +86,7 @@ void addparams(
 	char8_t* cmdline, char8_t* params, unsigned int n, bool& error
 ) {
 	if (strlen((char const *) cmdline) + strlen((char const *) params) + 1
-		<= n) {
+	    <= n) {
 		strcat((char*) cmdline, (char*) params);
 	} else {
 		error = true;
@@ -150,8 +150,8 @@ void parsecommand(
 		e.stack++;
 		if (!e.skip) {
 			if (t == command_t::IFDEF && findparams(cmdline, pnext(words))
-				|| (t == command_t::IFNDEF
-					&& !findparams(cmdline, pnext(words)))) {
+			    || (t == command_t::IFNDEF
+			        && !findparams(cmdline, pnext(words)))) {
 				e.skip = false;
 			} else {
 				e.skipstack = e.stack;
@@ -190,8 +190,8 @@ nextword(char8_t const * s, char8_t* token, unsigned int n, bool& error) {
 	char8_t const * c;
 	bool quote, comment, content;
 	for (c = s, i = 0, quote = false, comment = false, content = false;
-		 c[0] != '\0';
-		 c++) {
+	     c[0] != '\0';
+	     c++) {
 		if (c[0] == u8'\"') {
 			quote = !quote;
 		}
@@ -208,7 +208,7 @@ nextword(char8_t const * s, char8_t* token, unsigned int n, bool& error) {
 			content = true;
 		}
 		if (!quote && !comment && content
-			&& (c[0] == u8'\n' || is_ascii_whitespace(c[0]))) {
+		    && (c[0] == u8'\n' || is_ascii_whitespace(c[0]))) {
 			break;
 		}
 		if (content && c[0] != u8'\"') {
@@ -234,8 +234,8 @@ void parsearg(
 	strcat((char*) cmdline, "\n");
 	for (i = 1; i < argc; ++i) {
 		if (strlen((char*) cmdline) + strlen(argv[i]) + u8"\n"sv.length()
-				+ 1
-			<= n) {
+		        + 1
+		    <= n) {
 			strcat((char*) cmdline, argv[i]);
 			strcat((char*) cmdline, "\n");
 		} else {
@@ -285,7 +285,7 @@ void ParseParamFile(
 	std::filesystem::path settingsFilePath
 		= get_path_to_directory_with_executable(argv)
 		/ std::filesystem::path{ paramfilename,
-								 std::filesystem::path::generic_format };
+		                         std::filesystem::path::generic_format };
 
 	if (auto f = read_utf8_file(settingsFilePath, true)) {
 		char8_t const * c = f.value().c_str();
@@ -304,7 +304,7 @@ void ParseParamFile(
 				break;
 			}
 			if (strlen((char const *) token) + u8"\n"sv.length() + 1
-				<= MAXTOKEN) {
+			    <= MAXTOKEN) {
 				strcpy((char*) words, (char*) token);
 				strcat((char*) words, "\n");
 			} else {
@@ -319,9 +319,9 @@ void ParseParamFile(
 					break;
 				}
 				if (strlen((char const *) words)
-						+ strlen((char const *) token) + u8"\n"sv.length()
-						+ 1
-					<= MAXTOKEN) {
+				        + strlen((char const *) token) + u8"\n"sv.length()
+				        + 1
+				    <= MAXTOKEN) {
 					strcat((char*) words, (char*) token);
 					strcat((char*) words, "\n");
 				} else {

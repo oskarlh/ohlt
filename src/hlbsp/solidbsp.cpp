@@ -140,13 +140,13 @@ struct surfacetree_result_t final {
 	int frontsize;
 	int backsize;
 	std::vector<face_t*>* middle; // may contain coplanar faces and
-								  // discardable(SOLIDHINT) faces
+	                              // discardable(SOLIDHINT) faces
 };
 
 struct surfacetree_t final {
 	bool dontbuild;
 	double epsilon; // if a face is not epsilon far from the splitting
-					// plane, put it in result.middle
+	                // plane, put it in result.middle
 	surfacetreenode_t* headnode;
 
 	surfacetree_result_t result;
@@ -163,8 +163,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 	node->mins.fill(hlbsp_bogus_range);
 	node->maxs.fill(-hlbsp_bogus_range);
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-		 i != node->leaffaces->end();
-		 ++i) {
+	     i != node->leaffaces->end();
+	     ++i) {
 		face_t* f = *i;
 		for (int x = 0; x < f->pts.size(); x++) {
 			node->mins = vector_minimums(node->mins, f->pts[x]);
@@ -208,8 +208,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 	));
 	node->children[1]->leaffaces = new std::vector<face_t*>;
 	for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-		 i != node->leaffaces->end();
-		 ++i) {
+	     i != node->leaffaces->end();
+	     ++i) {
 		face_t* f = *i;
 		double low = hlbsp_bogus_range;
 		double high = -hlbsp_bogus_range;
@@ -235,8 +235,8 @@ void BuildSurfaceTree_r(surfacetree_t* tree, surfacetreenode_t* node) {
 		}
 	}
 	if (node->children[0]->leaffaces->size() == node->leaffaces->size()
-		|| node->children[1]->leaffaces->size()
-			== node->leaffaces->size()) {
+	    || node->children[1]->leaffaces->size()
+	        == node->leaffaces->size()) {
 		Warning(
 			"BuildSurfaceTree_r: didn't split node with bound (%f,%f,%f)-(%f,%f,%f)",
 			node->mins[0],
@@ -319,14 +319,14 @@ void TestSurfaceTree_r(
 	}
 	if (node->isleaf) {
 		for (std::vector<face_t*>::iterator i = node->leaffaces->begin();
-			 i != node->leaffaces->end();
-			 ++i) {
+		     i != node->leaffaces->end();
+		     ++i) {
 			tree->result.middle->push_back(*i);
 		}
 	} else {
 		for (std::vector<face_t*>::iterator i = node->nodefaces->begin();
-			 i != node->nodefaces->end();
-			 ++i) {
+		     i != node->nodefaces->end();
+		     ++i) {
 			tree->result.middle->push_back(*i);
 		}
 		TestSurfaceTree_r(tree, node->children[0], split);
@@ -410,16 +410,16 @@ static surface_t* ChooseMidPlaneFromList(
 
 		dist = plane.dist * plane.normal[std::size_t(l)];
 		if (maxs[std::size_t(l)] - dist < ON_EPSILON
-			|| dist - mins[std::size_t(l)] < ON_EPSILON) {
+		    || dist - mins[std::size_t(l)] < ON_EPSILON) {
 			continue;
 		}
 		if (maxs[std::size_t(l)] - dist < g_maxnode_size / 2.0 - ON_EPSILON
-			|| dist - mins[std::size_t(l)]
-				< g_maxnode_size / 2.0 - ON_EPSILON) {
+		    || dist - mins[std::size_t(l)]
+		        < g_maxnode_size / 2.0 - ON_EPSILON) {
 			continue;
 		}
 		for (planetype j = planetype::plane_x; j <= planetype::plane_z;
-			 j = planetype(std::size_t(j) + 1)) {
+		     j = planetype(std::size_t(j) + 1)) {
 			if (j == l) {
 				value += (maxs[std::size_t(l)] - dist)
 					* (maxs[std::size_t(l)] - dist);
@@ -493,7 +493,7 @@ static surface_t* ChoosePlaneFromList(
 		planecount++;
 
 		double crosscount = 0; // use double here because we need to perform
-							   // "crosscount++"
+		                       // "crosscount++"
 		double frontcount = 0;
 		double backcount = 0;
 		double coplanarcount = 0;
@@ -512,11 +512,11 @@ static surface_t* ChoosePlaneFromList(
 			frontcount += surfacetree->result.frontsize;
 			backcount += surfacetree->result.backsize;
 			for (it = surfacetree->result.middle->begin();
-				 it != surfacetree->result.middle->end();
-				 ++it) {
+			     it != surfacetree->result.middle->end();
+			     ++it) {
 				f = *it;
 				if (f->planenum == p->planenum
-					|| f->planenum == (p->planenum ^ 1)) {
+				    || f->planenum == (p->planenum ^ 1)) {
 					continue;
 				}
 				if (f->facestyle == face_discardable) {
@@ -554,7 +554,7 @@ static surface_t* ChoosePlaneFromList(
 			/ (coplanarcount + frontcount + backcount + crosscount);
 		double ent = (0.0001 < frac && frac < 0.9999)
 			? (-frac * log(frac) / log(2.0)
-			   - (1 - frac) * log(1 - frac) / log(2.0))
+		       - (1 - frac) * log(1 - frac) / log(2.0))
 			: 0.0; // the formula tends to 0 when frac=0,1
 		tmpvalue[p->planenum][1] = crosscount * (1 - ent);
 		value += epsilonsplit * 10000;
@@ -722,8 +722,8 @@ static void DivideSurface(
 	// parallel case is easy
 
 	if (inplane->normal[0] == split->normal[0]
-		&& inplane->normal[1] == split->normal[1]
-		&& inplane->normal[2] == split->normal[2]) {
+	    && inplane->normal[1] == split->normal[1]
+	    && inplane->normal[2] == split->normal[2]) {
 		if (inplane->dist > split->dist) {
 			*front = in;
 			*back = nullptr;
@@ -1059,9 +1059,9 @@ LinkLeafFaces(surface_t* planelist, node_t* leafnode, hull_count hullNum) {
 			g_nummodels - 1,
 			(ent ? (char const *) get_classname(*ent).data() : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"origin").data()
-				 : "unknown"),
+		         : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"targetname").data()
-				 : "unknown")
+		         : "unknown")
 		);
 		for (surface_t* surf2 = planelist; surf2; surf2 = surf2->next) {
 			for (face_t* f2 = surf2->faces; f2; f2 = f2->next) {
@@ -1107,7 +1107,7 @@ static void MakeLeaf(node_t* leafnode) {
 	leafnode->boundsbrush = nullptr;
 
 	if (!(leafnode->isportalleaf && leafnode->contents == contents_t::SOLID
-		)) {
+	    )) {
 		nummarkfaces = 0;
 		for (surf = leafnode->surfaces; surf; surf = surf->next) {
 			if (!surf->onnode) {
@@ -1118,7 +1118,7 @@ static void MakeLeaf(node_t* leafnode) {
 			}
 			for (f = surf->faces; f; f = f->next) {
 				if (f->original == nullptr) { // because it is not on node
-											  // or its content is solid
+					                          // or its content is solid
 					continue;
 				}
 				if (f->original == nullptr) {

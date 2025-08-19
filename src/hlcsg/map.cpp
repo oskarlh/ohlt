@@ -133,7 +133,7 @@ add_parsed_entity_result add_parsed_entity(
 		b.coplanarPriority = coplanarPriority;
 
 		for (std::size_t hullNumber = 0; hullNumber < NUM_HULLS;
-			 ++hullNumber) {
+		     ++hullNumber) {
 			// Key value for the hull shape
 			std::u8string_view const value = value_for_key(
 				&mapent, zhltHullKeys[hullNumber]
@@ -205,13 +205,13 @@ add_parsed_entity_result add_parsed_entity(
 			side_t& side = g_brushsides[b.firstSide + j];
 			wad_texture_name const textureName{ side.td.name };
 			if (textureName.is_any_content_type()
-				|| (nullify && !textureName.is_any_bevel()
-					&& !textureName.is_any_hint()
-					&& !textureName.is_origin() && !textureName.is_skip()
-					&& !textureName.is_splitface()
-					&& !textureName.is_bounding_box()
-					&& !textureName.is_ordinary_sky())
-				|| (side.td.name.is_aaatrigger() && g_nullifytrigger)) {
+			    || (nullify && !textureName.is_any_bevel()
+			        && !textureName.is_any_hint()
+			        && !textureName.is_origin() && !textureName.is_skip()
+			        && !textureName.is_splitface()
+			        && !textureName.is_bounding_box()
+			        && !textureName.is_ordinary_sky())
+			    || (side.td.name.is_aaatrigger() && g_nullifytrigger)) {
 				side.td.name = wad_texture_name{ u8"null" };
 			}
 		}
@@ -246,7 +246,7 @@ add_parsed_entity_result add_parsed_entity(
 			}
 
 			if (!isWorldspawn) { // Code elsewhere enforces no ORIGIN in
-								 // world message
+				                 // world message
 
 				double3_array const origin = midpoint_between(
 					b.hulls[0].bounds.mins, b.hulls[0].bounds.maxs
@@ -300,7 +300,7 @@ add_parsed_entity_result add_parsed_entity(
 			}
 
 			if (!isWorldspawn) { // Code elsewhere enforces no ORIGIN in
-								 // world message
+				                 // world message
 				double3_array const mins{ b.hulls[0].bounds.mins };
 				double3_array const maxs{ b.hulls[0].bounds.maxs };
 
@@ -344,7 +344,7 @@ add_parsed_entity_result add_parsed_entity(
 				side_t& side = g_brushsides[b.firstSide + j];
 				if (side.td.name.is_ordinary_null(
 					)) { // this is not supposed to be a HINT brush, so
-						 // remove all invisible faces from hull 0.
+					     // remove all invisible faces from hull 0.
 					side.td.name = wad_texture_name{ u8"skip" };
 				}
 				if (!side.td.name.is_skip()) {
@@ -370,7 +370,7 @@ add_parsed_entity_result add_parsed_entity(
 	for (brush_count i = 0; i < mapent.numbrushes; ++i) {
 		csg_brush const & brush = g_mapbrushes[mapent.firstBrush + i];
 		if (brush.cliphull == 0 && brush.contents != contents_t::ORIGIN
-			&& brush.contents != contents_t::BOUNDINGBOX) {
+		    && brush.contents != contents_t::BOUNDINGBOX) {
 			all_clip = false;
 		}
 	}
@@ -439,11 +439,11 @@ add_parsed_entity_result add_parsed_entity(
 			csg_brush* brush;
 			side_t* side;
 			for (ibrush = 0, brush = g_mapbrushes + mapent.firstBrush;
-				 ibrush < mapent.numbrushes;
-				 ++ibrush, ++brush) {
+			     ibrush < mapent.numbrushes;
+			     ++ibrush, ++brush) {
 				for (iside = 0, side = g_brushsides + brush->firstSide;
-					 iside < brush->numSides;
-					 ++iside, ++side) {
+				     iside < brush->numSides;
+				     ++iside, ++side) {
 					for (ipoint = 0; ipoint < 3; ++ipoint) {
 						double3_array& point = side->planepts[ipoint];
 						if (ent_scale_b) {
@@ -480,7 +480,7 @@ add_parsed_entity_result add_parsed_entity(
 					if (ent_scale_b) {
 						double coord[2];
 						if (fabs(side->td.vects.scale[0])
-							> NORMAL_EPSILON) {
+						    > NORMAL_EPSILON) {
 							coord[0] = dot_product(
 										   ent_scale_origin,
 										   side->td.vects.UAxis
@@ -489,7 +489,7 @@ add_parsed_entity_result add_parsed_entity(
 								+ side->td.vects.shift[0];
 							side->td.vects.scale[0] *= ent_scale;
 							if (fabs(side->td.vects.scale[0])
-								> NORMAL_EPSILON) {
+							    > NORMAL_EPSILON) {
 								side->td.vects.shift[0] = coord[0]
 									- dot_product(
 										  ent_scale_origin,
@@ -502,7 +502,7 @@ add_parsed_entity_result add_parsed_entity(
 							zeroscale = true;
 						}
 						if (fabs(side->td.vects.scale[1])
-							> NORMAL_EPSILON) {
+						    > NORMAL_EPSILON) {
 							coord[1] = dot_product(
 										   ent_scale_origin,
 										   side->td.vects.VAxis
@@ -511,7 +511,7 @@ add_parsed_entity_result add_parsed_entity(
 								+ side->td.vects.shift[1];
 							side->td.vects.scale[1] *= ent_scale;
 							if (fabs(side->td.vects.scale[1])
-								> NORMAL_EPSILON) {
+							    > NORMAL_EPSILON) {
 								side->td.vects.shift[1] = coord[1]
 									- dot_product(
 										  ent_scale_origin,
@@ -526,7 +526,7 @@ add_parsed_entity_result add_parsed_entity(
 					}
 					if (ent_move_b) {
 						if (fabs(side->td.vects.scale[0])
-							> NORMAL_EPSILON) {
+						    > NORMAL_EPSILON) {
 							side->td.vects.shift[0]
 								-= dot_product(
 									   ent_move, side->td.vects.UAxis
@@ -536,7 +536,7 @@ add_parsed_entity_result add_parsed_entity(
 							zeroscale = true;
 						}
 						if (fabs(side->td.vects.scale[1])
-							> NORMAL_EPSILON) {
+						    > NORMAL_EPSILON) {
 							side->td.vects.shift[1]
 								-= dot_product(
 									   ent_move, side->td.vects.VAxis
@@ -597,7 +597,7 @@ add_parsed_entity_result add_parsed_entity(
 						&b[1][1],
 						&b[1][2]
 					)
-					== 6) {
+				    == 6) {
 					for (int i = 0; i < 2; i++) {
 						double3_array& point = b[i];
 						if (ent_scale_b) {
@@ -689,8 +689,8 @@ add_parsed_entity_result add_parsed_entity(
 		}
 		mapent = {};
 		return { .entityAdded = false,
-				 .brushesAdded = newbrushes,
-				 .sidesAdded = sidesAdded };
+			     .brushesAdded = newbrushes,
+			     .sidesAdded = sidesAdded };
 	}
 
 	if (isInfoHullshape) {
@@ -699,8 +699,8 @@ add_parsed_entity_result add_parsed_entity(
 		return { .entityAdded = false, .brushesAdded = 0, .sidesAdded = 0 };
 	}
 	if (fabs(mapent.origin[0]) > ENGINE_ENTITY_RANGE + ON_EPSILON
-		|| fabs(mapent.origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON
-		|| fabs(mapent.origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON) {
+	    || fabs(mapent.origin[1]) > ENGINE_ENTITY_RANGE + ON_EPSILON
+	    || fabs(mapent.origin[2]) > ENGINE_ENTITY_RANGE + ON_EPSILON) {
 		std::u8string_view const classname{ get_classname(mapent) };
 		if (!classname.starts_with(u8"light")) {
 			Warning(
@@ -716,8 +716,8 @@ add_parsed_entity_result add_parsed_entity(
 	}
 
 	return { .entityAdded = true,
-			 .brushesAdded = mapent.numbrushes,
-			 .sidesAdded = sidesAdded };
+		     .brushesAdded = mapent.numbrushes,
+		     .sidesAdded = sidesAdded };
 }
 
 // =====================================================================================
@@ -735,11 +735,11 @@ unsigned int CountEngineEntities() {
 		// If it's a light_spot or light_env, don't include it as an
 		// engine entity!
 		if (classname == u8"light" || classname == u8"light_spot"
-			|| classname == u8"light_environment") {
+		    || classname == u8"light_environment") {
 			// light_spots and light_enviroments don't have targetnames
 			// or styles
 			if (!has_key_value(mapent, u8"targetname")
-				&& !IntForKey(mapent, u8"style")) {
+			    && !IntForKey(mapent, u8"style")) {
 				continue;
 			}
 		}
@@ -774,7 +774,7 @@ void LoadMapFile(
 	parse_entity_outcome parseOutcome;
 	parsed_entity parsedEntity;
 	while ((parseOutcome = parser.parse_entity(parsedEntity))
-		   == parse_entity_outcome::entity_parsed) {
+	       == parse_entity_outcome::entity_parsed) {
 		add_parsed_entity_result const result = add_parsed_entity(
 			parsedEntity, g_numentities, g_nummapbrushes, g_numbrushsides
 		);
@@ -790,7 +790,7 @@ void LoadMapFile(
 			(char const *) parser.remaining_input().substr(0, 80).data()
 		);
 	} else if (parseOutcome
-			   == parse_entity_outcome::not_valve220_map_format) {
+	           == parse_entity_outcome::not_valve220_map_format) {
 		Error(
 			"It looks like you are trying to compile a map made with a very old editor or one which outputs incompatible .map files. The compiler supports only the Valve220 .map format. Try opening the .map in Hammer Editor 3.5, J.A.C.K., or another modern editor, and exporting the .map again.\n"
 		);

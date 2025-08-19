@@ -374,20 +374,20 @@ std::size_t hash_data() {
 	return hash_multiple(
 		0
 		// std::span(g_dmodels.data(), g_nummodels),
-		// std::span(g_dvertexes.data(), g_numvertexes),
-		// std::span(g_dplanes.data(), g_numplanes),
-		// std::span(g_dleafs.data(), g_numleafs),
-		// std::span(g_dnodes.data(), g_numnodes),
-		// std::span(g_texinfo.data(), g_numtexinfo),
-		// std::span(g_dclipnodes.data(), g_numclipnodes),
-		// std::span(g_dfaces.data(), g_numfaces),
-		// std::span(g_dmarksurfaces.data(), g_nummarksurfaces),
-		// std::span(g_dsurfedges.data(), g_numsurfedges),
-		// std::span(g_dedges.data(), g_numedges),
-		// std::span(g_dtexdata.data(), g_texdatasize),
-		// std::span(g_dvisdata.data(), g_visdatasize),
-		// std::span(g_dlightdata),
-		// std::span(g_dentdata.data(), g_entdatasize)
+	    // std::span(g_dvertexes.data(), g_numvertexes),
+	    // std::span(g_dplanes.data(), g_numplanes),
+	    // std::span(g_dleafs.data(), g_numleafs),
+	    // std::span(g_dnodes.data(), g_numnodes),
+	    // std::span(g_texinfo.data(), g_numtexinfo),
+	    // std::span(g_dclipnodes.data(), g_numclipnodes),
+	    // std::span(g_dfaces.data(), g_numfaces),
+	    // std::span(g_dmarksurfaces.data(), g_nummarksurfaces),
+	    // std::span(g_dsurfedges.data(), g_numsurfedges),
+	    // std::span(g_dedges.data(), g_numedges),
+	    // std::span(g_dtexdata.data(), g_texdatasize),
+	    // std::span(g_dvisdata.data(), g_visdatasize),
+	    // std::span(g_dlightdata),
+	    // std::span(g_dentdata.data(), g_entdatasize)
 	);
 }
 
@@ -507,7 +507,7 @@ float CalculatePointVecsProduct(
 
 	val = (double) point[0]
 		* (double) vecs.xyz[0]; // Always do one operation at a time and
-								// save to memory
+	                            // save to memory
 	tmp = (double) point[1] * (double) vecs.xyz[1];
 	val = val + tmp;
 	tmp = (double) point[2] * (double) vecs.xyz[2];
@@ -531,7 +531,7 @@ bool CalcFaceExtents_test() {
 						 1.0f,
 						 0.375 * std::numeric_limits<double>::epsilon(),
 						 0.375 * std::numeric_limits<double>::epsilon() },
-					 -1.0f },
+		             -1.0f },
 			0.0f },
 		test_case{
 			float3_array{ 1.0f, 1.0f, 1.0f },
@@ -539,13 +539,13 @@ bool CalcFaceExtents_test() {
 						 0.375 * std::numeric_limits<double>::epsilon(),
 						 0.375 * std::numeric_limits<double>::epsilon(),
 						 1.0f },
-					 -1.0f },
+		             -1.0f },
 			std::numeric_limits<double>::epsilon(),
 		},
 		test_case{
 			float3_array{ std::numeric_limits<double>::epsilon(),
-						  std::numeric_limits<double>::epsilon(),
-						  1.0f },
+		                  std::numeric_limits<double>::epsilon(),
+		                  1.0f },
 			tex_vec{ float3_array{ 0.375f, 0.375f, 1.0f }, -1.0f },
 			std::numeric_limits<double>::epsilon(),
 		},
@@ -555,15 +555,15 @@ bool CalcFaceExtents_test() {
 						 1.0f,
 						 1.0f,
 						 0.375 * std::numeric_limits<float>::epsilon() },
-					 -2.0f },
+		             -2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
 		},
 		test_case{
 			float3_array{ 1.0f, 1.0f, 1.0f },
 			tex_vec{
 				float3_array{ 1.0f,
-							  0.375 * std::numeric_limits<float>::epsilon(),
-							  1.0f },
+		                      0.375 * std::numeric_limits<float>::epsilon(),
+		                      1.0f },
 				-2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
 		},
@@ -571,8 +571,8 @@ bool CalcFaceExtents_test() {
 			float3_array{ 1.0f, 1.0f, 1.0f },
 			tex_vec{
 				float3_array{ 0.375 * std::numeric_limits<float>::epsilon(),
-							  1.0f,
-							  1.0f },
+		                      1.0f,
+		                      1.0f },
 				-2.0f },
 			0.375 * std::numeric_limits<float>::epsilon(),
 		}
@@ -707,11 +707,11 @@ static texinfo_count ParseImplicitTexinfoFromTexture(int miptex) {
 	int offset = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[miptex];
 	int size = g_texdatasize - offset;
 	if (offset < 0
-		|| g_dtexdata.data() + offset
-			< (std::byte const *) &((dmiptexlump_t const *) g_dtexdata.data(
+	    || g_dtexdata.data() + offset
+	        < (std::byte const *) &((dmiptexlump_t const *) g_dtexdata.data(
 									))
-				  ->dataofs[numtextures]
-		|| size < (int) sizeof(miptex_t)) {
+	              ->dataofs[numtextures]
+	    || size < (int) sizeof(miptex_t)) {
 		return -1;
 	}
 
@@ -800,14 +800,14 @@ void DeleteEmbeddedLightmaps() {
 
 			if (texinfoused[i - 1]) {
 				break; // still used by a face; should not remove
-					   // this texinfo
+				       // this texinfo
 			}
 			if (miptex < 0 || miptex >= numtextures) {
 				break; // invalid; should not remove this texinfo
 			}
 			if (ParseImplicitTexinfoFromTexture(miptex) == no_texinfo) {
 				break; // not added by hlrad; should not remove this
-					   // texinfo
+				       // texinfo
 			}
 			countremovedtexinfos++;
 		}
@@ -832,7 +832,7 @@ void DeleteEmbeddedLightmaps() {
 		int i;
 		for (i = numtextures - 1; i > -1; i--) {
 			if (textureused[i]
-				|| ParseImplicitTexinfoFromTexture(i) == no_texinfo) {
+			    || ParseImplicitTexinfoFromTexture(i) == no_texinfo) {
 				break; // should not remove this texture
 			}
 			countremovedtextures++;
@@ -844,7 +844,7 @@ void DeleteEmbeddedLightmaps() {
 			std::byte* dataaddr
 				= (std::byte*) &texdata->dataofs[texdata->nummiptex];
 			int datasize = (g_dtexdata.data()
-							+ texdata->dataofs[numremaining])
+			                + texdata->dataofs[numremaining])
 				- dataaddr;
 			std::byte* newdataaddr
 				= (std::byte*) &texdata->dataofs[numremaining];
@@ -864,13 +864,13 @@ void DeleteEmbeddedLightmaps() {
 	}
 
 	if (countrestoredfaces > 0 || countremovedtexinfos > 0
-		|| countremovedtextures > 0) {
+	    || countremovedtextures > 0) {
 		Log("DeleteEmbeddedLightmaps: restored %d faces, removed %d "
-			"texinfos "
-			"and %d textures.\n",
-			countrestoredfaces,
-			countremovedtexinfos,
-			countremovedtextures);
+		    "texinfos "
+		    "and %d textures.\n",
+		    countrestoredfaces,
+		    countremovedtexinfos,
+		    countremovedtextures);
 	}
 }
 
@@ -895,17 +895,17 @@ void add_entity_from_bsp_file(parsed_entity& parsedEntity) {
 
 	if (key_value_is(mapent, u8"classname", u8"info_compile_parameters")) {
 		Log("Map entity info_compile_parameters detected, using compile "
-			"settings\n");
+		    "settings\n");
 		GetParamsFromEnt(mapent);
 	}
 	// Ugly code
 	if (key_value_starts_with(mapent, u8"classname", u8"light")
-		&& has_key_value(mapent, u8"_tex")) {
+	    && has_key_value(mapent, u8"_tex")) {
 		set_key_value(mapent, u8"convertto", get_classname(*mapent));
 		set_key_value(mapent, u8"classname", u8"light_surface");
 	}
 	if (key_value_is(mapent, u8"convertfrom", u8"light_shadow")
-		|| key_value_is(mapent, u8"convertfrom", u8"light_bounce")) {
+	    || key_value_is(mapent, u8"convertfrom", u8"light_bounce")) {
 		set_key_value(
 			mapent, u8"convertto", value_for_key(mapent, u8"classname")
 		);
@@ -932,7 +932,7 @@ void parse_entities_from_bsp_file() {
 	parse_entity_outcome parseOutcome;
 	parsed_entity parsedEntity;
 	while ((parseOutcome = parser.parse_entity(parsedEntity))
-		   == parse_entity_outcome::entity_parsed) {
+	       == parse_entity_outcome::entity_parsed) {
 		add_entity_from_bsp_file(parsedEntity);
 	}
 
@@ -943,7 +943,7 @@ void parse_entities_from_bsp_file() {
 			(int) parser.remaining_input()[0]
 		);
 	} else if (parseOutcome
-			   == parse_entity_outcome::not_valve220_map_format) {
+	           == parse_entity_outcome::not_valve220_map_format) {
 		Error(
 			"It looks like you are trying to compile a map made with a very old editor or one which outputs incompatible .map files. The compiler supports only the Valve220 .map format. Try opening the .map in Hammer Editor 3.5, J.A.C.K., or another modern editor, and exporting the .map again.\n"
 		);
@@ -1084,7 +1084,7 @@ std::optional<double> clamp_double_key_value(
 	// std::from_chars for floating-point numbers too
 
 	std::string zeroTerminatedCopy{ (char const *) valueString.data(),
-									valueString.length() };
+		                            valueString.length() };
 
 	char* rest = zeroTerminatedCopy.data();
 	double const parsed{ std::strtod(zeroTerminatedCopy.data(), &rest) };

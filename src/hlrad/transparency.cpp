@@ -148,8 +148,8 @@ void CreateFinalTransparencyArrays(
 		+ transparencyList.size() * sizeof(float3_array);
 	if (size > 1024 * 1024) {
 		Log("%-20s: %5.1f megs \n",
-			print_name,
-			(double) size / (1024.0 * 1024.0));
+		    print_name,
+		    (double) size / (1024.0 * 1024.0));
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);
 	} else {
@@ -242,7 +242,7 @@ void AddStyleToStyleArray(
 			64u, (std::uint32_t)((double) s_max_style_count * 1.41)
 		);
 		if (s_max_style_count
-			>= (std::uint32_t) std::numeric_limits<std::int32_t>::digits) {
+		    >= (std::uint32_t) std::numeric_limits<std::int32_t>::digits) {
 			Error("AddStyleToStyleArray: array size exceeded INT_MAX");
 		}
 
@@ -290,8 +290,8 @@ void CreateFinalStyleArrays(char const * print_name) {
 	size_t size = s_max_style_count * sizeof(styleList_t);
 	if (size > 1024 * 1024) {
 		Log("%-20s: %5.1f megs \n",
-			print_name,
-			(double) size / (1024.0 * 1024.0));
+		    print_name,
+		    (double) size / (1024.0 * 1024.0));
 	} else if (size > 1024) {
 		Log("%-20s: %5.1f kilos\n", print_name, (double) size / 1024.0);
 	} else {

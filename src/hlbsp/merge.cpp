@@ -129,7 +129,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 
 	// copy first polygon
 	for (k = (i + 1) % f1->pts.size(); k != i;
-		 k = (k + 1) % f1->pts.size()) {
+	     k = (k + 1) % f1->pts.size()) {
 		if (k == (i + 1) % f1->pts.size() && !keep2) {
 			continue;
 		}
@@ -139,7 +139,7 @@ static face_t* TryMerge(face_t* f1, face_t* f2) {
 
 	// copy second polygon
 	for (int l = (j + 1) % f2->pts.size(); l != j;
-		 l = (l + 1) % f2->pts.size()) {
+	     l = (l + 1) % f2->pts.size()) {
 		if (l == (j + 1) % f2->pts.size() && !keep1) {
 			continue;
 		}

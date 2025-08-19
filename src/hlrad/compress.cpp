@@ -27,17 +27,17 @@ void fail() {
 void compress_compatability_test() {
 	std::array<std::byte, 16> v{};
 	if (sizeof(char) != 1 || sizeof(unsigned int) != 4
-		|| sizeof(float) != 4) {
+	    || sizeof(float) != 4) {
 		fail();
 	}
 	*(float*) (&v[1]) = 0.123f;
 	if (*(unsigned int*) v.data() != 4'226'247'936u
-		|| *(unsigned int*) (&v[1]) != 1'039'918'957u) {
+	    || *(unsigned int*) (&v[1]) != 1'039'918'957u) {
 		fail();
 	}
 	*(float*) (&v[1]) = -58;
 	if (*(unsigned int*) v.data() != 1'744'830'464u
-		|| *(unsigned int*) (&v[1]) != 3'261'595'648u) {
+	    || *(unsigned int*) (&v[1]) != 3'261'595'648u) {
 		fail();
 	}
 	float f[5] = { 0.123f, 1.f, 0.f, 0.123f, 0.f };
@@ -46,7 +46,7 @@ void compress_compatability_test() {
 	float_compress(float_type::float16, &v[6], f[3]);
 	float_compress(float_type::float16, &v[4], f[4]);
 	if (((unsigned int*) v.data())[0] != 4'286'318'595u
-		|| ((unsigned int*) v.data())[1] != 3'753'771'008u) {
+	    || ((unsigned int*) v.data())[1] != 3'753'771'008u) {
 		fail();
 	}
 	f[3] = float_decompress(float_type::float16, &v[6]);
@@ -164,7 +164,7 @@ void vector_compress(vector_type t, void* s, float f1, float f2, float f3) {
 			break;
 		case vector_type::vector48:
 			if (float_iswrong(p1) || float_iswrong(p2)
-				|| float_iswrong(p3)) {
+			    || float_iswrong(p3)) {
 				break;
 			}
 			m[0] = 0, m[1] = bitclr(m[1], 0, 16);
@@ -193,11 +193,11 @@ void vector_compress(vector_type t, void* s, float f1, float f2, float f3) {
 		case vector_type::vector32:
 		case vector_type::vector24:
 			if (float_iswrong(p1) || float_iswrong(p2)
-				|| float_iswrong(p3)) {
+			    || float_iswrong(p3)) {
 				max = i1 = i2 = i3 = 0;
 			} else {
 				max = p1 > p2 ? (p1 > p3 ? p1 : p3) : (p2 > p3 ? p2 : p3);
-				max = float_istoobig(max)	? 0x7F
+				max = float_istoobig(max)   ? 0x7F
 					: float_istoosmall(max) ? 0x60
 											: bitget(max, 23, 31);
 				i1 = float_istoobig(p1)

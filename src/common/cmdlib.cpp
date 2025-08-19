@@ -32,8 +32,8 @@ inline void getFilePositions(
 			do {
 				--(*directory_position);
 			} while (*directory_position > -1
-					 && path[*directory_position] != '/'
-					 && path[*directory_position] != '\\');
+			         && path[*directory_position] != '/'
+			         && path[*directory_position] != '\\');
 		}
 	}
 }

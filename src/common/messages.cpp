@@ -146,7 +146,7 @@ static MessageTable_t const assumes[assume_last] = {
 
 MessageTable_t const * GetAssume(assume_msgs id) {
 	if (!(id > assume_first && id < assume_last
-		)) //(!(id > assume_first) && (id < assume_last)) --vluzacn
+	    )) //(!(id > assume_first) && (id < assume_last)) --vluzacn
 	{
 		id = assume_first;
 	}

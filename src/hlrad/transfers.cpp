@@ -25,8 +25,8 @@ void writetransfers(
 
 		long patchcount = total_patches;
 		for (std::vector<patch_t>::iterator patch = g_patches.begin();
-			 patchcount-- > 0;
-			 ++patch) {
+		     patchcount-- > 0;
+		     ++patch) {
 			amtwritten = fwrite(
 				&patch->iIndex, sizeof(patch->iIndex), 1, file
 			);
@@ -57,7 +57,7 @@ void writetransfers(
 					amtwritten = fwrite(
 						patch->tRGBData,
 						vector_size[(std::size_t
-						) g_rgbtransfer_compress_type],
+					    ) g_rgbtransfer_compress_type],
 						patch->iData,
 						file
 					);
@@ -146,23 +146,23 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 				if (g_rgb_transfers) {
 					patch->tRGBData = (rgb_transfer_data_t*) new std::byte
 						[patch->iData
-							 * vector_size[(std::size_t
-							 ) g_rgbtransfer_compress_type]
-						 + unused_size]();
+					         * vector_size[(std::size_t
+					         ) g_rgbtransfer_compress_type]
+					     + unused_size]();
 					hlassume(patch->tRGBData != nullptr, assume_NoMemory);
 					amtread = fread(
 						patch->tRGBData,
 						vector_size[(std::size_t
-						) g_rgbtransfer_compress_type],
+					    ) g_rgbtransfer_compress_type],
 						patch->iData,
 						file
 					);
 				} else {
 					patch->tData = (transfer_data_t*) new std::byte
 						[patch->iData
-							 * float_size[(std::size_t
-							 ) g_transfer_compress_type]
-						 + unused_size]();
+					         * float_size[(std::size_t
+					         ) g_transfer_compress_type]
+					     + unused_size]();
 					hlassume(patch->tData != nullptr, assume_NoMemory);
 					amtread = fread(
 						patch->tData,

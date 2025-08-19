@@ -7,9 +7,9 @@
 
 #define DEFAULT_MAXDISTANCE_RANGE 0
 
-#define DEFAULT_FULLVIS	 false
+#define DEFAULT_FULLVIS  false
 #define DEFAULT_NOFIXPRT false
-#define DEFAULT_FASTVIS	 false
+#define DEFAULT_FASTVIS  false
 
 constexpr std::size_t MAX_PORTALS = 32768;
 
@@ -29,15 +29,15 @@ struct hlvis_plane_t final {
 };
 
 enum vstatus_t {
-	stat_none,	  // No status
+	stat_none,    // No status
 	stat_working, // Currently working
-	stat_done	  // Process completed
+	stat_done     // Process completed
 };
 
 // TODO: Rename! HLBSP also has a vis_portal_t
 struct vis_portal_t final {
 	hlvis_plane_t plane; // normal pointing into neighbor
-	int leaf;			 // neighbor
+	int leaf;            // neighbor
 	winding_t* winding;
 	vstatus_t status;
 	byte* visbits;

@@ -4,10 +4,10 @@
 
 #include "meshdesc.h"
 
-#define FRAC_EPSILON		(1.0f / 32.0f)
-#define BARY_EPSILON		0.01f
-#define ASLF_EPSILON		0.0001f
-#define COPLANAR_EPSILON	0.25f
+#define FRAC_EPSILON        (1.0f / 32.0f)
+#define BARY_EPSILON        0.01f
+#define ASLF_EPSILON        0.0001f
+#define COPLANAR_EPSILON    0.25f
 #define NEAR_SHADOW_EPSILON 1.5f
 #define SELF_SHADOW_EPSILON 0.5f
 
@@ -25,10 +25,10 @@ class TraceMesh final {
 	float3_array m_vecAbsMins{}, m_vecAbsMaxs{};
 	float3_array m_vecTraceDirection{}; // ray direction
 	float m_flTraceDistance{};
-	bool m_bHitTriangle{};	  // now we hit triangle
+	bool m_bHitTriangle{};    // now we hit triangle
 	areanode_t* areanodes{};  // AABB for static meshes
-	mmesh_t* mesh{};		  // mesh to trace
-	int checkcount{};		  // debug
+	mmesh_t* mesh{};          // mesh to trace
+	int checkcount{};         // debug
 	std::byte* m_extradata{}; // pointer to model extradata
 
 	inline void ClearBounds(float3_array& mins, float3_array& maxs) {
@@ -57,11 +57,11 @@ class TraceMesh final {
 		float3_array const & maxs2
 	) {
 		if (mins1[0] > maxs2[0] || mins1[1] > maxs2[1]
-			|| mins1[2] > maxs2[2]) {
+		    || mins1[2] > maxs2[2]) {
 			return false;
 		}
 		if (maxs1[0] < mins2[0] || maxs1[1] < mins2[1]
-			|| maxs1[2] < mins2[2]) {
+		    || maxs1[2] < mins2[2]) {
 			return false;
 		}
 		return true;

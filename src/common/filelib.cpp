@@ -12,7 +12,7 @@ std::tuple<bool, std::size_t, std::ifstream> static open_file_and_get_size(
 ) {
 	// Open the file and get the file size
 	std::ifstream file{ filePath.c_str(),
-						std::ios::ate | std::ios::binary | std::ios::in };
+		                std::ios::ate | std::ios::binary | std::ios::in };
 	std::streampos fileSize = file.tellg();
 	file.seekg(0, std::ios_base::beg);
 	return std::make_tuple(file.good(), fileSize, std::move(file));
@@ -82,9 +82,9 @@ std::optional<std::u8string> read_utf8_file(
 	if (windowsLineEndingsToUnix) {
 		std::size_t outIndex = 0;
 		for (std::u8string_view remainingCharactersToCopy{ text };
-			 !remainingCharactersToCopy.empty();
-			 remainingCharactersToCopy = remainingCharactersToCopy.substr(1
-			 )) {
+		     !remainingCharactersToCopy.empty();
+		     remainingCharactersToCopy = remainingCharactersToCopy.substr(1
+		     )) {
 			if (remainingCharactersToCopy.starts_with(u8"\r\n")) {
 				remainingCharactersToCopy
 					= remainingCharactersToCopy.substr(1);
@@ -251,7 +251,7 @@ get_path_to_directory_with_executable(char** argvForFallback) {
 			  })
 			  .or_else([]() {
 				  return std::make_optional(std::filesystem::current_path()
-				  );
+		          );
 			  })
 			  .value();
 
@@ -356,6 +356,6 @@ parse_relative_file_path(std::u8string_view relativeFilePath) {
 	std::ranges::replace(withFixedSeparators, u8'\\', u8'/');
 
 	return std::filesystem::path{ withFixedSeparators,
-								  std::filesystem::path::generic_format }
+		                          std::filesystem::path::generic_format }
 		.relative_path();
 }

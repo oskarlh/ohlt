@@ -52,8 +52,8 @@ float3_array g_face_offset[MAX_MAP_FACES]; // for rotating bmodels
 unsigned g_numbounce = DEFAULT_BOUNCE;
 
 float3_array g_ambient{ DEFAULT_AMBIENT_RED,
-						DEFAULT_AMBIENT_GREEN,
-						DEFAULT_AMBIENT_BLUE };
+	                    DEFAULT_AMBIENT_GREEN,
+	                    DEFAULT_AMBIENT_BLUE };
 int8_color_element g_limitthreshold = DEFAULT_LIMITTHRESHOLD;
 bool g_drawoverload = false;
 
@@ -104,7 +104,7 @@ bool g_drawnudge = false;
 
 // Cosine of smoothing angle(in radians)
 float g_coring = DEFAULT_CORING; // Light threshold to force to
-								 // blackness(minimizes lightmaps)
+                                 // blackness(minimizes lightmaps)
 bool g_chart = cli_option_defaults::chart;
 bool g_estimate = cli_option_defaults::estimate;
 bool g_info = cli_option_defaults::info;
@@ -157,8 +157,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
 	Log("%30s [ %-9s ]\n",
-		"Verbose Compile Messages",
-		g_verbose ? "on" : "off");
+	    "Verbose Compile Messages",
+	    g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
 	// ]
@@ -168,8 +168,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_estimate = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Estimate Compile Times",
-		g_estimate ? "on" : "off");
+	    "Estimate Compile Times",
+	    g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
 	// -1 : "Low" ]
@@ -187,23 +187,23 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (iTmp) {
 		g_numbounce = abs(iTmp);
 		Log("%30s [ %-9s ]\n",
-			"Number of radiosity bounces",
-			(char const *) ValueForKey(mapent, u8"bounce"));
+		    "Number of radiosity bounces",
+		    (char const *) ValueForKey(mapent, u8"bounce"));
 	}
 
 	iTmp = IntForKey(mapent, u8"customshadowwithbounce");
 	if (iTmp) {
 		g_customshadow_with_bouncelight = true;
 		Log("%30s [ %-9s ]\n",
-			"Custom Shadow with Bounce Light",
-			(char const *) ValueForKey(mapent, u8"customshadowwithbounce"));
+		    "Custom Shadow with Bounce Light",
+		    (char const *) ValueForKey(mapent, u8"customshadowwithbounce"));
 	}
 	iTmp = IntForKey(mapent, u8"rgbtransfers");
 	if (iTmp) {
 		g_rgb_transfers = true;
 		Log("%30s [ %-9s ]\n",
-			"RGB Transfers",
-			(char const *) ValueForKey(mapent, u8"rgbtransfers"));
+		    "RGB Transfers",
+		    (char const *) ValueForKey(mapent, u8"rgbtransfers"));
 	}
 
 	// ambient(string) : "Ambient world light (0.0 to 1.0, R G B)" : "0 0 0"
@@ -212,7 +212,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 		float red = 0, green = 0, blue = 0;
 		if (sscanf(pszTmp, "%f %f %f", &red, &green, &blue)) {
 			if (red < 0 || red > 1 || green < 0 || green > 1 || blue < 0
-				|| blue > 1) {
+			    || blue > 1) {
 				Error(
 					"info_compile_parameters: Ambient World Light (ambient) all 3 values must be within the range of 0.0 to 1.0\n"
 					"Parsed values:\n"
@@ -235,10 +235,10 @@ void GetParamsFromEnt(entity_t* mapent) {
 				g_ambient[1] = green * 128;
 				g_ambient[2] = blue * 128;
 				Log("%30s [ %1.3f %1.3f %1.3f ]\n",
-					"Ambient world light (R G B)",
-					red,
-					green,
-					blue);
+				    "Ambient world light (R G B)",
+				    red,
+				    green,
+				    blue);
 			}
 		} else {
 			Error(
@@ -256,8 +256,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 			g_smoothing_value * (std::numbers::pi_v<float> / 180)
 		); // --vluzacn
 		Log("%30s [ %-9s ]\n",
-			"Smoothing threshold",
-			(char const *) ValueForKey(mapent, u8"smooth"));
+		    "Smoothing threshold",
+		    (char const *) ValueForKey(mapent, u8"smooth"));
 	}
 
 	// chop(integer) : "Chop Size" : 64
@@ -265,8 +265,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (iTmp) {
 		g_chop = iTmp;
 		Log("%30s [ %-9s ]\n",
-			"Chop Size",
-			(char const *) ValueForKey(mapent, u8"chop"));
+		    "Chop Size",
+		    (char const *) ValueForKey(mapent, u8"chop"));
 	}
 
 	// texchop(integer) : "Texture Light Chop Size" : 32
@@ -274,16 +274,16 @@ void GetParamsFromEnt(entity_t* mapent) {
 	if (flTmp) {
 		g_texchop = flTmp;
 		Log("%30s [ %-9s ]\n",
-			"Texture Light Chop Size",
-			(char const *) ValueForKey(mapent, u8"texchop"));
+		    "Texture Light Chop Size",
+		    (char const *) ValueForKey(mapent, u8"texchop"));
 	}
 
 	/*
 	hlrad(choices) : "HLRAD" : 0 =
 	[
-		0 : "Off"
-		1 : "Normal"
-		2 : "Extra"
+	    0 : "Off"
+	    1 : "Normal"
+	    2 : "Extra"
 	]
 	*/
 	iTmp = IntForKey(mapent, u8"hlrad");
@@ -304,9 +304,9 @@ void GetParamsFromEnt(entity_t* mapent) {
 	/*
 	sparse(choices) : "Vismatrix Method" : 2 =
 	[
-		0 : "No Vismatrix"
-		1 : "Sparse Vismatrix"
-		2 : "Normal"
+	    0 : "No Vismatrix"
+	    1 : "Sparse Vismatrix"
+	    2 : "Normal"
 	]
 	*/
 	iTmp = IntForKey(mapent, u8"sparse");
@@ -318,17 +318,17 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_method = vis_method::vismatrix;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Sparse Vismatrix",
-		g_method == vis_method::sparse_vismatrix ? "on" : "off");
+	    "Sparse Vismatrix",
+	    g_method == vis_method::sparse_vismatrix ? "on" : "off");
 	Log("%30s [ %-9s ]\n",
-		"NoVismatrix",
-		g_method == vis_method::no_vismatrix ? "on" : "off");
+	    "NoVismatrix",
+	    g_method == vis_method::no_vismatrix ? "on" : "off");
 
 	/*
 	circus(choices) : "Circus RAD lighting" : 0 =
 	[
-		0 : "Off"
-		1 : "On"
+	    0 : "Off"
+	    1 : "On"
 	]
 	*/
 	iTmp = IntForKey(mapent, u8"circus");
@@ -449,7 +449,7 @@ static void ReadLightFile(char const * const filename) {
 					it->filename
 				);
 			} else if (it->value[0] != r || it->value[1] != g
-					   || it->value[2] != b) {
+			           || it->value[2] != b) {
 				Warning(
 					"Overriding '%s' from '%s' with '%s'!",
 					it->name.c_str(),
@@ -485,14 +485,13 @@ static void ReadLightFile(char const * const filename) {
 		file_texlights++;
 		s_texlights.push_back(texlight);
 	}
-	fclose(f); //--vluzacn
-	Log("%u texlights parsed (%s)\n", file_texlights,
-		filename); // readded
+	fclose(f);
+	Log("%u texlights parsed (%s)\n", file_texlights, filename);
 }
 
 static float3_array LightForTexture(wad_texture_name name) {
 	for (texlight_i it = s_texlights.begin(); it != s_texlights.end();
-		 it++) {
+	     it++) {
 		if (name == it->name) {
 			return it->value;
 		}
@@ -535,11 +534,11 @@ static float3_array BaseLightForFace(dface_t const * const f) {
 					get_float3_for_key(*g_face_texlights[fn], u8"origin")
 				};
 				Log("light at (%f,%f,%f) has bad or missing '_light' value : '%s'\n",
-					origin[0],
-					origin[1],
-					origin[2],
-					(char const *)
-						ValueForKey(g_face_texlights[fn], u8"_light"));
+				    origin[0],
+				    origin[1],
+				    origin[2],
+				    (char const *)
+				        ValueForKey(g_face_texlights[fn], u8"_light"));
 				r = g = b = 0;
 				break;
 		}
@@ -594,7 +593,7 @@ static bool PlacePatchInside(patch_t* patch) {
 	point = vector_fma(plane->normal, PATCH_HUNT_OFFSET, center);
 	pointstested++;
 	if (HuntForWorld(point, face_offset, plane, 4, 0.2, PATCH_HUNT_OFFSET)
-		|| HuntForWorld(
+	    || HuntForWorld(
 			point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET
 		)) {
 		pointsfound++;
@@ -619,7 +618,7 @@ static bool PlacePatchInside(patch_t* patch) {
 			if (HuntForWorld(
 					point, face_offset, plane, 4, 0.2, PATCH_HUNT_OFFSET
 				)
-				|| HuntForWorld(
+			    || HuntForWorld(
 					point, face_offset, plane, 4, 0.8, PATCH_HUNT_OFFSET
 				)) {
 				pointsfound++;
@@ -670,7 +669,7 @@ static void UpdateEmitterInfo(patch_t* patch) {
 				  return distance_between_points(point, origin);
 			  }
 
-			)
+	        )
 		)
 	);
 	int skylevel = ACCURATEBOUNCE_DEFAULT_SKYLEVEL;
@@ -961,8 +960,8 @@ void ReadCustomChopValue() {
 		for (i = 0; i < num; i++) {
 			wad_texture_name const texname{
 				((miptex_t*) (g_dtexdata.data()
-							  + ((dmiptexlump_t*) g_dtexdata.data())
-									->dataofs[i]))
+				              + ((dmiptexlump_t*) g_dtexdata.data())
+				                    ->dataofs[i]))
 					->name
 			};
 			std::u8string_view value{ value_for_key(mapent, texname) };
@@ -1013,8 +1012,8 @@ void ReadCustomSmoothValue() {
 		for (i = 0; i < num; i++) {
 			wad_texture_name const texname{
 				((miptex_t*) (g_dtexdata.data()
-							  + ((dmiptexlump_t*) g_dtexdata.data())
-									->dataofs[i]))
+				              + ((dmiptexlump_t*) g_dtexdata.data())
+				                    ->dataofs[i]))
 					->name
 			};
 			std::u8string_view value{ value_for_key(mapent, texname) };
@@ -1056,8 +1055,8 @@ void ReadTranslucentTextures() {
 		for (i = 0; i < num; i++) {
 			wad_texture_name const texname{
 				((miptex_t*) (g_dtexdata.data()
-							  + ((dmiptexlump_t*) g_dtexdata.data())
-									->dataofs[i]))
+				              + ((dmiptexlump_t*) g_dtexdata.data())
+				                    ->dataofs[i]))
 					->name
 			};
 			std::u8string_view value{ value_for_key(mapent, texname) };
@@ -1082,7 +1081,7 @@ void ReadTranslucentTextures() {
 				continue;
 			}
 			if (r < 0.0 || r > 1.0 || g < 0.0 || g > 1.0 || b < 0.0
-				|| b > 1.0) {
+			    || b > 1.0) {
 				Warning("translucent value should be 0.0-1.0");
 				continue;
 			}
@@ -1132,8 +1131,8 @@ void ReadLightingCone() {
 		for (i = 0; i < num; i++) {
 			wad_texture_name const texname{
 				((miptex_t*) (g_dtexdata.data()
-							  + ((dmiptexlump_t*) g_dtexdata.data())
-									->dataofs[i]))
+				              + ((dmiptexlump_t*) g_dtexdata.data())
+				                    ->dataofs[i]))
 					->name
 			};
 
@@ -1201,10 +1200,10 @@ static float getScale(patch_t const * const patch) {
 
 		scale[0] = 1
 			/ std::max(NORMAL_EPSILON,
-					   vector_length(vecs_perpendicular[0]));
+		               vector_length(vecs_perpendicular[0]));
 		scale[1] = 1
 			/ std::max(NORMAL_EPSILON,
-					   vector_length(vecs_perpendicular[1]));
+		               vector_length(vecs_perpendicular[1]));
 
 		// don't care about the angle between vecs[0] and vecs[1] (given the
 		// length of "vecs", smaller angle = larger texel area), because
@@ -1329,7 +1328,7 @@ static void MakePatchForFace(
 		= g_textures[g_texinfo[f->texinfo].miptex].reflectivity;
 
 	if (g_face_texlights[fn]
-		&& has_key_value(g_face_texlights[fn], u8"_texcolor")) {
+	    && has_key_value(g_face_texlights[fn], u8"_texcolor")) {
 		float3_array texturereflectivity;
 		float3_array texturecolor{
 			get_float3_for_key(*g_face_texlights[fn], u8"_texcolor")
@@ -1338,7 +1337,7 @@ static void MakePatchForFace(
 			texturecolor[k] = floor(texturecolor[k] + 0.001);
 		}
 		if (vector_min_element(texturecolor) < -0.001f
-			|| vector_max_element(texturecolor) > 255.001) {
+		    || vector_max_element(texturecolor) > 255.001) {
 			float3_array const origin{
 				get_float3_for_key(*g_face_texlights[fn], u8"origin")
 			};
@@ -1360,7 +1359,7 @@ static void MakePatchForFace(
 			texturereflectivity, g_texreflectscale
 		);
 		if (vector_max_element(texturereflectivity)
-			> 1.0 + NORMAL_EPSILON) {
+		    > 1.0 + NORMAL_EPSILON) {
 			Warning(
 				"Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.",
 				g_textures[g_texinfo[f->texinfo].miptex].name.c_str(),
@@ -1385,20 +1384,20 @@ static void MakePatchForFace(
 						opacity = 1.0
 							- vector_average(op->transparency_scale);
 						opacity = opacity > 1.0 ? 1.0
-							: opacity < 0.0		? 0.0
+							: opacity < 0.0     ? 0.0
 												: opacity;
 					}
-					if (op->style != -1) {		 // toggleable opaque entity
+					if (op->style != -1) {       // toggleable opaque entity
 						if (bouncestyle == -1) { // by default
-							opacity = 0.0;		 // doesn't reflect light
+							opacity = 0.0;       // doesn't reflect light
 						}
 					}
 					break;
 				}
 			}
 			if (x == g_opaque_face_list.size()) { // not opaque
-				if (bouncestyle != -1) {		  // with light_bounce
-					opacity = 1.0;				  // reflects light
+				if (bouncestyle != -1) {          // with light_bounce
+					opacity = 1.0;                // reflects light
 				}
 			}
 		}
@@ -1407,7 +1406,7 @@ static void MakePatchForFace(
 		);
 	}
 	patch->bouncestyle = bouncestyle;
-	if (bouncestyle == 0) {		 // there is an unnamed light_bounce
+	if (bouncestyle == 0) {      // there is an unnamed light_bounce
 		patch->bouncestyle = -1; // reflects light normally
 	}
 	patch->emitmode = getEmitMode(patch);
@@ -1525,7 +1524,7 @@ static void LoadOpaqueEntities() {
 	int modelnum, entnum;
 
 	for (modelnum = 0; modelnum < g_nummodels;
-		 modelnum++) // Loop through brush models
+	     modelnum++) // Loop through brush models
 	{
 		dmodel_t* model = &g_dmodels[modelnum]; // Get current model
 		std::array<char8_t, 16> stringmodel;
@@ -1534,7 +1533,7 @@ static void LoadOpaqueEntities() {
 		); // Model number to string
 
 		for (entnum = 0; entnum < g_numentities;
-			 entnum++) // Loop through map ents
+		     entnum++) // Loop through map ents
 		{
 			entity_t const & ent
 				= g_entities[entnum]; // Get the current ent
@@ -1553,7 +1552,7 @@ static void LoadOpaqueEntities() {
 				// If the entity has a light_origin and model_center,
 				// calculate a new origin
 				if (has_key_value(&ent, u8"light_origin")
-					&& has_key_value(&ent, u8"model_center")) {
+				    && has_key_value(&ent, u8"model_center")) {
 					auto maybeEnt2 = find_target_entity(
 						value_for_key(&ent, u8"light_origin")
 					);
@@ -1574,10 +1573,10 @@ static void LoadOpaqueEntities() {
 			bool opaque = false;
 			{
 				if (g_allow_opaques
-					&& (IntForKey(&ent, u8"zhlt_lightflags")
-						& eModelLightmodeOpaque
-					)) { // If -noopaque is off, and if the entity has
-						 // opaque light flag
+				    && (IntForKey(&ent, u8"zhlt_lightflags")
+				        & eModelLightmodeOpaque
+				    )) { // If -noopaque is off, and if the entity has
+					     // opaque light flag
 					opaque = true;
 				}
 			}
@@ -1598,7 +1597,7 @@ static void LoadOpaqueEntities() {
 							&g,
 							&b
 						)
-						== 3) {
+					    == 3) {
 						r = std::max(0.0f, r);
 						g = std::max(0.0f, g);
 						b = std::max(0.0f, b);
@@ -1608,7 +1607,7 @@ static void LoadOpaqueEntities() {
 								   "%f",
 								   &r
 							   )
-							   == 1) {
+					           == 1) {
 						// Greyscale version
 						// Set transparency values to the same greyscale
 						// value
@@ -1626,15 +1625,15 @@ static void LoadOpaqueEntities() {
 				int j;
 
 				for (j = 0; j < g_numentities;
-					 j++) // Loop to find a matching light_shadow entity
+				     j++) // Loop to find a matching light_shadow entity
 				{
 					entity_t* lightent = &g_entities[j];
 
 					if (classname_is(
 							lightent, u8"light_shadow"
 						) // If light_shadow targeting the current entity
-						&& has_key_value(lightent, u8"target")
-						&& key_value_is(
+					    && has_key_value(lightent, u8"target")
+					    && key_value_is(
 							lightent,
 							u8"target",
 							value_for_key(&ent, u8"targetname")
@@ -1666,11 +1665,11 @@ static void LoadOpaqueEntities() {
 					block = true;
 
 					if (IntForKey(&ent, u8"zhlt_lightflags")
-						& eModelLightmodeNonsolid) { // If entity non-solid
-													 // or has transparency
-													 // or a specific style,
-													 // which would prevent
-													 // it from blocking
+					    & eModelLightmodeNonsolid) { // If entity non-solid
+						                             // or has transparency
+						                             // or a specific style,
+						                             // which would prevent
+						                             // it from blocking
 						block = false;
 					}
 					if (transparency) {
@@ -1682,7 +1681,7 @@ static void LoadOpaqueEntities() {
 				}
 			}
 			if (opaque) // If opaque add it to the opaque list with its
-						// properties
+			            // properties
 			{
 				AddFaceToOpaqueList(
 					entnum,
@@ -1738,19 +1737,19 @@ static entity_t* FindTexlightEntity(int facenum) {
 		}
 		if (has_key_value(&ent, u8"_fdist")) {
 			if (fabs(dot_product(delta, dplane->normal))
-				> float_for_key(ent, u8"_fdist")) {
+			    > float_for_key(ent, u8"_fdist")) {
 				continue;
 			}
 		}
 		if (has_key_value(&ent, u8"_fclass")) {
 			if (value_for_key(faceent, u8"classname")
-				!= value_for_key(&ent, u8"_fclass")) {
+			    != value_for_key(&ent, u8"_fclass")) {
 				continue;
 			}
 		}
 		if (has_key_value(&ent, u8"_fname")) {
 			if (value_for_key(faceent, u8"targetname")
-				!= value_for_key(&ent, u8"_fname")) {
+			    != value_for_key(&ent, u8"_fname")) {
 				continue;
 			}
 		}
@@ -1810,7 +1809,7 @@ static void MakePatches() {
 					&v2,
 					&v3
 				)
-				== 3) {
+			    == 3) {
 				origin[0] = v1;
 				origin[1] = v2;
 				origin[2] = v3;
@@ -1837,7 +1836,7 @@ static void MakePatches() {
 							&v2,
 							&v3
 						)
-						== 3) {
+					    == 3) {
 						lightOrigin = { v1, v2, v3 };
 					}
 				}
@@ -1858,7 +1857,7 @@ static void MakePatches() {
 					&v2,
 					&v3
 				)
-				== 3) {
+			    == 3) {
 				modelCenter = { v1, v2, v3 };
 			}
 		}
@@ -1895,8 +1894,8 @@ static void MakePatches() {
 			for (j = 0; j < g_numentities; j++) {
 				entity_t* lightent = &g_entities[j];
 				if (classname_is(lightent, u8"light_bounce")
-					&& has_key_value(lightent, u8"target")
-					&& key_value_is(
+				    && has_key_value(lightent, u8"target")
+				    && key_value_is(
 						lightent,
 						u8"target",
 						value_for_key(ent, u8"targetname")
@@ -1999,10 +1998,10 @@ static void CollectLight() {
 		patch_t& patch = g_patches[i];
 		std::array<float3_array, MAXLIGHTMAPS> newtotallight{};
 		for (std::size_t j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255;
-			 ++j) {
+		     ++j) {
 			for (std::size_t k = 0;
-				 k < MAXLIGHTMAPS && patch.totalstyle[k] != 255;
-				 k++) {
+			     k < MAXLIGHTMAPS && patch.totalstyle[k] != 255;
+			     k++) {
 				if (patch.totalstyle[k] == newstyles[i][j]) {
 					newtotallight[j] = patch.totallight[k];
 					break;
@@ -2064,8 +2063,8 @@ static void GatherLight(int threadnum) {
 			unsigned patchnum = tIndex->index;
 
 			for (l = 0; l < size; l++,
-				tData += float_size[(std::size_t) g_transfer_compress_type],
-				patchnum++) {
+			    tData += float_size[(std::size_t) g_transfer_compress_type],
+			    patchnum++) {
 				// LRC:
 				patch_t* emitpatch = &g_patches[patchnum];
 				unsigned emitstyle;
@@ -2077,8 +2076,8 @@ static void GatherLight(int threadnum) {
 
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
-					 && emitpatch->directstyle[emitstyle] != 255;
-					 emitstyle++) {
+				     && emitpatch->directstyle[emitstyle] != 255;
+				     emitstyle++) {
 					float3_array v = vector_multiply(
 						vector_scale(emitpatch->directlight[emitstyle], f),
 						emitpatch->bouncereflectivity
@@ -2087,7 +2086,7 @@ static void GatherLight(int threadnum) {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
 							if (addstyle == 0
-								|| addstyle == emitpatch->bouncestyle) {
+							    || addstyle == emitpatch->bouncestyle) {
 								addstyle = emitpatch->bouncestyle;
 							} else {
 								continue;
@@ -2104,8 +2103,8 @@ static void GatherLight(int threadnum) {
 					}
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
-					 && emitpatch->totalstyle[emitstyle] != 255;
-					 emitstyle++) {
+				     && emitpatch->totalstyle[emitstyle] != 255;
+				     emitstyle++) {
 					float3_array v = vector_multiply(
 						vector_scale(emitlight[patchnum][emitstyle], f),
 						emitpatch->bouncereflectivity
@@ -2114,7 +2113,7 @@ static void GatherLight(int threadnum) {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
 							if (addstyle == 0
-								|| addstyle == emitpatch->bouncestyle) {
+							    || addstyle == emitpatch->bouncestyle) {
 								addstyle = emitpatch->bouncestyle;
 							} else {
 								continue;
@@ -2173,7 +2172,7 @@ static void GatherLight(int threadnum) {
 			if (maxlights[style] > g_maxdiscardedlight + NORMAL_EPSILON) {
 				ThreadLock();
 				if (maxlights[style]
-					> g_maxdiscardedlight + NORMAL_EPSILON) {
+				    > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[style];
 					g_maxdiscardedpos = patch->origin;
 				}
@@ -2223,10 +2222,10 @@ static void GatherRGBLight(int threadnum) {
 			unsigned size = (tIndex->size + 1);
 			unsigned patchnum = tIndex->index;
 			for (l = 0; l < size;
-				 l++,
-				tRGBData
-				 += vector_size[(std::size_t) g_rgbtransfer_compress_type],
-				patchnum++) {
+			     l++,
+			    tRGBData
+			     += vector_size[(std::size_t) g_rgbtransfer_compress_type],
+			    patchnum++) {
 				// LRC:
 				patch_t* emitpatch = &g_patches[patchnum];
 				unsigned emitstyle;
@@ -2242,8 +2241,8 @@ static void GatherRGBLight(int threadnum) {
 
 				// for each style on the emitting patch
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
-					 && emitpatch->directstyle[emitstyle] != 255;
-					 emitstyle++) {
+				     && emitpatch->directstyle[emitstyle] != 255;
+				     emitstyle++) {
 					float3_array v = vector_multiply(
 						vector_multiply(emitlight[patchnum][emitstyle], f),
 						emitpatch->bouncereflectivity
@@ -2252,7 +2251,7 @@ static void GatherRGBLight(int threadnum) {
 						int addstyle = emitpatch->directstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
 							if (addstyle == 0
-								|| addstyle == emitpatch->bouncestyle) {
+							    || addstyle == emitpatch->bouncestyle) {
 								addstyle = emitpatch->bouncestyle;
 							} else {
 								continue;
@@ -2269,8 +2268,8 @@ static void GatherRGBLight(int threadnum) {
 					}
 				}
 				for (emitstyle = 0; emitstyle < MAXLIGHTMAPS
-					 && emitpatch->totalstyle[emitstyle] != 255;
-					 emitstyle++) {
+				     && emitpatch->totalstyle[emitstyle] != 255;
+				     emitstyle++) {
 					float3_array v = vector_multiply(
 						vector_multiply(emitlight[patchnum][emitstyle], f),
 						emitpatch->bouncereflectivity
@@ -2279,7 +2278,7 @@ static void GatherRGBLight(int threadnum) {
 						int addstyle = emitpatch->totalstyle[emitstyle];
 						if (emitpatch->bouncestyle != -1) {
 							if (addstyle == 0
-								|| addstyle == emitpatch->bouncestyle) {
+							    || addstyle == emitpatch->bouncestyle) {
 								addstyle = emitpatch->bouncestyle;
 							} else {
 								continue;
@@ -2338,7 +2337,7 @@ static void GatherRGBLight(int threadnum) {
 			if (maxlights[style] > g_maxdiscardedlight + NORMAL_EPSILON) {
 				ThreadLock();
 				if (maxlights[style]
-					> g_maxdiscardedlight + NORMAL_EPSILON) {
+				    > g_maxdiscardedlight + NORMAL_EPSILON) {
 					g_maxdiscardedlight = maxlights[style];
 					g_maxdiscardedpos = patch->origin;
 				}
@@ -2367,8 +2366,8 @@ static void BounceLight() {
 	for (std::size_t i = 0; i < g_patches.size(); i++) {
 		patch_t* patch = &g_patches[i];
 		for (unsigned j = 0;
-			 j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
-			 j++) {
+		     j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
+		     j++) {
 			emitlight[i][j] = patch->totallight[j];
 		}
 	}
@@ -2385,8 +2384,8 @@ static void BounceLight() {
 	for (std::size_t i = 0; i < g_patches.size(); i++) {
 		patch_t* patch = &g_patches[i];
 		for (unsigned j = 0;
-			 j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
-			 j++) {
+		     j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
+		     j++) {
 			patch->totallight[j] = emitlight[i][j];
 		}
 	}
@@ -2535,7 +2534,7 @@ static void RadWorld() {
 		}
 	}
 	CheckMaxPatches(); // Check here for exceeding max patches, to prevent a
-					   // lot of work from occuring before an error occurs
+	                   // lot of work from occuring before an error occurs
 	SortPatches(); // Makes the runs in the Transfer Compression really good
 	PairEdges();
 	if (g_drawedge) {
@@ -2715,7 +2714,7 @@ static void Usage() {
 	Log("    -noinfo         : Do not show tool configuration information\n"
 	);
 	Log("    -dev %s : compile with developer logging\n\n",
-		(char const *) developer_level_options.data());
+	    (char const *) developer_level_options.data());
 
 	Log("   -customshadowwithbounce : Enables custom shadows with bounce light\n"
 	);
@@ -2779,31 +2778,31 @@ static void Settings() {
 
 	Log("\n-= Current %s Settings =-\n", (char const *) g_Program.data());
 	Log("Name                | Setting             | Default\n"
-		"--------------------|---------------------|-------------------------\n"
+	    "--------------------|---------------------|-------------------------\n"
 	);
 
 	// ZHLT Common Settings
 	Log("threads             [ %17td ] [  Varies ]\n", g_numthreads);
 	Log("verbose              [ %17s ] [ %17s ]\n",
-		g_verbose ? "on" : "off",
-		cli_option_defaults::verbose ? "on" : "off");
+	    g_verbose ? "on" : "off",
+	    cli_option_defaults::verbose ? "on" : "off");
 	Log("log                  [ %17s ] [ %17s ]\n",
-		g_log ? "on" : "off",
-		cli_option_defaults::log ? "on" : "off");
+	    g_log ? "on" : "off",
+	    cli_option_defaults::log ? "on" : "off");
 	Log("developer            [ %17s ] [ %17s ]\n",
-		(char const *) name_of_developer_level(g_developer).data(),
-		(char const *)
-			name_of_developer_level(cli_option_defaults::developer)
-				.data());
+	    (char const *) name_of_developer_level(g_developer).data(),
+	    (char const *)
+	        name_of_developer_level(cli_option_defaults::developer)
+	            .data());
 	Log("chart                [ %17s ] [ %17s ]\n",
-		g_chart ? "on" : "off",
-		cli_option_defaults::chart ? "on" : "off");
+	    g_chart ? "on" : "off",
+	    cli_option_defaults::chart ? "on" : "off");
 	Log("estimate             [ %17s ] [ %17s ]\n",
-		g_estimate ? "on" : "off",
-		cli_option_defaults::estimate ? "on" : "off");
+	    g_estimate ? "on" : "off",
+	    cli_option_defaults::estimate ? "on" : "off");
 	Log("max texture memory   [ %17td ] [ %17td ]\n",
-		g_max_map_miptex,
-		cli_option_defaults::max_map_miptex);
+	    g_max_map_miptex,
+	    cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
 		case q_threadpriority::eThreadPriorityNormal:
@@ -2821,25 +2820,25 @@ static void Settings() {
 	Log("\n");
 
 	Log("fast rad             [ %17s ] [ %17s ]\n",
-		g_fastmode ? "on" : "off",
-		DEFAULT_FASTMODE ? "on" : "off");
+	    g_fastmode ? "on" : "off",
+	    DEFAULT_FASTMODE ? "on" : "off");
 	Log("vismatrix algorithm  [ %17s ] [ %17s ]\n",
-		g_method == vis_method::vismatrix			   ? "Original"
-			: g_method == vis_method::sparse_vismatrix ? "Sparse"
-			: g_method == vis_method::no_vismatrix	   ? "NoMatrix"
-													   : "Unknown",
-		cli_option_defaults::visMethod == vis_method::vismatrix ? "Original"
-			: cli_option_defaults::visMethod == vis_method::sparse_vismatrix
-			? "Sparse"
-			: cli_option_defaults::visMethod == vis_method::no_vismatrix
-			? "NoMatrix"
-			: "Unknown");
+	    g_method == vis_method::vismatrix              ? "Original"
+	        : g_method == vis_method::sparse_vismatrix ? "Sparse"
+	        : g_method == vis_method::no_vismatrix     ? "NoMatrix"
+	                                                   : "Unknown",
+	    cli_option_defaults::visMethod == vis_method::vismatrix ? "Original"
+	        : cli_option_defaults::visMethod == vis_method::sparse_vismatrix
+	        ? "Sparse"
+	        : cli_option_defaults::visMethod == vis_method::no_vismatrix
+	        ? "NoMatrix"
+	        : "Unknown");
 	Log("oversampling (-extra)[ %17s ] [ %17s ]\n",
-		g_extra ? "on" : "off",
-		DEFAULT_EXTRA ? "on" : "off");
+	    g_extra ? "on" : "off",
+	    DEFAULT_EXTRA ? "on" : "off");
 	Log("bounces              [ %17d ] [ %17d ]\n",
-		g_numbounce,
-		DEFAULT_BOUNCE);
+	    g_numbounce,
+	    DEFAULT_BOUNCE);
 
 	safe_snprintf(
 		buf1,
@@ -2862,8 +2861,8 @@ static void Settings() {
 	safe_snprintf(buf2, sizeof(buf2), "%u", DEFAULT_LIMITTHRESHOLD);
 	Log("light limit threshold[ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("circus mode          [ %17s ] [ %17s ]\n",
-		g_circus ? "on" : "off",
-		DEFAULT_CIRCUS ? "on" : "off");
+	    g_circus ? "on" : "off",
+	    DEFAULT_CIRCUS ? "on" : "off");
 
 	Log("\n");
 
@@ -2889,17 +2888,17 @@ static void Settings() {
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_CORING);
 	Log("coring threshold     [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("patch interpolation  [ %17s ] [ %17s ]\n",
-		g_lerp_enabled ? "on" : "off",
-		DEFAULT_LERP_ENABLED ? "on" : "off");
+	    g_lerp_enabled ? "on" : "off",
+	    DEFAULT_LERP_ENABLED ? "on" : "off");
 
 	Log("\n");
 
 	Log("texscale             [ %17s ] [ %17s ]\n",
-		g_texscale ? "on" : "off",
-		DEFAULT_TEXSCALE ? "on" : "off");
+	    g_texscale ? "on" : "off",
+	    DEFAULT_TEXSCALE ? "on" : "off");
 	Log("patch subdividing    [ %17s ] [ %17s ]\n",
-		g_subdivide ? "on" : "off",
-		DEFAULT_SUBDIVIDE ? "on" : "off");
+	    g_subdivide ? "on" : "off",
+	    DEFAULT_SUBDIVIDE ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_chop);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_CHOP);
 	Log("chop value           [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -2929,33 +2928,33 @@ static void Settings() {
 
 	Log("\n");
 	Log("spread angles        [ %17s ] [ %17s ]\n",
-		g_allow_spread ? "on" : "off",
-		DEFAULT_ALLOW_SPREAD ? "on" : "off");
+	    g_allow_spread ? "on" : "off",
+	    DEFAULT_ALLOW_SPREAD ? "on" : "off");
 	Log("opaque brush models  [ %17s ] [ %17s ]\n",
-		g_allow_opaques ? "on" : "off",
-		DEFAULT_ALLOW_OPAQUES ? "on" : "off");
+	    g_allow_opaques ? "on" : "off",
+	    DEFAULT_ALLOW_OPAQUES ? "on" : "off");
 	Log("opaque studio models [ %17s ] [ %17s ]\n",
-		g_studioshadow ? "on" : "off",
-		DEFAULT_STUDIOSHADOW ? "on" : "off");
+	    g_studioshadow ? "on" : "off",
+	    DEFAULT_STUDIOSHADOW ? "on" : "off");
 	Log("sky lighting fix     [ %17s ] [ %17s ]\n",
-		g_sky_lighting_fix ? "on" : "off",
-		DEFAULT_SKY_LIGHTING_FIX ? "on" : "off");
+	    g_sky_lighting_fix ? "on" : "off",
+	    DEFAULT_SKY_LIGHTING_FIX ? "on" : "off");
 	Log("incremental          [ %17s ] [ %17s ]\n",
-		g_incremental ? "on" : "off",
-		DEFAULT_INCREMENTAL ? "on" : "off");
+	    g_incremental ? "on" : "off",
+	    DEFAULT_INCREMENTAL ? "on" : "off");
 
 	Log("\n");
 	Log("custom shadows with bounce light\n"
-		"                     [ %17s ] [ %17s ]\n",
-		g_customshadow_with_bouncelight ? "on" : "off",
-		DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT ? "on" : "off");
+	    "                     [ %17s ] [ %17s ]\n",
+	    g_customshadow_with_bouncelight ? "on" : "off",
+	    DEFAULT_CUSTOMSHADOW_WITH_BOUNCELIGHT ? "on" : "off");
 	Log("rgb transfers        [ %17s ] [ %17s ]\n",
-		g_rgb_transfers ? "on" : "off",
-		DEFAULT_RGB_TRANSFERS ? "on" : "off");
+	    g_rgb_transfers ? "on" : "off",
+	    DEFAULT_RGB_TRANSFERS ? "on" : "off");
 
 	Log("minimum final light  [ %17d ] [ %17d ]\n",
-		(int) g_minlight,
-		(int) cli_option_defaults::minLight);
+	    (int) g_minlight,
+	    (int) cli_option_defaults::minLight);
 	snprintf(
 		buf1,
 		sizeof(buf1),
@@ -2972,7 +2971,7 @@ static void Settings() {
 		(std::size_t) cli_option_defaults::transferCompressType,
 		(char const *)
 			float_type_string[(std::size_t
-							  ) cli_option_defaults::transferCompressType]
+	                          ) cli_option_defaults::transferCompressType]
 				.data()
 	);
 	Log("size of transfer     [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -2989,21 +2988,21 @@ static void Settings() {
 		"%zu (%s)",
 		(std::size_t) cli_option_defaults::rgbTransferCompressType,
 		vector_type_string[(std::size_t
-		) cli_option_defaults::rgbTransferCompressType]
+	    ) cli_option_defaults::rgbTransferCompressType]
 	);
 	Log("size of rgbtransfer  [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("soft sky             [ %17s ] [ %17s ]\n",
-		g_softsky ? "on" : "off",
-		DEFAULT_SOFTSKY ? "on" : "off");
+	    g_softsky ? "on" : "off",
+	    DEFAULT_SOFTSKY ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_translucentdepth);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TRANSLUCENTDEPTH);
 	Log("translucent depth    [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("block opaque         [ %17s ] [ %17s ]\n",
-		g_blockopaque ? "on" : "off",
-		cli_option_defaults::blockOpaque ? "on" : "off");
+	    g_blockopaque ? "on" : "off",
+	    cli_option_defaults::blockOpaque ? "on" : "off");
 	Log("ignore textures      [ %17s ] [ %17s ]\n",
-		g_notextures ? "on" : "off",
-		DEFAULT_NOTEXTURES ? "on" : "off");
+	    g_notextures ? "on" : "off",
+	    DEFAULT_NOTEXTURES ? "on" : "off");
 	safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_texreflectgamma);
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_TEXREFLECTGAMMA);
 	Log("reflectivity gamma   [ %17s ] [ %17s ]\n", buf1, buf2);
@@ -3014,11 +3013,11 @@ static void Settings() {
 	safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_BLUR);
 	Log("blur size            [ %17s ] [ %17s ]\n", buf1, buf2);
 	Log("no emitter range     [ %17s ] [ %17s ]\n",
-		g_noemitterrange ? "on" : "off",
-		DEFAULT_NOEMITTERRANGE ? "on" : "off");
+	    g_noemitterrange ? "on" : "off",
+	    DEFAULT_NOEMITTERRANGE ? "on" : "off");
 	Log("wall bleeding fix    [ %17s ] [ %17s ]\n",
-		g_bleedfix ? "on" : "off",
-		DEFAULT_BLEEDFIX ? "on" : "off");
+	    g_bleedfix ? "on" : "off",
+	    DEFAULT_BLEEDFIX ? "on" : "off");
 
 	Log("\n\n");
 }
@@ -3047,7 +3046,7 @@ void ReadInfoTexAndMinlights() {
 					continue; // we dont care about these keyvalues
 				}
 				if (sscanf((char const *) kv.value().data(), "%f", &min)
-					!= 1) {
+				    != 1) {
 					Warning(
 						"Ignoring bad minlight '%s' in info_minlights entity",
 						(char const *) kv.key().data()
@@ -3298,7 +3297,7 @@ int main(int const argc, char** argv) {
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
 							Log("Expected value below %zu for '-threads'\n",
-								MAX_THREADS);
+							    MAX_THREADS);
 							Usage();
 						}
 					} else {
@@ -3412,8 +3411,8 @@ int main(int const argc, char** argv) {
 							   argv[i], u8"-limiter"
 						   )) {
 					if (i + 1 < argc) //"1" was added to check if there is
-									  // another argument afterwards
-									  //(expected value)
+					                  // another argument afterwards
+					                  //(expected value)
 					{
 						g_limitthreshold = std::clamp(
 							atoi(argv[++i]), 0, 255
@@ -3549,7 +3548,7 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-nopaque"
 						   )
-						   || strings_equal_with_ascii_case_insensitivity(
+				           || strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-noopaque"
 						   )) //--vluzacn
 				{
@@ -3803,24 +3802,24 @@ int main(int const argc, char** argv) {
 				/// OUTPUT?
 
 				/*
-					When game DLLs spawn light_environment, it makes the
+				    When game DLLs spawn light_environment, it makes the
 				   following adjustments
 
-					int r, g, b, brightness;
-					r = r * (brightness / 255.0);
-					g = g * (brightness / 255.0);
-					b = b * (brightness / 255.0);
-					sv_skycolor_r = pow( r / 114.0, 0.6 ) * 264;
-					sv_skycolor_g = pow( g / 114.0, 0.6 ) * 264;
-					sv_skycolor_b = pow( b / 114.0, 0.6 ) * 264;
+				    int r, g, b, brightness;
+				    r = r * (brightness / 255.0);
+				    g = g * (brightness / 255.0);
+				    b = b * (brightness / 255.0);
+				    sv_skycolor_r = pow( r / 114.0, 0.6 ) * 264;
+				    sv_skycolor_g = pow( g / 114.0, 0.6 ) * 264;
+				    sv_skycolor_b = pow( b / 114.0, 0.6 ) * 264;
 
-					Because of this, we need to output a light_environment
-					with values that will give us the correct sv_skycolor_X
-					values.
+				    Because of this, we need to output a light_environment
+				    with values that will give us the correct sv_skycolor_X
+				    values.
 
-					build_light_environment_rgbv_values(uint8_t r, uint8_t
+				    build_light_environment_rgbv_values(uint8_t r, uint8_t
 				   g, uint8_t b) {
-					uint8_t const outR = std::round(std::pow(r/264, 1/0.6) *
+				    uint8_t const outR = std::round(std::pow(r/264, 1/0.6) *
 				   114);
 				   uint8_t const outG = std::round(std::pow(r/264,
 				   1/0.6)
@@ -3830,7 +3829,7 @@ int main(int const argc, char** argv) {
 				   constexpr uint8_t outV = 1;
 				   return {outR,
 				   outG, outB, outV};
-					}
+				    }
 
 				*/
 

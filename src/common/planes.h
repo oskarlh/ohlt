@@ -57,17 +57,17 @@ constexpr planetype plane_type_for_normal(std::array<T, 3> const & normal
 	T const ay = std::abs(normal[1]);
 	T const az = std::abs(normal[2]);
 	if (ax > 1.0 - PLANE_NORMAL_EPSILON && ay < PLANE_NORMAL_EPSILON
-		&& az < PLANE_NORMAL_EPSILON) {
+	    && az < PLANE_NORMAL_EPSILON) {
 		return planetype::plane_x;
 	}
 
 	if (ay > 1.0 - PLANE_NORMAL_EPSILON && az < PLANE_NORMAL_EPSILON
-		&& ax < PLANE_NORMAL_EPSILON) {
+	    && ax < PLANE_NORMAL_EPSILON) {
 		return planetype::plane_y;
 	}
 
 	if (az > 1.0 - PLANE_NORMAL_EPSILON && ax < PLANE_NORMAL_EPSILON
-		&& ay < PLANE_NORMAL_EPSILON) {
+	    && ay < PLANE_NORMAL_EPSILON) {
 		return planetype::plane_z;
 	}
 

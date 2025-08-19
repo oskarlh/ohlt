@@ -95,7 +95,7 @@ static int lump_sorter_by_name(void const * lump1, void const * lump2) {
 		lump2;
 
 	std::strong_ordering comparisonResult{ plump1->lump_info.name
-										   <=> plump2->lump_info.name };
+		                                   <=> plump2->lump_info.name };
 
 	return ordering_as_int(comparisonResult);
 }
@@ -132,7 +132,7 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 	Log("\n"); // looks cleaner
 	// update wad inclusion
 	for (std::size_t i = 0; i < g_pWadPaths.size();
-		 ++i) // loop through all wadpaths in map
+	     ++i) // loop through all wadpaths in map
 	{
 		currentwad = g_pWadPaths[i];
 		if (!g_wadtextures) // If -nowadtextures used
@@ -140,8 +140,8 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 			currentwad->usedbymap = false;
 		}
 		for (WadInclude_i it = g_WadInclude.begin();
-			 it != g_WadInclude.end();
-			 it++) // Check -wadinclude list
+		     it != g_WadInclude.end();
+		     it++) // Check -wadinclude list
 		{
 			if (a_contains_b_ignoring_ascii_character_case_differences(
 					currentwad->path, *it
@@ -292,9 +292,9 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 				char* szWadFileName = std::get<1>(texture);
 				int texBytes = std::get<2>(texture);
 				Log("[%s] %s (%d bytes)\n",
-					szWadFileName,
-					texName.c_str(),
-					texBytes);
+				    szWadFileName,
+				    texName.c_str(),
+				    texBytes);
 			}
 			Log("----------------------------------------------------\n");
 		}
@@ -344,7 +344,7 @@ FindTexture(lumpinfo_with_wadfileindex const * const source) {
 		);
 		// TODO: Check for all special textures included in hlt.wad?
 		if (source->lump_info.name.is_ordinary_null()
-			|| source->lump_info.name.is_skip()) {
+		    || source->lump_info.name.is_skip()) {
 			Log("Are you sure you included hlt.wad in your wadpath list?\n"
 			);
 		}
@@ -355,11 +355,11 @@ FindTexture(lumpinfo_with_wadfileindex const * const source) {
 		lumpinfo_with_wadfileindex* first = found;
 		lumpinfo_with_wadfileindex* last = found;
 		while (first - 1 >= lumpinfo
-			   && lump_sorter_by_name(first - 1, source) == 0) {
+		       && lump_sorter_by_name(first - 1, source) == 0) {
 			first = first - 1;
 		}
 		while (last + 1 < lumpinfo + nTexLumps
-			   && lump_sorter_by_name(last + 1, source) == 0) {
+		       && lump_sorter_by_name(last + 1, source) == 0) {
 			last = last + 1;
 		}
 		// find the best matching lump
@@ -379,11 +379,11 @@ FindTexture(lumpinfo_with_wadfileindex const * const source) {
 						< best->iTexFile; // upper in the wad list is better
 				}
 			} else if (found->lump_info.filepos
-					   != best->lump_info.filepos) {
+			           != best->lump_info.filepos) {
 				better = found->lump_info.filepos
 					< best->lump_info
 						  .filepos; // when there are several lumps with the
-									// same name in one wad file
+				                    // same name in one wad file
 			}
 
 			if (better) {
@@ -591,8 +591,8 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 			Log("Wad files used by map\n");
 			Log("---------------------\n");
 			for (std::vector<wadpath_t*>::iterator it = usedWads.begin();
-				 it != usedWads.end();
-				 ++it) {
+			     it != usedWads.end();
+			     ++it) {
 				wadpath_t* currentwad = *it;
 				LogWadUsage(currentwad, nummiptex);
 			}
@@ -606,8 +606,8 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 
 			for (std::vector<wadpath_t*>::iterator it = includedWads.begin(
 				 );
-				 it != includedWads.end();
-				 ++it) {
+			     it != includedWads.end();
+			     ++it) {
 				wadpath_t* currentwad = *it;
 				LogWadUsage(currentwad, nummiptex);
 			}
@@ -685,7 +685,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 			Error("File write failure");
 		}
 		for (i = 0; i < nummiptex; i++) // Process each miptex, writing its
-										// data to the temp wad file
+		                                // data to the temp wad file
 		{
 			l->dataofs[i] = data - (std::byte*) l;
 			std::byte* writewad_data;
@@ -748,8 +748,8 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		}
 	}
 	Log("Texture usage: %1.2f/%1.2f MB)\n",
-		(float) totaltexsize / (1024 * 1024),
-		(float) g_max_map_miptex / (1024 * 1024));
+	    (float) totaltexsize / (1024 * 1024),
+	    (float) g_max_map_miptex / (1024 * 1024));
 	Verbose("LoadLump() elapsed time: %.8fs\n", timeCounter.get_total());
 }
 
@@ -766,12 +766,12 @@ void LogWadUsage(wadpath_t* currentwad, int nummiptex) {
 		/ (double) nummiptex * 100;
 
 	Log("[%s] %i/%i texture%s (%2.2f%%)\n - %s\n",
-		currentwadName,
-		currentwad->usedtextures,
-		currentwad->totaltextures,
-		currentwad->usedtextures == 1 ? "" : "s",
-		percentUsed,
-		(char const *) currentwad->path.c_str());
+	    currentwadName,
+	    currentwad->usedtextures,
+	    currentwad->totaltextures,
+	    currentwad->usedtextures == 1 ? "" : "s",
+	    percentUsed,
+	    (char const *) currentwad->path.c_str());
 }
 
 texinfo_count TexinfoForBrushTexture(
@@ -790,8 +790,8 @@ texinfo_count TexinfoForBrushTexture(
 
 	// Set the special flag
 	if (textureName.is_ordinary_sky() || textureName.is_env_sky()
-		|| textureName.is_origin() || textureName.is_ordinary_null()
-		|| textureName.is_aaatrigger()) {
+	    || textureName.is_origin() || textureName.is_ordinary_null()
+	    || textureName.is_aaatrigger()) {
 		// actually only 'sky' and 'aaatrigger' needs this. --vluzacn
 		tx.set_special_flag(true);
 	}

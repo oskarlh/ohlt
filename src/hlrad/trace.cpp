@@ -116,11 +116,11 @@ static contents_t TestLine_r(
 			break;
 		default:
 			front = (start[0] * tnode->normal[0]
-					 + start[1] * tnode->normal[1]
-					 + start[2] * tnode->normal[2])
+			         + start[1] * tnode->normal[1]
+			         + start[2] * tnode->normal[2])
 				- tnode->dist;
 			back = (stop[0] * tnode->normal[0] + stop[1] * tnode->normal[1]
-					+ stop[2] * tnode->normal[2])
+			        + stop[2] * tnode->normal[2])
 				- tnode->dist;
 			break;
 	}
@@ -223,15 +223,15 @@ std::optional<try_merge_points> find_points_for_try_merge(
 			float3_array const & p2C = w2.point_after(i2, 1);
 			float3_array const & p2D = w2.point_after(i2, 2);
 			if (vectors_almost_same(pB, p2C)
-				&& vectors_almost_same(pC, p2B)) {
+			    && vectors_almost_same(pC, p2B)) {
 				return try_merge_points{ .pA = pA,
-										 .pB = pB,
-										 .pD = pD,
-										 .p2A = p2A,
-										 .p2B = p2B,
-										 .p2D = p2D,
-										 .i = i,
-										 .i2 = i2 };
+					                     .pB = pB,
+					                     .pD = pD,
+					                     .p2A = p2A,
+					                     .p2B = p2B,
+					                     .p2D = p2D,
+					                     .i = i,
+					                     .i2 = i2 };
 			}
 		}
 	}
@@ -243,14 +243,14 @@ bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 		return false;
 	}
 	if (fabs(f2->plane.dist - f->plane.dist) > ON_EPSILON
-		|| fabs(f2->plane.normal[0] - f->plane.normal[0]) > NORMAL_EPSILON
-		|| fabs(f2->plane.normal[1] - f->plane.normal[1]) > NORMAL_EPSILON
-		|| fabs(f2->plane.normal[2] - f->plane.normal[2])
-			> NORMAL_EPSILON) {
+	    || fabs(f2->plane.normal[0] - f->plane.normal[0]) > NORMAL_EPSILON
+	    || fabs(f2->plane.normal[1] - f->plane.normal[1]) > NORMAL_EPSILON
+	    || fabs(f2->plane.normal[2] - f->plane.normal[2])
+	        > NORMAL_EPSILON) {
 		return false;
 	}
 	if ((f->tex_alphatest || f2->tex_alphatest)
-		&& f->texinfo != f2->texinfo) {
+	    && f->texinfo != f2->texinfo) {
 		return false;
 	}
 
@@ -302,14 +302,14 @@ bool TryMerge(opaqueface_t* f, opaqueface_t const * f2) {
 	neww.reserve_point_storage(w.size() + w2.size() - 4 + side1 + side2);
 	int j;
 	for (j = (points.i + 2) % w.size(); j != points.i;
-		 j = (j + 1) % w.size()) {
+	     j = (j + 1) % w.size()) {
 		neww.push_point(w.point(j));
 	}
 	if (side1) {
 		neww.push_point(w.point(j));
 	}
 	for (j = (points.i2 + 2) % w2.size(); j != points.i2;
-		 j = (j + 1) % w2.size()) {
+	     j = (j + 1) % w2.size()) {
 		neww.push_point(w2.point(j));
 	}
 	if (side2) {
@@ -459,8 +459,8 @@ static bool TestLineOpaque_face(int facenum, float3_array const & hit) {
 	}
 	for (std::size_t x = 0; x < thisface->numedges; ++x) {
 		if (dot_product(hit, thisface->edges[x].normal)
-				- thisface->edges[x].dist
-			> ON_EPSILON) {
+		        - thisface->edges[x].dist
+		    > ON_EPSILON) {
 			return false;
 		}
 	}
@@ -534,8 +534,8 @@ static int TestLineOpaque_r(
 		mid[1] = start[1] + (stop[1] - start[1]) * frac;
 		mid[2] = start[2] + (stop[2] - start[2]) * frac;
 		for (facenum = thisnode->firstface;
-			 facenum < thisnode->firstface + thisnode->numfaces;
-			 facenum++) {
+		     facenum < thisnode->firstface + thisnode->numfaces;
+		     facenum++) {
 			if (TestLineOpaque_face(facenum, mid)) {
 				return 1;
 			}
@@ -619,7 +619,7 @@ TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 	while (1) {
 		if (nodenum < 0) {
 			if (solid
-				&& g_dleafs[-nodenum - 1].contents == contents_t::SOLID) {
+			    && g_dleafs[-nodenum - 1].contents == contents_t::SOLID) {
 				return true;
 			} else {
 				return false;
@@ -651,8 +651,8 @@ TestPointOpaque_r(int nodenum, bool solid, float3_array const & point) {
 	{
 		int facenum;
 		for (facenum = thisnode->firstface;
-			 facenum < thisnode->firstface + thisnode->numfaces;
-			 facenum++) {
+		     facenum < thisnode->firstface + thisnode->numfaces;
+		     facenum++) {
 			if (TestLineOpaque_face(facenum, point)) {
 				return true;
 			}

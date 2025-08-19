@@ -105,8 +105,8 @@ bool CMeshDesc ::InitMeshBuild(std::u8string debug_name, int numTriangles) {
 	// perfomance warning
 	if (numTriangles >= 65536) {
 		Log("Error: %s has too many triangles (%i). Mesh cannot be build\n",
-			(char const *) m_debugName.c_str(),
-			numTriangles);
+		    (char const *) m_debugName.c_str(),
+		    numTriangles);
 		return false; // failed to build (too many triangles)
 	} else if (numTriangles >= 32768) {
 		Warning(
@@ -149,13 +149,13 @@ bool CMeshDesc ::PlaneEqual(mplane_t const * p0, mplane_t const * p1) {
 	float t;
 
 	if (-PLANE_DIST_EPSILON < (t = p0->dist - p1->dist)
-		&& t < PLANE_DIST_EPSILON
-		&& -PLANE_NORMAL_EPSILON < (t = p0->normal[0] - p1->normal[0])
-		&& t < PLANE_NORMAL_EPSILON
-		&& -PLANE_NORMAL_EPSILON < (t = p0->normal[1] - p1->normal[1])
-		&& t < PLANE_NORMAL_EPSILON
-		&& -PLANE_NORMAL_EPSILON < (t = p0->normal[2] - p1->normal[2])
-		&& t < PLANE_NORMAL_EPSILON) {
+	    && t < PLANE_DIST_EPSILON
+	    && -PLANE_NORMAL_EPSILON < (t = p0->normal[0] - p1->normal[0])
+	    && t < PLANE_NORMAL_EPSILON
+	    && -PLANE_NORMAL_EPSILON < (t = p0->normal[1] - p1->normal[1])
+	    && t < PLANE_NORMAL_EPSILON
+	    && -PLANE_NORMAL_EPSILON < (t = p0->normal[2] - p1->normal[2])
+	    && t < PLANE_NORMAL_EPSILON) {
 		return true;
 	}
 
@@ -173,7 +173,7 @@ mesh_plane_count CMeshDesc ::AddPlaneToPool(mplane_t const * pl) {
 	for (int i = -1; i <= 1; i++) {
 		int h = (hash + i) & (mesh_plane_hashes - 1);
 		for (mesh_plane_count p = planehash[h]; p;
-			 p = planepool[p].planePoolIndex) {
+		     p = planepool[p].planePoolIndex) {
 			if (PlaneEqual(&planepool[p].pl, pl)) {
 				return p; // already exist
 			}
@@ -240,9 +240,9 @@ bool CMeshDesc ::ComparePlanes(
 	mplane_t const * plane, float3_array const & normal, float dist
 ) {
 	if (fabs(plane->normal[0] - normal[0]) < PLANE_NORMAL_EPSILON
-		&& fabs(plane->normal[1] - normal[1]) < PLANE_NORMAL_EPSILON
-		&& fabs(plane->normal[2] - normal[2]) < PLANE_NORMAL_EPSILON
-		&& fabs(plane->dist - dist) < PLANE_DIST_EPSILON) {
+	    && fabs(plane->normal[1] - normal[1]) < PLANE_NORMAL_EPSILON
+	    && fabs(plane->normal[2] - normal[2]) < PLANE_NORMAL_EPSILON
+	    && fabs(plane->dist - dist) < PLANE_DIST_EPSILON) {
 		return true;
 	}
 	return false;
@@ -441,7 +441,7 @@ void CMeshDesc ::StudioCalcBoneQuaterion(
 			angle[i] = pbone->value[i + 3]; // default;
 		} else {
 			panimvalue = (mstudioanimvalue_t*) ((byte*) panim
-												+ panim->offset[i + 3]);
+			                                    + panim->offset[i + 3]);
 			angle[i] = panimvalue[1].value;
 			angle[i] = pbone->value[i + 3] + angle[i] * pbone->scale[i + 3];
 		}
@@ -460,7 +460,7 @@ void CMeshDesc ::StudioCalcBonePosition(
 
 		if (panim->offset[j] != 0) {
 			panimvalue = (mstudioanimvalue_t*) ((byte*) panim
-												+ panim->offset[j]);
+			                                    + panim->offset[j]);
 			pos[j] += panimvalue[1].value * pbone->scale[j];
 		}
 	}
@@ -485,7 +485,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 
 	// compute default pose for building mesh from
 	mstudioseqdesc_t* pseqdesc = (mstudioseqdesc_t*) ((byte*) phdr
-													  + phdr->seqindex);
+	                                                  + phdr->seqindex);
 
 	// Sanity check
 	if (pseqdesc->seqgroup != 0) {
@@ -503,7 +503,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 	// https://github.com/ValveSoftware/halflife/blob/master/cl_dll/StudioModelRenderer.cpp
 	// but I'm not sure it does entirely
 	mstudioanim_t* panim = (mstudioanim_t*) ((byte*) phdr + pseqgroup->data
-											 + pseqdesc->animindex);
+	                                         + pseqdesc->animindex);
 
 	mstudiobone_t* pbone = (mstudiobone_t*) ((byte*) phdr + phdr->boneindex
 	);
@@ -583,7 +583,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 			= (mstudiomodel_t*) ((byte*) phdr + pbodypart->modelindex)
 			+ index;
 		float3_array* pstudioverts = (float3_array*) ((byte*) phdr
-													  + psubmodel->vertindex
+		                                              + psubmodel->vertindex
 		);
 		byte* pvertbone = ((byte*) phdr + psubmodel->vertinfoindex);
 
@@ -603,10 +603,10 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 
 		for (std::int32_t j = 0; j < psubmodel->nummesh; ++j) {
 			mstudiomesh_t* pmesh = (mstudiomesh_t*) ((byte*) phdr
-													 + psubmodel->meshindex)
+			                                         + psubmodel->meshindex)
 				+ j;
 			std::int16_t* ptricmds = (std::int16_t*) ((byte*) phdr
-													  + pmesh->triindex);
+			                                          + pmesh->triindex);
 			int flags = ptexture[pskinref[pmesh->skinref]].flags;
 			float s = 1.0f
 				/ (float) ptexture[pskinref[pmesh->skinref]].width;
@@ -697,7 +697,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 
 		// List of vertices
 		std::vector<float3_array> vert{ verts.get(),
-										verts.get() + numVerts };
+			                            verts.get() + numVerts };
 		// List of triangles
 		std::vector<triset> tris;
 		// To which neighbor each vertex collapses

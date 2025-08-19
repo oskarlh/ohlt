@@ -18,7 +18,7 @@ constexpr std::ptrdiff_t MAX_MAP_MODELS = 512; // 400 //vluzacn
 // network code as it is
 
 constexpr std::ptrdiff_t MAX_ENGINE_ENTITIES = 16384; // 1024 //vluzacn
-constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384;	  // 2048 //vluzacn
+constexpr std::ptrdiff_t MAX_MAP_ENTITIES = 16384;    // 2048 //vluzacn
 // hard limit, in actuallity it is too much, as temporary entities in the
 // game plus static map entities can overflow
 
@@ -41,7 +41,7 @@ constexpr std::ptrdiff_t MAX_MAP_LEAFS_ENGINE = 8192;
 constexpr std::ptrdiff_t MAX_MAP_VERTS = 65535;
 constexpr std::ptrdiff_t MAX_MAP_FACES
 	= 65535; // This ought to be 32768, otherwise faces(in world) can become
-			 // invisible. --vluzacn
+             // invisible. --vluzacn
 constexpr std::ptrdiff_t MAX_MAP_WORLDFACES = 32768;
 constexpr std::ptrdiff_t MAX_MAP_MARKSURFACES = 65535;
 // hard limit (data structures store them as unsigned shorts)
@@ -67,7 +67,7 @@ constexpr std::ptrdiff_t MAX_VAL
 
 constexpr std::ptrdiff_t MAX_TEXTURE_SIZE
 	= 348'972; // Bytes in a 512x512 image((256 * 256 * sizeof(short) * 3) /
-			   // 2) //stop compiler from warning 512*512 texture. --vluzacn
+               // 2) //stop compiler from warning 512*512 texture. --vluzacn
 // this is arbitrary, and needs space for the largest realistic texture plus
 // room for its mipmaps.'  This value is primarily used to catch damanged or
 // invalid textures in a wad file
@@ -76,7 +76,7 @@ constexpr std::ptrdiff_t TEXTURE_STEP
 	= 16; // this constant was previously defined in lightmap.cpp. --vluzacn
 constexpr std::ptrdiff_t MAX_SURFACE_EXTENT
 	= 16; // if lightmap extent exceeds 16, the map will not be able to load
-		  // in 'Software' renderer and HLDS. //--vluzacn
+          // in 'Software' renderer and HLDS. //--vluzacn
 
 constexpr double ENGINE_ENTITY_RANGE = 4096.0;
 //=============================================================================
@@ -106,7 +106,7 @@ struct dmiptexlump_t final {
 	// -1 in some cases? Look into it
 	std::int32_t nummiptex;
 	std::int32_t dataofs[1]; // Important: It's actually
-							 // dataofs[nummiptex]
+	                         // dataofs[nummiptex]
 };
 
 constexpr std::size_t MIPLEVELS = 4; // Four mip maps stored

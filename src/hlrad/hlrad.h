@@ -8,12 +8,12 @@
 
 #include <vector>
 
-#define DEFAULT_FASTMODE	  false
+#define DEFAULT_FASTMODE      false
 #define DEFAULT_LERP_ENABLED  true
 #define DEFAULT_STUDIOSHADOW  true
-#define DEFAULT_FADE		  1.0
-#define DEFAULT_BOUNCE		  8
-#define DEFAULT_AMBIENT_RED	  0.0
+#define DEFAULT_FADE          1.0
+#define DEFAULT_BOUNCE        8
+#define DEFAULT_AMBIENT_RED   0.0
 #define DEFAULT_AMBIENT_GREEN 0.0
 #define DEFAULT_AMBIENT_BLUE  0.0
 
@@ -21,22 +21,22 @@
 // Hopefully one day Valve will fix gl_overbright and we can use up to 255.
 constexpr int8_color_element DEFAULT_LIMITTHRESHOLD = 188;
 
-#define DEFAULT_TEXSCALE		 true
-#define DEFAULT_CHOP			 64.0
-#define DEFAULT_TEXCHOP			 32.0
+#define DEFAULT_TEXSCALE         true
+#define DEFAULT_CHOP             64.0
+#define DEFAULT_TEXCHOP          32.0
 #define DEFAULT_DLIGHT_THRESHOLD 10.0
-#define DEFAULT_SMOOTHING_VALUE	 50.0
+#define DEFAULT_SMOOTHING_VALUE  50.0
 #define DEFAULT_SMOOTHING2_VALUE 0
-#define DEFAULT_INCREMENTAL		 false
+#define DEFAULT_INCREMENTAL      false
 
-#define DEFAULT_INDIRECT_SUN	 1.0
-#define DEFAULT_EXTRA			 false
+#define DEFAULT_INDIRECT_SUN     1.0
+#define DEFAULT_EXTRA            false
 #define DEFAULT_SKY_LIGHTING_FIX true
-#define DEFAULT_CIRCUS			 false
-#define DEFAULT_CORING			 0.01
-#define DEFAULT_SUBDIVIDE		 true
-#define DEFAULT_ALLOW_OPAQUES	 true
-#define DEFAULT_ALLOW_SPREAD	 true
+#define DEFAULT_CIRCUS           false
+#define DEFAULT_CORING           0.01
+#define DEFAULT_SUBDIVIDE        true
+#define DEFAULT_ALLOW_OPAQUES    true
+#define DEFAULT_ALLOW_SPREAD     true
 
 // TODO: Increase these
 #define DEFAULT_LIGHTING_GAMMA 0.55
@@ -53,26 +53,26 @@ constexpr int8_color_element DEFAULT_LIMITTHRESHOLD = 188;
 #define DEFAULT_RGB_TRANSFERS false
 // o_O ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-#define DEFAULT_TRANSTOTAL_HACK	 0.2 // 0.5 //vluzacn
-#define DEFAULT_SOFTSKY			 true
+#define DEFAULT_TRANSTOTAL_HACK  0.2 // 0.5 //vluzacn
+#define DEFAULT_SOFTSKY          true
 #define DEFAULT_TRANSLUCENTDEPTH 2.0f
-#define DEFAULT_NOTEXTURES		 false
+#define DEFAULT_NOTEXTURES       false
 #define DEFAULT_TEXREFLECTGAMMA \
 	1.76f // 2.0(texgamma cvar) / 2.5 (gamma cvar) * 2.2 (screen gamma)
-		  // = 1.76
+	      // = 1.76
 #define DEFAULT_TEXREFLECTSCALE \
 	0.7f // arbitrary (This is lower than 1.0, because textures are usually
-		 // brightened in order to look better in Goldsrc. Textures are made
-		 // brightened because Goldsrc is only able to darken the texture
-		 // when combining the texture with the lightmap.)
-#define DEFAULT_BLUR					  1.5 // classic lighting is equivalent to "-blur 1.0"
-#define DEFAULT_NOEMITTERRANGE			  false
-#define DEFAULT_BLEEDFIX				  true
+	     // brightened in order to look better in Goldsrc. Textures are made
+	     // brightened because Goldsrc is only able to darken the texture
+	     // when combining the texture with the lightmap.)
+#define DEFAULT_BLUR                      1.5 // classic lighting is equivalent to "-blur 1.0"
+#define DEFAULT_NOEMITTERRANGE            false
+#define DEFAULT_BLEEDFIX                  true
 #define DEFAULT_EMBEDLIGHTMAP_POWEROFTWO  true
 #define DEFAULT_EMBEDLIGHTMAP_DENOMINATOR 188.0
-#define DEFAULT_EMBEDLIGHTMAP_GAMMA		  1.05
+#define DEFAULT_EMBEDLIGHTMAP_GAMMA       1.05
 #define DEFAULT_EMBEDLIGHTMAP_RESOLUTION  1
-#define DEFAULT_TEXLIGHTGAP				  0.0
+#define DEFAULT_TEXLIGHTGAP               0.0
 
 // Ideally matches what is in the FGD :)
 #define SPAWNFLAG_NOBLEEDADJUST (1 << 0)
@@ -91,13 +91,13 @@ constexpr float DEFAULT_HUNT_OFFSET = 0.5;
 constexpr float PATCH_HUNT_OFFSET = 0.5;
 #define HUNT_WALL_EPSILON \
 	(3 * ON_EPSILON) // place sample at least this distance away from any
-					 // wall //--vluzacn
+	                 // wall //--vluzacn
 
 #define MINIMUM_PATCH_DISTANCE ON_EPSILON
 #define ACCURATEBOUNCE_THRESHOLD \
 	4.0 // If the receiver patch is closer to emitter patch than
-		// EXACTBOUNCE_THRESHOLD * emitter_patch->radius, calculate the
-		// exact visibility amount.
+	    // EXACTBOUNCE_THRESHOLD * emitter_patch->radius, calculate the
+	    // exact visibility amount.
 #define ACCURATEBOUNCE_DEFAULT_SKYLEVEL 5 // sample 1026 normals
 
 #define ALLSTYLES 64 // HL limit. //--vluzacn
@@ -132,8 +132,8 @@ using rgb_transfer_data_t = unsigned char;
 
 #define MAX_COMPRESSED_TRANSFER_INDEX_SIZE ((1 << 12) - 1)
 
-#define MAX_PATCHES					 (65535 * 16) // limited by transfer_index_t
-#define MAX_VISMATRIX_PATCHES		 65535
+#define MAX_PATCHES                  (65535 * 16) // limited by transfer_index_t
+#define MAX_VISMATRIX_PATCHES        65535
 #define MAX_SPARSE_VISMATRIX_PATCHES MAX_PATCHES
 
 enum ePatchFlags {
@@ -142,22 +142,22 @@ enum ePatchFlags {
 };
 
 struct patch_t final {
-	patch_t* next;		 // next in face
+	patch_t* next;       // next in face
 	float3_array origin; // Center centroid of winding (cached info
-						 // calculated from winding)
+	                     // calculated from winding)
 	float area; // Surface area of this patch (cached info calculated from
-				// winding)
+	            // winding)
 	float exposure;
 	float emitter_range;  // Range from patch origin (cached info calculated
-						  // from winding)
+	                      // from winding)
 	int emitter_skylevel; // The "skylevel" used for sampling of normals,
-						  // when the receiver patch is within the range of
-						  // ACCURATEBOUNCE_THRESHOLD * this->radius.
-						  // (cached info calculated from winding)
+	                      // when the receiver patch is within the range of
+	                      // ACCURATEBOUNCE_THRESHOLD * this->radius.
+	                      // (cached info calculated from winding)
 	fast_winding*
 		winding; // fast_winding (patches are triangles, so its easy)
 	float scale; // Texture scale for this face (blend of S and T scale)
-	float chop;	 // Texture chop for this face factoring in S and T scale
+	float chop;  // Texture chop for this face factoring in S and T scale
 
 	unsigned iIndex;
 	unsigned iData;
@@ -177,15 +177,15 @@ struct patch_t final {
 	unsigned char directstyle[MAXLIGHTMAPS];
 	// HLRAD_AUTOCORING: totallight: all light gathered by patch
 	float3_array totallight[MAXLIGHTMAPS]; // accumulated by radiosity does
-										   // NOT include light accounted
-										   // for by direct lighting
+	                                       // NOT include light accounted
+	                                       // for by direct lighting
 	// HLRAD_AUTOCORING: directlight: emissive light gathered by sample
 	float3_array directlight[MAXLIGHTMAPS]; // direct light only
 	int bouncestyle; // light reflected from this patch must convert to this
-					 // style. -1 = normal (don't convert)
+	                 // style. -1 = normal (don't convert)
 	unsigned char emitstyle;
 	float3_array baselight; // emissivity only, uses emitstyle
-	bool emitmode;			// texlight emit mode. 1 for normal, 0 for fast.
+	bool emitmode;          // texlight emit mode. 1 for normal, 0 for fast.
 	float samples;
 	// TODO: Create a single struct for these and allocate everything at
 	// once
@@ -214,12 +214,12 @@ struct directlight_t final {
 	float3_array origin;
 	float3_array intensity;
 	float3_array normal; // for surfaces and spotlights
-	float stopdot;		 // for spotlights
-	float stopdot2;		 // for spotlights
+	float stopdot;       // for spotlights
+	float stopdot2;      // for spotlights
 
 	// 'Arghrad'-like features
 	float fade; // Falloff scaling for inverse square falloff 1.0
-				// = normal, 0.5 = farther, 2.0 = shorter etc
+	            // = normal, 0.5 = farther, 2.0 = shorter etc
 
 	// -----------------------------------------------------------------------------------
 	// Changes by Adam Foster - afoster@compsoc.man.ac.uk
@@ -251,16 +251,16 @@ struct facelist_t final {
 struct edgeshare_t final {
 	dface_t* faces[2];
 	float3_array interface_normal; // HLRAD_GetPhongNormal_VL: this field
-								   // must be set when smooth==true
+	                               // must be set when smooth==true
 	float3_array vertex_normal[2];
 	float cos_normals_angle; // HLRAD_GetPhongNormal_VL: this field must be
-							 // set when smooth==true
+	                         // set when smooth==true
 	bool coplanar;
 	bool smooth;
 	facelist_t* vertex_facelist[2]; // possible smooth faces, not include
-									// faces[0] and faces[1]
+	                                // faces[0] and faces[1]
 	matrix_t textotex[2]; // how we translate texture coordinates from one
-						  // face to the other face
+	                      // face to the other face
 };
 
 extern std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
@@ -287,7 +287,7 @@ struct opaqueList_t final {
 	// style0 and same style will change to this style, other styles will be
 	// blocked.
 	bool block; // this entity can't be seen inside, so all lightmap sample
-				// should move outside.
+	            // should move outside.
 };
 
 struct radtexture_t final {
@@ -352,7 +352,7 @@ extern bool g_incremental;
 extern bool g_circus;
 extern bool g_allow_spread;
 extern bool g_sky_lighting_fix;
-extern float g_chop;	// Chop value for normal textures
+extern float g_chop;    // Chop value for normal textures
 extern float g_texchop; // Chop value for texture lights
 extern std::vector<opaqueList_t> g_opaque_face_list;
 
@@ -399,13 +399,13 @@ extern float g_texlightgap;
 
 extern void MakeTnodes();
 extern void PairEdges();
-#define SKYLEVELMAX			8
-#define SKYLEVEL_SOFTSKYON	7
+#define SKYLEVELMAX         8
+#define SKYLEVEL_SOFTSKYON  7
 #define SKYLEVEL_SOFTSKYOFF 4
-#define SUNSPREAD_SKYLEVEL	7
+#define SUNSPREAD_SKYLEVEL  7
 constexpr float SUNSPREAD_THRESHOLD = 15.0f;
 extern int g_numskynormals[SKYLEVELMAX + 1]; // 0, 6, 18, 66, 258, 1026,
-											 // 4098, 16386, 65538
+                                             // 4098, 16386, 65538
 extern float3_array* g_skynormals[SKYLEVELMAX + 1]; //[numskynormals]
 extern float*
 	g_skynormalsizes[SKYLEVELMAX + 1]; // the weight of each normal

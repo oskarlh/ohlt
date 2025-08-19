@@ -42,7 +42,7 @@ bool g_nofill = DEFAULT_NOFILL; // dont fill "-nofill"
 bool g_noinsidefill = DEFAULT_NOINSIDEFILL;
 bool g_notjunc = DEFAULT_NOTJUNC;
 bool g_nobrink = DEFAULT_NOBRINK;
-bool g_noclip = DEFAULT_NOCLIP;			   // no clipping hull "-noclip"
+bool g_noclip = DEFAULT_NOCLIP;            // no clipping hull "-noclip"
 bool g_chart = cli_option_defaults::chart; // print out chart? "-chart"
 bool g_estimate
 	= cli_option_defaults::estimate; // estimate mode "-estimate"
@@ -79,8 +79,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	}
 	Log("%30s [ %-9s ]\n", "Compile Option", "setting");
 	Log("%30s [ %-9s ]\n",
-		"Verbose Compile Messages",
-		g_verbose ? "on" : "off");
+	    "Verbose Compile Messages",
+	    g_verbose ? "on" : "off");
 
 	// estimate(choices) :"Estimate Compile Times?" : 0 = [ 0: "Yes" 1: "No"
 	// ]
@@ -90,8 +90,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_estimate = false;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Estimate Compile Times",
-		g_estimate ? "on" : "off");
+	    "Estimate Compile Times",
+	    g_estimate ? "on" : "off");
 
 	// priority(choices) : "Priority Level" : 0 = [	0 : "Normal" 1 : "High"
 	// -1 : "Low" ]
@@ -137,8 +137,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 	/*
 	nocliphull(choices) : "Generate clipping hulls" : 0 =
 	[
-		0 : "Yes"
-		1 : "No"
+	    0 : "Yes"
+	    1 : "No"
 	]
 	*/
 	iTmp = IntForKey(mapent, u8"nocliphull");
@@ -148,8 +148,8 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_noclip = true;
 	}
 	Log("%30s [ %-9s ]\n",
-		"Clipping Hull Generation",
-		g_noclip ? "off" : "on");
+	    "Clipping Hull Generation",
+	    g_noclip ? "off" : "on");
 
 	//////////////////
 	Verbose("\n");
@@ -288,7 +288,7 @@ brush_t* NewBrushFromBrush(brush_t const * b) {
 	newb = AllocBrush();
 	side_t *s, **pnews;
 	for (s = b->sides, pnews = &newb->sides; s;
-		 s = s->next, pnews = &(*pnews)->next) {
+	     s = s->next, pnews = &(*pnews)->next) {
 		*pnews = NewSideFromSide(s);
 	}
 	return newb;
@@ -816,7 +816,7 @@ static bool ProcessModel(
 	// build all the portals in the bsp tree
 	// some portals are solid polygons, and some are paths to other leafs
 	if (bspData.mapModelsLength == 1
-		&& !g_nofill) // assume non-world bmodels are simple
+	    && !g_nofill) // assume non-world bmodels are simple
 	{
 		if (!g_noinsidefill) {
 			FillInside(nodes);
@@ -934,13 +934,13 @@ static bool ProcessModel(
 			}
 			nodes = SolidBSP(surfs, detailbrushes, modnum == 0, hullNum);
 			if (g_nummodels == 1
-				&& !g_nofill) // assume non-world bmodels are simple
+			    && !g_nofill) // assume non-world bmodels are simple
 			{
 				nodes = FillOutside(nodes, (g_bLeaked != true), hullNum);
 			}
 			FreePortals(nodes);
 			/*
-				KGP 12/31/03 - need to test that the head clip node isn't
+			    KGP 12/31/03 - need to test that the head clip node isn't
 			empty; if it is we need to set model->headnode equal to the
 			content type of the head, or create a trivial single-node case
 			where the content type is the same for both leaves if setting
@@ -962,7 +962,7 @@ static bool ProcessModel(
 		entity_t* ent;
 		ent = EntityForModel(modnum);
 		if (ent != &g_entities[0]
-			&& has_key_value(ent, u8"zhlt_minsmaxs")) {
+		    && has_key_value(ent, u8"zhlt_minsmaxs")) {
 			double3_array const origin = get_double3_for_key(
 				*ent, u8"origin"
 			);
@@ -978,7 +978,7 @@ static bool ProcessModel(
 					&maxs[1],
 					&maxs[2]
 				)
-				== 6) {
+			    == 6) {
 				model->mins = to_float3(vector_subtract(mins, origin));
 				model->maxs = to_float3(vector_subtract(maxs, origin));
 			}
@@ -1005,9 +1005,9 @@ static bool ProcessModel(
 			g_nummodels - 1,
 			(ent ? (char const *) get_classname(*ent).data() : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"origin").data()
-				 : "unknown"),
+		         : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"targetname").data()
-				 : "unknown")
+		         : "unknown")
 		);
 		model->mins = {}; // Fix "backward minsmaxs" in HL
 		model->maxs = {};
@@ -1021,9 +1021,9 @@ static bool ProcessModel(
 			g_nummodels - 1,
 			(ent ? (char const *) get_classname(*ent).data() : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"origin").data()
-				 : "unknown"),
+		         : "unknown"),
 			(ent ? (char const *) value_for_key(ent, u8"targetname").data()
-				 : "unknown"),
+		         : "unknown"),
 			model->mins[0],
 			model->mins[1],
 			model->mins[2],
@@ -1086,7 +1086,7 @@ static void Usage() {
 	Log("    -noinfo        : Do not show tool configuration information\n"
 	);
 	Log("    -dev %s : compile with developer logging\n\n",
-		(char const *) developer_level_options.data());
+	    (char const *) developer_level_options.data());
 	Log("    mapfile        : The mapfile to compile\n\n");
 
 	exit(1);
@@ -1104,30 +1104,30 @@ static void Settings() {
 
 	Log("\nCurrent %s Settings\n", (char const *) g_Program.data());
 	Log("Name               |  Setting  |  Default\n"
-		"-------------------|-----------|-------------------------\n");
+	    "-------------------|-----------|-------------------------\n");
 
 	// ZHLT Common Settings
 	Log("threads             [ %7td ] [  Varies ]\n", g_numthreads);
 	Log("verbose             [ %7s ] [ %7s ]\n",
-		g_verbose ? "on" : "off",
-		cli_option_defaults::verbose ? "on" : "off");
+	    g_verbose ? "on" : "off",
+	    cli_option_defaults::verbose ? "on" : "off");
 	Log("log                 [ %7s ] [ %7s ]\n",
-		g_log ? "on" : "off",
-		cli_option_defaults::log ? "on" : "off");
+	    g_log ? "on" : "off",
+	    cli_option_defaults::log ? "on" : "off");
 	Log("developer           [ %7s ] [ %7s ]\n",
-		(char const *) name_of_developer_level(g_developer).data(),
-		(char const *)
-			name_of_developer_level(cli_option_defaults::developer)
-				.data());
+	    (char const *) name_of_developer_level(g_developer).data(),
+	    (char const *)
+	        name_of_developer_level(cli_option_defaults::developer)
+	            .data());
 	Log("chart               [ %7s ] [ %7s ]\n",
-		g_chart ? "on" : "off",
-		cli_option_defaults::chart ? "on" : "off");
+	    g_chart ? "on" : "off",
+	    cli_option_defaults::chart ? "on" : "off");
 	Log("estimate            [ %7s ] [ %7s ]\n",
-		g_estimate ? "on" : "off",
-		cli_option_defaults::estimate ? "on" : "off");
+	    g_estimate ? "on" : "off",
+	    cli_option_defaults::estimate ? "on" : "off");
 	Log("max texture memory  [ %7td ] [ %7td ]\n",
-		g_max_map_miptex,
-		cli_option_defaults::max_map_miptex);
+	    g_max_map_miptex,
+	    cli_option_defaults::max_map_miptex);
 
 	switch (g_threadpriority) {
 		case q_threadpriority::eThreadPriorityNormal:
@@ -1146,45 +1146,45 @@ static void Settings() {
 
 	// HLBSP Specific Settings
 	Log("noclip              [ %7s ] [ %7s ]\n",
-		g_noclip ? "on" : "off",
-		DEFAULT_NOCLIP ? "on" : "off");
+	    g_noclip ? "on" : "off",
+	    DEFAULT_NOCLIP ? "on" : "off");
 	Log("nofill              [ %7s ] [ %7s ]\n",
-		g_nofill ? "on" : "off",
-		DEFAULT_NOFILL ? "on" : "off");
+	    g_nofill ? "on" : "off",
+	    DEFAULT_NOFILL ? "on" : "off");
 	Log("noinsidefill        [ %7s ] [ %7s ]\n",
-		g_noinsidefill ? "on" : "off",
-		DEFAULT_NOINSIDEFILL ? "on" : "off");
+	    g_noinsidefill ? "on" : "off",
+	    DEFAULT_NOINSIDEFILL ? "on" : "off");
 	Log("optimize planes [ %7s ] [ %7s ]\n",
-		g_optimizePlanes ? "on" : "off",
-		cli_option_defaults::optimizePlanes ? "on" : "off");
+	    g_optimizePlanes ? "on" : "off",
+	    cli_option_defaults::optimizePlanes ? "on" : "off");
 	Log("reduce texinfo [ %7s ] [ %7s ]\n",
-		g_reduceTexinfo ? "on" : "off",
-		cli_option_defaults::reduceTexinfo ? "on" : "off");
+	    g_reduceTexinfo ? "on" : "off",
+	    cli_option_defaults::reduceTexinfo ? "on" : "off");
 	Log("no clipnode merging [ %7s ] [ %7s ]\n",
-		g_noclipnodemerge ? "on" : "off",
-		DEFAULT_NOCLIPNODEMERGE ? "on" : "off");
+	    g_noclipnodemerge ? "on" : "off",
+	    DEFAULT_NOCLIPNODEMERGE ? "on" : "off");
 	Log("null tex. stripping [ %7s ] [ %7s ]\n",
-		g_bUseNullTex ? "on" : "off",
-		cli_option_defaults::nulltex ? "on" : "off");
+	    g_bUseNullTex ? "on" : "off",
+	    cli_option_defaults::nulltex ? "on" : "off");
 	Log("notjunc             [ %7s ] [ %7s ]\n",
-		g_notjunc ? "on" : "off",
-		DEFAULT_NOTJUNC ? "on" : "off");
+	    g_notjunc ? "on" : "off",
+	    DEFAULT_NOTJUNC ? "on" : "off");
 	Log("nobrink             [ %7s ] [ %7s ]\n",
-		g_nobrink ? "on" : "off",
-		DEFAULT_NOBRINK ? "on" : "off");
+	    g_nobrink ? "on" : "off",
+	    DEFAULT_NOBRINK ? "on" : "off");
 	Log("subdivide size      [ %7d ] [ %7zd ] (Min %d) (Max %d)\n",
-		g_subdivide_size,
-		DEFAULT_SUBDIVIDE_SIZE,
-		MIN_SUBDIVIDE_SIZE,
-		MAX_SUBDIVIDE_SIZE);
+	    g_subdivide_size,
+	    DEFAULT_SUBDIVIDE_SIZE,
+	    MIN_SUBDIVIDE_SIZE,
+	    MAX_SUBDIVIDE_SIZE);
 	Log("max node size       [ %7d ] [ %7d ] (Min %d) (Max %d)\n",
-		g_maxnode_size,
-		DEFAULT_MAXNODE_SIZE,
-		MIN_MAXNODE_SIZE,
-		MAX_MAXNODE_SIZE);
+	    g_maxnode_size,
+	    DEFAULT_MAXNODE_SIZE,
+	    MIN_MAXNODE_SIZE,
+	    MAX_MAXNODE_SIZE);
 	Log("remove hull 2       [ %7s ] [ %7s ]\n",
-		g_nohull2 ? "on" : "off",
-		"off");
+	    g_nohull2 ? "on" : "off",
+	    "off");
 	Log("\n\n");
 }
 
@@ -1299,7 +1299,7 @@ ProcessFile(std::filesystem::path const & mapBasePath, bsp_data& bspData) {
 				mp.type = dp.type;
 			}
 		} else if (q_filelength(planefile)
-				   == g_numplanes * sizeof(mapplane_t)) {
+		           == g_numplanes * sizeof(mapplane_t)) {
 			// TODO: The value initialization in .resize() here isn't
 			// actually necessary, as the values are overwritten right
 			// after. Consider adding a version of resize that doesn't
@@ -1386,7 +1386,7 @@ int main(int const argc, char** argv) {
 
 						if (std::cmp_greater(g_numthreads, MAX_THREADS)) {
 							Log("Expected value below %zu for '-threads'\n",
-								MAX_THREADS);
+							    MAX_THREADS);
 							Usage();
 						}
 					} else {
@@ -1514,7 +1514,7 @@ int main(int const argc, char** argv) {
 							);
 							g_subdivide_size
 								= MIN_SUBDIVIDE_SIZE; // MAX_SUBDIVIDE_SIZE;
-													  // //--vluzacn
+							                          // //--vluzacn
 						}
 					} else {
 						Usage();
@@ -1540,7 +1540,7 @@ int main(int const argc, char** argv) {
 							);
 							g_maxnode_size
 								= MIN_MAXNODE_SIZE; // MAX_MAXNODE_SIZE;
-													// //vluzacn
+							                        // //vluzacn
 						}
 					} else {
 						Usage();
@@ -1617,7 +1617,7 @@ int main(int const argc, char** argv) {
 				LoadAllowableOutsideList(path_to_temp_file_with_extension(
 											 g_Mapname, entitiesVoidExt
 				)
-											 .c_str());
+				                             .c_str());
 			}
 
 			// BEGIN BSP

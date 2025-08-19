@@ -28,23 +28,23 @@ constexpr float SIDESPACE = 24;
 	((MAX_SURFACE_EXTENT - 1) * TEXTURE_STEP \
 	) // #define DEFAULT_SUBDIVIDE_SIZE  240 //--vluzacn
 
-#define MIN_MAXNODE_SIZE	 64
-#define MAX_MAXNODE_SIZE	 65536
+#define MIN_MAXNODE_SIZE     64
+#define MAX_MAXNODE_SIZE     65536
 #define DEFAULT_MAXNODE_SIZE 1024
 
-#define DEFAULT_NOFILL			false
-#define DEFAULT_NOINSIDEFILL	false
-#define DEFAULT_NOTJUNC			false
-#define DEFAULT_NOBRINK			false
-#define DEFAULT_NOCLIP			false
+#define DEFAULT_NOFILL          false
+#define DEFAULT_NOINSIDEFILL    false
+#define DEFAULT_NOTJUNC         false
+#define DEFAULT_NOBRINK         false
+#define DEFAULT_NOCLIP          false
 #define DEFAULT_NOCLIPNODEMERGE false
-#define DEFAULT_LEAKONLY		false
-#define DEFAULT_WATERVIS		false
+#define DEFAULT_LEAKONLY        false
+#define DEFAULT_WATERVIS        false
 
 #define MAXEDGES 48 // 32
 #define MAXPOINTS \
-	28					 // don't let a base face get past this
-						 // because it can be split more later
+	28                   // don't let a base face get past this
+	                     // because it can be split more later
 #define MAXNODESIZE 1024 // Valve default is 1024
 
 enum facestyle_e {
@@ -60,12 +60,12 @@ struct face_t final {
 	face_t* original; // Face on node
 	int planenum;
 	texinfo_count texturenum;
-	contents_t contents;	  // contents in front of face
+	contents_t contents;      // contents in front of face
 	detail_level detailLevel; // From HLCSG
-	int* outputedges;		  // used in WriteDrawNodes
+	int* outputedges;         // used in WriteDrawNodes
 
 	int outputnumber; // only valid for original faces after write surfaces
-	int referenced;	  // only valid for original faces
+	int referenced;   // only valid for original faces
 	facestyle_e facestyle;
 
 	bool freed;
@@ -108,8 +108,8 @@ struct brush_t
 #define PLANENUM_LEAF -1
 #define BOUNDS_EXPANSION \
 	1.0 // expand the bounds of detail leafs when clipping its boundsbrush,
-		// to prevent some strange brushes in the func_detail from clipping
-		// away the entire boundsbrush making the func_detail invisible.
+	    // to prevent some strange brushes in the func_detail from clipping
+	    // away the entire boundsbrush making the func_detail invisible.
 
 struct bsp_portal_t;
 
@@ -119,12 +119,12 @@ struct node_t final {
 	brush_t* boundsbrush;
 	double3_array loosemins,
 		loosemaxs; // all leafs and nodes have this, while 'mins' and 'maxs'
-				   // are only valid for nondetail leafs and nodes.
+	               // are only valid for nondetail leafs and nodes.
 
-	bool isdetail;	   // is under a diskleaf
+	bool isdetail;     // is under a diskleaf
 	bool isportalleaf; // not detail and children are detail; only visleafs
-					   // have contents, portals, mins, maxs
-	bool iscontentsdetail;	  // inside a detail brush
+	                   // have contents, portals, mins, maxs
+	bool iscontentsdetail;    // inside a detail brush
 	double3_array mins, maxs; // bounding volume of portals;
 
 	// information for decision nodes
@@ -135,15 +135,15 @@ struct node_t final {
 	}
 
 	node_t* children[2]; // only valid for decision nodes
-	face_t* faces;		 // decision nodes only, list for both sides
+	face_t* faces;       // decision nodes only, list for both sides
 
 	// information for leafs
 	contents_t contents; // leaf nodes (0 for decision nodes)
-	face_t** markfaces;	 // leaf nodes only, point to node faces
+	face_t** markfaces;  // leaf nodes only, point to node faces
 	bsp_portal_t* portals;
 	int visleafnum; // -1 = solid
-	int valid;		// for flood filling
-	int occupied;	// light number in leaf for outside filling
+	int valid;      // for flood filling
+	int occupied;   // light number in leaf for outside filling
 	int empty;
 };
 
@@ -173,7 +173,7 @@ GetEdge(double3_array const & p1, double3_array const & p2, face_t* f);
 
 struct bsp_portal_t final {
 	mapplane_t plane;
-	node_t* onnode;	  // NULL = outside box
+	node_t* onnode;   // NULL = outside box
 	node_t* nodes[2]; // [0] = front side of plane
 	bsp_portal_t* next[2];
 	accurate_winding* winding;

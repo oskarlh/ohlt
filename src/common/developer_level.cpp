@@ -10,8 +10,8 @@
 using namespace std::literals;
 constexpr std::array<std::u8string_view, num_developer_levels> const
 	developer_level_names{ u8"disabled"sv, u8"error"sv, u8"warning"sv,
-						   u8"message"sv,  u8"fluff"sv, u8"spam"sv,
-						   u8"megaspam"sv };
+	                       u8"message"sv,  u8"fluff"sv, u8"spam"sv,
+	                       u8"megaspam"sv };
 
 std::u8string_view name_of_developer_level(developer_level level) noexcept {
 	return developer_level_names[std::to_underlying(level)];

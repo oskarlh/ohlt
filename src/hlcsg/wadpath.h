@@ -6,9 +6,9 @@ struct wadpath_t final {
 	std::u8string path;
 	int totaltextures; // Total number of textures in this WAD
 	int usedtextures;  // Number of textures in this WAD the map actually
-					   // uses
+	                   // uses
 	bool usedbymap; // Does the map require this WAD to be included in the
-					// .bsp?
+	                // .bsp?
 	// !!! the above two are VERY DIFFERENT. ie (usedtextures == 0) !=
 	// (usedbymap == false)
 };

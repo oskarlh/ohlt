@@ -72,8 +72,8 @@ void OpenWadFile(std::filesystem::path name, bool fullpath = false) {
 	}
 	wad.numlumps = wadinfo.numlumps;
 	if (wad.numlumps < 0 || wadinfo.infotableofs < 0
-		|| wadinfo.infotableofs + wad.numlumps * (int) sizeof(wad_lumpinfo)
-			> wad.filesize) {
+	    || wadinfo.infotableofs + wad.numlumps * (int) sizeof(wad_lumpinfo)
+	        > wad.filesize) {
 		Error("Invalid wad file '%s'.", wad.path.c_str());
 	}
 	wad.lumpinfos = (wad_lumpinfo*) malloc(
@@ -131,7 +131,7 @@ void TryOpenWadFiles() {
 			&g_entities[0], u8"wad"
 		);
 		for (std::u8string_view wadFilename :
-			 worldspawn_wad_value_parser(wadValue)) {
+		     worldspawn_wad_value_parser(wadValue)) {
 			OpenWadFile((char const *) std::u8string(wadFilename).c_str());
 		}
 		while (!wadValue.empty()) {
@@ -188,8 +188,8 @@ void LoadTexture(radtexture_t* tex, miptex_t const * mt, int size) {
 	tex->height = header->height;
 	tex->name = header->name;
 	if (tex->width <= 0 || tex->height <= 0
-		|| tex->width % (2 * 1 << (MIPLEVELS - 1)) != 0
-		|| tex->height % (2 * (1 << (MIPLEVELS - 1))) != 0) {
+	    || tex->width % (2 * 1 << (MIPLEVELS - 1)) != 0
+	    || tex->height % (2 * (1 << (MIPLEVELS - 1))) != 0) {
 		Error(
 			"Texture '%s': dimension (%dx%d) is not multiple of %d.",
 			tex->name.c_str(),
@@ -256,8 +256,8 @@ void LoadTextureFromWad(radtexture_t* tex, miptex_t const * header) {
 				continue;
 			}
 			if (found->disksize < (int) sizeof(miptex_t)
-				|| found->filepos < 0
-				|| found->filepos + found->disksize > wad.filesize) {
+			    || found->filepos < 0
+			    || found->filepos + found->disksize > wad.filesize) {
 				Warning(
 					"Texture '%s': invalid texture data in '%s'.",
 					tex->name.c_str(),
@@ -366,14 +366,14 @@ void LoadTextures() {
 			for (int j = 0; j < tex->width * tex->height; j++) {
 				float3_array reflectivity;
 				if (tex->name.is_transparent_or_decal()
-					&& tex->canvas[j] == 0xFF) {
+				    && tex->canvas[j] == 0xFF) {
 					reflectivity.fill(0.0);
 				} else {
 					auto const & rgb
 						= tex->palette[(std::size_t) tex->canvas[j]];
 					reflectivity = { rgb[0] * float(1.0 / 255.0),
-									 rgb[1] * float(1.0 / 255.0),
-									 rgb[2] * float(1.0 / 255.0) };
+						             rgb[1] * float(1.0 / 255.0),
+						             rgb[2] * float(1.0 / 255.0) };
 					for (float& r : reflectivity) {
 						r = std::pow(r, g_texreflectgamma);
 					}
@@ -396,7 +396,7 @@ void LoadTextures() {
 				tex->reflectivity[2]
 			);
 			if (vector_max_element(tex->reflectivity)
-				> 1.0 + NORMAL_EPSILON) {
+			    > 1.0 + NORMAL_EPSILON) {
 				Warning(
 					"Texture '%s': reflectivity (%f,%f,%f) greater than 1.0.",
 					tex->name.c_str(),
@@ -566,9 +566,9 @@ static void CQ_SelectPartition(cq_node_t* node) {
 			); // sums and counts are precise (have no round-off error)
 			priority += dot_product(remain, remain) / (count - counts[j]);
 			if (node->needsplit == false
-				|| priority > node->splitpriority + 0.1
-				|| priority >= node->splitpriority - 0.1
-					&& fabs(counts[j] - count / 2) < fabs(
+			    || priority > node->splitpriority + 0.1
+			    || priority >= node->splitpriority - 0.1
+			        && fabs(counts[j] - count / 2) < fabs(
 						   node->bestsplitter.numpoints[0] - count / 2
 					   )) {
 				node->needsplit = true;
@@ -647,7 +647,7 @@ static void CQ_CreatePalette(
 				continue;
 			}
 			if (needsplit == false
-				|| n->splitpriority > bestpriority + 0.1) {
+			    || n->splitpriority > bestpriority + 0.1) {
 				needsplit = true;
 				bestpriority = n->splitpriority;
 				bestnode = n;
@@ -709,13 +709,13 @@ static void CQ_CreatePalette(
 				= &bestnode->refpoints[bestnode->numpoints] - left;
 			bestnode->childrennode[1]->refpoints = left;
 			if (bestnode->childrennode[0]->numpoints <= 0
-				|| bestnode->childrennode[0]->numpoints
-					!= bestnode->bestsplitter.numpoints[0]) {
+			    || bestnode->childrennode[0]->numpoints
+			        != bestnode->bestsplitter.numpoints[0]) {
 				Error("CQ_CreatePalette: internal error");
 			}
 			if (bestnode->childrennode[1]->numpoints <= 0
-				|| bestnode->childrennode[1]->numpoints
-					!= bestnode->bestsplitter.numpoints[1]) {
+			    || bestnode->childrennode[1]->numpoints
+			        != bestnode->bestsplitter.numpoints[1]) {
 				Error("CQ_CreatePalette: internal error");
 			}
 		}
@@ -959,7 +959,7 @@ static void GetLightInt(
 		std::byte const * samples
 			= &g_dlightdata
 				  [face->lightofs
-				   + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
+		           + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
 		if (face->styles[k] == 0) {
 			std::uint8_t const * s = (std::uint8_t const *) &samples
 				[(iy * (texsize[0] + 1) + ix) * 3];
@@ -1011,10 +1011,10 @@ GetValidTextureName(std::uint32_t miptex) {
 		= ((dmiptexlump_t*) g_dtexdata.data())->dataofs[miptex];
 	int size = g_texdatasize - offset;
 	if (offset < 0
-		|| g_dtexdata.data() + offset
-			< (std::byte*) &((dmiptexlump_t*) g_dtexdata.data())
-				  ->dataofs[numtextures]
-		|| size < (int) sizeof(miptex_t)) {
+	    || g_dtexdata.data() + offset
+	        < (std::byte*) &((dmiptexlump_t*) g_dtexdata.data())
+	              ->dataofs[numtextures]
+	    || size < (int) sizeof(miptex_t)) {
 		return std::nullopt;
 	}
 
@@ -1077,7 +1077,7 @@ void EmbedLightmapInTextures() {
 			continue;
 		}
 		if (texname.is_ordinary_sky()
-			|| originaltexinfo->has_special_flag()) // Skip special surfaces
+		    || originaltexinfo->has_special_flag()) // Skip special surfaces
 		{
 			continue;
 		}
@@ -1099,7 +1099,7 @@ void EmbedLightmapInTextures() {
 		if (IntForKey(ent, u8"zhlt_embedlightmapresolution")) {
 			resolution = IntForKey(ent, u8"zhlt_embedlightmapresolution");
 			if (resolution <= 0 || resolution > TEXTURE_STEP
-				|| ((resolution - 1) & resolution) != 0) {
+			    || ((resolution - 1) & resolution) != 0) {
 				Error(
 					"resolution cannot be %d; valid values are 1, 2, 4 ... %d.",
 					resolution,
@@ -1121,8 +1121,8 @@ void EmbedLightmapInTextures() {
 		texsize[0] = texMinsMaxs.maxs[0] - texMinsMaxs.mins[0];
 		texsize[1] = texMinsMaxs.maxs[1] - texMinsMaxs.mins[1];
 		if (texsize[0] < 0 || texsize[1] < 0
-			|| texsize[0] > MAX_SURFACE_EXTENT
-			|| texsize[1] > MAX_SURFACE_EXTENT) {
+		    || texsize[0] > MAX_SURFACE_EXTENT
+		    || texsize[1] > MAX_SURFACE_EXTENT) {
 			Warning(
 				"skipped a face with bad surface extents @ (%4.3f %4.3f %4.3f)",
 				g_face_centroids[i][0],
@@ -1135,7 +1135,7 @@ void EmbedLightmapInTextures() {
 		for (k = 0; k < 2; k++) {
 			texturesize[k] = (texsize[k] + 1) * TEXTURE_STEP;
 			if (texturesize[k]
-				< texsize[k] * TEXTURE_STEP + resolution * 4) {
+			    < texsize[k] * TEXTURE_STEP + resolution * 4) {
 				texturesize[k] = texsize[k] * TEXTURE_STEP
 					+ resolution * 4; // prevent edge bleeding
 			}
@@ -1151,7 +1151,7 @@ void EmbedLightmapInTextures() {
 				}
 			}
 			side[k] = (texturesize[k] * resolution
-					   - texsize[k] * TEXTURE_STEP)
+			           - texsize[k] * TEXTURE_STEP)
 				/ 2;
 		}
 
@@ -1178,7 +1178,7 @@ void EmbedLightmapInTextures() {
 		}
 		for (t = -side[1]; t < texsize[1] * TEXTURE_STEP + side[1]; t++) {
 			for (s = -side[0]; s < texsize[0] * TEXTURE_STEP + side[0];
-				 s++) {
+			     s++) {
 				double s_vec, t_vec;
 				double src_s, src_t;
 				std::int32_t src_is, src_it;
@@ -1197,8 +1197,8 @@ void EmbedLightmapInTextures() {
 					dest_s = s_vec;
 					dest_t = t_vec;
 				} else // the final blurred texture is shifted by a half
-					   // pixel so that lightmap samples align with the
-					   // center of pixels
+				       // pixel so that lightmap samples align with the
+				       // center of pixels
 				{
 					dest_s = s_vec / resolution + 0.5;
 					dest_t = t_vec / resolution + 0.5;
@@ -1243,7 +1243,7 @@ void EmbedLightmapInTextures() {
 
 				(*dest)[4] += 1;
 				if (!(texname.is_transparent_or_decal() && src_index == 255
-					)) {
+				    )) {
 					for (k = 0; k < 3; k++) {
 						float v = src_color[k]
 							* pow(light[k] / denominator, gamma);
@@ -1267,7 +1267,7 @@ void EmbedLightmapInTextures() {
 					(*dest)[2] = 0;
 					(*dest)[3] = 255;
 				} else if ((*src)[3] / (*src)[4]
-						   <= 0.4 * 255) // transparent
+				           <= 0.4 * 255) // transparent
 				{
 					(*dest)[0] = 0;
 					(*dest)[1] = 0;
@@ -1292,27 +1292,27 @@ void EmbedLightmapInTextures() {
 
 					dest = &texturemips[miplevel]
 									   [t * (texturesize[0] >> miplevel)
-										+ s];
+					                    + s];
 					src[0] = &texturemips[miplevel - 1]
 										 [(2 * t)
-											  * (texturesize[0]
-												 >> (miplevel - 1))
-										  + (2 * s)];
+					                          * (texturesize[0]
+					                             >> (miplevel - 1))
+					                      + (2 * s)];
 					src[1] = &texturemips[miplevel - 1]
 										 [(2 * t)
-											  * (texturesize[0]
-												 >> (miplevel - 1))
-										  + (2 * s + 1)];
+					                          * (texturesize[0]
+					                             >> (miplevel - 1))
+					                      + (2 * s + 1)];
 					src[2] = &texturemips[miplevel - 1]
 										 [(2 * t + 1)
-											  * (texturesize[0]
-												 >> (miplevel - 1))
-										  + (2 * s)];
+					                          * (texturesize[0]
+					                             >> (miplevel - 1))
+					                      + (2 * s)];
 					src[3] = &texturemips[miplevel - 1]
 										 [(2 * t + 1)
-											  * (texturesize[0]
-												 >> (miplevel - 1))
-										  + (2 * s + 1)];
+					                          * (texturesize[0]
+					                             >> (miplevel - 1))
+					                      + (2 * s + 1)];
 
 					std::array<double, 4> average{};
 					for (k = 0; k < 4; k++) {
@@ -1355,13 +1355,13 @@ void EmbedLightmapInTextures() {
 			}
 			/*else if (texname[0] == '!')
 			{
-				paletteoffset = 16; // because the 4th entry and the 5th
+			    paletteoffset = 16; // because the 4th entry and the 5th
 			entry are reserved for fog color and fog density for (j = 0; j <
 			16; j++)
-				{
-					palette[j] = tex->palette[j];
-				}
-				palettemaxcolors = 256 - 16;
+			    {
+			        palette[j] = tex->palette[j];
+			    }
+			    palettemaxcolors = 256 - 16;
 			}*/
 			else {
 				paletteoffset = 0;
@@ -1446,7 +1446,7 @@ void EmbedLightmapInTextures() {
 					byte(*src
 					)[4] = &texturemips[miplevel]
 									   [t * (texturesize[0] >> miplevel)
-										+ s];
+					                    + s];
 					if ((*src)[3] > 0) {
 						if (palettenumcolors) {
 							std::array<std::uint8_t, 3> point;
@@ -1549,7 +1549,7 @@ void EmbedLightmapInTextures() {
 
 	if (logged) {
 		Log("added %d texinfos and textures (%d bytes)\n",
-			count,
-			count_bytes);
+		    count,
+		    count_bytes);
 	}
 }

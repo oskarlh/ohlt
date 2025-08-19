@@ -24,8 +24,8 @@ template <any_vec3 VecA, any_vec3 VecB>
 constexpr largest_vec3<VecA, VecB>
 cross_product(VecA const & a, VecB const & b) noexcept {
 	return { a[1] * b[2] - a[2] * b[1],
-			 a[2] * b[0] - a[0] * b[2],
-			 a[0] * b[1] - a[1] * b[0] };
+		     a[2] * b[0] - a[0] * b[2],
+		     a[0] * b[1] - a[1] * b[0] };
 }
 
 constexpr auto
@@ -99,12 +99,12 @@ constexpr auto vector_fma(
 						   (result_element) multiplier[0],
 						   (result_element) toAdd[0]
 					   ),
-					   std::fma(
+		               std::fma(
 						   (result_element) multiplicand[1],
 						   (result_element) multiplier[1],
 						   (result_element) toAdd[1]
 					   ),
-					   std::fma(
+		               std::fma(
 						   (result_element) multiplicand[2],
 						   (result_element) multiplier[2],
 						   (result_element) toAdd[2]
@@ -139,8 +139,8 @@ constexpr largest_vec3<VecA, VecB>
 vector_minimums(VecA const & a, VecB const & b) noexcept {
 	using vec_element = largest_vec3<VecA, VecB>::value_type;
 	return { std::min(vec_element{ a[0] }, vec_element{ b[0] }),
-			 std::min(vec_element{ a[1] }, vec_element{ b[1] }),
-			 std::min(vec_element{ a[2] }, vec_element{ b[2] }) };
+		     std::min(vec_element{ a[1] }, vec_element{ b[1] }),
+		     std::min(vec_element{ a[2] }, vec_element{ b[2] }) };
 }
 
 template <any_vec3 VecA, any_vec3 VecB>
@@ -148,8 +148,8 @@ constexpr largest_vec3<VecA, VecB>
 vector_maximums(VecA const & a, VecB const & b) noexcept {
 	using vec_element = largest_vec3<VecA, VecB>::value_type;
 	return { std::max(vec_element{ a[0] }, vec_element{ b[0] }),
-			 std::max(vec_element{ a[1] }, vec_element{ b[1] }),
-			 std::max(vec_element{ a[2] }, vec_element{ b[2] }) };
+		     std::max(vec_element{ a[1] }, vec_element{ b[1] }),
+		     std::max(vec_element{ a[2] }, vec_element{ b[2] }) };
 }
 
 template <any_vec3 VecA, any_vec3 VecB>
