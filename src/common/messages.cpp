@@ -13,9 +13,9 @@ std::u8string_view const maperror
 // Common explanations
 std::u8string_view const selfexplanitory = u8"self explanitory";
 std::u8string_view const reference
-	= u8"Check the file http://www.zhlt.info/common-mapping-problems.html for a detailed explanation of this problem";
+	= u8"Check the file http://www.zhlt.info/common-mapping-problems.html for a detailed explanation of this problem. https://web.archive.org/web/20241007110121/https://www.slackiller.com/tommy14/errors.htm may also have helpful information.";
 std::u8string_view const simplify
-	= u8"The map is too complex for the game engine/compile tools to handle.  Simplify";
+	= u8"The map is too complex for the game engine/compile tools to handle. Simplify. https://web.archive.org/web/20241007110121/https://www.slackiller.com/tommy14/errors.htm may have helpful information.";
 std::u8string_view const contact
 	= u8"If you think this error is not caused by mapper error, you can file an issue at " PROJECT_ISSUE_TRACKER;
 
@@ -84,7 +84,7 @@ static MessageTable_t const assumes[std::to_underlying(assume_msg::last
 	  u8"The maximum number of brushes for a map has been reached",
 	  selfexplanitory },
 	{ u8"Exceeded MAX_ENGINE_ENTITIES",
-	  u8"The maximum number of entities for the half-life engine has been reached",
+	  u8"The maximum number of entities for the Half-Life engine has been reached",
 	  selfexplanitory },
 
 	{ u8"Exceeded MAX_MAP_MODELS",
@@ -92,7 +92,7 @@ static MessageTable_t const assumes[std::to_underlying(assume_msg::last
 	  u8"Remove unnecessary brush entities, consolidate similar entities into a single entity" },
 	{ u8"Exceeded MAX_MAP_VERTS",
 	  u8"The maximum number of vertices for a map has been reached",
-	  simplify }, // internallimit, contact //--vluzacn
+	  simplify },
 	{ u8"Exceeded MAX_MAP_EDGES", internallimit, contact },
 
 	{ u8"Exceeded MAX_MAP_CLIPNODES", maperror, reference },
