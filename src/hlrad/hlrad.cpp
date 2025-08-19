@@ -51,8 +51,6 @@ float3_array g_face_offset[MAX_MAP_FACES]; // for rotating bmodels
 
 unsigned g_numbounce = DEFAULT_BOUNCE;
 
-static bool g_dumppatches = DEFAULT_DUMPPATCHES;
-
 float3_array g_ambient{ DEFAULT_AMBIENT_RED,
 						DEFAULT_AMBIENT_GREEN,
 						DEFAULT_AMBIENT_BLUE };
@@ -1993,34 +1991,6 @@ static void FreePatches() {
 	g_patches.clear();
 }
 
-static void WriteWorld(char const * const name) {
-	FILE* out = fopen(name, "w");
-
-	if (!out) {
-		Error("Couldn't open %s", name);
-	}
-
-	for (patch_t& patch : g_patches) {
-		fast_winding* w = patch.winding;
-		Log("%zu\n", w->size());
-		for (std::size_t i = 0; i < w->size(); i++) {
-			Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n",
-				w->point(i)[0],
-				w->point(i)[1],
-				w->point(i)[2],
-				patch.totallight[0][0]
-					/ 256, // TODO: SHOULDN'T THESE BE / 255.0f ?????????
-				patch.totallight[0][1]
-					/ 256, // TODO: SHOULDN'T THESE BE / 255.0f ?????????
-				patch.totallight[0][2] / 256
-			); // TODO: SHOULDN'T THESE BE / 255.0f ?????????
-		}
-		Log("\n");
-	}
-
-	fclose(out);
-}
-
 // =====================================================================================
 //  CollectLight
 // =====================================================================================
@@ -2411,13 +2381,6 @@ static void BounceLight() {
 			NamedRunThreadsOn(g_patches.size(), g_estimate, GatherLight);
 		}
 		CollectLight();
-
-		if (g_dumppatches) {
-			char name[64];
-
-			snprintf(name, sizeof(name), "bounce%zu.txt", i);
-			WriteWorld(name);
-		}
 	}
 	for (std::size_t i = 0; i < g_patches.size(); i++) {
 		patch_t* patch = &g_patches[i];
@@ -2734,8 +2697,6 @@ static void Usage() {
 	Log("    -noskyfix       : Disable light_environment being global\n");
 	Log("    -incremental    : Use or create an incremental transfer list file\n\n"
 	);
-	Log("    -dump           : Dumps light patches to a file for hlrad debugging info\n\n"
-	);
 	Log("    -texdata #      : Alter maximum texture memory limit (in kb)\n"
 	);
 	Log("    -chart          : display bsp statitics\n");
@@ -2982,9 +2943,6 @@ static void Settings() {
 	Log("incremental          [ %17s ] [ %17s ]\n",
 		g_incremental ? "on" : "off",
 		DEFAULT_INCREMENTAL ? "on" : "off");
-	Log("dump                 [ %17s ] [ %17s ]\n",
-		g_dumppatches ? "on" : "off",
-		DEFAULT_DUMPPATCHES ? "on" : "off");
 
 	Log("\n");
 	Log("custom shadows with bounce light\n"
@@ -3288,9 +3246,7 @@ int main(int const argc, char** argv) {
 			}
 
 			for (i = 1; i < argc; i++) {
-				if (!strcasecmp(argv[i], "-dump")) {
-					g_dumppatches = true;
-				} else if (!strcasecmp(argv[i], "-extra")) {
+				if (!strcasecmp(argv[i], "-extra")) {
 					g_extra = true;
 
 					if (g_numbounce < 12) {
