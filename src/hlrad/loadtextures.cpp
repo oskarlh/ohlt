@@ -51,7 +51,7 @@ void OpenWadFile(std::filesystem::path name, bool fullpath = false) {
 		}
 		if (!wad.file) {
 			Fatal(
-				assume_COULD_NOT_LOCATE_WAD,
+				assume_msg::COULD_NOT_LOCATE_WAD,
 				"Could not locate wad file %s",
 				name.c_str()
 			);
@@ -79,7 +79,7 @@ void OpenWadFile(std::filesystem::path name, bool fullpath = false) {
 	wad.lumpinfos = (wad_lumpinfo*) malloc(
 		wad.numlumps * sizeof(wad_lumpinfo)
 	);
-	hlassume(wad.lumpinfos != nullptr, assume_NoMemory);
+	hlassume(wad.lumpinfos != nullptr, assume_msg::NoMemory);
 	if (fseek(wad.file, wadinfo.infotableofs, SEEK_SET)) {
 		Error("File read failure: %s", wad.path.c_str());
 	}
@@ -266,7 +266,7 @@ void LoadTextureFromWad(radtexture_t* tex, miptex_t const * header) {
 				continue;
 			}
 			miptex_t* mt = (miptex_t*) malloc(found->disksize);
-			hlassume(mt != nullptr, assume_NoMemory);
+			hlassume(mt != nullptr, assume_msg::NoMemory);
 			if (fseek(wad.file, found->filepos, SEEK_SET)) {
 				Error("File read failure");
 			}
@@ -323,7 +323,7 @@ void LoadTextures() {
 		? ((dmiptexlump_t*) g_dtexdata.data())->nummiptex
 		: 0;
 	g_textures = std::make_unique<radtexture_t[]>(g_numtextures);
-	hlassume(g_textures != nullptr, assume_NoMemory);
+	hlassume(g_textures != nullptr, assume_msg::NoMemory);
 	int i;
 	for (i = 0; i < g_numtextures; i++) {
 		int offset = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[i];
@@ -587,7 +587,7 @@ static cq_searchnode_t* CQ_AllocSearchTree(int maxcolors) {
 	searchtree = (cq_searchnode_t*) malloc(
 		(2 * maxcolors - 1) * sizeof(cq_searchnode_t)
 	);
-	hlassume(searchtree != nullptr, assume_NoMemory);
+	hlassume(searchtree != nullptr, assume_msg::NoMemory);
 	return searchtree;
 }
 
@@ -612,7 +612,7 @@ static void CQ_CreatePalette(
 	unsigned char(*pointarray)[CQ_DIMENSIONS];
 	pointarray = (unsigned char(*)[CQ_DIMENSIONS]
 	) malloc(numpoints * sizeof(unsigned char[CQ_DIMENSIONS]));
-	hlassume(pointarray != nullptr, assume_NoMemory);
+	hlassume(pointarray != nullptr, assume_msg::NoMemory);
 	memcpy(
 		pointarray,
 		points,
@@ -624,7 +624,7 @@ static void CQ_CreatePalette(
 	int numnodes = 0;
 	int maxnodes = 2 * maxcolors - 1;
 	cq_node_t* nodes = (cq_node_t*) malloc(maxnodes * sizeof(cq_node_t));
-	hlassume(nodes != nullptr, assume_NoMemory);
+	hlassume(nodes != nullptr, assume_msg::NoMemory);
 
 	n = &nodes[0];
 	numnodes++;
@@ -878,7 +878,8 @@ void NewTextures_PushTexture(int size, void* data) {
 	}
 	g_newtextures_data[g_newtextures_num] = (byte*) malloc(size);
 	hlassume(
-		g_newtextures_data[g_newtextures_num] != nullptr, assume_NoMemory
+		g_newtextures_data[g_newtextures_num] != nullptr,
+		assume_msg::NoMemory
 	);
 	memcpy(g_newtextures_data[g_newtextures_num], data, size);
 	g_newtextures_size[g_newtextures_num] = size;
@@ -901,7 +902,7 @@ void NewTextures_Write() {
 			  ->dataofs[texdata->nummiptex + g_newtextures_num];
 	hlassume(
 		g_texdatasize + (newdataaddr - dataaddr) <= g_max_map_miptex,
-		assume_MAX_MAP_MIPTEX
+		assume_msg::MAX_MAP_MIPTEX
 	);
 	memmove(newdataaddr, dataaddr, datasize);
 	g_texdatasize += newdataaddr - dataaddr;
@@ -915,12 +916,12 @@ void NewTextures_Write() {
 
 	hlassume(
 		texdata->nummiptex + g_newtextures_num < MAX_MAP_TEXTURES,
-		assume_MAX_MAP_TEXTURES
+		assume_msg::MAX_MAP_TEXTURES
 	);
 	for (i = 0; i < g_newtextures_num; i++) {
 		hlassume(
 			g_texdatasize + g_newtextures_size[i] <= g_max_map_miptex,
-			assume_MAX_MAP_MIPTEX
+			assume_msg::MAX_MAP_MIPTEX
 		);
 		memcpy(
 			g_dtexdata.data() + g_texdatasize,
@@ -1160,13 +1161,15 @@ void EmbedLightmapInTextures() {
 		std::array<float, 5>* texture = (std::array<float, 5>*) malloc(
 			texturesize[0] * texturesize[1] * sizeof(std::array<float, 5>)
 		);
-		hlassume(texture != nullptr, assume_NoMemory);
+		hlassume(texture != nullptr, assume_msg::NoMemory);
 		for (miplevel = 0; miplevel < MIPLEVELS; miplevel++) {
 			texturemips[miplevel] = (byte(*)[4]) malloc(
 				(texturesize[0] >> miplevel) * (texturesize[1] >> miplevel)
 				* sizeof(byte[4])
 			);
-			hlassume(texturemips[miplevel] != nullptr, assume_NoMemory);
+			hlassume(
+				texturemips[miplevel] != nullptr, assume_msg::NoMemory
+			);
 		}
 
 		// calculate the texture
@@ -1372,7 +1375,7 @@ void EmbedLightmapInTextures() {
 				texturesize[0] * texturesize[1]
 				* sizeof(std::array<std::uint8_t, 3>)
 			);
-			hlassume(samplepoints != nullptr, assume_NoMemory);
+			hlassume(samplepoints != nullptr, assume_msg::NoMemory);
 			numsamplepoints = 0;
 			for (t = 0; t < texturesize[1]; t++) {
 				for (s = 0; s < texturesize[0]; s++) {
@@ -1405,7 +1408,7 @@ void EmbedLightmapInTextures() {
 
 		hlassume(
 			g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
-			assume_INITIAL_MAX_MAP_TEXINFO
+			assume_msg::INITIAL_MAX_MAP_TEXINFO
 		);
 		f->texinfo = g_numtexinfo;
 		texinfo_t* info = &g_texinfo[g_numtexinfo];

@@ -230,7 +230,7 @@ static void BuildVisMatrix() {
 
 	if (!s_vismatrix) {
 		Log("Failed to allocate s_vismatrix");
-		hlassume(s_vismatrix != nullptr, assume_NoMemory);
+		hlassume(s_vismatrix != nullptr, assume_msg::NoMemory);
 	}
 
 	NamedRunThreadsOn(g_dmodels[0].visleafs, g_estimate, BuildVisLeafs);
@@ -298,7 +298,10 @@ static bool CheckVisBitVismatrix(
 // MakeScalesVismatrix
 // =====================================================================================
 void MakeScalesVismatrix() {
-	hlassume(g_patches.size() < MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES);
+	hlassume(
+		g_patches.size() < MAX_VISMATRIX_PATCHES,
+		assume_msg::exceeded_MAX_PATCHES
+	);
 
 	std::filesystem::path const transferFilePath{
 		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()

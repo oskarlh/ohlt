@@ -17,8 +17,10 @@ side_t g_brushsides[MAX_MAP_SIDES];
 
 csg_brush& copy_last_brush_with_sides(csg_brush* lastBrush) {
 	csg_brush& newBrush = lastBrush[1];
-	hlassume(g_nummapbrushes <= MAX_MAP_BRUSHES, assume_MAX_MAP_BRUSHES);
-	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_MAX_MAP_SIDES);
+	hlassume(
+		g_nummapbrushes <= MAX_MAP_BRUSHES, assume_msg::MAX_MAP_BRUSHES
+	);
+	hlassume(g_numbrushsides <= MAX_MAP_SIDES, assume_msg::MAX_MAP_SIDES);
 	newBrush = *lastBrush;
 	newBrush.firstSide += newBrush.numSides;
 	std::copy_n(
@@ -800,7 +802,7 @@ void LoadMapFile(
 
 	hlassume(
 		num_engine_entities < MAX_ENGINE_ENTITIES,
-		assume_MAX_ENGINE_ENTITIES
+		assume_msg::MAX_ENGINE_ENTITIES
 	);
 
 	CheckFatal();

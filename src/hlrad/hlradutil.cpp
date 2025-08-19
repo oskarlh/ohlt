@@ -243,7 +243,7 @@ void ApplyMatrixOnPlane(
 )
 // out_normal is not normalized
 {
-	hlassume(&in_normal[0] != &out_normal[0], assume_first);
+	hlassume(&in_normal[0] != &out_normal[0], assume_msg::first);
 	for (std::size_t i = 0; i < 3; ++i) {
 		out_normal[i] = dot_product(in_normal, m_inverse.v[i]);
 	}
@@ -259,7 +259,7 @@ MultiplyMatrix(matrix_t const & m_left, matrix_t const & m_right) noexcept {
 
 	matrix_t m;
 	std::array<float, 4> const lastrow = { 0, 0, 0, 1 };
-	hlassume(&m != &m_left && &m != &m_right, assume_first);
+	hlassume(&m != &m_left && &m != &m_right, assume_msg::first);
 	for (std::size_t i = 0; i < 3; i++) {
 		for (std::size_t j = 0; j < 4; j++) {
 			m.v[j][i] = m_left.v[0][i] * m_right.v[j][0]
@@ -701,7 +701,7 @@ void FindFacePositions(int facenum)
 	}
 
 	map->grid = (position_t*) malloc(map->w * map->h * sizeof(position_t));
-	hlassume(map->grid != nullptr, assume_NoMemory);
+	hlassume(map->grid != nullptr, assume_msg::NoMemory);
 
 	for (it = 0; it < map->h; it++) {
 		for (is = 0; is < map->w; is++) {

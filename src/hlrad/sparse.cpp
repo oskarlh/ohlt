@@ -356,7 +356,8 @@ static void DumpVismatrixInfo() {
 
 void MakeScalesSparseVismatrix() {
 	hlassume(
-		g_patches.size() < MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES
+		g_patches.size() < MAX_SPARSE_VISMATRIX_PATCHES,
+		assume_msg::exceeded_MAX_PATCHES
 	);
 
 	std::filesystem::path const transferFilePath{

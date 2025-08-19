@@ -154,7 +154,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 		g_onlyents = true;
 	} else if (hlcsgValue == 0) {
 		Fatal(
-			assume_TOOL_CANCEL,
+			assume_msg::TOOL_CANCEL,
 			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
 			(char const *) g_Program.data()
 		);
@@ -1005,7 +1005,8 @@ static void SetLightStyles() {
 		}
 		if (j == stylenum) {
 			hlassume(
-				stylenum < MAX_SWITCHED_LIGHTS, assume_MAX_SWITCHED_LIGHTS
+				stylenum < MAX_SWITCHED_LIGHTS,
+				assume_msg::MAX_SWITCHED_LIGHTS
 			);
 			lighttargets[j] = t;
 			stylenum++;
@@ -1148,7 +1149,7 @@ static void UnparseEntities() {
 		std::unique_ptr<bool[]> lightneedcompare = std::make_unique<bool[]>(
 			g_numentities
 		);
-		hlassume(lightneedcompare != nullptr, assume_NoMemory);
+		hlassume(lightneedcompare != nullptr, assume_msg::NoMemory);
 		for (int i = g_numentities - 1; i > -1; i--) {
 			entity_t* ent = &g_entities[i];
 			std::u8string_view const classname = get_classname(*ent);
@@ -2062,7 +2063,7 @@ int main(int const argc, char** argv) {
 			atexit(CloseLog);
 			LogStart(argcold, argvold);
 			log_arguments(argc, argv);
-			hlassume(CalcFaceExtents_test(), assume_first);
+			hlassume(CalcFaceExtents_test(), assume_msg::first);
 			atexit(CSGCleanup);
 			dtexdata_init();
 

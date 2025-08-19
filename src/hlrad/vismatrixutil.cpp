@@ -356,8 +356,8 @@ void MakeScales(int const threadnum) {
 				tIndex_All, patch->iData, &patch->iIndex
 			);
 
-			hlassume(patch->tData != nullptr, assume_NoMemory);
-			hlassume(patch->tIndex != nullptr, assume_NoMemory);
+			hlassume(patch->tData != nullptr, assume_msg::NoMemory);
+			hlassume(patch->tIndex != nullptr, assume_msg::NoMemory);
 
 			ThreadLock();
 			g_transfer_data_bytes += data_size;
@@ -617,8 +617,8 @@ void MakeRGBScales(int const threadnum) {
 				tIndex_All, patch->iData, &patch->iIndex
 			);
 
-			hlassume(patch->tRGBData != nullptr, assume_NoMemory);
-			hlassume(patch->tIndex != nullptr, assume_NoMemory);
+			hlassume(patch->tRGBData != nullptr, assume_msg::NoMemory);
+			hlassume(patch->tIndex != nullptr, assume_msg::NoMemory);
 
 			ThreadLock();
 			g_transfer_data_bytes += data_size;

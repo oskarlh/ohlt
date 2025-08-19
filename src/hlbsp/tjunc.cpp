@@ -288,7 +288,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 	face_t* chain{ nullptr };
 	while (true) {
 		hlassume(
-			f->original == nullptr, assume_ValidPointer
+			f->original == nullptr, assume_msg::ValidPointer
 		); // "SplitFaceForTjunc: f->original"
 
 		if (f->pts.size() <= MAXPOINTS) { // the face is now small enough
@@ -351,7 +351,7 @@ static void SplitFaceForTjunc(face_t* f, face_t* original) {
 		face_t* const newface = new face_t{ NewFaceFromFace(*f) };
 
 		hlassume(
-			f->original == nullptr, assume_ValidPointer
+			f->original == nullptr, assume_msg::ValidPointer
 		); // "SplitFaceForTjunc: f->original"
 
 		newface->original = chain;
@@ -415,7 +415,7 @@ restart:
 			);
 			hlassume(
 				superface->pts.size() < MAX_SUPERFACEEDGES,
-				assume_MAX_SUPERFACEEDGES
+				assume_msg::MAX_SUPERFACEEDGES
 			);
 			goto restart;
 		}

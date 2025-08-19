@@ -116,7 +116,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 	iTmp = IntForKey(mapent, u8"hlvis");
 	if (iTmp == 0) {
 		Fatal(
-			assume_TOOL_CANCEL,
+			assume_msg::TOOL_CANCEL,
 			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
 			(char const *) g_Program.data()
 		);
@@ -637,7 +637,8 @@ static void LoadPortals(char* portal_image) {
 		// create forward portal
 		l = &g_leafs[leafnums[0]];
 		hlassume(
-			l->numportals < MAX_PORTALS_ON_LEAF, assume_MAX_PORTALS_ON_LEAF
+			l->numportals < MAX_PORTALS_ON_LEAF,
+			assume_msg::exceeded_MAX_PORTALS_ON_LEAF
 		);
 		l->portals[l->numportals] = p;
 		l->numportals++;
@@ -651,7 +652,8 @@ static void LoadPortals(char* portal_image) {
 		// create backwards portal
 		l = &g_leafs[leafnums[1]];
 		hlassume(
-			l->numportals < MAX_PORTALS_ON_LEAF, assume_MAX_PORTALS_ON_LEAF
+			l->numportals < MAX_PORTALS_ON_LEAF,
+			assume_msg::exceeded_MAX_PORTALS_ON_LEAF
 		);
 		l->portals[l->numportals] = p;
 		l->numportals++;
@@ -1043,7 +1045,7 @@ int main(int const argc, char** argv) {
 
 			CheckForErrorLog();
 
-			hlassume(CalcFaceExtents_test(), assume_first);
+			hlassume(CalcFaceExtents_test(), assume_msg::first);
 			dtexdata_init();
 			// END INIT
 

@@ -126,7 +126,7 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 			}
 			if (patch->iIndex) {
 				patch->tIndex = new transfer_index_t[patch->iIndex]();
-				hlassume(patch->tIndex != nullptr, assume_NoMemory);
+				hlassume(patch->tIndex != nullptr, assume_msg::NoMemory);
 				amtread = fread(
 					patch->tIndex,
 					sizeof(transfer_index_t),
@@ -149,7 +149,9 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 					         * vector_size[(std::size_t
 					         ) g_rgbtransfer_compress_type]
 					     + unused_size]();
-					hlassume(patch->tRGBData != nullptr, assume_NoMemory);
+					hlassume(
+						patch->tRGBData != nullptr, assume_msg::NoMemory
+					);
 					amtread = fread(
 						patch->tRGBData,
 						vector_size[(std::size_t
@@ -163,7 +165,7 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 					         * float_size[(std::size_t
 					         ) g_transfer_compress_type]
 					     + unused_size]();
-					hlassume(patch->tData != nullptr, assume_NoMemory);
+					hlassume(patch->tData != nullptr, assume_msg::NoMemory);
 					amtread = fread(
 						patch->tData,
 						float_size[(std::size_t) g_transfer_compress_type],

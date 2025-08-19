@@ -50,9 +50,9 @@ intersecttest_t* CreateIntersectTest(dplane_t const * p, int facenum) {
 	dface_t* f = &g_dfaces[facenum];
 	intersecttest_t* t;
 	t = (intersecttest_t*) malloc(sizeof(intersecttest_t));
-	hlassume(t != nullptr, assume_NoMemory);
+	hlassume(t != nullptr, assume_msg::NoMemory);
 	t->clipplanes = (dplane_t*) malloc(f->numedges * sizeof(dplane_t));
-	hlassume(t->clipplanes != nullptr, assume_NoMemory);
+	hlassume(t->clipplanes != nullptr, assume_msg::NoMemory);
 	t->numclipplanes = 0;
 	int j;
 	for (j = 0; j < f->numedges; j++) {
@@ -571,7 +571,9 @@ void PairEdges() {
 									facelist_t* l = (facelist_t*) malloc(
 										sizeof(facelist_t)
 									);
-									hlassume(l != nullptr, assume_NoMemory);
+									hlassume(
+										l != nullptr, assume_msg::NoMemory
+									);
 									l->face = fcurrent;
 									l->next = e->vertex_facelist[edgeend];
 									e->vertex_facelist[edgeend] = l;
@@ -804,22 +806,22 @@ static void CalcFaceExtents(lightinfo_t* l) {
 			l->lmcachewidth * l->lmcacheheight
 			* sizeof(std::array<float3_array, ALLSTYLES>)
 		);
-		hlassume(l->lmcache != nullptr, assume_NoMemory);
+		hlassume(l->lmcache != nullptr, assume_msg::NoMemory);
 		l->lmcache_normal = (float3_array*) malloc(
 			l->lmcachewidth * l->lmcacheheight * sizeof(float3_array)
 		);
-		hlassume(l->lmcache_normal != nullptr, assume_NoMemory);
+		hlassume(l->lmcache_normal != nullptr, assume_msg::NoMemory);
 		l->lmcache_wallflags = (wallflags_t*) malloc(
 			l->lmcachewidth * l->lmcacheheight * sizeof(wallflags_t)
 		);
-		hlassume(l->lmcache_wallflags != nullptr, assume_NoMemory);
+		hlassume(l->lmcache_wallflags != nullptr, assume_msg::NoMemory);
 		l->surfpt_position = (float3_array*) malloc(
 			MAX_SINGLEMAP * sizeof(float3_array)
 		);
 		l->surfpt_surface = (int*) malloc(MAX_SINGLEMAP * sizeof(int));
 		hlassume(
 			l->surfpt_position != nullptr && l->surfpt_surface != nullptr,
-			assume_NoMemory
+			assume_msg::NoMemory
 		);
 	}
 }
@@ -859,7 +861,7 @@ static void CalcFaceVectors(lightinfo_t* l) {
 		w.Print();
 		ThreadUnlock();
 
-		hlassume(false, assume_MalformedTextureFace);
+		hlassume(false, assume_msg::MalformedTextureFace);
 	}
 
 	if (distscale < 0) {
@@ -1056,7 +1058,7 @@ void ChopFrag(samplefrag_t* frag)
 	frag->edges = (samplefragedge_t*) malloc(
 		f->numedges * sizeof(samplefragedge_t)
 	);
-	hlassume(frag->edges != nullptr, assume_NoMemory);
+	hlassume(frag->edges != nullptr, assume_msg::NoMemory);
 	for (int i = 0; i < f->numedges; i++) {
 		samplefragedge_t* e;
 		edgeshare_t* es;
@@ -1195,7 +1197,7 @@ static samplefrag_t* GrowSingleFrag(
 	dplane_t* clipplanes;
 
 	frag = (samplefrag_t*) malloc(sizeof(samplefrag_t));
-	hlassume(frag != nullptr, assume_NoMemory);
+	hlassume(frag != nullptr, assume_msg::NoMemory);
 
 	// some basic info
 	frag->next = nullptr;
@@ -1265,7 +1267,7 @@ static samplefrag_t* GrowSingleFrag(
 	clipplanes = (dplane_t*) malloc(
 		frag->winding->size() * sizeof(dplane_t)
 	);
-	hlassume(clipplanes != nullptr, assume_NoMemory);
+	hlassume(clipplanes != nullptr, assume_msg::NoMemory);
 	numclipplanes = 0;
 	for (int x = 0; x < frag->winding->size(); x++) {
 		clipplanes[numclipplanes].normal = cross_product(
@@ -1379,11 +1381,11 @@ static samplefraginfo_t* CreateSampleFrag(
 	float3_array const v_t{ 0, 1, 0 };
 
 	info = (samplefraginfo_t*) malloc(sizeof(samplefraginfo_t));
-	hlassume(info != nullptr, assume_NoMemory);
+	hlassume(info != nullptr, assume_msg::NoMemory);
 	info->maxsize = maxsize;
 	info->size = 1;
 	info->head = (samplefrag_t*) malloc(sizeof(samplefrag_t));
-	hlassume(info->head != nullptr, assume_NoMemory);
+	hlassume(info->head != nullptr, assume_msg::NoMemory);
 
 	info->head->next = nullptr;
 	info->head->parentfrag = nullptr;
@@ -1497,7 +1499,7 @@ static light_flag SetSampleFromST(
 	float original_s,
 	float original_t,
 	float const square[2][2], // {smin, tmin}, {smax, tmax}
-	eModelLightmodes lightmode
+	model_light_mode_flags lightmode
 ) {
 	light_flag LuxelFlag;
 	int facenum;
@@ -1581,7 +1583,7 @@ static light_flag SetSampleFromST(
 			w.add_offset_to_points(g_face_offset[facenum]);
 			w.Print();
 			ThreadUnlock();
-			hlassume(false, assume_MalformedTextureFace);
+			hlassume(false, assume_msg::MalformedTextureFace);
 		}
 
 		// point
@@ -1618,7 +1620,7 @@ static void CalcPoints(lightinfo_t* l) {
 	int const facenum = l->surfnum;
 	dface_t const * f = g_dfaces.data() + facenum;
 	dplane_t const * p = getPlaneFromFace(f);
-	eModelLightmodes const lightmode = g_face_lightmode[facenum];
+	model_light_mode_flags const lightmode = g_face_lightmode[facenum];
 	int const h = l->texsize[1] + 1;
 	int const w = l->texsize[0] + 1;
 	float const starts = l->texmins[0] * TEXTURE_STEP;
@@ -1782,7 +1784,7 @@ void CreateDirectLights() {
 				1, sizeof(directlight_t)
 			);
 
-			hlassume(dl != nullptr, assume_NoMemory);
+			hlassume(dl != nullptr, assume_msg::NoMemory);
 
 			dl->origin = patch.origin;
 
@@ -1845,7 +1847,7 @@ void CreateDirectLights() {
 				}
 			}
 
-			dl->type = emit_surface;
+			dl->type = emit_type::surface;
 			dl->normal = getPlaneFromFaceNumber(patch.faceNumber)->normal;
 			dl->intensity = patch.baselight; // LRC
 			if (g_face_texlights[patch.faceNumber]) {
@@ -1873,7 +1875,7 @@ void CreateDirectLights() {
 				directlight_t* dl2 = (directlight_t*) calloc(
 					1, sizeof(directlight_t)
 				);
-				hlassume(dl2 != nullptr, assume_NoMemory);
+				hlassume(dl2 != nullptr, assume_msg::NoMemory);
 				*dl2 = *dl;
 				dl2->origin = vector_fma(dl->normal, -2.0f, dl->origin);
 				dl2->normal = negate_vector(dl->normal);
@@ -1932,7 +1934,7 @@ void CreateDirectLights() {
 			1, sizeof(directlight_t)
 		);
 
-		hlassume(dl != nullptr, assume_NoMemory);
+		hlassume(dl != nullptr, assume_msg::NoMemory);
 
 		dl->origin = get_float3_for_key(*e, u8"origin");
 
@@ -2009,7 +2011,7 @@ void CreateDirectLights() {
 
 		if (name == u8"light_spot" || name == u8"light_environment"
 		    || !target.empty()) {
-			dl->type = emit_spotlight;
+			dl->type = emit_type::spotlight;
 			dl->stopdot = float_for_key(*e, u8"_cone");
 			if (!dl->stopdot) {
 				dl->stopdot = 10;
@@ -2179,7 +2181,7 @@ void CreateDirectLights() {
 					dl->diffuse_intensity2[2] = dl->diffuse_intensity[2];
 				}
 
-				dl->type = emit_skylight;
+				dl->type = emit_type::skylight;
 				dl->stopdot2 = float_for_key(
 					*e, u8"_sky"
 				); // hack stopdot2 to a sky key number
@@ -2242,10 +2244,11 @@ void CreateDirectLights() {
 							count * sizeof(float)
 						);
 						hlassume(
-							dl->sunnormals != nullptr, assume_NoMemory
+							dl->sunnormals != nullptr, assume_msg::NoMemory
 						);
 						hlassume(
-							dl->sunnormalweights != nullptr, assume_NoMemory
+							dl->sunnormalweights != nullptr,
+							assume_msg::NoMemory
 						);
 						for (count = 0, i = 0;
 						     i < g_numskynormals[SUNSPREAD_SKYLEVEL];
@@ -2297,19 +2300,22 @@ void CreateDirectLights() {
 						sizeof(float3_array)
 					);
 					dl->sunnormalweights = (float*) malloc(sizeof(float));
-					hlassume(dl->sunnormals != nullptr, assume_NoMemory);
 					hlassume(
-						dl->sunnormalweights != nullptr, assume_NoMemory
+						dl->sunnormals != nullptr, assume_msg::NoMemory
+					);
+					hlassume(
+						dl->sunnormalweights != nullptr,
+						assume_msg::NoMemory
 					);
 					dl->sunnormals[0] = dl->normal;
 					dl->sunnormalweights[0] = 1.0;
 				}
 			}
 		} else {
-			dl->type = emit_point;
+			dl->type = emit_type::point;
 		}
 
-		if (dl->type != emit_skylight) {
+		if (dl->type != emit_type::skylight) {
 			// why? --vluzacn
 			float l1 = fast_sqrt(std::max(
 						   dl->intensity[0],
@@ -2328,9 +2334,9 @@ void CreateDirectLights() {
 		for (int l = 0; l < 1 + g_dmodels[0].visleafs; l++) {
 			for (directlight_t* dl = directlights[l]; dl; dl = dl->next) {
 				switch (dl->type) {
-					case emit_surface:
-					case emit_point:
-					case emit_spotlight:
+					case emit_type::surface:
+					case emit_type::point:
+					case emit_type::spotlight:
 						if (!vectors_almost_same(
 								dl->intensity, float3_array{}
 							)) {
@@ -2341,7 +2347,7 @@ void CreateDirectLights() {
 							}
 						}
 						break;
-					case emit_skylight:
+					case emit_type::skylight:
 						if (!vectors_almost_same(
 								dl->intensity, float3_array{}
 							)) {
@@ -2373,7 +2379,7 @@ void CreateDirectLights() {
 						}
 						break;
 					default:
-						hlassume(false, assume_BadLightType);
+						hlassume(false, assume_msg::BadLightType);
 						break;
 				}
 			}
@@ -2383,7 +2389,7 @@ void CreateDirectLights() {
 	    countnormallights,
 	    countfastlights);
 	Log("%i light styles\n", numstyles);
-	// move all emit_skylight to leaf 0 (the solid leaf)
+	// move all emit_type::skylight to leaf 0 (the solid leaf)
 	if (g_sky_lighting_fix) {
 		directlight_t* skylights = nullptr;
 		int l;
@@ -2392,7 +2398,7 @@ void CreateDirectLights() {
 			directlight_t* dl;
 			for (dl = directlights[l], pdl = &directlights[l]; dl;
 			     dl = *pdl) {
-				if (dl->type == emit_skylight) {
+				if (dl->type == emit_type::skylight) {
 					*pdl = dl->next;
 					dl->next = skylights;
 					skylights = dl;
@@ -2481,9 +2487,13 @@ void CopyToSkynormals(
 	std::span<edge_t const> edges,
 	std::span<triangle_t const> triangles
 ) {
-	hlassume(points.size() == (1 << (2 * skylevel)) + 2, assume_first);
-	hlassume(edges.size() == (1 << (2 * skylevel)) * 4 - 4, assume_first);
-	hlassume(triangles.size() == (1 << (2 * skylevel)) * 2, assume_first);
+	hlassume(points.size() == (1 << (2 * skylevel)) + 2, assume_msg::first);
+	hlassume(
+		edges.size() == (1 << (2 * skylevel)) * 4 - 4, assume_msg::first
+	);
+	hlassume(
+		triangles.size() == (1 << (2 * skylevel)) * 2, assume_msg::first
+	);
 	g_numskynormals[skylevel] = points.size();
 	g_skynormals[skylevel] = (float3_array*) malloc(
 		points.size() * sizeof(float3_array)
@@ -2491,8 +2501,8 @@ void CopyToSkynormals(
 	g_skynormalsizes[skylevel] = (float*) malloc(
 		points.size() * sizeof(float)
 	);
-	hlassume(g_skynormals[skylevel] != nullptr, assume_NoMemory);
-	hlassume(g_skynormalsizes[skylevel] != nullptr, assume_NoMemory);
+	hlassume(g_skynormals[skylevel] != nullptr, assume_msg::NoMemory);
+	hlassume(g_skynormalsizes[skylevel] != nullptr, assume_msg::NoMemory);
 	for (std::size_t j = 0; j < points.size(); j++) {
 		g_skynormals[skylevel][j] = to_float3(points[j]);
 		g_skynormalsizes[skylevel][j] = 0;
@@ -2505,7 +2515,7 @@ void CopyToSkynormals(
 		}
 		double3_array tmp = cross_product(points[pt[0]], points[pt[1]]);
 		double currentsize = dot_product(tmp, points[pt[2]]);
-		hlassume(currentsize > 0, assume_first);
+		hlassume(currentsize > 0, assume_msg::first);
 		g_skynormalsizes[skylevel][pt[0]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[1]] += currentsize / 3.0;
 		g_skynormalsizes[skylevel][pt[2]] += currentsize / 3.0;
@@ -2605,19 +2615,20 @@ void BuildDiffuseNormals() {
 				continue;
 			}
 			hlassume(
-				numPoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_first
+				numPoints < (1 << (2 * SKYLEVELMAX)) + 2, assume_msg::first
 			);
 			point_t mid = vector_add(
 				points[edges[j].point[0]], points[edges[j].point[1]]
 			);
 			double len = vector_length(mid);
-			hlassume(len > 0.2, assume_first);
+			hlassume(len > 0.2, assume_msg::first);
 			mid = vector_scale(mid, 1 / len);
 			int p2 = numPoints;
 			points[numPoints] = mid;
 			numPoints++;
 			hlassume(
-				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first
+				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+				assume_msg::first
 			);
 			edges[j].child[0] = numEdges;
 			edges[numEdges].divided = false;
@@ -2625,7 +2636,8 @@ void BuildDiffuseNormals() {
 			edges[numEdges].point[1] = p2;
 			++numEdges;
 			hlassume(
-				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4, assume_first
+				numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
+				assume_msg::first
 			);
 			edges[j].child[1] = numEdges;
 			edges[numEdges].divided = false;
@@ -2640,7 +2652,7 @@ void BuildDiffuseNormals() {
 			for (std::size_t k = 0; k < 3; ++k) {
 				hlassume(
 					numTriangles < (1 << (2 * SKYLEVELMAX)) * 2,
-					assume_first
+					assume_msg::first
 				);
 				mid[k]
 					= edges[edges[triangles[j].edge[k]].child[0]].point[1];
@@ -2660,7 +2672,7 @@ void BuildDiffuseNormals() {
 			for (std::size_t k = 0; k < 3; ++k) {
 				hlassume(
 					numEdges < (1 << (2 * SKYLEVELMAX)) * 4 - 4,
-					assume_first
+					assume_msg::first
 				);
 				triangles[j].edge[k] = numEdges;
 				triangles[j].dir[k] = 0;
@@ -2743,7 +2755,7 @@ static void GatherSampleLight(
 		for (; l; l = l->next) {
 			// skylights work fundamentally differently than normal
 			// lights
-			if (l->type == emit_skylight) {
+			if (l->type == emit_type::skylight) {
 				if (!g_sky_lighting_fix) {
 					if (sky_used) {
 						continue;
@@ -2930,7 +2942,7 @@ static void GatherSampleLight(
 
 				} while (0);
 
-			} else // not emit_skylight
+			} else // not emit_type::skylight
 			{
 				step_match = (int) l->topatch;
 				if (step != step_match) {
@@ -2943,7 +2955,7 @@ static void GatherSampleLight(
 				testline_origin = l->origin;
 
 				delta = vector_subtract(l->origin, pos);
-				if (l->type == emit_surface) {
+				if (l->type == emit_type::surface) {
 					// move emitter back to its plane
 					delta = vector_fma(
 						l->normal, -PATCH_HUNT_OFFSET, delta
@@ -2960,7 +2972,7 @@ static void GatherSampleLight(
 
 				float3_array add{};
 				switch (l->type) {
-					case emit_point: {
+					case emit_type::point: {
 						if (dot <= NORMAL_EPSILON) {
 							continue;
 						}
@@ -2974,7 +2986,7 @@ static void GatherSampleLight(
 						break;
 					}
 
-					case emit_surface: {
+					case emit_type::surface: {
 						bool light_behind_surface = false;
 						if (dot <= NORMAL_EPSILON) {
 							light_behind_surface = true;
@@ -3128,7 +3140,7 @@ static void GatherSampleLight(
 						break;
 					}
 
-					case emit_spotlight: {
+					case emit_type::spotlight: {
 						if (dot <= NORMAL_EPSILON) {
 							continue;
 						}
@@ -3154,7 +3166,7 @@ static void GatherSampleLight(
 					}
 
 					default: {
-						hlassume(false, assume_BadLightType);
+						hlassume(false, assume_msg::BadLightType);
 						break;
 					}
 				}
@@ -3182,7 +3194,7 @@ static void GatherSampleLight(
 					}
 				}
 				adds[style] = vector_add(adds[style], add);
-			} // end emit_skylight
+			} // end emit_type::skylight
 		}
 	}
 
@@ -3254,7 +3266,7 @@ static void AddSamplesToPatches(
 	}
 	std::unique_ptr<fast_winding[]> texwindings
 		= std::make_unique<fast_winding[]>(numtexwindings);
-	hlassume(texwindings != nullptr, assume_NoMemory);
+	hlassume(texwindings != nullptr, assume_msg::NoMemory);
 
 	// translate world winding into winding in s,t plane
 	for (j = 0, patch = g_face_patches[facenum]; j < numtexwindings;
@@ -3892,34 +3904,34 @@ void BuildFacelights(int const facenum) {
 	lightmapheight = l.texsize[1] + 1;
 
 	size = lightmapwidth * lightmapheight;
-	hlassume(size <= MAX_SINGLEMAP, assume_MAX_SINGLEMAP);
+	hlassume(size <= MAX_SINGLEMAP, assume_msg::exceeded_MAX_SINGLEMAP);
 
 	facelight[facenum].numsamples = l.numsurfpt;
 
 	for (k = 0; k < ALLSTYLES; k++) {
 		fl_samples[k] = (sample_t*) calloc(l.numsurfpt, sizeof(sample_t));
-		hlassume(fl_samples[k] != nullptr, assume_NoMemory);
+		hlassume(fl_samples[k] != nullptr, assume_msg::NoMemory);
 	}
 	for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
 		hlassume(
 			patch->totalstyle_all = (std::array<unsigned char, ALLSTYLES>*)
 				malloc(sizeof(std::array<unsigned char, ALLSTYLES>)),
-			assume_NoMemory
+			assume_msg::NoMemory
 		);
 		hlassume(
 			patch->samplelight_all = (std::array<float3_array, ALLSTYLES>*)
 				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
-			assume_NoMemory
+			assume_msg::NoMemory
 		);
 		hlassume(
 			patch->totallight_all = (std::array<float3_array, ALLSTYLES>*)
 				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
-			assume_NoMemory
+			assume_msg::NoMemory
 		);
 		hlassume(
 			patch->directlight_all = (std::array<float3_array, ALLSTYLES>*)
 				malloc(sizeof(std::array<float3_array, ALLSTYLES>)),
-			assume_NoMemory
+			assume_msg::NoMemory
 		);
 		patch->totalstyle_all->fill(255);
 		(*patch->totalstyle_all)[0] = 0;
@@ -4370,7 +4382,7 @@ void BuildFacelights(int const facenum) {
 				fl->samples[k] = (sample_t*) malloc(
 					fl->numsamples * sizeof(sample_t)
 				);
-				hlassume(fl->samples[k] != nullptr, assume_NoMemory);
+				hlassume(fl->samples[k] != nullptr, assume_msg::NoMemory);
 				memcpy(
 					fl->samples[k],
 					fl_samples[bestindex],
@@ -4587,7 +4599,9 @@ void PrecompLightmapOffsets() {
 					fl->samples[k] = (sample_t*) malloc(
 						fl->numsamples * sizeof(sample_t)
 					);
-					hlassume(fl->samples[k] != nullptr, assume_NoMemory);
+					hlassume(
+						fl->samples[k] != nullptr, assume_msg::NoMemory
+					);
 					for (i = 0; i < MAXLIGHTMAPS && oldstyles[i] != 255;
 					     i++) {
 						if (oldstyles[i] == f->styles[k]) {
@@ -4643,7 +4657,7 @@ void PrecompLightmapOffsets() {
 		newLightDataSize += fl->numsamples * 3 * lightstyles;
 		hlassume(
 			newLightDataSize <= g_max_map_lightdata,
-			assume_MAX_MAP_LIGHTING
+			assume_msg::MAX_MAP_LIGHTING
 		); // lightdata
 	}
 	g_dlightdata.resize(newLightDataSize, std::byte(0));
@@ -4703,7 +4717,7 @@ void ReduceLightmap() {
 			hlassume(
 				g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1)
 					<= g_max_map_lightdata,
-				assume_MAX_MAP_LIGHTING
+				assume_msg::MAX_MAP_LIGHTING
 			);
 
 			std::span toAppend{
@@ -5058,7 +5072,7 @@ void CreateFacelightDependencyList() {
 
 					item = (facelightlist_t*) malloc(sizeof(facelightlist_t)
 					);
-					hlassume(item != nullptr, assume_NoMemory);
+					hlassume(item != nullptr, assume_msg::NoMemory);
 					item->facenum = facenum;
 					item->next = g_dependentfacelights[surface];
 					g_dependentfacelights[surface] = item;

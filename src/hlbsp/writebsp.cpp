@@ -45,7 +45,7 @@ static int WritePlane(int planenum) {
 		return item->second;
 	}
 	// Add plane to BSP
-	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
+	hlassume(gNumMappedPlanes < MAX_MAP_PLANES, assume_msg::MAX_MAP_PLANES);
 	gMappedPlanes[gNumMappedPlanes] = g_mapPlanes[planenum];
 	gPlaneMap.insert(PlaneMap::value_type(planenum, gNumMappedPlanes));
 
@@ -69,7 +69,7 @@ static texinfo_count WriteTexinfo(texinfo_count texinfo) {
 
 	hlassume(
 		g_nummappedtexinfo < FINAL_MAX_MAP_TEXINFO,
-		assume_FINAL_MAX_MAP_TEXINFO
+		assume_msg::FINAL_MAX_MAP_TEXINFO
 	);
 	texinfo_count const c = g_nummappedtexinfo;
 	g_mappedtexinfo[g_nummappedtexinfo] = g_texinfo[texinfo];
@@ -124,7 +124,7 @@ static int WriteClipNodes_r(
 	clipnodemap_t::const_iterator const output{ outputmap->find(MakeKey(*cn)
 	) };
 	if (g_noclipnodemerge || output == outputmap->end()) {
-		hlassume(c < MAX_MAP_CLIPNODES, assume_MAX_MAP_CLIPNODES);
+		hlassume(c < MAX_MAP_CLIPNODES, assume_msg::MAX_MAP_CLIPNODES);
 		g_dclipnodes[c] = *cn;
 		(*outputmap)[MakeKey(*cn)] = c;
 	} else {
@@ -161,7 +161,7 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 	int leafnum = g_numleafs;
 
 	// emit a leaf
-	hlassume(g_numleafs < MAX_MAP_LEAFS, assume_MAX_MAP_LEAFS);
+	hlassume(g_numleafs < MAX_MAP_LEAFS, assume_msg::MAX_MAP_LEAFS);
 	leaf_p = &g_dleafs[g_numleafs];
 	g_numleafs++;
 
@@ -195,7 +195,7 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 	//
 	leaf_p->firstmarksurface = g_nummarksurfaces;
 
-	hlassume(node->markfaces != nullptr, assume_EmptySolid);
+	hlassume(node->markfaces != nullptr, assume_msg::EmptySolid);
 
 	for (fp = node->markfaces; *fp; fp++) {
 		// emit a marksurface
@@ -213,7 +213,7 @@ static int WriteDrawLeaf(node_t* node, node_t const * portalleaf) {
 			g_dmarksurfaces[g_nummarksurfaces] = f->outputnumber;
 			hlassume(
 				g_nummarksurfaces < MAX_MAP_MARKSURFACES,
-				assume_MAX_MAP_MARKSURFACES
+				assume_msg::MAX_MAP_MARKSURFACES
 			);
 			g_nummarksurfaces++;
 			f = f->original; // grab tjunction split faces
@@ -249,7 +249,7 @@ static void WriteFace(face_t* f) {
 	f->outputnumber = g_numfaces;
 
 	df = &g_dfaces[g_numfaces];
-	hlassume(g_numfaces < MAX_MAP_FACES, assume_MAX_MAP_FACES);
+	hlassume(g_numfaces < MAX_MAP_FACES, assume_msg::MAX_MAP_FACES);
 	g_numfaces++;
 
 	df->planenum = WritePlane(f->planenum);
@@ -262,7 +262,8 @@ static void WriteFace(face_t* f) {
 	for (int i = 0; i < f->pts.size(); i++) {
 		int e = f->outputedges[i];
 		hlassume(
-			g_numsurfedges < MAX_MAP_SURFEDGES, assume_MAX_MAP_SURFEDGES
+			g_numsurfedges < MAX_MAP_SURFEDGES,
+			assume_msg::MAX_MAP_SURFEDGES
 		);
 		g_dsurfedges[g_numsurfedges] = e;
 		g_numsurfedges++;
@@ -299,7 +300,7 @@ static int WriteDrawNodes_r(node_t* node, node_t const * portalleaf) {
 	int nodenum = g_numnodes;
 
 	// emit a node
-	hlassume(g_numnodes < MAX_MAP_NODES, assume_MAX_MAP_NODES);
+	hlassume(g_numnodes < MAX_MAP_NODES, assume_msg::MAX_MAP_NODES);
 	n = &g_dnodes[g_numnodes];
 	g_numnodes++;
 
@@ -381,7 +382,7 @@ void OutputEdges_face(face_t* f) {
 		return;
 	}
 	f->outputedges = (int*) malloc(f->pts.size() * sizeof(int));
-	hlassume(f->outputedges != nullptr, assume_NoMemory);
+	hlassume(f->outputedges != nullptr, assume_msg::NoMemory);
 	int i;
 	for (i = 0; i < f->pts.size(); i++) {
 		int e = GetEdge(f->pts[i], f->pts[(i + 1) % f->pts.size()], f);
@@ -541,14 +542,17 @@ void FinishBSPFile(bsp_data const & bspData) {
 			int Num = 0, Size = 0;
 			int* Map = (int*) malloc(g_nummiptex * sizeof(int));
 			int i;
-			hlassume(Used != nullptr && Map != nullptr, assume_NoMemory);
+			hlassume(
+				Used != nullptr && Map != nullptr, assume_msg::NoMemory
+			);
 			int* lumpsizes = (int*) malloc(g_nummiptex * sizeof(int));
 			int const newdatasizemax = g_texdatasize
 				- ((byte*) &l->dataofs[g_nummiptex] - (byte*) l);
 			byte* newdata = (byte*) malloc(newdatasizemax);
 			int newdatasize = 0;
 			hlassume(
-				lumpsizes != nullptr && newdata != nullptr, assume_NoMemory
+				lumpsizes != nullptr && newdata != nullptr,
+				assume_msg::NoMemory
 			);
 			int total = 0;
 			for (i = 0; i < g_nummiptex; i++) {
@@ -669,9 +673,9 @@ void FinishBSPFile(bsp_data const & bspData) {
 	} else {
 		hlassume(
 			g_numtexinfo < FINAL_MAX_MAP_TEXINFO,
-			assume_FINAL_MAX_MAP_TEXINFO
+			assume_msg::FINAL_MAX_MAP_TEXINFO
 		);
-		hlassume(g_numplanes < MAX_MAP_PLANES, assume_MAX_MAP_PLANES);
+		hlassume(g_numplanes < MAX_MAP_PLANES, assume_msg::MAX_MAP_PLANES);
 	}
 
 	if (!g_nobrink) {
@@ -681,17 +685,17 @@ void FinishBSPFile(bsp_data const & bspData) {
 		clipnodes = (dclipnode_t*) malloc(
 			MAX_MAP_CLIPNODES * sizeof(dclipnode_t)
 		);
-		hlassume(clipnodes != nullptr, assume_NoMemory);
+		hlassume(clipnodes != nullptr, assume_msg::NoMemory);
 		std::array<bbrinkinfo_t*, NUM_HULLS>* brinkinfo; //[MAX_MAP_MODELS]
 		int(*headnode)[NUM_HULLS];                       //[MAX_MAP_MODELS]
 		brinkinfo = (std::array<bbrinkinfo_t*, NUM_HULLS>*) malloc(
 			MAX_MAP_MODELS * sizeof(std::array<bbrinkinfo_t*, NUM_HULLS>)
 		);
 
-		hlassume(brinkinfo != nullptr, assume_NoMemory);
+		hlassume(brinkinfo != nullptr, assume_msg::NoMemory);
 		headnode = (int(*)[NUM_HULLS]
 		) malloc(MAX_MAP_MODELS * sizeof(int[NUM_HULLS]));
-		hlassume(headnode != nullptr, assume_NoMemory);
+		hlassume(headnode != nullptr, assume_msg::NoMemory);
 
 		int i, j;
 		for (i = 0; i < g_nummodels; i++) {

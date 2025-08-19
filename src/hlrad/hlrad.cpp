@@ -39,7 +39,7 @@ float g_fade = DEFAULT_FADE;
 
 std::array<patch_t*, MAX_MAP_FACES> g_face_patches;
 entity_t* g_face_entity[MAX_MAP_FACES];
-eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
+model_light_mode_flags g_face_lightmode[MAX_MAP_FACES];
 std::vector<patch_t> g_patches;
 entity_t* g_face_texlights[MAX_MAP_FACES];
 
@@ -289,7 +289,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 	iTmp = IntForKey(mapent, u8"hlrad");
 	if (iTmp == 0) {
 		Fatal(
-			assume_TOOL_CANCEL,
+			assume_msg::TOOL_CANCEL,
 			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
 			(char const *) g_Program.data()
 		);
@@ -924,7 +924,10 @@ static void SubdividePatch(patch_t* patch) {
 			PlacePatchInside(new_patch);
 			UpdateEmitterInfo(new_patch);
 
-			hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
+			hlassume(
+				g_patches.size() <= MAX_PATCHES,
+				assume_msg::exceeded_MAX_PATCHES
+			);
 		}
 	}
 
@@ -1310,7 +1313,9 @@ static void MakePatchForFace(
 	}
 
 	patch_t* patch = &g_patches.emplace_back();
-	hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
+	hlassume(
+		g_patches.size() <= MAX_PATCHES, assume_msg::exceeded_MAX_PATCHES
+	);
 
 	patch->winding = w;
 
@@ -1574,7 +1579,7 @@ static void LoadOpaqueEntities() {
 			{
 				if (g_allow_opaques
 				    && (IntForKey(&ent, u8"zhlt_lightflags")
-				        & eModelLightmodeOpaque
+				        & std::to_underlying(model_light_mode_flags::opaque)
 				    )) { // If -noopaque is off, and if the entity has
 					     // opaque light flag
 					opaque = true;
@@ -1665,11 +1670,14 @@ static void LoadOpaqueEntities() {
 					block = true;
 
 					if (IntForKey(&ent, u8"zhlt_lightflags")
-					    & eModelLightmodeNonsolid) { // If entity non-solid
-						                             // or has transparency
-						                             // or a specific style,
-						                             // which would prevent
-						                             // it from blocking
+					    & std::to_underlying(
+							model_light_mode_flags::nonsolid
+						)) { // If entity
+						     // non-solid
+						// or has transparency
+						// or a specific style,
+						// which would prevent
+						// it from blocking
 						block = false;
 					}
 					if (transparency) {
@@ -1770,7 +1778,7 @@ static void MakePatches() {
 	fast_winding* w;
 	dmodel_t* mod;
 	entity_t* ent;
-	eModelLightmodes lightmode;
+	model_light_mode_flags lightmode;
 
 	int style; // LRC
 
@@ -1782,7 +1790,7 @@ static void MakePatches() {
 	   // keep pointers to g_patches elements
 
 	for (int i = 0; i < g_nummodels; i++) {
-		lightmode = eModelLightmodeNull;
+		lightmode = model_light_mode_flags::none;
 
 		mod = g_dmodels.data() + i;
 		ent = EntityForModel(i);
@@ -1791,7 +1799,7 @@ static void MakePatches() {
 			ent, u8"zhlt_lightflags"
 		);
 		if (!zhltLightFlagsString.empty()) {
-			lightmode = (eModelLightmodes
+			lightmode = (model_light_mode_flags
 			) atoi((char const *) zhltLightFlagsString.data());
 		}
 
@@ -2406,17 +2414,20 @@ static void CheckMaxPatches() {
 		case vis_method::vismatrix:
 			hlassume(
 				g_patches.size() <= MAX_VISMATRIX_PATCHES,
-				assume_MAX_PATCHES
+				assume_msg::exceeded_MAX_PATCHES
 			);
 			break;
 		case vis_method::sparse_vismatrix:
 			hlassume(
 				g_patches.size() <= MAX_SPARSE_VISMATRIX_PATCHES,
-				assume_MAX_PATCHES
+				assume_msg::exceeded_MAX_PATCHES
 			);
 			break;
 		case vis_method::no_vismatrix:
-			hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
+			hlassume(
+				g_patches.size() <= MAX_PATCHES,
+				assume_msg::exceeded_MAX_PATCHES
+			);
 			break;
 	}
 }
@@ -2474,7 +2485,9 @@ static void ExtendLightmapBuffer() {
 		}
 	}
 	if (maxsize >= g_dlightdata.size()) {
-		hlassume(maxsize <= g_max_map_lightdata, assume_MAX_MAP_LIGHTING);
+		hlassume(
+			maxsize <= g_max_map_lightdata, assume_msg::MAX_MAP_LIGHTING
+		);
 
 		g_dlightdata.resize(maxsize, std::byte(0));
 	}
@@ -3754,7 +3767,7 @@ int main(int const argc, char** argv) {
 
 			compress_compatability_test();
 
-			hlassume(CalcFaceExtents_test(), assume_first);
+			hlassume(CalcFaceExtents_test(), assume_msg::first);
 			dtexdata_init();
 			// END INIT
 

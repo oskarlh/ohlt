@@ -68,7 +68,7 @@ find_int_plane(double3_array const & normal, double3_array const & origin) {
 	// create new planes - double check that we have room for 2 planes
 	hlassume(
 		g_mapPlanes.size() + 1 < MAX_INTERNAL_MAP_PLANES,
-		assume_MAX_INTERNAL_MAP_PLANES
+		assume_msg::MAX_INTERNAL_MAP_PLANES
 	);
 
 	std::size_t const pAIndex = g_mapPlanes.size();
@@ -239,7 +239,7 @@ static void expand_brush_with_hullbrush(
 			// Now test precisely
 			double dotmin = g_iWorldExtent;
 			double dotmax = -g_iWorldExtent;
-			hlassume(hbf.vertices.size() >= 1, assume_first);
+			hlassume(hbf.vertices.size() >= 1, assume_msg::first);
 			for (double3_array const & v : hbf.vertices) {
 				double dot = dot_product(v, brushface.normal);
 				dotmin = std::min(dotmin, dot);
@@ -262,7 +262,7 @@ static void expand_brush_with_hullbrush(
 		// find the impact point
 		double3_array bestvertex{};
 		double bestdist = g_iWorldExtent;
-		hlassume(hb.vertices.size() >= 1, assume_first);
+		hlassume(hb.vertices.size() >= 1, assume_msg::first);
 		bool first = true;
 		for (hullbrushvertex_t const & hbv : hb.vertices) {
 			if (first
@@ -859,7 +859,7 @@ restart:
 		if (h.bounds.mins[i] < -g_iWorldExtent / 2
 		    || h.bounds.maxs[i] > g_iWorldExtent / 2) {
 			Fatal(
-				assume_BRUSH_OUTSIDE_WORLD,
+				assume_msg::BRUSH_OUTSIDE_WORLD,
 				"Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
 				b.originalentitynum,
 				b.originalbrushnum,
@@ -900,7 +900,7 @@ static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 		planenum = PlaneFromPoints(s->planepts);
 		if (planenum == -1) {
 			Fatal(
-				assume_PLANE_WITH_NO_NORMAL,
+				assume_msg::PLANE_WITH_NO_NORMAL,
 				"Entity %i, Brush %i, Side %i: plane with no normal",
 				b.originalentitynum,
 				b.originalbrushnum,
@@ -914,7 +914,7 @@ static bool MakeBrushPlanes(csg_brush& b, csg_entity const & entity) {
 		for (bface_t const & f : b.hulls[0].faces) {
 			if (f.planenum == planenum || f.planenum == (planenum ^ 1)) {
 				Fatal(
-					assume_BRUSH_WITH_COPLANAR_FACES,
+					assume_msg::BRUSH_WITH_COPLANAR_FACES,
 					"Entity %i, Brush %i, Side %i: has a coplanar plane at (%.0f, %.0f, %.0f), texture %s",
 					b.originalentitynum,
 					b.originalbrushnum,
@@ -1095,7 +1095,7 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 
 		if (contents2 != best_contents) {
 			Fatal(
-				assume_MIXED_FACE_CONTENTS,
+				assume_msg::MIXED_FACE_CONTENTS,
 				"Entity %i, Brush %i: mixed face contents\n    Texture %s and %s",
 				b->originalentitynum,
 				b->originalbrushnum,
@@ -1114,7 +1114,7 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 		if (contents == contents_t::ORIGIN && b->entitynum == 0
 		    || contents == contents_t::BOUNDINGBOX) {
 			Fatal(
-				assume_BRUSH_NOT_ALLOWED_IN_WORLD,
+				assume_msg::BRUSH_NOT_ALLOWED_IN_WORLD,
 				"Entity %i, Brush %i: %s brushes not allowed in world\n(did you forget to tie this origin brush to a rotating entity?)",
 				b->originalentitynum,
 				b->originalbrushnum,
@@ -1137,7 +1137,7 @@ contents_t CheckBrushContents(csg_brush const * const b) {
 				break;
 			default:
 				Fatal(
-					assume_BRUSH_NOT_ALLOWED_IN_ENTITY,
+					assume_msg::BRUSH_NOT_ALLOWED_IN_ENTITY,
 					"Entity %i, Brush %i: %s brushes not allowed in entity",
 					b->originalentitynum,
 					b->originalbrushnum,

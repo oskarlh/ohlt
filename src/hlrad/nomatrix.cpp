@@ -165,7 +165,9 @@ bool CheckVisBitBackwards(
 ////////////////////////////
 
 void MakeScalesNoVismatrix() {
-	hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
+	hlassume(
+		g_patches.size() <= MAX_PATCHES, assume_msg::exceeded_MAX_PATCHES
+	);
 
 	std::filesystem::path const transferfile{
 		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()

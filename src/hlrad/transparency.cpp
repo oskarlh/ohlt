@@ -71,7 +71,7 @@ void AddTransparencyToRawArray(
 			s_raw_list, sizeof(transList_t) * s_max_raw_count
 		);
 
-		hlassume(s_raw_list != nullptr, assume_NoMemory);
+		hlassume(s_raw_list != nullptr, assume_msg::NoMemory);
 
 		std::fill_n(
 			&s_raw_list[old_max_count],
@@ -121,7 +121,7 @@ void CreateFinalTransparencyArrays(
 		sizeof(transList_t) * s_sorted_count
 	);
 
-	hlassume(s_sorted_list != nullptr, assume_NoMemory);
+	hlassume(s_sorted_list != nullptr, assume_msg::NoMemory);
 
 	// First half have p1>p2
 	for (unsigned int i = 0; i < s_raw_count; i++) {
@@ -250,7 +250,7 @@ void AddStyleToStyleArray(
 			s_style_list, sizeof(styleList_t) * s_max_style_count
 		);
 
-		hlassume(s_style_list != nullptr, assume_NoMemory);
+		hlassume(s_style_list != nullptr, assume_msg::NoMemory);
 
 		std::fill_n(
 			&s_style_list[old_max_count],

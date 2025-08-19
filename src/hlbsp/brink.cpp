@@ -113,17 +113,17 @@ void BrinkSplitClipnode(
 		PrintOnce(
 			"BrinkSplitClipnode: internal error: couldn't find clipnode"
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	if (numfound > 1) {
 		PrintOnce(
 			"BrinkSplitClipnode: internal error: found more than one clipnode"
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	if (n0 == n1) {
 		PrintOnce("BrinkSplitClipnode: internal error: n0 == n1");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	b->nodes.resize(b->numnodes + 2);
 	bbrinknode_t* node = &b->nodes[found];
@@ -162,13 +162,13 @@ void BrinkReplaceClipnode(bbrink_t* b, bclipnode_t* prev, bclipnode_t* n) {
 		PrintOnce(
 			"BrinkSplitClipnode: internal error: couldn't find clipnode"
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	if (numfound > 1) {
 		PrintOnce(
 			"BrinkSplitClipnode: internal error: found more than one clipnode"
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	bbrinknode_t* node = &b->nodes[found];
 	node->clipnode = n;
@@ -215,7 +215,7 @@ struct btreeface_t final {
 btreepoint_t* AllocTreepoint(int& numobjects, bool infinite) {
 	numobjects++;
 	btreepoint_t* tp = new btreepoint_t{};
-	hlassume(tp != nullptr, assume_NoMemory);
+	hlassume(tp != nullptr, assume_msg::NoMemory);
 	tp->edges = new btreeedge_l();
 	tp->infinite = infinite;
 	return tp;
@@ -224,7 +224,7 @@ btreepoint_t* AllocTreepoint(int& numobjects, bool infinite) {
 btreeedge_t* AllocTreeedge(int& numobjects, bool infinite) {
 	numobjects++;
 	btreeedge_t* te = new btreeedge_t{};
-	hlassume(te != nullptr, assume_NoMemory);
+	hlassume(te != nullptr, assume_msg::NoMemory);
 	te->points[0].p = nullptr;
 	te->points[0].side = false;
 	te->points[1].p = nullptr;
@@ -238,13 +238,13 @@ btreeedge_t* AllocTreeedge(int& numobjects, bool infinite) {
 void AttachPointToEdge(btreeedge_t* te, btreepoint_t* tp, bool side) {
 	if (te->points[side].p) {
 		PrintOnce("AttachPointToEdge: internal error: point occupied.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	if (te->infinite && !tp->infinite) {
 		PrintOnce(
 			"AttachPointToEdge: internal error: attaching a finite object to an infinite object."
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	te->points[side].p = tp;
 
@@ -262,7 +262,7 @@ void SetEdgePoints(btreeedge_t* te, btreepoint_t* tp0, btreepoint_t* tp1) {
 btreeface_t* AllocTreeface(int& numobjects, bool infinite) {
 	numobjects++;
 	btreeface_t* tf = new btreeface_t{};
-	hlassume(tf != nullptr, assume_NoMemory);
+	hlassume(tf != nullptr, assume_msg::NoMemory);
 	tf->edges = new btreeedge_l{};
 	tf->leafs[0].l = nullptr;
 	tf->leafs[0].side = false;
@@ -277,7 +277,7 @@ void AttachEdgeToFace(btreeface_t* tf, btreeedge_t* te, int side) {
 		PrintOnce(
 			"AttachEdgeToFace: internal error: attaching a finite object to an infinite object."
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	btreeedge_r er;
 	er.e = te;
@@ -295,7 +295,7 @@ void AttachFaceToLeaf(btreeleaf_t* tl, btreeface_t* tf, int side) {
 		PrintOnce(
 			"AttachFaceToLeaf: internal error: attaching a finite object to an infinite object."
 		);
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	btreeface_r fr;
 	fr.f = tf;
@@ -304,7 +304,7 @@ void AttachFaceToLeaf(btreeleaf_t* tl, btreeface_t* tf, int side) {
 
 	if (tf->leafs[side].l) {
 		PrintOnce("AttachFaceToLeaf: internal error: leaf occupied.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	tf->leafs[side].l = tl;
 }
@@ -317,7 +317,7 @@ void SetFaceLeafs(btreeface_t* tf, btreeleaf_t* tl0, btreeleaf_t* tl1) {
 btreeleaf_t* AllocTreeleaf(int& numobjects, bool infinite) {
 	numobjects++;
 	btreeleaf_t* tl = new btreeleaf_t{};
-	hlassume(tl != nullptr, assume_NoMemory);
+	hlassume(tl != nullptr, assume_msg::NoMemory);
 	tl->faces = new btreeface_l{};
 	tl->infinite = infinite;
 	return tl;
@@ -411,7 +411,7 @@ btreeleaf_t* BuildBaseCell(
 btreepoint_t* GetPointFromEdge(btreeedge_t* te, bool side) {
 	if (!te->points[side].p) {
 		PrintOnce("GetPointFromEdge: internal error: point not set.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	return te->points[side].p;
 }
@@ -426,7 +426,7 @@ void RemoveEdgeFromList(btreeedge_l* el, btreeedge_t* te, bool side) {
 		}
 	}
 	PrintOnce("RemoveEdgeFromList: internal error: edge not found.");
-	hlassume(false, assume_first);
+	hlassume(false, assume_msg::first);
 }
 
 void RemovePointFromEdge(
@@ -435,7 +435,7 @@ void RemovePointFromEdge(
 {
 	if (te->points[side].p != tp) {
 		PrintOnce("RemovePointFromEdge: internal error: point not found.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	te->points[side].p = nullptr;
 
@@ -445,7 +445,7 @@ void RemovePointFromEdge(
 void DeletePoint(int& numobjects, btreepoint_t* tp) {
 	if (!tp->edges->empty()) {
 		PrintOnce("DeletePoint: internal error: point used by edge.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	delete tp->edges;
 	delete tp;
@@ -461,7 +461,7 @@ void RemoveFaceFromList(btreeface_l* fl, btreeface_t* tf, bool side) {
 		}
 	}
 	PrintOnce("RemoveFaceFromList: internal error: face not found.");
-	hlassume(false, assume_first);
+	hlassume(false, assume_msg::first);
 }
 
 void RemoveEdgeFromFace(btreeface_t* tf, btreeedge_t* te, bool side) {
@@ -476,7 +476,7 @@ void DeleteEdge(
 {
 	if (!te->faces->empty()) {
 		PrintOnce("DeleteEdge: internal error: edge used by face.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	if (!te->infinite) {
 		delete te->brink;
@@ -497,7 +497,7 @@ void DeleteEdge(
 btreeleaf_t* GetLeafFromFace(btreeface_t* tf, bool side) {
 	if (!tf->leafs[side].l) {
 		PrintOnce("GetLeafFromFace: internal error: Leaf not set.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	return tf->leafs[side].l;
 }
@@ -505,7 +505,7 @@ btreeleaf_t* GetLeafFromFace(btreeface_t* tf, bool side) {
 void RemoveFaceFromLeaf(btreeleaf_t* tl, btreeface_t* tf, bool side) {
 	if (tf->leafs[side].l != tl) {
 		PrintOnce("RemoveFaceFromLeaf: internal error: leaf not found.");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 	tf->leafs[side].l = nullptr;
 
@@ -529,7 +529,7 @@ void DeleteFace(
 	for (int side = 0; side < 2; side++) {
 		if (tf->leafs[side].l) {
 			PrintOnce("DeleteFace: internal error: face used by leaf.");
-			hlassume(false, assume_first);
+			hlassume(false, assume_msg::first);
 		}
 	}
 	delete tf->edges;
@@ -774,7 +774,7 @@ void SplitTreeLeaf(
 					PrintOnce(
 						"SplitTreeLeaf: internal error: couldn't link edges"
 					);
-					hlassume(false, assume_first);
+					hlassume(false, assume_msg::first);
 				}
 				if (vertex->second != 1 || vertex2->second != -1) {
 					Developer(
@@ -787,7 +787,7 @@ void SplitTreeLeaf(
 					PrintOnce(
 						"SplitTreeLeaf: internal error: tmp_side != face_side::on"
 					);
-					hlassume(false, assume_first);
+					hlassume(false, assume_msg::first);
 				}
 
 				btreeedge_t* te;
@@ -802,7 +802,7 @@ void SplitTreeLeaf(
 						PrintOnce(
 							"SplitTreeLeaf: internal error: an infinite object contains a finite object"
 						);
-						hlassume(false, assume_first);
+						hlassume(false, assume_msg::first);
 					}
 					BrinkSplitClipnode(
 						te->brink,
@@ -836,7 +836,7 @@ void SplitTreeLeaf(
 			PrintOnce(
 				"SplitTreeLeaf: internal error: splitting the infinite leaf"
 			);
-			hlassume(false, assume_first);
+			hlassume(false, assume_msg::first);
 		}
 		front = AllocTreeleaf(numobjects, tl->infinite);
 		back = AllocTreeleaf(numobjects, tl->infinite);
@@ -900,7 +900,7 @@ void SplitTreeLeaf(
 			for (edge = edges.begin(); edge != edges.end(); edge++) {
 				if (edge->first->tmp_side != face_side::on) {
 					PrintOnce("SplitTreeLeaf: internal error");
-					hlassume(false, assume_first);
+					hlassume(false, assume_msg::first);
 				}
 				while (edge->second > 0) {
 					AttachEdgeToFace(tf, edge->first, false);
@@ -949,7 +949,7 @@ void SplitTreeLeaf(
 						if (ei->e->tmp_onleaf[0] && ei->e->tmp_onleaf[1]) {
 							if (ei->e->tmp_side != face_side::on) {
 								PrintOnce("SplitTreeLeaf: internal error");
-								hlassume(false, assume_first);
+								hlassume(false, assume_msg::first);
 							}
 							BrinkSplitClipnode(
 								ei->e->brink,
@@ -962,7 +962,7 @@ void SplitTreeLeaf(
 						} else if (ei->e->tmp_onleaf[0]) {
 							if (ei->e->tmp_side == face_side::back) {
 								PrintOnce("SplitTreeLeaf: internal error");
-								hlassume(false, assume_first);
+								hlassume(false, assume_msg::first);
 							}
 							BrinkReplaceClipnode(
 								ei->e->brink, tl->clipnode, c0
@@ -970,7 +970,7 @@ void SplitTreeLeaf(
 						} else if (ei->e->tmp_onleaf[1]) {
 							if (ei->e->tmp_side == face_side::front) {
 								PrintOnce("SplitTreeLeaf: internal error");
-								hlassume(false, assume_first);
+								hlassume(false, assume_msg::first);
 							}
 							BrinkReplaceClipnode(
 								ei->e->brink, tl->clipnode, c1
@@ -1046,11 +1046,11 @@ void ExpandClipnodes(
 ) {
 	bclipnode_t* bclipnodes
 		= new bclipnode_t[MAXCLIPNODES]; // 262144 * 30byte = 7.5MB
-	hlassume(bclipnodes != nullptr, assume_NoMemory);
+	hlassume(bclipnodes != nullptr, assume_msg::NoMemory);
 	info->numclipnodes = 0;
 	ExpandClipnodes_r(bclipnodes, info->numclipnodes, clipnodes, headnode);
 	info->clipnodes = new bclipnode_t[info->numclipnodes];
-	hlassume(info->clipnodes != nullptr, assume_NoMemory);
+	hlassume(info->clipnodes != nullptr, assume_msg::NoMemory);
 	std::memcpy(
 		info->clipnodes,
 		bclipnodes,
@@ -1094,7 +1094,7 @@ void DeleteTreeCells(bbrinkinfo_t* info) {
 	DeleteTreeCells_r(info->numobjects, &info->clipnodes[0]);
 	if (info->numobjects != 0) {
 		PrintOnce("DeleteTreeCells: internal error: numobjects != 0");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 }
 
@@ -1141,7 +1141,7 @@ void CollectBrinks_r(bclipnode_t* node, int& numbrinks, bbrink_t** brinks) {
 								PrintOnce(
 									"CollectBrinks_r: internal error: not leaf"
 								);
-								hlassume(false, assume_first);
+								hlassume(false, assume_msg::first);
 							}
 						}
 					}
@@ -1250,7 +1250,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 	}
 	if ((c->numwedges[0] + c->numwedges[1]) * 2 - 1 != b->numnodes) {
 		PrintOnce("CalculateCircle: internal error 1");
-		hlassume(false, assume_first);
+		hlassume(false, assume_msg::first);
 	}
 
 	// fill in other information
@@ -1260,7 +1260,7 @@ bool CalculateCircle(bbrink_t* b, bcircle_t* c) {
 			bbrinknode_t* node = &b->nodes[w->nodenum];
 			if (!node->clipnode->isleaf) {
 				PrintOnce("CalculateCircle: internal error: not leaf");
-				hlassume(false, assume_first);
+				hlassume(false, assume_msg::first);
 			}
 			w->content = node->content;
 			w->prev = &c->surfaces[side][i];
@@ -1364,7 +1364,7 @@ bool AddPartition(
 		              // consist of any vertex
 	}
 	bpartition_t* p = new bpartition_t{};
-	hlassume(p != nullptr, assume_NoMemory);
+	hlassume(p != nullptr, assume_msg::NoMemory);
 	p->next = clipnode->partitions;
 	p->planenum = planenum;
 	p->planeside = planeside;
@@ -1386,7 +1386,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 		{
 			if (b.numnodes != 3 && b.numnodes != 5) {
 				PrintOnce("AnalyzeBrinks: internal error 1");
-				hlassume(false, assume_first);
+				hlassume(false, assume_msg::first);
 			}
 			// because a brink won't necessarily be split twice after its
 			// creation
@@ -1478,7 +1478,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 
 		if (transitionside[1] != !transitionside[0]) {
 			PrintOnce("AnalyzeBrinks: internal error 2");
-			hlassume(false, assume_first);
+			hlassume(false, assume_msg::first);
 		}
 		bool bfix = false;
 		bool berror = false;
@@ -1517,7 +1517,7 @@ void AnalyzeBrinks(bbrinkinfo_t* info) {
 							PrintOnce(
 								"AnalyzeBrinks: internal error: an infinite object contains a finite object"
 							);
-							hlassume(false, assume_first);
+							hlassume(false, assume_msg::first);
 						}
 						for (int side3 = 0; side3 < 2; side3++) {
 							double3_array normal = vector_scale(
@@ -1664,7 +1664,7 @@ void SortPartitions(bbrinkinfo_t* info
 				PrintOnce(
 					"SortPartitions: content of partition was not empty."
 				);
-				hlassume(false, assume_first);
+				hlassume(false, assume_msg::first);
 			}
 			for (pp = &clipnode->partitions; *pp; pp = &(*pp)->next) {
 				if ((*pp)->planenum > current->planenum
@@ -1702,7 +1702,7 @@ void SortPartitions(bbrinkinfo_t* info
 					break;
 				default:
 					PrintOnce("SortPartitions: internal error");
-					hlassume(false, assume_first);
+					hlassume(false, assume_msg::first);
 					break;
 			}
 			current->next = *pp;
@@ -1732,7 +1732,7 @@ bbrinkinfo_t* CreateBrinkinfo(dclipnode_t const * clipnodes, int headnode) {
 		DeleteTreeCells(info);
 		SortPartitions(info);
 	} catch (std::bad_alloc const &) {
-		hlassume(false, assume_NoMemory);
+		hlassume(false, assume_msg::NoMemory);
 	}
 	return info;
 }

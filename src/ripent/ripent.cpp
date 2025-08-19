@@ -404,7 +404,7 @@ static void ReadBSP(char const * const name) {
 
 	LoadBSPFile(bspPath);
 	if (g_writeextentfile) {
-		hlassume(CalcFaceExtents_test(), assume_first);
+		hlassume(CalcFaceExtents_test(), assume_msg::first);
 		std::filesystem::path extentFilePath;
 		extentFilePath = name;
 		extentFilePath += u8".ext";

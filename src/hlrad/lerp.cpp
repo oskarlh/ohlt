@@ -927,7 +927,7 @@ void InterpolateSampleLight(
 		}
 
 	} catch (std::bad_alloc const &) {
-		hlassume(false, assume_NoMemory);
+		hlassume(false, assume_msg::NoMemory);
 	}
 }
 
@@ -1756,7 +1756,7 @@ void CreateTriangulations(int facenum) {
 		CollectUsedPatches(facetrian);
 
 	} catch (std::bad_alloc const &) {
-		hlassume(false, assume_NoMemory);
+		hlassume(false, assume_msg::NoMemory);
 	}
 }
 
@@ -1795,6 +1795,6 @@ void FreeTriangulations() {
 		}
 
 	} catch (std::bad_alloc const &) {
-		hlassume(false, assume_NoMemory);
+		hlassume(false, assume_msg::NoMemory);
 	}
 }

@@ -195,16 +195,16 @@ struct patch_t final {
 	int leafnum;
 };
 
-enum emittype_t {
-	emit_surface,
-	emit_point,
-	emit_spotlight,
-	emit_skylight
+enum class emit_type : std::uint8_t {
+	surface,
+	point,
+	spotlight,
+	skylight
 };
 
 struct directlight_t final {
 	directlight_t* next;
-	emittype_t type;
+	emit_type type;
 	int style;
 	float3_array origin;
 	float3_array intensity;
@@ -261,14 +261,14 @@ struct edgeshare_t final {
 extern std::array<edgeshare_t, MAX_MAP_EDGES> g_edgeshare;
 
 //
-// lerp.c stuff
+// lerp.cpp stuff
 //
 
 // These are bitflags for lighting adjustments for special cases
-enum eModelLightmodes {
-	eModelLightmodeNull = 0,
-	eModelLightmodeOpaque = 0x02,
-	eModelLightmodeNonsolid = 0x08, // for opaque entities with {texture
+enum class model_light_mode_flags : std::uint8_t {
+	none = 0,
+	opaque = (1 << 1),
+	nonsolid = (1 << 3), // For opaque entities with {texture
 };
 
 struct opaqueList_t final {
@@ -315,7 +315,7 @@ extern std::vector<minlight_t> s_minlights;
 extern std::array<patch_t*, MAX_MAP_FACES> g_face_patches;
 extern entity_t* g_face_entity[MAX_MAP_FACES];
 extern float3_array g_face_offset[MAX_MAP_FACES]; // for models with origins
-extern eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
+extern model_light_mode_flags g_face_lightmode[MAX_MAP_FACES];
 extern std::array<float3_array, MAX_MAP_EDGES> g_face_centroids;
 extern entity_t* g_face_texlights[MAX_MAP_FACES];
 extern std::vector<patch_t> g_patches;

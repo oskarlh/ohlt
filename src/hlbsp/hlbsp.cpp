@@ -115,7 +115,7 @@ void GetParamsFromEnt(entity_t* mapent) {
 	iTmp = IntForKey(mapent, u8"hlbsp");
 	if (iTmp == 0) {
 		Fatal(
-			assume_TOOL_CANCEL,
+			assume_msg::TOOL_CANCEL,
 			"%s was set to \"Off\" (0) in info_compile_parameters entity, execution cancelled",
 			(char const *) g_Program.data()
 		);
@@ -766,7 +766,7 @@ static bool ProcessModel(
 	brush_t* detailbrushes = ReadBrushes(brushFiles[0]);
 
 	hlassume(
-		bspData.mapModelsLength < MAX_MAP_MODELS, assume_MAX_MAP_MODELS
+		bspData.mapModelsLength < MAX_MAP_MODELS, assume_msg::MAX_MAP_MODELS
 	);
 
 	int startleafs = g_numleafs;
@@ -841,7 +841,7 @@ static bool ProcessModel(
 	if (nodes->is_leaf_node()) {
 		novisiblebrushes = true;
 		if (nodes->markfaces[0] != nullptr) {
-			hlassume(false, assume_EmptySolid);
+			hlassume(false, assume_msg::EmptySolid);
 		}
 		if (g_numplanes == 0) {
 			Error("No valid planes.\n");
@@ -1590,7 +1590,7 @@ int main(int const argc, char** argv) {
 
 			CheckForErrorLog();
 
-			hlassume(CalcFaceExtents_test(), assume_first);
+			hlassume(CalcFaceExtents_test(), assume_msg::first);
 			dtexdata_init();
 			// Settings();
 			//  END INIT

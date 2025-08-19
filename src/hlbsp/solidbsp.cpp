@@ -639,7 +639,7 @@ static surface_t* SelectPartition(
 // =====================================================================================
 static void CalcSurfaceInfo(surface_t* surf) {
 	hlassume(
-		surf->faces != nullptr, assume_ValidPointer
+		surf->faces != nullptr, assume_msg::ValidPointer
 	); // "CalcSurfaceInfo() surface without a face"
 
 	//
@@ -682,7 +682,7 @@ static void FixDetaillevelForDiscardable(
 			psnext = &s->next;
 			continue;
 		}
-		hlassume(s->faces, assume_ValidPointer);
+		hlassume(s->faces, assume_msg::ValidPointer);
 		for (pfnext = &s->faces; f = *pfnext, f != nullptr;) {
 			if (!detailLevel.has_value() || f->detailLevel < detailLevel) {
 				*pfnext = f->next;
@@ -699,7 +699,7 @@ static void FixDetaillevelForDiscardable(
 			CalcSurfaceInfo(s);
 			hlassume(
 				detailLevel.has_value() && s->detailLevel >= detailLevel,
-				assume_first
+				assume_msg::first
 			);
 		}
 	}
@@ -1125,7 +1125,8 @@ static void MakeLeaf(node_t* leafnode) {
 					continue;
 				}
 				hlassume(
-					nummarkfaces < MAX_LEAF_FACES, assume_MAX_LEAF_FACES
+					nummarkfaces < MAX_LEAF_FACES,
+					assume_msg::exceeded_MAX_LEAF_FACES
 				);
 
 				markfaces[nummarkfaces++] = f->original;

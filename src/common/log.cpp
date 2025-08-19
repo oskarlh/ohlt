@@ -204,7 +204,7 @@ void FORMAT_PRINTF(1, 2) Error(char const * const error, ...) {
 //      completing
 // =====================================================================================
 void FORMAT_PRINTF(2, 3)
-	Fatal(assume_msgs msgid, char const * const warning, ...) {
+	Fatal(assume_msg msgid, char const * const warning, ...) {
 	char message[MAX_WARNING];
 	char message2[MAX_WARNING];
 
@@ -415,7 +415,7 @@ void LogEnd() {
 //  hlassume
 //      my assume
 // =====================================================================================
-void hlassume(bool exp, assume_msgs msgid) {
+void hlassume(bool exp, assume_msg msgid) {
 	if (!exp) {
 		char message[MAX_MESSAGE];
 		MessageTable_t const * msg = GetAssume(msgid);

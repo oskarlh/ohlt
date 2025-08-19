@@ -147,7 +147,7 @@ int CompressVis(
 	for (j = 0; j < src_length; j++) {
 		current_length++;
 		hlassume(
-			current_length <= dest_length, assume_COMPRESSVIS_OVERFLOW
+			current_length <= dest_length, assume_msg::COMPRESSVIS_OVERFLOW
 		);
 
 		*dest_p = src[j];
@@ -168,7 +168,7 @@ int CompressVis(
 		}
 		current_length++;
 		hlassume(
-			current_length <= dest_length, assume_COMPRESSVIS_OVERFLOW
+			current_length <= dest_length, assume_msg::COMPRESSVIS_OVERFLOW
 		);
 
 		*dest_p = rep;
@@ -203,13 +203,14 @@ void DecompressVis(
 	do {
 		hlassume(
 			src - (byte*) g_dvisdata.data() < g_visdatasize,
-			assume_DECOMPRESSVIS_OVERFLOW
+			assume_msg::DECOMPRESSVIS_OVERFLOW
 		);
 
 		if (*src) {
 			current_length++;
 			hlassume(
-				current_length <= dest_length, assume_DECOMPRESSVIS_OVERFLOW
+				current_length <= dest_length,
+				assume_msg::DECOMPRESSVIS_OVERFLOW
 			);
 
 			*out = *src;
@@ -220,7 +221,7 @@ void DecompressVis(
 
 		hlassume(
 			&src[1] - (byte*) g_dvisdata.data() < g_visdatasize,
-			assume_DECOMPRESSVIS_OVERFLOW
+			assume_msg::DECOMPRESSVIS_OVERFLOW
 		);
 
 		c = src[1];
@@ -228,7 +229,8 @@ void DecompressVis(
 		while (c) {
 			current_length++;
 			hlassume(
-				current_length <= dest_length, assume_DECOMPRESSVIS_OVERFLOW
+				current_length <= dest_length,
+				assume_msg::DECOMPRESSVIS_OVERFLOW
 			);
 
 			*out = 0;
@@ -279,9 +281,11 @@ get_lump_data(dheader_t const * header) {
 	// Special handling for tex and lightdata to keep things from
 	// exploding
 	if (LumpId == lump_id::textures) {
-		hlassume(g_max_map_miptex > length, assume_MAX_MAP_MIPTEX);
+		hlassume(g_max_map_miptex > length, assume_msg::MAX_MAP_MIPTEX);
 	} else if (LumpId == lump_id::lighting) {
-		hlassume(g_max_map_lightdata > length, assume_MAX_MAP_LIGHTING);
+		hlassume(
+			g_max_map_lightdata > length, assume_msg::MAX_MAP_LIGHTING
+		);
 	}
 
 	lump_element const * start

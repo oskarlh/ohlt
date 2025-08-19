@@ -47,7 +47,7 @@ void FORMAT_PRINTF(1, 2) Verbose(char const * const message, ...);
 void FORMAT_PRINTF(1, 2) Log(char const * const message, ...);
 void FORMAT_PRINTF(1, 2) Error(char const * const error, ...);
 void FORMAT_PRINTF(2, 3)
-	Fatal(assume_msgs msgid, char const * const error, ...);
+	Fatal(assume_msg msgid, char const * const error, ...);
 void FORMAT_PRINTF(1, 2) Warning(char const * const warning, ...);
 
 void FORMAT_PRINTF(1, 2) PrintOnce(char const * const message, ...);
@@ -63,4 +63,4 @@ void LogTimeElapsed(float elapsed_time);
 void log_arguments(int argc, char** argv);
 
 // Should be in hlassert.h, but well so what
-void hlassume(bool exp, assume_msgs msgid);
+void hlassume(bool exp, assume_msg id);

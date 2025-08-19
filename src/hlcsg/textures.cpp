@@ -49,7 +49,8 @@ static int texmap_store(wad_texture_name texname)
 // ThreadUnlock()!!
 {
 	hlassume(
-		numtexmap < INITIAL_MAX_MAP_TEXINFO, assume_INITIAL_MAX_MAP_TEXINFO
+		numtexmap < INITIAL_MAX_MAP_TEXINFO,
+		assume_msg::INITIAL_MAX_MAP_TEXINFO
 	); // This error should never appear.
 
 	int i = numtexmap;
@@ -59,7 +60,7 @@ static int texmap_store(wad_texture_name texname)
 }
 
 static wad_texture_name texmap_retrieve(int index) {
-	hlassume(0 <= index && index < numtexmap, assume_first);
+	hlassume(0 <= index && index < numtexmap, assume_msg::first);
 	return texmap[index];
 }
 
@@ -113,7 +114,7 @@ static int FindMiptex(wad_texture_name name) {
 		}
 	}
 
-	hlassume(nummiptex < MAX_MAP_TEXTURES, assume_MAX_MAP_TEXTURES);
+	hlassume(nummiptex < MAX_MAP_TEXTURES, assume_msg::MAX_MAP_TEXTURES);
 	int const new_miptex_num = nummiptex;
 	miptex[new_miptex_num].lump_info.name = name;
 	++nummiptex;
@@ -206,7 +207,7 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 		if (!texfiles[nTexFiles]) {
 			// still cant find it, error out
 			Fatal(
-				assume_COULD_NOT_FIND_WAD,
+				assume_msg::COULD_NOT_FIND_WAD,
 				"Could not open wad file %s",
 				(char const *) pszWadFile.data()
 			);
@@ -304,7 +305,9 @@ static bool TEX_InitFromWad(std::filesystem::path const & bspPath) {
 		currentwad->totaltextures = wadinfo.numlumps;
 
 		nTexFiles++;
-		hlassume(nTexFiles < MAX_TEXFILES, assume_MAX_TEXFILES);
+		hlassume(
+			nTexFiles < MAX_TEXFILES, assume_msg::exceeded_MAX_TEXFILES
+		);
 	}
 
 	// Log("num of used textures: %i\n", g_numUsedTextures);
@@ -430,7 +433,7 @@ static int LoadLump(
 			miptex_t* miptex = (miptex_t*) dest;
 			hlassume(
 				(int) sizeof(miptex_t) <= dest_maxsize,
-				assume_MAX_MAP_MIPTEX
+				assume_msg::MAX_MAP_MIPTEX
 			);
 			SafeRead(texfiles[source->iTexFile], dest, sizeof(miptex_t));
 
@@ -443,7 +446,7 @@ static int LoadLump(
 				miptex->offsets[i] = 0;
 			}
 			writewad_data = (std::byte*) malloc(source->lump_info.disksize);
-			hlassume(writewad_data != nullptr, assume_NoMemory);
+			hlassume(writewad_data != nullptr, assume_msg::NoMemory);
 			if (fseek(
 					texfiles[source->iTexFile],
 					source->lump_info.filepos,
@@ -468,7 +471,7 @@ static int LoadLump(
 			// Load the entire texture here so the BSP contains the texture
 			hlassume(
 				source->lump_info.disksize <= dest_maxsize,
-				assume_MAX_MAP_MIPTEX
+				assume_msg::MAX_MAP_MIPTEX
 			);
 			SafeRead(
 				texfiles[source->iTexFile], dest, source->lump_info.disksize
@@ -670,7 +673,7 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 		writewad_lumpinfos = (wad_lumpinfo*) malloc(
 			writewad_maxlumpinfos * sizeof(wad_lumpinfo)
 		);
-		hlassume(writewad_lumpinfos != nullptr, assume_NoMemory);
+		hlassume(writewad_lumpinfos != nullptr, assume_msg::NoMemory);
 
 		// Header for the temp wad file
 		writewad_header.identification[0] = 'W';
@@ -726,7 +729,8 @@ void WriteMiptex(std::filesystem::path const & bspPath) {
 				totaltexsize += texsize;
 
 				hlassume(
-					totaltexsize < g_max_map_miptex, assume_MAX_MAP_MIPTEX
+					totaltexsize < g_max_map_miptex,
+					assume_msg::MAX_MAP_MIPTEX
 				);
 			}
 			data += len;
@@ -835,7 +839,7 @@ texinfo_count TexinfoForBrushTexture(
 
 	hlassume(
 		g_numtexinfo < INITIAL_MAX_MAP_TEXINFO,
-		assume_INITIAL_MAX_MAP_TEXINFO
+		assume_msg::INITIAL_MAX_MAP_TEXINFO
 	);
 
 	*tc = tx;

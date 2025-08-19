@@ -272,11 +272,11 @@ static int GetVertex(double3_array const & in, int const planenum) {
 	hashverts[h] = hv;
 	hv->point = vert;
 	hv->num = g_numvertexes;
-	hlassume(hv->num != MAX_MAP_VERTS, assume_MAX_MAP_VERTS);
+	hlassume(hv->num != MAX_MAP_VERTS, assume_msg::MAX_MAP_VERTS);
 	hvert_p++;
 
 	// emit a vertex
-	hlassume(g_numvertexes < MAX_MAP_VERTS, assume_MAX_MAP_VERTS);
+	hlassume(g_numvertexes < MAX_MAP_VERTS, assume_msg::MAX_MAP_VERTS);
 
 	g_dvertexes[g_numvertexes].point[0] = vert[0];
 	g_dvertexes[g_numvertexes].point[1] = vert[1];
@@ -314,7 +314,7 @@ int GetEdge(double3_array const & p1, double3_array const & p2, face_t* f) {
 	}
 
 	// emit an edge
-	hlassume(g_numedges < MAX_MAP_EDGES, assume_MAX_MAP_EDGES);
+	hlassume(g_numedges < MAX_MAP_EDGES, assume_msg::MAX_MAP_EDGES);
 	edge = &g_dedges[g_numedges];
 	g_numedges++;
 	edge->v[0] = v1;
