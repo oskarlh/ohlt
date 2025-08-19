@@ -46,7 +46,7 @@ inline winding_t* ChopWinding(
 ) {
 	float dists[128];
 	face_side sides[128];
-	int counts[3];
+	std::array<int, 3> counts;
 	float dot;
 	int i;
 	float3_array mid;
@@ -199,7 +199,7 @@ inline static winding_t* ClipToSeperators(
 ) {
 	hlvis_plane_t plane;
 	float3_array v1, v2;
-	int counts[3];
+	std::array<int, 3> counts;
 	bool fliptest;
 	winding_t* target = a_target;
 

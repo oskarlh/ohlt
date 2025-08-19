@@ -960,7 +960,7 @@ struct samplefragedge_t final {
 };
 
 struct samplefragrect_t final {
-	dplane_t planes[4];
+	std::array<dplane_t, 4> planes;
 };
 
 struct samplefrag_t final {
@@ -2471,14 +2471,14 @@ float* g_skynormalsizes[SKYLEVELMAX + 1];
 using point_t = double3_array;
 
 struct edge_t final {
-	int point[2];
 	bool divided;
-	int child[2];
+	std::array<int, 2> point;
+	std::array<int, 2> child;
 };
 
 struct triangle_t final {
-	int edge[3];
-	int dir[3];
+	std::array<int, 3> edge;
+	std::array<int, 3> dir;
 };
 
 void CopyToSkynormals(

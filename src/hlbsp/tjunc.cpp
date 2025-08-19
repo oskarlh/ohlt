@@ -39,7 +39,7 @@ static double3_array hash_scale;
 // It's okay if the coordinates go under hash_min, because they are hashed
 // in a cyclic way (modulus by hash_numslots) So please don't change the
 // hardcoded hash_min and scale
-static int hash_numslots[3];
+static std::array<int, 3> hash_numslots;
 constexpr std::size_t MAX_HASH_NEIGHBORS = 4;
 
 static void

@@ -12,6 +12,7 @@
 #include "mathlib.h"
 #include "meshdesc.h"
 
+#include <array>
 #include <vector>
 
 /*
@@ -27,8 +28,8 @@ class CVertex;
 
 class CTriangle final {
   public:
-	CVertex* vertex[3];	   // the 3 points that make this tri
-	float3_array normal{}; // unit vector othogonal to this face
+	std::array<CVertex*, 3> vertex; // The 3 points that make this tri
+	float3_array normal{};          // Unit vector orthogonal to this face
 
 	CTriangle(CVertex* v0, CVertex* v1, CVertex* v2);
 	~CTriangle();
@@ -40,12 +41,12 @@ class CTriangle final {
 
 class CVertex final {
   public:
-	float3_array position{};	  // location of point in euclidean space
-	int id;						  // place of vertex in original list
-	List<CVertex*> neighbor;	  // adjacent vertices
+	float3_array position{};      // location of point in euclidean space
+	int id;                       // place of vertex in original list
+	List<CVertex*> neighbor;      // adjacent vertices
 	std::vector<CTriangle*> face; // adjacent triangles
-	float objdist;				  // cached cost of collapsing edge
-	CVertex* collapse;			  // candidate vertex for collapse
+	float objdist;                // cached cost of collapsing edge
+	CVertex* collapse;            // candidate vertex for collapse
 
 	CVertex(float3_array const & v, int _id);
 	~CVertex();
@@ -265,7 +266,7 @@ static void ComputeEdgeCostAtVertex(CVertex* v) {
 
 		if (dist < v->objdist) {
 			v->collapse = v->neighbor[i]; // candidate for edge collapse
-			v->objdist = dist;			  // cost of the collapse
+			v->objdist = dist;            // cost of the collapse
 		}
 	}
 }
@@ -358,9 +359,9 @@ void ProgressiveMesh(
 	AddVertex(vert); // put input data into our data structures
 	AddFaces(tri);
 
-	ComputeAllEdgeCollapseCosts();		 // cache all edge collapse costs
+	ComputeAllEdgeCollapseCosts();       // cache all edge collapse costs
 	permutation.resize(vertices.Size()); // allocate space
-	map.resize(vertices.Size());		 // allocate space
+	map.resize(vertices.Size());         // allocate space
 
 	// reduce the object down to nothing:
 	while (vertices.Size() > 0) {

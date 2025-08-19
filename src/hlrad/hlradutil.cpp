@@ -307,7 +307,7 @@ void TranslateWorldToTex(int facenum, matrix_t& m)
 bool InvertMatrix(matrix_t const & m, matrix_t& m_inverse) {
 	std::array<std::array<double, 4>, 2> texplanes;
 	std::array<double, 4> faceplane;
-	std::array<std::array<double, 3>, 2> texaxis;
+	std::array<double3_array, 2> texaxis;
 	double3_array normalaxis;
 	double det, sqrlen1, sqrlen2, sqrlen3;
 	double3_array texorg;

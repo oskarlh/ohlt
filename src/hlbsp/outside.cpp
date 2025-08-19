@@ -395,7 +395,7 @@ FillOutside(node_t* node, bool const leakfile, unsigned const hullnum) {
 				// nudge playerstart around if needed so clipping hulls
 				// allways have a valid point
 				if (cl == u8"info_player_start") {
-					std::array<double, 3> offsets{ -16, 0, -16 };
+					double3_array offsets{ -16, 0, -16 };
 
 					for (auto [xOffset, yOffset] :
 					     cartesian_product(offsets, offsets)) {

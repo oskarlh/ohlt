@@ -948,7 +948,11 @@ static unsigned int Hash(int size, void* data) {
 }
 
 static void GetLightInt(
-	dface_t* face, int const texsize[2], int ix, int iy, float3_array& light
+	dface_t* face,
+	std::array<int, 2> texsize,
+	int ix,
+	int iy,
+	float3_array& light
 ) {
 	ix = std::max(0, std::min(ix, texsize[0]));
 	iy = std::max(0, std::min(iy, texsize[1]));
@@ -973,7 +977,7 @@ static void GetLightInt(
 
 static void GetLight(
 	dface_t* face,
-	int const texsize[2],
+	std::array<int, 2> texsize,
 	double x,
 	double y,
 	float3_array& light
@@ -1115,8 +1119,9 @@ void EmbedLightmapInTextures() {
 		byte(*texturemips[MIPLEVELS]
 		)[4]; // red, green, blue and alpha channel
 		int s, t;
-		int texsize[2]; // texturesize = (texsize + 1) * TEXTURE_STEP
-		int side[2];
+		std::array<int, 2>
+			texsize; // texturesize = (texsize + 1) * TEXTURE_STEP
+		std::array<int, 2> side;
 
 		face_extents const texMinsMaxs{ get_face_extents(i) };
 		texsize[0] = texMinsMaxs.maxs[0] - texMinsMaxs.mins[0];

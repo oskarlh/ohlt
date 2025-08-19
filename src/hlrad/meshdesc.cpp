@@ -210,7 +210,7 @@ The normal will point out of the clock for clockwise ordered points
 =====================
 */
 bool CMeshDesc ::PlaneFromPoints(
-	mvert_t const triangle[3], mplane_t* plane
+	std::array<mvert_t, 3> const & triangle, mplane_t* plane
 ) {
 	float3_array const v1 = vector_subtract(
 		triangle[1].point, triangle[0].point
@@ -565,7 +565,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 		sizeof(int) * totalVertSize * 24
 	);
 	std::uint32_t numVerts = 0, numElems = 0, numTris = 0;
-	mvert_t triangle[3];
+	std::array<mvert_t, 3> triangle;
 
 	std::unique_ptr<float3_array[]> m_verts
 		= std::make_unique_for_overwrite<float3_array[]>(maxVertSize);
@@ -815,7 +815,7 @@ bool CMeshDesc ::StudioConstructMesh(model_t* pModel) {
 }
 
 bool CMeshDesc ::AddMeshTriangle(
-	mvert_t const triangle[3], mstudiotexture_t* texture
+	std::array<mvert_t, 3> const & triangle, mstudiotexture_t* texture
 ) {
 	int i;
 

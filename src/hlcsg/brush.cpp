@@ -339,7 +339,7 @@ static void expand_brush_with_hullbrush(
 
 			// check for each edge in the hullbrush
 			for (hullbrushedge_t const & hbe : hb.edges) {
-				double dot[4];
+				std::array<double, 4> dot;
 				dot[0] = dot_product(hbe.delta, brushedge.normals[0]);
 				dot[1] = dot_product(hbe.delta, brushedge.normals[1]);
 				dot[2] = dot_product(brushedge.delta, hbe.normals[0]);
@@ -856,14 +856,17 @@ restart:
 	}
 
 	for (std::size_t i = 0; i < 3; ++i) {
-		if (h.bounds.mins[i] < -g_iWorldExtent / 2
-		    || h.bounds.maxs[i] > g_iWorldExtent / 2) {
+		// The full extent is the length all the way west to east or south
+		// to north, we need half of that for checking the bounds
+		auto const halfExtent = g_iWorldExtent / 2;
+		if (h.bounds.mins[i] < -halfExtent
+		    || h.bounds.maxs[i] > halfExtent) {
 			Fatal(
 				assume_msg::BRUSH_OUTSIDE_WORLD,
 				"Entity %i, Brush %i: outside world(+/-%d): (%.0f,%.0f,%.0f)-(%.0f,%.0f,%.0f)",
 				b.originalentitynum,
 				b.originalbrushnum,
-				g_iWorldExtent / 2,
+				halfExtent,
 				h.bounds.mins[0],
 				h.bounds.mins[1],
 				h.bounds.mins[2],

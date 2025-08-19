@@ -60,13 +60,13 @@ struct mvert_t final {
 };
 
 struct mfacet_t final {
-	link_t area;               // linked to a division node or leaf
-	mstudiotexture_t* texture; // valid for alpha-testing surfaces
-	mvert_t triangle[3];       // store triangle points
-	float3_array mins, maxs;   // an individual size of each facet
-	float3_array edge1, edge2; // new trace stuff
-	byte numplanes; // because numplanes for each facet can't exceeds
-	                // MAX_FACET_PLANES!
+	link_t area;                     // linked to a division node or leaf
+	mstudiotexture_t* texture;       // valid for alpha-testing surfaces
+	std::array<mvert_t, 3> triangle; // store triangle points
+	float3_array mins, maxs;         // an individual size of each facet
+	float3_array edge1, edge2;       // new trace stuff
+	byte numplanes;    // because numplanes for each facet can't exceeds
+	                   // MAX_FACET_PLANES!
 	unsigned* indices; // a indexes into mesh plane pool
 };
 
@@ -86,7 +86,7 @@ struct mmesh_t final {
 
 class triset final {
   public:
-	int v[3]; // indices to vertex list
+	std::array<int, 3> v; // Indices to vertex list
 };
 
 struct model_t; // Forward declaration
@@ -121,7 +121,8 @@ class CMeshDesc final {
 	// mesh construction
 	bool InitMeshBuild(std::u8string debug_name, int numTriangles);
 	bool AddMeshTriangle(
-		mvert_t const triangle[3], mstudiotexture_t* tex = nullptr
+		std::array<mvert_t, 3> const & triangle,
+		mstudiotexture_t* tex = nullptr
 	);
 	bool FinishMeshBuild();
 	void FreeMeshBuild();
@@ -171,7 +172,9 @@ class CMeshDesc final {
 
 	// plane cache
 	unsigned AddPlaneToPool(mplane_t const * pl);
-	bool PlaneFromPoints(mvert_t const triangle[3], mplane_t* plane);
+	bool PlaneFromPoints(
+		std::array<mvert_t, 3> const & triangle, mplane_t* plane
+	);
 	bool ComparePlanes(
 		mplane_t const * plane, float3_array const & normal, float dist
 	);

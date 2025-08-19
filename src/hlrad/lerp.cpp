@@ -278,7 +278,7 @@ static void CalcInterpolation_Square(
 	localtriangulation_t::Wedge const * w1;
 	localtriangulation_t::Wedge const * w2;
 	localtriangulation_t::Wedge const * w3;
-	float weights[4];
+	std::array<float, 4> weights;
 	float dot1;
 	float dot2;
 	float dot;

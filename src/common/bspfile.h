@@ -203,7 +203,7 @@ class miptex_header_and_data_view final {
 };
 
 struct dvertex_t final {
-	std::array<float, 3> point;
+	float3_array point;
 };
 
 enum class contents_t : std::int32_t {

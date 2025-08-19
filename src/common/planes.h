@@ -82,7 +82,7 @@ constexpr planetype plane_type_for_normal(std::array<T, 3> const & normal
 
 // The final plane type that ends up in the BSP
 struct dplane_t final {
-	std::array<float, 3> normal;
+	float3_array normal;
 	float dist; // Distance from the origin
 	planetype type;
 	std::array<std::uint8_t, 3> zeroPaddingAfterType; // MUST be zeroes
