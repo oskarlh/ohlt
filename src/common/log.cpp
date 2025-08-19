@@ -219,20 +219,14 @@ void FORMAT_PRINTF(2, 3)
 	LogError(message2);
 
 	{
-		char message[MAX_MESSAGE];
-		MessageTable_t const * msg = GetAssume(msgid);
+		MessageTable_t const & msg = get_assume(msgid);
 
-		safe_snprintf(
-			message,
-			MAX_MESSAGE,
-			"%s\n%s%s\n%s%s\n",
-			msg->title,
-			"Description: ",
-			msg->text,
-			"Howto Fix: ",
-			msg->howto
+		PrintOnce(
+			"%s\nDescription: %s\nHow to fix: %s\n",
+			msg.title,
+			msg.text,
+			msg.howto
 		);
-		PrintOnce("%s", message);
 	}
 
 	fatal = 1;
@@ -416,22 +410,17 @@ void LogEnd() {
 //      my assume
 // =====================================================================================
 void hlassume(bool exp, assume_msg msgid) {
-	if (!exp) {
-		char message[MAX_MESSAGE];
-		MessageTable_t const * msg = GetAssume(msgid);
-
-		safe_snprintf(
-			message,
-			MAX_MESSAGE,
-			"%s\n%s%s\n%s%s\n",
-			msg->title,
-			"Description: ",
-			msg->text,
-			"Howto Fix: ",
-			msg->howto
-		);
-		Error("%s", message);
+	if (exp) {
+		return;
 	}
+
+	MessageTable_t const & msg = get_assume(msgid);
+	Error(
+		"%s\nDescription: %s\nHow to fix: %s\n",
+		msg.title,
+		msg.text,
+		msg.howto
+	);
 }
 
 // =====================================================================================

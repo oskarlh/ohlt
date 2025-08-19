@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 struct MessageTable_t final {
 	char const * title;
@@ -6,7 +7,7 @@ struct MessageTable_t final {
 	char const * howto;
 };
 
-enum class assume_msg {
+enum class assume_msg : std::uint8_t {
 	first = 0,
 
 	// Generic
@@ -79,4 +80,4 @@ enum class assume_msg {
 	last
 };
 
-extern MessageTable_t const * GetAssume(assume_msg id);
+MessageTable_t const & get_assume(assume_msg id);
