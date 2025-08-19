@@ -32,7 +32,7 @@ export MAP_NAME=info_hullshape_example
 export NUM_THREADS=1
 #export NUM_THREADS=-1
 
-./test-and-compare/test-and-compare.sh ${MAP_NAME} ${NUM_THREADS} ${CSG_ONLY}  || echo "test-and-compare failed"
+./test-and-compare/test-and-compare.sh ${MAP_NAME} ${NUM_THREADS} ${CSG_ONLY}  # || echo "test-and-compare failed"
 
 cp ./test-and-compare/valve/maps/${MAP_NAME}${CSG_ONLY}.bsp "/Users/oskar.larsson/Library/Application Support/CrossOver/Bottles/Steam/drive_c/Program Files (x86)/Steam/steamapps/common/Half-Life/valve_downloads/maps/${MAP_NAME}.bsp"
 cp ./test-and-compare/valve/maps/${MAP_NAME}${CSG_ONLY}.bsp "/Users/oskar.larsson/Library/Application Support/Xash3D/valve/maps/${MAP_NAME}.bsp"

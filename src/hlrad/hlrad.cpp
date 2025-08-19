@@ -40,9 +40,8 @@ float g_fade = DEFAULT_FADE;
 std::array<patch_t*, MAX_MAP_FACES> g_face_patches;
 entity_t* g_face_entity[MAX_MAP_FACES];
 eModelLightmodes g_face_lightmode[MAX_MAP_FACES];
-patch_t* g_patches;
+std::vector<patch_t> g_patches;
 entity_t* g_face_texlights[MAX_MAP_FACES];
-unsigned g_num_patches;
 
 static std::array<float3_array, MAXLIGHTMAPS>* addlight;
 static std::array<float3_array, MAXLIGHTMAPS>* emitlight;
@@ -894,9 +893,7 @@ static void SubdividePatch(patch_t* patch) {
 	dplane_t planes[2];
 	dplane_t* plA = &planes[0];
 	dplane_t* plB = &planes[1];
-	fast_winding** winding;
 	unsigned x;
-	patch_t* new_patch;
 
 	windingArray.fill(nullptr);
 	g_numwindings = 0;
@@ -906,7 +903,7 @@ static void SubdividePatch(patch_t* patch) {
 
 	x = 0;
 	patch->next = nullptr;
-	winding = windingArray.data();
+	fast_winding** winding = windingArray.data();
 	while (*winding == nullptr) {
 		winding++;
 		x++;
@@ -919,9 +916,9 @@ static void SubdividePatch(patch_t* patch) {
 	PlacePatchInside(patch);
 	UpdateEmitterInfo(patch);
 
-	new_patch = g_patches + g_num_patches;
 	for (; x < g_numwindings; x++, winding++) {
 		if (*winding) {
+			patch_t* new_patch = &g_patches.emplace_back();
 			memcpy(new_patch, patch, sizeof(patch_t));
 
 			new_patch->winding = *winding;
@@ -930,9 +927,7 @@ static void SubdividePatch(patch_t* patch) {
 			PlacePatchInside(new_patch);
 			UpdateEmitterInfo(new_patch);
 
-			new_patch++;
-			g_num_patches++;
-			hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
+			hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
 		}
 	}
 
@@ -1304,7 +1299,6 @@ static void MakePatchForFace(
 			);
 		}
 	}
-	patch_t* patch;
 	int numpoints = w->size();
 
 	if (numpoints < 3) // WTF! (Actually happens in real-world maps too)
@@ -1318,9 +1312,8 @@ static void MakePatchForFace(
 		return;
 	}
 
-	patch = &g_patches[g_num_patches];
-	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
-	*patch = {};
+	patch_t* patch = &g_patches.emplace_back();
+	hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
 
 	patch->winding = w;
 
@@ -1432,7 +1425,6 @@ static void MakePatchForFace(
 	UpdateEmitterInfo(patch);
 
 	g_face_patches[fn] = patch;
-	g_num_patches++;
 
 	float3_array centroid{};
 
@@ -1774,7 +1766,6 @@ static entity_t* FindTexlightEntity(int facenum) {
 }
 
 static void MakePatches() {
-	int i;
 	int j;
 	unsigned int k;
 	dface_t* f;
@@ -1788,10 +1779,12 @@ static void MakePatches() {
 
 	Log("%i faces\n", g_numfaces);
 
-	Log("Create Patches : ");
-	g_patches = new patch_t[MAX_PATCHES]();
+	Log("Create Patches: ");
+	g_patches.reserve(MAX_PATCHES
+	); // TODO: Remove (or reduce) the reservation IF (and only if) we don't
+	   // keep pointers to g_patches elements
 
-	for (i = 0; i < g_nummodels; i++) {
+	for (int i = 0; i < g_nummodels; i++) {
 		lightmode = eModelLightmodeNull;
 
 		mod = g_dmodels.data() + i;
@@ -1944,24 +1937,8 @@ static void MakePatches() {
 	constexpr double metersPerUnit = 0.0254;
 	constexpr double squareMetersPerSquareUnit = metersPerUnit
 		* metersPerUnit;
-	Log("%i base patches\n", g_num_patches);
+	Log("%zu base patches\n", g_patches.size());
 	Log("Area: %.1f m²\n", totalarea * squareMetersPerSquareUnit);
-}
-
-// =====================================================================================
-//  patch_sorter
-// =====================================================================================
-static int patch_sorter(void const * p1, void const * p2) {
-	patch_t* patch1 = (patch_t*) p1;
-	patch_t* patch2 = (patch_t*) p2;
-
-	if (patch1->faceNumber < patch2->faceNumber) {
-		return -1;
-	} else if (patch1->faceNumber > patch2->faceNumber) {
-		return 1;
-	} else {
-		return 0;
-	}
 }
 
 // =====================================================================================
@@ -1972,39 +1949,32 @@ static int patch_sorter(void const * p1, void const * p2) {
 static void SortPatches() {
 	// SortPatches is the ideal place to do this, because the address of the
 	// patches are going to be invalidated.
-	patch_t* old_patches = g_patches;
-	g_patches = new patch_t[(g_num_patches + 1)](
-	); // allocate one extra slot considering how terribly the code were
-	   // written
-	memcpy(g_patches, old_patches, g_num_patches * sizeof(patch_t));
-	delete[] old_patches;
-	qsort(
-		(void*) g_patches,
-		(size_t) g_num_patches,
-		sizeof(patch_t),
-		patch_sorter
+	std::ranges::sort(
+		g_patches,
+		[](patch_t const & patchA, patch_t const & patchB) {
+			return patchA.faceNumber < patchB.faceNumber;
+		}
 	);
 
 	// Fixup g_face_patches & Fixup patch->next
 	g_face_patches.fill(nullptr);
 	{
-		unsigned x;
-		patch_t* patch = g_patches + 1;
-		patch_t* prev = g_patches;
+		std::vector<patch_t>::iterator patch = g_patches.begin() + 1;
+		std::vector<patch_t>::iterator prev = g_patches.begin();
 
-		g_face_patches[prev->faceNumber] = prev;
+		g_face_patches[prev->faceNumber] = &*prev;
 
-		for (x = 1; x < g_num_patches; x++, patch++) {
+		for (unsigned x = 1; x < g_patches.size(); ++x, ++patch) {
 			if (patch->faceNumber != prev->faceNumber) {
 				prev->next = nullptr;
-				g_face_patches[patch->faceNumber] = patch;
+				g_face_patches[patch->faceNumber] = &*patch;
 			} else {
-				prev->next = patch;
+				prev->next = &*patch;
 			}
 			prev = patch;
 		}
 	}
-	for (unsigned x = 0; x < g_num_patches; x++) {
+	for (unsigned x = 0; x < g_patches.size(); x++) {
 		patch_t* patch = &g_patches[x];
 		patch->leafnum = PointInLeaf(patch->origin) - g_dleafs.data();
 	}
@@ -2014,50 +1984,35 @@ static void SortPatches() {
 //  FreePatches
 // =====================================================================================
 static void FreePatches() {
-	unsigned x;
-	patch_t* patch = g_patches;
-
 	// Log("patches: %i of %i (%2.2lf percent)\n", g_num_patches,
 	// MAX_PATCHES, (double)((double)g_num_patches / (double)MAX_PATCHES));
 
-	for (x = 0; x < g_num_patches; x++, patch++) {
-		delete patch->winding;
+	for (patch_t& patch : g_patches) {
+		delete patch.winding;
 	}
-	delete[] g_patches;
-	g_patches = nullptr;
+	g_patches.clear();
 }
 
-//=====================================================================
-
-// =====================================================================================
-//  WriteWorld
-// =====================================================================================
 static void WriteWorld(char const * const name) {
-	unsigned i;
-	unsigned j;
-	FILE* out;
-	patch_t* patch;
-	fast_winding* w;
-
-	out = fopen(name, "w");
+	FILE* out = fopen(name, "w");
 
 	if (!out) {
 		Error("Couldn't open %s", name);
 	}
 
-	for (j = 0, patch = g_patches; j < g_num_patches; j++, patch++) {
-		w = patch->winding;
+	for (patch_t& patch : g_patches) {
+		fast_winding* w = patch.winding;
 		Log("%zu\n", w->size());
-		for (i = 0; i < w->size(); i++) {
+		for (std::size_t i = 0; i < w->size(); i++) {
 			Log("%5.2f %5.2f %5.2f %5.3f %5.3f %5.3f\n",
 				w->point(i)[0],
 				w->point(i)[1],
 				w->point(i)[2],
-				patch->totallight[0][0]
+				patch.totallight[0][0]
 					/ 256, // TODO: SHOULDN'T THESE BE / 255.0f ?????????
-				patch->totallight[0][1]
+				patch.totallight[0][1]
 					/ 256, // TODO: SHOULDN'T THESE BE / 255.0f ?????????
-				patch->totallight[0][2] / 256
+				patch.totallight[0][2] / 256
 			); // TODO: SHOULDN'T THESE BE / 255.0f ?????????
 		}
 		Log("\n");
@@ -2070,27 +2025,27 @@ static void WriteWorld(char const * const name) {
 //  CollectLight
 // =====================================================================================
 static void CollectLight() {
-	patch_t* patch = g_patches;
-	for (std::size_t i = 0; i < g_num_patches; ++i, ++patch) {
+	for (std::size_t i = 0; i < g_patches.size(); ++i) {
+		patch_t& patch = g_patches[i];
 		std::array<float3_array, MAXLIGHTMAPS> newtotallight{};
 		for (std::size_t j = 0; j < MAXLIGHTMAPS && newstyles[i][j] != 255;
 			 ++j) {
 			for (std::size_t k = 0;
-				 k < MAXLIGHTMAPS && patch->totalstyle[k] != 255;
+				 k < MAXLIGHTMAPS && patch.totalstyle[k] != 255;
 				 k++) {
-				if (patch->totalstyle[k] == newstyles[i][j]) {
-					newtotallight[j] = patch->totallight[k];
+				if (patch.totalstyle[k] == newstyles[i][j]) {
+					newtotallight[j] = patch.totallight[k];
 					break;
 				}
 			}
 		}
 		for (std::size_t j = 0; j < MAXLIGHTMAPS; ++j) {
 			if (newstyles[i][j] != 255) {
-				patch->totalstyle[j] = newstyles[i][j];
-				patch->totallight[j] = newtotallight[j];
+				patch.totalstyle[j] = newstyles[i][j];
+				patch.totallight[j] = newtotallight[j];
 				emitlight[i][j] = addlight[i][j];
 			} else {
-				patch->totalstyle[j] = 255;
+				patch.totalstyle[j] = 255;
 			}
 		}
 	}
@@ -2430,41 +2385,45 @@ static void BounceLight() {
 	// these arrays are only used in CollectLight, GatherLight and
 	// BounceLight
 	emitlight
-		= new std::array<float3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+		= new std::array<float3_array, MAXLIGHTMAPS>[g_patches.size() + 1](
+		);
 	addlight
-		= new std::array<float3_array, MAXLIGHTMAPS>[g_num_patches + 1]();
+		= new std::array<float3_array, MAXLIGHTMAPS>[g_patches.size() + 1](
+		);
 	newstyles
-		= new std::array<unsigned char, MAXLIGHTMAPS>[g_num_patches + 1]();
+		= new std::array<unsigned char, MAXLIGHTMAPS>[g_patches.size() + 1](
+		);
 
-	unsigned i;
-	char name[64];
-
-	unsigned j; // LRC
-
-	for (i = 0; i < g_num_patches; i++) {
+	for (std::size_t i = 0; i < g_patches.size(); i++) {
 		patch_t* patch = &g_patches[i];
-		for (j = 0; j < MAXLIGHTMAPS && patch->totalstyle[j] != 255; j++) {
+		for (unsigned j = 0;
+			 j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
+			 j++) {
 			emitlight[i][j] = patch->totallight[j];
 		}
 	}
 
-	for (i = 0; i < g_numbounce; i++) {
-		Log("Bounce %u ", i + 1);
+	for (std::size_t i = 0; i < g_numbounce; i++) {
+		Log("Bounce %zu ", i + 1);
 		if (g_rgb_transfers) {
-			NamedRunThreadsOn(g_num_patches, g_estimate, GatherRGBLight);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, GatherRGBLight);
 		} else {
-			NamedRunThreadsOn(g_num_patches, g_estimate, GatherLight);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, GatherLight);
 		}
 		CollectLight();
 
 		if (g_dumppatches) {
-			snprintf(name, sizeof(name), "bounce%u.txt", i);
+			char name[64];
+
+			snprintf(name, sizeof(name), "bounce%zu.txt", i);
 			WriteWorld(name);
 		}
 	}
-	for (i = 0; i < g_num_patches; i++) {
+	for (std::size_t i = 0; i < g_patches.size(); i++) {
 		patch_t* patch = &g_patches[i];
-		for (j = 0; j < MAXLIGHTMAPS && patch->totalstyle[j] != 255; j++) {
+		for (unsigned j = 0;
+			 j < MAXLIGHTMAPS && patch->totalstyle[j] != 255;
+			 j++) {
 			patch->totallight[j] = emitlight[i][j];
 		}
 	}
@@ -2484,17 +2443,18 @@ static void CheckMaxPatches() {
 	switch (g_method) {
 		case vis_method::vismatrix:
 			hlassume(
-				g_num_patches <= MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES
+				g_patches.size() <= MAX_VISMATRIX_PATCHES,
+				assume_MAX_PATCHES
 			);
 			break;
 		case vis_method::sparse_vismatrix:
 			hlassume(
-				g_num_patches <= MAX_SPARSE_VISMATRIX_PATCHES,
+				g_patches.size() <= MAX_SPARSE_VISMATRIX_PATCHES,
 				assume_MAX_PATCHES
 			);
 			break;
 		case vis_method::no_vismatrix:
-			hlassume(g_num_patches <= MAX_PATCHES, assume_MAX_PATCHES);
+			hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
 			break;
 	}
 }
@@ -2520,19 +2480,18 @@ static void MakeScalesStub() {
 //  FreeTransfers
 // =====================================================================================
 static void FreeTransfers() {
-	patch_t* patch = g_patches;
-	for (std::size_t x = 0; x < g_num_patches; x++, patch++) {
-		if (patch->tData) {
-			delete[] patch->tData;
-			patch->tData = nullptr;
+	for (patch_t& patch : g_patches) {
+		if (patch.tData) {
+			delete[] patch.tData;
+			patch.tData = nullptr;
 		}
-		if (patch->tRGBData) {
-			delete[] patch->tRGBData;
-			patch->tRGBData = nullptr;
+		if (patch.tRGBData) {
+			delete[] patch.tRGBData;
+			patch.tRGBData = nullptr;
 		}
-		if (patch->tIndex) {
-			delete[] patch->tIndex;
-			patch->tIndex = nullptr;
+		if (patch.tIndex) {
+			delete[] patch.tIndex;
+			patch.tIndex = nullptr;
 		}
 	}
 }
@@ -2590,13 +2549,12 @@ static void RadWorld() {
 		Log("Writing '%s' ...\n", patchFilePath.c_str());
 		FILE* f = fopen(patchFilePath.c_str(), "w");
 		if (f) {
-			patch_t const * patch = g_patches;
-			for (std::size_t j = 0; j < g_num_patches; j++, patch++) {
-				if (patch->flags == ePatchFlagOutside) {
+			for (patch_t& patch : g_patches) {
+				if (patch.flags == ePatchFlagOutside) {
 					continue;
 				}
 
-				float3_array const v{ patch->origin };
+				float3_array const v{ patch.origin };
 				for (float3_array const & p : pos) {
 					fprintf(
 						f,

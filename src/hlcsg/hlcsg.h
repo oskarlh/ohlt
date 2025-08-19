@@ -81,7 +81,8 @@ namespace std {
 
 struct bface_t final {
 	accurate_winding w;
-	mapplane_t* plane;
+	mapplane_t* plane; // Appears to be non-owning since NewFaceFromFace
+					   // just copies the pointer
 	bounding_box bounds;
 	std::uint16_t planenum;
 	texinfo_count texinfo;

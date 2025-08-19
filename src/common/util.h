@@ -105,3 +105,17 @@ class indicies_of_set_bits_view
 indicies_of_set_bits(std::uintmax_t bitSet) noexcept {
 	return indicies_of_set_bits_view{ bitSet };
 }
+
+// TODO: Remove this when we no longer need it. It's probably only useful
+// with old C functions like qsort
+constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
+	return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
+}
+
+constexpr int ordering_as_int(std::weak_ordering cmp) noexcept {
+	return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
+}
+
+constexpr int ordering_as_int(std::partial_ordering cmp) noexcept {
+	return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
+}

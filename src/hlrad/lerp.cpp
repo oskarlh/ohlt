@@ -1044,7 +1044,7 @@ static void GatherPatches(
 		dp2 = getPlaneFromFaceNumber(facenum2);
 		for (patch2 = g_face_patches[facenum2]; patch2;
 			 patch2 = patch2->next) {
-			patchnum2 = patch2 - g_patches;
+			patchnum2 = patch2 - &g_patches.front();
 
 			point.leftpatchnum = patchnum2;
 			v = vector_fma(dp2->normal, -PATCH_HUNT_OFFSET, patch2->origin);
@@ -1748,7 +1748,7 @@ void CreateTriangulations(int facenum) {
 		// Create local triangulation around each patch
 		facetrian->localtriangulations.resize(0);
 		for (patch = g_face_patches[facenum]; patch; patch = patch->next) {
-			patchnum = patch - g_patches;
+			patchnum = patch - &g_patches.front();
 			lt = CreateLocalTriangulation(facetrian, patchnum);
 			facetrian->localtriangulations.push_back(lt);
 		}

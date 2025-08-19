@@ -15,7 +15,6 @@ void writetransfers(
 	file = fopen(transferfile, "w+b");
 	if (file != nullptr) {
 		unsigned amtwritten;
-		patch_t* patch;
 
 		Log("Writing transfers file [%s]\n", transferfile);
 
@@ -25,7 +24,9 @@ void writetransfers(
 		}
 
 		long patchcount = total_patches;
-		for (patch = g_patches; patchcount-- > 0; patch++) {
+		for (std::vector<patch_t>::iterator patch = g_patches.begin();
+			 patchcount-- > 0;
+			 ++patch) {
 			amtwritten = fwrite(
 				&patch->iIndex, sizeof(patch->iIndex), 1, file
 			);
@@ -101,17 +102,14 @@ FailedWrite:
  */
 
 bool readtransfers(char const * const transferfile, long const numpatches) {
-	FILE* file;
-	long total_patches;
-
-	file = fopen(transferfile, "rb");
+	FILE* file = fopen(transferfile, "rb");
 	if (file != nullptr) {
-		unsigned amtread;
-		patch_t* patch;
-
 		Log("Reading transfers file [%s]\n", transferfile);
 
-		amtread = fread(&total_patches, sizeof(total_patches), 1, file);
+		long total_patches;
+		unsigned amtread = fread(
+			&total_patches, sizeof(total_patches), 1, file
+		);
 		if (amtread != 1) {
 			goto FailedRead;
 		}
@@ -120,7 +118,8 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 		}
 
 		long patchcount = total_patches;
-		for (patch = g_patches; patchcount-- > 0; patch++) {
+		for (; patchcount-- > 0;) {
+			patch_t* patch = &g_patches.emplace_back();
 			amtread = fread(&patch->iIndex, sizeof(patch->iIndex), 1, file);
 			if (amtread != 1) {
 				goto FailedRead;
@@ -190,17 +189,14 @@ bool readtransfers(char const * const transferfile, long const numpatches) {
 	return false;
 
 FailedRead: {
-	unsigned x;
-	patch_t* patch = g_patches;
+	for (patch_t& patch : g_patches) {
+		delete[] patch.tData;
+		patch.tData = nullptr;
+		delete[] patch.tIndex;
+		patch.tIndex = nullptr;
 
-	for (x = 0; x < g_num_patches; x++, patch++) {
-		delete[] patch->tData;
-		patch->tData = nullptr;
-		delete[] patch->tIndex;
-		patch->tIndex = nullptr;
-
-		patch->iData = 0;
-		patch->iIndex = 0;
+		patch.iData = 0;
+		patch.iIndex = 0;
 	}
 }
 	fclose(file);

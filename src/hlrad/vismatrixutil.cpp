@@ -166,8 +166,6 @@ void MakeScales(int const threadnum) {
 	float dist;
 	int count;
 	float trans;
-	patch_t* patch;
-	patch_t* patch2;
 	float send;
 	float3_array origin;
 	float area;
@@ -180,8 +178,9 @@ void MakeScales(int const threadnum) {
 	float* tData;
 
 	transfer_raw_index_t* tIndex_All
-		= (transfer_raw_index_t*) new transfer_index_t[g_num_patches + 1]();
-	float* tData_All = (float*) new float[g_num_patches + 1]();
+		= (transfer_raw_index_t*) new transfer_index_t
+			[g_patches.size() + 1]();
+	float* tData_All = (float*) new float[g_patches.size() + 1]();
 
 	count = 0;
 
@@ -191,7 +190,7 @@ void MakeScales(int const threadnum) {
 			break;
 		}
 
-		patch = g_patches + i;
+		patch_t* patch = &g_patches[i];
 		patch->iIndex = 0;
 		patch->iData = 0;
 
@@ -213,20 +212,19 @@ void MakeScales(int const threadnum) {
 			);
 			backnormal = negate_vector(normal1);
 		}
-		bool lighting_diversify;
-		float lighting_power;
-		float lighting_scale;
 		int miptex = g_texinfo[g_dfaces[patch->faceNumber].texinfo].miptex;
-		lighting_power = g_lightingconeinfo[miptex].power;
-		lighting_scale = g_lightingconeinfo[miptex].scale;
-		lighting_diversify
+		float const lighting_power = g_lightingconeinfo[miptex].power;
+		float const lighting_scale = g_lightingconeinfo[miptex].scale;
+		bool const lighting_diversify
 			= (lighting_power != 1.0 || lighting_scale != 1.0);
 
 		// find out which patch2's will collect light
 		// from patch
 		// HLRAD_NOSWAP: patch collect light from patch2
 
-		for (j = 0, patch2 = g_patches; j < g_num_patches; j++, patch2++) {
+		std::vector<patch_t>::const_iterator patch2;
+		for (j = 0, patch2 = g_patches.begin(); patch2 < g_patches.end();
+			 j++, patch2++) {
 			float dot1;
 			float dot2;
 
@@ -422,8 +420,6 @@ void MakeRGBScales(int const threadnum) {
 	int count;
 	float3_array trans;
 	float trans_one;
-	patch_t* patch;
-	patch_t* patch2;
 	float send;
 	float3_array origin;
 	float area;
@@ -435,10 +431,13 @@ void MakeRGBScales(int const threadnum) {
 
 	// Why are the types different?
 	transfer_raw_index_t* tIndex_All
-		= (transfer_raw_index_t*) new transfer_index_t[g_num_patches + 1]();
+		= (transfer_raw_index_t*) new transfer_index_t
+			[g_patches.size() + 1]();
 
 	std::unique_ptr<float3_array[]> tRGBData_All
-		= std::make_unique_for_overwrite<float3_array[]>(g_num_patches + 1);
+		= std::make_unique_for_overwrite<float3_array[]>(
+			g_patches.size() + 1
+		);
 
 	count = 0;
 
@@ -448,7 +447,7 @@ void MakeRGBScales(int const threadnum) {
 			break;
 		}
 
-		patch = g_patches + i;
+		patch_t* patch = &g_patches[i];
 		patch->iIndex = 0;
 		patch->iData = 0;
 
@@ -482,7 +481,9 @@ void MakeRGBScales(int const threadnum) {
 		// from patch
 		// HLRAD_NOSWAP: patch collect light from patch2
 
-		for (j = 0, patch2 = g_patches; j < g_num_patches; j++, patch2++) {
+		std::vector<patch_t>::const_iterator patch2;
+		for (j = 0, patch2 = g_patches.begin(); patch2 != g_patches.end();
+			 j++, patch2++) {
 			float dot1;
 			float dot2;
 			float3_array transparency = { 1.0, 1.0, 1.0 };

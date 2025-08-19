@@ -1724,8 +1724,6 @@ static int numdlights;
 //  CreateDirectLights
 // =====================================================================================
 void CreateDirectLights() {
-	unsigned i;
-	patch_t* p;
 	int leafnum;
 	entity_t* e;
 	float3_array dest;
@@ -1739,21 +1737,22 @@ void CreateDirectLights() {
 	//
 	// surfaces
 	//
-	for (i = 0, p = g_patches; i < g_num_patches; i++, p++) {
-		if (p->emitstyle >= 0 && p->emitstyle < ALLSTYLES) {
-			if (styleused[p->emitstyle] == false) {
-				styleused[p->emitstyle] = true;
+	for (patch_t& patch : g_patches) {
+		if (patch.emitstyle >= 0 && patch.emitstyle < ALLSTYLES) {
+			if (styleused[patch.emitstyle] == false) {
+				styleused[patch.emitstyle] = true;
 				numstyles++;
 			}
 		}
-		if (dot_product(p->baselight, p->texturereflectivity) / 3 > 0.0
+		if (dot_product(patch.baselight, patch.texturereflectivity) / 3
+				> 0.0
 			&& !(
-				g_face_texlights[p->faceNumber]
+				g_face_texlights[patch.faceNumber]
 				&& has_key_value(
-					g_face_texlights[p->faceNumber], u8"_scale"
+					g_face_texlights[patch.faceNumber], u8"_scale"
 				)
 				&& float_for_key(
-					   *g_face_texlights[p->faceNumber], u8"_scale"
+					   *g_face_texlights[patch.faceNumber], u8"_scale"
 				   ) <= 0
 			)) // LRC
 		{
@@ -1764,41 +1763,41 @@ void CreateDirectLights() {
 
 			hlassume(dl != nullptr, assume_NoMemory);
 
-			dl->origin = p->origin;
+			dl->origin = patch.origin;
 
 			dleaf_t* const leaf = PointInLeaf(dl->origin);
 			leafnum = leaf - g_dleafs.data();
 
 			dl->next = directlights[leafnum];
 			directlights[leafnum] = dl;
-			dl->style = p->emitstyle; // LRC
+			dl->style = patch.emitstyle; // LRC
 			dl->topatch = false;
-			if (!p->emitmode) {
+			if (!patch.emitmode) {
 				dl->topatch = true;
 			}
 			if (g_fastmode) {
 				dl->topatch = true;
 			}
-			dl->patch_area = p->area;
-			dl->patch_emitter_range = p->emitter_range;
-			dl->patch = p;
+			dl->patch_area = patch.area;
+			dl->patch_emitter_range = patch.emitter_range;
+			dl->patch = &patch;
 			dl->texlightgap = g_texlightgap;
-			if (g_face_texlights[p->faceNumber]
+			if (g_face_texlights[patch.faceNumber]
 				&& has_key_value(
-					g_face_texlights[p->faceNumber], u8"_texlightgap"
+					g_face_texlights[patch.faceNumber], u8"_texlightgap"
 				)) {
 				dl->texlightgap = float_for_key(
-					*g_face_texlights[p->faceNumber], u8"_texlightgap"
+					*g_face_texlights[patch.faceNumber], u8"_texlightgap"
 				);
 			}
 			dl->stopdot = 0.0;
 			dl->stopdot2 = 0.0;
-			if (g_face_texlights[p->faceNumber]) {
+			if (g_face_texlights[patch.faceNumber]) {
 				if (has_key_value(
-						g_face_texlights[p->faceNumber], u8"_cone"
+						g_face_texlights[patch.faceNumber], u8"_cone"
 					)) {
 					dl->stopdot = float_for_key(
-						*g_face_texlights[p->faceNumber], u8"_cone"
+						*g_face_texlights[patch.faceNumber], u8"_cone"
 					);
 					dl->stopdot = dl->stopdot >= 90
 						? 0
@@ -1808,10 +1807,10 @@ void CreateDirectLights() {
 						  );
 				}
 				if (has_key_value(
-						g_face_texlights[p->faceNumber], u8"_cone2"
+						g_face_texlights[patch.faceNumber], u8"_cone2"
 					)) {
 					dl->stopdot2 = float_for_key(
-						*g_face_texlights[p->faceNumber], u8"_cone2"
+						*g_face_texlights[patch.faceNumber], u8"_cone2"
 					);
 					dl->stopdot2 = dl->stopdot2 >= 90
 						? 0
@@ -1826,28 +1825,28 @@ void CreateDirectLights() {
 			}
 
 			dl->type = emit_surface;
-			dl->normal = getPlaneFromFaceNumber(p->faceNumber)->normal;
-			dl->intensity = p->baselight; // LRC
-			if (g_face_texlights[p->faceNumber]) {
+			dl->normal = getPlaneFromFaceNumber(patch.faceNumber)->normal;
+			dl->intensity = patch.baselight; // LRC
+			if (g_face_texlights[patch.faceNumber]) {
 				if (has_key_value(
-						g_face_texlights[p->faceNumber], u8"_scale"
+						g_face_texlights[patch.faceNumber], u8"_scale"
 					)) {
 					float scale = float_for_key(
-						*g_face_texlights[p->faceNumber], u8"_scale"
+						*g_face_texlights[patch.faceNumber], u8"_scale"
 					);
 					dl->intensity = vector_scale(dl->intensity, scale);
 				}
 			}
-			dl->intensity = vector_scale(dl->intensity, p->area);
-			dl->intensity = vector_scale(dl->intensity, p->exposure);
+			dl->intensity = vector_scale(dl->intensity, patch.area);
+			dl->intensity = vector_scale(dl->intensity, patch.exposure);
 			dl->intensity
 				= vector_scale(dl->intensity, 1 / std::numbers::pi_v<float>);
 			dl->intensity = vector_multiply(
-				dl->intensity, p->texturereflectivity
+				dl->intensity, patch.texturereflectivity
 			);
 
-			dface_t* f = &g_dfaces[p->faceNumber];
-			if (g_face_entity[p->faceNumber] != g_entities.data()
+			dface_t* f = &g_dfaces[patch.faceNumber];
+			if (g_face_entity[patch.faceNumber] != g_entities.data()
 				&& get_texture_by_number(f->texinfo).is_water()) {
 				numdlights++;
 				directlight_t* dl2 = (directlight_t*) calloc(
@@ -1868,7 +1867,7 @@ void CreateDirectLights() {
 	//
 	// entities
 	//
-	for (i = 0; i < (unsigned) g_numentities; i++) {
+	for (unsigned i = 0; i < (unsigned) g_numentities; i++) {
 		double r, g, b, scaler;
 		int argCnt;
 

@@ -15,10 +15,10 @@ static bool CheckVisBitNoVismatrix(
 // patchnum1=receiver, patchnum2=emitter.
 // //HLRAD_CheckVisBitNoVismatrix_NOSWAP
 {
-	if (patchnum1 > g_num_patches) {
+	if (patchnum1 > g_patches.size()) {
 		Warning("in CheckVisBit(), patchnum1 > num_patches");
 	}
-	if (patchnum2 > g_num_patches) {
+	if (patchnum2 > g_patches.size()) {
 		Warning("in CheckVisBit(), patchnum2 > num_patches");
 	}
 
@@ -165,23 +165,23 @@ bool CheckVisBitBackwards(
 ////////////////////////////
 
 void MakeScalesNoVismatrix() {
-	hlassume(g_num_patches < MAX_PATCHES, assume_MAX_PATCHES);
+	hlassume(g_patches.size() <= MAX_PATCHES, assume_MAX_PATCHES);
 
 	std::filesystem::path const transferfile{
 		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
 	};
 
 	if (!g_incremental
-		|| !readtransfers(transferfile.c_str(), g_num_patches)) {
+		|| !readtransfers(transferfile.c_str(), g_patches.size())) {
 		g_CheckVisBit = CheckVisBitNoVismatrix;
 		if (g_rgb_transfers) {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeRGBScales);
 		} else {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeScales);
 		}
 
 		if (g_incremental) {
-			writetransfers(transferfile.c_str(), g_num_patches);
+			writetransfers(transferfile.c_str(), g_patches.size());
 		} else {
 			std::filesystem::remove(transferfile);
 		}

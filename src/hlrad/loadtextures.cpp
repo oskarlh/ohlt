@@ -1,5 +1,6 @@
 #include "hlrad.h"
 #include "log.h"
+#include "util.h"
 #include "wad_structs.h"
 #include "worldspawn_wad_value_parser.h"
 
@@ -25,10 +26,6 @@ struct wadfile_t final {
 std::vector<wadfile_t> g_wadFiles;
 
 bool g_wadfiles_opened;
-
-constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
-	return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
-}
 
 static int lump_sorter_by_name(void const * lump1, void const * lump2) {
 	wad_lumpinfo* plump1 = (wad_lumpinfo*) lump1;

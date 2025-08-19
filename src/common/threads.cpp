@@ -43,7 +43,6 @@ double I_FloatTime() {
 }
 
 int GetThreadWork() {
-	int r, f, i;
 	double ct, finish, finish2, finish3;
 
 	ThreadLock();
@@ -71,14 +70,14 @@ int GetThreadWork() {
 		return -1;
 	}
 
-	f = THREADTIMES_SIZE * dispatch / workcount;
+	int f = THREADTIMES_SIZE * dispatch / workcount;
 	if (pacifier) {
 		PrintConsole("\r%6d /%6d", dispatch, workcount);
 
 		if (f != oldf) {
 			ct = I_FloatTime();
 			/* Fill in current time for threadtimes record */
-			for (i = oldf; i <= f; i++) {
+			for (int i = oldf; i <= f; i++) {
 				if (threadtimes[i] < 1) {
 					threadtimes[i] = ct;
 				}
@@ -128,7 +127,7 @@ int GetThreadWork() {
 		}
 	}
 
-	r = dispatch;
+	int r = dispatch;
 	dispatch++;
 
 	ThreadUnlock();

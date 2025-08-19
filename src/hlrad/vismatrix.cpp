@@ -45,7 +45,7 @@ static void TestPatchToFace(
 			);
 
 			for (; patch2; patch2 = patch2->next) {
-				unsigned m = patch2 - g_patches;
+				unsigned m = patch2 - &g_patches.front();
 
 				float3_array transparency = { 1.0, 1.0, 1.0 };
 				int opaquestyle = -1;
@@ -188,9 +188,9 @@ static void BuildVisLeafs(int threadnum) {
 				if (patch->leafnum != i) {
 					continue;
 				}
-				patchnum = patch - g_patches;
+				patchnum = patch - &g_patches.front();
 #ifdef HALFBIT
-				bitpos = patchnum * g_num_patches
+				bitpos = patchnum * g_patches.size()
 					- (patchnum * (patchnum + 1)) / 2;
 #else
 				bitpos = patchnum * g_num_patches;
@@ -218,7 +218,7 @@ static void BuildVisMatrix() {
 	int c;
 
 #ifdef HALFBIT
-	c = ((g_num_patches + 1) * (g_num_patches + 1)) / 16;
+	c = ((g_patches.size() + 1) * (g_patches.size() + 1)) / 16;
 	c += 1; //--vluzacn
 #else
 	c = g_num_patches * ((g_num_patches + 7) / 8);
@@ -265,15 +265,15 @@ static bool CheckVisBitVismatrix(
 		p2 = a;
 	}
 
-	if (p1 > g_num_patches) {
+	if (p1 > g_patches.size()) {
 		Warning("in CheckVisBit(), p1 > num_patches");
 	}
-	if (p2 > g_num_patches) {
+	if (p2 > g_patches.size()) {
 		Warning("in CheckVisBit(), p2 > num_patches");
 	}
 
 #ifdef HALFBIT
-	bitpos = p1 * g_num_patches - (p1 * (p1 + 1)) / 2 + p2;
+	bitpos = p1 * g_patches.size() - (p1 * (p1 + 1)) / 2 + p2;
 #else
 	bitpos = p1 * g_num_patches + p2;
 #endif
@@ -298,13 +298,13 @@ static bool CheckVisBitVismatrix(
 // MakeScalesVismatrix
 // =====================================================================================
 void MakeScalesVismatrix() {
-	hlassume(g_num_patches < MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES);
+	hlassume(g_patches.size() < MAX_VISMATRIX_PATCHES, assume_MAX_PATCHES);
 
 	std::filesystem::path const transferFilePath{
 		path_to_temp_file_with_extension(g_Mapname, u8".inc").c_str()
 	};
 	if (!g_incremental
-		|| !readtransfers(transferFilePath.c_str(), g_num_patches)) {
+		|| !readtransfers(transferFilePath.c_str(), g_patches.size())) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		g_CheckVisBit = CheckVisBitVismatrix;
@@ -314,15 +314,15 @@ void MakeScalesVismatrix() {
 		);
 
 		if (g_rgb_transfers) {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeRGBScales);
 		} else {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeScales);
 		}
 		FreeVisMatrix();
 		FreeTransparencyArrays();
 
 		if (g_incremental) {
-			writetransfers(transferFilePath.c_str(), g_num_patches);
+			writetransfers(transferFilePath.c_str(), g_patches.size());
 		} else {
 			std::filesystem::remove(transferFilePath);
 		}

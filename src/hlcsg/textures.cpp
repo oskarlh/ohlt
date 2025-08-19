@@ -4,6 +4,7 @@
 #include "log.h"
 #include "threads.h"
 #include "time_counter.h"
+#include "util.h"
 #include "wad_structs.h"
 
 #include <tuple>
@@ -71,9 +72,6 @@ static void texmap_clear() {
 // =====================================================================================
 //  lump_sorters
 // =====================================================================================
-constexpr int ordering_as_int(std::strong_ordering cmp) noexcept {
-	return (cmp < 0) ? -1 : ((cmp == 0) ? 0 : 1);
-}
 
 static int
 lump_sorter_by_wad_and_name(void const * lump1, void const * lump2) {

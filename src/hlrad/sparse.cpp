@@ -48,10 +48,10 @@ static void SetVisColumn(
 	}
 
 	std::size_t rowCount = 0;
-	for (mbegin = 0; mbegin < g_num_patches; mbegin += 8) {
+	for (mbegin = 0; mbegin < g_patches.size(); mbegin += 8) {
 		bits = 0;
 		for (m = mbegin; m < mbegin + 8; m++) {
-			if (m >= g_num_patches) {
+			if (m >= g_patches.size()) {
 				break;
 			}
 			if (uncompressedcolumn[m]) // visible
@@ -74,10 +74,10 @@ static void SetVisColumn(
 	column.resize(rowCount);
 
 	i = 0;
-	for (mbegin = 0; mbegin < g_num_patches; mbegin += 8) {
+	for (mbegin = 0; mbegin < g_patches.size(); mbegin += 8) {
 		bits = 0;
 		for (m = mbegin; m < mbegin + 8; m++) {
-			if (m >= g_num_patches) {
+			if (m >= g_patches.size()) {
 				break;
 			}
 			if (uncompressedcolumn[m]) // Visible
@@ -118,10 +118,10 @@ static bool CheckVisBitSparse(
 		y = a;
 	}
 
-	if (x > g_num_patches) {
+	if (x > g_patches.size()) {
 		Warning("in CheckVisBit(), x > num_patches");
 	}
-	if (y > g_num_patches) {
+	if (y > g_patches.size()) {
 		Warning("in CheckVisBit(), y > num_patches");
 	}
 	int offset = IsVisbitInArray(x, y);
@@ -168,7 +168,7 @@ static void TestPatchToFace(
 			);
 
 			for (; patch2; patch2 = patch2->next) {
-				unsigned m = patch2 - g_patches;
+				unsigned m = patch2 - &g_patches.front();
 
 				float3_array transparency = { 1.0, 1.0, 1.0 };
 				int opaquestyle = -1;
@@ -296,8 +296,8 @@ static void BuildVisLeafs(int threadnum) {
 				if (patch->leafnum != i) {
 					continue;
 				}
-				std::uint32_t patchnum = patch - g_patches;
-				for (std::size_t m = 0; m < g_num_patches; m++) {
+				std::uint32_t patchnum = patch - &g_patches.front();
+				for (std::size_t m = 0; m < g_patches.size(); m++) {
 					uncompressedcolumn[m] = false;
 				}
 				for (int facenum2 = facenum + 1; facenum2 < g_numfaces;
@@ -323,7 +323,7 @@ static void BuildVisLeafs(int threadnum) {
  * ==============
  */
 static void BuildVisMatrix() {
-	s_vismatrix.resize(g_num_patches);
+	s_vismatrix.resize(g_patches.size());
 
 	NamedRunThreadsOn(g_dmodels[0].visleafs, g_estimate, BuildVisLeafs);
 }
@@ -335,9 +335,9 @@ static void FreeVisMatrix() {
 
 static void DumpVismatrixInfo() {
 	std::size_t total_vismatrix_memory;
-	total_vismatrix_memory = sizeof(sparse_column_t) * g_num_patches;
+	total_vismatrix_memory = sizeof(sparse_column_t) * g_patches.size();
 
-	sparse_column_t* column_end = &s_vismatrix[g_num_patches];
+	sparse_column_t* column_end = &s_vismatrix[g_patches.size()];
 	sparse_column_t* column = &s_vismatrix[0];
 
 	while (column < column_end) {
@@ -356,7 +356,7 @@ static void DumpVismatrixInfo() {
 
 void MakeScalesSparseVismatrix() {
 	hlassume(
-		g_num_patches < MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES
+		g_patches.size() < MAX_SPARSE_VISMATRIX_PATCHES, assume_MAX_PATCHES
 	);
 
 	std::filesystem::path const transferFilePath{
@@ -364,7 +364,7 @@ void MakeScalesSparseVismatrix() {
 	};
 
 	if (!g_incremental
-		|| !readtransfers(transferFilePath.c_str(), g_num_patches)) {
+		|| !readtransfers(transferFilePath.c_str(), g_patches.size())) {
 		// determine visibility between g_patches
 		BuildVisMatrix();
 		DumpVismatrixInfo();
@@ -375,15 +375,15 @@ void MakeScalesSparseVismatrix() {
 		);
 
 		if (g_rgb_transfers) {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeRGBScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeRGBScales);
 		} else {
-			NamedRunThreadsOn(g_num_patches, g_estimate, MakeScales);
+			NamedRunThreadsOn(g_patches.size(), g_estimate, MakeScales);
 		}
 		FreeVisMatrix();
 		FreeTransparencyArrays();
 
 		if (g_incremental) {
-			writetransfers(transferFilePath.c_str(), g_num_patches);
+			writetransfers(transferFilePath.c_str(), g_patches.size());
 		} else {
 			std::filesystem::remove(transferFilePath);
 		}
