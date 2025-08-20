@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <utility>
 #include <vector>
 
 // upper design bounds
@@ -335,7 +336,7 @@ constexpr std::size_t LUMP_EDGES = 12;
 constexpr std::size_t LUMP_SURFEDGES = 13;
 constexpr std::size_t LUMP_MODELS = 14;
 
-enum class lump_id : std::size_t {
+enum class lump_id : std::uint8_t {
 	entities = 0,
 	planes,
 	textures,
@@ -352,7 +353,8 @@ enum class lump_id : std::size_t {
 	surfedges,
 	models
 };
-constexpr std::size_t num_lump_types = std::size_t(lump_id::models) + 1;
+constexpr std::size_t num_lump_types = std::to_underlying(lump_id::models)
+	+ 1;
 
 template <lump_id Id>
 struct lump_element_type_map final { };

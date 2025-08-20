@@ -7,7 +7,7 @@
 
 #include <cstring>
 
-inline void getFilePositions(
+static void getFilePositions(
 	char const * path, int* extension_position, int* directory_position
 ) {
 	char const * ptr = strrchr(path, '.');

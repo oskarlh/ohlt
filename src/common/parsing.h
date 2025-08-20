@@ -35,6 +35,20 @@ constexpr void skip_whitespace_and_comments(std::u8string_view& str
 	} while (foundComment);
 }
 
+constexpr std::u8string_view
+extract_current_line_then_skip_whitespace_and_comments(
+	std::u8string_view& remainingInput
+) noexcept {
+	std::size_t const eol{ remainingInput.find(u8'\n') };
+	std::u8string_view lineContents = remainingInput.substr(0, eol);
+	if (eol == std::u8string_view::npos) {
+		remainingInput = {};
+	}
+	remainingInput.remove_prefix(eol + 1);
+	skip_whitespace_and_comments(remainingInput);
+	return lineContents;
+}
+
 constexpr std::u8string_view next_word(std::u8string_view& text) {
 	skip_whitespace_and_comments(text);
 	std::u8string_view const word = text.substr(

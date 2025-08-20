@@ -18,7 +18,7 @@ bool no_wad_textures(bsp_data const & bspData) {
 		int const offset = ((dmiptexlump_t const *)
 		                        bspData.textureData.data())
 							   ->dataofs[i];
-		std::size_t size = bspGlobals.textureDataByteSize - offset;
+		std::size_t const size = bspGlobals.textureDataByteSize - offset;
 		if (offset < 0 || size < sizeof(miptex_t)) {
 			// Missing textures have offset = -1
 			continue;
@@ -105,16 +105,16 @@ static std::optional<std::u8string> find_wad_value(bsp_data const & bspData
 	return std::nullopt;
 }
 
-static int array_usage(
-	char const * const szItem,
-	int const items,
-	int const maxitems,
-	int const itemsize
+static std::size_t array_usage(
+	std::u8string_view szItem,
+	std::size_t items,
+	std::size_t maxitems,
+	std::size_t itemsize
 ) {
 	float percentage = maxitems ? items * 100.0 / maxitems : 0.0;
 
-	Log("%-13s %7i/%-7i %8i/%-8i (%4.1f%%)\n",
-	    szItem,
+	Log("%-13s %7zu/%-7zu %8zu/%-8zu (%4.1f%%)\n",
+	    (char const *) szItem.data(),
 	    items,
 	    maxitems,
 	    items * itemsize,
@@ -124,13 +124,15 @@ static int array_usage(
 	return items * itemsize;
 }
 
-static int global_usage(
-	char const * const szItem, int const itemstorage, int const maxstorage
+static std::size_t global_usage(
+	std::u8string_view szItem,
+	std::size_t itemstorage,
+	std::size_t maxstorage
 ) {
 	float percentage = maxstorage ? itemstorage * 100.0 / maxstorage : 0.0;
 
-	Log("%-13s    [variable]   %8i/%-8i (%4.1f%%)\n",
-	    szItem,
+	Log("%-13s    [variable]   %8zu/%-8zu (%4.1f%%)\n",
+	    (char const *) szItem.data(),
 	    itemstorage,
 	    maxstorage,
 	    percentage);
@@ -146,7 +148,7 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 	int numtextures = bspData.textureDataByteSize
 		? ((dmiptexlump_t*) bspData.textureData.data())->nummiptex
 		: 0;
-	int totalmemory = 0;
+	std::size_t totalmemory = 0;
 	bool nowadtextures = no_wad_textures(bspData
 	); // We don't have this check at hlcsg, because only legacy compile
 	   // tools don't empty "wad" value in "-nowadtextures" compiles.
@@ -156,102 +158,102 @@ void print_bsp_file_sizes(bsp_data const & bspData) {
 	Log("------------  ---------------  ---------------  --------\n");
 
 	totalmemory += array_usage(
-		"models",
+		u8"models",
 		bspData.mapModelsLength,
 		bspData.mapModels.size(),
 		sizeof(bspData.mapModels[0])
 	);
 	totalmemory += array_usage(
-		"planes",
+		u8"planes",
 		bspData.planesLength,
 		MAX_MAP_PLANES,
 		sizeof(bspData.planes[0])
 	);
 	totalmemory += array_usage(
-		"vertexes",
+		u8"vertexes",
 		bspData.vertexesLength,
 		bspData.vertexes.size(),
 		sizeof(bspData.vertexes[0])
 	);
 	totalmemory += array_usage(
-		"nodes",
+		u8"nodes",
 		bspData.nodesLength,
 		bspData.nodes.size(),
 		sizeof(bspData.nodes[0])
 	);
 	totalmemory += array_usage(
-		"texinfos",
+		u8"texinfos",
 		bspData.texInfosLength,
 		FINAL_MAX_MAP_TEXINFO,
 		sizeof(bspData.texInfos[0])
 	);
 	totalmemory += array_usage(
-		"faces",
+		u8"faces",
 		bspData.facesLength,
 		bspData.faces.size(),
 		sizeof(bspData.faces[0])
 	);
 	totalmemory += array_usage(
-		"* worldfaces",
+		u8"* worldfaces",
 		(bspData.mapModelsLength > 0 ? bspData.mapModels[0].numfaces : 0),
 		MAX_MAP_WORLDFACES,
 		0
 	);
 	totalmemory += array_usage(
-		"clipnodes",
+		u8"clipnodes",
 		bspData.clipNodesLength,
 		bspData.clipNodes.size(),
 		sizeof(bspData.clipNodes[0])
 	);
 	totalmemory += array_usage(
-		"leaves",
+		u8"leaves",
 		bspData.leafsLength,
 		MAX_MAP_LEAFS,
 		sizeof(bspData.leafs[0])
 	);
 	totalmemory += array_usage(
-		"* worldleaves",
+		u8"* worldleaves",
 		(bspData.mapModelsLength > 0 ? bspData.mapModels[0].visleafs : 0),
 		MAX_MAP_LEAFS_ENGINE,
 		0
 	);
 	totalmemory += array_usage(
-		"marksurfaces",
+		u8"marksurfaces",
 		bspData.markSurfacesLength,
 		bspData.markSurfaces.size(),
 		sizeof(bspData.markSurfaces[0])
 	);
 	totalmemory += array_usage(
-		"surfedges",
+		u8"surfedges",
 		bspData.surfEdgesLength,
 		bspData.surfEdges.size(),
 		sizeof(bspData.surfEdges[0])
 	);
 	totalmemory += array_usage(
-		"edges",
+		u8"edges",
 		bspData.edgesLength,
 		bspData.edges.size(),
 		sizeof(bspData.edges[0])
 	);
 
 	totalmemory += global_usage(
-		"texdata", bspGlobals.textureDataByteSize, g_max_map_miptex
+		u8"texdata", bspGlobals.textureDataByteSize, g_max_map_miptex
 	);
 	totalmemory += global_usage(
-		"lightdata", bspGlobals.lightData.size(), g_max_map_lightdata
+		u8"lightdata", bspGlobals.lightData.size(), g_max_map_lightdata
 	);
 	totalmemory += global_usage(
-		"visdata", bspGlobals.visDataByteSize, bspData.mapModels.size()
+		u8"visdata", bspGlobals.visDataByteSize, bspData.mapModels.size()
 	);
 	totalmemory += global_usage(
-		"entdata",
+		u8"entdata",
 		bspGlobals.entityDataLength,
 		bspData.entityData.size() * sizeof(bspData.entityData[0])
 	);
 
 	Log("%i textures referenced\n", numtextures);
 
-	Log("=== Total BSP file data space used: %d bytes ===\n\n",
+	Log("=== Total BSP file data space used: %zu bytes ===\n\n",
 	    totalmemory);
 
 	if (nowadtextures) {

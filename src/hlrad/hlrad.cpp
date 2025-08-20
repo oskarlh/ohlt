@@ -10,15 +10,19 @@
 #include "log.h"
 #include "mathlib.h"
 #include "messages.h"
+#include "parsing.h"
 #include "rad_cli_option_defaults.h"
 #include "time_counter.h"
 #include "utf8.h"
+#include "wad_texture_name.h"
 #include "win32fix.h"
 #include "winding.h"
 
 #include <algorithm>
 #include <numbers>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -372,51 +376,47 @@ static void MakeParents(int const nodenum, int const parent) {
 //
 // =====================================================================================
 
-// misc
-struct texlight_t final {
-	wad_texture_name name{};
-	float3_array value{};
-	char const * filename{
-		nullptr
-	}; // Either info_texlights or lights.rad filename
+struct texlight_settings final {
+	float3_array lightValues;
+	bool isFromRadFile; // false means it's from an info_texlights
 };
 
-static std::vector<texlight_t> s_texlights;
-using texlight_i = std::vector<texlight_t>::iterator;
+// TODO: Use a better-performing map container type
+static std::unordered_map<wad_texture_name, texlight_settings> s_texlights;
 
 std::vector<minlight_t> s_minlights;
 
 // =====================================================================================
 //  ReadLightFile
 // =====================================================================================
-static void ReadLightFile(char const * const filename) {
-	FILE* f;
-	char scan[4096]; // TODO: Replace. 4096 is arbitrary
-	short argCnt;
-	unsigned int file_texlights = 0;
-
-	f = fopen(filename, "r");
-	if (!f) {
-		Warning("Could not open texlight file %s", filename);
+static void ReadLightFile(std::filesystem::path filename) {
+	auto maybeRadFileContents = read_utf8_file(filename, true);
+	if (!maybeRadFileContents) {
+		Warning("Could not open texlight file %s", filename.c_str());
 		return;
-	} else {
-		Log("Reading texlights from '%s'\n", filename);
 	}
+	Log("Reading texlights from '%s'\n", filename.c_str());
 
-	while (fgets(scan, sizeof(scan), f)) {
-		char* comment;
-		char szTexlight[_MAX_PATH];
+	std::u8string_view remainingInput{ maybeRadFileContents.value() };
+	skip_whitespace_and_comments(remainingInput);
+	std::size_t file_texlights = 0;
+	std::u8string_view line;
+	while (!(line = extract_current_line_then_skip_whitespace_and_comments(
+				 remainingInput
+			 ))
+	            .empty()) {
+		char szTexlight[wad_texture_name_max_length_with_last_null];
 		float r, g, b, i = 1;
 
-		comment = strstr(scan, "//");
-		if (comment) {
-			// Newline and Null terminate the string early if there is a c++
-			// style single line comment
-			comment[0] = '\n';
-			comment[1] = 0;
-		}
-
-		argCnt = sscanf(scan, "%s %f %f %f %f", szTexlight, &r, &g, &b, &i);
+		std::size_t argCnt = sscanf(
+			(char const *) line.data(),
+			"%s %f %f %f %f",
+			szTexlight,
+			&r,
+			&g,
+			&b,
+			&i
+		);
 
 		if (argCnt == 2) {
 			// With 1+1 args, the R,G,B values are all equal to the first
@@ -429,74 +429,54 @@ static void ReadLightFile(char const * const filename) {
 			g *= i / 255.0;
 			b *= i / 255.0;
 		} else if (argCnt != 4) {
-			if (strlen(scan) > 4) {
-				Warning("ignoring bad texlight '%s' in %s", scan, filename);
-			}
+			Warning(
+				"Ignoring bad texlight '%s' in %s",
+				(char const *) line.data(),
+				filename.c_str()
+			);
 			continue;
-		}
-
-		auto it = std::ranges::find_if(
-			s_texlights,
-			[&szTexlight](texlight_t const & tl) {
-				return tl.name == (char8_t const *) szTexlight;
-			}
-		);
-		if (it != s_texlights.end()) {
-			if (strcmp(it->filename, filename) == 0) {
-				Warning(
-					"Duplication of texlight '%s' in file '%s'!",
-					it->name.c_str(),
-					it->filename
-				);
-			} else if (it->value[0] != r || it->value[1] != g
-			           || it->value[2] != b) {
-				Warning(
-					"Overriding '%s' from '%s' with '%s'!",
-					it->name.c_str(),
-					it->filename,
-					filename
-				);
-			} else {
-				Warning(
-					"Redundant '%s' def in '%s' AND '%s'!",
-					it->name.c_str(),
-					it->filename,
-					filename
-				);
-			}
-			s_texlights.erase(it);
 		}
 
 		std::optional<wad_texture_name> const maybeTextureName
 			= wad_texture_name::make_if_legal_name(
 				(char8_t const *) szTexlight
 			);
+
 		if (!maybeTextureName) {
-			Warning("Ignoring bad texlight '%s' in light file", szTexlight);
+			Warning(
+				"Ignoring bad texlight \"%s\" in light file.",
+				filename.c_str()
+			);
 			continue;
 		}
 
-		texlight_t texlight;
-		texlight.name = maybeTextureName.value();
-		texlight.value[0] = r;
-		texlight.value[1] = g;
-		texlight.value[2] = b;
-		texlight.filename = filename;
-		file_texlights++;
-		s_texlights.push_back(texlight);
-	}
-	fclose(f);
-	Log("%u texlights parsed (%s)\n", file_texlights, filename);
-}
+		wad_texture_name const & textureName{ maybeTextureName.value() };
 
-static float3_array LightForTexture(wad_texture_name name) {
-	for (texlight_i it = s_texlights.begin(); it != s_texlights.end();
-	     it++) {
-		if (name == it->name) {
-			return it->value;
+		texlight_settings texlight{};
+		texlight.lightValues = { r, g, b };
+		texlight.isFromRadFile = true;
+		++file_texlights;
+		auto [_, newRecord] = s_texlights.insert_or_assign(
+			textureName, texlight
+		);
+
+		if (!newRecord) {
+			Warning(
+				"Found duplicate settings for the texture \"%s\" when reading the texlight file \"%s\".",
+				textureName.c_str(),
+				filename.c_str()
+			);
 		}
 	}
-	return float3_array{};
+	Log("%zu texlights parsed (%s)\n", file_texlights, filename.c_str());
+}
+
+static float3_array LightForTexture(wad_texture_name name) noexcept {
+	auto it = s_texlights.find(name);
+	if (it != s_texlights.end()) {
+		return it->second.lightValues;
+	}
+	return {};
 }
 
 // =====================================================================================
@@ -548,17 +528,14 @@ static float3_array BaseLightForFace(dface_t const * const f) {
 		light[2] = b > 0 ? b : 0;
 		return light;
 	}
-	texinfo_t* tx;
-	miptex_t* mt;
-	int ofs;
 
 	//
 	// check for light emited by texture
 	//
-	tx = &g_texinfo[f->texinfo];
+	texinfo_t* tx = &g_texinfo[f->texinfo];
 
-	ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[tx->miptex];
-	mt = (miptex_t*) ((byte*) g_dtexdata.data() + ofs);
+	int ofs = ((dmiptexlump_t*) g_dtexdata.data())->dataofs[tx->miptex];
+	miptex_t* mt = (miptex_t*) ((byte*) g_dtexdata.data() + ofs);
 
 	return LightForTexture(mt->name);
 }
@@ -3100,34 +3077,36 @@ void ReadInfoTexAndMinlights() {
 
 				if (values == 1) {
 					g = b = r;
-				} else if (values == 4) // use brightness value.
+				} else if (values == 4) // Use brightness value
 				{
-					r *= i / 255.0;
-					g *= i / 255.0;
-					b *= i / 255.0;
+					r *= i / 255.0f;
+					g *= i / 255.0f;
+					b *= i / 255.0f;
 				} else if (values != 3) {
 					Warning(
-						"Ignoring bad texlight '%s' in info_texlights entity",
+						"Ignoring bad texlight \"%s\" in info_texlights entity.",
 						(char const *) kv.key().data()
 					);
 					continue;
 				}
 				std::optional<wad_texture_name> const maybeTextureName
 					= wad_texture_name::make_if_legal_name(kv.key());
+
 				if (!maybeTextureName) {
 					Warning(
-						"Ignoring bad texlight '%s' in info_texlights entity",
+						"Ignoring bad texlight \"%s\" in info_texlights entity.",
 						(char const *) kv.key().data()
 					);
 					continue;
 				}
-				texlight_t texlight;
-				texlight.name = maybeTextureName.value();
-				texlight.value[0] = r;
-				texlight.value[1] = g;
-				texlight.value[2] = b;
-				texlight.filename = "info_texlights";
-				s_texlights.push_back(texlight);
+
+				wad_texture_name const & textureName{
+					maybeTextureName.value()
+				};
+
+				texlight_settings texlight{};
+				texlight.lightValues = { r, g, b };
+				s_texlights.insert_or_assign(textureName, texlight);
 			}
 			foundTexlights = true;
 		}
@@ -3144,12 +3123,10 @@ char const * ext_rad = ".rad";
 //  LoadRadFiles
 // =====================================================================================
 void LoadRadFiles(
-	char const * const mapname, char const * const user_rad, char* argv0
+	std::filesystem::path const & mapBasePath,
+	std::filesystem::path const & userRadPath,
+	char* argv0
 ) {
-	char mapname_lights[_MAX_PATH];
-
-	char mapfile[_MAX_PATH];
-
 	// Get application directory. Try looking in the directory we were run
 	// from
 	std::filesystem::path appDir = get_path_to_directory_with_executable(
@@ -3158,8 +3135,7 @@ void LoadRadFiles(
 
 	// Get map directory
 	std::filesystem::path mapDir
-		= std::filesystem::path(mapname).parent_path();
-	ExtractFile(mapname, mapfile);
+		= std::filesystem::path(mapBasePath).parent_path();
 
 	// Look for lights.rad in mapdir
 	std::filesystem::path globalLights = mapDir / lights_rad;
@@ -3180,54 +3156,16 @@ void LoadRadFiles(
 	}
 
 	// Look for mapname.rad in mapdir
-	safe_strncpy(mapname_lights, mapDir.c_str(), _MAX_PATH);
-	safe_strncat(mapname_lights, mapfile, _MAX_PATH);
-	safe_strncat(mapname_lights, ext_rad, _MAX_PATH);
-	std::filesystem::path extRadPath{ mapDir / mapfile };
+	std::filesystem::path extRadPath{ mapBasePath };
 	extRadPath += ext_rad;
 	if (std::filesystem::exists(extRadPath)) {
 		ReadLightFile(extRadPath.c_str());
 	}
 
-	if (user_rad) {
-		char user_lights[_MAX_PATH];
-		char userfile[_MAX_PATH];
-
-		ExtractFile(user_rad, userfile);
-
+	if (!userRadPath.empty()) {
 		// Look for user.rad from command line (raw)
-		safe_strncpy(user_lights, user_rad, _MAX_PATH);
-		if (std::filesystem::exists(user_lights)) {
-			ReadLightFile(user_lights);
-		} else {
-			// Try again with .rad enforced as extension
-			DefaultExtension(user_lights, ext_rad);
-			if (std::filesystem::exists(user_lights)) {
-				ReadLightFile(user_lights);
-			} else {
-				// Look for user.rad in mapdir
-				safe_strncpy(user_lights, mapDir.c_str(), _MAX_PATH);
-				safe_strncat(user_lights, userfile, _MAX_PATH);
-				DefaultExtension(user_lights, ext_rad);
-				if (std::filesystem::exists(user_lights)) {
-					ReadLightFile(user_lights);
-				} else {
-					// Look for user.rad in appdir
-					safe_strncpy(user_lights, appDir.c_str(), _MAX_PATH);
-					safe_strncat(user_lights, userfile, _MAX_PATH);
-					DefaultExtension(user_lights, ext_rad);
-					if (std::filesystem::exists(user_lights)) {
-						ReadLightFile(user_lights);
-					} else {
-						// Look for user.rad in current working directory
-						safe_strncpy(user_lights, userfile, _MAX_PATH);
-						DefaultExtension(user_lights, ext_rad);
-						if (std::filesystem::exists(user_lights)) {
-							ReadLightFile(user_lights);
-						}
-					}
-				}
-			}
+		if (std::filesystem::exists(userRadPath)) {
+			ReadLightFile(userRadPath);
 		}
 	}
 	ReadInfoTexAndMinlights();
@@ -3242,7 +3180,7 @@ int main(int const argc, char** argv) {
 
 	int i;
 	char const * mapname_from_arg = nullptr;
-	char const * user_lights = nullptr;
+	std::filesystem::path user_lights;
 	char temp[_MAX_PATH];
 
 	g_Program = u8"HLRAD"; // Radiosity
@@ -3361,8 +3299,7 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-texchop"
 						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						g_texchop = atof(argv[++i]);
 						if (g_texchop < 1) {
 							Log("expected value greater than 1 for '-texchop'\n"
@@ -3424,10 +3361,7 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-limiter"
 						   )) {
-					if (i + 1 < argc) //"1" was added to check if there is
-					                  // another argument afterwards
-					                  //(expected value)
-					{
+					if (i + 1 < argc) {
 						g_limitthreshold = std::clamp(
 							atoi(argv[++i]), 0, 255
 						);
@@ -3441,9 +3375,11 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-lights"
 						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
-						user_lights = argv[++i];
+					if (i + 1 < argc) {
+						user_lights = std::filesystem::path{
+							(char8_t const *) argv[++i],
+							std::filesystem::path::auto_format
+						};
 					} else {
 						Usage();
 					}
@@ -3789,7 +3725,7 @@ int main(int const argc, char** argv) {
 			Settings();
 			DeleteEmbeddedLightmaps();
 			LoadTextures();
-			LoadRadFiles(g_Mapname.c_str(), user_lights, argv[0]);
+			LoadRadFiles(g_Mapname, user_lights, argv[0]);
 			ReadCustomChopValue();
 			ReadCustomSmoothValue();
 			ReadTranslucentTextures();
