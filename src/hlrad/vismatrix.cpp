@@ -2,9 +2,6 @@
 #include "log.h"
 #include "threads.h"
 
-////////////////////////////
-// begin old vismat.c
-//
 #define HALFBIT
 
 // =====================================================================================
@@ -24,7 +21,6 @@ static byte* s_vismatrix;
 static void TestPatchToFace(
 	unsigned const patchnum,
 	int const facenum,
-	int const head,
 	unsigned int const bitpos,
 	byte* pvs,
 	std::vector<float3_array>& transparencyList
@@ -136,14 +132,11 @@ static void TestPatchToFace(
 // =====================================================================================
 
 static void BuildVisLeafs(int threadnum) {
-	int i;
 	int lface, facenum, facenum2;
 	std::array<std::byte, (MAX_MAP_LEAFS + 7) / 8> pvs;
 	dleaf_t* srcleaf;
 	dleaf_t* leaf;
 	patch_t* patch;
-	int head;
-	unsigned bitpos;
 	unsigned patchnum;
 
 	while (1) {
@@ -151,7 +144,7 @@ static void BuildVisLeafs(int threadnum) {
 		// build a minimal BSP tree that only
 		// covers areas relevent to the PVS
 		//
-		i = GetThreadWork();
+		int i = GetThreadWork();
 		if (i == -1) {
 			break;
 		}
@@ -175,7 +168,6 @@ static void BuildVisLeafs(int threadnum) {
 			);
 			continue;
 		}
-		head = 0;
 
 		//
 		// go through all the faces inside the
@@ -189,6 +181,7 @@ static void BuildVisLeafs(int threadnum) {
 					continue;
 				}
 				patchnum = patch - &g_patches.front();
+				unsigned bitpos;
 #ifdef HALFBIT
 				bitpos = patchnum * g_patches.size()
 					- (patchnum * (patchnum + 1)) / 2;
@@ -200,7 +193,6 @@ static void BuildVisLeafs(int threadnum) {
 					TestPatchToFace(
 						patchnum,
 						facenum2,
-						head,
 						bitpos,
 						(byte*) pvs.data(),
 						g_transparencyList
@@ -253,8 +245,6 @@ static bool CheckVisBitVismatrix(
 	unsigned int& next_index,
 	std::vector<float3_array> const & transparencyList
 ) {
-	unsigned bitpos;
-
 	unsigned const a = p1;
 	unsigned const b = p2;
 
@@ -272,6 +262,7 @@ static bool CheckVisBitVismatrix(
 		Warning("in CheckVisBit(), p2 > num_patches");
 	}
 
+	unsigned bitpos;
 #ifdef HALFBIT
 	bitpos = p1 * g_patches.size() - (p1 * (p1 + 1)) / 2 + p2;
 #else
@@ -289,10 +280,6 @@ static bool CheckVisBitVismatrix(
 
 	return false;
 }
-
-//
-// end old vismat.c
-////////////////////////////
 
 // =====================================================================================
 // MakeScalesVismatrix

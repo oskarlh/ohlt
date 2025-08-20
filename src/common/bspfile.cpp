@@ -158,14 +158,12 @@ int CompressVis(
 			continue;
 		}
 
-		unsigned char rep = 1;
-
+		std::uint8_t rep = 1;
 		for (j++; j < src_length; j++) {
 			if (src[j] || rep == 255) {
 				break;
-			} else {
-				rep++;
 			}
+			++rep;
 		}
 		current_length++;
 		hlassume(

@@ -147,7 +147,6 @@ static bool CheckVisBitSparse(
 static void TestPatchToFace(
 	unsigned const patchnum,
 	int const facenum,
-	int const head,
 	byte* pvs,
 	bool uncompressedcolumn[MAX_SPARSE_VISMATRIX_PATCHES],
 	std::vector<float3_array>& transparencyList
@@ -305,7 +304,6 @@ static void BuildVisLeafs(int threadnum) {
 					TestPatchToFace(
 						patchnum,
 						facenum2,
-						0,
 						(byte*) pvs.data(),
 						uncompressedcolumn.get(),
 						g_transparencyList
