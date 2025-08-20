@@ -2451,13 +2451,13 @@ static void ExtendLightmapBuffer() {
 	for (int i = 0; i < g_numfaces; i++) {
 		dface_t* f = &g_dfaces[i];
 		if (f->lightofs >= 0) {
-			int ofs = f->lightofs;
+			int offset = f->lightofs / int8_rgb{}.size();
 			for (int j = 0; j < MAXLIGHTMAPS && f->styles[j] != 255; j++) {
-				ofs += (MAX_SURFACE_EXTENT + 1) * (MAX_SURFACE_EXTENT + 1)
-					* 3;
+				offset += (MAX_SURFACE_EXTENT + 1)
+					* (MAX_SURFACE_EXTENT + 1);
 			}
-			if (ofs > maxsize) {
-				maxsize = ofs;
+			if (offset > maxsize) {
+				maxsize = offset;
 			}
 		}
 	}
@@ -2467,7 +2467,7 @@ static void ExtendLightmapBuffer() {
 			assume_msg::exceeded_MAX_MAP_LIGHTING
 		);
 
-		g_dlightdata.resize(maxsize, std::byte(0));
+		g_dlightdata.resize(maxsize, int8_rgb_black);
 	}
 }
 
@@ -2627,9 +2627,7 @@ static void RadWorld() {
 	MdlLightHack();
 	ReduceLightmap();
 	if (g_dlightdata.empty()) {
-		g_dlightdata.push_back(std::byte(0));
-		g_dlightdata.push_back(std::byte(0));
-		g_dlightdata.push_back(std::byte(0));
+		g_dlightdata.emplace_back(int8_rgb_black);
 	}
 	ExtendLightmapBuffer(
 	); // expand the size of lightdata array (for a few KB) to ensure that

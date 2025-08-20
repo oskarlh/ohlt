@@ -1,6 +1,7 @@
 #include "bspfile.h"
 
 #include "cli_option_defaults.h"
+#include "color.h"
 #include "filelib.h"
 #include "log.h"
 #include "map_entity_parser.h"
@@ -30,7 +31,7 @@ std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels{ bspGlobals.mapModels };
 std::uint32_t& g_visdatasize{ bspGlobals.visDataByteSize };
 std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata{ bspGlobals.visData };
 
-std::vector<std::byte>& g_dlightdata{ bspGlobals.lightData };
+std::vector<int8_rgb>& g_dlightdata{ bspGlobals.lightData };
 
 int& g_texdatasize{ bspGlobals.textureDataByteSize };
 std::vector<std::byte>& g_dtexdata{
@@ -265,6 +266,8 @@ CopyLump(int lump, void* dest, int size, dheader_t const * const header) {
 
 	return length / size;
 }
+
+static int8_rgb dummyBlackPixelForCompletelyBlackLightData;
 
 template <lump_id LumpId>
 static std::span<lump_element_type<LumpId> const>

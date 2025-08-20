@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.h"
 #include "entity_key_value.h"
 #include "external_types/external_types.h"
 #include "internal_types/internal_types.h"
@@ -297,7 +298,9 @@ struct dface_t final {
 
 	// lighting info
 	std::array<std::uint8_t, MAXLIGHTMAPS> styles;
-	std::int32_t lightofs; // Start of [numstyles*surfsize] samples
+	std::int32_t
+		lightofs; // Start of [numstyles*surfsize] samples. Important: This
+	              // is in int8_color_elements (bytes), not int8_rgb
 };
 
 // leaf 0 is the generic contents_t::SOLID leaf, used for all solid areas
@@ -401,7 +404,7 @@ struct lump_element_type_map<lump_id::faces> final {
 
 template <>
 struct lump_element_type_map<lump_id::lighting> final {
-	using type = std::byte;
+	using type = int8_rgb;
 };
 
 template <>
@@ -577,7 +580,7 @@ entity_t* EntityForModel(int modnum);
 
 extern std::ptrdiff_t g_max_map_miptex;
 constexpr std::ptrdiff_t g_max_map_lightdata
-	= std::numeric_limits<std::int32_t>::max();
+	= std::numeric_limits<std::int32_t>::max() / int8_rgb{}.size();
 extern void dtexdata_init();
 
 extern wad_texture_name get_texture_by_number(texinfo_count texturenumber);
@@ -594,7 +597,7 @@ struct bsp_data final {
 	std::uint32_t visDataByteSize{ 0 };
 
 	// This one can be resized and reallocated
-	std::vector<std::byte> lightData{};
+	std::vector<int8_rgb> lightData{};
 
 	// This one can perhaps not be resized and reallocated
 	// Now it's always initialized with g_max_map_miptex 0s
@@ -652,7 +655,7 @@ extern std::array<dmodel_t, MAX_MAP_MODELS>& g_dmodels;
 extern std::uint32_t& g_visdatasize;
 extern std::array<std::byte, MAX_MAP_VISIBILITY>& g_dvisdata;
 
-extern std::vector<std::byte>& g_dlightdata;
+extern std::vector<int8_rgb>& g_dlightdata;
 
 extern int& g_texdatasize;
 extern std::vector<std::byte>& g_dtexdata; // (dmiptexlump_t)

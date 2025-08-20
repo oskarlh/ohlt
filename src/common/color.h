@@ -9,6 +9,8 @@ using float_rgb = std::array<float_color_element, 3>;
 using int8_color_element = std::uint8_t; // [0, 255]
 using int8_rgb = std::array<int8_color_element, 3>;
 
+constexpr int8_rgb int8_rgb_black{ 0, 0, 0 };
+
 // For temporary variables during calculations - values outside [0, 255]
 // should be clamped before being cast to int_color_element.
 // Unless otherwise noted

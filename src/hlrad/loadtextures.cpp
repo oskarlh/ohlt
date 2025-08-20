@@ -1,3 +1,4 @@
+#include "color.h"
 #include "hlrad.h"
 #include "log.h"
 #include "util.h"
@@ -961,13 +962,12 @@ static void GetLightInt(
 		return;
 	}
 	for (int k = 0; k < MAXLIGHTMAPS && face->styles[k] != 255; k++) {
-		std::byte const * samples
+		int8_rgb const * samples
 			= &g_dlightdata
-				  [face->lightofs
-		           + k * (texsize[0] + 1) * (texsize[1] + 1) * 3];
+				  [face->lightofs / int8_rgb{}.size()
+		           + k * (texsize[0] + 1) * (texsize[1] + 1)];
 		if (face->styles[k] == 0) {
-			std::uint8_t const * s = (std::uint8_t const *) &samples
-				[(iy * (texsize[0] + 1) + ix) * 3];
+			int8_rgb const & s = samples[(iy * (texsize[0] + 1) + ix)];
 			light = vector_add(
 				light, float3_array{ float(s[0]), float(s[1]), float(s[2]) }
 			);

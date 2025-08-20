@@ -4660,11 +4660,11 @@ void PrecompLightmapOffsets() {
 			assume_msg::exceeded_MAX_MAP_LIGHTING
 		); // lightdata
 	}
-	g_dlightdata.resize(newLightDataSize, std::byte(0));
+	g_dlightdata.resize(newLightDataSize, int8_rgb{ 0, 0, 0 });
 }
 
 void ReduceLightmap() {
-	std::vector<std::byte> oldlightdata;
+	std::vector<int8_rgb> oldlightdata;
 	using std::swap;
 	swap(oldlightdata, g_dlightdata);
 
@@ -4678,7 +4678,7 @@ void ReduceLightmap() {
 		// just need to zero the lightmap so that it won't contribute to
 		// lightdata size
 		if (IntForKey(g_face_entity[facenum], u8"zhlt_striprad")) {
-			f->lightofs = g_dlightdata.size();
+			f->lightofs = g_dlightdata.size() * 3;
 			for (int k = 0; k < MAXLIGHTMAPS; k++) {
 				f->styles[k] = 255;
 			}
@@ -4689,40 +4689,36 @@ void ReduceLightmap() {
 		}
 
 		int i, k;
-		int oldofs;
 		unsigned char oldstyles[MAXLIGHTMAPS];
-		oldofs = f->lightofs;
-		f->lightofs = g_dlightdata.size();
+		int oldofs = f->lightofs;
+		f->lightofs = g_dlightdata.size() * 3;
 		for (k = 0; k < MAXLIGHTMAPS; k++) {
 			oldstyles[k] = f->styles[k];
 			f->styles[k] = 255;
 		}
 		int numstyles = 0;
 		for (k = 0; k < MAXLIGHTMAPS && oldstyles[k] != 255; k++) {
-			unsigned char maxb = 0;
+			int8_color_element maxb = 0;
 			for (i = 0; i < fl->numsamples; i++) {
-				std::byte* v
-					= &oldlightdata
-						  [oldofs + fl->numsamples * 3 * k + i * 3];
-				maxb = std::max({ maxb,
-				                  (std::uint8_t) v[0],
-				                  (std::uint8_t) v[1],
-				                  (std::uint8_t) v[2] });
+				int8_rgb v = oldlightdata
+					[(oldofs / int8_rgb{}.size()) + fl->numsamples * k + i];
+				maxb = std::max({ maxb, v[0], v[1], v[2] });
 			}
-			if (maxb <= 0) // black
+			if (maxb <= 0) // Black
 			{
 				continue;
 			}
 			f->styles[numstyles] = oldstyles[k];
 			hlassume(
-				g_dlightdata.size() + fl->numsamples * 3 * (numstyles + 1)
+				g_dlightdata.size() + fl->numsamples * (numstyles + 1)
 					<= g_max_map_lightdata,
 				assume_msg::exceeded_MAX_MAP_LIGHTING
 			);
 
 			std::span toAppend{
-				&oldlightdata[oldofs + fl->numsamples * 3 * k],
-				std::size_t(fl->numsamples) * 3zu
+				&oldlightdata
+					[oldofs / int8_rgb{}.size() + fl->numsamples * k],
+				std::size_t(fl->numsamples)
 			};
 			g_dlightdata.insert(
 				g_dlightdata.end(), toAppend.begin(), toAppend.end()
@@ -4827,9 +4823,10 @@ void MLH_AddSample(
 	for (j = 0; j < ALLSTYLES; j++) {
 		if (ml->faces[r].styles[j].exist) {
 			ml->faces[r].samples[i].style[j]
-				= &g_dlightdata
-					  [f->lightofs
-			           + (num + size * ml->faces[r].styles[j].seq) * 3];
+				= (std::byte*) &g_dlightdata
+					  [f->lightofs / int8_rgb{}.size()
+			           + (num + size * ml->faces[r].styles[j].seq)]
+						  .front();
 		}
 	}
 }
@@ -5273,18 +5270,15 @@ void FinalLightFace(int const facenum) {
 				}
 			}
 
-			std::byte* colors
-				= &g_dlightdata
-					  [f->lightofs + k * fl->numsamples * 3 + j * 3];
-
 			int8_rgb lbi;
 			for (int i = 0; i < 3; ++i) {
 				lbi[i] = (std::uint8_t
 				) std::lround(std::clamp(lb[i], 0.0f, 1.0f) * 255);
 			}
-			colors[0] = (std::byte) lbi[0];
-			colors[1] = (std::byte) lbi[1];
-			colors[2] = (std::byte) lbi[2];
+
+			g_dlightdata
+				[f->lightofs / int8_rgb{}.size() + k * fl->numsamples + j]
+				= lbi;
 		}
 	}
 }
