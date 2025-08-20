@@ -20,28 +20,17 @@
 #include <utility>
 using namespace std::literals;
 
-/*
-
- NOTES
-
- - check map size for +/- 4k limit at load time
- - allow for multiple wad.cfg configurations per compile
-
-*/
+hlcsg_settings g_settings{};
 
 static FILE* out[NUM_HULLS]; // pointer to each of the hull out files (.p0,
                              // .p1, ect.)
 static FILE* out_view[NUM_HULLS];
 static FILE* out_detailbrush[NUM_HULLS];
-static int c_tiny;
-static int c_tiny_clip;
 static int c_outfaces;
 static int c_csgfaces;
 bounding_box world_bounds;
 
 hull_sizes g_hull_size{ standard_hull_sizes };
-
-double g_tiny_threshold = DEFAULT_TINY_THRESHOLD;
 
 bool g_noclip = DEFAULT_NOCLIP;            // no clipping hull "-noclip"
 bool g_onlyents = DEFAULT_ONLYENTS;        // onlyents mode "-onlyents"
@@ -61,7 +50,6 @@ cliptype g_cliptype = DEFAULT_CLIPTYPE; // "-cliptype <value>"
 
 bool g_bClipNazi = DEFAULT_CLIPNAZI; // "-noclipeconomy"
 
-double g_scalesize = DEFAULT_SCALESIZE;
 bool g_resetlog = DEFAULT_RESETLOG;
 bool g_nolightopt = DEFAULT_NOLIGHTOPT;
 bool g_nullifytrigger = DEFAULT_NULLIFYTRIGGER;
@@ -349,6 +337,7 @@ static void WriteDetailBrush(int hull, std::vector<bface_t> const & faces) {
 //      generate a mirrored copy of the face to be seen from the inside.
 // =====================================================================================
 static void SaveOutside(
+	hlcsg_settings const & settings,
 	csg_brush& b,
 	int hull,
 	std::vector<bface_t>& outside,
@@ -394,9 +383,8 @@ static void SaveOutside(
 
 		f.contents = frontcontents;
 		f.texinfo = frontnull ? no_texinfo : texinfo;
-		if (f.w.getArea() < g_tiny_threshold) {
-			c_tiny++;
-			Verbose(
+		if (f.w.getArea() < settings.tinyTreshold) {
+			Warning(
 				"Entity %i, Brush %i: tiny fragment\n",
 				b.originalentitynum,
 				b.originalbrushnum
@@ -544,6 +532,7 @@ static void CSGBrush(int brushnum) {
 	// with
 	csg_brush& b1 = g_mapbrushes[brushnum];
 	entity_t* e = &g_entities[b1.entitynum];
+	hlcsg_settings const & settings = g_settings;
 
 	// for each of the hulls
 	for (int hull = 0; hull < NUM_HULLS; hull++) {
@@ -738,13 +727,12 @@ static void CSGBrush(int brushnum) {
 				}
 
 				double area = f.w.getArea();
-				if (area < g_tiny_threshold) {
-					Verbose(
+				if (area < settings.tinyTreshold) {
+					Warning(
 						"Entity %i, Brush %i: tiny penetration\n",
 						b1.originalentitynum,
 						b1.originalbrushnum
 					);
-					c_tiny_clip++;
 					continue;
 				}
 				// there is one convex fragment of the original
@@ -808,7 +796,7 @@ static void CSGBrush(int brushnum) {
 		}
 
 		// all of the faces left in outside are real surface faces
-		SaveOutside(b1, hull, outside, b1.contents);
+		SaveOutside(settings, b1, hull, outside, b1.contents);
 	}
 }
 
@@ -1566,7 +1554,7 @@ static void Usage() {
 	Log("    -dev %s : compile with developer logging\n\n",
 	    (char const *) developer_level_options.data());
 
-	Log("    -scale #         : Scale the world. Use at your own risk.\n");
+	Log("    -mapScale # : Scale the world. Use at your own risk.\n");
 	Log("    -worldextent #   : Extend map geometry limits beyond +/-32768.\n"
 	);
 	Log("    mapfile          : The mapfile to compile\n\n");
@@ -1703,35 +1691,23 @@ Settings(bsp_data const & bspData, hlcsg_settings const & settings) {
 			tiny_penetration,
 			sizeof(tiny_penetration),
 			"%3.3f",
-			g_tiny_threshold
+			settings.tinyTreshold
 		);
 		safe_snprintf(
 			default_tiny_penetration,
 			sizeof(default_tiny_penetration),
 			"%3.3f",
-			DEFAULT_TINY_THRESHOLD
+			defaultSettings.tinyTreshold
 		);
 		Log("min surface area      [ %7s ] [ %7s ]\n",
 		    tiny_penetration,
 		    default_tiny_penetration);
 	}
 
-	{
-		char buf1[10];
-		char buf2[10];
+	Log("Map scale [ %3.3f ] [ %3.3f ]\n",
+	    settings.mapScale,
+	    defaultSettings.mapScale);
 
-		if (g_scalesize > 0) {
-			safe_snprintf(buf1, sizeof(buf1), "%3.3f", g_scalesize);
-		} else {
-			strcpy(buf1, "None");
-		}
-		if (DEFAULT_SCALESIZE > 0) {
-			safe_snprintf(buf2, sizeof(buf2), "%3.3f", DEFAULT_SCALESIZE);
-		} else {
-			strcpy(buf2, "None");
-		}
-		Log("map scaling           [ %7s ] [ %7s ]\n", buf1, buf2);
-	}
 	Log("light name optimize   [ %7s ] [ %7s ]\n",
 	    !g_nolightopt ? "on" : "off",
 	    !DEFAULT_NOLIGHTOPT ? "on" : "off");
@@ -1750,12 +1726,9 @@ void CSGCleanup() {
 	FreeWadPaths();
 }
 
-// =====================================================================================
-//  Main
-//      Oh, come on.
-// =====================================================================================
 int main(int const argc, char** argv) {
-	hlcsg_settings settings{};
+	hlcsg_settings& settings = g_settings;
+
 	bsp_data& bspData = bspGlobals;
 	int i;
 	std::filesystem::path sourceFilePath; // The .map
@@ -1944,8 +1917,7 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-texdata"
 						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						int x = atoi(argv[++i]) * 1024;
 
 						// if (x > g_max_map_miptex) //--vluzacn
@@ -1956,17 +1928,15 @@ int main(int const argc, char** argv) {
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-tiny"
 						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
-						g_tiny_threshold = (float) atof(argv[++i]);
+					if (i + 1 < argc) {
+						settings.tinyTreshold = atof(argv[++i]);
 					} else {
 						Usage();
 					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
 							   argv[i], u8"-hullfile"
 						   )) {
-					if (i + 1 < argc) // added "1" .--vluzacn
-					{
+					if (i + 1 < argc) {
 						g_hullfile = std::filesystem::path{
 							argv[++i], std::filesystem::path::auto_format
 						};
@@ -1994,10 +1964,10 @@ int main(int const argc, char** argv) {
 						Usage();
 					}
 				} else if (strings_equal_with_ascii_case_insensitivity(
-							   argv[i], u8"-scale"
+							   argv[i], u8"-mapScale"
 						   )) {
 					if (i + 1 < argc) {
-						g_scalesize = atof(argv[++i]);
+						settings.mapScale = atof(argv[++i]);
 					} else {
 						Usage();
 					}
@@ -2222,8 +2192,6 @@ int main(int const argc, char** argv) {
 
 			Verbose("%5i csg faces\n", c_csgfaces);
 			Verbose("%5i used faces\n", c_outfaces);
-			Verbose("%5i tiny faces\n", c_tiny);
-			Verbose("%5i tiny clips\n", c_tiny_clip);
 
 			// close hull files
 			for (i = 0; i < NUM_HULLS; i++) {

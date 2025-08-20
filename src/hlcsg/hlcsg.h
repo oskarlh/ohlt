@@ -15,17 +15,15 @@
 #include <deque>
 #include <string>
 
-#define DEFAULT_TINY_THRESHOLD 0.0
-#define DEFAULT_NOCLIP         false
-#define DEFAULT_ONLYENTS       false
-#define DEFAULT_WADTEXTURES    true
-#define DEFAULT_SKYCLIP        true
+#define DEFAULT_NOCLIP      false
+#define DEFAULT_ONLYENTS    false
+#define DEFAULT_WADTEXTURES true
+#define DEFAULT_SKYCLIP     true
 
 #define DEFAULT_CLIPTYPE clip_precise
 
 #define DEFAULT_CLIPNAZI false
 
-#define DEFAULT_SCALESIZE      -1.0 // dont scale
 #define DEFAULT_RESETLOG       true
 #define DEFAULT_NOLIGHTOPT     false
 #define DEFAULT_NULLIFYTRIGGER true
@@ -288,12 +286,9 @@ enum cliptype {
 extern cliptype g_cliptype;
 extern char const * GetClipTypeString(cliptype);
 
-extern double g_scalesize;
 extern bool g_resetlog;
 extern bool g_nolightopt;
 extern bool g_nullifytrigger;
-
-extern double g_tiny_threshold;
 
 extern vector_inplace<mapplane_t, MAX_INTERNAL_MAP_PLANES> g_mapPlanes;
 

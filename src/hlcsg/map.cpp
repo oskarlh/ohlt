@@ -60,6 +60,7 @@ struct add_parsed_entity_result final {
 };
 
 add_parsed_entity_result add_parsed_entity(
+	hlcsg_settings const & settings,
 	parsed_entity& parsedEntity,
 	entity_count entityNumber,
 	brush_count firstBrushNumber,
@@ -394,9 +395,9 @@ add_parsed_entity_result add_parsed_entity(
 		double ent_scale = 1;
 		double ent_gscale = 1;
 
-		if (g_scalesize > 0) {
+		if (settings.mapScale != 1.0) {
 			ent_gscale_b = true;
-			ent_gscale = g_scalesize;
+			ent_gscale = settings.mapScale;
 		}
 		std::array<double, 4> v{};
 		if (has_key_value(&mapent, u8"zhlt_transform")) {
@@ -781,7 +782,11 @@ void LoadMapFile(
 	while ((parseOutcome = parser.parse_entity(parsedEntity))
 	       == parse_entity_outcome::entity_parsed) {
 		add_parsed_entity_result const result = add_parsed_entity(
-			parsedEntity, g_numentities, g_nummapbrushes, g_numbrushsides
+			settings,
+			parsedEntity,
+			g_numentities,
+			g_nummapbrushes,
+			g_numbrushsides
 		);
 
 		g_numentities += result.entityAdded;
