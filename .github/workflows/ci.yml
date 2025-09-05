@@ -35,7 +35,7 @@ jobs:
           - os_and_compiler: ubuntu-gcc
             os: ubuntu-latest
             debug_or_release: release
-            compiler: linux-gcc14
+            compiler: linux-gcc15
           # No Windows support yet...
           # - os_and_compiler: windows-msvc
           #   os: windows-latest
@@ -43,7 +43,16 @@ jobs:
           #   compiler: windows-msvc
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout out repo
+      uses: actions/checkout@v3
+
+    - name: "Linux only: Install GCC 15"
+      if: matrix.os_and_compiler == 'ubuntu-gcc'
+      shell: bash
+      run: |
+        sudo add-apt-repository universe
+        sudo apt update
+        sudo apt install gcc-15 g++-15
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
