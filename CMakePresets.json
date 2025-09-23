@@ -48,10 +48,10 @@
 		},
 		{
 			"hidden": true,
-			"name": "base-macos-clang18-homebrew",
+			"name": "base-macos-clang20-homebrew",
 
 			"cacheVariables": {
-				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/opt/llvm@18/bin/clang++"
+				"CMAKE_CXX_COMPILER": "$env{HOMEBREW_PREFIX}/opt/llvm@20/bin/clang++"
 			}
 		},
 		{
@@ -92,8 +92,8 @@
 			"inherits": ["base-debug", "base-linux-gcc15"]
 		},
 		{
-			"name": "debug-macos-clang18-homebrew",
-			"inherits": ["base-debug", "base-macos-clang18-homebrew"]
+			"name": "debug-macos-clang20-homebrew",
+			"inherits": ["base-debug", "base-macos-clang20-homebrew"]
 		},
 		{
 			"name": "debug-macos-gcc14-homebrew",
@@ -121,8 +121,8 @@
 			"inherits": ["base-release", "base-linux-gcc15"]
 		},
 		{
-			"name": "release-macos-clang18-homebrew",
-			"inherits": ["base-release", "base-macos-clang18-homebrew"]
+			"name": "release-macos-clang20-homebrew",
+			"inherits": ["base-release", "base-macos-clang20-homebrew"]
 		},
 		{
 			"name": "release-macos-gcc14-homebrew",
@@ -151,8 +151,8 @@
 			"configurePreset": "debug-linux-gcc15"
 		},
 		{
-			"name": "debug-macos-clang18-homebrew",
-			"configurePreset": "debug-macos-clang18-homebrew"
+			"name": "debug-macos-clang20-homebrew",
+			"configurePreset": "debug-macos-clang20-homebrew"
 		},
 		{
 			"name": "debug-macos-gcc14-homebrew",
@@ -180,8 +180,8 @@
 			"configurePreset": "release-linux-gcc15"
 		},
 		{
-			"name": "release-macos-clang18-homebrew",
-			"configurePreset": "release-macos-clang18-homebrew"
+			"name": "release-macos-clang20-homebrew",
+			"configurePreset": "release-macos-clang20-homebrew"
 		},
 		{
 			"name": "release-macos-gcc14-homebrew",

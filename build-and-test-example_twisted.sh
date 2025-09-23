@@ -8,7 +8,7 @@ export DEBUG_OR_RELEASE=release
 
 export COMPILER=default
 #export COMPILER=linux-gcc15
-export COMPILER=macos-clang18-homebrew
+export COMPILER=macos-clang20-homebrew
 #export COMPILER=macos-gcc15-homebrew
 #export COMPILER=windows-msvc
 
